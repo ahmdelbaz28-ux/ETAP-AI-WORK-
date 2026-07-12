@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Market Research Report Visual Generator
 
@@ -12,18 +11,20 @@ Use --all flag to generate all 28 extended visuals
 Usage:
     # Generate core 5-6 visuals (recommended for starting a report)
     python generate_market_visuals.py --topic "Electric Vehicle Charging" --output-dir figures/
-
+    
     # Generate all 28 visuals (for comprehensive coverage)
     python generate_market_visuals.py --topic "AI in Healthcare" --output-dir figures/ --all
-
+    
     # Skip existing files
     python generate_market_visuals.py --topic "Topic" --output-dir figures/ --skip-existing
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
+
 
 # Visual definitions with prompts
 # Each tuple: (filename, tool, prompt_template, is_core)
@@ -39,7 +40,7 @@ CORE_VISUALS = [
         "CAGR annotation. Data labels on each bar. Vertical dashed line "
         "between 2024 and 2025. Title: Market Growth Trajectory. Professional white background"
     ),
-
+    
     # Priority 2: TAM/SAM/SOM
     (
         "02_tam_sam_som.png",
@@ -49,7 +50,7 @@ CORE_VISUALS = [
         "Obtainable Market. Each labeled with acronym, full name. "
         "Blue gradient darkest outer to lightest inner. White background professional appearance"
     ),
-
+    
     # Priority 3: Porter's Five Forces
     (
         "03_porters_five_forces.png",
@@ -60,7 +61,7 @@ CORE_VISUALS = [
         "Bottom Threat of Substitutes. Color code HIGH red, MEDIUM yellow, LOW green. "
         "Include 2-3 key factors per box. Professional appearance"
     ),
-
+    
     # Priority 4: Competitive Positioning Matrix
     (
         "04_competitive_positioning.png",
@@ -71,7 +72,7 @@ CORE_VISUALS = [
         "Plot 8-10 company circles with names. Circle size = market share. "
         "Legend for sizes. Professional appearance"
     ),
-
+    
     # Priority 5: Risk Heatmap
     (
         "05_risk_heatmap.png",
@@ -82,7 +83,7 @@ CORE_VISUALS = [
         "Plot 10-12 numbered risks R1 R2 etc as labeled points. "
         "Legend with risk names. Professional clear"
     ),
-
+    
     # Priority 6: Executive Summary Infographic (Optional)
     (
         "06_exec_summary_infographic.png",
@@ -105,7 +106,7 @@ EXTENDED_VISUALS = [
         "for product flow, dashed arrows for money flow. Regulatory oversight layer above. "
         "Professional blue color scheme, white background, clear labels"
     ),
-
+    
     # Regional Breakdown
     (
         "08_regional_breakdown.png",
@@ -116,7 +117,7 @@ EXTENDED_VISUALS = [
         "Middle East Africa 4% gray blue. Show percentage for each slice. Legend on right. "
         "Title: Market Size by Region. Professional appearance"
     ),
-
+    
     # Segment Growth
     (
         "09_segment_growth.png",
@@ -126,7 +127,7 @@ EXTENDED_VISUALS = [
         "Data labels with percentages. Sorted highest to lowest. "
         "Title: Segment Growth Rate Comparison. Include market average line"
     ),
-
+    
     # Driver Impact Matrix
     (
         "10_driver_impact_matrix.png",
@@ -137,7 +138,7 @@ EXTENDED_VISUALS = [
         "Lower-left LOWER PRIORITY green. Plot 8 labeled driver circles at positions. "
         "Circle size indicates current impact. Professional clear labels"
     ),
-
+    
     # PESTLE Analysis
     (
         "11_pestle_analysis.png",
@@ -148,7 +149,7 @@ EXTENDED_VISUALS = [
         "has 2-3 bullet points of key factors. Lines connecting center to each. "
         "Professional appearance clear readable text"
     ),
-
+    
     # Trends Timeline
     (
         "12_trends_timeline.png",
@@ -158,7 +159,7 @@ EXTENDED_VISUALS = [
         "Technology trends blue, Market trends green, Regulatory trends orange. "
         "Current marker at 2024. Professional clear labels"
     ),
-
+    
     # Market Share Chart
     (
         "13_market_share.png",
@@ -169,7 +170,7 @@ EXTENDED_VISUALS = [
         "Percentage labels on slices. Legend with company names. "
         "Title: Market Share by Company. Colorblind-friendly colors professional"
     ),
-
+    
     # Strategic Groups Map
     (
         "14_strategic_groups.png",
@@ -180,7 +181,7 @@ EXTENDED_VISUALS = [
         "Label groups: Global Generalists, Regional Specialists, Focused Innovators. "
         "Different colors per group. Professional clear labels"
     ),
-
+    
     # Customer Segments
     (
         "15_customer_segments.png",
@@ -207,7 +208,7 @@ EXTENDED_VISUALS = [
         "Pain Points, Touchpoints in rows below. Icons for each stage. "
         "Color gradient light to dark. Professional clear labels"
     ),
-
+    
     # Technology Roadmap
     (
         "18_technology_roadmap.png",
@@ -225,7 +226,7 @@ EXTENDED_VISUALS = [
         "Slope of Enlightenment rising, Plateau of Productivity stable. "
         "Plot 6-8 technologies on curve with labels. Color by category. Professional clear labels"
     ),
-
+    
     # Regulatory Timeline
     (
         "20_regulatory_timeline.png",
@@ -234,7 +235,7 @@ EXTENDED_VISUALS = [
         "current green marker, upcoming light blue dashed. Each shows regulation name, date, "
         "brief description. Vertical NOW line at 2024. Professional appearance clear labels"
     ),
-
+    
     # Risk Mitigation Matrix
     (
         "21_risk_mitigation.png",
@@ -244,7 +245,7 @@ EXTENDED_VISUALS = [
         "risks to mitigations. Group by category. Risk severity by color intensity. "
         "Include prevention and response. Professional clear labels"
     ),
-
+    
     # Opportunity Matrix
     (
         "22_opportunity_matrix.png",
@@ -255,7 +256,7 @@ EXTENDED_VISUALS = [
         "Lower-left AVOID red. Plot 6-8 opportunity circles with labels. "
         "Size = opportunity value. Professional"
     ),
-
+    
     # Recommendation Priority Matrix
     (
         "23_recommendation_priority.png",
@@ -265,7 +266,7 @@ EXTENDED_VISUALS = [
         "Upper-right MAJOR PROJECTS blue Plan Carefully, Lower-left FILL-INS gray Do If Time, "
         "Lower-right THANKLESS TASKS red Avoid. Plot 6-8 numbered recommendations. Professional"
     ),
-
+    
     # Implementation Timeline
     (
         "24_implementation_timeline.png",
@@ -275,7 +276,7 @@ EXTENDED_VISUALS = [
         "Phase 4 Optimize months 16-24 light blue. Overlapping bars. "
         "Key milestones as diamonds. Month markers X-axis. Professional"
     ),
-
+    
     # Milestone Tracker
     (
         "25_milestone_tracker.png",
@@ -285,7 +286,7 @@ EXTENDED_VISUALS = [
         "Upcoming gray circle. Group by phase. Phase labels above. "
         "Connected timeline line. Professional"
     ),
-
+    
     # Financial Projections
     (
         "26_financial_projections.png",
@@ -295,7 +296,7 @@ EXTENDED_VISUALS = [
         "Three scenarios: Conservative gray, Base Case blue, Optimistic green. "
         "X-axis Year 1-5. Data labels. Legend. Title Financial Projections 5-Year. Professional"
     ),
-
+    
     # Scenario Analysis
     (
         "27_scenario_analysis.png",
@@ -311,12 +312,13 @@ EXTENDED_VISUALS = [
 def get_script_path(tool: str) -> Path:
     """Get the path to the appropriate generation script."""
     base_path = Path(__file__).parent.parent.parent  # skills directory
-
+    
     if tool == "scientific-schematics":
         return base_path / "scientific-schematics" / "scripts" / "generate_schematic.py"
-    if tool == "generate-image":
+    elif tool == "generate-image":
         return base_path / "generate-image" / "scripts" / "generate_image.py"
-    raise ValueError(f"Unknown tool: {tool}")
+    else:
+        raise ValueError(f"Unknown tool: {tool}")
 
 
 def generate_visual(
@@ -330,23 +332,23 @@ def generate_visual(
 ) -> bool:
     """Generate a single visual using the appropriate tool."""
     output_path = output_dir / filename
-
+    
     # Skip if exists and skip_existing is True
     if skip_existing and output_path.exists():
         if verbose:
             print(f"  [SKIP] {filename} already exists")
         return True
-
+    
     # Format prompt with topic
     formatted_prompt = prompt.format(topic=topic)
-
+    
     # Get script path
     script_path = get_script_path(tool)
-
+    
     if not script_path.exists():
         print(f"  [ERROR] Script not found: {script_path}")
         return False
-
+    
     # Build command
     if tool == "scientific-schematics":
         cmd = [
@@ -363,38 +365,39 @@ def generate_visual(
             formatted_prompt,
             "--output", str(output_path)
         ]
-
+    
     if verbose:
         print(f"  [GEN] {filename}")
         print(f"        Tool: {tool}")
         print(f"        Prompt: {formatted_prompt[:80]}...")
-
+    
     try:
-        result = subprocess.run(  # NOSONAR - pythonsecurity:S8705
+        result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=120  # 2 minute timeout per image
         )
-
+        
         if result.returncode == 0:
             if verbose:
                 print(f"  [OK] {filename} generated successfully")
             return True
-        print(f"  [ERROR] {filename} failed:")
-        if result.stderr:
-            print(f"         {result.stderr[:200]}")
-        return False
-
+        else:
+            print(f"  [ERROR] {filename} failed:")
+            if result.stderr:
+                print(f"         {result.stderr[:200]}")
+            return False
+            
     except subprocess.TimeoutExpired:
         print(f"  [TIMEOUT] {filename} generation timed out")
         return False
     except Exception as e:
-        print(f"  [ERROR] {filename}: {e!s}")
+        print(f"  [ERROR] {filename}: {str(e)}")
         return False
 
 
-def main():  # NOSONAR - python:S3776
+def main():
     parser = argparse.ArgumentParser(
         description="Generate visuals for a market research report (default: 5-6 core visuals)"
     )
@@ -433,23 +436,23 @@ def main():  # NOSONAR - python:S3776
         type=str,
         help="Only generate visuals matching this pattern (e.g., '01_', 'porter')"
     )
-
+    
     args = parser.parse_args()
-
+    
     # Create output directory
     output_dir = Path(args.output_dir)
     if not args.dry_run:
-        output_dir.mkdir(parents=True, exist_ok=True)  # NOSONAR - pythonsecurity:S8707
-
+        output_dir.mkdir(parents=True, exist_ok=True)
+    
     print(f"\n{'='*60}")
-    print("Market Research Visual Generator")
+    print(f"Market Research Visual Generator")
     print(f"{'='*60}")
     print(f"Topic: {args.topic}")
     print(f"Output Directory: {output_dir.absolute()}")
     print(f"Mode: {'All Visuals (27)' if args.all else 'Core Visuals Only (5-6)'}")
     print(f"Skip Existing: {args.skip_existing}")
     print(f"{'='*60}\n")
-
+    
     # Select visual set based on --all flag
     if args.all:
         visuals_to_generate = CORE_VISUALS + EXTENDED_VISUALS
@@ -457,16 +460,16 @@ def main():  # NOSONAR - python:S3776
     else:
         visuals_to_generate = CORE_VISUALS
         print("Generating CORE visuals only (use --all for extended set)\n")
-
+    
     # Filter visuals if --only specified
     if args.only:
         pattern = args.only.lower()
         visuals_to_generate = [
-            v for v in visuals_to_generate
+            v for v in VISUALS 
             if pattern in v[0].lower() or pattern in v[2].lower()
         ]
         print(f"Filtered to {len(visuals_to_generate)} visuals matching '{args.only}'\n")
-
+    
     if args.dry_run:
         print("DRY RUN - The following visuals would be generated:\n")
         for filename, tool, prompt in visuals_to_generate:
@@ -476,16 +479,16 @@ def main():  # NOSONAR - python:S3776
             print(f"    Prompt: {formatted[:60]}...")
             print()
         return
-
+    
     # Generate all visuals
     total = len(visuals_to_generate)
     success = 0
     failed = 0
     skipped = 0
-
+    
     for i, (filename, tool, prompt) in enumerate(visuals_to_generate, 1):
         print(f"\n[{i}/{total}] Generating {filename}...")
-
+        
         result = generate_visual(
             filename=filename,
             tool=tool,
@@ -495,7 +498,7 @@ def main():  # NOSONAR - python:S3776
             skip_existing=args.skip_existing,
             verbose=args.verbose
         )
-
+        
         if result:
             if args.skip_existing and (output_dir / filename).exists():
                 skipped += 1
@@ -503,22 +506,22 @@ def main():  # NOSONAR - python:S3776
                 success += 1
         else:
             failed += 1
-
+    
     # Print summary
     print(f"\n{'='*60}")
-    print("Generation Complete")
+    print(f"Generation Complete")
     print(f"{'='*60}")
     print(f"Total:    {total}")
     print(f"Success:  {success}")
     print(f"Skipped:  {skipped}")
     print(f"Failed:   {failed}")
     print(f"{'='*60}")
-
+    
     if failed > 0:
         print(f"\nWARNING: {failed} visuals failed to generate.")
         print("Check the output above for error details.")
         print("You may need to generate failed visuals manually.")
-
+    
     print(f"\nOutput directory: {output_dir.absolute()}")
 
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 jd_gap.py — 把 parse_jd.py 的 JSON 与简历文本做 gap 分析
 
@@ -21,7 +20,7 @@ from pathlib import Path
 def load_resume_text(path: Path) -> str:
     suffix = path.suffix.lower()
     if suffix in {".md", ".txt"}:
-        return path.read_text(encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+        return path.read_text(encoding="utf-8")
     if suffix == ".docx":
         try:
             from docx import Document
@@ -45,7 +44,8 @@ def find_evidence(resume_text: str, keyword: str, window: int = 30) -> str | Non
         return None
     start = max(0, m.start() - window)
     end = min(len(resume_text), m.end() + window)
-    return resume_text[start:end].replace("\n", " ").strip()
+    snippet = resume_text[start:end].replace("\n", " ").strip()
+    return snippet
 
 
 def fuzzy_hit(resume_text: str, keyword: str) -> str | None:
@@ -161,13 +161,13 @@ def main() -> None:
     parser.add_argument("--out", help="输出 markdown 路径")
     args = parser.parse_args()
 
-    jd = json.loads(Path(args.jd).read_text(encoding="utf-8"))  # NOSONAR - pythonsecurity:S8707
+    jd = json.loads(Path(args.jd).read_text(encoding="utf-8"))
     resume_text = load_resume_text(Path(args.resume))
     gap = analyze(jd, resume_text)
     report = render(jd, gap)
 
     if args.out:
-        Path(args.out).write_text(report, encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+        Path(args.out).write_text(report, encoding="utf-8")
         print(f"✓ Gap 报告已生成：{args.out}")
     else:
         print(report)

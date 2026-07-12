@@ -1,10 +1,10 @@
-# NOSONAR
 """Shared utilities for skill-creator scripts."""
 
 from pathlib import Path
 
 
-def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:  # NOSONAR - python:S3776
+
+def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:
     """Parse a SKILL.md file, returning (name, description, full_content)."""
     content = (skill_path / "SKILL.md").read_text()
     lines = content.split("\n")
@@ -35,12 +35,13 @@ def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:  # NOSONAR - pytho
             if value in (">", "|", ">-", "|-"):
                 continuation_lines: list[str] = []
                 i += 1
-                while i < len(frontmatter_lines) and (frontmatter_lines[i].startswith("  ") or frontmatter_lines[i].startswith("\t")):  # NOSONAR - python:S8513
+                while i < len(frontmatter_lines) and (frontmatter_lines[i].startswith("  ") or frontmatter_lines[i].startswith("\t")):
                     continuation_lines.append(frontmatter_lines[i].strip())
                     i += 1
                 description = " ".join(continuation_lines)
                 continue
-            description = value.strip('"').strip("'")
+            else:
+                description = value.strip('"').strip("'")
         i += 1
 
     return name, description, content

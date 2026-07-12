@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# NOSONAR
-"""
-Dispatcher for the 27 AMiner Open Platform functions exposed via the
+"""Dispatcher for the 27 AMiner Open Platform functions exposed via the
 z-ai gateway's /v1/functions/invoke endpoint.
 
 Each action maps 1:1 to an `aminer_*` function registered in the gateway.
@@ -48,7 +46,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
         "args": [
             ("--title", "title", "str", "Paper title keyword (required)"),
             ("--page", "page", "int", "Page number, default 1"),
-            ("--size", "size", "int", "Page size, default 10"),  # NOSONAR - python:S1192
+            ("--size", "size", "int", "Page size, default 10"),
         ],
     },
     "paper_search_pro": {
@@ -62,7 +60,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
             ("--org", "org", "str", "Organization name"),
             ("--venue", "venue", "str", "Venue name"),
             ("--order", "order", "str", "Sort: citation | year"),
-            ("--page", "page", "int", "Page number, default 0"),  # NOSONAR - python:S1192
+            ("--page", "page", "int", "Page number, default 0"),
             ("--size", "size", "int", "Page size, default 10"),
         ],
     },
@@ -88,7 +86,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
             ("--org-id", "org_id", "json", "Org ID list"),
             ("--venue-ids", "venue_ids", "json", "Venue ID list"),
             ("--size", "size", "int", "Page size, default 10"),
-            ("--offset", "offset", "int", "Offset, default 0"),  # NOSONAR - python:S1192
+            ("--offset", "offset", "int", "Offset, default 0"),
         ],
     },
     "paper_info": {
@@ -144,7 +142,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
     "person_detail": {
         "function": "aminer_person_detail",
         "help": "Full scholar profile (bio/education/honors).",
-        "args": [("--id", "id", "str", "person_id (required)")],  # NOSONAR - python:S1192
+        "args": [("--id", "id", "str", "person_id (required)")],
     },
     "person_figure": {
         "function": "aminer_person_figure",
@@ -181,7 +179,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
         "function": "aminer_org_person_relation",
         "help": "Affiliated scholars (10 per call).",
         "args": [
-            ("--org-id", "org_id", "str", "org_id (required)"),  # NOSONAR - python:S1192
+            ("--org-id", "org_id", "str", "org_id (required)"),
             ("--offset", "offset", "int", "Offset, default 0"),
         ],
     },
@@ -340,7 +338,7 @@ def _cast(kind: str) -> Callable[[str], Any]:
     if kind == "float":
         return float
     if kind == "json":
-        return json.loads
+        return lambda s: json.loads(s)
     return str
 
 

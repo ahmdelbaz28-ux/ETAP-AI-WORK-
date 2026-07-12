@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 build_quiz_html.py - 把题目 JSON 注入到模板 HTML，生成可独立运行的练习网页。
 
@@ -44,6 +43,7 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
+
 SKILL_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_PATH = SKILL_DIR / "templates" / "quiz_template.html"
 
@@ -51,10 +51,10 @@ REQUIRED_FIELDS = {"type", "prompt", "answer"}
 VALID_TYPES = {"single_choice", "true_false", "fill_blank", "short_answer"}
 
 
-def load_questions(path: Path) -> list[dict[str, Any]]:  # NOSONAR - python:S3776
+def load_questions(path: Path) -> list[dict[str, Any]]:
     """加载题目 JSON，做基本格式校验。"""
     try:
-        raw = path.read_text(encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+        raw = path.read_text(encoding="utf-8")
     except OSError as e:
         print(f"❌ 无法读取文件：{path} - {e}", file=sys.stderr)
         sys.exit(1)
@@ -144,7 +144,8 @@ def render(questions: list[dict[str, Any]], title: str, subtitle: str, qid: str)
     html = html.replace("{{TITLE}}", _safe(title))
     html = html.replace("{{SUBTITLE}}", _safe(subtitle))
     html = html.replace("{{QUIZ_DATA}}", quiz_json)
-    return html.replace("{{META}}", meta_json)
+    html = html.replace("{{META}}", meta_json)
+    return html
 
 
 def _safe(s: str) -> str:

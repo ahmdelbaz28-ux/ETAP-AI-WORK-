@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 PDF Quality Assurance Checker
 =============================
@@ -20,16 +19,19 @@ Checks:
  10. Margin symmetry check (left/right text margins)
  11. Table centering check (if detected)
  12. Formula overflow check (optional)
+ 13. TOC placeholder detection (empty/unfilled table of contents)
 """
 
+import sys
 import os
 import re
-import sys
+import json
+from collections import Counter
 
 try:
     import pymupdf  # PyMuPDF
 except ImportError:
-    import _fitz_compat as pymupdf
+    import fitz as pymupdf
 
 # ============================================================
 # Config
@@ -52,8 +54,11 @@ LINE_END_FORBIDDEN = set(
     "\u201c"        # " left curly double quote
 )
 
-# Minimum fill ratio for last page
-LAST_PAGE_MIN_FILL = 0.40
+# Minimum fill ratio for last page (DISABLED — caused false positives)
+# LAST_PAGE_MIN_FILL = 0.40
+
+# Maximum allowed color count — REMOVED (color count is now info-only)
+# MAX_COLORS = 8
 
 # ============================================================
 # Checks
@@ -64,16 +69,20 @@ class QAResult:
         self.issues = []     # (severity, category, message)
         self.passes = []     # passed checks
         self.info = []       # informational
-
+    
     def error(self, cat, msg):
         self.issues.append(('ERROR', cat, msg))
-
+    
+    def fail(self, cat, msg):
+        """Alias for error — used for hard failures."""
+        self.issues.append(('ERROR', cat, msg))
+    
     def warn(self, cat, msg):
         self.issues.append(('WARN', cat, msg))
-
+    
     def ok(self, msg):
         self.passes.append(msg)
-
+    
     def add_info(self, msg):
         self.info.append(msg)
 
@@ -83,17 +92,17 @@ def check_last_page_fill(doc, result):
     if len(doc) < 2:
         result.ok("Single-page document, no last-page blank check needed")
         return
-
+    
     last_page = doc[-1]
     page_rect = last_page.rect
-    page_rect.width * page_rect.height  # NOSONAR: S905 intentional expression
-
+    page_area = page_rect.width * page_rect.height
+    
     # Get bounding boxes of all content on last page
     blocks = last_page.get_text("blocks")
     if not blocks:
-        result.error("Last page blank", f"Page {len(doc)} (last page) has no content at all!")  # NOSONAR - python:S1192
+        result.error("Last page blank", f"Page {len(doc)} (last page) has no content at all!")
         return
-
+    
     # Calculate max y-coordinate covered by content
     max_y = 0
     min_y = page_rect.height
@@ -101,16 +110,16 @@ def check_last_page_fill(doc, result):
         if b[4].strip():  # Has text content
             min_y = min(min_y, b[1])
             max_y = max(max_y, b[3])
-
+    
     if max_y == 0:
         result.error("Last page blank", f"Page {len(doc)} (last page) has no valid text content")
         return
-
+    
     content_height = max_y - min_y
     fill_ratio = content_height / page_rect.height
-
+    
     result.add_info(f"Last page fill ratio: {fill_ratio:.0%} (content height {content_height:.0f}px / page height {page_rect.height:.0f}px)")
-
+    
     if fill_ratio < 0.25:
         result.error("Last page blank", f"Last page fill ratio only {fill_ratio:.0%}, mostly blank! Consider compressing preceding page spacing or trimming content")
     elif fill_ratio < LAST_PAGE_MIN_FILL:
@@ -119,15 +128,15 @@ def check_last_page_fill(doc, result):
         result.ok(f"Last page fill ratio {fill_ratio:.0%} ✓")
 
 
-def check_punctuation(doc, result):  # NOSONAR - python:S3776
+def check_punctuation(doc, result):
     """Check CJK punctuation placement rules"""
     violations = []
-
+    
     for page_num in range(len(doc)):
         page = doc[page_num]
         # Extract text by line
         text_dict = page.get_text("dict")
-
+        
         for block in text_dict.get("blocks", []):
             if block.get("type") != 0:  # Only check text blocks
                 continue
@@ -135,21 +144,21 @@ def check_punctuation(doc, result):  # NOSONAR - python:S3776
                 line_text = ""
                 for span in line.get("spans", []):
                     line_text += span.get("text", "")
-
+                
                 line_text = line_text.strip()
                 if not line_text:
                     continue
-
+                
                 # Check line start
                 first_char = line_text[0]
                 if first_char in LINE_START_FORBIDDEN:
                     violations.append((page_num + 1, f"Forbidden line-start punctuation '{first_char}': ...{line_text[:30]}"))
-
+                
                 # Check line end
                 last_char = line_text[-1] if len(line_text) > 0 else ''
                 if last_char in LINE_END_FORBIDDEN:
                     violations.append((page_num + 1, f"Forbidden line-end punctuation '{last_char}': {line_text[-30:]}..."))
-
+    
     if violations:
         # Show at most 10
         shown = violations[:10]
@@ -170,24 +179,24 @@ def check_blank_pages(doc, result):
         # Also check for images
         images = page.get_images()
         drawings = page.get_drawings()
-
+        
         if not text and not images and not drawings:
             blank_pages.append(i + 1)
-
+    
     if blank_pages:
         result.error("Blank pages", f"Found blank pages: {blank_pages}")
     else:
         result.ok("No blank pages ✓")
 
 
-def check_colors(doc, result):  # NOSONAR - python:S3776
+def check_colors(doc, result):
     """Analyze colors used in the document (informational only, no pass/fail)"""
     colors = set()
-
+    
     for page_num in range(len(doc)):
         page = doc[page_num]
         text_dict = page.get_text("dict")
-
+        
         for block in text_dict.get("blocks", []):
             if block.get("type") != 0:
                 continue
@@ -200,7 +209,7 @@ def check_colors(doc, result):  # NOSONAR - python:S3776
                         b = color & 0xFF
                         hex_color = f"#{r:02x}{g:02x}{b:02x}"
                         colors.add(hex_color)
-
+        
         # Check drawing colors
         drawings = page.get_drawings()
         for d in drawings:
@@ -214,7 +223,7 @@ def check_colors(doc, result):  # NOSONAR - python:S3776
                 if isinstance(c, (tuple, list)) and len(c) >= 3:
                     hex_color = f"#{int(c[0]*255):02x}{int(c[1]*255):02x}{int(c[2]*255):02x}"
                     colors.add(hex_color)
-
+    
     # Filter out near-black/white/gray colors
     distinct_colors = []
     for c in colors:
@@ -224,30 +233,74 @@ def check_colors(doc, result):  # NOSONAR - python:S3776
         max_diff = max(abs(r-g), abs(g-b), abs(r-b))
         if max_diff > 20:
             distinct_colors.append(c)
-
+    
     result.add_info(f"Total text colors: {len(colors)} (chromatic: {len(distinct_colors)})")
-
+    
     if distinct_colors:
         result.add_info(f"Chromatic colors: {', '.join(sorted(distinct_colors)[:10])}")
 
 
 def check_page_size_consistency(doc, result):
-    """Check whether all page sizes are consistent"""
+    """Check whether all page sizes are consistent.
+    
+    Distinguishes between real size mismatches (ERROR) and mere
+    portrait/landscape mixed orientation (OK).  When a size mismatch is
+    detected, the error message includes remediation guidance so the
+    generating agent can self-correct.
+    """
     if len(doc) < 2:
         result.ok("Single-page document, size consistent ✓")
         return
-
+    
     sizes = set()
+    normalized = set()  # orientation-agnostic: always (short, long)
     for i in range(len(doc)):
         page = doc[i]
         w = round(page.rect.width, 1)
         h = round(page.rect.height, 1)
         sizes.add((w, h))
-
-    if len(sizes) > 1:
-        result.warn("Page size", f"Inconsistent page sizes: {sizes}")
+        normalized.add(tuple(sorted((w, h))))
+    
+    if len(normalized) > 1:
+        # True size mismatch (not just orientation) — this is a hard error.
+        # Build remediation hint: identify the majority size as "expected"
+        # and flag outliers, with concrete --width guidance for covers.
+        page_sizes = []
+        for i in range(len(doc)):
+            page = doc[i]
+            w = round(page.rect.width, 1)
+            h = round(page.rect.height, 1)
+            page_sizes.append((w, h))
+        
+        from collections import Counter
+        size_counts = Counter(page_sizes)
+        majority_size = size_counts.most_common(1)[0][0]
+        outlier_pages = [i + 1 for i, s in enumerate(page_sizes) if s != majority_size]
+        outlier_size = page_sizes[outlier_pages[0] - 1]
+        
+        # Compute the correct --width value for html2poster.js
+        # PDF pt → CSS px conversion: px = pt × 96 / 72
+        expected_w_px = round(majority_size[0] * 96 / 72)
+        expected_h_px = round(majority_size[1] * 96 / 72)
+        
+        msg = (
+            f"Inconsistent page sizes: {sizes}. "
+            f"Page(s) {outlier_pages} are {outlier_size[0]}×{outlier_size[1]}pt "
+            f"but the majority ({len(doc) - len(outlier_pages)} pages) are "
+            f"{majority_size[0]}×{majority_size[1]}pt. "
+            f"FIX: Regenerate the cover/outlier page HTML with "
+            f"width: {expected_w_px}px; height: {expected_h_px}px "
+            f"(A4 at 96dpi) and render with "
+            f"html2poster.js --width {expected_w_px}px. "
+            f"The current outlier appears to use {outlier_size[0]}pt values "
+            f"as px, causing a 25% size reduction (72dpi/96dpi mismatch)."
+        )
+        result.error("Page size", msg)
+    elif len(sizes) > 1:
+        # Same dimensions, just portrait vs landscape — this is fine
+        result.ok(f"Page size consistent (mixed orientation) ✓ — {sizes}")
     else:
-        size = next(iter(sizes))
+        size = list(sizes)[0]
         # Convert to mm
         w_mm = size[0] * 25.4 / 72
         h_mm = size[1] * 25.4 / 72
@@ -258,30 +311,30 @@ def check_page_size_consistency(doc, result):
 def check_text_overflow(doc, result):
     """Check whether text overflows page boundaries"""
     overflow_pages = []
-
+    
     for i in range(len(doc)):
         page = doc[i]
         rect = page.rect
         blocks = page.get_text("blocks")
-
+        
         for b in blocks:
+            # b = (x0, y0, x1, y1, text, block_no, block_type)
             if b[2] > rect.width + 2 or b[3] > rect.height + 2:  # 2px tolerance
                 overflow_pages.append(i + 1)
                 break
             if b[0] < -2 or b[1] < -2:
                 overflow_pages.append(i + 1)
                 break
-
+    
     if overflow_pages:
         result.warn("Content overflow", f"Pages {overflow_pages} may have content exceeding page boundaries")
     else:
         result.ok("No content overflow ✓")
 
 
-def check_content_fill_ratio(doc, result):  # NOSONAR - python:S3776
-    """
-    Check content fill ratio per page — warns when content is crammed at top leaving large void below.
-
+def check_content_fill_ratio(doc, result):
+    """Check content fill ratio per page — warns when content is crammed at top leaving large void below.
+    
     Rules:
     - Skip single-page documents (may be intentional design)
     - Skip page 1 (usually cover with intentional whitespace)
@@ -291,31 +344,31 @@ def check_content_fill_ratio(doc, result):  # NOSONAR - python:S3776
     if len(doc) < 2:
         result.ok("Single-page document, skipping content fill ratio check ✓")
         return
-
+    
     low_fill_pages = []
-
+    
     for i in range(len(doc)):
         page = doc[i]
         page_rect = page.rect
         page_height = page_rect.height
-
+        
         # Skip page 1 (cover)
         if i == 0:
             continue
-
+        
         blocks = page.get_text("blocks")
         images = page.get_images()
         drawings = page.get_drawings()
-
+        
         if not blocks and not images and not drawings:
             continue  # Blank page check handles this
-
+        
         # Calculate content bbox
         max_y = 0
         for b in blocks:
             if b[4].strip():
                 max_y = max(max_y, b[3])
-
+        
         # Include images in bbox
         for img in images:
             try:
@@ -324,17 +377,17 @@ def check_content_fill_ratio(doc, result):  # NOSONAR - python:S3776
                     max_y = max(max_y, r.y1)
             except Exception:
                 pass
-
+        
         if max_y == 0:
             continue
-
+        
         fill_ratio = max_y / page_height
         is_last = (i == len(doc) - 1)
         threshold = 0.25 if is_last else 0.40
-
+        
         if fill_ratio < threshold:
             low_fill_pages.append((i + 1, fill_ratio, threshold))
-
+    
     if low_fill_pages:
         for pg, ratio, thresh in low_fill_pages:
             result.warn(
@@ -347,9 +400,8 @@ def check_content_fill_ratio(doc, result):  # NOSONAR - python:S3776
         result.ok("Content fill ratio adequate on all pages ✓")
 
 
-def check_cover_bleed(doc, result, poster=False):  # NOSONAR - python:S3776
-    """
-    Check if the cover page (page 1) fills the entire page area (full-bleed).
+def check_cover_bleed(doc, result, poster=False):
+    """Check if the cover page (page 1) fills the entire page area (full-bleed).
 
     A properly designed cover should have background color/graphics extending
     to the page edges. If the content bbox has significant margins on all sides,
@@ -366,7 +418,7 @@ def check_cover_bleed(doc, result, poster=False):  # NOSONAR - python:S3776
         return
 
     pages_to_check = range(len(doc)) if poster else [0]
-
+    
     for page_idx in pages_to_check:
         page = doc[page_idx]
         page_rect = page.rect
@@ -474,7 +526,7 @@ def check_margin_symmetry(doc, result, skip_cover=False):
         result.ok("Left/right margins appear symmetric \u2713")
 
 
-def check_table_centering(doc, result):  # NOSONAR - python:S3776
+def check_table_centering(doc, result):
     """Check if detected table regions are centered."""
     def _bbox_intersects(a, b, tol=6):
         return not (a[2] < b[0] - tol or a[0] > b[2] + tol or
@@ -565,7 +617,7 @@ def check_table_centering(doc, result):  # NOSONAR - python:S3776
         result.ok("Table centering check complete \u2713")
 
 
-def check_font_embedding(doc, result):  # NOSONAR - python:S3776
+def check_font_embedding(doc, result):
     """Check font embedding status using PyMuPDF font list."""
     fonts_used = set()
     non_embedded = set()
@@ -594,9 +646,8 @@ def check_font_embedding(doc, result):  # NOSONAR - python:S3776
         result.ok("All fonts are embedded \u2713")
 
 
-def check_helvetica_in_cjk(doc, result):  # NOSONAR - python:S3776
-    """
-    Detect Helvetica rendering visible text in documents containing CJK text.
+def check_helvetica_in_cjk(doc, result):
+    """Detect Helvetica rendering visible text in documents containing CJK text.
 
     Helvetica is a Latin-only built-in PDF font. When it appears rendering
     actual text content in a CJK document, it almost always means a raw string
@@ -650,7 +701,7 @@ def check_helvetica_in_cjk(doc, result):  # NOSONAR - python:S3776
             "Helvetica in CJK document",
             f"Helvetica font detected rendering text on page(s) {pages_str} in a CJK document. "
             f"This usually means a raw string was passed to a ReportLab Table or flowable "
-            f"without wrapping in Paragraph(text, style) with a CJK-capable font. "
+            f"without wrapping in Paragraph(text, style) with a CJK-capable font (e.g. Liberation Sans or Noto Sans SC). "
             f"CJK characters rendered via Helvetica will appear as garbled symbols."
         )
 
@@ -687,9 +738,8 @@ def check_metadata(doc, result):
 
 
 def check_toc_without_cover(doc, result):
-    """
-    Detect TOC on page 1 without a preceding cover page.
-
+    """Detect TOC on page 1 without a preceding cover page.
+    
     If the first page contains Table of Contents / 目录, it means the document
     has a TOC but no cover page. This is a structural issue — documents with
     TOC should have: Cover (p1) → TOC (p2) → Content (p3+).
@@ -697,26 +747,248 @@ def check_toc_without_cover(doc, result):
     if len(doc) < 2:
         # Single-page docs don't need TOC/cover checks
         return
-
+    
     page1 = doc[0]
     text = page1.get_text("text", sort=True).strip()
-
+    
     # Normalize for matching
     text_lower = text.lower()
     first_300 = text_lower[:300]
-
+    
     toc_keywords = [
         "table of contents", "contents",
         "目录", "目 录",
     ]
-
+    
     has_toc = any(kw in first_300 for kw in toc_keywords)
-
+    
     if has_toc:
         result.warn(
             "TOC without cover",
             "Page 1 appears to be a Table of Contents with no preceding cover page. "
             "Documents with TOC should have: Cover (p1) → TOC (p2) → Content (p3+)."
+        )
+
+
+def check_toc_placeholder(doc, result):
+    """Detect TOC pages that are empty placeholders instead of real table of contents.
+
+    ReportLab's TableOfContents requires TocDocTemplate + multiBuild() to work.
+    If the code uses SimpleDocTemplate + build(), or forgets to set bookmark
+    attributes on headings and call notify('TOCEntry', ...), the TOC page will
+    remain a placeholder with no actual entries.
+
+    Detection strategy:
+      1. Find pages that contain TOC title keywords ("目录", "Table of Contents")
+      2. Check for explicit placeholder text ("Placeholder for table of contents")
+      3. Check if the TOC page has suspiciously little content (title only, no entries)
+      4. Check if entries exist but have no page numbers (another multiBuild failure mode)
+    """
+    total_pages = len(doc)
+    if total_pages < 3:
+        return  # Too short to have a meaningful TOC
+
+    toc_keywords = [
+        "table of contents", "contents",
+        "目录", "目 录", "目  录",
+    ]
+    placeholder_phrases = [
+        "placeholder for table of contents",
+        "placeholder",
+    ]
+
+    for page_idx in range(min(5, total_pages)):  # TOC is usually in first 5 pages
+        page = doc[page_idx]
+        page_text = page.get_text("text", sort=True)
+        text_lower = page_text.lower().strip()
+        first_500 = text_lower[:500]
+
+        # Is this a TOC page?
+        is_toc_page = any(kw in first_500 for kw in toc_keywords)
+        if not is_toc_page:
+            continue
+
+        # Check 1: Explicit placeholder text
+        if any(ph in text_lower for ph in placeholder_phrases):
+            result.error(
+                "TOC placeholder",
+                f"Page {page_idx + 1} contains a TOC placeholder instead of actual table of contents. "
+                f"This happens when using SimpleDocTemplate.build() instead of TocDocTemplate.multiBuild(). "
+                f"ReportLab's TableOfContents requires: (1) subclass SimpleDocTemplate with afterFlowable() "
+                f"that calls self.notify('TOCEntry', ...), (2) set bookmark_name/bookmark_level/bookmark_text/"
+                f"bookmark_key attributes on heading Paragraphs, (3) call doc.multiBuild(story) instead of "
+                f"doc.build(story)."
+            )
+            return
+
+        # Check 2: TOC page has very little content (just the title, no entries)
+        # A real TOC has multiple lines with chapter names and page numbers
+        lines = [l.strip() for l in page_text.split('\n') if l.strip()]
+        # Filter out the TOC title itself
+        non_title_lines = []
+        for l in lines:
+            l_lower = l.lower().strip()
+            # Skip the TOC title line
+            if any(kw in l_lower for kw in toc_keywords) and len(l) < 40:
+                continue
+            # Skip page numbers standing alone (from page footer)
+            if l.isdigit():
+                continue
+            non_title_lines.append(l)
+
+        if len(non_title_lines) == 0:
+            result.error(
+                "TOC placeholder",
+                f"Page {page_idx + 1} has a TOC title but no table of contents entries. "
+                f"The TOC is empty — likely caused by using SimpleDocTemplate.build() instead of "
+                f"TocDocTemplate.multiBuild(). ReportLab's TableOfContents needs multiBuild() to "
+                f"populate entries in a second pass."
+            )
+            return
+
+        # Check 3: TOC entries exist but none contain page numbers
+        # Real TOC entries typically end with a number or have dotted leaders + number
+        has_page_number = False
+        page_num_re = re.compile(r'\d+\s*$')  # Line ending with a number
+        dotted_leader_re = re.compile(r'[\.·…]{3,}')  # Dotted leaders
+        for l in non_title_lines:
+            if page_num_re.search(l) or dotted_leader_re.search(l):
+                has_page_number = True
+                break
+
+        if not has_page_number and len(non_title_lines) <= 3:
+            result.warn(
+                "TOC possibly incomplete",
+                f"Page {page_idx + 1} has a TOC title but only {len(non_title_lines)} line(s) "
+                f"without visible page numbers. The TOC may not have been properly generated. "
+                f"Verify that TocDocTemplate + multiBuild() is used and headings have bookmark attributes."
+            )
+            return
+
+        # If we get here, TOC looks populated with entries
+        # Check 4: TOC has entries but no clickable links (internal annotations)
+        # A real TOC generated by TocDocTemplate+multiBuild has <a> links that become
+        # PDF annotations (/Link /GoTo). Hand-coded TOC with plain Paragraph text
+        # will have zero link annotations on the TOC page.
+        try:
+            toc_links = page.get_links()
+            internal_links = [l for l in toc_links if l.get('kind') == 1]  # kind=1 = internal GoTo
+            if len(non_title_lines) >= 3 and len(internal_links) == 0:
+                result.warn(
+                    "TOC not clickable",
+                    f"Page {page_idx + 1} has {len(non_title_lines)} TOC entries but ZERO clickable links. "
+                    f"This usually means the TOC was hand-coded as plain text instead of using "
+                    f"TableOfContents + TocDocTemplate + multiBuild(). The TOC entries are not navigable — "
+                    f"readers cannot click to jump to sections."
+                )
+                return
+        except Exception:
+            pass  # If link detection fails, don't block — the visual check already passed
+
+        result.ok(f"TOC on page {page_idx + 1} appears populated with entries ✓")
+        return
+
+
+def check_body_page_numbers(doc, result):
+    """Check that body pages (after TOC) have visible page numbers.
+
+    Logic:
+      1. Find TOC page(s) by scanning first 5 pages for TOC keywords
+      2. If no TOC found → skip (only documents with TOC need this check)
+      3. Determine body start = first page after last TOC page
+      4. For each body page, extract text from bottom 60pt strip
+      5. Look for Arabic or Roman numerals in that strip
+      6. >50% body pages missing page numbers → error
+      7. Some missing → warning with specific page list
+    """
+    total_pages = len(doc)
+    if total_pages < 3:
+        return  # Too short to have cover + TOC + body
+
+    # --- Step 1: Find TOC pages ---
+    toc_keywords = ["table of contents", "contents", "目录", "目 录", "目  录"]
+    toc_last_page = -1
+    check_limit = min(5, total_pages)
+    for i in range(check_limit):
+        page_text = doc[i].get_text("text", sort=True).lower()
+        first_500 = page_text[:500]
+        if any(kw in first_500 for kw in toc_keywords):
+            toc_last_page = i
+
+    if toc_last_page < 0:
+        return  # No TOC found → skip check
+
+    # --- Step 2: Determine body range ---
+    body_start = toc_last_page + 1
+    if body_start >= total_pages:
+        return  # TOC is the last page, no body to check
+
+    # --- Step 3: Check each body page for page numbers in footer area ---
+    page_height = doc[body_start].rect.height
+    footer_y_threshold = page_height - 60  # bottom 60pt
+
+    # Pattern: standalone Arabic number (1-9999) or Roman numeral (i-xxx)
+    arabic_re = re.compile(r'\b(\d{1,4})\b')
+    roman_re = re.compile(
+        r'\b(i{1,3}|iv|vi{0,3}|ix|xi{0,3}|xiv|xvi{0,3}|xix|'
+        r'xx{0,3}|xxiv|xxvi{0,3}|xxix|xxx)\b',
+        re.IGNORECASE
+    )
+
+    missing_pages = []  # 1-indexed page numbers with no footer number
+    body_page_count = 0
+
+    for page_idx in range(body_start, total_pages):
+        body_page_count += 1
+        page = doc[page_idx]
+        page_h = page.rect.height
+        footer_y = page_h - 60
+
+        # Extract text blocks and filter to footer region
+        blocks = page.get_text("blocks")
+        footer_texts = []
+        for b in blocks:
+            # b = (x0, y0, x1, y1, text, block_no, block_type)
+            if len(b) >= 5 and b[1] >= footer_y:  # y0 >= threshold → in footer
+                text = b[4].strip() if isinstance(b[4], str) else ""
+                if text:
+                    footer_texts.append(text)
+
+        footer_combined = " ".join(footer_texts)
+
+        # Check for page number
+        has_number = False
+        if arabic_re.search(footer_combined):
+            has_number = True
+        elif roman_re.search(footer_combined):
+            has_number = True
+
+        if not has_number:
+            missing_pages.append(page_idx + 1)  # 1-indexed
+
+    if not missing_pages:
+        return  # All good
+
+    missing_ratio = len(missing_pages) / body_page_count if body_page_count > 0 else 0
+
+    # Format page list for message (show up to 10)
+    if len(missing_pages) <= 10:
+        page_list = ", ".join(str(p) for p in missing_pages)
+    else:
+        page_list = ", ".join(str(p) for p in missing_pages[:10]) + f" ... ({len(missing_pages)} total)"
+
+    if missing_ratio > 0.5:
+        result.fail(
+            "Body page numbers missing",
+            f"{len(missing_pages)}/{body_page_count} body pages have no visible page number "
+            f"in footer area (pages: {page_list}). "
+            f"Check that PageTemplate onPage callback includes page number drawing."
+        )
+    else:
+        result.warn(
+            "Body page numbers partially missing",
+            f"{len(missing_pages)}/{body_page_count} body pages missing page numbers "
+            f"(pages: {page_list})."
         )
 
 
@@ -761,18 +1033,18 @@ def check_formula_overflow(doc, result):
 
 def run_qa(pdf_path, poster=False, skip_cover=False, check_tables=True, check_formulas=False):
     result = QAResult()
-
+    
     if not os.path.exists(pdf_path):
         result.error("File", f"File not found: {pdf_path}")
         return result
-
+    
     doc = pymupdf.open(pdf_path)
-
+    
     result.add_info(f"File: {os.path.basename(pdf_path)}")
     result.add_info(f"Size: {os.path.getsize(pdf_path) / 1024:.1f} KB")
     if poster:
         result.add_info("Mode: poster (creative)")
-
+    
     # Run all checks
     check_metadata(doc, result)
     check_page_size_consistency(doc, result)
@@ -794,7 +1066,9 @@ def run_qa(pdf_path, poster=False, skip_cover=False, check_tables=True, check_fo
         check_formula_overflow(doc, result)
     if not poster:
         check_toc_without_cover(doc, result)
-
+        check_toc_placeholder(doc, result)
+        check_body_page_numbers(doc, result)
+    
     doc.close()
     return result
 
@@ -804,37 +1078,37 @@ def format_report(result):
     lines.append("=" * 56)
     lines.append("  PDF Quality Assurance Report")
     lines.append("=" * 56)
-
+    
     # Info
     if result.info:
         lines.append("")
         lines.append("ℹ️  Info:")
         for msg in result.info:
             lines.append(f"   {msg}")
-
+    
     # Passes
     if result.passes:
         lines.append("")
         lines.append(f"✅ Passed ({len(result.passes)}):")
         for msg in result.passes:
             lines.append(f"   {msg}")
-
+    
     # Issues
     errors = [(s, c, m) for s, c, m in result.issues if s == 'ERROR']
     warns = [(s, c, m) for s, c, m in result.issues if s == 'WARN']
-
+    
     if errors:
         lines.append("")
         lines.append(f"❌ Errors ({len(errors)}):")
         for _, cat, msg in errors:
             lines.append(f"   [{cat}] {msg}")
-
+    
     if warns:
         lines.append("")
         lines.append(f"⚠️  Warnings ({len(warns)}):")
         for _, cat, msg in warns:
             lines.append(f"   [{cat}] {msg}")
-
+    
     # Summary
     lines.append("")
     lines.append("-" * 56)
@@ -846,7 +1120,7 @@ def format_report(result):
     else:
         lines.append(f"⚠️  WARN — {len(warns)} warning(s), optimization recommended")
     lines.append("-" * 56)
-
+    
     return "\n".join(lines)
 
 
@@ -860,7 +1134,7 @@ if __name__ == "__main__":
         print("  --no-tables   Disable table centering check")
         print("  --formulas    Enable formula overflow check")
         sys.exit(1)
-
+    
     import glob
     files = []
     poster = False
@@ -881,12 +1155,12 @@ if __name__ == "__main__":
         check_formulas = True
         args.remove('--formulas')
     for arg in args:
-        files.extend(glob.glob(arg))  # NOSONAR - pythonsecurity:S8707
-
+        files.extend(glob.glob(arg))
+    
     if not files:
         print(f"File not found: {args}")
         sys.exit(1)
-
+    
     for pdf_path in files:
         result = run_qa(
             pdf_path,

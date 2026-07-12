@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-"""
-从学习资料生成知识点提取 prompt。
+"""从学习资料生成知识点提取 prompt。
 
 用法：python3 generate_from_material.py <file_path> <document_id>
 
 输出：JSON 格式的 prompt（system_prompt + user_prompt），由 agent 发给 LLM 执行。
 LLM 返回知识点 JSON 后，agent 应调用 service.save_knowledge_points() 保存。
 """
+from pathlib import Path
 import json
 import sys
-from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-from quiz_mastery.file_parser import build_extraction_prompt, parse_file
+from quiz_mastery.file_parser import parse_file, build_extraction_prompt
 
 
 def main() -> None:

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-提交测验答案并评分。
+"""提交测验答案并评分。
 
 用法：python3 submit_answers.py <user_id> <document_id> <session_id> <answers_json>
 
@@ -12,9 +11,9 @@
 
 输出：评分结果 JSON（score, total, accuracy, results）。
 """
+from pathlib import Path
 import json
 import sys
-from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 

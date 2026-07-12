@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Utilities for editing OOXML documents.
 
@@ -51,7 +50,6 @@ class XMLEditor:
         xml_path: Path to the XML file being edited
         encoding: Detected encoding of the XML file ('ascii' or 'utf-8')
         dom: Parsed DOM tree with parse_position attributes on elements
-
     """
 
     def __init__(self, xml_path):
@@ -63,7 +61,6 @@ class XMLEditor:
 
         Raises:
             ValueError: If the XML file does not exist
-
         """
         self.xml_path = Path(xml_path)
         if not self.xml_path.exists():
@@ -76,7 +73,7 @@ class XMLEditor:
         parser = _create_line_tracking_parser()
         self.dom = defusedxml.minidom.parse(str(self.xml_path), parser)
 
-    def get_node(  # NOSONAR - python:S3776
+    def get_node(
         self,
         tag: str,
         attrs: Optional[dict[str, str]] = None,
@@ -111,7 +108,6 @@ class XMLEditor:
             elem = editor.get_node(tag="w:p", contains="specific text")
             elem = editor.get_node(tag="w:t", contains="&#8220;Agreement")  # Entity notation
             elem = editor.get_node(tag="w:t", contains="\u201cAgreement")   # Unicode character
-
         """
         matches = []
         for elem in self.dom.getElementsByTagName(tag):
@@ -130,7 +126,7 @@ class XMLEditor:
 
             # Check attrs filter
             if attrs is not None:
-                if not all(  # NOSONAR - python:S1066
+                if not all(
                     elem.getAttribute(attr_name) == attr_value
                     for attr_name, attr_value in attrs.items()
                 ):
@@ -196,7 +192,6 @@ class XMLEditor:
 
         Returns:
             str: Concatenated text from all non-whitespace text nodes within the element
-
         """
         text_parts = []
         for node in elem.childNodes:
@@ -221,7 +216,6 @@ class XMLEditor:
 
         Example:
             new_nodes = editor.replace_node(old_elem, "<w:r><w:t>text</w:t></w:r>")
-
         """
         parent = elem.parentNode
         nodes = self._parse_fragment(new_content)
@@ -243,7 +237,6 @@ class XMLEditor:
 
         Example:
             new_nodes = editor.insert_after(elem, "<w:r><w:t>text</w:t></w:r>")
-
         """
         parent = elem.parentNode
         next_sibling = elem.nextSibling
@@ -268,7 +261,6 @@ class XMLEditor:
 
         Example:
             new_nodes = editor.insert_before(elem, "<w:r><w:t>text</w:t></w:r>")
-
         """
         parent = elem.parentNode
         nodes = self._parse_fragment(xml_content)
@@ -289,7 +281,6 @@ class XMLEditor:
 
         Example:
             new_nodes = editor.append_to(elem, "<w:r><w:t>text</w:t></w:r>")
-
         """
         nodes = self._parse_fragment(xml_content)
         for node in nodes:
@@ -330,7 +321,6 @@ class XMLEditor:
 
         Raises:
             AssertionError: If fragment contains no element nodes
-
         """
         # Extract namespace declarations from the root document element
         root_elem = self.dom.documentElement
@@ -363,11 +353,10 @@ def _create_line_tracking_parser():
 
     Returns:
         defusedxml.sax.xmlreader.XMLReader: Configured SAX parser
-
     """
 
     def set_content_handler(dom_handler):
-        def startElementNS(name, tagName, attrs):  # NOSONAR - python:S1542
+        def startElementNS(name, tagName, attrs):
             orig_start_cb(name, tagName, attrs)
             cur_elem = dom_handler.elementStack[-1]
             cur_elem.parse_position = (

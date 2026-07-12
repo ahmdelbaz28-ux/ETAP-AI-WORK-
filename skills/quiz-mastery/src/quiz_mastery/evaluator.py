@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from .models import AnswerResult, Question
+from .models import Question, AnswerResult
 
 
 class Evaluator:
-    """
-    Evaluates user answers against correct answers.
+    """Evaluates user answers against correct answers.
 
     - single_choice / true_false: exact match
     - fill_blank: case-insensitive, strip whitespace

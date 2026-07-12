@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 poster_validate.py — Pre- and post-generation quality checks for poster/creative PDFs.
 
@@ -24,8 +23,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
+import subprocess
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
@@ -41,21 +42,21 @@ GENERIC_FAMILIES = frozenset(
 )
 
 SERIF_FONTS = frozenset(f.lower() for f in [
-    "Playfair Display", "Georgia", "Times New Roman", "Times", "Noto Serif",
+    "Playfair Display", "Georgia", "FreeSerif", "Times", "Noto Serif",
     "Noto Serif SC", "Noto Serif TC", "Noto Serif JP", "Noto Serif KR",
     "Source Serif Pro", "Source Serif 4", "Merriweather", "Lora", "PT Serif",
     "Libre Baskerville", "EB Garamond", "Cormorant Garamond", "Crimson Text",
-    "STSong", "FangSong", "KaiTi", "STKaiti", "Songti SC",
+    "LXGW WenKai", "Tinos",
 ])
 
 CHINESE_FONTS = frozenset(f.lower() for f in [
-    "SimHei", "Microsoft YaHei", "Noto Sans SC", "Noto Sans TC",
-    "Noto Sans CJK SC", "Noto Sans CJK TC", "PingFang SC", "PingFang TC",
+    "Noto Sans SC", "Noto Sans TC",
+    "Noto Sans CJK SC", "Noto Sans CJK TC",
     "Source Han Sans SC", "Source Han Sans TC", "WenQuanYi Micro Hei",
-    "WenQuanYi Zen Hei", "Hiragino Sans GB", "STHeiti", "STXihei",
+    "WenQuanYi Zen Hei",
     "Noto Serif SC", "Noto Serif TC", "Noto Serif CJK SC",
-    "Source Han Serif SC", "SimSun", "NSimSun", "FangSong", "KaiTi",
-    "STSong", "STFangsong", "STKaiti", "Songti SC", "Heiti SC",
+    "Source Han Serif SC",
+    "LXGW WenKai", "FreeSerif", "Sarasa Mono SC",
 ])
 
 # Selectors we treat as "main containers" whose overflow:hidden is dangerous.
@@ -251,15 +252,16 @@ def _html_visible_text(html: str) -> str:
 # CHECK-HTML
 # ---------------------------------------------------------------------------
 
-def check_html(html_path: str, *, fix: bool = False, output_path: str | None = None) -> dict:  # NOSONAR - python:S3776
+def check_html(html_path: str, *, fix: bool = False, output_path: str | None = None) -> dict:
     """Run all HTML pre-checks. Return the JSON-serialisable report dict."""
+
     path = Path(html_path)
     if not path.is_file():
         return {"pass": False, "source": html_path, "check_type": "html",
                 "errors": [_issue("FILE_NOT_FOUND", f"Cannot read '{html_path}'.")],
                 "warnings": [], "info": []}
 
-    raw = path.read_text(encoding="utf-8", errors="replace")  # NOSONAR - pythonsecurity:S8707
+    raw = path.read_text(encoding="utf-8", errors="replace")
     original = raw  # keep for line-number lookup
     # For fix mode: we collect all replacements and apply them at the end
     # using re.sub on the original to avoid offset corruption
@@ -373,7 +375,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
             selector_raw = rule_m.group(1).strip().lower()
             body_text = rule_m.group(2)
             selectors = [s.strip() for s in selector_raw.split(",")]
-            if any(s in (".page", ".poster", "#page", "#poster", ".slide") for s in selectors):  # NOSONAR - python:S1192
+            if any(s in (".page", ".poster", "#page", "#poster", ".slide") for s in selectors):
                 if re.search(r"(?<!max-)(?<!min-)width\s*:\s*\d+(?:\.\d+)?\s*px", body_text, re.IGNORECASE):
                     _has_fixed_width = True
                 h_m = re.search(r"(?<!max-)(?<!min-)height\s*:\s*(\d+(?:\.\d+)?)\s*px", body_text, re.IGNORECASE)
@@ -386,7 +388,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
 
     if _is_fixed_size_page:
         # Check for @media screen rule
-        _has_media_screen = bool(re.search(r"@media\s+screen\s*\{", all_css, re.IGNORECASE))  # NOSONAR - python:S1192
+        _has_media_screen = bool(re.search(r"@media\s+screen\s*\{", all_css, re.IGNORECASE))
         if not _has_media_screen:
             _height_hint = _fixed_h_value or "1400"
             warnings.append(_issue(
@@ -512,7 +514,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
             body = rule_m.group(2)
             selectors = [s.strip() for s in selector_raw.split(",")]
             if any(s in ("body", "html", ":root") for s in selectors):
-                bg_m = re.search(r"background(?:-color)?\s*:\s*([^;]+)", body, re.IGNORECASE)  # NOSONAR - python:S1192
+                bg_m = re.search(r"background(?:-color)?\s*:\s*([^;]+)", body, re.IGNORECASE)
                 if bg_m:
                     val = bg_m.group(1).strip().lower()
                     if val in ("white", "#fff", "#ffffff", "transparent", "rgba(0,0,0,0)",
@@ -777,7 +779,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
                     if base_sel in _content_containers:
                         _height_locked_selectors.add(base_sel)
     # Also check inline styles
-    for m in re.finditer(r'class\s*=\s*["\']([^"\']*)["\']\s*[^>]*style\s*=\s*["\']([^"\']*)["\']', raw, re.IGNORECASE):  # NOSONAR - python:S8786
+    for m in re.finditer(r'class\s*=\s*["\']([^"\']*)["\']\s*[^>]*style\s*=\s*["\']([^"\']*)["\']', raw, re.IGNORECASE):
         classes = m.group(1).lower().split()
         style = m.group(2)
         if re.search(r"(?<!min-)height\s*:\s*100%", style, re.IGNORECASE):
@@ -804,6 +806,82 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
             if old_text in raw:
                 raw = raw.replace(old_text, new_text, 1)
 
+    # ---- 12. COVER_OVERLAP_DETECTION (auto-trigger cover_validate.js) ----
+    # If this HTML is a cover page (contains .cover or .cover-page class),
+    # automatically run cover_validate.js for text collision detection.
+    # This eliminates the need for the model to remember a separate step.
+    _is_cover_html = bool(
+        re.search(r'class\s*=\s*["\'][^"\']*\bcover\b', raw, re.IGNORECASE)
+        or re.search(r'class\s*=\s*["\'][^"\']*\bcover-page\b', raw, re.IGNORECASE)
+    )
+    if _is_cover_html:
+        _scripts_dir = os.path.dirname(os.path.abspath(__file__))
+        _cv_script = os.path.join(_scripts_dir, 'cover_validate.js')
+        if os.path.isfile(_cv_script):
+            info.append(_issue(
+                "COVER_DETECTED",
+                "Cover page detected — running cover_validate.js for text collision detection.",
+                severity="info",
+            ))
+            try:
+                _cv_result = subprocess.run(
+                    ['node', _cv_script, html_path],
+                    capture_output=True, text=True, timeout=60,
+                )
+                _cv_stdout = _cv_result.stdout.strip()
+                _cv_stderr = _cv_result.stderr.strip()
+                _cv_output = _cv_stderr or _cv_stdout  # cover_validate.js prints to stderr on errors
+
+                if _cv_result.returncode == 1:
+                    # Overlap detected — parse the output for specific issues
+                    # Extract ERROR lines from output
+                    _overlap_lines = [
+                        line.strip() for line in _cv_output.split('\n')
+                        if 'ERROR' in line or 'overlap' in line.lower() or 'overflow' in line.lower()
+                    ]
+                    _detail = '; '.join(_overlap_lines[:5]) if _overlap_lines else _cv_output[:500]
+                    errors.append(_issue(
+                        "COVER_TEXT_OVERLAP",
+                        f"cover_validate.js detected text overlap/collision on the cover page. "
+                        f"Details: {_detail}. "
+                        f"Fix the cover HTML to resolve overlaps before rendering.",
+                    ))
+                elif _cv_result.returncode == 2:
+                    # Script error (e.g., no Playwright) — warn but don't block
+                    warnings.append(_issue(
+                        "COVER_VALIDATE_UNAVAILABLE",
+                        f"cover_validate.js could not run (exit code 2): {_cv_output[:200]}. "
+                        f"Text collision detection was skipped. "
+                        f"Install playwright to enable: npm install -g playwright",
+                        severity="warning",
+                    ))
+                elif _cv_result.returncode == 0:
+                    info.append(_issue(
+                        "COVER_OVERLAP_PASS",
+                        "cover_validate.js: No text overlaps detected ✓",
+                        severity="info",
+                    ))
+            except subprocess.TimeoutExpired:
+                warnings.append(_issue(
+                    "COVER_VALIDATE_TIMEOUT",
+                    "cover_validate.js timed out after 60s. Text collision detection was skipped.",
+                    severity="warning",
+                ))
+            except FileNotFoundError:
+                warnings.append(_issue(
+                    "COVER_VALIDATE_NO_NODE",
+                    "Node.js not found — cover_validate.js requires Node.js. "
+                    "Text collision detection was skipped.",
+                    severity="warning",
+                ))
+        else:
+            info.append(_issue(
+                "COVER_VALIDATE_MISSING",
+                f"Cover page detected but cover_validate.js not found at {_cv_script}. "
+                "Text collision detection was skipped.",
+                severity="info",
+            ))
+
     # ---- Build report ----
     has_errors = len(errors) > 0
     report: dict[str, Any] = {
@@ -818,7 +896,7 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
     # ---- Fix mode output ----
     if fix:
         if output_path:
-            Path(output_path).write_text(raw, encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+            Path(output_path).write_text(raw, encoding="utf-8")
             report["fixed_file"] = output_path
         else:
             # Write fixed HTML to stdout after the JSON report to stderr
@@ -833,8 +911,9 @@ def check_html(html_path: str, *, fix: bool = False, output_path: str | None = N
 # CHECK-PDF
 # ---------------------------------------------------------------------------
 
-def check_pdf(pdf_path: str, *, source_html: str | None = None, poster: bool = False) -> dict:  # NOSONAR - python:S3776
+def check_pdf(pdf_path: str, *, source_html: str | None = None, poster: bool = False) -> dict:
     """Run all PDF post-checks. Return the JSON-serialisable report dict."""
+
     path = Path(pdf_path)
     errors: list[dict] = []
     warnings: list[dict] = []
@@ -897,7 +976,7 @@ def check_pdf(pdf_path: str, *, source_html: str | None = None, poster: bool = F
     if source_html:
         html_p = Path(source_html)
         if html_p.is_file():
-            html_raw = html_p.read_text(encoding="utf-8", errors="replace")  # NOSONAR - pythonsecurity:S8707
+            html_raw = html_p.read_text(encoding="utf-8", errors="replace")
             html_text = _html_visible_text(html_raw)
             html_chars = len(re.sub(r"\s", "", html_text))
 
@@ -969,7 +1048,7 @@ def _truncate(s: str, max_len: int = 80) -> str:
 # LaTeX .tex file checks
 # ---------------------------------------------------------------------------
 
-def check_tex(tex_path: str) -> dict:  # NOSONAR - python:S3776
+def check_tex(tex_path: str) -> dict:
     """Check a LaTeX .tex file for common issues, especially table overflow in dual-column layouts."""
     errors = []
     warnings = []
@@ -979,7 +1058,7 @@ def check_tex(tex_path: str) -> dict:  # NOSONAR - python:S3776
         return {"pass": False, "source": tex_path, "check_type": "tex",
                 "errors": [_issue("FILE_NOT_FOUND", f"File not found: {tex_path}")], "warnings": [], "info": []}
 
-    with open(tex_path, encoding="utf-8", errors="replace") as f:  # NOSONAR: S8707 path validated upstream
+    with open(tex_path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
 
     lines = content.split("\n")
@@ -1079,7 +1158,7 @@ def check_tex(tex_path: str) -> dict:  # NOSONAR - python:S3776
 
     # ---- 4. IMAGE_NO_WIDTH ----
     # \includegraphics without width/max width constraint
-    img_pattern = re.compile(r"\\includegraphics\s*(\[[^\]]*\])?\s*\{")  # NOSONAR - python:S8786
+    img_pattern = re.compile(r"\\includegraphics\s*(\[[^\]]*\])?\s*\{")
     for i, line in enumerate(lines, 1):
         m = img_pattern.search(line)
         if m:
@@ -1305,7 +1384,7 @@ def main() -> int:
 
             return 0 if report["pass"] else 1
 
-        if args.command == "check-pdf":
+        elif args.command == "check-pdf":
             report = check_pdf(
                 args.pdf_file,
                 source_html=args.source_html,
@@ -1314,7 +1393,7 @@ def main() -> int:
             print(json.dumps(report, indent=2, ensure_ascii=False))
             return 0 if report["pass"] else 1
 
-        if args.command == "check-tex":
+        elif args.command == "check-tex":
             report = check_tex(args.tex_file)
             print(json.dumps(report, indent=2, ensure_ascii=False))
             return 0 if report["pass"] else 1

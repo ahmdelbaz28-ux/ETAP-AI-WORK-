@@ -10,10 +10,10 @@
 set -euo pipefail
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-ok() { echo -e "  ${GREEN}✓${NC} $1"; }  # NOSONAR - shelldre:S7679
-fail() { echo -e "  ${RED}✗${NC} $1"; }  # NOSONAR - shelldre:S7679
-warn() { echo -e "  ${YELLOW}○${NC} $1"; }  # NOSONAR - shelldre:S7679
-info() { echo -e "  ${BLUE}→${NC} $1"; }  # NOSONAR - shelldre:S7679
+ok() { echo -e "  ${GREEN}✓${NC} $1"; }
+fail() { echo -e "  ${RED}✗${NC} $1"; }
+warn() { echo -e "  ${YELLOW}○${NC} $1"; }
+info() { echo -e "  ${BLUE}→${NC} $1"; }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -29,7 +29,7 @@ echo "Platform: $OS $ARCH"
 echo ""
 
 # ── 0. macOS: Homebrew ──
-if [ "$OS" = "Darwin" ]; then  # NOSONAR - shelldre:S7688
+if [ "$OS" = "Darwin" ]; then
     echo "--- Homebrew (macOS package manager) ---"
     if command -v brew &>/dev/null; then
         BREW_VER=$(brew --version 2>/dev/null | head -1)
@@ -47,7 +47,7 @@ if command -v python3 &>/dev/null; then
     PY_VER=$(python3 --version 2>&1)
     ok "python3 ($PY_VER)"
     # macOS: warn if using system Python
-    if [ "$OS" = "Darwin" ]; then  # NOSONAR - shelldre:S7688
+    if [ "$OS" = "Darwin" ]; then
         PY_PATH=$(which python3 2>/dev/null)
         if [[ "$PY_PATH" == "/usr/bin/python3" ]]; then
             warn "Using macOS system Python (limited). Recommend: brew install python3"
@@ -103,9 +103,9 @@ for entry in "${PY_PKGS[@]}"; do
     fi
 done
 
-if [ ${#MISSING_PY[@]} -gt 0 ]; then  # NOSONAR - shelldre:S7688
+if [ ${#MISSING_PY[@]} -gt 0 ]; then
     echo ""
-    if [ -t 0 ]; then  # NOSONAR - shelldre:S7688
+    if [ -t 0 ]; then
         read -p "  Install missing Python packages? [Y/n] " -n 1 -r REPLY
         echo ""
         REPLY=${REPLY:-Y}
@@ -161,11 +161,11 @@ if node -e "require('playwright')" 2>/dev/null; then
     ok "playwright ($PW_VER)"
 else
     fail "playwright not installed"
-    info "Install: npm install -g playwright"
+    info "Install: npm install -g playwright@1.50.0"
 fi
 
 # Check Chromium
-if [ "$OS" = "Darwin" ]; then  # NOSONAR - shelldre:S7688
+if [ "$OS" = "Darwin" ]; then
     PW_CACHE="$HOME/Library/Caches/ms-playwright"
 else
     PW_CACHE="$HOME/.cache/ms-playwright"
@@ -176,7 +176,7 @@ if ls "$PW_CACHE"/chromium-* &>/dev/null 2>&1; then
 else
     fail "chromium not installed"
     info "Install: npx playwright install chromium"
-    if [ "$OS" = "Linux" ]; then  # NOSONAR - shelldre:S7688
+    if [ "$OS" = "Linux" ]; then
         info "         npx playwright install-deps  (system libs, needs sudo)"
     fi
 fi
@@ -185,8 +185,8 @@ fi
 echo ""
 echo "--- Tectonic (LaTeX→PDF, optional) ---"
 BUNDLED="$SCRIPT_DIR/tectonic"
-if [ -x "$BUNDLED" ]; then  # NOSONAR - shelldre:S7688
-    if [ "$OS" = "Darwin" ] && [ "$ARCH" = "arm64" ]; then  # NOSONAR - shelldre:S7688
+if [ -x "$BUNDLED" ]; then
+    if [ "$OS" = "Darwin" ] && [ "$ARCH" = "arm64" ]; then
         ok "tectonic (bundled, macOS arm64)"
     else
         warn "bundled tectonic is macOS arm64 only — cannot run on $OS $ARCH"
@@ -195,10 +195,10 @@ if [ -x "$BUNDLED" ]; then  # NOSONAR - shelldre:S7688
             ok "tectonic (system: $TEC_VER)"
         else
             fail "tectonic not in PATH"
-            case "$OS" in  # NOSONAR - shelldre:S131
+            case "$OS" in
                 Darwin) info "Install: brew install tectonic" ;;
                 Linux)  info "Install: conda install -c conda-forge tectonic"
-                        info "     or: curl -fsSL https://drop-sh.fullyjustified.net | sh" ;;
+                        info "     or: conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ && conda install tectonic" ;;
                 MINGW*|MSYS*|CYGWIN*) info "Install: scoop install tectonic  /  choco install tectonic" ;;
             esac
         fi
@@ -206,14 +206,14 @@ if [ -x "$BUNDLED" ]; then  # NOSONAR - shelldre:S7688
 elif command -v tectonic &>/dev/null; then
     TEC_VER=$(tectonic --version 2>&1 | head -1)
     ok "tectonic ($TEC_VER)"
-elif [ -x "$HOME/tectonic" ]; then  # NOSONAR - shelldre:S7688
+elif [ -x "$HOME/tectonic" ]; then
     ok "tectonic (~/tectonic)"
 else
     warn "tectonic not installed (needed only for LaTeX/academic PDFs)"
-    case "$OS" in  # NOSONAR - shelldre:S131
+    case "$OS" in
         Darwin) info "Install: brew install tectonic" ;;
         Linux)  info "Install: conda install -c conda-forge tectonic"
-                info "     or: curl -fsSL https://drop-sh.fullyjustified.net | sh" ;;
+                info "     or: conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ && conda install tectonic" ;;
         MINGW*|MSYS*|CYGWIN*) info "Install: scoop install tectonic  /  choco install tectonic" ;;
     esac
 fi
@@ -226,7 +226,7 @@ if command -v soffice &>/dev/null; then
     ok "libreoffice ($LO_VER)"
 else
     warn "libreoffice not installed (needed only for .docx/.xlsx→PDF conversion)"
-    case "$OS" in  # NOSONAR - shelldre:S131
+    case "$OS" in
         Darwin) info "Install: brew install --cask libreoffice" ;;
         Linux)  info "Install: sudo apt install libreoffice-core  (Debian/Ubuntu)" ;;
     esac
@@ -236,7 +236,7 @@ fi
 echo ""
 echo "--- CJK Fonts ---"
 FONT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/fonts"
-if [ -d "$FONT_DIR" ]; then  # NOSONAR - shelldre:S7688
+if [ -d "$FONT_DIR" ]; then
     FONT_COUNT=$(find "$FONT_DIR" -name "*.ttf" -o -name "*.otf" 2>/dev/null | head -20 | wc -l | tr -d ' ')
     ok "fonts directory ($FONT_COUNT font files in $FONT_DIR)"
 else
@@ -244,19 +244,79 @@ else
     info "Expected at: $FONT_DIR"
 fi
 # Check system CJK fonts
-if [ "$OS" = "Darwin" ]; then  # NOSONAR - shelldre:S7688
-    if ls /System/Library/Fonts/PingFang.ttc &>/dev/null 2>&1 \
-       || ls /System/Library/Fonts/STHeiti*.ttc &>/dev/null 2>&1 \
-       || ls "$HOME/Library/Fonts/"*SimHei* &>/dev/null 2>&1; then
-        ok "macOS CJK system fonts available"
+if [ "$OS" = "Darwin" ]; then
+    if [ -f "$HOME/Library/Fonts/NotoSansSC[wght].ttf" ] || fc-list :lang=zh 2>/dev/null | head -1 | grep -q . \
+       || ls "$HOME/Library/Fonts/"*NotoSansSC* &>/dev/null 2>&1; then
+        ok "CJK fonts available (Noto Sans SC or system)"
     else
         warn "no common CJK system fonts found"
     fi
-elif [ "$OS" = "Linux" ]; then  # NOSONAR - shelldre:S7688
+elif [ "$OS" = "Linux" ]; then
     if fc-list :lang=zh 2>/dev/null | head -1 | grep -q .; then
         ok "system CJK fonts available (fc-list)"
     else
         warn "no CJK fonts found. Install: sudo apt install fonts-noto-cjk"
+    fi
+fi
+
+# ── 9b. Noto Serif SC (Chinese serif for covers / academic docs) ──
+echo ""
+echo "--- Noto Serif SC (Chinese serif, covers/academic) ---"
+ENV_SETUP_FONT="$(cd "$SCRIPT_DIR/../.." && pwd)/env-setup/fonts/noto-serif-sc/NotoSerifSC-Regular.ttf"
+NOTO_SERIF_FOUND=0
+
+# Method 1: Check via fc-list
+if command -v fc-list &>/dev/null; then
+    if fc-list | grep -qi "Noto Serif SC"; then
+        ok "Noto Serif SC (fc-list)"
+        NOTO_SERIF_FOUND=1
+    fi
+fi
+
+# Method 2: Check common font directories
+if [ $NOTO_SERIF_FOUND -eq 0 ]; then
+    for CHECK_PATH in \
+        "$HOME/Library/Fonts/NotoSerifSC"*.ttf \
+        "/Library/Fonts/NotoSerifSC"*.ttf \
+        "$HOME/.local/share/fonts/NotoSerifSC"*.ttf \
+        "/usr/share/fonts/"*"/NotoSerifSC"*.ttf; do
+        if ls $CHECK_PATH &>/dev/null 2>&1; then
+            ok "Noto Serif SC ($CHECK_PATH)"
+            NOTO_SERIF_FOUND=1
+            break
+        fi
+    done
+fi
+
+# Method 3: Check env-setup bundled font
+if [ $NOTO_SERIF_FOUND -eq 0 ]; then
+    if [ -f "$ENV_SETUP_FONT" ]; then
+        warn "Noto Serif SC not installed system-wide, but available in env-setup bundle"
+        info "Run this setup interactively to auto-install, or copy manually"
+        if [ -t 0 ]; then
+            read -p "  Install Noto Serif SC to user fonts? [Y/n] " -n 1 -r REPLY
+            echo ""
+            REPLY=${REPLY:-Y}
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                USER_FONT_DIR="$HOME/Library/Fonts"
+                if [ "$OS" = "Linux" ]; then
+                    USER_FONT_DIR="$HOME/.local/share/fonts"
+                fi
+                mkdir -p "$USER_FONT_DIR"
+                cp "$ENV_SETUP_FONT" "$USER_FONT_DIR/"
+                if command -v fc-cache &>/dev/null; then
+                    fc-cache -f "$USER_FONT_DIR" 2>/dev/null
+                fi
+                ok "Noto Serif SC installed to $USER_FONT_DIR"
+                NOTO_SERIF_FOUND=1
+            fi
+        fi
+    else
+        fail "Noto Serif SC not found"
+        info "Download from: https://fonts.google.com/noto/specimen/Noto+Serif+SC"
+        case "$OS" in
+            Linux) info "Or install: sudo apt install fonts-noto-cjk" ;;
+        esac
     fi
 fi
 
@@ -266,4 +326,4 @@ echo "============================================"
 echo "  Setup complete."
 echo "  Run 'python3 pdf.py env.check' for detailed status."
 echo "  Run 'python3 pdf.py env.fix'   to auto-install Python deps."
-echo "============================================"  # NOSONAR - shelldre:S1192
+echo "============================================"

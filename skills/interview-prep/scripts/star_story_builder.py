@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 star_story_builder.py — 从简历文本里抽出工作 / 项目经历，生成"故事矩阵"骨架
 
@@ -18,6 +17,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
 
 COMMON_BEHAVIORAL_QUESTIONS = {
     "ownership": [
@@ -73,7 +73,7 @@ def extract_experiences(text: str) -> list[dict]:
 
     # 匹配锚点（含 | 或 ｜，且包含日期/年份）
     anchor_re = re.compile(
-        r"^(?P<title>[^\n]+?[|｜][^\n]+?[|｜][^\n]+)$"  # NOSONAR - python:S8786
+        r"^(?P<title>[^\n]+?[|｜][^\n]+?[|｜][^\n]+)$"
     )
 
     for line in lines:
@@ -168,7 +168,7 @@ def main() -> None:
     report = render(experiences)
 
     if args.out:
-        Path(args.out).write_text(report, encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+        Path(args.out).write_text(report, encoding="utf-8")
         print(f"✓ 故事矩阵已生成：{args.out}")
     else:
         print(report)

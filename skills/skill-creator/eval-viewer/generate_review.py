@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# NOSONAR
-"""
-Generate and serve a review page for eval results.
+"""Generate and serve a review page for eval results.
 
 Reads the workspace directory, discovers runs (directories with outputs/),
 embeds all output data into a self-contained HTML page, and serves it via
@@ -26,11 +24,11 @@ import sys
 import time
 import webbrowser
 from functools import partial
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 # Files to exclude from output listings
-METADATA_FILES = {"transcript.md", "user_notes.md", "metrics.json"}  # NOSONAR - python:S1192
+METADATA_FILES = {"transcript.md", "user_notes.md", "metrics.json"}
 
 # Extensions we render as inline text
 TEXT_EXTENSIONS = {
@@ -84,7 +82,7 @@ def _find_runs_recursive(root: Path, current: Path, runs: list[dict]) -> None:
             _find_runs_recursive(root, child, runs)
 
 
-def build_run(root: Path, run_dir: Path) -> dict | None:  # NOSONAR - python:S3776
+def build_run(root: Path, run_dir: Path) -> dict | None:
     """Build a run dict with prompt, outputs, and grading data."""
     prompt = ""
     eval_id = None
@@ -107,7 +105,7 @@ def build_run(root: Path, run_dir: Path) -> dict | None:  # NOSONAR - python:S37
             if candidate.exists():
                 try:
                     text = candidate.read_text()
-                    match = re.search(r"## Eval Prompt\n\n([\s\S]*?)(?=\n##|$)", text)  # NOSONAR - python:S6019
+                    match = re.search(r"## Eval Prompt\n\n([\s\S]*?)(?=\n##|$)", text)
                     if match:
                         prompt = match.group(1).strip()
                 except OSError:
@@ -157,13 +155,13 @@ def embed_file(path: Path) -> dict:
         try:
             content = path.read_text(errors="replace")
         except OSError:
-            content = "(Error reading file)"  # NOSONAR - python:S1192
+            content = "(Error reading file)"
         return {
             "name": path.name,
             "type": "text",
             "content": content,
         }
-    if ext in IMAGE_EXTENSIONS:
+    elif ext in IMAGE_EXTENSIONS:
         try:
             raw = path.read_bytes()
             b64 = base64.b64encode(raw).decode("ascii")
@@ -175,7 +173,7 @@ def embed_file(path: Path) -> dict:
             "mime": mime,
             "data_uri": f"data:{mime};base64,{b64}",
         }
-    if ext == ".pdf":
+    elif ext == ".pdf":
         try:
             raw = path.read_bytes()
             b64 = base64.b64encode(raw).decode("ascii")
@@ -186,7 +184,7 @@ def embed_file(path: Path) -> dict:
             "type": "pdf",
             "data_uri": f"data:{mime};base64,{b64}",
         }
-    if ext == ".xlsx":
+    elif ext == ".xlsx":
         try:
             raw = path.read_bytes()
             b64 = base64.b64encode(raw).decode("ascii")
@@ -197,23 +195,23 @@ def embed_file(path: Path) -> dict:
             "type": "xlsx",
             "data_b64": b64,
         }
-    # Binary / unknown — base64 download link
-    try:
-        raw = path.read_bytes()
-        b64 = base64.b64encode(raw).decode("ascii")
-    except OSError:
-        return {"name": path.name, "type": "error", "content": "(Error reading file)"}
-    return {
-        "name": path.name,
-        "type": "binary",
-        "mime": mime,
-        "data_uri": f"data:{mime};base64,{b64}",
-    }
+    else:
+        # Binary / unknown — base64 download link
+        try:
+            raw = path.read_bytes()
+            b64 = base64.b64encode(raw).decode("ascii")
+        except OSError:
+            return {"name": path.name, "type": "error", "content": "(Error reading file)"}
+        return {
+            "name": path.name,
+            "type": "binary",
+            "mime": mime,
+            "data_uri": f"data:{mime};base64,{b64}",
+        }
 
 
 def load_previous_iteration(workspace: Path) -> dict[str, dict]:
-    """
-    Load previous iteration's feedback and outputs.
+    """Load previous iteration's feedback and outputs.
 
     Returns a map of run_id -> {"feedback": str, "outputs": list[dict]}.
     """
@@ -290,7 +288,7 @@ def generate_html(
 def _kill_port(port: int) -> None:
     """Kill any process listening on the given port."""
     try:
-        result = subprocess.run(  # NOSONAR - pythonsecurity:S8705
+        result = subprocess.run(
             ["lsof", "-ti", f":{port}"],
             capture_output=True, text=True, timeout=5,
         )
@@ -308,8 +306,7 @@ def _kill_port(port: int) -> None:
         print("Note: lsof not found, cannot check if port is in use", file=sys.stderr)
 
 class ReviewHandler(BaseHTTPRequestHandler):
-    """
-    Serves the review HTML and handles feedback saves.
+    """Serves the review HTML and handles feedback saves.
 
     Regenerates the HTML on each page load so that refreshing the browser
     picks up new eval outputs without restarting the server.
@@ -348,7 +345,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(content)))
             self.end_headers()
-            self.wfile.write(content)  # NOSONAR - pythonsecurity:S5131
+            self.wfile.write(content)
         elif self.path == "/api/feedback":
             data = b"{}"
             if self.feedback_path.exists():
@@ -372,7 +369,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.feedback_path.write_text(json.dumps(data, indent=2) + "\n")
                 resp = b'{"ok":true}'
                 self.send_response(200)
-            except (json.JSONDecodeError, OSError, ValueError) as e:  # NOSONAR - python:S5713
+            except (json.JSONDecodeError, OSError, ValueError) as e:
                 resp = json.dumps({"error": str(e)}).encode()
                 self.send_response(500)
             self.send_header("Content-Type", "application/json")
@@ -450,8 +447,8 @@ def main() -> None:
         port = server.server_address[1]
 
     url = f"http://localhost:{port}"
-    print("\n  Eval Viewer")
-    print("  ─────────────────────────────────")
+    print(f"\n  Eval Viewer")
+    print(f"  ─────────────────────────────────")
     print(f"  URL:       {url}")
     print(f"  Workspace: {workspace}")
     print(f"  Feedback:  {feedback_path}")
@@ -459,12 +456,12 @@ def main() -> None:
         print(f"  Previous:  {args.previous_workspace} ({len(previous)} runs)")
     if benchmark_path:
         print(f"  Benchmark: {benchmark_path}")
-    print("\n  Press Ctrl+C to stop.\n")
+    print(f"\n  Press Ctrl+C to stop.\n")
 
     webbrowser.open(url)
 
     try:
-        server.serve_forever()  # NOSONAR - python:S5332
+        server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopped.")
         server.server_close()

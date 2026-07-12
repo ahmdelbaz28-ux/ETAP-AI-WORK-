@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 postcheck.py — Document business rule self-check script
 
@@ -27,10 +26,10 @@ Checks:
   15. Report content quality — whether summary exists, whether titles are specific, whether vague conclusions are used
 """
 
+import zipfile
+import sys
 import json
 import re
-import sys
-import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -59,7 +58,7 @@ class CheckResult:
         }
 
     def __str__(self):
-        icon = "✅" if self.passed else ("❌" if self.severity == "error" else "⚠️")  # NOSONAR - python:S3358
+        icon = "✅" if self.passed else ("❌" if self.severity == "error" else "⚠️")
         return f"{icon} [{self.name}] {self.message}"
 
 
@@ -71,7 +70,7 @@ def read_document_xml(docx_path: str) -> ET.Element:
 
 def get_sections(root: ET.Element) -> list:
     """Extract all sections (located via sectPr)"""
-    body = root.find(".//w:body", NS)  # NOSONAR - python:S1192
+    body = root.find(".//w:body", NS)
     if body is None:
         return []
 
@@ -101,7 +100,7 @@ def get_sections(root: ET.Element) -> list:
     return sections
 
 
-def check_blank_pages(root: ET.Element) -> CheckResult:  # NOSONAR - python:S3776
+def check_blank_pages(root: ET.Element) -> CheckResult:
     """Detect excess blank pages — multi-pattern detection"""
     body = root.find(".//w:body", NS)
     paragraphs = body.findall("w:p", NS)
@@ -215,7 +214,7 @@ def check_blank_pages(root: ET.Element) -> CheckResult:  # NOSONAR - python:S377
     return CheckResult("blank-pages", True, "No blank page issues detected")
 
 
-def check_line_spacing(root: ET.Element) -> CheckResult:  # NOSONAR - python:S3776
+def check_line_spacing(root: ET.Element) -> CheckResult:
     """Check body paragraph line spacing consistency"""
     body = root.find(".//w:body", NS)
     paragraphs = body.findall(".//w:p", NS)
@@ -249,7 +248,7 @@ def check_line_spacing(root: ET.Element) -> CheckResult:  # NOSONAR - python:S37
         return CheckResult("line-spacing", True, "No body paragraphs")
 
     if len(spacing_values) <= 1:
-        dominant = next(iter(spacing_values.keys())) if spacing_values else "default"
+        dominant = list(spacing_values.keys())[0] if spacing_values else "default"
         return CheckResult("line-spacing", True, f"Line spacing uniform (line={dominant})")
 
     # Find the most common line spacing
@@ -310,9 +309,8 @@ def check_image_overflow(root: ET.Element) -> CheckResult:
     )
 
 
-def check_image_aspect_ratio(docx_path: str, root: ET.Element) -> CheckResult:  # NOSONAR - python:S3776
-    """
-    Check whether images are stretched/distorted (aspect ratio drift).
+def check_image_aspect_ratio(docx_path: str, root: ET.Element) -> CheckResult:
+    """Check whether images are stretched/distorted (aspect ratio drift).
 
     Compares the original aspect ratio of embedded images with the display aspect ratio set in wp:extent.
     Drift >10% is considered distortion (pie charts becoming elliptical, radar charts becoming diamond-shaped, etc).
@@ -369,9 +367,8 @@ def check_image_aspect_ratio(docx_path: str, root: ET.Element) -> CheckResult:  
                 # Read actual image dimensions
                 try:
                     img_data = z.read(img_zip_path)
-                    import io as _io
-
                     from PIL import Image as _PILImage
+                    import io as _io
                     pil_img = _PILImage.open(_io.BytesIO(img_data))
                     orig_w, orig_h = pil_img.size
                     if orig_w == 0 or orig_h == 0:
@@ -416,7 +413,7 @@ def check_image_aspect_ratio(docx_path: str, root: ET.Element) -> CheckResult:  
     )
 
 
-def check_font_fallback(root: ET.Element) -> CheckResult:  # NOSONAR - python:S3776
+def check_font_fallback(root: ET.Element) -> CheckResult:
     """Check whether potentially missing fonts are used"""
     SAFE_FONTS = {
         # Chinese
@@ -511,7 +508,7 @@ def check_shading_type(root: ET.Element) -> CheckResult:
 
 
 
-def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:  # NOSONAR - python:S3776
+def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:
     """Check TOC quality: field existence, headings presence, outlineLvl, updateFields."""
     body = root.find(".//w:body", NS)
     if body is None:
@@ -610,9 +607,9 @@ def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:  # NOSONAR 
 
                     if missing_outline:
                         issues.append(
-                            "TOC_OUTLINE_MISSING: {} style(s) missing outlineLvl — "
+                            "TOC_OUTLINE_MISSING: %s style(s) missing outlineLvl — "
                             "Word TOC update won't find these headings. "
-                            "Run add_toc_placeholders.py to fix".format(", ".join(missing_outline))
+                            "Run add_toc_placeholders.py to fix" % ", ".join(missing_outline)
                         )
 
                 # Check 4: updateFields not set to true
@@ -620,7 +617,7 @@ def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:  # NOSONAR 
                     settings_content = zf.read('word/settings.xml').decode('utf-8')
                     # Check for <w:updateFields w:val="true"/>
                     update_ok = bool(re.search(
-                        r'<w:updateFields\s+[^>]*w:val\s*=\s*"true"',  # NOSONAR - python:S8786
+                        r'<w:updateFields\s+[^>]*w:val\s*=\s*"true"',
                         settings_content
                     ))
                     if not update_ok:
@@ -635,7 +632,8 @@ def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:  # NOSONAR 
     if not issues:
         if has_toc:
             return CheckResult("toc", True, "TOC field present and update-ready")
-        return CheckResult("toc", True, "No TOC needed")
+        else:
+            return CheckResult("toc", True, "No TOC needed")
 
     severity = "error" if any(k in i for i in issues for k in ("FIELD_MISSING", "NO_HEADINGS", "OUTLINE_MISSING")) else "warning"
     return CheckResult("toc", False, "; ".join(issues[:5]), severity)
@@ -643,7 +641,7 @@ def check_toc(root: ET.Element, docx_path: str = "") -> CheckResult:  # NOSONAR 
 
 
 
-def check_cover_overflow(root: ET.Element) -> CheckResult:  # NOSONAR - python:S3776
+def check_cover_overflow(root: ET.Element) -> CheckResult:
     """Detect cover section issues: oversized fonts, excessive spacing, trailing empty content."""
     sections = get_sections(root)
     if not sections:
@@ -655,9 +653,9 @@ def check_cover_overflow(root: ET.Element) -> CheckResult:  # NOSONAR - python:S
     # Get page dimensions and margins for accurate available height calculation
     pg_sz = sect_pr.find("w:pgSz", NS)
     pg_mar = sect_pr.find("w:pgMar", NS)
-    int(pg_sz.get(f"{{{NS['w']}}}h", "16838")) if pg_sz is not None else 16838
-    int(pg_mar.get(f"{{{NS['w']}}}top", "0")) if pg_mar is not None else 0
-    int(pg_mar.get(f"{{{NS['w']}}}bottom", "0")) if pg_mar is not None else 0
+    page_height = int(pg_sz.get(f"{{{NS['w']}}}h", "16838")) if pg_sz is not None else 16838
+    margin_top = int(pg_mar.get(f"{{{NS['w']}}}top", "0")) if pg_mar is not None else 0
+    margin_bottom = int(pg_mar.get(f"{{{NS['w']}}}bottom", "0")) if pg_mar is not None else 0
 
     issues = []
     children = sec0["children"]

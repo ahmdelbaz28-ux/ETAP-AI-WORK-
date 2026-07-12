@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Consistency Checker for Storyboard Manager
 
@@ -7,19 +6,20 @@ This script analyzes markdown files in a storyboard project to detect inconsiste
 in character details, plot elements, and world-building across the story.
 """
 
-import json
+import os
 import re
 import sys
-from collections import defaultdict
+import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Dict, Set, Tuple, Optional
+from collections import defaultdict
 
 
 class ConsistencyIssue:
     """Represents a consistency issue found in the story"""
 
     def __init__(self, issue_type: str, severity: str, description: str,
-                 locations: List[str], details: Optional[Dict] = None):
+                 locations: List[str], details: Dict = None):
         self.issue_type = issue_type  # character, plot, world, timeline
         self.severity = severity  # critical, warning, info
         self.description = description
@@ -97,7 +97,7 @@ class ConsistencyChecker:
             content = file_path.read_text(encoding='utf-8')
 
             # Extract character name from title
-            name_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)  # NOSONAR - python:S8786
+            name_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)
             if not name_match:
                 return None
 
@@ -112,7 +112,7 @@ class ConsistencyChecker:
 
             # Extract aliases/nicknames
             alias_match = re.search(
-                r'\*\*(?:Nicknames?|Aliases?):\*\*\s*(.+?)(?:\n|$)',  # NOSONAR - python:S6019
+                r'\*\*(?:Nicknames?|Aliases?):\*\*\s*(.+?)(?:\n|$)',
                 content, re.IGNORECASE
             )
             if alias_match:
@@ -138,7 +138,7 @@ class ConsistencyChecker:
                     if profile:
                         self.characters[profile.name] = profile
 
-    def check_character_mentions(self, file_path: Path):  # NOSONAR - python:S3776
+    def check_character_mentions(self, file_path: Path):
         """Check character mentions in content for inconsistencies"""
         try:
             content = file_path.read_text(encoding='utf-8')
@@ -207,8 +207,9 @@ class ConsistencyChecker:
         # Would analyze relationship declarations in character files and compare
         # with how relationships are portrayed in chapters
 
+        relationship_keywords = ['friend', 'enemy', 'lover', 'sibling', 'parent', 'child']
 
-        for _char_name, _profile in self.characters.items():
+        for char_name, profile in self.characters.items():
             # Extract relationship info from profile
             # Compare with relationships mentioned in story files
             # Flag inconsistencies
@@ -224,13 +225,13 @@ class ConsistencyChecker:
             # This is a simplified version - would need more sophisticated pattern matching
 
             # Example: Check for location descriptions
-            location_pattern = r'\*\*Location:\*\*\s*(.+?)(?:\n|$)'  # NOSONAR - python:S6019
+            location_pattern = r'\*\*Location:\*\*\s*(.+?)(?:\n|$)'
             for match in re.finditer(location_pattern, content, re.IGNORECASE):
                 loc_name = match.group(1).strip()
 
                 if loc_name in self.world_facts:
                     # Check if description is consistent
-                    _prev_value, _prev_location = self.world_facts[loc_name]
+                    prev_value, prev_location = self.world_facts[loc_name]
                     # In a real implementation, would do semantic comparison
                 else:
                     self.world_facts[loc_name] = (match.group(0), location)
@@ -258,7 +259,7 @@ class ConsistencyChecker:
             location = str(file_path.relative_to(self.project_root))
 
             # Check if character names are spelled consistently
-            for char_name, _profile in self.characters.items():
+            for char_name, profile in self.characters.items():
                 # Look for potential misspellings (Levenshtein distance)
                 # This is simplified - would use actual string distance algorithm
 
@@ -289,6 +290,7 @@ class ConsistencyChecker:
 
     def analyze_project(self) -> Dict:
         """Run all consistency checks on the project"""
+
         # Load character profiles
         self.load_all_characters()
 
@@ -316,7 +318,7 @@ class ConsistencyChecker:
         for issue in self.issues:
             issues_by_severity[issue.severity].append(issue.to_dict())
 
-        return {
+        analysis = {
             'total_issues': len(self.issues),
             'critical_issues': len(issues_by_severity['critical']),
             'warnings': len(issues_by_severity['warning']),
@@ -326,10 +328,12 @@ class ConsistencyChecker:
             'all_issues': [issue.to_dict() for issue in self.issues]
         }
 
+        return analysis
 
 
-def main():  # NOSONAR - python:S3776
+def main():
     """Main entry point for consistency checker"""
+
     if len(sys.argv) < 2:
         print("Usage: consistency_checker.py <project_directory> [--output json|markdown]")
         sys.exit(1)
@@ -371,12 +375,12 @@ def main():  # NOSONAR - python:S3776
                     for issue in issues:
                         print(f"### {issue['description']}")
                         print(f"**Type:** {issue['type']}")
-                        print("**Locations:**")
+                        print(f"**Locations:**")
                         for loc in issue['locations']:
                             print(f"- {loc}")
 
                         if issue['details']:
-                            print("**Details:**")
+                            print(f"**Details:**")
                             for key, value in issue['details'].items():
                                 print(f"- {key}: {value}")
 

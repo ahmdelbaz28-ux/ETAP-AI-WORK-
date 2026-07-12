@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Aggregate individual run results into benchmark summary statistics.
 
@@ -33,7 +32,6 @@ The script supports two directory layouts:
             │   └── run-1/grading.json
             └── without_skill/
                 └── run-1/grading.json
-
 """
 
 import argparse
@@ -66,7 +64,7 @@ def calculate_stats(values: list[float]) -> dict:
     }
 
 
-def load_run_results(benchmark_dir: Path) -> dict:  # NOSONAR - python:S3776
+def load_run_results(benchmark_dir: Path) -> dict:
     """
     Load all run results from a benchmark directory.
 
@@ -139,7 +137,7 @@ def load_run_results(benchmark_dir: Path) -> dict:  # NOSONAR - python:S3776
                 timing = grading.get("timing", {})
                 result["time_seconds"] = timing.get("total_duration_seconds", 0.0)
                 timing_file = run_dir / "timing.json"
-                if result["time_seconds"] == 0.0 and timing_file.exists():  # NOSONAR - python:S1244
+                if result["time_seconds"] == 0.0 and timing_file.exists():
                     try:
                         with open(timing_file) as tf:
                             timing_data = json.load(tf)
@@ -227,7 +225,9 @@ def aggregate_results(results: dict) -> dict:
 
 
 def generate_benchmark(benchmark_dir: Path, skill_name: str = "", skill_path: str = "") -> dict:
-    """Generate complete benchmark.json from run results."""
+    """
+    Generate complete benchmark.json from run results.
+    """
     results = load_run_results(benchmark_dir)
     run_summary = aggregate_results(results)
 
@@ -254,13 +254,13 @@ def generate_benchmark(benchmark_dir: Path, skill_name: str = "", skill_path: st
             })
 
     # Determine eval IDs from results
-    eval_ids = sorted({
+    eval_ids = sorted(set(
         r["eval_id"]
         for config in results.values()
         for r in config
-    })
+    ))
 
-    return {
+    benchmark = {
         "metadata": {
             "skill_name": skill_name or "<skill-name>",
             "skill_path": skill_path or "<path/to/skill>",
@@ -275,6 +275,7 @@ def generate_benchmark(benchmark_dir: Path, skill_name: str = "", skill_path: st
         "notes": []  # To be filled by analyzer
     }
 
+    return benchmark
 
 
 def generate_markdown(benchmark: dict) -> str:
@@ -373,7 +374,7 @@ def main():
     output_md = output_json.with_suffix(".md")
 
     # Write benchmark.json
-    with open(output_json, "w") as f:  # NOSONAR - pythonsecurity:S8707
+    with open(output_json, "w") as f:
         json.dump(benchmark, f, indent=2)
     print(f"Generated: {output_json}")
 
@@ -388,7 +389,7 @@ def main():
     configs = [k for k in run_summary if k != "delta"]
     delta = run_summary.get("delta", {})
 
-    print("\nSummary:")
+    print(f"\nSummary:")
     for config in configs:
         pr = run_summary[config]["pass_rate"]["mean"]
         label = config.replace("_", " ").title()

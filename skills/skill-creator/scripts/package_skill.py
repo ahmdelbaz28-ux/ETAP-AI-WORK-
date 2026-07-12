@@ -8,14 +8,12 @@ Usage:
 Example:
     python utils/package_skill.py skills/public/my-skill
     python utils/package_skill.py skills/public/my-skill ./dist
-
 """
 
 import fnmatch
 import sys
 import zipfile
 from pathlib import Path
-
 from scripts.quick_validate import validate_skill
 
 # Patterns to exclude when packaging skills.
@@ -51,7 +49,6 @@ def package_skill(skill_path, output_dir=None):
 
     Returns:
         Path to the created .skill file, or None if error
-
     """
     skill_path = Path(skill_path).resolve()
 

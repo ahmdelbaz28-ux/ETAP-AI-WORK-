@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# NOSONAR
-"""
-Improve a skill description based on eval results.
+"""Improve a skill description based on eval results.
 
 Takes eval results (from run_eval.py) and generates an improved description
 by calling `z-ai chat -p` as a subprocess.
@@ -38,7 +36,7 @@ def _call_zai(prompt: str, timeout: int = 300) -> str:
     return result.stdout
 
 
-def improve_description(  # NOSONAR - python:S3776
+def improve_description(
     skill_name: str,
     skill_content: str,
     current_description: str,
@@ -128,7 +126,7 @@ Here are some tips that we've found to work well in writing these descriptions:
 - The description competes with other skills for GLM's attention — make it distinctive and immediately recognizable.
 - If you're getting lots of failures after repeated attempts, change things up. Try different sentence structures or wordings.
 
-I'd encourage you to be creative and mix up the style in different iterations since you'll have multiple opportunities to try different approaches and we'll just grab the highest-scoring one at the end.
+I'd encourage you to be creative and mix up the style in different iterations since you'll have multiple opportunities to try different approaches and we'll just grab the highest-scoring one at the end. 
 
 Please respond with only the new description text in <new_description> tags, nothing else."""
 
@@ -196,10 +194,10 @@ def main():
         print(f"Error: No SKILL.md found at {skill_path}", file=sys.stderr)
         sys.exit(1)
 
-    eval_results = json.loads(Path(args.eval_results).read_text())  # NOSONAR - pythonsecurity:S8707
+    eval_results = json.loads(Path(args.eval_results).read_text())
     history = []
     if args.history:
-        history = json.loads(Path(args.history).read_text())  # NOSONAR - pythonsecurity:S8707
+        history = json.loads(Path(args.history).read_text())
 
     name, _, content = parse_skill_md(skill_path)
     current_description = eval_results["description"]

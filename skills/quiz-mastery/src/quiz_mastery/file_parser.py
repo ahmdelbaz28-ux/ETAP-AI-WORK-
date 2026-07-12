@@ -1,10 +1,10 @@
-# NOSONAR
 from __future__ import annotations
 
 import subprocess
-import xml.etree.ElementTree as ET
 import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
 
 SUPPORTED_EXTENSIONS = {".md", ".txt", ".text", ".docx", ".pdf", ".ppt", ".pptx"}
 
@@ -12,8 +12,7 @@ SUPPORTED_EXTENSIONS = {".md", ".txt", ".text", ".docx", ".pdf", ".ppt", ".pptx"
 # ── .docx (zero-dep: zip + xml) ──────────────────────────────────
 
 def _parse_docx(file_path: Path) -> str:
-    """
-    Extract text from .docx using stdlib only (zipfile + xml).
+    """Extract text from .docx using stdlib only (zipfile + xml).
 
     .docx is a ZIP archive containing word/document.xml with paragraph data.
     """
@@ -40,8 +39,7 @@ def _parse_docx(file_path: Path) -> str:
 # ── .pptx (zero-dep: zip + xml) ──────────────────────────────────
 
 def _parse_pptx(file_path: Path) -> str:
-    """
-    Extract text from .pptx using stdlib only (zipfile + xml).
+    """Extract text from .pptx using stdlib only (zipfile + xml).
 
     .pptx is a ZIP archive; each slide is at ppt/slides/slideN.xml.
     """
@@ -75,9 +73,8 @@ def _parse_pptx(file_path: Path) -> str:
 
 # ── .ppt (legacy binary → textutil fallback) ─────────────────────
 
-def _parse_ppt(file_path: Path) -> str:  # NOSONAR - python:S3776
-    """
-    Extract text from legacy .ppt format.
+def _parse_ppt(file_path: Path) -> str:
+    """Extract text from legacy .ppt format.
 
     Tries macOS textutil first. If unavailable, raises a helpful error.
     """
@@ -113,8 +110,7 @@ def _parse_ppt(file_path: Path) -> str:  # NOSONAR - python:S3776
 # ── .pdf (macOS native or pymupdf fallback) ──────────────────────
 
 def _parse_pdf(file_path: Path) -> str:
-    """
-    Extract text from .pdf.
+    """Extract text from .pdf.
 
     Strategy:
     1. Try pymupdf (fitz) if installed — best quality
@@ -123,7 +119,7 @@ def _parse_pdf(file_path: Path) -> str:
     """
     # Strategy 1: pymupdf
     try:
-        import _fitz_compat as fitz
+        import fitz
         doc = fitz.open(str(file_path))
         parts: list[str] = []
         for page in doc:
@@ -138,7 +134,7 @@ def _parse_pdf(file_path: Path) -> str:
 
     # Strategy 2: macOS python3 Quartz (Core Graphics) — zero-dep on macOS
     try:
-        result = subprocess.run(  # NOSONAR - pythonsecurity:S8705
+        result = subprocess.run(
             [
                 "python3", "-c",
                 "import sys\n"
@@ -166,7 +162,7 @@ def _parse_pdf(file_path: Path) -> str:
 
     # Strategy 3: pdftotext (poppler)
     try:
-        result = subprocess.run(  # NOSONAR - pythonsecurity:S8705
+        result = subprocess.run(
             ["pdftotext", str(file_path), "-"],
             capture_output=True,
             text=True,
@@ -188,8 +184,7 @@ def _parse_pdf(file_path: Path) -> str:
 # ── Main entry ────────────────────────────────────────────────────
 
 def parse_file(file_path: str) -> str:
-    """
-    Read a file and return its text content.
+    """Read a file and return its text content.
 
     Supports: .md, .txt, .text, .docx, .pdf, .ppt, .pptx
 
@@ -200,7 +195,6 @@ def parse_file(file_path: str) -> str:
     Raises:
         FileNotFoundError: If file does not exist.
         ValueError: If file extension is not supported or extraction fails.
-
     """
     path = Path(file_path)
 
@@ -217,26 +211,24 @@ def parse_file(file_path: str) -> str:
 
     if suffix == ".docx":
         return _parse_docx(path)
-    if suffix == ".pdf":
+    elif suffix == ".pdf":
         return _parse_pdf(path)
-    if suffix == ".pptx":
+    elif suffix == ".pptx":
         return _parse_pptx(path)
-    if suffix == ".ppt":
+    elif suffix == ".ppt":
         return _parse_ppt(path)
 
-    return path.read_text(encoding="utf-8")  # NOSONAR - pythonsecurity:S8707
+    return path.read_text(encoding="utf-8")
 
 
 def build_extraction_prompt(content: str) -> dict:
-    """
-    Build a prompt for LLM to extract knowledge points from study material.
+    """Build a prompt for LLM to extract knowledge points from study material.
 
     Args:
         content: The text content of the study material.
 
     Returns:
         dict with 'system_prompt' and 'user_prompt' keys.
-
     """
     system_prompt = (
         "你是一个专业的知识点提取助手。从用户提供的学习资料中提取核心知识点。\n"

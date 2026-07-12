@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-# NOSONAR
-"""UI/UX Pro Max Core - BM25 search engine for UI/UX style guides"""
+# -*- coding: utf-8 -*-
+"""
+UI/UX Pro Max Core - BM25 search engine for UI/UX style guides
+"""
 
 import csv
 import re
-from collections import defaultdict
-from math import log
 from pathlib import Path
+from math import log
+from collections import defaultdict
 
 # ============ CONFIGURATION ============
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -15,12 +17,12 @@ MAX_RESULTS = 3
 CSV_CONFIG = {
     "style": {
         "file": "styles.csv",
-        "search_cols": ["Style Category", "Keywords", "Best For", "Type", "AI Prompt Keywords"],  # NOSONAR - python:S1192
+        "search_cols": ["Style Category", "Keywords", "Best For", "Type", "AI Prompt Keywords"],
         "output_cols": ["Style Category", "Type", "Keywords", "Primary Colors", "Effects & Animation", "Best For", "Performance", "Accessibility", "Framework Compatibility", "Complexity", "AI Prompt Keywords", "CSS/Technical Keywords", "Implementation Checklist", "Design System Variables"]
     },
     "color": {
         "file": "colors.csv",
-        "search_cols": ["Product Type", "Notes"],  # NOSONAR - python:S1192
+        "search_cols": ["Product Type", "Notes"],
         "output_cols": ["Product Type", "Primary (Hex)", "Secondary (Hex)", "CTA (Hex)", "Background (Hex)", "Text (Hex)", "Notes"]
     },
     "chart": {
@@ -41,7 +43,7 @@ CSV_CONFIG = {
     "ux": {
         "file": "ux-guidelines.csv",
         "search_cols": ["Category", "Issue", "Description", "Platform"],
-        "output_cols": ["Category", "Issue", "Platform", "Description", "Do", "Don't", "Code Example Good", "Code Example Bad", "Severity"]  # NOSONAR - python:S1192
+        "output_cols": ["Category", "Issue", "Platform", "Description", "Do", "Don't", "Code Example Good", "Code Example Bad", "Severity"]
     },
     "typography": {
         "file": "typography.csv",
@@ -156,7 +158,7 @@ class BM25:
 # ============ SEARCH FUNCTIONS ============
 def _load_csv(filepath):
     """Load CSV and return list of dicts"""
-    with open(filepath, encoding='utf-8') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         return list(csv.DictReader(f))
 
 

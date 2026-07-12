@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Add placeholder entries to Table of Contents in a DOCX file.
 
@@ -25,10 +24,10 @@ Example:
     python add_toc_placeholders.py document.docx
     python add_toc_placeholders.py document.docx --auto
     python add_toc_placeholders.py document.docx --entries '[{"level":1,"text":"Introduction","page":"1"}]'
-
 """
 
 import argparse
+import html
 import json
 import re
 import shutil
@@ -36,12 +35,10 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 
 def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
-    """
-    Extract headings from a DOCX file for auto-mode TOC generation.
+    """Extract headings from a DOCX file for auto-mode TOC generation.
 
     Args:
         docx_path: Path to DOCX file
@@ -49,7 +46,6 @@ def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
 
     Returns:
         List of dicts with 'level', 'text', 'page' keys
-
     """
     from docx import Document
 
@@ -84,15 +80,13 @@ def _extract_headings_from_docx(docx_path: str, max_level: int = 3) -> list:
     return entries
 
 
-def add_toc_placeholders(docx_path: str, entries: Optional[list] = None) -> None:
-    """
-    Add placeholder TOC entries to a DOCX file (in-place replacement).
+def add_toc_placeholders(docx_path: str, entries: list = None) -> None:
+    """Add placeholder TOC entries to a DOCX file (in-place replacement).
 
     Args:
         docx_path: Path to DOCX file (will be modified in-place)
         entries: Optional list of placeholder entries. Each entry should be a dict
                  with 'level' (1-3), 'text', and 'page' keys.
-
     """
     docx_path = Path(docx_path)
 
@@ -143,13 +137,12 @@ def add_toc_placeholders(docx_path: str, entries: Optional[list] = None) -> None
                     zipf.write(file_path, arcname)
 
         # Replace original file with modified version (use shutil.move for cross-device support)
-        docx_path.unlink()  # NOSONAR: S8707 path validated upstream
+        docx_path.unlink()
         shutil.move(str(temp_output), str(docx_path))
 
 
 def _fix_update_fields(settings_xml_path: Path) -> None:
-    """
-    Fix settings.xml to ensure <w:updateFields w:val="true"/> is present.
+    """Fix settings.xml to ensure <w:updateFields w:val="true"/> is present.
 
     The docx npm library generates <w:updateFields/> without val="true",
     which Word/WPS interprets as false, preventing TOC auto-update on open.
@@ -180,12 +173,11 @@ def _fix_update_fields(settings_xml_path: Path) -> None:
         print('Fixed: added <w:updateFields w:val="true"/> to settings.xml')
 
     if content != original:
-        settings_xml_path.write_text(content, encoding='utf-8')  # NOSONAR - pythonsecurity:S2083
+        settings_xml_path.write_text(content, encoding='utf-8')
 
 
 def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
-    """
-    Fix Heading styles to include outlineLvl in pPr.
+    """Fix Heading styles to include outlineLvl in pPr.
 
     The docx npm library creates Heading styles but sometimes doesn't set outlineLvl
     in the style definition. Without outlineLvl, Word's TOC field update won't find
@@ -199,6 +191,7 @@ def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
     content = styles_xml_path.read_text(encoding='utf-8')
     original = content
 
+    W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 
     for level in range(1, 7):
         style_id = f'Heading{level}'
@@ -218,7 +211,7 @@ def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
         style_content = match.group(2)
 
         # Check if outlineLvl already exists in this style
-        if '<w:outlineLvl' in style_content:
+        if f'<w:outlineLvl' in style_content:
             continue
 
         # Find or create <w:pPr> within this style
@@ -242,12 +235,11 @@ def _fix_heading_outline_levels(styles_xml_path: Path) -> None:
         print(f'Fixed: added outlineLvl={outline_val} to {style_id} style')
 
     if content != original:
-        styles_xml_path.write_text(content, encoding='utf-8')  # NOSONAR - pythonsecurity:S2083
+        styles_xml_path.write_text(content, encoding='utf-8')
 
 
 def _fix_fld_char_structure(xml_content: str) -> str:
-    """
-    Fix malformed fldChar structure where begin+instrText+separate are in one <w:r>.
+    """Fix malformed fldChar structure where begin+instrText+separate are in one <w:r>.
 
     The docx npm library generates:
         <w:r><w:fldChar begin/><w:instrText>TOC...</w:instrText><w:fldChar separate/></w:r>
@@ -262,7 +254,7 @@ def _fix_fld_char_structure(xml_content: str) -> str:
         r'<w:r(?:\s[^>]*)?>('
         r'<w:fldChar[^>]*w:fldCharType="begin"[^>]*/>'  # begin
         r')('
-        r'<w:instrText[^>]*>.*?</w:instrText>'           # instrText
+        r'<w:instrText[^>]*>.*?</w:instrText>'           # instrText  
         r')('
         r'<w:fldChar[^>]*w:fldCharType="separate"[^>]*/>'  # separate
         r')</w:r>'
@@ -281,7 +273,7 @@ def _fix_fld_char_structure(xml_content: str) -> str:
     # Fix TOC instrText: remove \t switch with wrong style names
     # docx npm lib generates \t "Heading1,1,Heading2,2,..." but Word expects "Heading 1,1,..."
     # Since we already have \o "1-3" which uses outlineLvl (now fixed), \t is redundant and harmful
-    toc_t_pattern = r'(TOC\s+[^\t<]*?)\\t\s+&quot;[^&]*?&quot;'  # NOSONAR - python:S8786
+    toc_t_pattern = r'(TOC\s+[^<]*?)\\t\s+&quot;[^&]*&quot;'
     modified2 = re.sub(toc_t_pattern, r'\1', modified)
     if modified2 != modified:
         print("Fixed: removed \\t switch from TOC instrText (\\o with outlineLvl is sufficient)")
@@ -291,15 +283,13 @@ def _fix_fld_char_structure(xml_content: str) -> str:
 
 
 def _detect_toc_styles(styles_xml_path: Path) -> dict:
-    """
-    Detect TOC style IDs from styles.xml.
+    """Detect TOC style IDs from styles.xml.
 
     Args:
         styles_xml_path: Path to styles.xml
 
     Returns:
         Dictionary mapping level (1-3) to style ID string
-
     """
     if not styles_xml_path.exists():
         return {}
@@ -332,12 +322,10 @@ def _detect_toc_styles(styles_xml_path: Path) -> dict:
 
 
 def _ensure_toc_styles(styles_xml_path: Path) -> dict:
-    """
-    Ensure TOC styles exist in styles.xml, adding them if necessary.
+    """Ensure TOC styles exist in styles.xml, adding them if necessary.
 
     Returns:
         Dictionary mapping level (1-3) to style ID string
-
     """
     if not styles_xml_path.exists():
         return {1: "9", 2: "11", 3: "12"}
@@ -409,7 +397,7 @@ def _ensure_toc_styles(styles_xml_path: Path) -> dict:
             modified = True
 
     if modified:
-        styles_xml_path.write_text(content, encoding='utf-8')  # NOSONAR - pythonsecurity:S2083
+        styles_xml_path.write_text(content, encoding='utf-8')
 
     # Ensure Hyperlink style exists
     _ensure_hyperlink_style(styles_xml_path)
@@ -439,13 +427,12 @@ def _ensure_hyperlink_style(styles_xml_path: Path) -> None:
     insert_point = content.rfind('</w:styles>')
     if insert_point != -1:
         content = content[:insert_point] + hyperlink_style + '\n' + content[insert_point:]
-        styles_xml_path.write_text(content, encoding='utf-8')  # NOSONAR - pythonsecurity:S2083
+        styles_xml_path.write_text(content, encoding='utf-8')
         print("Added Hyperlink character style")
 
 
-def _insert_toc_placeholders(xml_content: str, entries: Optional[list] = None, toc_style_mapping: Optional[dict] = None) -> str:  # NOSONAR - python:S3776
-    """
-    Insert placeholder TOC entries and heading bookmarks into XML content.
+def _insert_toc_placeholders(xml_content: str, entries: list = None, toc_style_mapping: dict = None) -> str:
+    """Insert placeholder TOC entries and heading bookmarks into XML content.
 
     Uses lxml ElementTree for robust XML manipulation instead of fragile regex.
 
@@ -463,7 +450,6 @@ def _insert_toc_placeholders(xml_content: str, entries: Optional[list] = None, t
 
     Raises:
         RuntimeError: If TOC structure cannot be found or is malformed
-
     """
     from lxml import etree
 
@@ -474,9 +460,11 @@ def _insert_toc_placeholders(xml_content: str, entries: Optional[list] = None, t
         toc_style_mapping = {1: "9", 2: "11", 3: "12"}
 
     W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
     # Parse XML
     root = etree.fromstring(xml_content.encode('utf-8'))
+    nsmap = {'w': W, 'r': R_NS}
 
     # ── Step 1: Add bookmarks to Heading paragraphs ──
     bookmark_id_counter = 100000
@@ -583,22 +571,23 @@ def _insert_toc_placeholders(xml_content: str, entries: Optional[list] = None, t
                 field_stack.pop()
 
     if toc_separate_para is None or toc_end_para is None:
-        has_begin = root.find(f'.//{{{W}}}fldChar[@{{{W}}}fldCharType="begin"]') is not None  # NOSONAR - python:S5727
-        has_separate = root.find(f'.//{{{W}}}fldChar[@{{{W}}}fldCharType="separate"]') is not None  # NOSONAR - python:S5727
+        has_begin = root.find(f'.//{{{W}}}fldChar[@{{{W}}}fldCharType="begin"]') is not None
+        has_separate = root.find(f'.//{{{W}}}fldChar[@{{{W}}}fldCharType="separate"]') is not None
         if not has_begin:
             raise RuntimeError(
                 "TOC FAILED: No field structure found in document. "
                 "Ensure the code includes a TableOfContents element."
             )
-        if not has_separate:
+        elif not has_separate:
             raise RuntimeError(
                 "TOC FAILED: TOC field has 'begin' but no 'separate' fldChar. "
                 "Run _fix_fld_char_structure() first or check the docx-js version."
             )
-        raise RuntimeError(
-            "TOC FAILED: Field structure found but no TOC instrText detected. "
-            "Ensure TableOfContents element generates a TOC \\o field code."
-        )
+        else:
+            raise RuntimeError(
+                "TOC FAILED: Field structure found but no TOC instrText detected. "
+                "Ensure TableOfContents element generates a TOC \\o field code."
+            )
 
     # ── Step 3: Remove everything between separate-para and end-para ──
     # The TOC paragraphs may be direct children of <w:body> or wrapped in <w:sdt><w:sdtContent>
@@ -734,7 +723,7 @@ def main():
         except json.JSONDecodeError as e:
             print(f"Error parsing entries JSON: {e}", file=sys.stderr)
             sys.exit(1)
-    elif True:  # NOSONAR - python:S5797
+    elif args.auto or True:
         # Default to auto mode — always extract from document headings
         entries = _extract_headings_from_docx(args.docx_file)
         if entries:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from .models import KnowledgePoint
+
 
 # Maximum questions per quiz round
 MAX_QUESTIONS_PER_ROUND = 15
@@ -14,8 +16,7 @@ LEVEL_DISTRIBUTION = {
 
 
 class QuizGenerator:
-    """
-    Builds prompt templates for LLM-based quiz generation.
+    """Builds prompt templates for LLM-based quiz generation.
 
     This module does NOT call any LLM API. It constructs system_prompt and
     user_prompt that should be sent to an LLM by the caller (agent).
@@ -27,8 +28,7 @@ class QuizGenerator:
         level: int = 1,
         num_questions: int | None = None,
     ) -> dict:
-        """
-        Build prompts for quiz generation.
+        """Build prompts for quiz generation.
 
         Args:
             knowledge_points: List of knowledge points to quiz on.
@@ -37,7 +37,6 @@ class QuizGenerator:
 
         Returns:
             dict with 'system_prompt' and 'user_prompt' keys.
-
         """
         level = max(1, min(3, level))
         if num_questions is None:

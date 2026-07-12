@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """Fetch AMiner paper recommendations and render results as Markdown."""
 from __future__ import annotations
 
@@ -10,6 +9,7 @@ import sys
 import urllib.error
 import urllib.request
 from typing import Any
+
 
 DEFAULT_SIZE = 5
 MAX_SIZE = 20
@@ -77,7 +77,7 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
     return {"function_name": "aminer_recommend", "arguments": arguments}
 
 
-def call_api(config: dict[str, Any], payload: dict[str, Any]) -> list[dict[str, Any]]:  # NOSONAR - python:S3776
+def call_api(config: dict[str, Any], payload: dict[str, Any]) -> list[dict[str, Any]]:
     base_url = str(config["baseUrl"]).rstrip("/")
     url = f"{base_url}/functions/invoke"
     headers = {
@@ -124,7 +124,7 @@ def call_api(config: dict[str, Any], payload: dict[str, Any]) -> list[dict[str, 
     return [p for p in result if isinstance(p, dict)]
 
 
-def render_markdown(papers: list[dict[str, Any]], topics: list[str]) -> str:  # NOSONAR - python:S3776
+def render_markdown(papers: list[dict[str, Any]], topics: list[str]) -> str:
     if not papers:
         return "No papers returned. Try broadening the topics or adjusting the query."
 

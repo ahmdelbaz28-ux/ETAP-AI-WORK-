@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Library for working with Word documents: comments, tracked changes, and editing.
 
@@ -31,14 +30,16 @@ import html
 import random
 import shutil
 import tempfile
-import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+import zipfile
 
 import defusedxml.minidom
 from defusedxml import minidom
 
 from .utilities import XMLEditor
+
 
 # ---------------------------------------------------------------------------
 # Inline pack utility (replaces former ooxml.scripts.pack dependency)
@@ -46,12 +47,12 @@ from .utilities import XMLEditor
 
 def _condense_xml(xml_file):
     """Strip unnecessary whitespace from XML, preserving text content."""
-    with open(xml_file, encoding="utf-8") as f:
+    with open(xml_file, "r", encoding="utf-8") as f:
         dom = defusedxml.minidom.parse(f)
     for element in dom.getElementsByTagName("*"):
         if element.tagName.endswith(":t"):
             continue
-        for child in list(element.childNodes):  # NOSONAR - python:S7504
+        for child in list(element.childNodes):
             if (
                 child.nodeType == child.TEXT_NODE
                 and child.nodeValue
@@ -83,8 +84,7 @@ TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 
 class DocxXMLEditor(XMLEditor):
-    """
-    XMLEditor that automatically applies RSID, author, and date to new elements.
+    """XMLEditor that automatically applies RSID, author, and date to new elements.
 
     Automatically adds attributes to elements that support them when inserting new content:
     - w:rsidR, w:rsidRDefault, w:rsidP (for w:p and w:r elements)
@@ -93,21 +93,18 @@ class DocxXMLEditor(XMLEditor):
 
     Attributes:
         dom (defusedxml.minidom.Document): The DOM document for direct manipulation
-
     """
 
     def __init__(
         self, xml_path, rsid: str, author: str = "Z.AI", initials: str = "Z"
     ):
-        """
-        Initialize with required RSID and optional author.
+        """Initialize with required RSID and optional author.
 
         Args:
             xml_path: Path to XML file to edit
             rsid: RSID to automatically apply to new elements
             author: Author name for tracked changes and comments (default: "Z.AI")
             initials: Author initials (default: "C")
-
         """
         super().__init__(xml_path)
         self.rsid = rsid
@@ -117,7 +114,7 @@ class DocxXMLEditor(XMLEditor):
     def _get_next_change_id(self):
         """Get the next available change ID by checking all tracked change elements."""
         max_id = -1
-        for tag in ("w:ins", "w:del"):  # NOSONAR - python:S1192
+        for tag in ("w:ins", "w:del"):
             elements = self.dom.getElementsByTagName(tag)
             for elem in elements:
                 change_id = elem.getAttribute("w:id")
@@ -155,9 +152,8 @@ class DocxXMLEditor(XMLEditor):
                 "http://schemas.microsoft.com/office/word/2010/wordml",
             )
 
-    def _inject_attributes_to_nodes(self, nodes):  # NOSONAR - python:S3776
-        """
-        Inject RSID, author, and date attributes into DOM nodes where applicable.
+    def _inject_attributes_to_nodes(self, nodes):
+        """Inject RSID, author, and date attributes into DOM nodes where applicable.
 
         Adds attributes to elements that support them:
         - w:r: gets w:rsidR (or w:rsidDel if inside w:del)
@@ -169,11 +165,10 @@ class DocxXMLEditor(XMLEditor):
 
         Args:
             nodes: List of DOM nodes to process
-
         """
         from datetime import datetime, timezone
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # NOSONAR - python:S1192
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         def is_inside_deletion(elem):
             """Check if element is inside a w:del element."""
@@ -185,14 +180,14 @@ class DocxXMLEditor(XMLEditor):
             return False
 
         def add_rsid_to_p(elem):
-            if not elem.hasAttribute("w:rsidR"):  # NOSONAR - python:S1192
+            if not elem.hasAttribute("w:rsidR"):
                 elem.setAttribute("w:rsidR", self.rsid)
             if not elem.hasAttribute("w:rsidRDefault"):
                 elem.setAttribute("w:rsidRDefault", self.rsid)
             if not elem.hasAttribute("w:rsidP"):
                 elem.setAttribute("w:rsidP", self.rsid)
             # Add w14:paraId and w14:textId if not present
-            if not elem.hasAttribute("w14:paraId"):  # NOSONAR - python:S1192
+            if not elem.hasAttribute("w14:paraId"):
                 self._ensure_w14_namespace()
                 elem.setAttribute("w14:paraId", _generate_hex_id())
             if not elem.hasAttribute("w14:textId"):
@@ -202,7 +197,7 @@ class DocxXMLEditor(XMLEditor):
         def add_rsid_to_r(elem):
             # Use w:rsidDel for <w:r> inside <w:del>, otherwise w:rsidR
             if is_inside_deletion(elem):
-                if not elem.hasAttribute("w:rsidDel"):  # NOSONAR - python:S1192
+                if not elem.hasAttribute("w:rsidDel"):
                     elem.setAttribute("w:rsidDel", self.rsid)
             else:
                 if not elem.hasAttribute("w:rsidR"):
@@ -212,9 +207,9 @@ class DocxXMLEditor(XMLEditor):
             # Auto-assign w:id if not present
             if not elem.hasAttribute("w:id"):
                 elem.setAttribute("w:id", str(self._get_next_change_id()))
-            if not elem.hasAttribute("w:author"):  # NOSONAR - python:S1192
+            if not elem.hasAttribute("w:author"):
                 elem.setAttribute("w:author", self.author)
-            if not elem.hasAttribute("w:date"):  # NOSONAR - python:S1192
+            if not elem.hasAttribute("w:date"):
                 elem.setAttribute("w:date", timestamp)
             # Add w16du:dateUtc for tracked changes (same as w:date since we generate UTC timestamps)
             if elem.tagName in ("w:ins", "w:del") and not elem.hasAttribute(
@@ -261,7 +256,7 @@ class DocxXMLEditor(XMLEditor):
                 add_xml_space_to_t(node)
             elif node.tagName in ("w:ins", "w:del"):
                 add_tracked_change_attrs(node)
-            elif node.tagName == "w:comment":  # NOSONAR - python:S1192
+            elif node.tagName == "w:comment":
                 add_comment_attrs(node)
             elif node.tagName == "w16cex:commentExtensible":
                 add_comment_extensible_date(node)
@@ -305,9 +300,8 @@ class DocxXMLEditor(XMLEditor):
         self._inject_attributes_to_nodes(nodes)
         return nodes
 
-    def revert_insertion(self, elem):  # NOSONAR - python:S3776
-        """
-        Reject an insertion by wrapping its content in a deletion.
+    def revert_insertion(self, elem):
+        """Reject an insertion by wrapping its content in a deletion.
 
         Wraps all runs inside w:ins in w:del, converting w:t to w:delText.
         Can process a single w:ins element or a container element with multiple w:ins.
@@ -329,7 +323,6 @@ class DocxXMLEditor(XMLEditor):
             # Reject all insertions in a paragraph
             para = doc["word/document.xml"].get_node(tag="w:p", line_number=42)
             doc["word/document.xml"].revert_insertion(para)
-
         """
         # Collect insertions
         ins_elements = []
@@ -363,8 +356,8 @@ class DocxXMLEditor(XMLEditor):
                 elif not run.hasAttribute("w:rsidDel"):
                     run.setAttribute("w:rsidDel", self.rsid)
 
-                for t_elem in list(run.getElementsByTagName("w:t")):  # NOSONAR - python:S7504
-                    del_text = self.dom.createElement("w:delText")  # NOSONAR - python:S1192
+                for t_elem in list(run.getElementsByTagName("w:t")):
+                    del_text = self.dom.createElement("w:delText")
                     # Copy ALL child nodes (not just firstChild) to handle entities
                     while t_elem.firstChild:
                         del_text.appendChild(t_elem.firstChild)
@@ -385,9 +378,8 @@ class DocxXMLEditor(XMLEditor):
 
         return [elem]
 
-    def revert_deletion(self, elem):  # NOSONAR - python:S3776
-        """
-        Reject a deletion by re-inserting the deleted content.
+    def revert_deletion(self, elem):
+        """Reject a deletion by re-inserting the deleted content.
 
         Creates w:ins elements after each w:del, copying deleted content and
         converting w:delText back to w:t.
@@ -410,7 +402,6 @@ class DocxXMLEditor(XMLEditor):
             # Reject all deletions in a paragraph - returns [para]
             para = doc["word/document.xml"].get_node(tag="w:p", line_number=42)
             nodes = doc["word/document.xml"].revert_deletion(para)
-
         """
         # Collect deletions FIRST - before we modify the DOM
         del_elements = []
@@ -446,7 +437,7 @@ class DocxXMLEditor(XMLEditor):
                 new_run = run.cloneNode(True)
 
                 # Convert w:delText → w:t
-                for del_text in list(new_run.getElementsByTagName("w:delText")):  # NOSONAR - python:S7504
+                for del_text in list(new_run.getElementsByTagName("w:delText")):
                     t_elem = self.dom.createElement("w:t")
                     # Copy ALL child nodes (not just firstChild) to handle entities
                     while del_text.firstChild:
@@ -475,12 +466,12 @@ class DocxXMLEditor(XMLEditor):
         # Return based on input type
         if is_single_del and created_insertion:
             return [elem, created_insertion]
-        return [elem]
+        else:
+            return [elem]
 
     @staticmethod
     def suggest_paragraph(xml_content: str) -> str:
-        """
-        Transform paragraph XML to add tracked change wrapping for insertion.
+        """Transform paragraph XML to add tracked change wrapping for insertion.
 
         Wraps runs in <w:ins> and adds <w:ins/> to w:rPr in w:pPr for numbered lists.
 
@@ -489,16 +480,15 @@ class DocxXMLEditor(XMLEditor):
 
         Returns:
             str: Transformed XML with tracked change wrapping
-
         """
         wrapper = f'<root xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">{xml_content}</root>'
         doc = minidom.parseString(wrapper)
         para = doc.getElementsByTagName("w:p")[0]
 
         # Ensure w:pPr exists
-        pPr_list = para.getElementsByTagName("w:pPr")  # NOSONAR - python:S1192
+        pPr_list = para.getElementsByTagName("w:pPr")
         if not pPr_list:
-            pPr = doc.createElement("w:pPr")  # NOSONAR - python:S117
+            pPr = doc.createElement("w:pPr")
             para.insertBefore(
                 pPr, para.firstChild
             ) if para.firstChild else para.appendChild(pPr)
@@ -506,9 +496,9 @@ class DocxXMLEditor(XMLEditor):
             pPr = pPr_list[0]
 
         # Ensure w:rPr exists in w:pPr
-        rPr_list = pPr.getElementsByTagName("w:rPr")  # NOSONAR - python:S1192
+        rPr_list = pPr.getElementsByTagName("w:rPr")
         if not rPr_list:
-            rPr = doc.createElement("w:rPr")  # NOSONAR - python:S117
+            rPr = doc.createElement("w:rPr")
             pPr.appendChild(rPr)
         else:
             rPr = rPr_list[0]
@@ -528,9 +518,8 @@ class DocxXMLEditor(XMLEditor):
 
         return para.toxml()
 
-    def suggest_deletion(self, elem):  # NOSONAR - python:S3776
-        """
-        Mark a w:r or w:p element as deleted with tracked changes (in-place DOM manipulation).
+    def suggest_deletion(self, elem):
+        """Mark a w:r or w:p element as deleted with tracked changes (in-place DOM manipulation).
 
         For w:r: wraps in <w:del>, converts <w:t> to <w:delText>, preserves w:rPr
         For w:p (regular): wraps content in <w:del>, converts <w:t> to <w:delText>
@@ -544,7 +533,6 @@ class DocxXMLEditor(XMLEditor):
 
         Raises:
             ValueError: If element has existing tracked changes or invalid structure
-
         """
         if elem.nodeName == "w:r":
             # Check for existing w:delText
@@ -552,7 +540,7 @@ class DocxXMLEditor(XMLEditor):
                 raise ValueError("w:r element already contains w:delText")
 
             # Convert w:t → w:delText
-            for t_elem in list(elem.getElementsByTagName("w:t")):  # NOSONAR - python:S7504
+            for t_elem in list(elem.getElementsByTagName("w:t")):
                 del_text = self.dom.createElement("w:delText")
                 # Copy ALL child nodes (not just firstChild) to handle entities
                 while t_elem.firstChild:
@@ -582,22 +570,22 @@ class DocxXMLEditor(XMLEditor):
 
             return del_wrapper
 
-        if elem.nodeName == "w:p":
+        elif elem.nodeName == "w:p":
             # Check for existing tracked changes
             if elem.getElementsByTagName("w:ins") or elem.getElementsByTagName("w:del"):
                 raise ValueError("w:p element already contains tracked changes")
 
             # Check if it's a numbered list item
-            pPr_list = elem.getElementsByTagName("w:pPr")  # NOSONAR - python:S117
+            pPr_list = elem.getElementsByTagName("w:pPr")
             is_numbered = pPr_list and pPr_list[0].getElementsByTagName("w:numPr")
 
             if is_numbered:
                 # Add <w:del/> to w:rPr in w:pPr
-                pPr = pPr_list[0]  # NOSONAR - python:S117
-                rPr_list = pPr.getElementsByTagName("w:rPr")  # NOSONAR - python:S117
+                pPr = pPr_list[0]
+                rPr_list = pPr.getElementsByTagName("w:rPr")
 
                 if not rPr_list:
-                    rPr = self.dom.createElement("w:rPr")  # NOSONAR - python:S117
+                    rPr = self.dom.createElement("w:rPr")
                     pPr.appendChild(rPr)
                 else:
                     rPr = rPr_list[0]
@@ -609,7 +597,7 @@ class DocxXMLEditor(XMLEditor):
                 ) if rPr.firstChild else rPr.appendChild(del_marker)
 
             # Convert w:t → w:delText in all runs
-            for t_elem in list(elem.getElementsByTagName("w:t")):  # NOSONAR - python:S7504
+            for t_elem in list(elem.getElementsByTagName("w:t")):
                 del_text = self.dom.createElement("w:delText")
                 # Copy ALL child nodes (not just firstChild) to handle entities
                 while t_elem.firstChild:
@@ -640,24 +628,24 @@ class DocxXMLEditor(XMLEditor):
 
             return elem
 
-        raise ValueError(f"Element must be w:r or w:p, got {elem.nodeName}")
+        else:
+            raise ValueError(f"Element must be w:r or w:p, got {elem.nodeName}")
 
 
 def _generate_hex_id() -> str:
-    """
-    Generate random 8-character hex ID for para/durable IDs.
+    """Generate random 8-character hex ID for para/durable IDs.
 
     Values are constrained to be less than 0x7FFFFFFF per OOXML spec:
     - paraId must be < 0x80000000
     - durableId must be < 0x7FFFFFFF
     We use the stricter constraint (0x7FFFFFFF) for both.
     """
-    return f"{random.randint(1, 0x7FFFFFFE):08X}"  # NOSONAR - python:S2245
+    return f"{random.randint(1, 0x7FFFFFFE):08X}"
 
 
 def _generate_rsid() -> str:
     """Generate random 8-character hex RSID."""
-    return "".join(random.choices("0123456789ABCDEF", k=8))  # NOSONAR - python:S2245
+    return "".join(random.choices("0123456789ABCDEF", k=8))
 
 
 class Document:
@@ -681,7 +669,6 @@ class Document:
             track_revisions: If True, enables track revisions in settings.xml (default: False)
             author: Default author name for comments (default: "Z.AI")
             initials: Default author initials for comments (default: "C")
-
         """
         self.original_path = Path(unpacked_dir)
 
@@ -711,10 +698,10 @@ class Document:
         self._editors = {}
 
         # Comment file paths
-        self.comments_path = self.word_path / "comments.xml"  # NOSONAR - python:S1192
-        self.comments_extended_path = self.word_path / "commentsExtended.xml"  # NOSONAR - python:S1192
-        self.comments_ids_path = self.word_path / "commentsIds.xml"  # NOSONAR - python:S1192
-        self.comments_extensible_path = self.word_path / "commentsExtensible.xml"  # NOSONAR - python:S1192
+        self.comments_path = self.word_path / "comments.xml"
+        self.comments_extended_path = self.word_path / "commentsExtended.xml"
+        self.comments_ids_path = self.word_path / "commentsIds.xml"
+        self.comments_extensible_path = self.word_path / "commentsExtensible.xml"
 
         # Load existing comments and determine next ID (before setup modifies files)
         self.existing_comments = self._load_existing_comments()
@@ -751,7 +738,6 @@ class Document:
 
             # Get node from comments.xml
             comment = doc["word/comments.xml"].get_node(tag="w:comment", attrs={"w:id": "0"})
-
         """
         if xml_path not in self._editors:
             file_path = self.unpacked_path / xml_path
@@ -779,7 +765,6 @@ class Document:
             start_node = cm.get_document_node(tag="w:del", id="1")
             end_node = cm.get_document_node(tag="w:ins", id="2")
             cm.add_comment(start=start_node, end=end_node, text="Explanation")
-
         """
         comment_id = self.next_comment_id
         para_id = _generate_hex_id()
@@ -797,7 +782,7 @@ class Document:
             self._document.insert_after(end, self._comment_range_end_xml(comment_id))
 
         # Add to comments.xml immediately
-        self._add_to_comments_xml(  # NOSONAR - python:S930
+        self._add_to_comments_xml(
             comment_id, para_id, text, self.author, self.initials, timestamp
         )
 
@@ -833,7 +818,6 @@ class Document:
 
         Example:
             cm.reply_to_comment(parent_comment_id=0, text="I agree with this change")
-
         """
         if parent_comment_id not in self.existing_comments:
             raise ValueError(f"Parent comment with id={parent_comment_id} not found")
@@ -864,7 +848,7 @@ class Document:
         )
 
         # Add to comments.xml immediately
-        self._add_to_comments_xml(  # NOSONAR - python:S930
+        self._add_to_comments_xml(
             comment_id, para_id, text, self.author, self.initials, timestamp
         )
 
@@ -912,7 +896,6 @@ class Document:
         Args:
             destination: Optional path to save to. If None, saves back to original directory.
             validate: If True, validates document before saving (default: True).
-
         """
         # Only ensure comment relationships and content types if comment files exist
         if self.comments_path.exists():
@@ -938,7 +921,7 @@ class Document:
         if not self.comments_path.exists():
             return 0
 
-        editor = self["word/comments.xml"]  # NOSONAR - python:S1192
+        editor = self["word/comments.xml"]
         max_id = -1
         for comment_elem in editor.dom.getElementsByTagName("w:comment"):
             comment_id = comment_elem.getAttribute("w:id")
@@ -979,26 +962,24 @@ class Document:
     # ==================== Private: Setup Methods ====================
 
     def _setup_tracking(self, track_revisions=False):
-        """
-        Set up comment infrastructure in unpacked directory.
+        """Set up comment infrastructure in unpacked directory.
 
         Args:
             track_revisions: If True, enables track revisions in settings.xml
-
         """
         # Create or update word/people.xml
-        people_file = self.word_path / "people.xml"  # NOSONAR - python:S1192
+        people_file = self.word_path / "people.xml"
         self._update_people_xml(people_file)
 
         # Update XML files
-        self._add_content_type_for_people(self.unpacked_path / "[Content_Types].xml")  # NOSONAR - python:S930
-        self._add_relationship_for_people(  # NOSONAR - python:S930
+        self._add_content_type_for_people(self.unpacked_path / "[Content_Types].xml")
+        self._add_relationship_for_people(
             self.word_path / "_rels" / "document.xml.rels"
         )
 
         # Always add RSID to settings.xml, optionally enable trackRevisions
         self._update_settings(
-            self.word_path / "settings.xml", track_revisions=track_revisions  # NOSONAR - python:S5549
+            self.word_path / "settings.xml", track_revisions=track_revisions
         )
 
     def _update_people_xml(self, path):
@@ -1007,7 +988,7 @@ class Document:
             # Copy from template
             shutil.copy(TEMPLATE_DIR / "people.xml", path)
 
-    def _add_content_type_for_people(self):
+    def _add_content_type_for_people(self, path):
         """Add people.xml content type to [Content_Types].xml if not already present."""
         editor = self["[Content_Types].xml"]
 
@@ -1019,7 +1000,7 @@ class Document:
         override_xml = '<Override PartName="/word/people.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.people+xml"/>'
         editor.append_to(root, override_xml)
 
-    def _add_relationship_for_people(self):
+    def _add_relationship_for_people(self, path):
         """Add people.xml relationship to document.xml.rels if not already present."""
         editor = self["word/_rels/document.xml.rels"]
 
@@ -1035,9 +1016,8 @@ class Document:
         rel_xml = f'<{prefix}Relationship Id="{next_rid}" Type="http://schemas.microsoft.com/office/2011/relationships/people" Target="people.xml"/>'
         editor.append_to(root, rel_xml)
 
-    def _update_settings(self, track_revisions=False, update_fields=True):  # NOSONAR - python:S3776
-        """
-        Add RSID and optionally enable track revisions and update fields in settings.xml.
+    def _update_settings(self, path, track_revisions=False, update_fields=True):
+        """Add RSID and optionally enable track revisions and update fields in settings.xml.
 
         Args:
             path: Path to settings.xml
@@ -1048,7 +1028,6 @@ class Document:
         - trackRevisions: early (before defaultTabStop)
         - updateFields: early (before defaultTabStop)
         - rsids: late (after compat)
-
         """
         editor = self["word/settings.xml"]
         root = editor.get_node(tag="w:settings")
@@ -1144,7 +1123,7 @@ class Document:
     # ==================== Private: XML File Creation ====================
 
     def _add_to_comments_xml(
-        self, comment_id, para_id, text, _timestamp
+        self, comment_id, para_id, text, author, initials, timestamp
     ):
         """Add a single comment to comments.xml."""
         if not self.comments_path.exists():
@@ -1213,8 +1192,7 @@ class Document:
         return f'<w:commentRangeStart w:id="{comment_id}"/>'
 
     def _comment_range_end_xml(self, comment_id):
-        """
-        Generate XML for comment range end with reference run.
+        """Generate XML for comment range end with reference run.
 
         Note: w:rsidR is automatically added by DocxXMLEditor.
         """
@@ -1225,8 +1203,7 @@ class Document:
 </w:r>'''
 
     def _comment_ref_run_xml(self, comment_id):
-        """
-        Generate XML for comment reference run.
+        """Generate XML for comment reference run.
 
         Note: w:rsidR is automatically added by DocxXMLEditor.
         """

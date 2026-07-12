@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 design_engine.py — Aesthetic computation engine for art-direction-first PDF production.
 
@@ -102,7 +101,7 @@ def derive_intent(text):
     Auto-derive design intent from document title/description.
     Scans for theme keywords and returns the best-matching intent.
     Falls back to 'neutral' if no keywords match.
-
+    
     Usage:
         python3 design_engine.py derive "Social Media Operations Monthly Report"  → energy
         python3 design_engine.py derive "2025 Annual Sustainability Report"  → nature
@@ -185,15 +184,15 @@ def _contrast_ratio(hex1, hex2):
     lighter, darker = max(l1, l2), min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
 
-def generate_color_palette(intent="neutral", mode="minimal", harmony=None, seed=None):  # NOSONAR - python:S3776
+def generate_color_palette(intent="neutral", mode="minimal", harmony=None, seed=None):
     """
     Generative Color Harmony Engine — geometric accent computation + 5 aesthetic modes.
-
+    
     LLM is FORBIDDEN from specifying HEX/RGB. It only selects:
       - intent   → base hue (from INTENT_HUES)
       - mode     → S/L physical boundaries (minimal/dark/pastel/jewel/light)
       - harmony  → accent hue geometry (auto-recommended from intent if omitted)
-
+    
     Returns dict with:
       - bg:      60% — dominant ground
       - mid:     30% — structural shade
@@ -209,17 +208,17 @@ def generate_color_palette(intent="neutral", mode="minimal", harmony=None, seed=
     if harmony is None or harmony == "auto":
         harmony = INTENT_HARMONY_MAP.get(intent, "split_complementary")
 
-    base_hue = INTENT_HUES.get(intent, random.randint(0, 359))  # NOSONAR - python:S2245
+    base_hue = INTENT_HUES.get(intent, random.randint(0, 359))
 
     # 1. Geometric Accent Hue Derivation
     if harmony == "complementary":
         accent_hue = (base_hue + 180) % 360
     elif harmony == "split_complementary":
-        accent_hue = (base_hue + random.choice([150, 210])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([150, 210])) % 360
     elif harmony == "triadic":
-        accent_hue = (base_hue + random.choice([120, 240])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([120, 240])) % 360
     elif harmony == "analogous":
-        accent_hue = (base_hue + random.choice([30, -30, 45, -45])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([30, -30, 45, -45])) % 360
     else:  # monochrome
         accent_hue = base_hue
 
@@ -230,8 +229,8 @@ def generate_color_palette(intent="neutral", mode="minimal", harmony=None, seed=
     if mode == "minimal":
         # DEFAULT for 50%+ of documents. Editorial paper tone + high-purity accent.
         # bg has visible tint (S 0.08-0.15, L 0.92-0.96) — not dead white.
-        is_warm = random.choice([True, False])  # NOSONAR - python:S2245
-        paper_hue = random.randint(35, 45) if is_warm else random.randint(200, 215)  # NOSONAR - python:S2245
+        is_warm = random.choice([True, False])
+        paper_hue = random.randint(35, 45) if is_warm else random.randint(200, 215)
         bg      = _hsl_to_hex(paper_hue,   random.uniform(0.08, 0.15), random.uniform(0.92, 0.96))
         mid     = _hsl_to_hex(paper_hue,   random.uniform(0.10, 0.18), random.uniform(0.85, 0.90))
         accent  = _hsl_to_hex(accent_hue,  random.uniform(0.55, 0.72), random.uniform(0.42, 0.52))
@@ -360,7 +359,7 @@ CASCADE_TIER_CAPS = {
 }
 
 
-def generate_cascade_palette(intent="neutral", mode="minimal", harmony=None, seed=None):  # NOSONAR - python:S3776
+def generate_cascade_palette(intent="neutral", mode="minimal", harmony=None, seed=None):
     """
     Generate a role-based palette cascade where every color is derived from one
     base hue and saturation is inversely proportional to usage area.
@@ -381,17 +380,17 @@ def generate_cascade_palette(intent="neutral", mode="minimal", harmony=None, see
     if harmony is None or harmony == "auto":
         harmony = INTENT_HARMONY_MAP.get(intent, "split_complementary")
 
-    base_hue = INTENT_HUES.get(intent, random.randint(0, 359))  # NOSONAR - python:S2245
+    base_hue = INTENT_HUES.get(intent, random.randint(0, 359))
 
     # Geometric accent hue derivation (same logic as original)
     if harmony == "complementary":
         accent_hue = (base_hue + 180) % 360
     elif harmony == "split_complementary":
-        accent_hue = (base_hue + random.choice([150, 210])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([150, 210])) % 360
     elif harmony == "triadic":
-        accent_hue = (base_hue + random.choice([120, 240])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([120, 240])) % 360
     elif harmony == "analogous":
-        accent_hue = (base_hue + random.choice([30, -30, 45, -45])) % 360  # NOSONAR - python:S2245
+        accent_hue = (base_hue + random.choice([30, -30, 45, -45])) % 360
     else:  # monochrome
         accent_hue = base_hue
 
@@ -462,19 +461,23 @@ def generate_cascade_palette(intent="neutral", mode="minimal", harmony=None, see
         "s", "Icons, bullet points, small UI elements")
 
     # XS tier: accent, badge, data highlight
+    # DESIGN RULE: accent uses base_hue (same as header_fill) at higher saturation.
+    # This ensures cover structural elements, body headings, table headers, and
+    # accent highlights all belong to the same color family. The geometric
+    # accent_hue is only used for accent_secondary (chart series differentiation).
     roles["accent"] = _make_role(
-        accent_hue, random.uniform(0.50, 0.70),
+        base_hue, random.uniform(0.50, 0.70),
         random.uniform(0.40, 0.55) if not is_dark else random.uniform(0.55, 0.70),
         "xs", "Primary accent: badges, tags, data point highlights, CTA")
     roles["accent_secondary"] = _make_role(
-        secondary_hue, random.uniform(0.40, 0.60),
+        accent_hue, random.uniform(0.40, 0.60),
         random.uniform(0.45, 0.58) if not is_dark else random.uniform(0.50, 0.65),
         "xs", "Secondary accent: chart series 2, secondary badge")
 
     # Typography (no tier — text is special)
     roles["text_primary"] = _make_role(
         base_hue, 0.05, text_l,
-        "text", "Primary body text")  # NOSONAR - python:S1192
+        "text", "Primary body text")
     roles["text_muted"] = _make_role(
         base_hue, 0.04, muted_l,
         "text", "Captions, footnotes, secondary text")
@@ -510,7 +513,7 @@ def generate_cascade_palette(intent="neutral", mode="minimal", harmony=None, see
         r, g, b = (int(page_bg_hex.lstrip('#')[i:i+2], 16) / 255.0 for i in (0, 2, 4))
         _, bg_l, _ = colorsys.rgb_to_hls(r, g, b)
         target_l = 0.35 if bg_l > 0.5 else 0.75
-        roles["accent"] = _make_role(accent_hue, random.uniform(0.50, 0.70), target_l,
+        roles["accent"] = _make_role(base_hue, random.uniform(0.50, 0.70), target_l,
                                       "xs", "Primary accent: badges, tags, data point highlights, CTA")
 
     # ── Tier saturation audit (clamp any violations) ──
@@ -626,6 +629,13 @@ def _cascade_to_css(roles, semantic):
     lines.append("  /* ── Semantic (low-sat) ── */")
     for k, v in semantic.items():
         lines.append(f"  --semantic-{k}: {v['hex']};")
+    lines.append("  /* ── Cover template aliases (--c-* compat for cover.md templates 01-07) ── */")
+    lines.append(f"  --c-bg: {roles['page_bg']['hex']};")
+    lines.append(f"  --c-accent: {roles['accent']['hex']};")
+    lines.append(f"  --c-text: {roles['text_primary']['hex']};")
+    lines.append(f"  --c-muted: {roles['text_muted']['hex']};")
+    lines.append(f"  --c-mid: {roles['header_fill']['hex']};")
+    lines.append(f"  --c-surface: {roles['card_bg']['hex']};")
     lines.append("}")
     return "\n".join(lines)
 
@@ -739,20 +749,20 @@ def generate_flow_svg(w, h, color="#8a8a8a", curves=4, stroke_width=80, opacity=
     random.seed(42)
     svg = _svg_open(w, h)
     svg += '\n  <defs>'
-    svg += '\n    <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">'
+    svg += f'\n    <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">'
     svg += f'\n      <stop offset="0%" stop-color="{color}" stop-opacity="{opacity}"/>'
     svg += f'\n      <stop offset="50%" stop-color="{color}" stop-opacity="{opacity * 1.5:.3f}"/>'
     svg += f'\n      <stop offset="100%" stop-color="{color}" stop-opacity="{opacity * 0.5:.3f}"/>'
     svg += '\n    </linearGradient>'
     svg += '\n  </defs>'
-
+    
     for i in range(curves):
         path = _random_bezier_path(w, h)
         sw = stroke_width + random.uniform(-20, 30)
         svg += f'\n  <path d="{path}" fill="none" stroke="url(#fg)" '
         svg += f'stroke-width="{sw:.0f}" stroke-linecap="round" opacity="{opacity + i * 0.01:.3f}"/>'
-
-    svg += '\n</svg>'  # NOSONAR - python:S1192
+    
+    svg += '\n</svg>'
     return svg
 
 def generate_grid_svg(w, h, color="#888888", spacing=60, line_width=0.5, opacity=0.04):
@@ -768,7 +778,7 @@ def generate_grid_svg(w, h, color="#888888", spacing=60, line_width=0.5, opacity
     # Horizontal lines
     for y in range(0, int(h) + 1, spacing):
         svg += f'\n    <line x1="0" y1="{y}" x2="{w}" y2="{y}" stroke="{color}" stroke-width="{line_width}"/>'
-    svg += '\n  </g>'  # NOSONAR - python:S1192
+    svg += '\n  </g>'
     svg += '\n</svg>'
     return svg
 
@@ -781,7 +791,7 @@ def generate_noise_svg(w, h, frequency=0.8, octaves=4, opacity=0.035):
     svg += f"""
   <defs>
     <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="{frequency}"
+      <feTurbulence type="fractalNoise" baseFrequency="{frequency}" 
                     numOctaves="{octaves}" stitchTiles="stitch" result="noise"/>
       <feColorMatrix type="saturate" values="0" in="noise" result="grey"/>
     </filter>
@@ -823,7 +833,7 @@ def _generate_data_driven_svg(data_points, w=720, h=960, color="#8a8a8a"):
 
     svg_paths = ""
     # Generate 3 layers at different offsets for depth
-    for _layer_idx, (opacity, y_offset, thickness) in enumerate([
+    for layer_idx, (opacity, y_offset, thickness) in enumerate([
         (0.08, 0, 3), (0.05, 60, 2), (0.03, -40, 1.5)
     ]):
         pts = [(px, py + y_offset) for px, py in points]
@@ -873,7 +883,7 @@ def generate_supergraphic_svg(w, h, color="#8a8a8a", seed=42):
         svg += f'transform="rotate({angle:.1f} {rx + rw/2:.0f} {ry + rh/2:.0f})"/>'
 
     # Layer 3: A single massive polygon (pentagon/hexagon) barely visible
-    sides = random.choice([5, 6, 8])  # NOSONAR - python:S2245
+    sides = random.choice([5, 6, 8])
     pcx = random.uniform(-w * 0.1, w * 0.4)
     pcy = random.uniform(h * 0.5, h * 1.1)
     pr = w * random.uniform(0.9, 1.4)
@@ -906,7 +916,7 @@ def generate_ordered_texture_svg(w, h, color="#8a8a8a", seed=42):
     dot_r = 2
     dot_origin_x = w - dot_cols * dot_spacing - 40  # right-aligned with margin
     dot_origin_y = 30  # top margin
-    svg += '\n  <g opacity="0.08">'
+    svg += f'\n  <g opacity="0.08">'
     for row in range(dot_rows):
         for col in range(dot_cols):
             dx = dot_origin_x + col * dot_spacing
@@ -971,29 +981,31 @@ def generate_generative_svg(svg_type="flow", w=720, h=960, color="#8a8a8a"):
     """Route to the appropriate SVG generator."""
     if svg_type == "flow":
         return generate_flow_svg(w, h, color)
-    if svg_type == "grid":
+    elif svg_type == "grid":
         return generate_grid_svg(w, h, color)
-    if svg_type == "noise":
+    elif svg_type == "noise":
         return generate_noise_svg(w, h)
-    if svg_type == "supergraphic":
+    elif svg_type == "supergraphic":
         return generate_supergraphic_svg(w, h, color)
-    if svg_type == "ordered_texture":
+    elif svg_type == "ordered_texture":
         return generate_ordered_texture_svg(w, h, color)
-    # Default: flow + noise layered
-    return generate_flow_svg(w, h, color)
+    else:
+        # Default: flow + noise layered
+        flow = generate_flow_svg(w, h, color)
+        return flow
 
 
 def generate_continuous_flow_svg(w, h, total_pages, color="#8a8a8a", curves=4, stroke_width=80, opacity=0.05):
     """
     Continuous Flow mode: generates ONE large SVG spanning all pages.
     Returns a list of per-page SVG strings, each using viewBox to slice the master.
-
+    
     The bezier curves are constrained to have anchor points every ~480px vertically,
     ensuring visible content on every page.
     """
     total_h = h * total_pages
     random.seed(42)
-
+    
     # Build the master path data
     paths_data = []
     for _ in range(curves):
@@ -1004,7 +1016,7 @@ def generate_continuous_flow_svg(w, h, total_pages, color="#8a8a8a", curves=4, s
             ax = random.uniform(w * 0.1, w * 0.9)
             ay = (total_h / (num_anchors - 1)) * i
             anchors.append((ax, ay))
-
+        
         # Build cubic bezier path through anchors
         path = f"M{anchors[0][0]:.0f},{anchors[0][1]:.0f}"
         for i in range(1, len(anchors)):
@@ -1016,10 +1028,10 @@ def generate_continuous_flow_svg(w, h, total_pages, color="#8a8a8a", curves=4, s
             cx2 = random.uniform(w * 0.0, w * 1.0)
             cy2 = prev[1] + (curr[1] - prev[1]) * 0.66 + random.uniform(-100, 100)
             path += f" C{cx1:.0f},{cy1:.0f} {cx2:.0f},{cy2:.0f} {curr[0]:.0f},{curr[1]:.0f}"
-
+        
         sw = stroke_width + random.uniform(-20, 30)
         paths_data.append((path, sw))
-
+    
     # Generate per-page SVG slices
     page_svgs = []
     gradient_def = f'''<defs>
@@ -1029,7 +1041,7 @@ def generate_continuous_flow_svg(w, h, total_pages, color="#8a8a8a", curves=4, s
       <stop offset="100%" stop-color="{color}" stop-opacity="{opacity * 0.5:.3f}"/>
     </linearGradient>
   </defs>'''
-
+    
     for page_idx in range(total_pages):
         vy = page_idx * h
         svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {vy} {w} {h}" width="{w}" height="{h}">'
@@ -1039,11 +1051,11 @@ def generate_continuous_flow_svg(w, h, total_pages, color="#8a8a8a", curves=4, s
             svg += f'stroke-width="{sw:.0f}" stroke-linecap="round" opacity="{opacity + i * 0.01:.3f}"/>'
         svg += '\n</svg>'
         page_svgs.append(svg)
-
+    
     return page_svgs
 
 
-def generate_unified_svg(w, h, total_pages, svg_type, color="#8a8a8a", curves=4, stroke_width=80, opacity=0.05):  # NOSONAR - python:S3776
+def generate_unified_svg(w, h, total_pages, svg_type, color="#8a8a8a", curves=4, stroke_width=80, opacity=0.05):
     """
     Generate a single SVG that spans the full continuous canvas (w x h*total_pages).
     Unlike generate_continuous_flow_svg which returns per-page slices,
@@ -1091,7 +1103,7 @@ def generate_unified_svg(w, h, total_pages, svg_type, color="#8a8a8a", curves=4,
         svg += '\n</svg>'
         return svg
 
-    if svg_type == "grid":
+    elif svg_type == "grid":
         # Grid pattern spanning full height
         svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {total_h}" width="{w}" height="{total_h}">'
         spacing = 60
@@ -1102,7 +1114,7 @@ def generate_unified_svg(w, h, total_pages, svg_type, color="#8a8a8a", curves=4,
         svg += '\n</svg>'
         return svg
 
-    if svg_type == "noise":
+    elif svg_type == "noise":
         # Noise dots spanning full height
         svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {total_h}" width="{w}" height="{total_h}">'
         num_dots = int(200 * total_pages)
@@ -1128,26 +1140,25 @@ def generate_unified_svg(w, h, total_pages, svg_type, color="#8a8a8a", curves=4,
 
 BREATHING_MARGIN = 0.12  # 12% of canvas on each edge (was 15%, too tight for content-dense pages)
 
-def calculate_layout(elements, w=720, h=960, style="offset"):  # NOSONAR - python:S3776
+def calculate_layout(elements, w=720, h=960, style="offset"):
     """
     Calculate positioned layout for named elements.
-
+    
     Args:
         elements: list of element names (e.g. ["hero", "body", "meta", "footer"])
         style: "offset" (deliberate asymmetry), "centered" (formal), "stacked" (vertical flow)
-
+    
     Returns:
         dict mapping element names to {x, y, w, h, rotation} in pixels
-
     """
     # Safe area (15% breathing margin on all sides)
     safe_x = w * BREATHING_MARGIN
     safe_y = h * BREATHING_MARGIN
     safe_w = w * (1 - 2 * BREATHING_MARGIN)
     safe_h = h * (1 - 2 * BREATHING_MARGIN)
-
+    
     layout = {}
-
+    
     if style == "offset":
         # Asymmetric placement — elements shift left/right of center
         regions = _divide_vertical(safe_x, safe_y, safe_w, safe_h, len(elements))
@@ -1162,7 +1173,7 @@ def calculate_layout(elements, w=720, h=960, style="offset"):  # NOSONAR - pytho
                 "h": round(rh * 0.85, 1),
                 "rotation": round(random.uniform(-1.5, 1.5), 2) if name != "body" else 0,
             }
-
+    
     elif style == "centered":
         # Formal centered — golden ratio vertical split
         regions = _divide_vertical(safe_x, safe_y, safe_w, safe_h, len(elements))
@@ -1175,7 +1186,7 @@ def calculate_layout(elements, w=720, h=960, style="offset"):  # NOSONAR - pytho
                 "h": round(rh * 0.9, 1),
                 "rotation": 0,
             }
-
+    
     elif style == "overlap":
         # Controlled overlaps — elements bleed into each other's space
         regions = _divide_vertical(safe_x, safe_y, safe_w, safe_h, len(elements))
@@ -1190,7 +1201,7 @@ def calculate_layout(elements, w=720, h=960, style="offset"):  # NOSONAR - pytho
                 "rotation": 0,
                 "z_index": len(elements) - i,  # Later elements on top
             }
-
+    
     return layout
 
 def _divide_vertical(x, y, w, h, n):
@@ -1199,18 +1210,18 @@ def _divide_vertical(x, y, w, h, n):
         return []
     if n == 1:
         return [(x, y, w, h)]
-
+    
     # Weighted distribution: first element (hero) gets more space
     weights = [1.618 if i == 0 else 1.0 for i in range(n)]
     total = sum(weights)
-
+    
     regions = []
     current_y = y
     for i in range(n):
         region_h = h * weights[i] / total
         regions.append((x, current_y, w, region_h))
         current_y += region_h
-
+    
     return regions
 
 
@@ -1218,21 +1229,21 @@ def _divide_vertical(x, y, w, h, n):
 # VALIDATION — Post-generation color audit
 # ═══════════════════════════════════════════════════════════════════════
 
-def audit_palette(palette):  # NOSONAR - python:S3776
+def audit_palette(palette):
     """
     Strict audit: mode-specific S/L bounds + WCAG contrast checks.
     Returns list of violations (empty = clean).
     """
     violations = []
     mode = palette.get("meta", {}).get("mode", "minimal")
-
+    
     for key in ["bg", "mid", "accent", "text"]:
         hex_val = palette.get(key, "")
         if not hex_val.startswith("#"):
             continue
         r, g, b = (int(hex_val[i:i+2], 16) / 255.0 for i in (1, 3, 5))
-        _h, l, s = colorsys.rgb_to_hls(r, g, b)
-
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        
         # Tight bg/mid saturation limits per mode
         if key in ("bg", "mid"):
             limits = {"minimal": 0.20, "dark": 0.16, "pastel": 0.42, "jewel": 0.62, "light": 0.28}
@@ -1259,7 +1270,7 @@ def audit_palette(palette):  # NOSONAR - python:S3776
                 violations.append(f"bg L={l:.3f} > 0.28 in jewel (not deep enough)")
             elif mode == "pastel" and l < 0.83:
                 violations.append(f"bg L={l:.3f} < 0.83 in pastel (too dark for Morandi)")
-
+    
     # WCAG contrast checks
     bg_hex = palette.get("bg", "")
     text_hex = palette.get("text", "")
@@ -1272,14 +1283,15 @@ def audit_palette(palette):  # NOSONAR - python:S3776
         cr = _contrast_ratio(accent_hex, bg_hex)
         if cr < 2.5:
             violations.append(f"accent:bg contrast {cr:.2f} < 2.5:1 (accent invisible)")
-
+    
     return violations
 
 
+# ═══════════════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════════════
 
-def main():  # NOSONAR - python:S3776
+def main():
     parser = argparse.ArgumentParser(
         description="Design Engine — aesthetic computation for art-direction-first PDF",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1297,7 +1309,7 @@ Examples:
         """
     )
     sub = parser.add_subparsers(dest="command")
-
+    
     # palette
     p_pal = sub.add_parser("palette", help="Generate HSL-locked color palette")
     p_pal.add_argument("--intent", default="neutral", choices=list(INTENT_HUES.keys()))
@@ -1305,19 +1317,19 @@ Examples:
     p_pal.add_argument("--harmony", default="auto", choices=["auto", "complementary", "split_complementary", "triadic", "analogous", "monochrome"])
     p_pal.add_argument("--seed", type=int, default=None)
     p_pal.add_argument("--format", default="css", choices=["css", "json"])
-
+    
     # svg
     p_svg = sub.add_parser("svg", help="Generate algorithmic SVG background")
     p_svg.add_argument("--svg-type", default="flow", choices=["flow", "grid", "noise", "supergraphic", "ordered_texture"])
     p_svg.add_argument("--dimensions", default="720x960")
     p_svg.add_argument("--color", default="#8a8a8a")
-
+    
     # layout
     p_lay = sub.add_parser("layout", help="Calculate element positions")
     p_lay.add_argument("--elements", default="hero,body,meta")
     p_lay.add_argument("--dimensions", default="720x960")
     p_lay.add_argument("--style", default="offset", choices=["offset", "centered", "overlap"])
-
+    
     # full
     p_full = sub.add_parser("full", help="Generate all assets at once")
     p_full.add_argument("--intent", default="neutral")
@@ -1329,7 +1341,7 @@ Examples:
     p_full.add_argument("--style", default="offset")
     p_full.add_argument("--seed", type=int, default=None)
     p_full.add_argument("--output-dir", default="./assets/")
-
+    
     # audit
     p_audit = sub.add_parser("audit", help="Audit a palette for constraint violations")
     p_audit.add_argument("--palette-json", required=True)
@@ -1346,78 +1358,78 @@ Examples:
     p_compile = sub.add_parser("compile", help="Compile a JSON Blueprint into a final HTML document")
     p_compile.add_argument("--blueprint", required=True, help="Path to the JSON blueprint generated by LLM")
     p_compile.add_argument("--output", default="poster.html", help="Path to save the output HTML")
-
+    
     # derive
     p_derive = sub.add_parser("derive", help="Auto-derive design intent from document description")
     p_derive.add_argument("text", help="Document title or description")
-
+    
     # Backward compat: positional command
     parser.add_argument("legacy_command", nargs="?")
     parser.add_argument("legacy_args", nargs="*")
-
+    
     args = parser.parse_args()
-
+    
     if args.command == "palette":
         pal = generate_color_palette(args.intent, args.mode, harmony=args.harmony, seed=args.seed)
         if args.format == "json":
             print(json.dumps(pal, indent=2))
         else:
             print(palette_to_css(pal))
-
+    
     elif args.command == "svg":
         w, h = map(int, args.dimensions.split("x"))
         print(generate_generative_svg(args.svg_type, w, h, args.color))
-
+    
     elif args.command == "layout":
         w, h = map(int, args.dimensions.split("x"))
         elements = [e.strip() for e in args.elements.split(",")]
         result = calculate_layout(elements, w, h, args.style)
         print(json.dumps(result, indent=2))
-
+    
     elif args.command == "full":
         w, h = map(int, args.dimensions.split("x"))
-        os.makedirs(args.output_dir, exist_ok=True)  # NOSONAR - pythonsecurity:S8707
-
+        os.makedirs(args.output_dir, exist_ok=True)
+        
         # 1. Palette
         pal = generate_color_palette(args.intent, args.mode, harmony=getattr(args, 'harmony', 'split_complementary'), seed=args.seed)
         css = palette_to_css(pal)
         css_path = os.path.join(args.output_dir, "palette.css")
-        with open(css_path, "w") as f:  # NOSONAR - pythonsecurity:S8707
+        with open(css_path, "w") as f:
             f.write(css)
         json_path = os.path.join(args.output_dir, "palette.json")
-        with open(json_path, "w") as f:  # NOSONAR - pythonsecurity:S8707
+        with open(json_path, "w") as f:
             json.dump(pal, f, indent=2)
         print(f"✅ {css_path}")
-
+        
         # 2. SVG
         svg_color = pal["accent"]  # Use accent for SVG strokes
         svg = generate_generative_svg(args.svg_intent, w, h, svg_color)
         svg_path = os.path.join(args.output_dir, "background.svg")
-        with open(svg_path, "w") as f:  # NOSONAR - pythonsecurity:S8707
+        with open(svg_path, "w") as f:
             f.write(svg)
         print(f"✅ {svg_path}")
-
+        
         # 3. Layout
         elements = [e.strip() for e in args.elements.split(",")]
         lay = calculate_layout(elements, w, h, args.style)
         lay_path = os.path.join(args.output_dir, "layout.json")
-        with open(lay_path, "w") as f:  # NOSONAR - pythonsecurity:S8707
+        with open(lay_path, "w") as f:
             json.dump(lay, f, indent=2)
         print(f"✅ {lay_path}")
-
+        
         # 4. Audit
         violations = audit_palette(pal)
         if violations:
-            print("\n⚠️  Palette violations:")
+            print(f"\n⚠️  Palette violations:")
             for v in violations:
                 print(f"   - {v}")
         else:
-            print("\n✅ Palette passes all constraints")
-
+            print(f"\n✅ Palette passes all constraints")
+        
         print(f"\n🎨 {args.intent}/{args.mode} | {w}×{h} | {len(elements)} elements")
-
+    
     elif args.command == "audit":
-        with open(args.palette_json) as f:  # NOSONAR - pythonsecurity:S8707
+        with open(args.palette_json) as f:
             pal = json.load(f)
         violations = audit_palette(pal)
         if violations:
@@ -1427,7 +1439,7 @@ Examples:
             sys.exit(1)
         else:
             print("✅ Palette passes all constraints")
-
+    
     elif args.command == "derive":
         intent = derive_intent(args.text)
         print(f"Intent: {intent}")
@@ -1465,11 +1477,11 @@ Examples:
             for name, info in cascade["semantic"].items():
                 print(f"     {name}: {info['hex']} (S={info['hsl'][1]:.3f})")
             if meta["audit"]:
-                print("\n   ⚠️ Violations:")
+                print(f"\n   ⚠️ Violations:")
                 for v in meta["audit"]:
                     print(f"     - {v}")
             else:
-                print("\n   ✅ All tier constraints pass")
+                print(f"\n   ✅ All tier constraints pass")
 
     elif args.command == "compile":
         try:
@@ -1477,11 +1489,11 @@ Examples:
             print(f"✅ Blueprint compiled successfully to: {out_path}")
             violations = audit_palette(pal)
             if violations:
-                print("⚠️ Warning: Generated palette had minor violations (auto-corrected by engine):")
+                print(f"⚠️ Warning: Generated palette had minor violations (auto-corrected by engine):")
                 for v in violations: print(f"   - {v}")
 
         except Exception as e:
-            print(f"❌ Failed to compile blueprint: {e!s}")
+            print(f"❌ Failed to compile blueprint: {str(e)}")
             sys.exit(1)
     else:
         parser.print_help()
@@ -1499,9 +1511,9 @@ BASE_CSS = """
   margin: 0;
 }
 :root {
-  --font-sans: 'Inter', 'Noto Sans SC', 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
-  --font-serif: 'Playfair Display', 'Noto Serif SC', 'Cormorant Garamond', 'Apple Color Emoji', serif;
-  --font-mono: 'SF Mono', 'Consolas', 'Apple Color Emoji', monospace;
+  --font-sans: 'Inter', 'Noto Sans SC', 'FreeSerif', 'Noto Color Emoji', sans-serif;
+  --font-serif: 'Playfair Display', 'Noto Serif SC', 'Cormorant Garamond', 'Noto Color Emoji', serif;
+  --font-mono: 'Liberation Mono', 'DejaVu Sans Mono', 'Noto Color Emoji', monospace;
 
   /* Typographic Scale — 6-level fluid type system (Modular Scale) */
   --text-scale-6: clamp(64px, 12vw, 150px);   /* Hero / Display — oversized, single word or short phrase */
@@ -1546,28 +1558,33 @@ html, body {
 /* ═══ Continuous Canvas Mode (multi-page as one seamless surface) ═══ */
 .continuous-canvas {
   width: var(--canvas-w, 720px);
-  position: relative;
-  overflow: hidden;
   box-sizing: border-box;
-  /* height is set inline: canvas_h * total_pages */
+  /* Document-flow mode: no fixed height, no overflow:hidden.
+     Each .page-section is a block-level box that stacks naturally.
+     Playwright slices pages at break-after boundaries. */
 }
 .continuous-canvas .bg-layer-full {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Note: in document-flow mode, this spans only as far as the
+     first page-section. Per-page bg-layer handles each page's bg. */
 }
 .continuous-canvas .bg-layer-full svg {
   width: 100%;
   height: 100%;
 }
 .continuous-canvas .page-section {
-  position: absolute;
-  left: 0;
+  position: relative;
   width: 100%;
   box-sizing: border-box;
   overflow: visible;
-  /* top and height set inline per page */
+  break-after: page;
+  /* height set inline per page (e.g. 960px) */
+}
+.continuous-canvas .page-section:last-child {
+  break-after: auto; /* no trailing blank page */
 }
 .continuous-canvas .page-section .safe-zone {
   position: absolute;
@@ -1924,21 +1941,22 @@ def _prevent_orphan_chars(text):
     """
     # CJK orphan: bind last two CJK characters with a zero-width no-break joiner
     # Match: (CJK char)(optional space)(CJK char) at end of string (before tags)
-    text = re.sub(r'([\u4e00-\u9fff\u3400-\u4dbf])[\s]+([\u4e00-\u9fff\u3400-\u4dbf])(?=\s*(?:<[^>]*>)*\s*$)', '\\g<1>\u2060\\g<2>', text)  # NOSONAR - python:S8786
+    text = re.sub(r'([\u4e00-\u9fff\u3400-\u4dbf])[\s]+([\u4e00-\u9fff\u3400-\u4dbf])(?=\s*(?:<[^>]*>)*\s*$)', '\\g<1>\u2060\\g<2>', text)
     # Latin orphan: bind last two words
-    return re.sub(r'(\S+)\s+(\S+)\s*$', r'\1&nbsp;\2', text)  # NOSONAR - python:S8786
+    text = re.sub(r'(\S+)\s+(\S+)\s*$', r'\1&nbsp;\2', text)
+    return text
 
 
-def simple_markdown_to_html(md_text):  # NOSONAR - python:S3776
+def simple_markdown_to_html(md_text):
     """Lightweight markdown → HTML for Glass Canvas. Handles paragraphs, headers, bold, italic, lists, and inline code."""
     if not md_text:
         return ""
-
+    
     lines = md_text.split('\n')
     html_parts = []
     in_list = False
     paragraph_buffer = []
-
+    
     def flush_paragraph():
         nonlocal paragraph_buffer
         if paragraph_buffer:
@@ -1951,24 +1969,25 @@ def simple_markdown_to_html(md_text):  # NOSONAR - python:S3776
             text = _prevent_orphan_chars(text)
             html_parts.append(f'<p style="margin:0 0 12px 0;line-height:1.7">{text}</p>')
             paragraph_buffer = []
-
+    
     def apply_inline(text):
         """Apply bold, italic, inline code."""
         text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
-        return re.sub(r'`(.*?)`', r'<code style="background:var(--c-surface);padding:2px 6px;border-radius:3px;font-size:max(12px, 0.9em)">\1</code>', text)
-
+        text = re.sub(r'`(.*?)`', r'<code style="background:var(--c-surface);padding:2px 6px;border-radius:3px;font-size:max(12px, 0.9em)">\1</code>', text)
+        return text
+    
     for line in lines:
         stripped = line.strip()
-
+        
         # Empty line — flush paragraph
         if not stripped:
             flush_paragraph()
             if in_list:
-                html_parts.append('</ul>')  # NOSONAR - python:S1192
+                html_parts.append('</ul>')
                 in_list = False
             continue
-
+        
         # Headers
         if stripped.startswith('### '):
             flush_paragraph()
@@ -1991,7 +2010,7 @@ def simple_markdown_to_html(md_text):  # NOSONAR - python:S3776
                 in_list = False
             html_parts.append(f'<h1 style="font-size:24px;font-weight:800;margin:28px 0 14px 0;color:var(--c-text)">{apply_inline(stripped[2:])}</h1>')
             continue
-
+        
         # List items (- or *)
         list_match = re.match(r'^[-*]\s+(.*)', stripped)
         if list_match:
@@ -2001,7 +2020,7 @@ def simple_markdown_to_html(md_text):  # NOSONAR - python:S3776
                 in_list = True
             html_parts.append(f'<li style="margin:4px 0;line-height:1.6">{apply_inline(list_match.group(1))}</li>')
             continue
-
+        
         # Numbered list items
         num_match = re.match(r'^(\d+)[.)]\s+(.*)', stripped)
         if num_match:
@@ -2011,19 +2030,19 @@ def simple_markdown_to_html(md_text):  # NOSONAR - python:S3776
                 in_list = False
             html_parts.append(f'<p style="margin:4px 0 4px 20px;line-height:1.6"><strong>{num_match.group(1)}.</strong> {apply_inline(num_match.group(2))}</p>')
             continue
-
+        
         # Normal text — accumulate into paragraph
         paragraph_buffer.append(stripped)
-
+    
     # Flush remaining
     flush_paragraph()
     if in_list:
         html_parts.append('</ul>')
-
+    
     return '\n'.join(html_parts)
 
 
-def _parse_grid_area(comp):  # NOSONAR - python:S3776
+def _parse_grid_area(comp):
     """
     Parse grid_area from component JSON.
     Accepts two formats:
@@ -2080,13 +2099,13 @@ def _estimate_content_weight(comp):
     """
     Estimate the visual weight (space needed) of a component based on its content.
     Returns a numeric weight proportional to how many grid rows it should occupy.
-
+    
     Text-heavy components (Glass_Canvas, Shaped_Canvas) get weight proportional to
     character count. Fixed-height components (Stat_Block, Hero_Typography, etc.) get
     a small fixed weight since they don't grow with content.
     """
     ctype = comp.get("type", "")
-
+    
     # Fixed-height components: their visual size is independent of text length
     FIXED_WEIGHTS = {
         "Hero_Typography": 2.5,
@@ -2098,16 +2117,16 @@ def _estimate_content_weight(comp):
     }
     if ctype in FIXED_WEIGHTS:
         return FIXED_WEIGHTS[ctype]
-
+    
     # Text-heavy components: weight scales with content length
     text = comp.get("markdown_content", "") or comp.get("body", "") or ""
-
+    
     # Also count sub-items (Process_List steps)
     for step in comp.get("steps", []):
         text += step.get("title", "") + step.get("description", "")
-
+    
     char_count = len(text)
-
+    
     if ctype in ("Glass_Canvas", "Shaped_Canvas", "Process_List"):
         # Rough estimate: ~40 CJK chars per line at 16px in a ~500px wide container,
         # ~1.6 line-height, so each 40 chars ≈ 1 visual line ≈ ~25px.
@@ -2117,7 +2136,7 @@ def _estimate_content_weight(comp):
         base = 2.0  # minimum for padding + heading
         text_rows = char_count / 120.0  # ~120 chars per grid-row worth of space
         return base + text_rows
-
+    
     # Unknown component type: estimate from text length with a reasonable default
     if char_count > 0:
         return 2.0 + char_count / 120.0
@@ -2145,37 +2164,37 @@ def _distribute_rows_by_weight(content_comps, start_row=1, end_row=13, full_widt
     nn = len(content_comps)
     if nn == 0:
         return
-
+    
     total_rows = end_row - start_row  # available rows
-
+    
     # Calculate weights
     weights = [_estimate_content_weight(c) for c in content_comps]
     total_weight = sum(weights)
-
+    
     if total_weight == 0:
         total_weight = nn  # fallback: equal distribution
         weights = [1.0] * nn
-
+    
     # Allocate rows proportionally, with minimum 2 per component
     MIN_ROWS = 2
     raw_rows = [(w / total_weight) * total_rows for w in weights]
-
+    
     # Ensure minimum, then redistribute excess
     allocated = []
     for r in raw_rows:
         allocated.append(max(MIN_ROWS, round(r)))
-
+    
     # Adjust total to exactly fill the available rows
     # First pass: if total exceeds available, shrink the largest allocations
     while sum(allocated) > total_rows and any(a > MIN_ROWS for a in allocated):
         max_idx = max(range(nn), key=lambda i: allocated[i])
         allocated[max_idx] -= 1
-
+    
     # Second pass: if total is less than available, grow the heaviest components
     while sum(allocated) < total_rows:
         max_weight_idx = max(range(nn), key=lambda i: weights[i])
         allocated[max_weight_idx] += 1
-
+    
     # Assign grid_area
     col_start = 1
     col_end = 13 if full_width else 7  # can be overridden by caller
@@ -2187,26 +2206,26 @@ def _distribute_rows_by_weight(content_comps, start_row=1, end_row=13, full_widt
         current_row = re
 
 
-def _auto_assign_grid_areas(archetype, components):  # NOSONAR - python:S3776
+def _auto_assign_grid_areas(archetype, components):
     """
     Auto-assign grid_area to components that don't have one,
     based on the archetype and number of components.
     Mutates components in-place.
     Skips Page_Ghost_Number (uses absolute positioning, not grid).
-
+    
     Uses content-aware row distribution: text-heavy components (Glass_Canvas)
     get more rows than fixed-height components (Stat_Block, Hero_Typography).
     """
     # Filter out ghost numbers — they use absolute positioning, not grid
     gridded = [c for c in components if c.get("type") != "Page_Ghost_Number"]
-
+    
     # Only process components without grid_area
     needs_area = [c for c in gridded if not c.get("grid_area")]
     if not needs_area:
         return  # All components already have grid_area
-
+    
     n = len(gridded)
-
+    
     if archetype == "cover_hero":
         # Cover: stack vertically, full width, spread across page
         # Typical: 2-4 components (Hero + Floating_Meta + optional divider/ghost)
@@ -2219,10 +2238,10 @@ def _auto_assign_grid_areas(archetype, components):  # NOSONAR - python:S3776
         for i, comp in enumerate(gridded):
             if not comp.get("grid_area") and i < len(slots):
                 comp["grid_area"] = slots[i]
-
+    
     elif archetype == "data_dashboard":
         # Dashboard: tile components in a 2-column or 3-column grid
-        [c for c in gridded if c.get("grid_area")]
+        has_area = [c for c in gridded if c.get("grid_area")]
         no_area = [c for c in gridded if not c.get("grid_area")]
         nn = len(no_area)
         if nn <= 2:
@@ -2361,7 +2380,7 @@ def _wrap_grid_item(comp, inner_html):
     return f'<div class="grid-item" style="{style}">\n{inner_html}</div>\n'
 
 
-def render_component(comp):  # NOSONAR - python:S3776
+def render_component(comp):
     """Convert a JSON component object into HTML string, wrapped in grid-item."""
     # Flatten nested "content" and "style" dicts into top-level for compat
     # e.g. {"content": {"heading": "Hi"}} → {"heading": "Hi"}
@@ -2519,8 +2538,9 @@ def render_component(comp):  # NOSONAR - python:S3776
         body = comp.get("body", "") or comp.get("markdown_content", "")
         html_body = simple_markdown_to_html(body)
         label_html = f'<span class="sidenote-label">{label}</span>' if label else ""
-        return f'<div class="sidenote">{label_html}{html_body}</div>\n'
+        inner = f'<div class="sidenote">{label_html}{html_body}</div>\n'
         # Sidenotes bypass grid-item wrapping for Tufte layout — returned raw
+        return inner
 
     elif ctype == "Delta_Widget":
         metric = comp.get("metric", "")
@@ -2552,9 +2572,9 @@ def render_component(comp):  # NOSONAR - python:S3776
     return _wrap_grid_item(comp, inner)
 
 
-def compile_blueprint(json_path, output_html_path):  # NOSONAR - python:S3776
+def compile_blueprint(json_path, output_html_path):
     """Reads the LLM JSON blueprint and generates the final poster.html"""
-    with open(json_path, encoding='utf-8') as f:  # NOSONAR: S8707 path validated upstream
+    with open(json_path, 'r', encoding='utf-8') as f:
         blueprint = json.load(f)
 
     art = blueprint.get("art_direction", {})
@@ -2660,19 +2680,17 @@ def compile_blueprint(json_path, output_html_path):  # NOSONAR - python:S3776
 
     # 3. Render Pages
     if use_continuous:
-        # ═══ CONTINUOUS CANVAS MODE ═══
-        # Render all pages as one seamless surface, then let Playwright's page.pdf() slice it.
-        total_height = canvas_h * total_pages
-        html += f'\n<div class="continuous-canvas" style="height: {total_height}px; background: var(--c-bg);">\n'
+        # ═══ CONTINUOUS CANVAS MODE (document-flow) ═══
+        # Each page-section is a block-level box that stacks in normal flow.
+        # Playwright slices at break-after:page boundaries — no absolute positioning.
+        html += f'\n<div class="continuous-canvas" style="background: var(--c-bg);">\n'
 
-        # Unified background SVG spanning the entire document
-        if unified_svg:
-            html += f'  <div class="bg-layer-full">{unified_svg}</div>\n'
+        # Note: unified_svg is now injected per page-section as a bg-layer
+        # (since page-sections are block-level, a single spanning div won't work)
 
-        # Render each page as an absolutely-positioned section within the continuous canvas
+        # Render each page as a block-level section in normal document flow
         for page_idx, page in enumerate(pages):
             archetype = page.get("archetype", "cover_hero")
-            page_top = page_idx * canvas_h
 
             # Auto-assign grid areas
             _auto_assign_grid_areas(archetype, page.get("components", []))
@@ -2699,8 +2717,12 @@ def compile_blueprint(json_path, output_html_path):  # NOSONAR - python:S3776
                 safe_inset = ""
             safe_inset_style = f" inset: {safe_inset};" if safe_inset else ""
 
-            # Page section: positioned absolutely within continuous canvas
-            html += f'\n  <div class="page-section archetype-{archetype}" style="top: {page_top}px; height: {canvas_h}px;">\n'
+            # Page section: block-level box in document flow (no top/absolute)
+            html += f'\n  <div class="page-section archetype-{archetype}" style="height: {canvas_h}px;">\n'
+
+            # Per-page unified background SVG (replaces the old single spanning bg-layer-full)
+            if unified_svg:
+                html += f'    <div class="bg-layer" style="position:absolute;inset:0;z-index:1;pointer-events:none;">{unified_svg}</div>\n'
 
             # Per-page data-driven SVG background (overlays on top of unified bg)
             if svg_type != "none":
@@ -2725,7 +2747,7 @@ def compile_blueprint(json_path, output_html_path):  # NOSONAR - python:S3776
                 for comp in sidenotes:
                     html += "        " + render_component(comp)
                 html += '      </div>\n'
-                html += '    </div>\n'  # NOSONAR - python:S1192
+                html += '    </div>\n'
             else:
                 html += f'    <div class="safe-zone" style="gap: {dynamic_gap};{safe_inset_style}">\n'
                 for comp in page.get("components", []):
@@ -2803,7 +2825,7 @@ def compile_blueprint(json_path, output_html_path):  # NOSONAR - python:S3776
     html += "</body>\n</html>"
 
     # 4. Save
-    with open(output_html_path, 'w', encoding='utf-8') as f:  # NOSONAR - pythonsecurity:S8707
+    with open(output_html_path, 'w', encoding='utf-8') as f:
         f.write(html)
 
     return output_html_path, palette

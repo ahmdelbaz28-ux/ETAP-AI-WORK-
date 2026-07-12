@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 Timeline Tracker for Storyboard Manager
 
@@ -7,19 +6,21 @@ This script analyzes markdown files in a storyboard project to extract and organ
 timeline events, helping writers maintain chronological consistency.
 """
 
-import json
+import os
 import re
+import json
 import sys
-from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Dict, Tuple, Optional
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 
 class TimelineEvent:
     """Represents a single event in the story timeline"""
 
-    def __init__(self, content: str, location: str, chapter: Optional[str] = None,
-                 timepoint: Optional[str] = None, characters: Optional[List[str]] = None):
+    def __init__(self, content: str, location: str, chapter: str = None,
+                 timepoint: str = None, characters: List[str] = None):
         self.content = content
         self.location = location  # File path where event was found
         self.chapter = chapter
@@ -74,12 +75,12 @@ class TimelineTracker:
             content = file_path.read_text(encoding='utf-8')
 
             # Look for character name in title (# Character Name)
-            name_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)  # NOSONAR - python:S8786
+            name_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)
             if name_match:
                 return [name_match.group(1).strip()]
 
             # Look for explicit name field
-            name_match = re.search(r'\*\*Name:\*\*\s*(.+?)(?:\n|$)', content)  # NOSONAR - python:S6019
+            name_match = re.search(r'\*\*Name:\*\*\s*(.+?)(?:\n|$)', content)
             if name_match:
                 return [name_match.group(1).strip()]
 
@@ -131,7 +132,7 @@ class TimelineTracker:
 
             # Get chapter number/name from filename or title
             chapter = file_path.stem
-            title_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)  # NOSONAR - python:S8786
+            title_match = re.search(r'^#\s+(.+?)$', content, re.MULTILINE)
             if title_match:
                 chapter = title_match.group(1).strip()
 
@@ -143,6 +144,7 @@ class TimelineTracker:
 
             # Split content into sections based on markers
             if markers:
+                sections = []
                 for i, (timepoint, pos) in enumerate(markers):
                     start_pos = pos
                     end_pos = markers[i + 1][1] if i + 1 < len(markers) else len(content)
@@ -182,6 +184,7 @@ class TimelineTracker:
 
     def analyze_project(self) -> Dict:
         """Analyze entire project and build timeline"""
+
         # First, find all characters
         char_dirs = ['characters', 'Characters', 'cast']
         for dirname in char_dirs:
@@ -201,10 +204,10 @@ class TimelineTracker:
                     self.events.extend(events)
 
         # Build analysis
-        return {
+        analysis = {
             'total_events': len(self.events),
             'total_characters': len(self.characters),
-            'characters': sorted(self.characters),
+            'characters': sorted(list(self.characters)),
             'events_by_timepoint': self._group_events_by_time(),
             'events_by_character': self._group_events_by_character(),
             'events_by_chapter': self._group_events_by_chapter(),
@@ -212,6 +215,7 @@ class TimelineTracker:
             'warnings': self._check_consistency()
         }
 
+        return analysis
 
     def _group_events_by_time(self) -> Dict[str, List[Dict]]:
         """Group events by their timepoint"""
@@ -300,8 +304,9 @@ class TimelineTracker:
         return warnings
 
 
-def main():  # NOSONAR - python:S3776
+def main():
     """Main entry point for timeline tracker"""
+
     if len(sys.argv) < 2:
         print("Usage: timeline_tracker.py <project_directory> [--output json|markdown]")
         sys.exit(1)

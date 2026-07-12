@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# NOSONAR
 """
 toc_validate.py - Table of Contents Validation for DOCX and PDF files.
 
@@ -34,14 +33,15 @@ Dependencies:
     - pikepdf (optional, for link annotation checks)
 """
 
-import json
-import os
-import re
 import sys
+import os
+import json
+import re
+import zipfile
 import tempfile
 import xml.etree.ElementTree as ET
-import zipfile
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import List, Dict, Tuple, Optional, Any
 
 # ---------------------------------------------------------------------------
 # XML namespace constants
@@ -105,8 +105,7 @@ def make_result(source: str, check_type: str, errors: List, warnings: List,
 # DOCX XML parsing helpers
 # ---------------------------------------------------------------------------
 def parse_docx_xml(docx_path: str) -> Optional[ET.Element]:
-    """
-    Extract and parse document.xml from a .docx file.
+    """Extract and parse document.xml from a .docx file.
 
     Returns the root Element or None if extraction fails.
     """
@@ -139,10 +138,10 @@ def get_paragraph_text(para: ET.Element) -> str:
 
 def get_paragraph_style(para: ET.Element) -> Optional[str]:
     """Get the pStyle val from a paragraph, or None."""
-    pPr = para.find(_w('pPr'))  # NOSONAR - python:S117
+    pPr = para.find(_w('pPr'))
     if pPr is None:
         return None
-    pStyle = pPr.find(_w('pStyle'))  # NOSONAR - python:S117
+    pStyle = pPr.find(_w('pStyle'))
     if pStyle is None:
         return None
     return pStyle.get(_w('val'))
@@ -182,9 +181,8 @@ def is_standard_heading_style(style_val: Optional[str]) -> bool:
                      'heading 1', 'heading 2', 'heading 3', 'heading 4'}
 
 
-def paragraph_is_bold_large(para: ET.Element) -> bool:  # NOSONAR - python:S3776
-    """
-    Check if a paragraph has bold text and large font (≥28 half-points / 14pt).
+def paragraph_is_bold_large(para: ET.Element) -> bool:
+    """Check if a paragraph has bold text and large font (≥28 half-points / 14pt).
 
     Checks both paragraph-level and run-level properties.
     """
@@ -192,9 +190,9 @@ def paragraph_is_bold_large(para: ET.Element) -> bool:  # NOSONAR - python:S3776
     is_large = False
 
     # Check paragraph-level properties
-    pPr = para.find(_w('pPr'))  # NOSONAR - python:S117
+    pPr = para.find(_w('pPr'))
     if pPr is not None:
-        rPr = pPr.find(_w('rPr'))  # NOSONAR - python:S117
+        rPr = pPr.find(_w('rPr'))
         if rPr is not None:
             b = rPr.find(_w('b'))
             if b is not None:
@@ -233,8 +231,7 @@ def paragraph_is_bold_large(para: ET.Element) -> bool:  # NOSONAR - python:S3776
 
 
 def docx_has_toc_field(root: ET.Element) -> bool:
-    """
-    Check if the document has a TOC field code.
+    """Check if the document has a TOC field code.
 
     Looks for:
     - <w:fldSimple> with w:instr containing "TOC"
@@ -254,9 +251,8 @@ def docx_has_toc_field(root: ET.Element) -> bool:
     return False
 
 
-def find_toc_field_boundaries(root: ET.Element) -> Tuple[Optional[ET.Element], Optional[ET.Element], Optional[ET.Element]]:  # NOSONAR - python:S3776
-    """
-    Find the TOC field begin/separate/end fldChar elements.
+def find_toc_field_boundaries(root: ET.Element) -> Tuple[Optional[ET.Element], Optional[ET.Element], Optional[ET.Element]]:
+    """Find the TOC field begin/separate/end fldChar elements.
 
     Returns (begin_elem, separate_elem, end_elem) — any may be None.
     We search for the TOC instrText and then find the corresponding
@@ -285,7 +281,7 @@ def find_toc_field_boundaries(root: ET.Element) -> Tuple[Optional[ET.Element], O
             if instr is not None and instr.text and 'TOC' in instr.text.upper():
                 in_toc_field = True
 
-            fldChar = run.find(_w('fldChar'))  # NOSONAR - python:S117
+            fldChar = run.find(_w('fldChar'))
             if fldChar is not None:
                 fld_type = fldChar.get(_w('fldCharType'), '')
                 if fld_type == 'begin':
@@ -307,9 +303,8 @@ def find_toc_field_boundaries(root: ET.Element) -> Tuple[Optional[ET.Element], O
     return toc_begin_para_idx, toc_separate_para_idx, toc_end_para_idx
 
 
-def find_toc_field_boundaries_v2(root: ET.Element) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Enhanced TOC boundary finder that works with nested fields.
+def find_toc_field_boundaries_v2(root: ET.Element) -> Dict[str, Any]:
+    """Enhanced TOC boundary finder that works with nested fields.
 
     Returns dict with:
         'has_toc': bool
@@ -335,7 +330,7 @@ def find_toc_field_boundaries_v2(root: ET.Element) -> Dict[str, Any]:  # NOSONAR
     events = []  # (para_idx, event_type, element)
     for pi, para in enumerate(paragraphs):
         for run in para.findall('.//' + _w('r')):
-            fldChar = run.find(_w('fldChar'))  # NOSONAR - python:S117
+            fldChar = run.find(_w('fldChar'))
             if fldChar is not None:
                 events.append((pi, fldChar.get(_w('fldCharType'), ''), run))
             instr = run.find(_w('instrText'))
@@ -388,8 +383,7 @@ def find_toc_field_boundaries_v2(root: ET.Element) -> Dict[str, Any]:  # NOSONAR
 
 def check_toc_has_content(root: ET.Element, separate_para_idx: Optional[int],
                           end_para_idx: Optional[int]) -> bool:
-    """
-    Check if there are w:t elements between the separate and end markers.
+    """Check if there are w:t elements between the separate and end markers.
 
     Looks at all paragraphs between the separate and end field char markers.
     """
@@ -411,8 +405,7 @@ def check_toc_has_content(root: ET.Element, separate_para_idx: Optional[int],
 
 
 def fuzzy_match(text_a: str, text_b: str) -> bool:
-    """
-    Check if two strings match fuzzily.
+    """Check if two strings match fuzzily.
 
     Match if one contains the other, or they share >60% of characters.
     """
@@ -438,8 +431,7 @@ def fuzzy_match(text_a: str, text_b: str) -> bool:
 
 
 def _detect_language(texts: list) -> str:
-    """
-    Detect the primary language of a list of text strings.
+    """Detect the primary language of a list of text strings.
 
     Returns 'zh' if more than half contain Chinese characters, else 'en'.
     """
@@ -465,16 +457,15 @@ def _get_heading_level(style_val: Optional[str]) -> int:
     return 0
 
 
-def check_run_hint_style(run: ET.Element) -> Tuple[bool, bool]:  # NOSONAR - python:S3776
-    """
-    Check if a run has gray color and small font size.
+def check_run_hint_style(run: ET.Element) -> Tuple[bool, bool]:
+    """Check if a run has gray color and small font size.
 
     Returns (has_gray_color, has_small_font).
     """
     has_gray = False
     has_small = False
 
-    rPr = run.find(_w('rPr'))  # NOSONAR - python:S117
+    rPr = run.find(_w('rPr'))
     if rPr is None:
         return False, False
 
@@ -511,9 +502,8 @@ def check_run_hint_style(run: ET.Element) -> Tuple[bool, bool]:  # NOSONAR - pyt
 # ---------------------------------------------------------------------------
 # check-docx implementation
 # ---------------------------------------------------------------------------
-def check_docx(docx_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Run all DOCX TOC validation checks.
+def check_docx(docx_path: str) -> Dict[str, Any]:
+    """Run all DOCX TOC validation checks.
 
     Returns the result dict.
     """
@@ -543,7 +533,7 @@ def check_docx(docx_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
     # Detect TOC field boundaries
     toc_info = find_toc_field_boundaries_v2(root)
     has_toc = toc_info['has_toc']
-    toc_info['begin_para_idx']  # NOSONAR: S2201 return value intentionally unused
+    toc_begin_idx = toc_info['begin_para_idx']
     toc_separate_idx = toc_info['separate_para_idx']
     toc_end_idx = toc_info['end_para_idx']
     toc_entry_texts = toc_info['toc_entry_texts']
@@ -558,7 +548,7 @@ def check_docx(docx_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
 
     # Also check for SDT-wrapped TOC (e.g. generated by fix-docx)
     if not has_toc:
-        if docx_has_toc_field(root):  # NOSONAR - python:S1066
+        if docx_has_toc_field(root):
             has_toc = True
 
     # Count headings (all paragraphs with heading styles)
@@ -695,9 +685,8 @@ def check_docx(docx_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
 # ---------------------------------------------------------------------------
 # check-pdf implementation
 # ---------------------------------------------------------------------------
-def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Run all PDF TOC validation checks.
+def check_pdf(pdf_path: str) -> Dict[str, Any]:
+    """Run all PDF TOC validation checks.
 
     Returns the result dict.
     """
@@ -771,7 +760,7 @@ def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
 
     # ---- CHECK 2 & 3 & 4: TOC entry analysis ----
     # Regex to find lines where the last token is a number (page reference)
-    entry_pattern = re.compile(r'^(.+?)\s+(\d{1,4})\s*$')  # NOSONAR - python:S8786
+    entry_pattern = re.compile(r'^(.+?)\s+(\d{1,4})\s*$')
 
     toc_entries = []  # List of (title_text, page_number)
     if toc_pages:
@@ -815,7 +804,7 @@ def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
 
             # CHECK 4: TOC_ALL_SAME_PAGE
             if len(toc_entries) >= 2:
-                page_nums = {pn for _, pn in toc_entries}
+                page_nums = set(pn for _, pn in toc_entries)
                 if len(page_nums) == 1:
                     same_page = page_nums.pop()
                     errors.append(make_item(
@@ -841,7 +830,7 @@ def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
                 if hyperlinks:
                     has_links = True
                     break
-            except (AttributeError, Exception):  # NOSONAR - python:S5713
+            except (AttributeError, Exception):
                 pass
 
         if not has_links:
@@ -858,15 +847,25 @@ def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
                                 has_links = True
                                 break
                 pike_pdf.close()
-            except (ImportError, Exception):  # NOSONAR - python:S5713
+            except (ImportError, Exception):
                 pass
 
         if not has_links:
-            warnings.append(make_item(
-                "TOC_LINKS_MISSING",
-                "TOC entries found but no clickable links detected.",
-                "warning"
-            ))
+            # ≥5 pages: report as error (our generated PDFs must have clickable TOC)
+            # <5 pages: keep as warning (short docs may legitimately lack links)
+            if total_pages >= 5:
+                errors.append(make_item(
+                    "TOC_LINKS_MISSING",
+                    "TOC entries found but no clickable links detected. "
+                    f"Document has {total_pages} pages — TOC links are required.",
+                    "error"
+                ))
+            else:
+                warnings.append(make_item(
+                    "TOC_LINKS_MISSING",
+                    "TOC entries found but no clickable links detected.",
+                    "warning"
+                ))
 
     pdf.close()
     return make_result(source, "pdf-toc", errors, warnings, info)
@@ -875,9 +874,8 @@ def check_pdf(pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
 # ---------------------------------------------------------------------------
 # check-conversion implementation
 # ---------------------------------------------------------------------------
-def check_conversion(docx_path: str, pdf_path: str) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Run DOCX→PDF conversion TOC consistency checks.
+def check_conversion(docx_path: str, pdf_path: str) -> Dict[str, Any]:
+    """Run DOCX→PDF conversion TOC consistency checks.
 
     Returns the result dict.
     """
@@ -980,7 +978,7 @@ def check_conversion(docx_path: str, pdf_path: str) -> Dict[str, Any]:  # NOSONA
                 docx_heading_count += 1
 
     # Count PDF TOC entries
-    entry_pattern = re.compile(r'^(.+?)\s+(\d{1,4})\s*$')  # NOSONAR - python:S8786
+    entry_pattern = re.compile(r'^(.+?)\s+(\d{1,4})\s*$')
     pdf_toc_entry_count = 0
     if toc_pages:
         for page_idx in toc_pages:
@@ -1013,9 +1011,8 @@ def check_conversion(docx_path: str, pdf_path: str) -> Dict[str, Any]:  # NOSONA
 # ---------------------------------------------------------------------------
 # fix-docx implementation
 # ---------------------------------------------------------------------------
-def _find_toc_sdt_indices(body_elem) -> List[int]:  # NOSONAR - python:S3776
-    """
-    Find indices of SDT elements in body that contain TOC.
+def _find_toc_sdt_indices(body_elem) -> List[int]:
+    """Find indices of SDT elements in body that contain TOC.
 
     Returns list of indices into body's direct children.
     """
@@ -1029,23 +1026,22 @@ def _find_toc_sdt_indices(body_elem) -> List[int]:  # NOSONAR - python:S3776
                     break
             else:
                 # Also check alias/tag
-                sdtPr = child.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sdtPr')  # NOSONAR - python:S117
+                sdtPr = child.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sdtPr')
                 if sdtPr is not None:
                     alias = sdtPr.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}alias')
                     if alias is not None and alias.get(_w('val'), '').upper() in ('TOC', '目录'):
                         indices.append(idx)
                         continue
-                    docPartObj = sdtPr.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}docPartObj')  # NOSONAR - python:S117
+                    docPartObj = sdtPr.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}docPartObj')
                     if docPartObj is not None:
-                        docPartGallery = docPartObj.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}docPartGallery')  # NOSONAR - python:S117
+                        docPartGallery = docPartObj.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}docPartGallery')
                         if docPartGallery is not None and 'toc' in docPartGallery.get(_w('val'), '').lower():
                             indices.append(idx)
     return indices
 
 
-def _find_toc_field_para_range(body_elem) -> Tuple[Optional[int], Optional[int]]:  # NOSONAR - python:S3776
-    """
-    Find the range of paragraph indices that make up a TOC field code block.
+def _find_toc_field_para_range(body_elem) -> Tuple[Optional[int], Optional[int]]:
+    """Find the range of paragraph indices that make up a TOC field code block.
 
     Returns (start_idx, end_idx) inclusive, or (None, None) if not found.
     These are indices into body's direct children.
@@ -1065,7 +1061,7 @@ def _find_toc_field_para_range(body_elem) -> Tuple[Optional[int], Optional[int]]
             if instr is not None and instr.text and 'TOC' in instr.text.upper():
                 in_toc = True
 
-            fldChar = run.find(_w('fldChar'))  # NOSONAR - python:S117
+            fldChar = run.find(_w('fldChar'))
             if fldChar is not None:
                 fld_type = fldChar.get(_w('fldCharType'), '')
                 if fld_type == 'begin':
@@ -1092,16 +1088,19 @@ def _find_toc_field_para_range(body_elem) -> Tuple[Optional[int], Optional[int]]
     return start_idx, end_idx
 
 
-def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Detect TOC issues in a DOCX and fix them, outputting a new DOCX file.
+def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any]:
+    """Detect TOC issues in a DOCX and fix them, outputting a new DOCX file.
 
     Returns the result dict.
     """
     from docx import Document as DocxDocument
-    from docx.oxml import OxmlElement
+    from docx.shared import Pt, Twips
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
 
+    errors: List[Dict] = []
+    warnings: List[Dict] = []
     info_list: List[Dict] = []
     source = os.path.basename(docx_path)
 
@@ -1132,14 +1131,14 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
             "warnings": [], "info": []
         }
 
-    [e for e in body if e.tag == _w('p')]
+    paragraphs = [e for e in body if e.tag == _w('p')]
 
     # Extract headings
     headings = []  # list of (para_index_in_body, text, level)
     body_children = list(body)
     para_to_body_idx = {}  # map paragraph element to body child index
-    pi = 0  # NOSONAR - python:S1481
-    caption_filter = re.compile(r'^[表图]\s*\d')  # NOSONAR - python:S1192
+    pi = 0
+    caption_filter = re.compile(r'^[表图]\s*\d')
     for ci, child in enumerate(body_children):
         if child.tag == _w('p'):
             para_to_body_idx[id(child)] = ci
@@ -1193,10 +1192,12 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
                 "errors": [], "warnings": [],
                 "info": [f"Document has {heading_count} headings (< 3), no TOC needed"]
             }
-        # Need to generate TOC
-        info_list.append(f"No TOC found, generating new TOC with {heading_count} entries")
-        need_fix = True
-        fix_reason = "no_toc"
+        else:
+            # Need to generate TOC
+            info_list.append(f"No TOC found, generating new TOC with {heading_count} entries")
+            need_fix = True
+            fix_reason = "no_toc"
+            toc_insert_body_idx = None  # Will determine below
     else:
         # Case 2 & 3: TOC exists, check if it's stale/placeholder
         need_fix = False
@@ -1273,11 +1274,11 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
     caption_re = re.compile(r'^[表图]\s*\d')
     for ci, child in enumerate(doc_children):
         if child.tag == qn('w:p'):
-            pPr = child.find(qn('w:pPr'))  # NOSONAR - python:S1192
+            pPr = child.find(qn('w:pPr'))
             if pPr is not None:
-                pStyle = pPr.find(qn('w:pStyle'))  # NOSONAR - python:S1192
+                pStyle = pPr.find(qn('w:pStyle'))
                 if pStyle is not None:
-                    style_val = pStyle.get(qn('w:val'))  # NOSONAR - python:S1192
+                    style_val = pStyle.get(qn('w:val'))
                     if is_any_heading_style(style_val):
                         text_parts = []
                         for t in child.findall('.//' + qn('w:t')):
@@ -1308,20 +1309,20 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
     # Remove SDT-based TOC
     sdt_removed = False
-    for child in list(doc_body):  # NOSONAR - python:S7504
+    for child in list(doc_body):
         if child.tag == qn('w:sdt'):
             is_toc_sdt = False
-            for instr in child.findall('.//' + qn('w:instrText')):  # NOSONAR - python:S1192
+            for instr in child.findall('.//' + qn('w:instrText')):
                 if instr.text and 'TOC' in instr.text.upper():
                     is_toc_sdt = True
                     break
             if not is_toc_sdt:
-                sdtPr = child.find(qn('w:sdtPr'))  # NOSONAR - python:S117
+                sdtPr = child.find(qn('w:sdtPr'))
                 if sdtPr is not None:
                     alias = sdtPr.find(qn('w:alias'))
                     if alias is not None and alias.get(qn('w:val'), '').upper() in ('TOC', '目录'):
                         is_toc_sdt = True
-                    docPartObj = sdtPr.find(qn('w:docPartObj'))  # NOSONAR - python:S117
+                    docPartObj = sdtPr.find(qn('w:docPartObj'))
                     if docPartObj is not None:
                         dpg = docPartObj.find(qn('w:docPartGallery'))
                         if dpg is not None and 'toc' in dpg.get(qn('w:val'), '').lower():
@@ -1351,9 +1352,9 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
                 if instr is not None and instr.text and 'TOC' in instr.text.upper():
                     in_toc = True
 
-                fldChar = run.find(qn('w:fldChar'))  # NOSONAR - python:S1192
+                fldChar = run.find(qn('w:fldChar'))
                 if fldChar is not None:
-                    fld_type = fldChar.get(qn('w:fldCharType'), '')  # NOSONAR - python:S1192
+                    fld_type = fldChar.get(qn('w:fldCharType'), '')
                     if fld_type == 'begin':
                         depth += 1
                         if in_toc and field_begin_idx is None:
@@ -1398,10 +1399,10 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
     # Step 3: Build TOC paragraphs as OxmlElements and insert them
 
-    def _make_toc_paragraph(text: str, level: int, _lang: str, page_num: str = '1', bookmark_name: str = '') -> Any:
+    def _make_toc_paragraph(text: str, level: int, lang: str, page_num: str = '1', bookmark_name: str = '') -> Any:
         """Create a TOC entry paragraph with HYPERLINK + PAGEREF for clickable links and auto page numbers."""
         p = OxmlElement('w:p')
-        pPr = OxmlElement('w:pPr')  # NOSONAR - python:S117
+        pPr = OxmlElement('w:pPr')
 
         # TOC style
         toc_style = OxmlElement('w:pStyle')
@@ -1417,7 +1418,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
         # Right-aligned tab stop with dot leader at 9026 twips (~15.9cm)
         tabs = OxmlElement('w:tabs')
-        tab = OxmlElement('w:tab')  # NOSONAR - python:S1192
+        tab = OxmlElement('w:tab')
         tab.set(qn('w:val'), 'right')
         tab.set(qn('w:leader'), 'dot')
         tab.set(qn('w:pos'), '9026')
@@ -1440,13 +1441,13 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
             # --- Run 1: heading text ---
             r = OxmlElement('w:r')
-            rPr_r = OxmlElement('w:rPr')  # NOSONAR - python:S1192
+            rPr_r = OxmlElement('w:rPr')
             # Style as hyperlink (blue, underline optional)
-            rStyle = OxmlElement('w:rStyle')  # NOSONAR - python:S117
+            rStyle = OxmlElement('w:rStyle')
             rStyle.set(qn('w:val'), 'Hyperlink')
             rPr_r.append(rStyle)
             sz2 = OxmlElement('w:sz')
-            szCs2 = OxmlElement('w:szCs')  # NOSONAR - python:S1192
+            szCs2 = OxmlElement('w:szCs')
             if level == 1:
                 sz2.set(qn('w:val'), '28')
                 szCs2.set(qn('w:val'), '28')
@@ -1462,7 +1463,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
             rPr_r.append(szCs2)
             r.append(rPr_r)
             t = OxmlElement('w:t')
-            t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')  # NOSONAR - python:S1192
+            t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
             t.text = text
             r.append(t)
             hyperlink.append(r)
@@ -1476,14 +1477,14 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
             # --- Run 3: PAGEREF field code for auto page number ---
             # fldChar begin
             r_begin = OxmlElement('w:r')
-            fldChar_begin = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+            fldChar_begin = OxmlElement('w:fldChar')
             fldChar_begin.set(qn('w:fldCharType'), 'begin')
             r_begin.append(fldChar_begin)
             hyperlink.append(r_begin)
 
             # instrText: PAGEREF bookmark_name \h
             r_instr = OxmlElement('w:r')
-            instrText = OxmlElement('w:instrText')  # NOSONAR - python:S117
+            instrText = OxmlElement('w:instrText')
             instrText.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
             instrText.text = f' PAGEREF {bookmark_name} \\h '
             r_instr.append(instrText)
@@ -1491,15 +1492,15 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
             # fldChar separate
             r_sep = OxmlElement('w:r')
-            fldChar_sep = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+            fldChar_sep = OxmlElement('w:fldChar')
             fldChar_sep.set(qn('w:fldCharType'), 'separate')
             r_sep.append(fldChar_sep)
             hyperlink.append(r_sep)
 
             # Page number placeholder text
             r_page = OxmlElement('w:r')
-            rPr_page = OxmlElement('w:rPr')  # NOSONAR - python:S117
-            noProof = OxmlElement('w:noProof')  # NOSONAR - python:S117
+            rPr_page = OxmlElement('w:rPr')
+            noProof = OxmlElement('w:noProof')
             rPr_page.append(noProof)
             r_page.append(rPr_page)
             t_page = OxmlElement('w:t')
@@ -1509,7 +1510,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
             # fldChar end
             r_end = OxmlElement('w:r')
-            fldChar_end = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+            fldChar_end = OxmlElement('w:fldChar')
             fldChar_end.set(qn('w:fldCharType'), 'end')
             r_end.append(fldChar_end)
             hyperlink.append(r_end)
@@ -1557,7 +1558,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
     def _make_toc_title(title_text: str) -> Any:
         """Create the TOC title paragraph (centered, 18pt, bold)."""
         p = OxmlElement('w:p')
-        pPr = OxmlElement('w:pPr')  # NOSONAR - python:S117
+        pPr = OxmlElement('w:pPr')
 
         # Center alignment
         jc = OxmlElement('w:jc')
@@ -1572,13 +1573,13 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
         pPr.append(spacing)
 
         # Run properties
-        rPr_p = OxmlElement('w:rPr')  # NOSONAR - python:S117
+        rPr_p = OxmlElement('w:rPr')
         b = OxmlElement('w:b')
         rPr_p.append(b)
         sz = OxmlElement('w:sz')
         sz.set(qn('w:val'), '36')  # 18pt = 36 half-points
         rPr_p.append(sz)
-        szCs = OxmlElement('w:szCs')  # NOSONAR - python:S117
+        szCs = OxmlElement('w:szCs')
         szCs.set(qn('w:val'), '36')
         rPr_p.append(szCs)
         pPr.append(rPr_p)
@@ -1587,13 +1588,13 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
         # Run with text
         r = OxmlElement('w:r')
-        rPr_r = OxmlElement('w:rPr')  # NOSONAR - python:S117
+        rPr_r = OxmlElement('w:rPr')
         b2 = OxmlElement('w:b')
         rPr_r.append(b2)
         sz2 = OxmlElement('w:sz')
         sz2.set(qn('w:val'), '36')
         rPr_r.append(sz2)
-        szCs2 = OxmlElement('w:szCs')  # NOSONAR - python:S117
+        szCs2 = OxmlElement('w:szCs')
         szCs2.set(qn('w:val'), '36')
         rPr_r.append(szCs2)
         r.append(rPr_r)
@@ -1624,24 +1625,24 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
         sdt = OxmlElement('w:sdt')
 
         # SDT properties
-        sdtPr = OxmlElement('w:sdtPr')  # NOSONAR - python:S117
+        sdtPr = OxmlElement('w:sdtPr')
         alias = OxmlElement('w:alias')
         alias.set(qn('w:val'), 'TOC')
         sdtPr.append(alias)
 
         # docPartObj with TOC gallery
-        docPartObj = OxmlElement('w:docPartObj')  # NOSONAR - python:S117
-        docPartGallery = OxmlElement('w:docPartGallery')  # NOSONAR - python:S117
+        docPartObj = OxmlElement('w:docPartObj')
+        docPartGallery = OxmlElement('w:docPartGallery')
         docPartGallery.set(qn('w:val'), 'Table of Contents')
         docPartObj.append(docPartGallery)
-        docPartUnique = OxmlElement('w:docPartUnique')  # NOSONAR - python:S117
+        docPartUnique = OxmlElement('w:docPartUnique')
         docPartObj.append(docPartUnique)
         sdtPr.append(docPartObj)
 
         sdt.append(sdtPr)
 
         # SDT content
-        sdtContent = OxmlElement('w:sdtContent')  # NOSONAR - python:S117
+        sdtContent = OxmlElement('w:sdtContent')
 
         # Title paragraph
         sdtContent.append(_make_toc_title(title_text))
@@ -1649,18 +1650,18 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
         # Field begin paragraph
         p_begin = OxmlElement('w:p')
         r_begin = OxmlElement('w:r')
-        fldChar_begin = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+        fldChar_begin = OxmlElement('w:fldChar')
         fldChar_begin.set(qn('w:fldCharType'), 'begin')
         r_begin.append(fldChar_begin)
         p_begin.append(r_begin)
         r_instr = OxmlElement('w:r')
-        instrText = OxmlElement('w:instrText')  # NOSONAR - python:S117
+        instrText = OxmlElement('w:instrText')
         instrText.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
         instrText.text = ' TOC \\o "1-3" \\h \\z \\u '
         r_instr.append(instrText)
         p_begin.append(r_instr)
         r_sep = OxmlElement('w:r')
-        fldChar_sep = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+        fldChar_sep = OxmlElement('w:fldChar')
         fldChar_sep.set(qn('w:fldCharType'), 'separate')
         r_sep.append(fldChar_sep)
         p_begin.append(r_sep)
@@ -1668,7 +1669,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 
         # TOC entry paragraphs — estimate page numbers based on heading position
         toc_entries = [(i, h_text, h_level) for i, (_, h_text, h_level) in enumerate(heading_entries) if h_level <= 3]
-        len(toc_entries)
+        total_headings = len(toc_entries)
         # TOC itself takes ~2 pages; cover takes ~1 page
         toc_offset = 3  # cover + TOC pages
 
@@ -1698,7 +1699,7 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
         # Field end paragraph
         p_end = OxmlElement('w:p')
         r_end = OxmlElement('w:r')
-        fldChar_end = OxmlElement('w:fldChar')  # NOSONAR - python:S117
+        fldChar_end = OxmlElement('w:fldChar')
         fldChar_end.set(qn('w:fldCharType'), 'end')
         r_end.append(fldChar_end)
         p_end.append(r_end)
@@ -1782,9 +1783,8 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
-def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_path: Optional[str] = None) -> Dict[str, Any]:  # NOSONAR - python:S3776
-    """
-    Update TOC page numbers in a fix-docx output using actual page positions from a PDF.
+def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_path: Optional[str] = None) -> Dict[str, Any]:
+    """Update TOC page numbers in a fix-docx output using actual page positions from a PDF.
 
     Two-pass approach:
       Pass 1: Convert the DOCX (without TOC fix or with estimated pages) to PDF
@@ -1794,9 +1794,10 @@ def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_pa
         fixed_docx_path: Path to the DOCX after fix-docx (has PAGEREF fields with estimated pages)
         pass1_pdf_path: Path to a PDF converted from the ORIGINAL docx (without TOC)
         output_path: Where to save the updated DOCX (defaults to overwrite fixed_docx_path)
-
     """
     import zipfile as zf_mod
+    import tempfile
+    import shutil
 
     try:
         import pdfplumber
@@ -1805,7 +1806,7 @@ def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_pa
 
     try:
         from docx import Document
-        from docx.oxml.ns import qn as docx_qn  # noqa: F401
+        from docx.oxml.ns import qn as docx_qn
     except ImportError:
         return {"pass": False, "error": "python-docx not installed"}
 
@@ -1927,10 +1928,10 @@ def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_pa
 
         doc_xml_path = os.path.join(tmpdir, 'word', 'document.xml')
         with open(doc_xml_path, 'wb') as f:
-            _ = f.write(etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True))
+            f.write(etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True))
 
         with zf_mod.ZipFile(output_path, 'w', zf_mod.ZIP_DEFLATED) as zf:
-            for dirpath, _dirnames, filenames in os.walk(tmpdir):
+            for dirpath, dirnames, filenames in os.walk(tmpdir):
                 for fn in filenames:
                     full_path = os.path.join(dirpath, fn)
                     arcname = os.path.relpath(full_path, tmpdir)
@@ -1964,7 +1965,7 @@ def print_usage():
     print("           from the ORIGINAL docx (without TOC) as reference.", file=sys.stderr)
 
 
-def main():  # NOSONAR - python:S3776
+def main():
     """CLI entry point."""
     if len(sys.argv) < 2:
         print_usage()

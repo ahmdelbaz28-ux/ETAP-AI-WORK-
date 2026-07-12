@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-import uuid
 from dataclasses import asdict
 from pathlib import Path
+import uuid
+import json
 
+from .models import KnowledgePoint, KnowledgeSource, Question, QuizSession, MasteryRecord
+from .repository import JsonRepository
+from .quiz_generator import QuizGenerator
 from .evaluator import Evaluator
 from .mastery_engine import MasteryEngine
-from .models import (
-    KnowledgePoint,
-    KnowledgeSource,
-    MasteryRecord,
-    Question,
-    QuizSession,
-)
 from .planner import Planner
-from .quiz_generator import QuizGenerator
-from .repository import JsonRepository
 
 
 class QuizMasteryService:
@@ -53,14 +48,12 @@ class QuizMasteryService:
     def save_knowledge_points(
         self, document_id: str, knowledge_points_data: list[dict]
     ) -> None:
-        """
-        Save extracted knowledge points to JSON.
+        """Save extracted knowledge points to JSON.
 
         Args:
             document_id: Document identifier.
             knowledge_points_data: List of dicts, each with id, title,
                 definition, description, tags.
-
         """
         payload = {"knowledge_points": knowledge_points_data}
         self.repo.save_json(
@@ -122,8 +115,7 @@ class QuizMasteryService:
         level: int | None = None,
         num_questions: int | None = None,
     ) -> dict:
-        """
-        Generate quiz prompts for given knowledge points.
+        """Generate quiz prompts for given knowledge points.
 
         If knowledge_point_ids is None, uses all knowledge points.
         If level is None, reads current_level from mastery records
@@ -227,8 +219,7 @@ class QuizMasteryService:
         user_id: str,
         questions_data: list[dict],
     ) -> dict:
-        """
-        Import parsed questions and create a quiz session.
+        """Import parsed questions and create a quiz session.
 
         Args:
             document_id: Document identifier.
@@ -237,7 +228,6 @@ class QuizMasteryService:
 
         Returns:
             dict with session_id and questions.
-
         """
         questions: list[Question] = []
         for item in questions_data:
@@ -256,7 +246,7 @@ class QuizMasteryService:
 
         session_id = f"quiz_{uuid.uuid4().hex[:12]}"
         kp_ids = list(
-            {kp_id for q in questions for kp_id in q.knowledge_point_ids}
+            set(kp_id for q in questions for kp_id in q.knowledge_point_ids)
         )
         level = questions[0].level if questions else 1
 
@@ -287,8 +277,7 @@ class QuizMasteryService:
     def get_review_candidates(
         self, user_id: str, document_id: str, today_str: str | None = None
     ) -> list[dict]:
-        """
-        Get review recommendations for a user.
+        """Get review recommendations for a user.
 
         Returns list of knowledge points that need review.
         """
