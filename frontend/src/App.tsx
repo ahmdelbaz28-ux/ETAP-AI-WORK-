@@ -240,8 +240,12 @@ function App() {
                                         onOpenChange={setCommandPaletteOpen}
                                 />
                                 {/* V207.3: Global AI Copilot — visible on all protected routes (Ctrl+J) */}
+                                {/* V215 v3: Ambient gradient blob behind the floating button — gives the
+                                    glass surface something colorful to blur and adds depth to the
+                                    bottom-right corner of every protected page. */}
                                 {!isPublicRoute && (
                                         <>
+                                                <div className="ask-ai-blob" aria-hidden="true" />
                                                 <AskAiButton onClick={() => setAiOpen(true)} />
                                                 <AskAiSheet open={aiOpen} onOpenChange={setAiOpen} />
                                         </>

@@ -388,6 +388,90 @@ label {
         }
 }
 
+/* ── Ask AI ambient gradient blob ───────────────────────────────────── */
+/* V215 v3: Decorative radial blob anchored behind the floating button.  */
+/* Serves two purposes:                                                  */
+/*   1. Visual anchor — gives the glass button a colorful backdrop so    */
+/*      the backdrop-filter blur has something real to blur.             */
+/*   2. Ambient depth — adds a soft cyan glow zone in the bottom-right   */
+/*      corner of every protected page, breaking the flat dark navy.     */
+/* The blob sits at z-index 0 (behind content at z-10+ but above the    */
+/* page background). The button itself is at z-50, so it always sits    */
+/* on top of the blob.                                                   */
+
+@keyframes ask-ai-blob-breathe {
+        0%, 100% {
+                opacity: 0.55;
+                transform: translate(0, 0) scale(1);
+        }
+        50% {
+                opacity: 0.85;
+                transform: translate(-8px, -8px) scale(1.08);
+        }
+}
+
+@keyframes ask-ai-blob-drift {
+        0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+                transform: translate(12px, -6px) rotate(120deg);
+        }
+        66% {
+                transform: translate(-10px, 8px) rotate(240deg);
+        }
+}
+
+.ask-ai-blob {
+        position: fixed;
+        bottom: -60px;
+        right: -60px;
+        width: 320px;
+        height: 320px;
+        pointer-events: none;
+        z-index: 0;
+        border-radius: 50%;
+        filter: blur(40px);
+        background:
+                radial-gradient(
+                        circle at 30% 30%,
+                        rgba(34, 211, 238, 0.45) 0%,
+                        rgba(34, 211, 238, 0.20) 30%,
+                        rgba(34, 211, 238, 0.05) 60%,
+                        transparent 80%
+                );
+        animation:
+                ask-ai-blob-breathe 6s ease-in-out infinite,
+                ask-ai-blob-drift 14s ease-in-out infinite;
+        will-change: transform, opacity;
+}
+
+/* Secondary smaller blob — warmer accent for depth layering */
+.ask-ai-blob::before {
+        content: "";
+        position: absolute;
+        top: 30%;
+        left: 30%;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(
+                circle,
+                rgba(99, 102, 241, 0.20) 0%,
+                rgba(99, 102, 241, 0.05) 50%,
+                transparent 80%
+        );
+        animation: ask-ai-blob-breathe 8s ease-in-out infinite reverse;
+}
+
+/* Respect reduced motion — freeze the blob */
+@media (prefers-reduced-motion: reduce) {
+        .ask-ai-blob,
+        .ask-ai-blob::before {
+                animation: none;
+        }
+}
+
 /* ── Magnetic cursor ────────────────────────────────────────────────── */
 .magnetic-cursor {
         position: fixed;
