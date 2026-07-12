@@ -7,7 +7,6 @@ Separated from main engineering service for better modularity.
 
 from __future__ import annotations
 
-
 from fastapi import APIRouter, HTTPException, Request
 
 from api.studies import SystemSpec, _build_system_from_spec

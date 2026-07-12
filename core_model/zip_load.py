@@ -179,7 +179,7 @@ class ZIPLoadModel:
         }
 
     @staticmethod
-    def from_dict(data: dict) -> "ZIPLoadModel":
+    def from_dict(data: dict) -> ZIPLoadModel:
         """Create ZIPLoadModel from dictionary."""
         coeffs = ZIPCoefficients(
             aZ=data.get("aZ", 0.0),
