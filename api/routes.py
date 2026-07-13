@@ -42,6 +42,7 @@ from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
+from api.settings import router as settings_router
 from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
@@ -568,6 +569,7 @@ app.include_router(notifications_router)
 app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
+app.include_router(settings_router)
 # ─── Resend email integration routers ─────────────────────────────────────
 app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
 app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*

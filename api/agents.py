@@ -91,6 +91,78 @@ async def get_agents_list(request: Request):
             content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500,
         )
 
+@router.get("/{agent_id}")
+async def get_agent_by_id(agent_id: str, request: Request):
+    """Return metadata for a specific agent by ID."""
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from api.shared_handlers import AGENTS
+        # Find agent by ID
+        agent = None
+        for a in AGENTS:
+            if a["id"] == agent_id:
+                agent = a
+                break
+        if agent is None:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "error": "Agent not found", "trace_id": trace_id}
+            )
+
+        # Capability map (same as get_agents_list)
+        capability_map = {
+            "load-flow-agent": ["load_flow", "voltage_profile", "power_losses"],
+            "short-circuit-agent": ["short_circuit", "iec_60909", "equipment_rating"],
+            "arcflash-agent": ["arc_flash", "ieee_1584", "ppe_category"],
+            "protection-agent": ["protection", "relay_coordination", "time_current_curves"],
+            "motorstarting-agent": ["motor_starting", "voltage_dip", "acceleration"],
+            "stability-agent": ["stability", "swing_equation", "critical_clearing_time"],
+            "harmonic-agent": ["harmonic", "ieee_519", "filter_design"],
+            "cable-sizing-agent": ["cable_sizing", "iec_60364", "voltage_drop"],
+            "earth-grid-agent": ["earth_grid", "ieee_80", "step_touch_voltage"],
+            "opf-agent": ["opf", "economic_dispatch", "optimal_power_flow"],
+            "renewable-agent": ["renewable", "solar", "wind", "ieee_1547"],
+            "battery-storage-agent": ["battery_storage", "bess", "dispatch_optimization"],
+            "scada-agent": ["scada", "iec_61850", "real_time_monitoring"],
+            "digital-twin-agent": ["digital_twin", "iec_61970", "state_estimation"],
+            "predictive-agent": ["predictive_maintenance", "iso_13381", "failure_prediction"],
+            "anomaly-agent": ["anomaly_detection", "ieee_1159", "pattern_recognition"],
+            "coordination-agent": ["coordination", "iec_60255", "relay_coordination"],
+            "report-agent": ["report_generation", "ieee_3002_7", "documentation"],
+            "validation-agent": ["validation", "iec_60038", "compliance_checking"],
+            "etap-engineer-agent": ["etap_engineering", "etap_manual", "study_setup"],
+            "goal-planner-agent": ["goal_planning", "task_decomposition", "workflow"],
+            "weather-agent": ["weather", "iec_60721", "environmental_analysis"],
+            "power-system-coordinator": ["coordination", "orchestration", "all_studies"],
+            "etap-expert-agent": ["etap_expert", "format_a_b_c_d", "6_step_workflow"],
+            "etap-gui-agent": ["gui_automation", "cua", "screenshot_analysis"],
+        }
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "agent": {
+                    "id": agent["id"],
+                    "name": agent["name"],
+                    "description": agent.get("description", ""),
+                    "standard": agent.get("standard", ""),
+                    "status": agent.get("status", "active"),
+                    "capabilities": capability_map.get(agent["id"], []),
+                    "model": "gpt-4o",
+                    "provider": "openai",
+                },
+                "trace_id": trace_id
+            }
+        )
+    except Exception as e:
+        from logging import getLogger
+        logger = getLogger("engineering_service")
+        logger.exception("get_agent_by_id_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
 @router.get("/info")
 async def get_agents_info(request: Request):
     """Return metadata for all agents including prompt integration status.
@@ -317,13 +389,14 @@ async def etap_gui_execute(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        import asyncio
 
         from agents.etap_gui_agent import ETAPGUIAgent
+        from compat import to_thread
 
         agent = ETAPGUIAgent()
+
         # Run in thread to avoid Playwright Sync API + asyncio conflict
-        result = await asyncio.to_thread(
+        result = await to_thread(
             agent.execute_cua_loop,
             question=payload.question,
             max_steps=payload.max_steps,

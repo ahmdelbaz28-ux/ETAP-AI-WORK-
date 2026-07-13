@@ -32,6 +32,25 @@ async def ml_capabilities():
         return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
 
 
+import math
+from typing import Any
+
+
+def _clean_nan(obj: Any) -> Any:
+    """Recursively clean NaN/inf values from float/dict/list to ensure JSON compliance."""
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _clean_nan(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean_nan(x) for x in obj]
+    if isinstance(obj, tuple):
+        return tuple(_clean_nan(x) for x in obj)
+    return obj
+
+
 @router.post("/predict/load")
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
@@ -62,7 +81,7 @@ async def predict_load(request: Request):
         metrics = lf.evaluate(data) if hasattr(lf, "evaluate") else {}
 
         return JSONResponse(
-            content={
+            content=_clean_nan({
                 "success": True,
                 "data": {
                     "predictions": predictions.tolist()
@@ -74,8 +93,9 @@ async def predict_load(request: Request):
                     "metrics": metrics,
                 },
                 "trace_id": trace_id,
-            },
+            }),
         )
+
     except HTTPException:
         raise
     except Exception as e:

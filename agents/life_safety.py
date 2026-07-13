@@ -69,7 +69,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger("agent.life_safety")
 
@@ -205,7 +205,7 @@ def _write_secure_file(path: Path, content: str) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     # Write via a temp file then rename — atomic + we can chmod before expose.
-    fd = os.open(str(path), Union[os.O_WRONLY, os.O_CREAT] | os.O_TRUNC, 0o600)
+    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(content)

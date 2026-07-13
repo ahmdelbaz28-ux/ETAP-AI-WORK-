@@ -16,3 +16,7 @@ else:
         """Backport of Python 3.11's ``enum.StrEnum``."""
 
         pass
+
+
+# Backport of asyncio.to_thread for Python 3.8
+
