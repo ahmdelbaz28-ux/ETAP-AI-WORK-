@@ -143,7 +143,7 @@ httpx~=0.27.0
 kubernetes~=29.0.0
 
 # Phase 3: WebSocket
-websockets~=12.0
+websockets>=12,<17
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=1.6.1
