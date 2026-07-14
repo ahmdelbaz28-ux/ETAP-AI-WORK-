@@ -163,3 +163,37 @@ When Redis fails, login rate limiting falls back to per-instance in-memory stora
 1. Ensure Redis is configured and available in production
 2. Increase the in-memory fallback window or reduce max attempts when Redis is unavailable
 3. Add monitoring/alerting when Redis is unreachable
+
+---
+
+### 🔴 KR-07: API KEY BACKDOOR — FULL ADMIN ACCESS VIA X-API-Key
+**Severity: CRITICAL** | **Impact: COMPLETE AUTHENTICATION BYPASS**
+
+**Root Cause:**
+In `api/_test_mode.py` (lines 81-97):
+```python
+def get_api_key_auth(request: Request) -> Optional[dict]:
+    if is_test_mode(request):
+        return {
+            "user_id": "service",
+            "role": "admin",
+            "auth_method": "api_key",
+        }
+    return None
+```
+The `ENGINEERING_SERVICE_API_KEY` (value: `etap-platform-secret-2024`) grants **full admin privileges** when passed as `X-API-Key` header. This is used by dashboard endpoints as an alternative authentication mechanism:
+```python
+from api._test_mode import get_api_key_auth
+current_user = get_api_key_auth(request) or get_current_user(request)
+```
+
+**Production Impact:**
+- Anyone who knows the API key has full admin access to protected endpoints
+- The key is documented in `.env` and is a predictable pattern
+- Bypasses ALL JWT authentication and RBAC
+- Effectively a hardcoded backdoor in the authentication system
+
+**Fix Required:**
+1. Remove `get_api_key_auth()` entirely — it should never grant admin role
+2. If API key auth is needed, implement a proper service account system with scoped permissions
+3. Never grant admin role via API key
