@@ -4,7 +4,7 @@ opentelemetry-api>=1.30.0
 opentelemetry-sdk>=1.30.0
 opentelemetry-exporter-otlp>=1.30.0
 opentelemetry-exporter-otlp-proto-http>=1.30.0
-opentelemetry-semantic-conventions>=0.51b0
+opentelemetry-semantic-conventions>=0.64b0
 opentelemetry-instrumentation-fastapi>=0.51b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
