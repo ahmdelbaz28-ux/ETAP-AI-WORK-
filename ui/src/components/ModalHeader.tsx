@@ -17,16 +17,21 @@
  *     </button>
  *   </div>
  */
-import { type LucideIcon, Plus, X } from 'lucide-react'
+import { type LucideIcon, Plus, X } from "lucide-react";
 
 interface ModalHeaderProps {
-  readonly title: string
-  readonly onClose: () => void
-  readonly disabled?: boolean
-  readonly icon?: LucideIcon
+  readonly title: string;
+  readonly onClose: () => void;
+  readonly disabled?: boolean;
+  readonly icon?: LucideIcon;
 }
 
-export default function ModalHeader({ title, onClose, disabled = false, icon: Icon = Plus }: ModalHeaderProps) {
+export default function ModalHeader({
+  title,
+  onClose,
+  disabled = false,
+  icon: Icon = Plus,
+}: ModalHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
@@ -45,5 +50,5 @@ export default function ModalHeader({ title, onClose, disabled = false, icon: Ic
         <X className="w-4 h-4" />
       </button>
     </div>
-  )
+  );
 }

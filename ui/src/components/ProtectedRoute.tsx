@@ -15,16 +15,16 @@
  * /settings, etc. were all reachable without login — a real security
  * hole because those pages can trigger backend operations.
  */
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 interface ProtectedRouteProps {
-  readonly children: React.ReactNode
+  readonly children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth()
-  const location = useLocation()
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   // While validating the token on initial mount, show a loading screen.
   // This prevents a flash of /login for users who have a valid token.
@@ -36,15 +36,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           <p className="text-sm text-[var(--text-muted)]">Loading session…</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Not authenticated → redirect to /login, preserving the intended URL.
   if (!isAuthenticated) {
-    const from = encodeURIComponent(location.pathname + location.search)
-    return <Navigate to={`/login?from=${from}`} replace />
+    const from = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?from=${from}`} replace />;
   }
 
   // Authenticated → render the protected route.
-  return <>{children}</>
+  return <>{children}</>;
 }

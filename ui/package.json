@@ -22,18 +22,12 @@
   "build": {
     "appId": "com.etap.ai-platform",
     "productName": "Ahmed etap Platform",
-    "files": [
-      "dist/**/*",
-      "electron/**/*"
-    ],
+    "files": ["dist/**/*", "electron/**/*"],
     "directories": {
       "output": "release"
     },
     "win": {
-      "target": [
-        "nsis",
-        "msi"
-      ],
+      "target": ["nsis", "msi"],
       "icon": "public/favicon.svg"
     },
     "nsis": {
@@ -46,10 +40,7 @@
       "createStartMenuShortcut": true
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
+      "target": ["AppImage", "deb"],
       "icon": "public/favicon.svg"
     }
   },
@@ -60,11 +51,12 @@
     "framer-motion": "11.18.0",
     "i18next": "24.2.2",
     "i18next-browser-languagedetector": "8.0.4",
-    "lucide-react": "0.468.0",
+    "lucide-react": "^0.468.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-i18next": "15.4.1",
     "react-icons": "5.7.0",
+    "react-is": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "7.18.1",
     "recharts": "3.9.2",
@@ -75,6 +67,7 @@
     "zustand": "5.0.14"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@eslint/js": "9.17.0",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -90,7 +83,6 @@
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.3",
-    "@biomejs/biome": "1.9.4",
     "globals": "15.14.0",
     "jsdom": "29.1.1",
     "typescript": "5.7.2",

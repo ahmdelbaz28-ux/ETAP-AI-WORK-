@@ -7,44 +7,44 @@
  * See that file for configuration options (VITE_API_URL env var).
  */
 
-import { API_BASE_URL, getDeobfuscatedSettings } from './api-config'
+import { API_BASE_URL, getDeobfuscatedSettings } from "./api-config";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${path}`
-  const token = localStorage.getItem('authToken')
+  const url = `${API_BASE_URL}${path}`;
+  const token = localStorage.getItem("authToken");
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options?.headers as Record<string, string> | undefined),
-  }
+  };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`;
   }
 
   // Forward user's active provider key/model to backend dynamically
-  const settings = getDeobfuscatedSettings()
-  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || 'openai'
-  headers['x-active-provider'] = activeProviderId
+  const settings = getDeobfuscatedSettings();
+  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
+  headers["x-active-provider"] = activeProviderId;
 
-  if (activeProviderId === 'custom_openai') {
+  if (activeProviderId === "custom_openai") {
     if (settings.CUSTOM_OPENAI_API_KEY) {
-      headers['x-active-key'] = settings.CUSTOM_OPENAI_API_KEY
+      headers["x-active-key"] = settings.CUSTOM_OPENAI_API_KEY;
     }
     if (settings.CUSTOM_OPENAI_BASE_URL) {
-      headers['x-active-url'] = settings.CUSTOM_OPENAI_BASE_URL
+      headers["x-active-url"] = settings.CUSTOM_OPENAI_BASE_URL;
     }
     if (settings.CUSTOM_OPENAI_MODEL_ID) {
-      headers['x-active-model'] = settings.CUSTOM_OPENAI_MODEL_ID
+      headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
     }
   } else {
-    const keyName = `PROVIDER_${activeProviderId.toUpperCase()}_KEY`
-    const modelName = `PROVIDER_${activeProviderId.toUpperCase()}_MODEL`
+    const keyName = `PROVIDER_${activeProviderId.toUpperCase()}_KEY`;
+    const modelName = `PROVIDER_${activeProviderId.toUpperCase()}_MODEL`;
     if (settings[keyName]) {
-      headers['x-active-key'] = settings[keyName]
+      headers["x-active-key"] = settings[keyName];
     }
     if (settings[modelName]) {
-      headers['x-active-model'] = settings[modelName]
+      headers["x-active-model"] = settings[modelName];
     }
   }
 
@@ -52,105 +52,105 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
     headers,
     signal: options?.signal ?? AbortSignal.timeout(15000),
-  })
+  });
 
   if (!response.ok) {
     // Try to extract a structured error from the backend
-    let detail = 'Unknown error'
+    let detail = "Unknown error";
     try {
-      const body = await response.json()
-      detail = body.detail || body.message || JSON.stringify(body)
+      const body = await response.json();
+      detail = body.detail || body.message || JSON.stringify(body);
     } catch {
       try {
-        detail = await response.text()
+        detail = await response.text();
       } catch {
-        detail = `HTTP ${response.status} ${response.statusText}`
+        detail = `HTTP ${response.status} ${response.statusText}`;
       }
     }
-    throw new Error(`API ${response.status}: ${detail}`)
+    throw new Error(`API ${response.status}: ${detail}`);
   }
 
   // 204 No Content
   if (response.status === 204) {
-    return undefined as unknown as T
+    return undefined as unknown as T;
   }
 
-  return response.json() as Promise<T>
+  return response.json() as Promise<T>;
 }
 
 // ============ Types ============
 
 export interface HealthResponse {
-  ok?: boolean
-  status: string
-  version: string
-  uptime?: number
-  uptime_seconds?: number
-  agents?: number
-  etap_manuals?: number
-  zenon_guides?: number
-  standards?: number
-  engineeringService?: { configured: boolean; healthy: boolean; latencyMs?: number }
-  providers?: Record<string, unknown>
-  timestamp?: string
+  ok?: boolean;
+  status: string;
+  version: string;
+  uptime?: number;
+  uptime_seconds?: number;
+  agents?: number;
+  etap_manuals?: number;
+  zenon_guides?: number;
+  standards?: number;
+  engineeringService?: { configured: boolean; healthy: boolean; latencyMs?: number };
+  providers?: Record<string, unknown>;
+  timestamp?: string;
 }
 
 export interface AgentMeta {
-  id: string
-  name: string
-  description: string
-  capabilities: string[]
-  model: string
-  provider: string
+  id: string;
+  name: string;
+  description: string;
+  capabilities: string[];
+  model: string;
+  provider: string;
 }
 
 export interface StudyResult {
-  study_type: string
-  status: string
-  results?: Record<string, unknown>
-  errors?: string[]
-  warnings?: string[]
-  duration_ms?: number
-  timestamp?: string
+  study_type: string;
+  status: string;
+  results?: Record<string, unknown>;
+  errors?: string[];
+  warnings?: string[];
+  duration_ms?: number;
+  timestamp?: string;
 }
 
 export interface MetricsResponse {
-  requests_total: number
-  requests_per_minute: number
-  agents_active: number
-  studies_run: number
-  providers: Record<string, { requests: number; errors: number; latency_ms: number }>
-  timestamp: string
+  requests_total: number;
+  requests_per_minute: number;
+  agents_active: number;
+  studies_run: number;
+  providers: Record<string, { requests: number; errors: number; latency_ms: number }>;
+  timestamp: string;
 }
 
 export interface AuditEntry {
-  timestamp: string
-  method: string
-  path: string
-  statusCode: number
-  action: string
-  latencyMs?: number
-  userId?: string
+  timestamp: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  action: string;
+  latencyMs?: number;
+  userId?: string;
 }
 
 // ============ API functions ============
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  return request<HealthResponse>('/health')
+  return request<HealthResponse>("/health");
 }
 
 export async function fetchAgents(): Promise<AgentMeta[]> {
-  const data = await request<{ agents: AgentMeta[] } | AgentMeta[]>('/api/v1/agents')
-  return Array.isArray(data) ? data : data.agents ?? []
+  const data = await request<{ agents: AgentMeta[] } | AgentMeta[]>("/api/v1/agents");
+  return Array.isArray(data) ? data : (data.agents ?? []);
 }
 
 export async function runStudy(
   studyType: string,
   params: Record<string, unknown>,
-  dryRun = false
+  dryRun = false,
 ): Promise<StudyResult> {
-  return request<StudyResult>('/api/v1/studies/run', {
-    method: 'POST',
+  return request<StudyResult>("/api/v1/studies/run", {
+    method: "POST",
     body: JSON.stringify({
       study_type: studyType,
       params,
@@ -158,9 +158,9 @@ export async function runStudy(
       system: params.system ?? {
         base_mva: 100,
         buses: [
-          { bus_id: 1, bus_type: 'slack', voltage_magnitude: 1.05 },
-          { bus_id: 2, bus_type: 'pv', voltage_magnitude: 1.0 },
-          { bus_id: 3, bus_type: 'pq', load_power_real: 1, load_power_reactive: 0.3 },
+          { bus_id: 1, bus_type: "slack", voltage_magnitude: 1.05 },
+          { bus_id: 2, bus_type: "pv", voltage_magnitude: 1.0 },
+          { bus_id: 3, bus_type: "pq", load_power_real: 1, load_power_reactive: 0.3 },
         ],
         lines: [
           { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05 },
@@ -168,129 +168,135 @@ export async function runStudy(
         ],
       },
     }),
-  })
+  });
 }
 
 export async function fetchStudies(): Promise<unknown[]> {
-  return request<unknown[]>('/api/v1/studies')
+  return request<unknown[]>("/api/v1/studies");
 }
 
 export async function validateSystem(): Promise<{ valid: boolean; errors?: string[] }> {
-  return request<{ valid: boolean; errors?: string[] }>('/api/v1/system/validate', {
-    method: 'POST',
-  })
+  return request<{ valid: boolean; errors?: string[] }>("/api/v1/system/validate", {
+    method: "POST",
+  });
 }
 
 export async function fetchMetrics(): Promise<MetricsResponse> {
-  return request<MetricsResponse>('/metrics')
+  return request<MetricsResponse>("/metrics");
 }
 
 export async function chatWithAgent(
   agentId: string,
-  message: string
+  message: string,
 ): Promise<{ response: string; agentId: string }> {
-  return request<{ response: string; agentId: string }>('/api/v1/agents/chat', {
-    method: 'POST',
+  return request<{ response: string; agentId: string }>("/api/v1/agents/chat", {
+    method: "POST",
     body: JSON.stringify({ agentId, message }),
-  })
+  });
 }
 
 export async function fetchAuditLogs(): Promise<AuditEntry[]> {
-  return request<AuditEntry[]>('/api/v1/audit')
+  return request<AuditEntry[]>("/api/v1/audit");
 }
 
 // ============ Guard Skills API ============
 
 export interface GuardViolation {
-  rule_id: string
-  rule_name: string
-  severity: 'must_fix' | 'should_fix' | 'worth_noting'
-  description: string
-  location: string
-  suggestion: string
-  evidence: string
+  rule_id: string;
+  rule_name: string;
+  severity: "must_fix" | "should_fix" | "worth_noting";
+  description: string;
+  location: string;
+  suggestion: string;
+  evidence: string;
 }
 
 export interface GuardReviewResult {
-  success: boolean
-  guard_results: Record<string, {
-    guard_name: string
-    mode: string
-    passed: boolean
-    must_fix: number
-    should_fix: number
-    worth_noting: number
-    violations: GuardViolation[]
-  }>
-  all_passed: boolean
-  must_fix_total: number
-  should_fix_total: number
-  worth_noting_total: number
-  trace_id: string
+  success: boolean;
+  guard_results: Record<
+    string,
+    {
+      guard_name: string;
+      mode: string;
+      passed: boolean;
+      must_fix: number;
+      should_fix: number;
+      worth_noting: number;
+      violations: GuardViolation[];
+    }
+  >;
+  all_passed: boolean;
+  must_fix_total: number;
+  should_fix_total: number;
+  worth_noting_total: number;
+  trace_id: string;
 }
 
 export interface GuardInfo {
-  guards: Record<string, {
-    name: string
-    description: string
-    rules_checked: number
-    failure_modes?: Array<{
-      id: string
-      name: string
-      severity: string
-      description: string
-      research_source: string
-    }>
-  }>
-  severity_levels: Record<string, string>
-  source: string
+  guards: Record<
+    string,
+    {
+      name: string;
+      description: string;
+      rules_checked: number;
+      failure_modes?: Array<{
+        id: string;
+        name: string;
+        severity: string;
+        description: string;
+        research_source: string;
+      }>;
+    }
+  >;
+  severity_levels: Record<string, string>;
+  source: string;
 }
 
 export async function guardReview(
   source: string,
-  guardType: string = 'all',
-  language: string = 'python'
+  guardType = "all",
+  language = "python",
 ): Promise<GuardReviewResult> {
-  return request<GuardReviewResult>('/api/v1/guards/review', {
-    method: 'POST',
+  return request<GuardReviewResult>("/api/v1/guards/review", {
+    method: "POST",
     body: JSON.stringify({ source, guard_type: guardType, language }),
-  })
+  });
 }
 
 export async function fetchGuardInfo(): Promise<GuardInfo> {
-  const data = await request<{ success: boolean; data: GuardInfo }>('/api/v1/guards/info')
-  return data.data
+  const data = await request<{ success: boolean; data: GuardInfo }>("/api/v1/guards/info");
+  return data.data;
 }
 
 // ============ Vision API Keys (Settings) ============
 
 export interface VisionKeyConfig {
-  provider: string
-  api_key_masked: string
-  api_key_set: boolean
-  base_url: string | null
-  model_name: string | null
-  is_active: boolean
-  created_at: string | null
-  updated_at: string | null
+  provider: string;
+  api_key_masked: string;
+  api_key_set: boolean;
+  base_url: string | null;
+  model_name: string | null;
+  is_active: boolean;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface VisionKeysResponse {
-  success: boolean
-  data: Record<string, VisionKeyConfig>
-  providers: string[]
+  success: boolean;
+  data: Record<string, VisionKeyConfig>;
+  providers: string[];
 }
 
 export interface VisionKeyTestResult {
-  success: boolean
-  message: string
-  base_url?: string
-  model?: string
-  sample_models?: string[]
+  success: boolean;
+  message: string;
+  base_url?: string;
+  model?: string;
+  sample_models?: string[];
 }
 
 export async function fetchVisionKeys(): Promise<VisionKeysResponse> {
-  return request<VisionKeysResponse>('/api/v1/settings/keys')
+  return request<VisionKeysResponse>("/api/v1/settings/keys");
 }
 
 export async function saveVisionKey(
@@ -298,96 +304,100 @@ export async function saveVisionKey(
   apiKey: string,
   baseUrl?: string,
   modelName?: string,
-  isActive: boolean = true
+  isActive = true,
 ): Promise<{ success: boolean; data: VisionKeyConfig | null; message: string }> {
   const params = new URLSearchParams({
     api_key: apiKey,
     is_active: String(isActive),
-  })
-  if (baseUrl) params.set('base_url', baseUrl)
-  if (modelName) params.set('model_name', modelName)
+  });
+  if (baseUrl) params.set("base_url", baseUrl);
+  if (modelName) params.set("model_name", modelName);
 
   return request(`/api/v1/settings/keys/${provider}?${params.toString()}`, {
-    method: 'POST',
-  })
+    method: "POST",
+  });
 }
 
-export async function deleteVisionKey(provider: string): Promise<{ success: boolean; message: string }> {
+export async function deleteVisionKey(
+  provider: string,
+): Promise<{ success: boolean; message: string }> {
   return request(`/api/v1/settings/keys/${provider}`, {
-    method: 'DELETE',
-  })
+    method: "DELETE",
+  });
 }
 
-export async function testVisionKey(provider: string): Promise<{ success: boolean; data: VisionKeyTestResult }> {
+export async function testVisionKey(
+  provider: string,
+): Promise<{ success: boolean; data: VisionKeyTestResult }> {
   return request(`/api/v1/settings/keys/${provider}/test`, {
-    method: 'POST',
-  })
+    method: "POST",
+  });
 }
 
 // ============ Projects ============
 
 export interface Project {
-  id: string
-  name: string
-  description: string
-  system_config: Record<string, unknown> | null
-  created_at: string
-  updated_at: string
-  created_by: string | null
-  status: 'active' | 'archived' | 'deleted'
+  id: string;
+  name: string;
+  description: string;
+  system_config: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  status: "active" | "archived" | "deleted";
 }
 
 export interface ProjectListResponse {
-  projects: Project[]
-  total: number
-  page: number
-  page_size: number
+  projects: Project[];
+  total: number;
+  page: number;
+  page_size: number;
 }
 
 export interface ProjectCreateInput {
-  name: string
-  description: string
-  system_config?: Record<string, unknown>
+  name: string;
+  description: string;
+  system_config?: Record<string, unknown>;
 }
 
 export async function listProjects(
-  statusFilter?: 'active' | 'archived',
-  page: number = 1,
-  pageSize: number = 50,
+  statusFilter?: "active" | "archived",
+  page = 1,
+  pageSize = 50,
 ): Promise<ProjectListResponse> {
   const params = new URLSearchParams({
     page: String(page),
     page_size: String(pageSize),
-  })
-  if (statusFilter) params.set('status', statusFilter)
-  return request(`/api/v1/projects/?${params.toString()}`)
+  });
+  if (statusFilter) params.set("status", statusFilter);
+  return request(`/api/v1/projects/?${params.toString()}`);
 }
 
 export async function getProject(projectId: string): Promise<Project> {
-  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`)
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`);
 }
 
 export async function createProject(input: ProjectCreateInput): Promise<Project> {
-  return request('/api/v1/projects/', {
-    method: 'POST',
+  return request("/api/v1/projects/", {
+    method: "POST",
     body: JSON.stringify(input),
-  })
+  });
 }
 
 export async function updateProject(
   projectId: string,
-  input: Partial<ProjectCreateInput> & { status?: 'active' | 'archived' },
+  input: Partial<ProjectCreateInput> & { status?: "active" | "archived" },
 ): Promise<Project> {
   return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(input),
-  })
+  });
 }
 
 export async function deleteProject(projectId: string): Promise<void> {
   await request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
-    method: 'DELETE',
-  })
+    method: "DELETE",
+  });
 }
 
 // ============ End of API client ============

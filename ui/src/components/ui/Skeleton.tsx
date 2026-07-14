@@ -1,20 +1,20 @@
-import { cn } from '../../utils/helpers'
+import { cn } from "../../utils/helpers";
 
 interface SkeletonProps {
-  readonly className?: string
+  readonly className?: string;
 }
 
 interface SkeletonCardProps {
-  readonly lines?: number
+  readonly lines?: number;
 }
 
 interface SkeletonTableProps {
-  readonly rows?: number
-  readonly cols?: number
+  readonly rows?: number;
+  readonly cols?: number;
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn('skeleton h-4', className)} />
+  return <div className={cn("skeleton h-4", className)} />;
 }
 
 export function SkeletonCard({ lines = 3 }: SkeletonCardProps) {
@@ -22,13 +22,10 @@ export function SkeletonCard({ lines = 3 }: SkeletonCardProps) {
     <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)] space-y-3">
       <Skeleton className="w-1/3 h-5" />
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={`line-${i}`}
-          className={cn('h-4', i === lines - 1 ? 'w-2/3' : 'w-full')}
-        />
+        <Skeleton key={`line-${i}`} className={cn("h-4", i === lines - 1 ? "w-2/3" : "w-full")} />
       ))}
     </div>
-  )
+  );
 }
 
 export function SkeletonTable({ rows = 5, cols = 4 }: SkeletonTableProps) {
@@ -54,5 +51,5 @@ export function SkeletonTable({ rows = 5, cols = 4 }: SkeletonTableProps) {
         </div>
       ))}
     </div>
-  )
+  );
 }

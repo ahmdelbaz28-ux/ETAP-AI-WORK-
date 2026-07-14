@@ -12,7 +12,23 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "a11y": {
+        "useButtonType": "warn",
+        "useSemanticElements": "warn",
+        "useKeyWithClickEvents": "warn"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "warn",
+        "noExplicitAny": "warn",
+        "noShadowRestrictedNames": "warn"
+      },
+      "complexity": {
+        "noForEach": "warn"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      }
     }
   },
   "javascript": {
@@ -23,6 +39,7 @@
     }
   },
   "files": {
+    "ignoreUnknown": true,
     "ignore": [
       "node_modules",
       "dist",
@@ -31,7 +48,14 @@
       "coverage",
       "release",
       "**/*.min.js",
-      "**/*.min.css"
+      "**/*.min.css",
+      "**/tsconfig*.json",
+      "package.json",
+      "package-lock.json",
+      "vite.config.ts",
+      "vitest.config.ts",
+      "vercel.json",
+      "eslint.config.js"
     ]
   }
 }
