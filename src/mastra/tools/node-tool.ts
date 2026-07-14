@@ -39,14 +39,22 @@ export const run_node = createTool({
         timeoutMs: NODE_TIMEOUT_MS + 1000, // 1s grace for the executor to report timeout cleanly
       });
 
+      const stdoutStream = child.stdout;
+      const stderrStream = child.stderr;
+
+      if (!stdoutStream || !stderrStream) {
+        reject(new Error('Failed to get stdio streams from sandbox'));
+        return;
+      }
+
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data: Buffer) => {
+      stdoutStream.on('data', (data: Buffer) => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data: Buffer) => {
+      stderrStream.on('data', (data: Buffer) => {
         stderr += data.toString();
       });
 
@@ -83,8 +91,13 @@ export const run_node = createTool({
       });
 
       // Pass code via stdin instead of CLI arguments (prevents shell injection)
-      child.stdin.write(code);
-      child.stdin.end();
+      const stdinStream = child.stdin;
+      if (stdinStream) {
+        stdinStream.write(code);
+        stdinStream.end();
+      } else {
+        reject(new Error('Failed to get stdin stream from sandbox'));
+      }
     });
   },
 });

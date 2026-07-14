@@ -125,7 +125,22 @@ function createWindow() {
     return result;
   });
 
-  ipcMain.handle("shell:open-external", (_, url) => shell.openExternal(url));
+  // SECURITY: Validate URL from renderer to prevent open-redirect / arbitrary protocol
+  // attacks (SonarCloud S5144). Only http:, https:, and mailto: are permitted.
+  // The IPC handler must never pass an unvalidated URL to shell.openExternal.
+  ipcMain.handle("shell:open-external", (_, url) => {
+    let parsed;
+    try {
+      parsed = typeof url === "string" ? new URL(url) : null;
+    } catch {
+      parsed = null;
+    }
+    if (!parsed || !["http:", "https:", "mailto:"].includes(parsed.protocol)) {
+      const proto = parsed ? parsed.protocol : typeof url;
+      throw new Error(`Blocked shell.openExternal for disallowed protocol: ${proto}`);
+    }
+    return shell.openExternal(url);
+  });
 
   ipcMain.handle("app:get-info", () => ({
     version: app.getVersion(),

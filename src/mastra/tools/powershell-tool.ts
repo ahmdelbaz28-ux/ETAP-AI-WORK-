@@ -23,14 +23,22 @@ export const run_powershell = createTool({
         timeoutMs: POWERSHELL_TIMEOUT_MS,
       });
 
+      const stdoutStream = child.stdout;
+      const stderrStream = child.stderr;
+
+      if (!stdoutStream || !stderrStream) {
+        reject(new Error('Failed to get stdio streams from sandbox'));
+        return;
+      }
+
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data: Buffer) => {
+      stdoutStream.on('data', (data: Buffer) => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data: Buffer) => {
+      stderrStream.on('data', (data: Buffer) => {
         stderr += data.toString();
       });
 
@@ -66,8 +74,13 @@ export const run_powershell = createTool({
       });
 
       // Pass command via stdin instead of CLI arguments (prevents shell injection)
-      child.stdin.write(command);
-      child.stdin.end();
+      const stdinStream = child.stdin;
+      if (stdinStream) {
+        stdinStream.write(command);
+        stdinStream.end();
+      } else {
+        reject(new Error('Failed to get stdin stream from sandbox'));
+      }
     });
   }
 });

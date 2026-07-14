@@ -24,7 +24,7 @@ import re
 import stat
 import threading
 from datetime import datetime, timezone
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path

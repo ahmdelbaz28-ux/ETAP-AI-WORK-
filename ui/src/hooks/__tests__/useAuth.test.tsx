@@ -94,14 +94,14 @@ describe("useAuth", () => {
     });
 
     await act(async () => {
-      await result.current.login("engineer@etap.com", "password123");
+      await result.current.login("engineer@etap.com", "test-password-123");
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ username: "engineer@etap.com", password: "password123" }),
+        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }),
       }),
     );
 
