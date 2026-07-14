@@ -14,7 +14,7 @@ pyod>=1.0.0                         # 30+ anomaly detection algorithms
 
 # Phase 6c: ML/AI - Deep Learning & GNN
 torch>=2.0.0                        # PyTorch - deep learning foundation
-torch-geometric>=2.3.0              # Graph Neural Networks for power grids
+torch-geometric>=2.8.0              # Graph Neural Networks for power grids
 
 # Phase 6d: ML/AI - Model Management
 mlflow>=2.0.0                       # Model tracking, versioning, registry
