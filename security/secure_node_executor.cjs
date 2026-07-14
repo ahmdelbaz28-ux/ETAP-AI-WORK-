@@ -250,6 +250,55 @@ function formatForOutput(value) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Inject a custom console object into the sandbox that captures output.
+ * @param {import('isolated-vm').Isolate} isolate
+ * @param {import('isolated-vm').Context} context
+ * @param {import('isolated-vm').Reference} jail
+ * @param {{ output: string }} outputHolder - mutable object with output property
+ */
+function injectSandboxConsole(isolate, jail, context, outputHolder) {
+  const appendOutput = (str) => { outputHolder.output += str + '\n'; };
+  const logRef = new Reference((str) => appendOutput(str));
+  const errorRef = new Reference((str) => {
+    process.stderr.write('[sandbox:console.error] ' + str + '\n');
+    appendOutput(str);
+  });
+  const warnRef = new Reference((str) => appendOutput(str));
+  const infoRef = new Reference((str) => appendOutput(str));
+
+  try {
+    jail.setSync('__consoleLog', logRef);
+    jail.setSync('__consoleError', errorRef);
+    jail.setSync('__consoleWarn', warnRef);
+    jail.setSync('__consoleInfo', infoRef);
+
+    const bootstrap = isolate.compileScriptSync(
+      'function __formatArgs(args) {' +
+        '  var out = [];' +
+        '  for (var i = 0; i < args.length; i++) {' +
+        '    var a = args[i];' +
+        '    if (a === null) out.push("null");' +
+        '    else if (a === undefined) out.push("undefined");' +
+        '    else if (typeof a === "string") out.push(a);' +
+        '    else if (typeof a === "number" || typeof a === "boolean") out.push(String(a));' +
+        '    else { try { out.push(JSON.stringify(a, null, 2)); } catch(e) { out.push(String(a)); } }' +
+        '  }' +
+        '  return out.join(" ");' +
+        '}' +
+        'globalThis.console = {' +
+        'log: function() { __consoleLog.applySync(undefined, [__formatArgs(arguments)]); },' +
+        'error: function() { __consoleError.applySync(undefined, [__formatArgs(arguments)]); },' +
+        'warn: function() { __consoleWarn.applySync(undefined, [__formatArgs(arguments)]); },' +
+        'info: function() { __consoleInfo.applySync(undefined, [__formatArgs(arguments)]); }' +
+        '};',
+    );
+    bootstrap.runSync(context, { timeout: 1000 });
+  } catch (e) {
+    process.stderr.write('[sandbox] console setup failed: ' + e.message + '\n');
+  }
+}
+
+/**
  * Run code in an isolated V8 sandbox.
  *
  * @param {string} code - JavaScript source code
@@ -267,71 +316,11 @@ async function runInSandbox(code) {
   // `globalThis.X = ...` to define globals.
 
   // Buffer for capturing sandbox console.log() output.
-  let output = '';
+  // Using an object wrapper so the inject function can mutate it by reference.
+  const outputHolder = { output: '' };
 
-  // The cleanest approach: a fresh V8 isolate already has its own copies
-  // of Array, Object, Math, JSON, Date, RegExp, etc. We do NOT need to
-  // inject them — they're already there. We only need to:
-  //   1. Remove dangerous globals (process, require, etc.) — but a fresh
-  //      isolate doesn't have them in the first place.
-  //   2. Add our custom `console` object that captures output.
-  //
-  // This is much simpler and more robust than trying to ExternalCopy
-  // host-side constructors (which loses static methods like Array.from).
-
-  // STEP 1: Inject the custom `console` object.
-  // The console methods pre-stringify their arguments inside the sandbox
-  // (using JSON.stringify) and pass a single string to the host-side
-  // Reference. This sidesteps isolated-vm's transfer restrictions.
-  {
-    const logRef = new Reference(function (str) {
-      output += str + '\n';
-    });
-    const errorRef = new Reference(function (str) {
-      process.stderr.write('[sandbox:console.error] ' + str + '\n');
-      output += str + '\n';
-    });
-    const warnRef = new Reference(function (str) {
-      output += str + '\n';
-    });
-    const infoRef = new Reference(function (str) {
-      output += str + '\n';
-    });
-
-    try {
-      jail.setSync('__consoleLog', logRef);
-      jail.setSync('__consoleError', errorRef);
-      jail.setSync('__consoleWarn', warnRef);
-      jail.setSync('__consoleInfo', infoRef);
-
-      // Use spread args + a manual array conversion (not Array.from,
-      // which is not available in a fresh V8 isolate by default —
-      // surprising but true).
-      const bootstrap = isolate.compileScriptSync(
-        'function __formatArgs(args) {' +
-          '  var out = [];' +
-          '  for (var i = 0; i < args.length; i++) {' +
-          '    var a = args[i];' +
-          '    if (a === null) out.push("null");' +
-          '    else if (a === undefined) out.push("undefined");' +
-          '    else if (typeof a === "string") out.push(a);' +
-          '    else if (typeof a === "number" || typeof a === "boolean") out.push(String(a));' +
-          '    else { try { out.push(JSON.stringify(a, null, 2)); } catch(e) { out.push(String(a)); } }' +
-          '  }' +
-          '  return out.join(" ");' +
-          '}' +
-          'globalThis.console = {' +
-          'log: function() { __consoleLog.applySync(undefined, [__formatArgs(arguments)]); },' +
-          'error: function() { __consoleError.applySync(undefined, [__formatArgs(arguments)]); },' +
-          'warn: function() { __consoleWarn.applySync(undefined, [__formatArgs(arguments)]); },' +
-          'info: function() { __consoleInfo.applySync(undefined, [__formatArgs(arguments)]); }' +
-          '};',
-      );
-      bootstrap.runSync(context, { timeout: 1000 });
-    } catch (e) {
-      process.stderr.write('[sandbox] console setup failed: ' + e.message + '\n');
-    }
-  }
+  // STEP 1: Inject the custom `console` object (extracted for complexity).
+  injectSandboxConsole(isolate, jail, context, outputHolder);
 
   // Run the code with a hard timeout. The timeout is enforced at the V8
   // isolate level — infinite loops will be terminated.
@@ -349,9 +338,9 @@ async function runInSandbox(code) {
     return {
       success: true,
       output:
-        output.length > MAX_OUTPUT_LENGTH
-          ? output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]'
-          : output,
+        outputHolder.output.length > MAX_OUTPUT_LENGTH
+          ? outputHolder.output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]'
+          : outputHolder.output,
     };
   } catch (err) {
     // Distinguish timeout from other errors

@@ -172,8 +172,22 @@ function MiniGauge({
   );
 }
 
+function DashboardLoading() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-500 border-t-transparent" />
+          <Zap className="w-4 h-4 text-brand-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+        <p className="text-[var(--text-tertiary)] text-sm">{t("common.loading")}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const { t } = useTranslation();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [agents, setAgents] = useState<AgentMeta[]>([]);
@@ -195,21 +209,17 @@ export default function Dashboard() {
       });
   }, [notify]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-500 border-t-transparent" />
-            <Zap className="w-4 h-4 text-brand-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-[var(--text-tertiary)] text-sm">{t("common.loading")}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <DashboardLoading />;
 
   const studyCount = agents.reduce((sum, a) => sum + (a.capabilities?.length ?? 0), 0);
+  const engStatus = health?.engineeringService?.configured
+    ? health.engineeringService.healthy
+      ? t("dashboard.healthy")
+      : "Unhealthy"
+    : "Not Configured";
+  const engSublabel = health?.engineeringService?.latencyMs
+    ? `${health.engineeringService.latencyMs}ms`
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -264,18 +274,8 @@ export default function Dashboard() {
         <StatCard
           icon={Server}
           label={t("dashboard.engineeringService")}
-          value={
-            health?.engineeringService?.configured
-              ? health.engineeringService.healthy
-                ? t("dashboard.healthy")
-                : "Unhealthy" // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-              : "Not Configured"
-          }
-          sublabel={
-            health?.engineeringService?.latencyMs
-              ? `${health.engineeringService.latencyMs}ms`
-              : undefined
-          }
+          value={engStatus}
+          sublabel={engSublabel}
           color={health?.engineeringService?.healthy ? "green" : "purple"}
         />
       </motion.div>

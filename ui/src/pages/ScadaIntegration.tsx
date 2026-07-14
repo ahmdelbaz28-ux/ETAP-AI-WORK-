@@ -298,12 +298,11 @@ export default function ScadaIntegration() {
 
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-    pollIntervalRef.current = setInterval(() => {
-      // SECURITY: Use crypto.getRandomValues() instead of Math.random() for
-      // simulation randomness to satisfy SonarCloud S2245. These values are
-      // used for demo/visualisation only — never for cryptographic decisions.
+    // Extract telemetry update to reduce function nesting (SonarCloud S2004)
+    const updateTelemetry = () => {
       const simRand = () => crypto.getRandomValues(new Uint32Array(1))[0] / 0x100000000;
       const simRandInt = (max: number) => Math.floor(simRand() * max);
+
       // Fluctuating values randomly
       setTelemetryPoints((prev) =>
         prev.map((p) => {
@@ -311,37 +310,35 @@ export default function ScadaIntegration() {
           if (p.tag.endsWith(".V")) fluctuation = (simRand() - 0.5) * 0.02;
           else if (p.tag.endsWith(".F")) fluctuation = (simRand() - 0.5) * 0.05;
           else fluctuation = (simRand() - 0.5) * 5;
-
-          return {
-            ...p,
-            value: Number.parseFloat((p.value + fluctuation).toFixed(2)),
-          };
+          return { ...p, value: Number.parseFloat((p.value + fluctuation).toFixed(2)) };
         }),
       );
 
       // Randomly trigger alarms
-      if (simRand() < 0.15) {
-        const alarmTags = ["Transformer T1", "Breaker CB-04", "Bus Bar 2", "Feeder Line L-08"];
-        const severities: ("WARNING" | "CRITICAL")[] = ["WARNING", "CRITICAL"];
-        const descriptions = [
-          "Overcurrent detected in substation",
-          "High oil temperature warning",
-          "Voltage transient fluctuation",
-          "Communication delay with RTU",
-        ];
+      if (simRand() < 0.15) generateRandomAlarm(simRandInt);
+    };
 
-        const newAlarm: SCADAAlarm = {
-          alarm_id: `ALM-${simRandInt(9000) + 1000}`,
-          timestamp: new Date().toLocaleTimeString(),
-          severity: severities[simRandInt(severities.length)],
-          description: `${descriptions[simRandInt(descriptions.length)]} on ${alarmTags[simRandInt(alarmTags.length)]}`,
-          location: isRtl ? "محطة القاهرة الشمالية" : "Cairo North Substation",
-        };
+    const generateRandomAlarm = (simRandInt: (max: number) => number) => {
+      const alarmTags = ["Transformer T1", "Breaker CB-04", "Bus Bar 2", "Feeder Line L-08"];
+      const severities: ("WARNING" | "CRITICAL")[] = ["WARNING", "CRITICAL"];
+      const descriptions = [
+        "Overcurrent detected in substation",
+        "High oil temperature warning",
+        "Voltage transient fluctuation",
+        "Communication delay with RTU",
+      ];
+      const newAlarm: SCADAAlarm = {
+        alarm_id: `ALM-${simRandInt(9000) + 1000}`,
+        timestamp: new Date().toLocaleTimeString(),
+        severity: severities[simRandInt(severities.length)],
+        description: `${descriptions[simRandInt(descriptions.length)]} on ${alarmTags[simRandInt(alarmTags.length)]}`,
+        location: isRtl ? "محطة القاهرة الشمالية" : "Cairo North Substation",
+      };
+      setAlarms((prev) => [newAlarm, ...prev].slice(0, 30));
+      addLog(`⚠️ ALARM: ${newAlarm.description} (${newAlarm.severity})`);
+    };
 
-        setAlarms((prev) => [newAlarm, ...prev].slice(0, 30));
-        addLog(`⚠️ ALARM: ${newAlarm.description} (${newAlarm.severity})`);
-      }
-    }, 1500);
+    pollIntervalRef.current = setInterval(updateTelemetry, 1500);
   };
 
   const stopSync = () => {

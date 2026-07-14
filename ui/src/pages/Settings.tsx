@@ -2020,9 +2020,9 @@ function ExternalServicesPanel({
                         type={f.type === "password" ? "password" : "text"}
                         placeholder={f.placeholder}
                         value={settings[f.key] || ""}
-                        onChange={(e) =>
-                          setSettings((prev) => ({ ...prev, [f.key]: e.target.value }))
-                        } // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
+                        onChange={(e) => // NOSONAR — S2004: inline form onChange
+                          setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
+                        }
                         className="w-full px-2.5 py-1.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-md text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none font-mono transition-colors"
                       />
                     </div>
