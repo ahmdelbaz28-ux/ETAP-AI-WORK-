@@ -192,7 +192,7 @@ opentelemetry-instrumentation-fastapi~=0.51b0
 # Google Gemini Vision SDK — visual perception layer for the CUA Loop
 # Used by integrations/gemini_vision.py to analyze screenshots and decide
 # the next action (click coordinates, text to type, hotkeys to press).
-google-generativeai~=0.8.0
+google-generativeai~=0.8.6
 
 # Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
 # SECURITY: upgraded from 10.2.0 → 12.2.0 to fix CVE-2024-28219 (buffer overflow)
