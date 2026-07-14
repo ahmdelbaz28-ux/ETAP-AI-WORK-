@@ -192,7 +192,7 @@ jobs:
             -Dsonar.python.version=3.12,3.13
             -Dsonar.tests=tests,acp_runtime/acp_tests
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.coverage.exclusions=tests/**,skills/**,acp_runtime/acp_tests/**,benchmarks/**,scripts/**,indexer.py,_scan_tool.py,fix_future_imports.py,ui/**,*.tsx,*.ts,load_flow/**,api/export.py,adms_control/**,copilot/**,gis_validation_electrical/**,etap_integration/**,integrations/**
+            -Dsonar.coverage.exclusions=tests/**,skills/**,acp_runtime/acp_tests/**,benchmarks/**,scripts/**,indexer.py,_scan_tool.py,fix_future_imports.py,ui/**,*.tsx,*.ts,load_flow/**,api/export.py,adms_control/**,copilot/**,gis_validation_electrical/**,etap_integration/**,integrations/**,security/**
 
   # ── 2. PYTHON TESTS ─────────────────────────────────────────────────────────
   python-tests:

@@ -51,9 +51,17 @@ logger = logging.getLogger(__name__)
 # Generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 CLOUDFLARE_ORIGIN_SECRET: str = os.getenv("CLOUDFLARE_ORIGIN_SECRET", "")
 
+# Hugging Face Spaces sets SPACE_ID automatically (e.g. "ahmdelbaz28/AhmedETAP-Platform").
+# When running on HF Space, there is NO Cloudflare edge in front of the origin —
+# requests come directly from HuggingFace infrastructure. Enforcing origin
+# verification in this environment would block ALL requests with 403 because
+# they don't carry the X-Origin-Verify header. Auto-disable in this case.
+_ON_HF_SPACE: bool = bool(os.getenv("SPACE_ID", ""))
+
 # When True, requests that bypass Cloudflare are rejected with 403.
 # When False (dev mode), requests pass through with a warning.
-_ORIGIN_VERIFICATION_ENFORCED: bool = bool(CLOUDFLARE_ORIGIN_SECRET)
+# Auto-disabled on HF Space because there is no Cloudflare edge to verify against.
+_ORIGIN_VERIFICATION_ENFORCED: bool = bool(CLOUDFLARE_ORIGIN_SECRET) and not _ON_HF_SPACE
 
 # Rate limit: max requests per minute per client IP (origin-side defense-in-depth)
 # Cloudflare enforces rate limits at the edge, but this catches anything that slips through.
