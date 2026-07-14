@@ -238,7 +238,7 @@ correctly, all assets return HTTP 200 with the immutable cache header from
 ### Prerequisites
 
 - **Node.js 22+** (for the UI) — see `.nvmrc`
-- **Python 3.11+** (for the backend) — see `.python-version`
+- **Python 3.12+** (for the backend) — see `.python-version`
 - **Docker 24+** (optional, for full-stack local dev) — see `docker-compose.yml`
 
 ### Run the UI locally

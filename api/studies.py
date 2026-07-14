@@ -268,8 +268,8 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
 @router.post("/run", response_model=StudyResult)
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-    trace_id = getattr(request.state, "trace_id", "unknown")
+async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_api_key)):  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
 
