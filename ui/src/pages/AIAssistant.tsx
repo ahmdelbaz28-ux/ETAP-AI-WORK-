@@ -393,8 +393,8 @@ export default function AIAssistant() {
               {/* Provider status indicator */}
               {hasApiKey === true && (
                 <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  AI provider connected
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                  {" "}AI provider connected
                 </div>
               )}
 

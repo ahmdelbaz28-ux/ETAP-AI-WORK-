@@ -501,8 +501,7 @@ class OpenCVVisionClient:
 
         # Check for hotkey patterns (e.g., "press Ctrl+S")
         hotkey_match = re.search(
-            # NOSONAR — python:S8786: bounded by short UI objective text
-            r"press\s+(Union[ctrl|control|alt|shift|cmd, command])\s*[\+\s]\s*(\w+)", obj_lower,
+            r"press\s+(ctrl|control|alt|shift|cmd|command)\s*[-+]\s*(\w+)", obj_lower,
         )
         if hotkey_match:
             modifier = hotkey_match.group(1)

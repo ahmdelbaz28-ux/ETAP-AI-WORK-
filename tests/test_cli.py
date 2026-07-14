@@ -50,4 +50,18 @@ if FakeHandler is None:
             return a + b
 
 
+def test_fake_handler_importable():
+    """Verify FakeHandler can be imported for CLI handler-loading tests.
+
+    This file is NOT a standalone test suite — it provides a FakeHandler
+    class for acp_runtime/acp_tests/test_cli.py. The trivial test below
+    satisfies SonarCloud python:S2187.
+    """
+    assert FakeHandler is not None, (
+        "FakeHandler could not be imported from acp_runtime. "
+        "Check that acp_runtime/acp_tests/test_cli.py exists and exposes FakeHandler."
+    )
+    assert hasattr(FakeHandler, "sum"), "FakeHandler is missing the 'sum' capability method"
+
+
 __all__ = ["FakeHandler"]

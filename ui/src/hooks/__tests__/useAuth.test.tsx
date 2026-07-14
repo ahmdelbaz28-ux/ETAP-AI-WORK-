@@ -94,14 +94,14 @@ describe("useAuth", () => {
     });
 
     await act(async () => {
-      await result.current.login("engineer@etap.com", "test-password-123");
+      await result.current.login("engineer@etap.com", "test-password-123");  // NOSONAR — S2068: test credentials, not a real password
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }),
+        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }),  // NOSONAR — S2068: test-only credential
       }),
     );
 

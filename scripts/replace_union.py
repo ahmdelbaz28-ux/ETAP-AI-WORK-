@@ -43,7 +43,7 @@ def replace_unions_in_file(path):
     text = re.sub(r'Optional\["([^"]+)"\]', r'Optional[\1]', text)
     # Replace simple Union["A, B"] with Union[A, B] (avoid already handled Optional)
     # This simple pattern may also replace inside generics, but acceptable for our case
-    text = re.sub(r'([^\s\[\]\(\)]+)Union[\s*\, \s*]([^\s\[\]\(\)]+)', r'Union[\1, \2]', text)
+    text = re.sub(r'([a-zA-Z_]\w*)[\s,]+Union[\s,]+([a-zA-Z_]\w*)', r'Union[\1, \2]', text)
     if text != original:
         text = ensure_typing_import(text)
         path.write_text(text, encoding='utf-8')

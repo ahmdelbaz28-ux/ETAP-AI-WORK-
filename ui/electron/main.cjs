@@ -139,7 +139,9 @@ function createWindow() {
       const proto = parsed ? parsed.protocol : typeof url;
       throw new Error(`Blocked shell.openExternal for disallowed protocol: ${proto}`);
     }
-    return shell.openExternal(url);
+    // Use parsed.href (validated URL) instead of original `url` to break the
+    // taint flow and satisfy SonarCloud S5144 data-flow analysis.
+    return shell.openExternal(parsed.href);
   });
 
   ipcMain.handle("app:get-info", () => ({
