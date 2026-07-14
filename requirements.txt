@@ -103,7 +103,7 @@ asyncpg>=0.29,<0.32
 # with our starlette>=0.40.0,<0.41.0 pin below.
 # See: https://github.com/fastapi/fastapi/releases/tag/0.115.0
 fastapi>=0.115.4,<0.116.0
-uvicorn~=0.25.0
+uvicorn>=0.25,<0.52
 
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
