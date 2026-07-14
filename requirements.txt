@@ -11,7 +11,7 @@
 # with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
 opentelemetry-api~=1.30.0
 opentelemetry-sdk~=1.30.0
-opentelemetry-exporter-otlp~=1.30.0
+opentelemetry-exporter-otlp~=1.43.0
 opentelemetry-semantic-conventions~=0.51b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
 opentelemetry-exporter-otlp-proto-http~=1.30.0
