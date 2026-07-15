@@ -290,7 +290,7 @@ jobs:
             2>&1 | tail -200
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         if: always()
         with:
           file: coverage.xml
