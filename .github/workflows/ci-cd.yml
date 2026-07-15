@@ -189,7 +189,7 @@ jobs:
             -Dsonar.organization=ahmdelbaz28-ux
             -Dsonar.sources=.
             -Dsonar.exclusions=skills/**,tests/**,acp_runtime/acp_tests/**
-            -Dsonar.projectVersion=quality-gate-fix-20260714
+            -Dsonar.projectVersion=1.0.0
             -Dsonar.python.version=3.12,3.13
             -Dsonar.tests=tests,acp_runtime/acp_tests
             -Dsonar.python.coverage.reportPaths=coverage.xml
