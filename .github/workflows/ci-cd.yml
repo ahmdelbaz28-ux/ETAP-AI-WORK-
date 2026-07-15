@@ -493,7 +493,7 @@ jobs:
         # does not support cache export (--cache-to type=gha).
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/build-push-action@v7  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           context: .
           file: ./Dockerfile
