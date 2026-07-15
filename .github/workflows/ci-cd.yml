@@ -373,7 +373,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
 
       - name: Install Helm
-        uses: azure/setup-helm@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: azure/setup-helm@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 'v3.15.0'
 
