@@ -24,7 +24,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -58,7 +58,7 @@ jobs:
     # continue-on-error removed — security scan must block the pipeline
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
@@ -72,7 +72,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -104,15 +104,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Install pnpm
-        uses: pnpm/action-setup@v2  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: pnpm/action-setup@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 9
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Run pnpm audit
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
       # NOTE: Do NOT pass `--no-update` in extra_args — the action already

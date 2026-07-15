@@ -5,14 +5,11 @@
 name: Load & Stress Tests
 
 on:
-  # Run after the main CI pipeline succeeds
+  # Run after the main CI pipeline succeeds (avoids duplicate triggers
+  # with the push event — pushes already trigger CI/CD which fans out)
   workflow_run:
     workflows: ["AhmedETAP CI/CD"]
     types: [completed]
-    branches: [main, staging]
-
-  # Trigger on push to main / staging directly (for quick iteration)
-  push:
     branches: [main, staging]
 
   # Manual dispatch with configurable parameters
@@ -80,7 +77,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -253,7 +250,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
