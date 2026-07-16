@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.3
+        uses: actions/checkout@v7.0.0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -33,28 +33,20 @@ jobs:
           HF_SPACE_URL="https://ahmdelbaz28-ahmedetap-platform.hf.space"
           HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform"
 
-          # ── 1. Proactive wake-up ──────────────────────────────────────────
+          # 1. Proactive wake-up
           # Free-tier HF Spaces go to SLEEPING after ~15 min of inactivity.
           # The status API (hf.co/api/spaces) returns "SLEEPING" but it does
           # NOT trigger a wake-up — only hitting the Space URL itself does.
           # Without this pre-warm step, the polling loop below would time out.
-          echo "🔄 Waking HF Space …"
+          echo "Waking HF Space ..."
           curl -sf -m 30 "$HF_SPACE_URL/health" > /dev/null 2>&1 && \
             echo "   Health probe succeeded" || \
             echo "   Health probe returned non-200 (expected during cold-start)"
 
-          # ── 2. Wait for RUNNING stage (up to 10 min) ──────────────────────
+          # 2. Wait for RUNNING stage (up to 10 min)
           for i in $(seq 1 60); do
             if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
-              STAGE=$(python3 -c "
-import sys, json
-try:
-    data = json.load(open('/tmp/hf-status.json'))
-    print(data.get('runtime', {}).get('stage', 'UNKNOWN'))
-except (json.JSONDecodeError, IOError):
-    print('PARSE_ERROR')
-    sys.exit(1)
-")
+              STAGE=$(python3 -c "import sys,json; data=json.load(open('/tmp/hf-status.json')); print(data.get('runtime',{}).get('stage','UNKNOWN'))" || echo "PARSE_ERROR")
             else
               STAGE="CURL_FAILED"
             fi
@@ -76,6 +68,6 @@ except (json.JSONDecodeError, IOError):
         env:
           HF_SPACE_PRODUCTION_TESTS: 'true'
         run: |
-          # Use --noconftest to bypass tests/conftest.py which requires heavy deps.
+          # Use --confcutdir to bypass tests/conftest.py which requires heavy deps.
           # The production tests only need urllib + json (stdlib) + pytest.
           python -m pytest tests/test_hf_space_production.py -v --tb=short --confcutdir=tests/test_hf_space_production.py

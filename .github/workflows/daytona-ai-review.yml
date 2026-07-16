@@ -51,7 +51,7 @@ jobs:
           fi
 
   daytona-review:
-    name: 🤖 Daytona AI Code Review
+    name: Daytona AI Code Review
     runs-on: ubuntu-latest
     needs: check-token
     if: |
@@ -124,67 +124,36 @@ jobs:
         id: review
         env:
           DAYTONA_TOKEN: ${{ secrets.DAYTONA_TOKEN }}
-          DAYTONA_REGION: ${{ vars.DAYTONA_REGION || 'us-east-1' }}
+          DAYTONA_BASE_URL: ${{ vars.DAYTONA_BASE_URL || 'https://api.daytona.ai' }}
           PR_TITLE: ${{ steps.pr.outputs.title }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           DIFF_PATCH: ${{ steps.diff.outputs.patch }}
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
-          GITHUB_REPO: ${{ github.repository }}
-          GITHUB_REF: ${{ github.ref }}
         run: |
           set +e
-          RESULT=$(python3 - <<'PYEOF' 2>&1 || true)
-import os, json, urllib.request, urllib.error, sys
-
-# ── Context ─────────────────────────────────────────────────────────────────
-review_type   = os.environ.get("REVIEW_TYPE", "pr")
-pr_title      = os.environ.get("PR_TITLE", "")
-changed_files = os.environ.get("CHANGED_FILES", "").strip()
-diff_patch    = os.environ.get("DIFF_PATCH", "")
-
-# Daytona endpoint (adjust if your Daytona instance uses a different host)
-DAYTONA_BASE = os.environ.get("DAYTONA_BASE_URL", "https://api.daytona.ai")
-ENDPOINT = f"{DAYTONA_BASE}/v1/review"
-
-payload = json.dumps({
-    "review_type": review_type,
-    "title":        pr_title,
-    "changed_files": changed_files.split() if changed_files else [],
-    "diff":         diff_patch,
-    "language":     "python",
-    "max_findings": 30,
-}).encode("utf-8")
-
-req = urllib.request.Request(
-    ENDPOINT,
-    data=payload,
-    headers={
-        "Authorization": f"Bearer {os.environ.get('DAYTONA_TOKEN', '')}",
-        "Content-Type":  "application/json",
-    },
-    method="POST",
-)
-
-try:
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        body = json.loads(resp.read().decode("utf-8"))
-        print(json.dumps({"ok": True, "result": body}))
-except urllib.error.HTTPError as e:
-    print(json.dumps({
-        "ok": False,
-        "status":   e.code,
-        "reason":   e.reason,
-        "server_body": e.read().decode("utf-8", errors="replace")[:2000],
-    }))
-    sys.exit(0)   # don't fail the job on API errors — post a warning instead
-except Exception as exc:
-    print(json.dumps({"ok": False, "error": str(exc)}))
-    sys.exit(0)
-PYEOF
-          )
-          echo "raw=$RESULT" >> "$GITHUB_OUTPUT"
-          OK=$(python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('ok','false'))" <<< "$RESULT")
+          # Build JSON payload using jq (avoids inline Python YAML issues)
+          PAYLOAD=$(jq -n \
+            --arg review_type "pr" \
+            --arg title "$PR_TITLE" \
+            --arg diff "$DIFF_PATCH" \
+            --argjson changed_files "[$(echo "$CHANGED_FILES" | sed 's/ /","/g')]" \
+            '{
+              review_type: $review_type,
+              title: $title,
+              changed_files: $changed_files,
+              diff: $diff,
+              language: "mixed",
+              max_findings: 30
+            }')
+          
+          RESPONSE=$(curl -sS -X POST "${DAYTONA_BASE_URL}/v1/review" \
+            -H "Authorization: Bearer ${DAYTONA_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            --max-time 120 2>&1 || echo '{"ok":false,"error":"curl_failed"}')
+          
+          OK=$(echo "$RESPONSE" | jq -r '.ok // false')
           echo "ok=$OK" >> "$GITHUB_OUTPUT"
+          echo "raw=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Post review to PR
         if: ${{ steps.review.outputs.ok == 'true' }}
@@ -194,7 +163,7 @@ PYEOF
         with:
           script: |
             const result = JSON.parse(process.env.REVIEW_RESULT);
-            const data = result.result || {};
+            const data = result.result || result;
             const findings = data.findings || data.review || [];
 
             let body = `## 🤖 Daytona AI Code Review\n\n`;
@@ -241,7 +210,7 @@ PYEOF
               body,
             });
 
-      - name: Report empty-review (no token)
+      - name: Report empty-review (no token or API error)
         if: ${{ steps.review.outputs.ok == 'false' }}
         uses: actions/github-script@v7
         with:

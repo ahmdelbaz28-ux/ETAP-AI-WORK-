@@ -216,15 +216,19 @@ on HF Space — it's only used by Mastra agents in the dev environment.
 
 ### Dev container
 
-The `.devcontainer/devcontainer.json` installs Node 22 LTS. To enable
-the Node sandbox inside the dev container:
+The `.devcontainer/Dockerfile` includes Python 3.12, Node.js 22 LTS,
+`build-essential`, and `python3-dev` — everything `isolated-vm@7.0.0`
+needs to compile. The `postCreateCommand` in
+`.devcontainer/devcontainer.json` runs `.devcontainer/scripts/setup-dev.sh`
+which installs `isolated-vm` automatically:
 
 ```bash
-npm install isolated-vm@7.0.0
+# Already handled by setup-dev.sh — no manual step needed after container start.
+pnpm add -D isolated-vm@7.0.0 --no-save
 ```
 
-This requires `build-essential` and `python3` (for `node-gyp`), both
-already installed in the devcontainer.
+If the install fails at build time the script emits a warning and
+retries at container start.
 
 ---
 

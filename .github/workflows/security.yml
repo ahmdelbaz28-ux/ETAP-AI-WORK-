@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript, python
       - name: Build Python
@@ -40,7 +40,7 @@ jobs:
         run: npm install -g pnpm && pnpm install --no-frozen-lockfile
         continue-on-error: true
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:javascript-typescript,python"
 
@@ -94,7 +94,7 @@ jobs:
                --output /repo/trivy-results.sarif \
                .
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
