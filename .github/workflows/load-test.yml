@@ -77,7 +77,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.3
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -250,7 +250,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.3
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6

@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -28,16 +28,25 @@ jobs:
       - name: Install pytest + pydantic + fastapi
         run: pip install pytest pydantic fastapi
 
-      - name: Wait for HF Space to finish rebuilding
+      - name: Wake HF Space (if sleeping) + wait for RUNNING stage
         run: |
-          # SECURITY: download to a temp file first, then parse.
-          # Avoids curl|bash pattern that could execute malicious JSON
-          # if the endpoint is compromised or DNS-hijacked.
+          HF_SPACE_URL="https://ahmdelbaz28-ahmedetap-platform.hf.space"
           HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform"
-          for i in $(seq 1 30); do
-            # Download to temp file with -f (fail on HTTP errors) and -m (max-time 15s)
+
+          # ── 1. Proactive wake-up ──────────────────────────────────────────
+          # Free-tier HF Spaces go to SLEEPING after ~15 min of inactivity.
+          # The status API (hf.co/api/spaces) returns "SLEEPING" but it does
+          # NOT trigger a wake-up — only hitting the Space URL itself does.
+          # Without this pre-warm step, the polling loop below would time out.
+          echo "🔄 Waking HF Space …"
+          curl -sf -m 30 "$HF_SPACE_URL/health" > /dev/null 2>&1 && \
+            echo "   Health probe succeeded" || \
+            echo "   Health probe returned non-200 (expected during cold-start)"
+
+          # ── 2. Wait for RUNNING stage (up to 10 min) ──────────────────────
+          for i in $(seq 1 60); do
+            # Download status to temp file (fail on HTTP errors, max-time 15s)
             if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
-              # Validate JSON is parseable before extracting stage
               STAGE=$(python3 -c "
           import sys, json
           try:
@@ -58,7 +67,7 @@ jobs:
             fi
             sleep 10
           done
-          echo "❌ HF Space did not reach RUNNING state in 5 minutes"
+          echo "❌ HF Space did not reach RUNNING state in 10 minutes"
           rm -f /tmp/hf-status.json
           exit 1
 
