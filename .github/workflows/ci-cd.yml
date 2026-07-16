@@ -31,7 +31,7 @@ jobs:
     name: 🔍 Code Quality Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
@@ -99,7 +99,7 @@ jobs:
     needs: [lint, python-tests]
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
 
@@ -225,7 +225,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
@@ -312,7 +312,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
@@ -370,7 +370,7 @@ jobs:
     name: ⎈ Helm Chart Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Install Helm
         uses: azure/setup-helm@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
@@ -394,7 +394,7 @@ jobs:
     needs: [python-tests, security-scan]
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v6
@@ -432,7 +432,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Download UI build artifact
         # The Dockerfile copies ui-dist/ into the image (line 87:
@@ -514,7 +514,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Sanitize Docker image name (must match docker-build job)
         id: sanitize
@@ -580,7 +580,7 @@ jobs:
       url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v6
@@ -631,7 +631,7 @@ jobs:
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
           lfs: true
@@ -757,7 +757,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v7.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
