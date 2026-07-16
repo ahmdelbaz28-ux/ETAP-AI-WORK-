@@ -15,13 +15,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-  # ─── Global environment variables (non-secret) ───────────────────────────────
-  env:
-    PYTHON_VERSION: '3.12'
-    NODE_VERSION: '24'
-    HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
-    REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository }}
+# ─── Global environment variables (non-secret) ───────────────────────────────
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '24'
+  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 # =============================================================================
 jobs:
@@ -462,7 +462,7 @@ jobs:
       - name: Sanitize Docker image name
         # github.repository = "ahmdelbaz28-ux/ETAP-AI-WORK-" — the repo name
         # ends with a hyphen, which Docker rejects in tag names (invalid
-        # reference format: "ghcr.io/.../etap-ai-work-:main"). Strip trailing
+        # reference format: "ghcr.io/.../etap-ai-work-"). Strip trailing
         # separators (- _ .) from the repo name and lowercase it.
         id: sanitize
         run: |
