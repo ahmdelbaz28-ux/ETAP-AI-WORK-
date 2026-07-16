@@ -1266,12 +1266,16 @@ use <code>isolated-vm@5.0.1</code>.</p>
 <p>The HF Space runs Python-only FastAPI. The Node sandbox is <strong>not needed</strong>
 on HF Space — it's only used by Mastra agents in the dev environment.</p>
 <h3 id="dev-container">Dev container</h3>
-<p>The <code>.devcontainer/devcontainer.json</code> installs Node 22 LTS. To enable
-the Node sandbox inside the dev container:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>npm<span class="w"> </span>install<span class="w"> </span>isolated-vm@7.0.0
+<p>The <code>.devcontainer/Dockerfile</code> includes Python 3.12, Node.js 22 LTS,
+<code>build-essential</code>, and <code>python3-dev</code> — everything <code>isolated-vm@7.0.0</code>
+needs to compile. The <code>postCreateCommand</code> in
+<code>.devcontainer/devcontainer.json</code> runs <code>.devcontainer/scripts/setup-dev.sh</code>
+which installs <code>isolated-vm</code> automatically:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Already handled by setup-dev.sh — no manual step needed after container start.</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pnpm<span class="w"> </span>add<span class="w"> </span>-D<span class="w"> </span>isolated-vm@7.0.0<span class="w"> </span>--no-save
 </code></pre></div>
-<p>This requires <code>build-essential</code> and <code>python3</code> (for <code>node-gyp</code>), both
-already installed in the devcontainer.</p>
+<p>If the install fails at build time the script emits a warning and
+retries at container start.</p>
 <hr />
 <h2 id="testing">Testing</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Run all Node sandbox tests</span>
