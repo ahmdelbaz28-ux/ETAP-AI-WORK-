@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4.2.3
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -45,31 +45,32 @@ jobs:
 
           # ── 2. Wait for RUNNING stage (up to 10 min) ──────────────────────
           for i in $(seq 1 60); do
-            # Download status to temp file (fail on HTTP errors, max-time 15s)
             if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
               STAGE=$(python3 -c "
-          import sys, json
-          try:
-              data = json.load(open('/tmp/hf-status.json'))
-              print(data.get('runtime', {}).get('stage', 'UNKNOWN'))
-          except (json.JSONDecodeError, IOError) as e:
-              print('PARSE_ERROR')
-              sys.exit(1)
-          " || echo "PARSE_ERROR")
+import sys, json
+try:
+    data = json.load(open('/tmp/hf-status.json'))
+    print(data.get('runtime', {}).get('stage', 'UNKNOWN'))
+except (json.JSONDecodeError, IOError):
+    print('PARSE_ERROR')
+    sys.exit(1)
+")
             else
               STAGE="CURL_FAILED"
             fi
             echo "Attempt $i: HF Space stage = $STAGE"
             if [ "$STAGE" = "RUNNING" ]; then
-              echo "✅ HF Space is RUNNING — proceeding with smoke tests"
+              echo "HF Space is RUNNING — proceeding with smoke tests"
               rm -f /tmp/hf-status.json
-              exit 0
+              break
             fi
             sleep 10
           done
-          echo "❌ HF Space did not reach RUNNING state in 10 minutes"
-          rm -f /tmp/hf-status.json
-          exit 1
+          if [ "$STAGE" != "RUNNING" ]; then
+            echo "HF Space did not reach RUNNING state in 10 minutes (final stage: $STAGE)"
+            rm -f /tmp/hf-status.json
+            exit 1
+          fi
 
       - name: Run production smoke tests
         env:
@@ -77,4 +78,4 @@ jobs:
         run: |
           # Use --noconftest to bypass tests/conftest.py which requires heavy deps.
           # The production tests only need urllib + json (stdlib) + pytest.
-          python -m pytest tests/test_hf_space_production.py -v --tb=short --noconftest
+          python -m pytest tests/test_hf_space_production.py -v --tb=short --confcutdir=tests/test_hf_space_production.py
