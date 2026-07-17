@@ -108,9 +108,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip --only-binary :all:
-          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
-          pip install pytest pytest-asyncio pytest-timeout httpx --only-binary :all:
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 --only-binary :all:
 
       - name: Apply database migrations
         run: |
@@ -180,9 +180,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip --only-binary :all:
-          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
-          pip install pytest pytest-asyncio pytest-timeout httpx --only-binary :all:
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 --only-binary :all:
 
       - name: Apply migrations
         run: alembic upgrade head
@@ -282,9 +282,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip --only-binary :all:
-          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
-          pip install pytest pytest-asyncio pytest-timeout --only-binary :all:
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --no-deps --only-binary :all:
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 --only-binary :all:
 
       - name: Run agent integration tests
         run: |

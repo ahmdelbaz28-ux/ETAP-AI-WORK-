@@ -6,7 +6,7 @@
 #   - Python 3.12  (matches CI PYTHON_VERSION and Makefile)
 #   - Node.js 22   (matches @types/node@22, isolated-vm@7, NODE_SANDBOX.md)
 #   - pnpm 9       (matches CI pnpm/action-setup@v4)
-#   - Docker      (docker-compose dev tooling)
+#   - Docker       (docker-compose dev tooling)
 #   - Build tools  (node-gyp for isolated-vm@7, pip wheels)
 # =============================================================================
 
@@ -16,16 +16,28 @@ SHELL ["/bin/bash", "-lc"]
 
 USER root
 
-# ── System packages ──────────────────────────────────────────────────────────
+# ── System packages + Node.js 22 LTS ─────────────────────────────────────────
+# Packages are sorted alphanumerically per group (S7018).
+# NOSONAR(docker:S8482) — NodeSource GPG key is verified before the setup
+# script is executed, mitigating the risk of executing unverified artifacts.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg \
+  && rm -rf /var/lib/apt/lists/* \
+  && curl -fsSL --proto =https https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+    | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
+    > /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update && apt-get install -y --no-install-recommends \
     # Python toolchain
     python3-dev python3-pip python3.12 python3.12-venv \
+    # Node.js 22 LTS
+    nodejs \
     # Node.js build deps (node-gyp for isolated-vm@7)
-    build-essential g++ gcc make pkg-config python3-dev \
+    build-essential g++ gcc make pkg-config \
     # Docker CLI (daemon comes from Docker Desktop / sidecar)
     docker-compose docker.io \
     # Git + common tooling
-    curl git git-lfs jq unzip wget zip \
+    git git-lfs jq unzip wget zip \
     # LibreSSL / networking libs
     libffi-dev libssl-dev \
     # Tesseract (OCR — for vision fallback workflows)
@@ -35,21 +47,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
     libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
     libxkbcommon0 libxrandr2 \
-  && rm -rf /var/lib/apt/lists/*
-
-# ── Python 3.12 venv helper + Node.js 22 LTS (via NodeSource) ───────────────
-# Merge RUN instructions per S7031 recommendation.
-# NOSONAR(docker:S8482): NodeSource setup script is fetched over HTTPS from a
-# trusted domain (deb.nodesource.com) with proto-enforced TLS. The script is
-# verified by the NodeSource team's GPG-signed release process. Accepting the
-# minor supply-chain risk is intentional for a devcontainer image.
-RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python \
-    && curl -fsSL --proto =https https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/* \
-    && node --version && npm --version \
-    && corepack enable \
-    && corepack prepare pnpm@9.15.1 --activate
+  && rm -rf /var/lib/apt/lists/* \
+  && ln -sf /usr/bin/python3.12 /usr/local/bin/python \
+  && node --version && npm --version \
+  && corepack enable \
+  && corepack prepare pnpm@9.15.1 --activate
 
 # ── devenv user (matches host UID/GID for seamless volume mounts) ───────────
 ARG DEVENV_UID=1000

@@ -184,8 +184,7 @@ function validateCode(code) {
   }
 
   // Block import statements — sandbox does not support ESM
-  const importMatch = code.exec(/\bimport\b[\s\S]*?\bfrom\b\s*['"][^'"]*['"]/);
-  if (importMatch) {
+  if (/\bimport\b[\s\S]*?\bfrom\b\s*['"][^'"]*['"]/.test(code)) {
     return { ok: false, reason: 'ESM import is not allowed in the sandbox' };
   }
 
@@ -228,22 +227,6 @@ function validateCode(code) {
   }
 
   return { ok: true };
-}
-
-/**
- * Format a value for console output. Matches Node.js's util.inspect style
- * for objects but is JSON-based to avoid prototype pollution via toString.
- */
-function formatForOutput(value) {
-  if (value === null) return 'null';
-  if (value === undefined) return 'undefined';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,18 +292,12 @@ async function runInSandbox(code) {
   const isolate = new Isolate({ memoryLimit: MEMORY_MB });
   const context = isolate.createContextSync();
   const jail = context.global;
-  // Detach the jail's `globalThis` so sandbox code cannot escape via
-  // `globalThis.process` etc. The jail itself acts as the global object.
-  // We set `globalThis` to point to the jail's own global (which is
-  // isolated from the host's global by definition of V8 isolate).
-  // NO setting to undefined — that breaks bootstrap scripts that use
-  // `globalThis.X = ...` to define globals.
 
   // Buffer for capturing sandbox console.log() output.
   // Using an object wrapper so the inject function can mutate it by reference.
   const outputHolder = { output: '' };
 
-  // STEP 1: Inject the custom `console` object (extracted for complexity).
+  // STEP 1: Inject the custom `console` object.
   injectSandboxConsole(isolate, jail, context, outputHolder);
 
   // Run the code with a hard timeout. The timeout is enforced at the V8
