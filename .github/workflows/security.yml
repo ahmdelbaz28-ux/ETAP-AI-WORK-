@@ -29,7 +29,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v7.0.0
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -63,7 +63,7 @@ jobs:
     # continue-on-error removed — security scan must block the pipeline
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v7.0.0
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
         with:
@@ -77,7 +77,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v7.0.0
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v7.0.0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -171,7 +171,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.3.1
+        uses: actions/checkout@v7.0.0
 
       - name: Set up Python
         uses: actions/setup-python@v6
