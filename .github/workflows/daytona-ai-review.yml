@@ -215,18 +215,17 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const ts = new Date().toISOString().slice(0,19) + "Z";
+            const body = "## ⚙️ Daytona AI Review — Skipped\n\n" +
+              "Daytona token not configured or API unavailable. To enable automated AI\n" +
+              "code review on this PR:\n\n" +
+              "1. Go to **Settings → Actions secrets and variables**\n" +
+              "2. Add secret **DAYTONA_TOKEN** with your Daytona Personal Access Token\n" +
+              "3. Re-open or re-request a review\n\n" +
+              "> Action: `disable-review` · " + ts;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo:  context.repo.repo,
               issue_number: context.issue.number,
-              body: `## ⚙️ Daytona AI Review — Skipped
-
-Daytona token not configured or API unavailable. To enable automated AI
-code review on this PR:
-
-1. Go to **Settings → Actions secrets and variables**
-2. Add secret **DAYTONA_TOKEN** with your Daytona Personal Access Token
-3. Re-open or re-request a review
-
-> Action: \`disable-review\` · ${new Date().toISOString().slice(0,19)}Z`,
+              body,
             })
