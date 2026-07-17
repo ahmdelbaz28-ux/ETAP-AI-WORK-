@@ -82,7 +82,7 @@ jobs:
       # 1. Checkout
       # ------------------------------------------------------------------
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.0
 
       # ------------------------------------------------------------------
       # 2. Docker Buildx (multi-arch builder)

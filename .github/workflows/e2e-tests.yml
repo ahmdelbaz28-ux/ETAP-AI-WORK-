@@ -11,7 +11,7 @@ jobs:
     name: E2E - HF Space Health & API
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
       - name: Build and test Docker image locally
         run: |
@@ -84,7 +84,7 @@ jobs:
     name: E2E - Python Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -106,7 +106,7 @@ jobs:
     name: E2E - Security Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
       - name: Verify no secrets in HF Space
         run: |
