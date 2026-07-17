@@ -369,4 +369,8 @@ api/settings_fixed.py
 # ─── Agent work logs (never commit — may contain operational secrets) ───
 worklog.md
 worklog*.md
--e "\n# Temporary analysis files\nanalyze_sonar.py\nanalyze_sonar_detailed.py\nsonar_issues.json\n"  
+
+# Temporary analysis files
+analyze_sonar.py
+analyze_sonar_detailed.py
+sonar_issues.json
