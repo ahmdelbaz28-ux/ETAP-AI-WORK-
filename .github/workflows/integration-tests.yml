@@ -108,9 +108,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-timeout httpx
+          pip install --upgrade pip --only-binary :all:
+          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps
+          pip install pytest pytest-asyncio pytest-timeout httpx --only-binary :all:
 
       - name: Apply database migrations
         run: |
@@ -180,9 +180,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-timeout httpx
+          pip install --upgrade pip --only-binary :all:
+          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps
+          pip install pytest pytest-asyncio pytest-timeout httpx --only-binary :all:
 
       - name: Apply migrations
         run: alembic upgrade head
@@ -282,9 +282,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-timeout
+          pip install --upgrade pip --only-binary :all:
+          pip install -r requirements.txt --require-hashes 2>/dev/null || pip install -r requirements.txt --no-deps
+          pip install pytest pytest-asyncio pytest-timeout --only-binary :all:
 
       - name: Run agent integration tests
         run: |

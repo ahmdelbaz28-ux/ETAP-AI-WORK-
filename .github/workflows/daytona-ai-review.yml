@@ -25,10 +25,9 @@ on:
         required: false
         default: ""
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+# Permissions moved to job level per S8264/S8233
+# check-token: contents:read
+# daytona-review: contents:read, pull-requests:write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,6 +37,8 @@ jobs:
   check-token:
     name: Check Daytona Token
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       token_set: ${{ steps.check.outputs.token_set }}
     steps:
@@ -54,6 +55,9 @@ jobs:
     name: Daytona AI Code Review
     runs-on: ubuntu-latest
     needs: check-token
+    permissions:
+      contents: read
+      pull-requests: write
     if: |
       needs.check-token.outputs.token_set == 'true' &&
       !contains(github.event.pull_request.user.login, '[bot]') &&
