@@ -340,8 +340,8 @@ class ValidationSuite:
 
         # Double line-to-ground fault at bus 1
         result_dlg = fault_analyzer.double_line_to_ground_fault(0)
-        Ib = abs(result_dlg['fault_current_b'])
-        Ic = abs(result_dlg['fault_current_c'])
+        Ib = abs(result_dlg['fault_current_b_magnitude'])
+        Ic = abs(result_dlg['fault_current_c_magnitude'])
         self._record("Double Line-to-Ground Fault at Bus 1", Ib > 0 and Ic > 0,
                      f"Ib={Ib:.4f} pu, Ic={Ic:.4f} pu")
 
