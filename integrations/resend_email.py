@@ -138,7 +138,7 @@ async def _http_post_json(
 ) -> tuple[int, dict[str, Any]]:
     """POST JSON and return (status_code, json_body)."""
     if _HAS_HTTPX:
-        async with httpx.AsyncClient(# NOSONAR(python:S7483): timeout parameter is intentional for this API call
+        async with httpx.AsyncClient(# NOSONAR
 timeout=timeout) as client:
             resp = await client.post(url, headers=headers, json=payload)
             try:

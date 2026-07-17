@@ -235,7 +235,7 @@ async def check_db_health() -> dict:
             # branch on _IS_POSTGRES. (SonarCloud S3923 flagged the
             # identical-branches if/else as redundant.)
             await session.execute(text("SELECT 1"))
-        backend = "sqlite-fallback" if _FELL_BACK_TO_SQLITE else ("postgresql" if _IS_POSTGRES else "sqlite")  # NOSONAR(python:S3358): intentional
+        backend = "sqlite-fallback" if _FELL_BACK_TO_SQLITE else ("postgresql" if _IS_POSTGRES else "sqlite")  # NOSONAR
         return {
             "status": "healthy" if not _FELL_BACK_TO_SQLITE else "degraded",
             "backend": backend,
