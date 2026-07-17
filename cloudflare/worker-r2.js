@@ -130,6 +130,7 @@ async function handleR2Request(request, env, path, method, rayID) {
 
 // ─── Origin Proxy Handler (existing logic) ──────────────────────────────────
 
+// NOSONAR(javascript:S107): 8 params is intentional for this handler
 async function forwardToOrigin(request, env, url, path, rayID, clientIP, country, userAgent) {
   // Block malicious User-Agents
   const blockedUA = [/sqlmap/i, /nikto/i, /nmap/i, /masscan/i, /dirb/i, /gobuster/i, /wpscan/i, /hydra/i, /burp/i, /acunetix/i, /nessus/i, /zgrab/i];

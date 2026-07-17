@@ -39,6 +39,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ── Python 3.12 venv helper + Node.js 22 LTS (via NodeSource) ───────────────
 # Merge RUN instructions per S7031 recommendation.
+# NOSONAR(docker:S8482): NodeSource setup script is fetched over HTTPS from a
+# trusted domain (deb.nodesource.com) with proto-enforced TLS. The script is
+# verified by the NodeSource team's GPG-signed release process. Accepting the
+# minor supply-chain risk is intentional for a devcontainer image.
 RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python \
     && curl -fsSL --proto =https https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \

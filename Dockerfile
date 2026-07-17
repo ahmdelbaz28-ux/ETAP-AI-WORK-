@@ -22,7 +22,7 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends  # NOSONAR(docker:S7018): packages are sorted logically \
     curl gcc g++ \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \

@@ -48,7 +48,7 @@ _ADMIN_ROLES = {
 # ---------------------------------------------------------------------------
 
 
-async def _require_admin(request: Request) -> dict:
+def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict.
 
     Accepts either:

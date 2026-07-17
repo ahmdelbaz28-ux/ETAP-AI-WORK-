@@ -324,7 +324,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
     delivered = 0
     body = json.dumps(payload).encode("utf-8")
 
-    for ep in list(_endpoints.values()):
+    for ep in _endpoints.values()):
         if not _should_forward(ep, event_type):
             continue
 
@@ -489,7 +489,7 @@ async def list_events(limit: int = 50) -> JSONResponse:
     return JSONResponse(
         content={
             "success": True,
-            "events": list(reversed(_events))[:limit],
+            "events": reversed(_events))[:limit],
             "total": len(_events),
         }
     )

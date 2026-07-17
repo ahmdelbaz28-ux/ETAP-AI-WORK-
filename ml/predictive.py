@@ -549,7 +549,7 @@ class FaultPredictor:
             if self._optimize:
                 best_params = self._optimize_rf(features, labels)
 
-            self.model = RandomForestClassifier(
+            self.model = RandomForestClassifier(, min_samples_leaf=1, max_features='sqrt', random_state=42)
                 **(
                     best_params
                     if best_params

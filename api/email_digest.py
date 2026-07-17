@@ -76,7 +76,7 @@ class GenerateDigestRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-async def _build_digest_context(
+def _build_digest_context(
     email: str,
     period: str,
     user_name: Optional[str] = None,

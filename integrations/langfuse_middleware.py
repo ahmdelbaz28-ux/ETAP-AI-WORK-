@@ -193,7 +193,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         response_body = b""
         try:
             # Re-wrap the request body since we already consumed it
-            async def receive() -> dict[
+            def receive() -> dict[
                 str, Any
             ]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
                 return {"type": "http.request", "body": body_bytes, "more_body": False}

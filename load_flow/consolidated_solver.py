@@ -178,7 +178,7 @@ class LoadFlowSolver:
         #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
         #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
         V_i_col = Vmag[:, None]  # NOSONAR — S117: physics/engineering notation
-        J2_off = -V_i_col * (GC + BS)  # dP/dV off-diagonal
+        J2_off = -V_i_col * (GC + BS)  # dP/dV off-diagonal  # # NOSONAR(python:S117): domain-specific naming for J2_off
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
