@@ -1,19 +1,17 @@
+# Automated release workflow
+# Creates a new GitHub release when a tag is pushed
 name: Release
 
 on:
   push:
     tags:
-      - 'v*'
-
-permissions:
-  contents: write
-  packages: write
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4.3.1
       
       - name: Set up Python
         uses: actions/setup-python@v6

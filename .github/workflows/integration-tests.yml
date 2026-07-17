@@ -98,7 +98,7 @@ jobs:
       ENCRYPTION_KEY: integration-test-encryption-key
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4.3.1
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
@@ -170,7 +170,7 @@ jobs:
       PORT: 8000
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4.3.1
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
@@ -272,7 +272,7 @@ jobs:
           - 6379:6379
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4.3.1
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
