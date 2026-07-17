@@ -10,7 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
 
-from typing import Optional, Union
+
 
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus

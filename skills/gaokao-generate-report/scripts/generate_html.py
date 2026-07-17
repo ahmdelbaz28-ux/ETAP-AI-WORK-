@@ -9,7 +9,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 

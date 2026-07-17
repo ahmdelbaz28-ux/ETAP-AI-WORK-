@@ -356,7 +356,7 @@ class OpenAIVisionClient:
         self, url: str, headers: dict[str, str], payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Fallback: make request using urllib (no external deps)."""
-        import urllib.error
+
         import urllib.request
 
         data = json.dumps(payload).encode("utf-8")

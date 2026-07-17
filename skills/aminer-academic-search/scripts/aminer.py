@@ -14,7 +14,7 @@ import pathlib
 import sys
 import urllib.error
 import urllib.request
-from typing import Any, Callable, Optional, Tuple, Union
+
 
 REQUEST_TIMEOUT = 60
 CONFIG_PATHS = [

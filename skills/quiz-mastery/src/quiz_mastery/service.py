@@ -4,7 +4,7 @@ from typing import Optional, Union
 from dataclasses import asdict
 from pathlib import Path
 import uuid
-import json
+
 
 from .models import KnowledgePoint, KnowledgeSource, Question, QuizSession, MasteryRecord
 from .repository import JsonRepository

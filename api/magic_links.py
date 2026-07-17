@@ -434,7 +434,7 @@ async def invalidate_magic_links(
 
     email_lower = email.lower()
     removed = 0
-    for k in _records.keys()):
+    for k in _records.keys():
         if _records[k].email == email_lower and not _records[k].used:
             _records.pop(k, None)
             removed += 1

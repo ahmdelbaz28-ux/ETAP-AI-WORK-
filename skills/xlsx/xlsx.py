@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 try:
-    from openpyxl import load_workbook, Workbook
+
     from openpyxl.utils import get_column_letter, column_index_from_string
     from openpyxl.utils.cell import coordinate_from_string
 except ImportError:

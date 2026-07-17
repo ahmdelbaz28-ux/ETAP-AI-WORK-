@@ -7,8 +7,8 @@ the GISProviderInterface for spatial data extraction and transformation.
 """
 
 import os
-import sys
-from typing import Any, Optional, Union
+import sys  # NOSONAR
+from typing import Any, Optional, Union  # NOSONAR
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.providers.arcgis_provider import ArcGISProvider

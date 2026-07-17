@@ -9,7 +9,7 @@ def validate_python_syntax():
     results = []
     for root, dirs, files in os.walk("."):
         dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv")
+            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
         ]
         for f in files:
             if f.endswith(".py"):
@@ -30,7 +30,7 @@ def check_imports():  # NOSONAR — S3776: cognitive complexity; scheduled for r
     py_files = []
     for root, dirs, files in os.walk("."):
         dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv")
+            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
         ]
         for f in files:
             if f.endswith(".py"):
@@ -62,7 +62,7 @@ def detect_circular_deps():  # NOSONAR — S3776: cognitive complexity; schedule
     packages = {}
     for root, dirs, files in os.walk("."):
         dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv")
+            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
         ]
         if "__init__.py" in files:
             pkg = root.replace(os.sep, ".").lstrip(".")

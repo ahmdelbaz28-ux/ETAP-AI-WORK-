@@ -15,7 +15,7 @@ Usage:
 
 import csv
 import json
-import os
+
 from datetime import datetime
 from pathlib import Path
 # Allow both `python design_system.py ...` and `python -m ...` execution.

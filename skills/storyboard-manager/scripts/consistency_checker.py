@@ -6,12 +6,12 @@ This script analyzes markdown files in a storyboard project to detect inconsiste
 in character details, plot elements, and world-building across the story.
 """
 
-import os
+
 import re
 import sys
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+
 from collections import defaultdict
 
 

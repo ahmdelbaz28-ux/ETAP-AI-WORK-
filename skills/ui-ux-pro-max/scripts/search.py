@@ -21,7 +21,7 @@ try:
     from design_system import generate_design_system, persist_design_system
 except ImportError:  # pragma: no cover
     from .core import CSV_CONFIG, AVAILABLE_STACKS, MAX_RESULTS, search, search_stack
-    from .design_system import generate_design_system, persist_design_system
+
 
 
 def format_output(result):

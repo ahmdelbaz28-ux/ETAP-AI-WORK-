@@ -94,10 +94,10 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
         re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b"),
         r"[REDACTED-JWT]",
     ),
-    # --- Connection strings with embedded password ---
-    # postgresql://user:password@host:port/db
-    # redis://:password@host:port
-    # mongodb://user:password@host:port
+
+
+
+
     (
         re.compile(r"((?:postgresql|postgres|mysql|mongodb|redis|amqp)://[^:]+:)[^@\s]+(@)"),
         r"\1[REDACTED]\2",

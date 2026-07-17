@@ -4,7 +4,7 @@ Utility script for managing the blog examples library.
 Helps identify old examples to prune when the library exceeds the limit.
 """
 
-import os
+
 import sys
 from datetime import datetime
 from pathlib import Path

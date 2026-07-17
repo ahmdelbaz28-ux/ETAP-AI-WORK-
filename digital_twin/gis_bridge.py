@@ -478,7 +478,7 @@ class GISSyncBridge:
             sim = snapshot.simulation_results
             if sim and hasattr(sim, "load_flow_converged"):
                 metadata_asset = self.postgis.get_asset("_simulation_metadata")
-                from gis_integration.providers.postgis_provider import SpatialAsset
+
 
                 if metadata_asset:
                     metadata_asset.properties.update(

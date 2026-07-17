@@ -4,7 +4,7 @@
 Tests whether a skill's description causes GLM to trigger (read the skill)
 for a set of queries. Outputs results as JSON.
 """
-from typing import Optional, Union
+
 
 import argparse
 import json

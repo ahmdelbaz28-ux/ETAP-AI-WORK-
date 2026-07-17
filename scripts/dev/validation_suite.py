@@ -9,7 +9,7 @@ Validates the power system calculations against known IEEE test systems:
 """
 import os
 import sys
-from typing import Optional, Union
+
 
 import numpy as np
 
