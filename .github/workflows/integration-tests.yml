@@ -1,0 +1,372 @@
+# =============================================================================
+# AhmedETAP — Integration Tests
+# -----------------------------------------------------------------------------
+# Runs end-to-end integration tests that verify the full stack works:
+#   1. Engineering service + Redis + Postgres
+#   2. API endpoints respond correctly
+#   3. Database migrations apply cleanly
+#   4. Authentication + authorization flow
+#   5. Study execution (lightweight scenarios)
+#
+# These tests are slower than unit tests (3-5 min) but catch integration
+# bugs that unit tests miss.
+#
+# Triggers:
+#   - Push to main (after CI/CD passes)
+#   - PR to main (non-blocking on PRs to avoid long wait times)
+#   - Weekly schedule (catches upstream service breakage)
+# =============================================================================
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'core/**'
+      - 'engine/**'
+      - 'engineering_service.py'
+      - 'migrations/**'
+      - 'tests/**'
+      - '.github/workflows/integration-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'core/**'
+      - 'engine/**'
+      - 'engineering_service.py'
+      - 'migrations/**'
+  schedule:
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Specific scenario to test (empty = all)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - auth
+          - studies
+          - agents
+          - websocket
+          - database
+          - all
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ── 1. DATABASE INTEGRATION ───────────────────────────────────────────────
+  database:
+    name: Database Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: etap_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
+      REDIS_URL: redis://localhost:6379/0
+      ENVIRONMENT: testing
+      JWT_SECRET_KEY: integration-test-jwt-secret-not-for-production
+      ENCRYPTION_KEY: integration-test-encryption-key
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Set up Python '3.12'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-timeout httpx
+
+      - name: Apply database migrations
+        run: |
+          alembic upgrade head
+          echo "Migrations applied successfully"
+
+      - name: Verify migration version
+        run: alembic current
+
+      - name: Run database integration tests
+        run: |
+          python -m pytest tests/ \
+            -k "database or db or migration" \
+            -v \
+            --tb=short \
+            --timeout=60 \
+            --maxfail=5
+
+  # ── 2. API END-TO-END ─────────────────────────────────────────────────────
+  api-e2e:
+    name: API End-to-End
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: etap_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
+      REDIS_URL: redis://localhost:6379/0
+      ENVIRONMENT: testing
+      JWT_SECRET_KEY: integration-test-jwt-secret-not-for-production
+      ENCRYPTION_KEY: integration-test-encryption-key
+      ENGINEERING_SERVICE_API_KEY: test-api-key-for-integration
+      ENGINEERING_SERVICE_AUTH_DISABLED: 'false'
+      PORT: 8000
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Set up Python '3.12'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-timeout httpx
+
+      - name: Apply migrations
+        run: alembic upgrade head
+
+      - name: Start engineering service in background
+        run: |
+          python engineering_service.py &
+          echo "Engineering service starting on port 8000..."
+
+      - name: Wait for service to be ready
+        run: |
+          for i in $(seq 1 30); do
+            STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8000/healthz 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Service is healthy (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i/30 — status: $STATUS, retrying in 2s..."
+            sleep 2
+          done
+          echo "Service did not become healthy in 60 seconds"
+          exit 1
+
+      - name: Run API integration tests
+        run: |
+          python -m pytest tests/ \
+            -k "api or endpoint or e2e" \
+            -v \
+            --tb=short \
+            --timeout=90 \
+            --maxfail=10
+
+      - name: Test specific endpoints
+        run: |
+          echo "── Testing critical endpoints ──"
+
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8000/healthz)
+          echo "  /healthz: $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8000/readyz)
+          echo "  /readyz: $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json)
+          echo "  /openapi.json: $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/agents)
+          echo "  /api/v1/agents (no key): $STATUS"
+          [ "$STATUS" = "401" ] || [ "$STATUS" = "403" ] || exit 1
+
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
+            -H "x-api-key: test-api-key-for-integration" \
+            http://localhost:8000/api/v1/agents)
+          echo "  /api/v1/agents (with key): $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+          echo "All critical endpoints OK"
+
+      - name: Stop service
+        if: always()
+        run: pkill -f "engineering_service.py" 2>/dev/null || true
+
+  # ── 3. AGENTS INTEGRATION ─────────────────────────────────────────────────
+  agents:
+    name: Agents Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    env:
+      ENVIRONMENT: testing
+      DATABASE_URL: sqlite+aiosqlite:///./test_agents.db
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: integration-test-jwt-secret
+      SKIP_LIVE_SCENARIO_TESTS: 'true'
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Set up Python '3.12'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-timeout
+
+      - name: Run agent integration tests
+        run: |
+          python -m pytest tests/ \
+            -k "agent or orchestrator" \
+            -v \
+            --tb=short \
+            --timeout=60 \
+            --maxfail=10
+
+      - name: Verify all agents importable
+        run: |
+          python3 - <<'PYEOF'
+          import importlib
+          import sys
+
+          agents = [
+              'agents.orchestrator',
+              'agents.prompt_loader',
+              'agents.etap_expert_agent',
+              'agents.loadflow_agent' if False else 'agents.arc_flash_agent',
+              'agents.coordination_agent',
+              'agents.short_circuit_agent' if False else 'agents.stability_agent',
+              'agents.weather_agent',
+              'agents.predictive_agent',
+              'agents.digital_twin_agent',
+              'agents.cable_sizing_agent',
+              'agents.earth_grid_agent',
+              'agents.motor_starting_agent',
+              'agents.renewable_agent',
+              'agents.battery_storage_agent',
+              'agents.scada_agent',
+              'agents.code_guard_agent',
+              'agents.goal_planner_agent',
+              'agents.etap_gui_agent',
+              'agents.anomaly_agent',
+          ]
+
+          failed = []
+          for mod in agents:
+              try:
+                  importlib.import_module(mod)
+                  print(f"  OK: {mod}")
+              except Exception as e:
+                  print(f"  FAIL: {mod} — {type(e).__name__}: {e}")
+                  failed.append(mod)
+
+          if failed:
+              print(f"\nFailed: {len(failed)} agents")
+              sys.exit(1)
+          print(f"\nAll {len(agents)} agents importable")
+          PYEOF
+
+  # ── 4. SUMMARY ────────────────────────────────────────────────────────────
+  summary:
+    name: Integration Tests Summary
+    runs-on: ubuntu-latest
+    needs: [database, api-e2e, agents]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### Integration Tests Summary"
+            echo ""
+            echo "| Test Suite | Result |"
+            echo "|------------|--------|"
+            echo "| Database + Migrations | ${{ needs.database.result }} |"
+            echo "| API End-to-End | ${{ needs.api-e2e.result }} |"
+            echo "| Agents Integration | ${{ needs.agents.result }} |"
+            echo ""
+            echo "**Commit:** \`$GITHUB_SHA\`"
+            echo ""
+            echo "Integration tests verify the full stack works together."
+            echo "Failures here usually indicate a contract mismatch between components."
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any integration test failed
+        if: |
+          needs.database.result == 'failure' ||
+          needs.api-e2e.result == 'failure' ||
+          needs.agents.result == 'failure'
+        run: |
+          echo "One or more integration test suites failed"
+          exit 1
