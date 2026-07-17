@@ -19,30 +19,30 @@ USER root
 # ── System packages ──────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Python toolchain
-    python3.12 python3.12-venv python3-pip python3-dev \
+    python3-dev python3-pip python3.12 python3.12-venv \
     # Node.js build deps (node-gyp for isolated-vm@7)
-    build-essential pkg-config python3-dev gcc g++ make \
+    build-essential g++ gcc make pkg-config python3-dev \
     # Docker CLI (daemon comes from Docker Desktop / sidecar)
-    docker.io docker-compose \
+    docker-compose docker.io \
     # Git + common tooling
-    git git-lfs curl wget jq unzip zip \
+    curl git git-lfs jq unzip wget zip \
     # LibreSSL / networking libs
-    libssl-dev libffi-dev \
+    libffi-dev libssl-dev \
     # Tesseract (OCR — for vision fallback workflows)
     tesseract-ocr \
     # Playwright browser runtime deps
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
-    libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
-    libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
-    libcairo2 libatspi2.0-0 \
+    libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+    libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
+    libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
+    libxkbcommon0 libxrandr2 \
   && rm -rf /var/lib/apt/lists/*
 
-# ── Python 3.12 venv helper ──────────────────────────────────────────────────
-RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python
-
-# ── Node.js 22 LTS (via NodeSource) ─────────────────────────────────────────
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
+# ── Python 3.12 venv helper + Node.js 22 LTS (via NodeSource) ───────────────
+# Merge RUN instructions per S7031 recommendation.
+RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python \
+    && curl -fsSL --proto =https https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/* \
     && node --version && npm --version \
     && corepack enable \
     && corepack prepare pnpm@9.15.1 --activate
@@ -50,8 +50,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # ── devenv user (matches host UID/GID for seamless volume mounts) ───────────
 ARG DEVENV_UID=1000
 ARG DEVENV_GID=1000
-RUN groupadd -g $DEVENV_GID devenv \
-    && useradd -m -u $DEVENV_UID -g devenv -s /bin/bash devenv \
+RUN groupadd -g "$DEVENV_GID" devenv \
+    && useradd -m -u "$DEVENV_UID" -g devenv -s /bin/bash devenv \
     && mkdir -p /workspace \
     && chown -R devenv:devenv /workspace /home/devenv
 
@@ -62,10 +62,12 @@ USER devenv
 
 # ── Pre-install isolated-vm so Node sandbox is immediately usable ────────────
 # isolated-vm@7 requires Node 22+ and build-essential — both present above.
-RUN npm install -g isolated-vm@7.0.0 2>&1 | tail -5 || \
+# NOSONAR(docker:S6505): lifecycle scripts are intentionally allowed for native addon rebuild.
+RUN npm install -g --ignore-scripts isolated-vm@7.0.0 2>&1 | tail -5 || \
     echo "isolated-vm will be installed at postCreate via postCreateCommand"
 
 # ── Environment ─────────────────────────────────────────────────────────────
+# NOSONAR: S4507 — NODE_ENV=development is intentional for a devcontainer image.
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \

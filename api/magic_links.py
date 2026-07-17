@@ -256,7 +256,7 @@ async def request_magic_link(
                 )
             )
         except Exception as exc:
-            logger.error("magic_link_email_failed email=%s err=%s", body.email, exc)
+            logger.exception("magic_link_email_failed email=%s err=%s", body.email, exc)
 
     # Always return the same response (no enumeration)
     response_content = {
@@ -380,7 +380,7 @@ async def verify_magic_link(
                 },
             )
     except Exception as exc:
-        logger.error("magic_link_verify_failed err=%s", exc)
+        logger.exception("magic_link_verify_failed err=%s", exc)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={

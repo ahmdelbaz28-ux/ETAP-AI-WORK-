@@ -59,7 +59,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
             ("--author", "author", "str", "Author name"),
             ("--org", "org", "str", "Organization name"),
             ("--venue", "venue", "str", "Venue name"),
-            ("--order", "order", "str", "Sort: Union[citation, year"]),
+            ("--order", "order", "str", 'Sort: Union[citation, year]'),
             ("--page", "page", "int", "Page number, default 0"),
             ("--size", "size", "int", "Page size, default 10"),
         ],

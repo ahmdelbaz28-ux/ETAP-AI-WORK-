@@ -1052,13 +1052,12 @@ export default function GridEditor() {
                     size="sm"
                     className="w-full text-center"
                   >
-                    {validationResults.valid
-                      ? isRtl
-                        ? "بنية شبكة سليمة"
-                        : "Structure Valid"
-                      : isRtl
-                        ? "خطأ في الربط"
-                        : "Invalid Connection"}
+                    {(() => {
+                      if (validationResults.valid) {
+                        return isRtl ? "بنية شبكة سليمة" : "Structure Valid";
+                      }
+                      return isRtl ? "خطأ في الربط" : "Invalid Connection";
+                    })()}
                   </Badge>
                 </div>
 
@@ -1069,8 +1068,8 @@ export default function GridEditor() {
                       {isRtl ? "الأخطاء الهندسية:" : "Errors Found:"}
                     </p>
                     <ul className="list-disc pl-4 space-y-0.5">
-                      {validationResults.errors.map((err, idx) => (
-                        <li key={idx}>{err}</li>
+                      {validationResults.errors.map((err) => (
+                        <li key={err}>{err}</li>
                       ))}
                     </ul>
                   </div>
@@ -1083,8 +1082,8 @@ export default function GridEditor() {
                       {isRtl ? "تحذيرات مهمة:" : "Warnings:"}
                     </p>
                     <ul className="list-disc pl-4 space-y-0.5">
-                      {validationResults.warnings.map((warn, idx) => (
-                        <li key={idx}>{warn}</li>
+                      {validationResults.warnings.map((warn) => (
+                        <li key={warn}>{warn}</li>
                       ))}
                     </ul>
                   </div>

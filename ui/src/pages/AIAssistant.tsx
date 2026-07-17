@@ -71,6 +71,61 @@ function _safeRandomSuffix(): string {
 }
 let _safeRandomSuffixCounter = 0;
 
+interface MarkdownCodeProps {
+  node?: unknown;
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: unknown;
+}
+
+function MarkdownCode({
+  inline,
+  className,
+  children,
+  handleCopy,
+  copiedId,
+  messageId,
+  ...props
+}: MarkdownCodeProps & {
+  handleCopy: (id: string, content: string) => void;
+  copiedId: string | null;
+  messageId: string;
+}) {
+  const match = /language-(\w+)/.exec(className || "");
+  return !inline && match ? (
+    <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] text-gray-400 text-xs font-mono border-b border-gray-700">
+        <span>{match[1]}</span>
+        <button
+          onClick={() => handleCopy(messageId + children, String(children))}
+          className="hover:text-white transition-colors flex items-center gap-1.5"
+        >
+          {copiedId === messageId + children ? (
+            <Check className="w-3.5 h-3.5 text-green-400" />
+          ) : (
+            <Copy className="w-3.5 h-3.5" />
+          )}
+          {copiedId === messageId + children ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto text-sm font-mono text-gray-200 dark:text-gray-300" {...props}>
+        {String(children).replace(/\n$/, "")}
+      </pre>
+    </div>
+  ) : (
+    <code
+      className={cn(
+        "bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </code>
+  );
+}
+
 export default function AIAssistant() {
   // setAgents is used but the agents value is never read — we only need the
   // setter to trigger re-renders after fetchAgents() resolves. SonarCloud
@@ -165,7 +220,7 @@ export default function AIAssistant() {
         streaming: false,
       });
     } catch (_streamErr) {
-      // NOSONAR — typescript:S2486: intentional fallthrough to non-streaming fallback
+      console.warn("Streaming error, falling back to non-streaming:", _streamErr instanceof Error ? _streamErr.message : String(_streamErr));
       if (accumulatedContent) {
         // Partial content was already streamed — keep it.
         patchMessage(assistantMsgId, { content: accumulatedContent, streaming: false });
@@ -450,44 +505,14 @@ export default function AIAssistant() {
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              code({ node, inline, className, children, ...props }: any) {
-                                // NOSONAR — S6478: react-markdown requires inline renderer
-                                const match = /language-(\w+)/.exec(className || "");
-                                return !inline && match ? (
-                                  <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">
-                                    <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] text-gray-400 text-xs font-mono border-b border-gray-700">
-                                      <span>{match[1]}</span>
-                                      <button
-                                        onClick={() =>
-                                          handleCopy(m.id + children, String(children))
-                                        }
-                                        className="hover:text-white transition-colors flex items-center gap-1.5"
-                                      >
-                                        {copiedId === m.id + children ? (
-                                          <Check className="w-3.5 h-3.5 text-green-400" />
-                                        ) : (
-                                          <Copy className="w-3.5 h-3.5" />
-                                        )}
-                                        {copiedId === m.id + children ? "Copied" : "Copy"}
-                                      </button>
-                                    </div>
-                                    <pre
-                                      className="p-4 overflow-x-auto text-sm font-mono text-gray-200 dark:text-gray-300"
-                                      {...props}
-                                    >
-                                      {String(children).replace(/\n$/, "")}
-                                    </pre>
-                                  </div>
-                                ) : (
-                                  <code
-                                    className={cn(
-                                      "bg-gray-100 dark:bg-gray-800 text-[#d97706] dark:text-[#fbbf24] px-1.5 py-0.5 rounded-md text-[0.9em] font-mono",
-                                      className,
-                                    )}
+                              code(props: any) {
+                                return (
+                                  <MarkdownCode
                                     {...props}
-                                  >
-                                    {children}
-                                  </code>
+                                    handleCopy={handleCopy}
+                                    copiedId={copiedId}
+                                    messageId={m.id}
+                                  />
                                 );
                               },
                             }}

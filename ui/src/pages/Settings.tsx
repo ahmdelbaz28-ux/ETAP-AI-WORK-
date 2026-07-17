@@ -2029,19 +2029,17 @@ function ExternalServicesPanel({
                   ))}
                 </div>
 
-                {st.detail && (
-                  <div
-                    className={`text-[10px] mb-2 px-2 py-1 rounded ${
-                      st.state === "ok"
-                        ? "bg-green-500/10 text-green-400"
-                        : st.state === "fail"
-                          ? "bg-red-500/10 text-red-400"
-                          : "bg-yellow-500/10 text-yellow-400"
-                    }`}
-                  >
-                    {st.detail}
-                  </div>
-                )}
+                {st.detail && (() => {
+                  let stateColor;
+                  if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
+                  else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
+                  else stateColor = "bg-yellow-500/10 text-yellow-400";
+                  return (
+                    <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
+                      {st.detail}
+                    </div>
+                  );
+                })()}
 
                 <div className="flex items-center gap-2">
                   <Button
@@ -2096,7 +2094,10 @@ function SettingsField({
     field.includes("RATE") ||
     field.includes("THRESHOLD") ||
     field.includes("MAX_");
-  const inputType = isSecret ? "password" : isNumber ? "number" : "text";
+  let inputType;
+  if (isSecret) inputType = "password";
+  else if (isNumber) inputType = "number";
+  else inputType = "text";
 
   if (isFeatureFlag) {
     return (
@@ -2726,16 +2727,13 @@ export default function Settings() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === "ai" ? (
-            <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === "mcp" ? (
-            <MCPSettingsPanel />
-          ) : activeTab === "external" ? (
-            <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === "vision" ? (
-            <VisionApiKeysPanel notify={notify} />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {(() => {
+            if (activeTab === "ai") return <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "mcp") return <MCPSettingsPanel />;
+            if (activeTab === "external") return <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
+            return (
+            <>
               {currentSections.map((section) => (
                 <Card key={section.title} padding="md">
                   <CardHeader
@@ -2755,8 +2753,9 @@ export default function Settings() {
                   </div>
                 </Card>
               ))}
-            </div>
-          )}
+            </>
+          );
+          })()}
         </motion.div>
       </TabPanels>
     </div>

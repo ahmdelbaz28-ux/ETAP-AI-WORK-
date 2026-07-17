@@ -9,7 +9,7 @@ WORKDIR /app
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ curl \
+    curl gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     # Create non-root user (UID 1000 as required by HF Spaces)
     && useradd -m -u 1000 user \

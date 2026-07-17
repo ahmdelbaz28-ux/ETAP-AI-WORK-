@@ -46,8 +46,8 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
 }
 
 interface TabPanelsProps {
-  children: ReactNode;
-  className?: string;
+  readonly children: ReactNode;
+  readonly className?: string;
 }
 
 export function TabPanels({ children, className }: TabPanelsProps) {

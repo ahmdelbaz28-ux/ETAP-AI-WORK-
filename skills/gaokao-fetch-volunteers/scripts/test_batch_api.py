@@ -157,7 +157,7 @@ def main() -> int:
     ]
     print(f"\n=== 汇总: 正确参数异常 {len(fails)} 项 ===")
     for r in fails:
-        print(f"  {r['province']} {r['classify']} {r['score_label']}分 → {r['summary']Union[}, {r.get]('message')}")
+        print(f"  {r['province']} {r['classify']} {r['score_label']}分 → {r.get('summary', '')}, {r.get('message', '')}")
 
     return 0
 

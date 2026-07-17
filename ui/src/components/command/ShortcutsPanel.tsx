@@ -4,8 +4,8 @@ import { SHORTCUT_DEFINITIONS, type ShortcutCategory } from "../../hooks/useKeyb
 import { cn } from "../../utils/helpers";
 
 interface ShortcutsPanelProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
 const CATEGORY_CONFIG: Record<
@@ -37,7 +37,7 @@ function KeyCap({ children }: { children: React.ReactNode }) {
 }
 
 // Render a sequence of keys (e.g. ["Ctrl", "K"] or ["G", "D"])
-function KeySequence({ keys }: { keys: readonly string[] }) {
+function KeySequence({ keys }: { readonly keys: readonly string[] }) {
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className="flex items-center gap-1">

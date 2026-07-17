@@ -71,7 +71,7 @@ def _load_template(name: str) -> Optional[str]:
         _template_cache[name] = content
         return content
     except OSError as exc:
-        logger.error("email_template_read_failed name=%s err=%s", name, exc)
+        logger.exception("email_template_read_failed name=%s err=%s", name, exc)
         return None
 
 

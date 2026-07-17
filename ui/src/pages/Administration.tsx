@@ -228,12 +228,10 @@ export default function Administration() {
                       { count: number; avgMs: number; failureRate: number }
                     >,
                   ).map(([name, p]) => {
-                    const latencyColor =
-                      p.avgMs < 500
-                        ? "bg-green-500"
-                        : p.avgMs < 1000
-                          ? "bg-amber-500"
-                          : "bg-red-500"; // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                    let latencyColor;
+                    if (p.avgMs < 500) latencyColor = "bg-green-500";
+                    else if (p.avgMs < 1000) latencyColor = "bg-amber-500";
+                    else latencyColor = "bg-red-500";
                     const latencyPercent = Math.min(100, (p.avgMs / 2000) * 100);
                     return (
                       <div

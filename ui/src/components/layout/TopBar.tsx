@@ -5,7 +5,7 @@ import { useAppStore } from "../../store";
 import { BrandLogo } from "../BrandLogo";
 
 interface TopBarProps {
-  onHelpOpen?: () => void;
+  readonly onHelpOpen?: () => void;
 }
 
 export function TopBar({ onHelpOpen }: TopBarProps) {

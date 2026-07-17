@@ -3,14 +3,14 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { cn } from "../../utils/helpers";
 
 interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  subtitle?: string;
-  size?: "sm" | "md" | "lg" | "xl" | "full";
-  children: ReactNode;
-  footer?: ReactNode;
-  closeOnOverlay?: boolean;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly title?: string;
+  readonly subtitle?: string;
+  readonly size?: "sm" | "md" | "lg" | "xl" | "full";
+  readonly children: ReactNode;
+  readonly footer?: ReactNode;
+  readonly closeOnOverlay?: boolean;
 }
 
 const sizeStyles = {

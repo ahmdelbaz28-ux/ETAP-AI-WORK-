@@ -146,6 +146,7 @@ async def _http_post_json(
                 body = {"_raw": resp.text}
             return resp.status_code, body
     # Fallback: use urllib in a thread (asyncio.to_thread)
+    import socket
     import urllib.error
     import urllib.request
 
@@ -153,9 +154,14 @@ async def _http_post_json(
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                body = json.loads(r.read().decode("utf-8"))
-                return r.status, body
+            old_timeout = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(timeout)
+            try:
+                with urllib.request.urlopen(req) as r:
+                    body = json.loads(r.read().decode("utf-8"))
+                    return r.status, body
+            finally:
+                socket.setdefaulttimeout(old_timeout)
         except urllib.error.HTTPError as e:
             try:
                 body = json.loads(e.read().decode("utf-8"))

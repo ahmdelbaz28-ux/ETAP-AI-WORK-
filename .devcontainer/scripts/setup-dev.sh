@@ -19,13 +19,13 @@ echo "[2/4] Installing Python dependencies..."
 # ── Node.js / pnpm ──────────────────────────────────────────────────────────
 echo "[3/4] Installing Node.js workspace dependencies..."
 corepack enable || true
-pnpm install --no-frozen-lockfile
+pnpm install --no-frozen-lockfile --ignore-scripts
 
 # ── Node sandbox native addon ───────────────────────────────────────────────
 # isolated-vm@7 requires Node 22+ and a working node-gyp toolchain.
 # build-essential and python3-dev are pre-installed in the devcontainer image.
 echo "[4/4] Installing isolated-vm (Node sandbox native addon)..."
-pnpm add -D isolated-vm@7.0.0 --no-save 2>&1 || \
+pnpm add -D isolated-vm@7.0.0 --no-save --ignore-scripts 2>&1 || \
     echo "  ⚠  isolated-vm install failed — Node sandbox will be disabled in dev"
 echo "  → Run 'pnpm rebuild isolated-vm' after container start to retry."
 

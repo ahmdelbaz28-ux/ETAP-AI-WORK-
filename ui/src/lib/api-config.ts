@@ -29,11 +29,7 @@ function resolveApiBaseUrl(): string {
   // 2. On the HF Space, the UI is served from the same origin as the API.
   //    Detect this by checking if we're on *.hf.space.
   //    Use typeof window check to avoid ReferenceError during Vite build (Node.js).
-  if (
-    typeof window !== "undefined" &&
-    typeof window.location !== "undefined" &&
-    window.location.hostname.endsWith(".hf.space")
-  ) {
+  if (typeof window !== "undefined" && window.location?.hostname.endsWith(".hf.space")) {
     return ""; // same-origin — empty prefix so fetch('/api/v1/...') works
   }
 

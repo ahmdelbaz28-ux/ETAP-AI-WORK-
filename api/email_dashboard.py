@@ -161,7 +161,7 @@ async def get_by_day(
     )
 
 
-@router.get("/api/record/{record_id}", summary="Single record detail")
+@router.get("/api/record/{record_id}", summary="Single record detail", responses={404: {"description": "Record not found"}})
 async def get_record(
     record_id: str,
     request: Request,

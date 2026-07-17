@@ -1,12 +1,12 @@
 import { cn } from "../../utils/helpers";
 
 interface ToggleProps {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  label?: string;
-  description?: string;
-  disabled?: boolean;
-  size?: "sm" | "md";
+  readonly checked: boolean;
+  readonly onChange: (checked: boolean) => void;
+  readonly label?: string;
+  readonly description?: string;
+  readonly disabled?: boolean;
+  readonly size?: "sm" | "md";
 }
 
 export function Toggle({

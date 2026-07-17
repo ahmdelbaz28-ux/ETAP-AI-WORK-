@@ -301,14 +301,14 @@ export default function StudyRun() {
     try {
       const res = await runStudy(studyType, params, dryRun);
       setResult(res as unknown as Record<string, unknown> | null);
-      notify(
-        res.status === "dry_run" ? "success" : res.status === "completed" ? "success" : "error", // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+      const notifyType = res.status === "dry_run" || res.status === "completed" ? "success" : "error";
+      const notifyMsg =
         res.status === "dry_run"
           ? t("studyRun.dryRunCompleted")
           : res.status === "completed"
             ? t("studyRun.completed")
-            : `${t("studyRun.failed")}: ${res.status}`,
-      ); // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+            : `${t("studyRun.failed")}: ${res.status}`;
+      notify(notifyType, notifyMsg);
     } catch (err) {
       notify(
         "error",

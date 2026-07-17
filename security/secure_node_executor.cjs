@@ -183,7 +183,7 @@ function validateCode(code) {
   }
 
   // Block import statements — sandbox does not support ESM
-  const importMatch = code.match(/\bimport\s+[^'"]*?\bfrom\s+['"][^'"]+['"]/);
+  const importMatch = code.match(/\bimport\b[\s\S]*?\bfrom\b\s*['"][^'"]*['"]/);
   if (importMatch) {
     return { ok: false, reason: 'ESM import is not allowed in the sandbox' };
   }

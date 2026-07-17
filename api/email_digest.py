@@ -224,7 +224,7 @@ async def preview_digest(email: str, period: str = "daily") -> str:
     return _render(template, **ctx)
 
 
-def _is_scheduled_time(now: datetime, daily_hour: int, daily_minute: int) -> tuple[bool, bool]:
+def _is_scheduled_time(now: datetime, daily_hour: int, _daily_minute: int) -> tuple[bool, bool]:
     """Check if now is a daily or weekly digest trigger time."""
     is_daily = now.hour == daily_hour and now.minute < 5
     is_weekly = (

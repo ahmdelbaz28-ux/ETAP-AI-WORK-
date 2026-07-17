@@ -23,13 +23,13 @@ export interface ContextAction {
 }
 
 interface ContextPanelProps {
-  title?: string;
-  selectedItem?: { type: string; name: string; details?: ContextItem[] };
-  warnings?: ContextWarning[];
-  actions?: ContextAction[];
-  helpTopic?: { title: string; url?: string; content?: ReactNode };
-  onClose?: () => void;
-  emptyMessage?: string;
+  readonly title?: string;
+  readonly selectedItem?: { type: string; name: string; details?: ContextItem[] };
+  readonly warnings?: ContextWarning[];
+  readonly actions?: ContextAction[];
+  readonly helpTopic?: { title: string; url?: string; content?: ReactNode };
+  readonly onClose?: () => void;
+  readonly emptyMessage?: string;
 }
 
 const severityConfig = {

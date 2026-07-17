@@ -123,9 +123,9 @@ function mapErrorToHelp(error: Error | string): HelpMapping {
 }
 
 interface ErrorRecoveryProps {
-  error: Error | string | null;
-  onDismiss: () => void;
-  onRetry?: () => void;
+  readonly error: Error | string | null;
+  readonly onDismiss: () => void;
+  readonly onRetry?: () => void;
 }
 
 export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps) {

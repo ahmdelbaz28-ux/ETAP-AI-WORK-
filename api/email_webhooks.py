@@ -233,7 +233,7 @@ async def resend_webhook(
             # We don't have a message_id index — store as an event log
             await _record_event(message_id, event_type, data)
         except Exception as exc:
-            logger.warning("event_log_failed msg=%s err=%s", message_id, exc)
+            logger.exception("event_log_failed msg=%s err=%s", message_id, exc)
 
     # Forward to registered outbound endpoints
     forwarded = await _forward_to_endpoints(event_type, payload)
@@ -348,7 +348,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
                 )
         except Exception as exc:
             ep.failure_count += 1
-            logger.warning("webhook_deliver_exception endpoint=%s err=%s", ep.id, exc)
+            logger.exception("webhook_deliver_exception endpoint=%s err=%s", ep.id, exc)
 
     return delivered
 

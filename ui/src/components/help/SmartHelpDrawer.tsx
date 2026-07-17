@@ -148,12 +148,12 @@ function DocTreeViewNode({
   onToggleNode,
   level = 0,
 }: {
-  node: DocTreeNode;
-  lang: "en" | "ar";
-  onSelectTopic: (id: string) => void;
-  expandedNodes: Set<string>;
-  onToggleNode: (label: string) => void;
-  level?: number;
+  readonly node: DocTreeNode;
+  readonly lang: "en" | "ar";
+  readonly onSelectTopic: (id: string) => void;
+  readonly expandedNodes: Set<string>;
+  readonly onToggleNode: (label: string) => void;
+  readonly level?: number;
 }) {
   const isFolder = !!node.children;
   const nodeKey = node.label.en;
@@ -205,9 +205,9 @@ function DocTreeViewNode({
 }
 
 interface SmartHelpDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  initialContextId?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly initialContextId?: string;
 }
 
 export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDrawerProps) {

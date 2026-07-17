@@ -5,9 +5,9 @@ type BadgeVariant = "default" | "success" | "warning" | "danger" | "info" | "bra
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: BadgeVariant;
-  size?: BadgeSize;
-  dot?: boolean;
+  readonly variant?: BadgeVariant;
+  readonly size?: BadgeSize;
+  readonly dot?: boolean;
 }
 
 const variantStyles: Record<BadgeVariant, string> = {

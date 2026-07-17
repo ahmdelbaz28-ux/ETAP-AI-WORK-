@@ -196,7 +196,6 @@ class LoadFlowSolver:
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
-                    # d(ΔP_i)/dθ_i = Q_i + B_diag[bus_i] * V2[bus_i]
                     J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
                 else:
                     J[ri, ci] = J1_off[bus_i, bus_k]
@@ -218,7 +217,6 @@ class LoadFlowSolver:
             row = q_row_offset + ri
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
-                    # d(ΔQ_i)/dθ_i = -P_i + G_diag[bus_i] * V2[bus_i]
                     J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
                 else:
                     J[row, ci] = J3_off[bus_i, bus_k]

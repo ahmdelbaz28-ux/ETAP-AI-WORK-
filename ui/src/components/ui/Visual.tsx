@@ -3,9 +3,9 @@ import { cn } from "../../utils/helpers";
 
 // ─── Glass Panel ────────────────────────────────────────────────────
 interface GlassPanelProps {
-  children: ReactNode;
-  className?: string;
-  variant?: "default" | "elevated" | "subtle";
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly variant?: "default" | "elevated" | "subtle";
 }
 
 export function GlassPanel({ children, className, variant = "default" }: GlassPanelProps) {
@@ -20,8 +20,8 @@ export function GlassPanel({ children, className, variant = "default" }: GlassPa
 
 // ─── Animated Background ────────────────────────────────────────────
 interface AnimatedBackgroundProps {
-  className?: string;
-  variant?: "gradient" | "mesh" | "radial";
+  readonly className?: string;
+  readonly variant?: "gradient" | "mesh" | "radial";
 }
 
 export function AnimatedBackground({ className, variant = "gradient" }: AnimatedBackgroundProps) {
@@ -65,10 +65,10 @@ export function AnimatedBackground({ className, variant = "gradient" }: Animated
 type StatusType = "online" | "offline" | "warning" | "loading";
 
 interface StatusIndicatorProps {
-  status: StatusType;
-  label?: string;
-  size?: "sm" | "md" | "lg";
-  showLabel?: boolean;
+  readonly status: StatusType;
+  readonly label?: string;
+  readonly size?: "sm" | "md" | "lg";
+  readonly showLabel?: boolean;
 }
 
 const statusConfig: Record<StatusType, { color: string; pulse: boolean; label: string }> = {
@@ -107,11 +107,11 @@ export function StatusIndicator({
 
 // ─── Premium Empty State ────────────────────────────────────────────
 interface PremiumEmptyStateProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  action?: { label: string; onClick: () => void; icon?: React.ElementType };
-  variant?: "default" | "illustration";
+  readonly icon: React.ElementType;
+  readonly title: string;
+  readonly description: string;
+  readonly action?: { label: string; onClick: () => void; icon?: React.ElementType };
+  readonly variant?: "default" | "illustration";
 }
 
 export function PremiumEmptyState({
@@ -160,9 +160,9 @@ export function PremiumEmptyState({
 
 // ─── Premium Loading State ──────────────────────────────────────────
 interface PremiumLoadingProps {
-  message?: string;
-  variant?: "spinner" | "skeleton" | "progress";
-  progress?: number;
+  readonly message?: string;
+  readonly variant?: "spinner" | "skeleton" | "progress";
+  readonly progress?: number;
 }
 
 export function PremiumLoading({
@@ -214,10 +214,10 @@ export function PremiumLoading({
 
 // ─── Gradient Text ──────────────────────────────────────────────────
 interface GradientTextProps {
-  children: ReactNode;
-  className?: string;
-  from?: string;
-  to?: string;
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly from?: string;
+  readonly to?: string;
 }
 
 export function GradientText({
@@ -239,9 +239,9 @@ export function GradientText({
 
 // ─── Glow Card ──────────────────────────────────────────────────────
 interface GlowCardProps {
-  children: ReactNode;
-  className?: string;
-  color?: "primary" | "success" | "warning" | "danger";
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly color?: "primary" | "success" | "warning" | "danger";
 }
 
 export function GlowCard({ children, className, color = "primary" }: GlowCardProps) {

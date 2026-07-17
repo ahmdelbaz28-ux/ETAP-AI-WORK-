@@ -212,11 +212,10 @@ export default function Dashboard() {
   if (loading) return <DashboardLoading />;
 
   const studyCount = agents.reduce((sum, a) => sum + (a.capabilities?.length ?? 0), 0);
-  const engStatus = health?.engineeringService?.configured
-    ? health.engineeringService.healthy
-      ? t("dashboard.healthy")
-      : "Unhealthy"
-    : "Not Configured";
+  const engStatus = (() => {
+    if (!health?.engineeringService?.configured) return "Not Configured";
+    return health.engineeringService.healthy ? t("dashboard.healthy") : "Unhealthy";
+  })();
   const engSublabel = health?.engineeringService?.latencyMs
     ? `${health.engineeringService.latencyMs}ms`
     : undefined;
@@ -382,13 +381,21 @@ export default function Dashboard() {
           />
           <div className="grid grid-cols-2 gap-4">
             {systemHealthData.map((g) => (
-              <MiniGauge
-                key={g.name}
-                label={g.name}
-                value={g.value}
-                max={g.max}
-                color={g.value > 80 ? "#ef4444" : g.value > 60 ? "#f59e0b" : "#22c55e"}
-              /> // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+                {(() => {
+                  let gaugeColor;
+                  if (g.value > 80) gaugeColor = "#ef4444";
+                  else if (g.value > 60) gaugeColor = "#f59e0b";
+                  else gaugeColor = "#22c55e";
+                  return (
+                    <MiniGauge
+                      key={g.name}
+                      label={g.name}
+                      value={g.value}
+                      max={g.max}
+                      color={gaugeColor}
+                    />
+                  );
+                })()}
             ))}
           </div>
         </Card>

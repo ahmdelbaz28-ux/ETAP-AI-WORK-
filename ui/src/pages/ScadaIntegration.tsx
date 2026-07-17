@@ -484,13 +484,10 @@ export default function ScadaIntegration() {
                     icon={isLive ? Pause : Play}
                     onClick={toggleLiveSync}
                   >
-                    {isLive
-                      ? isRtl
-                        ? "إيقاف البث"
-                        : "Pause Sync"
-                      : isRtl
-                        ? "تشغيل البث"
-                        : "Start Live"}
+                    {(() => {
+                      if (isLive) return isRtl ? "إيقاف البث" : "Pause Sync";
+                      return isRtl ? "تشغيل البث" : "Start Live";
+                    })()}
                   </Button>
                 </div>
               </div>
@@ -603,9 +600,9 @@ export default function ScadaIntegration() {
                     {isRtl ? "لا توجد إنذارات حالية." : "No active alarms."}
                   </p>
                 ) : (
-                  alarms.map((a, idx) => (
+                  alarms.map((a) => (
                     <div
-                      key={idx}
+                      key={a.alarm_id}
                       className={`p-2 rounded border text-[11px] ${
                         a.severity === "CRITICAL"
                           ? "bg-red-500/10 border-red-500/20 text-red-400"
@@ -648,8 +645,8 @@ export default function ScadaIntegration() {
                     {isRtl ? "السجلات فارغة." : "Trace is empty."}
                   </p>
                 ) : (
-                  logs.map((log, idx) => (
-                    <div key={idx} className="border-b border-[var(--border-primary)]/40 pb-1">
+                  logs.map((log) => (
+                    <div key={log} className="border-b border-[var(--border-primary)]/40 pb-1">
                       {log}
                     </div>
                   ))

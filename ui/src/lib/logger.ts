@@ -12,7 +12,8 @@ const _buffer: LogEntry[] = [];
 const MAX_BUFFER = 500;
 
 function formatEntry(entry: LogEntry): string {
-  return `[${entry.timestamp}] ${entry.level.toUpperCase().padEnd(5)} [${entry.source}] ${entry.message}${entry.data ? ` ${JSON.stringify(entry.data)}` : ""}`;
+  const dataSuffix = entry.data ? ` ${JSON.stringify(entry.data)}` : "";
+  return `[${entry.timestamp}] ${entry.level.toUpperCase().padEnd(5)} [${entry.source}] ${entry.message}${dataSuffix}`;
 }
 
 function write(level: LogLevel, source: string, message: string, data?: Record<string, unknown>) {

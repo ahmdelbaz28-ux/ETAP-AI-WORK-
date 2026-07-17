@@ -2,9 +2,9 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils/helpers";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "interactive" | "bordered" | "flat" | "glass";
-  padding?: "none" | "sm" | "md" | "lg";
-  hover?: boolean;
+  readonly variant?: "default" | "interactive" | "bordered" | "flat" | "glass";
+  readonly padding?: "none" | "sm" | "md" | "lg";
+  readonly hover?: boolean;
 }
 
 const variantStyles = {
@@ -48,10 +48,10 @@ export function Card({
 }
 
 interface CardHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
-  title: ReactNode;
-  subtitle?: ReactNode;
-  icon?: ReactNode;
-  action?: ReactNode;
+  readonly title: ReactNode;
+  readonly subtitle?: ReactNode;
+  readonly icon?: ReactNode;
+  readonly action?: ReactNode;
 }
 
 export function CardHeader({

@@ -155,16 +155,15 @@ export function Sidebar() {
                   {t("app.name")}
                 </h1>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span
-                    className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      healthStatus === "online"
-                        ? "bg-green-400 animate-pulse"
-                        : healthStatus === "checking"
-                          ? "bg-amber-400"
-                          : "bg-red-400", // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-                    )}
-                  />
+                  {(() => {
+                    let dotColor;
+                    if (healthStatus === "online") dotColor = "bg-green-400 animate-pulse";
+                    else if (healthStatus === "checking") dotColor = "bg-amber-400";
+                    else dotColor = "bg-red-400";
+                    return (
+                      <span className={cn("w-1.5 h-1.5 rounded-full", dotColor)} />
+                    );
+                  })()}
                   <span className="text-[10px] text-[var(--text-muted)] capitalize">
                     {t(`dashboard.${healthStatus}`)}
                   </span>

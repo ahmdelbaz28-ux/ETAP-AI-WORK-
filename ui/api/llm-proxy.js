@@ -82,8 +82,7 @@ async function handleStreamingMode(res, endpoint, headers, requestBody) {
       res.write(chunk);
     }
   } catch (_streamErr) {
-    // NOSONAR — javascript:S2486: intentional empty catch — client disconnects are expected during SSE streaming
-    // Client disconnected or stream error — best-effort, nothing to do.
+    console.warn("SSE stream error (client may have disconnected):", _streamErr instanceof Error ? _streamErr.message : String(_streamErr));
   }
 
   res.write("data: [DONE]\n\n");

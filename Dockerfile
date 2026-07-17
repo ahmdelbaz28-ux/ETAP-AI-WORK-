@@ -23,12 +23,12 @@ WORKDIR /app
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ curl \
+    curl gcc g++ \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
-    libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
-    libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
-    libcairo2 libatspi2.0-0 \
+    libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+    libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
+    libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
+    libxkbcommon0 libxrandr2 \
     # Tesseract OCR — for offline vision fallback (integrations/opencv_vision.py)
     # Used when Gemini Vision is unreachable (network down, API quota exceeded)
     tesseract-ocr tesseract-ocr-eng \
