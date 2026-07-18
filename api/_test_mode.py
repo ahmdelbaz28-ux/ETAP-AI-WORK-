@@ -32,21 +32,36 @@ from fastapi import Request
 def is_test_mode(request: Request) -> bool:
     """Check if the request is from automation/CI (X-API-Key matches service key).
 
-    When true:
+    SECURITY: Always returns False in production/staging environments.
+    Test-mode bypasses (auto-verify OTP, return reset tokens in response,
+    accept placeholder magic links) are dangerous in production and must
+    never be active there, even if the API key is correct.
+
+    When true (development/test only):
     - OTP send: skip rate limiting, return the code in the response
     - OTP verify: auto-verify placeholder codes (999999)
     - Magic link request: skip rate limiting, return the token in the response
     - Magic link verify: auto-verify placeholder tokens
     - Dashboard: accept API key as alternative to JWT
 
-    Returns True only if:
-    1. X-API-Key header is present AND
-    2. ENGINEERING_SERVICE_API_KEY env var is set AND
-    3. They match exactly
+    Returns True only if ALL of:
+    1. ENVIRONMENT is not production/prod/staging, AND
+    2. X-API-Key header is present, AND
+    3. ENGINEERING_SERVICE_API_KEY env var is set, AND
+    4. They match exactly (constant-time comparison).
     """
+    # SECURITY GUARD: never allow test-mode bypasses in production
+    _env = os.getenv("ENVIRONMENT", "development").lower()
+    if _env in ("production", "prod", "staging"):
+        return False
+
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    return bool(api_key and expected_key and api_key == expected_key)
+    if not api_key or not expected_key:
+        return False
+    # Constant-time comparison to prevent timing attacks
+    import hmac as _hmac
+    return _hmac.compare_digest(api_key, expected_key)
 
 
 def normalize_template_var(value: str, default: str = "") -> str:
@@ -79,19 +94,21 @@ def normalize_template_var(value: str, default: str = "") -> str:
 
 
 def get_api_key_auth(request: Request) -> Optional[dict]:
-    """Check if request has valid API key auth. Returns user dict or None.
+    """Check if request has valid API key auth. Returns service dict or None.
 
-    This is used by dashboard endpoints that accept X-API-Key as an
-    alternative to JWT Bearer tokens.
+    SECURITY: This no longer grants 'admin' role. The previous implementation
+    granted role='admin' to any request with a matching X-API-Key, which was
+    a full admin backdoor. The service role is now 'service' (read-only dashboard
+    access) — endpoints requiring admin must use JWT auth with require_permission().
 
     Returns:
-        {"user_id": "service", "role": "admin", "auth_method": "api_key"}
+        {"user_id": "service", "role": "service", "auth_method": "api_key"}
         if valid API key, None otherwise.
     """
     if is_test_mode(request):
         return {
             "user_id": "service",
-            "role": "admin",
+            "role": "service",  # was 'admin' — security fix [E-06]
             "auth_method": "api_key",
         }
     return None
