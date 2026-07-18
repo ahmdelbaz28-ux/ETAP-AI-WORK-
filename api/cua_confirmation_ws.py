@@ -333,11 +333,23 @@ confirmation_broker = ConfirmationBroker()
 async def cua_confirmation_ws(websocket: WebSocket) -> None:
     """WebSocket endpoint handler for /ws/cua/confirmation.
 
+    SECURITY (CR-NEW-02): Previously this endpoint had NO authentication
+    and accepted client-supplied session_id values. A single attacker
+    could send two messages with different session_ids to bypass the
+    "two-person confirmation" rule for critical breaker/relay operations
+    — a life-safety bypass.
+
+    Now:
+    1. Requires a valid JWT in the 'token' query param or Authorization header
+    2. session_id is derived from the JWT user_id, NOT from the client
+    3. Each confirmation is tied to a real authenticated user
+    4. Origin validation prevents cross-site WebSocket hijacking
+
     Message protocol (JSON):
 
       Client → Server:
-        {"action": "confirm", "request_id": "...", "session_id": "..."}
-        {"action": "reject", "request_id": "...", "session_id": "...", "reason": "..."}
+        {"action": "confirm", "request_id": "..."}
+        {"action": "reject", "request_id": "...", "reason": "..."}
 
       Server → Client:
         {"type": "confirmation_request", "data": {...}}
@@ -345,6 +357,50 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         {"type": "pending_request", "data": {...}}  (on connect)
         {"type": "error", "message": "..."}
     """
+    # SECURITY: Authentication required
+    import os
+    import jwt as _jwt
+    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+
+    # Extract token from query param or Authorization header
+    token = websocket.query_params.get("token", "")
+    if not token:
+        auth_header = websocket.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+
+    if not token:
+        await websocket.close(code=1008, reason="Authentication required")
+        return
+
+    # Validate JWT
+    try:
+        payload = _jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub", "type"]},
+        )
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=1008, reason="Invalid token payload")
+            return
+    except _jwt.PyJWTError:
+        await websocket.close(code=1008, reason="Invalid or expired token")
+        return
+
+    # Origin validation (prevent CSWSH)
+    origin = websocket.headers.get("origin", "")
+    allowed_origins_env = os.getenv("ENGINEERING_SERVICE_CORS_ORIGINS", "")
+    if allowed_origins_env:
+        allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+        if origin and origin not in allowed:
+            await websocket.close(code=1008, reason="Origin not allowed")
+            return
+
     await confirmation_broker.connect(websocket)
     try:
         while True:
@@ -357,7 +413,9 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 
             action = data.get("action")
             request_id = data.get("request_id", "")
-            session_id = data.get("session_id", str(id(websocket)))
+            # SECURITY: session_id is derived from the JWT user_id, NOT client-supplied
+            # This prevents a single attacker from impersonating two confirmers
+            session_id = f"user:{user_id}"
 
             if action == "confirm":
                 result = await confirmation_broker.confirm(request_id, session_id)

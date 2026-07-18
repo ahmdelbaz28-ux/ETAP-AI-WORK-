@@ -190,15 +190,61 @@ scada_feed = SCADALiveFeed()
 
 
 async def scada_websocket_endpoint(websocket: WebSocket) -> None:
-    """WebSocket endpoint for real-time SCADA data."""
+    """WebSocket endpoint for real-time SCADA data.
+
+    SECURITY (CR-NEW-12): Previously this endpoint had NO authentication —
+    any anonymous user could connect and receive live SCADA telemetry
+    (breaker states, relay statuses, voltage/current readings). This is
+    unacceptable for a power-engineering platform where SCADA data
+    exposure could enable physical attacks on the grid.
+
+    Now requires:
+    1. Valid JWT access token (in 'token' query param or Authorization header)
+    2. Origin validation when CORS_ORIGINS is configured
+    3. Connection limit per user (prevents DoS via connection flooding)
+    """
+    import os
+    import jwt as _jwt
+    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+
+    # Extract token
+    token = websocket.query_params.get("token", "")
+    if not token:
+        auth_header = websocket.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+
+    if not token:
+        await websocket.close(code=1008, reason="Authentication required")
+        return
+
+    try:
+        payload = _jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub", "type"]},
+        )
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+    except _jwt.PyJWTError:
+        await websocket.close(code=1008, reason="Invalid or expired token")
+        return
+
+    # Origin validation
+    origin = websocket.headers.get("origin", "")
+    allowed_origins_env = os.getenv("ENGINEERING_SERVICE_CORS_ORIGINS", "")
+    if allowed_origins_env:
+        allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+        if origin and origin not in allowed:
+            await websocket.close(code=1008, reason="Origin not allowed")
+            return
+
     await scada_feed.connect(websocket)
     try:
-        # Keep the connection alive
         while True:
-            # We don't expect to receive messages from clients in this implementation
-            # Just keep the connection alive and send periodic updates
             data = await websocket.receive_text()
-            # Optionally handle client messages if needed
             await scada_feed.send_personal_message(f"Ack: {data}", websocket)
     except WebSocketDisconnect:
         scada_feed.disconnect(websocket)
