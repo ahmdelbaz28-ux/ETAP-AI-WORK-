@@ -76,12 +76,21 @@ class GenerateDigestRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _build_digest_context(
+async def _build_digest_context(
     email: str,
     period: str,
     user_name: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Build the template context for a user's digest."""
+    """Build the template context for a user's digest.
+
+    BUGFIX (E-22): Previously this was a synchronous function (def), but
+    callers awaited it (await _build_digest_context(...)), causing
+    TypeError: object dict can't be used in 'await' expression.
+    The test test_6_digest in tests/test_new_features.py expected async
+    behavior because log_email_send (called just before) is async and
+    uses async DB operations. Now declared async to match the call sites
+    at lines 169, 219, 241 and the test at line 248.
+    """
     now = datetime.now(UTC)
     if period == "weekly":
         window_hours = 24 * 7
