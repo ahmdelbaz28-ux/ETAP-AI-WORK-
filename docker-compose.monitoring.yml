@@ -173,8 +173,12 @@ services:
       - OTEL_SERVICE_NAME=engineering-service
       - OTEL_SERVICE_VERSION=${ENGINEERING_SERVICE_VERSION:-1.0.0}
       - OTEL_ENVIRONMENT=${ENVIRONMENT:-development}
-    env_file:
-      - .env.engineering-service
+    # SECURITY (LAUNCH-BLOCKER): Removed env_file: .env.engineering-service
+    # because the file does not exist in the repo. This caused
+    # 'docker compose --profile monitoring up' to fail with:
+    #   "env file .env.engineering-service not found"
+    # All required env vars are now passed via 'environment:' above or
+    # via the shell environment (export DATABASE_URL=... etc.).
     volumes:
       - etap_engineering_logs:/app/logs
       - etap_engineering_reports:/app/reports
