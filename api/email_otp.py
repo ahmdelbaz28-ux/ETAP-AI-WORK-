@@ -302,16 +302,73 @@ async def verify_otp_endpoint(
 
 @router.post(
     "/invalidate",
-    summary="Invalidate a pending OTP (admin/debug)",
+    summary="Invalidate a pending OTP (authenticated — self or admin)",
 )
 async def invalidate_otp_endpoint(
     request: Request,
     email: str,
     purpose: str,
 ) -> JSONResponse:
-    """Force-invalidate a pending OTP. Useful for logout flows or admin ops."""
+    """Force-invalidate a pending OTP.
+
+    SECURITY (E-03): Previously this endpoint had NO authentication — any
+    anonymous attacker could invalidate OTPs for any user, causing denial
+    of service and disrupting login/reset flows. Now requires:
+    - Valid JWT (user must be logged in), AND
+    - User can only invalidate their own OTP, OR be an admin.
+    """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    await invalidate_otp(email, purpose)
+
+    # Authentication: require a valid JWT
+    # We import here to avoid circular imports at module load time.
+    from api.dependencies import get_current_user
+    from fastapi import HTTPException
+
+    # Note: FastAPI dependency injection via Depends() cannot be retrofitted
+    # easily without changing the route signature. Instead, we manually
+    # extract the user from the request's Authorization header.
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to invalidate OTP.",
+        )
+    token = auth_header.split(" ", 1)[1].strip()
+
+    # Verify the JWT and load the user
+    from api.auth import decode_access_token
+    from api.database import get_db_context
+    try:
+        payload = decode_access_token(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(401, "Invalid token payload.")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid or expired token: {exc}",
+        ) from exc
+
+    # Load user from DB and check authorization
+    async with get_db_context() as db:
+        from sqlalchemy import select
+        from api.database import User
+        result = await db.execute(select(User).where(User.id == int(user_id)))
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise HTTPException(401, "User not found.")
+
+        # Authorization: user can only invalidate their own OTP, unless admin
+        user_email = getattr(user, "email", None)
+        user_role = getattr(user, "role", "user")
+        if user_email != email and user_role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot invalidate OTP for another user.",
+            )
+
+        await invalidate_otp(email, purpose)
+
     return JSONResponse(
         content={
             "success": True,

@@ -283,33 +283,19 @@ async def verify_magic_link(
 ) -> JSONResponse:
     """Verify a magic-link token. On success, returns JWT tokens.
 
-    Test mode: When X-API-Key matches, placeholder tokens (converted from
-    {{magic_link_token}} by the validator) are auto-verified so automated
-    tests can verify without the actual token.
+    SECURITY (E-05): The previous test-mode bypass accepted ANY token
+    containing the substring 'placeholder' and returned admin JWT tokens.
+    This was a full admin auth bypass — if the API key leaked (it was a
+    placeholder value in .env.example), an attacker could authenticate as
+    admin with any token containing 'placeholder'.
+
+    The bypass is now removed entirely. Tests must use real magic links
+    issued via the /request endpoint (test mode still skips rate limiting
+    and returns the real token in the response for test automation).
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    test_mode = is_test_mode(request)
-
-    # In test mode, auto-verify placeholder tokens
-    if test_mode and "placeholder" in body.token:
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "success": True,
-                "message": "Magic link verified successfully (test mode).",
-                "access_token": "test_access_token",
-                "refresh_token": "test_refresh_token",
-                "token_type": "bearer",
-                "user": {
-                    "id": "test-user-id",
-                    "email": "test@example.com",
-                    "username": "test_user",
-                    "role": "admin",
-                },
-                "test_mode": True,
-                "trace_id": trace_id,
-            },
-        )
+    # test_mode is still used to skip rate limiting in /request, but
+    # verification must always use the real token. No bypass here.
 
     success, rec, error = await _verify(body.token)
     if not success:
