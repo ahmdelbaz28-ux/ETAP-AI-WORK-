@@ -584,6 +584,15 @@ def setup_test_environment():
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
+    # SECURITY (E-09 test compat): Tests need to retrieve the reset_token
+    # from the forgot-password response to test the reset-password flow
+    # end-to-end. The production default is AUTH_RETURN_RESET_TOKEN=false
+    # (security fix E-09 in api/auth.py:985). For tests only, we re-enable
+    # it. ENVIRONMENT is left as 'development' (the default) so the guard
+    # in api/auth.py allows the override. In production, this env var is
+    # ignored and the token is sent via email only.
+    os.environ["ENVIRONMENT"] = "development"
+    os.environ["AUTH_RETURN_RESET_TOKEN"] = "true"
     # Disable Redis cache during tests — avoids the 7-second retry delay
     # (1+2+4s exponential backoff) when Redis is unavailable in CI.
     os.environ["ENGINEERING_SERVICE_CACHE_DISABLED"] = "true"

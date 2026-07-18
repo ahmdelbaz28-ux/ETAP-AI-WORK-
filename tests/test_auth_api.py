@@ -516,10 +516,22 @@ class TestChangePassword:
 
 
 class TestForgotPassword:
-    """Tests for the forgot-password endpoint."""
+    """Tests for the forgot-password endpoint.
+
+    SECURITY (E-09): In production, AUTH_RETURN_RESET_TOKEN defaults to
+    'false' and is force-disabled — reset tokens are sent via email only.
+    In tests, conftest.py sets AUTH_RETURN_RESET_TOKEN=true and
+    ENVIRONMENT=development so the test suite can retrieve the token
+    from the response to test the reset-password flow end-to-end.
+    """
 
     def test_forgot_password_success(self, client, registered_user):
-        """Requesting reset for an existing email returns 200 with a token."""
+        """Requesting reset for an existing email returns 200 with a token.
+
+        Note: reset_token is present ONLY because conftest.py sets
+        AUTH_RETURN_RESET_TOKEN=true for tests. In production, this
+        field is absent — the token goes via email only.
+        """
         resp = client.post(
             "/api/v1/auth/forgot-password",
             json={"email": "testuser@example.com"},
@@ -527,7 +539,10 @@ class TestForgotPassword:
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
         data = resp.json()
         assert "message" in data
-        assert "reset_token" in data, "Response should include reset_token for testability"
+        assert "reset_token" in data, (
+            "Response should include reset_token in test mode (conftest sets "
+            "AUTH_RETURN_RESET_TOKEN=true). In production this field is absent."
+        )
 
     def test_forgot_password_nonexistent_email(self, client):
         """Requesting reset for a non-existent email still returns 200."""
