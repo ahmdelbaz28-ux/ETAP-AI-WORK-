@@ -1339,60 +1339,52 @@ async def delete_user(
 
 # ---------------------------------------------------------------------------
 # Dev/test-only admin seed endpoint
+# SECURITY (LAUNCH-BLOCKER): Only registered when ENVIRONMENT != production.
+# In production, this endpoint does not exist at all (404, not just 403).
 # ---------------------------------------------------------------------------
 
+import os as _os_dev
+_DEV_ENV = _os_dev.getenv("ENVIRONMENT", "development").lower()
+if _DEV_ENV not in ("production", "prod", "staging"):
 
-@router.post(
-    "/_dev-seed-admin",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="[DEV ONLY] Seed an admin user directly (bypasses register)",
-    include_in_schema=False,  # hide from OpenAPI docs
-)
-async def dev_seed_admin(
-    body: dict,
-    db: DbDep,
-) -> Any:
-    """Create or update an admin user directly in the DB.
+    @router.post(
+        "/_dev-seed-admin",
+        response_model=UserResponse,
+        status_code=status.HTTP_201_CREATED,
+        summary="[DEV ONLY] Seed an admin user directly (bypasses register)",
+        include_in_schema=False,
+    )
+    async def dev_seed_admin(
+        body: dict,
+        db: DbDep,
+    ) -> Any:
+        """Create or update an admin user directly in the DB.
 
-    SECURITY: This endpoint is ONLY available when ENVIRONMENT is NOT
-    production/staging. It exists to support test fixtures that need
-    admin users without exposing role assignment via the public /register
-    endpoint (CR-NEW-01 fix).
+        SECURITY: This endpoint is ONLY available when ENVIRONMENT is NOT
+        production/staging. In production, this route is not registered.
+        """
+        username = body.get("username", "admin_user")
+        email = body.get("email", "admin@example.com")
+        password = body.get("password", "Str0ngP@ss!")
+        role = body.get("role", "admin")
 
-    In production, this endpoint returns 404 (not registered on the router).
-    """
-    import os as _os
-    _env = _os.getenv("ENVIRONMENT", "development").lower()
-    if _env in ("production", "prod", "staging"):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Not found",
-        )
+        result = await db.execute(select(User).where(User.username == username))
+        existing = result.scalar_one_or_none()
 
-    username = body.get("username", "admin_user")
-    email = body.get("email", "admin@example.com")
-    password = body.get("password", "Str0ngP@ss!")
-    role = body.get("role", "admin")
-
-    # Check if user exists
-    result = await db.execute(select(User).where(User.username == username))
-    existing = result.scalar_one_or_none()
-
-    if existing is None:
-        admin = User(
-            id=str(uuid.uuid4()),
-            username=username,
-            email=email,
-            password_hash=_hash_password(password),
-            role=role,
-            is_active=True,
-        )
-        db.add(admin)
-    else:
-        existing.password_hash = _hash_password(password)
-        existing.role = role
-        existing.is_active = True
-    await db.flush()
-    await db.refresh(existing if existing else admin)
-    return existing if existing else admin
+        if existing is None:
+            admin = User(
+                id=str(uuid.uuid4()),
+                username=username,
+                email=email,
+                password_hash=_hash_password(password),
+                role=role,
+                is_active=True,
+            )
+            db.add(admin)
+        else:
+            existing.password_hash = _hash_password(password)
+            existing.role = role
+            existing.is_active = True
+        await db.flush()
+        await db.refresh(existing if existing else admin)
+        return existing if existing else admin

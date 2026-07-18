@@ -5,10 +5,13 @@ Handles all SCADA data model endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1/scada", tags=["scada"])
+from api.dependencies import get_api_key
+
+# SECURITY (LAUNCH-BLOCKER): /live exposes breaker/switch positions — requires auth
+router = APIRouter(prefix="/api/v1/scada", tags=["scada"], dependencies=[Depends(get_api_key)])
 
 
 @router.get("/live")

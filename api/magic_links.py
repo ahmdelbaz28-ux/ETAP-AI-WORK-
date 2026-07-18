@@ -35,11 +35,12 @@ from dataclasses import dataclass
 from datetime import UTC
 from typing import Optional
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from api._test_mode import is_test_mode
+from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("etap.api.magic_links")
 
@@ -384,6 +385,7 @@ async def verify_magic_link(
 )
 async def invalidate_magic_links(
     request: Request,
+    user: CurrentUser = Depends(get_current_user_from_header),
 ) -> JSONResponse:
     """Invalidate all pending magic links for the given email.
 

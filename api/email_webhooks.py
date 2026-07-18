@@ -50,7 +50,13 @@ from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("etap.api.email_webhooks")
 
-router = APIRouter(prefix="/api/v1/email/webhooks", tags=["email", "webhooks"])
+# SECURITY (LAUNCH-BLOCKER): All webhook endpoints require auth —
+# list/delete/test/events expose PII and enable sabotage
+router = APIRouter(
+    prefix="/api/v1/email/webhooks",
+    tags=["email", "webhooks"],
+    dependencies=[Depends(get_current_user_from_header)],
+)
 
 
 # ---------------------------------------------------------------------------

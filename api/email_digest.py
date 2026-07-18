@@ -34,15 +34,18 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
+from api.dependencies import get_api_key
 from services.email_send_log import get_recent_sends
 
 logger = logging.getLogger("etap.api.email_digest")
 
-router = APIRouter(prefix="/api/v1/email-digest", tags=["email", "digest"])
+# SECURITY (LAUNCH-BLOCKER): All digest endpoints require auth —
+# /preview/{email} leaks PII, /generate enables spam, /schedule/run enables DoS
+router = APIRouter(prefix="/api/v1/email-digest", tags=["email", "digest"], dependencies=[Depends(get_api_key)])
 _DIGEST_TEMPLATE = "digest.html"
 
 

@@ -7,11 +7,13 @@ Separated from main engineering service for better modularity.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from api.dependencies import get_api_key
 from api.studies import SystemSpec, _build_system_from_spec
 
-router = APIRouter(prefix="/api/v1/system", tags=["validation"])
+# SECURITY (LAUNCH-BLOCKER): /validate requires auth — CPU-intensive endpoint
+router = APIRouter(prefix="/api/v1/system", tags=["validation"], dependencies=[Depends(get_api_key)])
 
 
 @router.post("/validate")

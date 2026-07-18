@@ -14,10 +14,15 @@ Enhanced with:
 """
 
 import numpy as np
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
+# SECURITY (LAUNCH-BLOCKER): All AI/ML endpoints require authentication.
+# Previously these 7 endpoints had NO auth — any anonymous user could
+# trigger ML training, predictions, and RAG queries (cost abuse + data access).
+from api.dependencies import get_api_key
+
+router = APIRouter(prefix="/api/v1", tags=["ai_ml"], dependencies=[Depends(get_api_key)])
 
 
 @router.get("/ml/capabilities")
