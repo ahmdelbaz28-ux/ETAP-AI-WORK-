@@ -53,6 +53,7 @@ except ImportError:
 
 import bcrypt
 import jwt
+import logging as _logging
 from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, Index, String, func, select
@@ -127,33 +128,72 @@ def _get_redis_client() -> Optional[redis_async.Redis]:
 
 
 async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
-    """Blacklist a refresh token JTI using Redis (with TTL)."""
+    """Blacklist a refresh token JTI using Redis (with TTL).
+
+    SECURITY (E-11): In production, if Redis is unreachable we cannot
+    guarantee the token is blacklisted. Logging out would silently fail,
+    leaving a 'logged out' token still valid. We log critically but
+    do not raise — logout should not 500. The check happens at verify time.
+    """
     r = _get_redis_client()
     if r is None:
-        return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
+        # Redis not configured — in production this is a deployment error.
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        if _env in ("production", "prod", "staging"):
+            _logging.getLogger(_AUTH_LOGGER_NAME).critical(
+                "blacklist_token_failed_redis_not_configured jti=%s env=%s "
+                "— token will remain valid until natural expiry. Configure "
+                "REDIS_URL in production.", jti, _env,
+            )
+        return  # dev: silently skip
     key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
     try:
         if ttl_seconds and ttl_seconds > 0:
             await r.set(key, "1", ex=int(ttl_seconds))
         else:
             await r.set(key, "1")
-    except (OSError, redis_async.RedisError):
-        # Redis unreachable — silently skip blacklisting (in-memory fallback
-        # would not survive restarts, so we prefer to log and continue).
-        pass
+    except (OSError, redis_async.RedisError) as exc:
+        # Redis unreachable — in production, this is a service degradation.
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        if _env in ("production", "prod", "staging"):
+            _logging.getLogger(_AUTH_LOGGER_NAME).critical(
+                "blacklist_token_failed_redis_unreachable jti=%s err=%s "
+                "— token remains valid. Investigate Redis connectivity.",
+                jti, exc,
+            )
+        # dev: silently skip
 
 
 async def _is_token_blacklisted(jti: str) -> bool:
-    """Check if token JTI is blacklisted in Redis."""
+    """Check if token JTI is blacklisted in Redis.
+
+    SECURITY (E-11): In production, if Redis is unreachable we cannot
+    verify whether a token was blacklisted (e.g. user logged out).
+    Returning False would let a revoked token pass — security hole.
+    We fail closed by raising HTTPException(503) in production.
+    """
     r = _get_redis_client()
     if r is None:
+        # Redis not configured — not blacklisted (token was never blacklisted).
         return False
     key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
     try:
         val = await r.get(key)
         return val is not None
-    except (OSError, redis_async.RedisError):
-        # Redis unreachable — assume not blacklisted so valid tokens still work.
+    except (OSError, redis_async.RedisError) as exc:
+        # Redis unreachable — fail-closed in production.
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        if _env in ("production", "prod", "staging"):
+            _logging.getLogger(_AUTH_LOGGER_NAME).critical(
+                "is_token_blacklisted_failed_redis_unreachable jti=%s err=%s "
+                "— failing closed (rejecting token) to prevent revoked "
+                "token reuse.", jti, exc,
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Session service temporarily unavailable. Please retry.",
+            )
+        # dev: assume not blacklisted so valid tokens still work
         return False
 
 
@@ -482,9 +522,25 @@ async def _check_rate_limit(username: str) -> None:
                     detail="Too many login attempts. Please try again later.",
                 )
             return
-        except (OSError, redis_async.RedisError):
-            # Redis is configured but unreachable — fall through to
-            # in-memory rate limiting so login still works.
+        except (OSError, redis_async.RedisError) as exc:
+            # SECURITY (E-12): In production, if Redis is configured but
+            # unreachable, falling back to in-memory rate limiting is
+            # dangerous — multiple replicas each have their own counter,
+            # so an attacker gets N× the allowed attempts. Fail closed
+            # (503) so the operator knows Redis is down.
+            _env = os.getenv("ENVIRONMENT", "development").lower()
+            if _env in ("production", "prod", "staging"):
+                _logging.getLogger(_AUTH_LOGGER_NAME).critical(
+                    "rate_limit_check_failed_redis_unreachable user=%s err=%s "
+                    "— failing closed (503) to prevent brute-force via "
+                    "replica-count multiplier effect.",
+                    username, exc,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail="Rate limit service temporarily unavailable. Please retry.",
+                )
+            # dev: fall through to in-memory rate limiting so login still works
             pass
 
     # In-memory fallback

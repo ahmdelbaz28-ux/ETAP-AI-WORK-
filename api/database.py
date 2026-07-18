@@ -298,6 +298,29 @@ async def init_db() -> None:
         if not _IS_POSTGRES:
             # SQLite has no fallback — re-raise so callers know.
             raise
+
+        # SECURITY/OPS (E-10): In production/staging, NEVER silently fall back
+        # to SQLite. The fallback stores data in /tmp which is wiped on every
+        # container restart — causing silent data loss. Multiple replicas would
+        # also have independent data stores, breaking consistency. In production,
+        # fail loudly so the operator can fix Postgres and restart.
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        if _env in ("production", "prod", "staging"):
+            logger.critical(
+                "Primary PostgreSQL database unreachable in %s environment: %s. "
+                "REFUSING to fall back to SQLite in production — data would be "
+                "lost on restart. Set DATABASE_URL to a reachable Postgres "
+                "instance (e.g. resume the Supabase project) and restart.",
+                _env,
+                exc,
+            )
+            raise RuntimeError(
+                f"Database connection failed in {_env} environment. "
+                "SQLite fallback is disabled in production. "
+                "Fix DATABASE_URL and restart."
+            ) from exc
+
+        # Development only: fall back to SQLite with a loud warning
         logger.exception(
             "Primary PostgreSQL database unreachable: %s. "
             "Falling back to local SQLite at %s. The platform will run "

@@ -69,9 +69,52 @@ async def healthz() -> Dict[str, str]:
 @router.head("/readyz")
 @router.get("/readyz")
 async def readyz() -> Dict[str, object]:
-    """Readiness probe — checks critical dependencies."""
-    checks = {"python": True, "imports": True}
-    all_ready = all(checks.values())
+    """Readiness probe — checks critical dependencies.
+
+    SECURITY/OPS (E-07): Previously this returned a hardcoded {"ready": True}
+    regardless of DB/Redis state. K8s/HF would route traffic to a broken
+    instance. Now performs real checks on DB + Redis and returns 503 if
+    any critical dependency is down.
+    """
+    checks: Dict[str, object] = {"python": True, "imports": True}
+
+    # DB check
+    try:
+        from api.database import get_db_context
+        from sqlalchemy import text
+        async with get_db_context() as db:
+            result = await db.execute(text("SELECT 1"))
+            if result.scalar() == 1:
+                checks["db"] = "ok"
+            else:
+                checks["db"] = "fail: unexpected scalar"
+    except Exception as exc:
+        checks["db"] = f"fail: {type(exc).__name__}: {exc}"
+
+    # Redis check
+    try:
+        from api.auth import _get_redis_client
+        r = _get_redis_client()
+        if r is None:
+            # Redis is optional — mark as not-configured, not failed
+            checks["redis"] = "not_configured"
+        else:
+            await r.ping()
+            checks["redis"] = "ok"
+    except Exception as exc:
+        checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
+
+    # Critical dependencies: DB must be ok. Redis is optional in dev but
+    # required in production (fail-closed if configured but unreachable).
+    import os as _os
+    _env = _os.getenv("ENVIRONMENT", "development").lower()
+    is_prod = _env in ("production", "prod", "staging")
+
+    db_ok = checks["db"] == "ok"
+    redis_ok = checks["redis"] == "ok"
+    redis_required = is_prod
+
+    all_ready = db_ok and (redis_ok or not redis_required)
     return {"ready": all_ready, "checks": checks}
 
 
