@@ -64,6 +64,12 @@ ENV TORCH_HOME=/tmp/cache
 ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
 ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
 
+# Force production mode — enables all security guards (no test-mode bypass,
+# no weak JWT fallback, no AUTH_RETURN_RESET_TOKEN leak).
+# See api/dependencies.py:35, api/routes.py:101/114/131.
+ENV ENVIRONMENT=production
+ENV AUTH_RETURN_RESET_TOKEN=false
+
 # Nginx config for HF Spaces (kept as a file to avoid Dockerfile linter false-positives)
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 

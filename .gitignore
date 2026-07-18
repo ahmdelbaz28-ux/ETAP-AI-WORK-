@@ -9,6 +9,12 @@ build/
 venv/
 env/
 
+# Environment files — NEVER commit real secrets
+.env
+.env.*
+!.env.example
+!.env.example.*
+
 # Scan / temp files
 dead_code_report.json
 dead_code_scan.py
@@ -43,3 +49,6 @@ security_audit.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Local audit reports
+reports/

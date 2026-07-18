@@ -982,11 +982,17 @@ async def forgot_password(
                 "password_reset_email_failed email=%s err=%s", user.email, exc
             )
 
-        # In production, the reset token is sent via email (above) and NOT
-        # returned in the response. We still return it here for testability
-        # AND because the existing test suite depends on it. Toggle with
-        # env var AUTH_RETURN_RESET_TOKEN=true (default) for backward compat.
-        if os.getenv("AUTH_RETURN_RESET_TOKEN", "true").lower() == "true":
+        # In production, the reset token is sent via email (above) and MUST NOT
+        # be returned in the response. Returning it would leak through any
+        # proxy/log aggregator that captures response bodies.
+        # Toggle with env var AUTH_RETURN_RESET_TOKEN=true (default false).
+        # Force-disabled in production/staging regardless of env var.
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        _return_reset = (
+            os.getenv("AUTH_RETURN_RESET_TOKEN", "false").lower() == "true"
+            and _env not in ("production", "prod", "staging")
+        )
+        if _return_reset:
             return {
                 "message": "If the email exists, a reset token has been sent",
                 "reset_token": reset_token,
