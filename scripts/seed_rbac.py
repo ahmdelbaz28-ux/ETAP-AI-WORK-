@@ -4,10 +4,19 @@ scripts/seed_rbac.py — Seed default RBAC roles and permissions.
 Run this script to initialize the database with:
 - Core permissions (read, write, delete, manage for each resource)
 - Default system roles (admin, engineer, viewer, guest)
-- Admin user gets the admin role automatically
+- Admin role assigned ONLY to a specified user (NOT all users)
+
+SECURITY (LAUNCH-BLOCKER): The previous version assigned admin role to
+ALL existing users — a critical privilege escalation. Now admin is
+assigned only to:
+1. A user specified via --admin-username or --admin-email CLI arg
+2. Or the first user in the database (if no arg given)
+3. Or no user (if database is empty — admin must be created separately)
 
 Usage:
-    python scripts/seed_rbac.py
+    python scripts/seed_rbac.py                          # assigns admin to first user
+    python scripts/seed_rbac.py --admin-username admin   # assigns admin to 'admin' user
+    python scripts/seed_rbac.py --admin-email admin@example.com  # by email
 
 Requires:
     - DATABASE_URL environment variable (or defaults to SQLite)
@@ -207,27 +216,66 @@ async def seed_rbac() -> None:
 
             print("[RBAC Seed] Permissions assigned to roles.")
 
-            # ── Assign admin role to all existing users ────────────────────
-            user_result = await session.execute(select(User))
-            users = user_result.scalars().all()
-            for user in users:
+            # ── Assign admin role to ONE specified user (NOT all users) ──
+            # SECURITY (LAUNCH-BLOCKER): Previous version gave admin to
+            # ALL users. Now admin is assigned to only one user:
+            # 1. --admin-username arg if provided
+            # 2. --admin-email arg if provided
+            # 3. First user in DB (if no arg)
+            # 4. No one (if DB is empty)
+            import argparse as _ap
+            _parser = _ap.ArgumentParser(description="Seed RBAC")
+            _parser.add_argument("--admin-username", default=None,
+                                 help="Username to assign admin role")
+            _parser.add_argument("--admin-email", default=None,
+                                 help="Email to assign admin role")
+            _args, _ = _parser.parse_known_args()
+
+            target_user = None
+            if _args.admin_username:
+                user_result = await session.execute(
+                    select(User).where(User.username == _args.admin_username)
+                )
+                target_user = user_result.scalar_one_or_none()
+                if target_user is None:
+                    print(f"[RBAC Seed] ⚠️  User '{_args.admin_username}' not found — no admin assigned.")
+            elif _args.admin_email:
+                user_result = await session.execute(
+                    select(User).where(User.email == _args.admin_email)
+                )
+                target_user = user_result.scalar_one_or_none()
+                if target_user is None:
+                    print(f"[RBAC Seed] ⚠️  User '{_args.admin_email}' not found — no admin assigned.")
+            else:
+                # Default: assign to first user (oldest account)
+                user_result = await session.execute(
+                    select(User).order_by(User.created_at.asc()).limit(1)
+                )
+                target_user = user_result.scalar_one_or_none()
+                if target_user:
+                    print(f"[RBAC Seed] No --admin-username specified. Assigning admin to first user: '{target_user.username}'")
+
+            if target_user is not None:
                 # Check if already assigned
                 existing_ur = await session.execute(
                     select(UserRole).where(
-                        UserRole.user_id == user.id,
+                        UserRole.user_id == target_user.id,
                         UserRole.role_id == admin_role.id,
                     )
                 )
                 if existing_ur.scalar_one_or_none() is None:
                     user_role = UserRole(
                         id=str(uuid.uuid4()),
-                        user_id=user.id,
+                        user_id=target_user.id,
                         role_id=admin_role.id,
                         assigned_by="system",
                     )
                     session.add(user_role)
-
-            print(f"[RBAC Seed] Assigned admin role to {len(users)} existing user(s).")
+                    print(f"[RBAC Seed] ✅ Assigned admin role to user: '{target_user.username}'")
+                else:
+                    print(f"[RBAC Seed] User '{target_user.username}' already has admin role.")
+            else:
+                print("[RBAC Seed] ⚠️  No users in database. Create a user first, then re-run with --admin-username.")
 
             await session.commit()
 
