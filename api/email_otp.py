@@ -32,11 +32,12 @@ import hashlib
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from api._test_mode import is_test_mode, normalize_template_var
+from api.dependencies import CurrentUser, get_current_user_from_header
 from services.email_service import send_email_otp
 from services.otp_store import (
     OTP_TTL_SECONDS,
@@ -308,66 +309,30 @@ async def invalidate_otp_endpoint(
     request: Request,
     email: str,
     purpose: str,
+    current_user: CurrentUser = Depends(get_current_user_from_header),
 ) -> JSONResponse:
     """Force-invalidate a pending OTP.
 
     SECURITY (E-03): Previously this endpoint had NO authentication — any
     anonymous attacker could invalidate OTPs for any user, causing denial
-    of service and disrupting login/reset flows. Now requires:
-    - Valid JWT (user must be logged in), AND
-    - User can only invalidate their own OTP, OR be an admin.
+    of service and disrupting login/reset flows. Now uses FastAPI's
+    dependency injection (Depends(get_current_user_from_header)) for
+    proper JWT auth — same pattern as the rest of the auth subsystem.
+
+    Authorization:
+    - User can invalidate their own OTP (email matches), OR
+    - User with role='admin' can invalidate any user's OTP.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
 
-    # Authentication: require a valid JWT
-    # We import here to avoid circular imports at module load time.
-    from api.dependencies import get_current_user
-    from fastapi import HTTPException
-
-    # Note: FastAPI dependency injection via Depends() cannot be retrofitted
-    # easily without changing the route signature. Instead, we manually
-    # extract the user from the request's Authorization header.
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header.lower().startswith("bearer "):
+    # Authorization check: self-service OR admin override
+    if current_user.email.lower() != email.lower() and current_user.role != "admin":
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required to invalidate OTP.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot invalidate OTP for another user.",
         )
-    token = auth_header.split(" ", 1)[1].strip()
 
-    # Verify the JWT and load the user
-    from api.auth import decode_access_token
-    from api.database import get_db_context
-    try:
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
-        if not user_id:
-            raise HTTPException(401, "Invalid token payload.")
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or expired token: {exc}",
-        ) from exc
-
-    # Load user from DB and check authorization
-    async with get_db_context() as db:
-        from sqlalchemy import select
-        from api.database import User
-        result = await db.execute(select(User).where(User.id == int(user_id)))
-        user = result.scalar_one_or_none()
-        if user is None:
-            raise HTTPException(401, "User not found.")
-
-        # Authorization: user can only invalidate their own OTP, unless admin
-        user_email = getattr(user, "email", None)
-        user_role = getattr(user, "role", "user")
-        if user_email != email and user_role != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot invalidate OTP for another user.",
-            )
-
-        await invalidate_otp(email, purpose)
+    await invalidate_otp(email, purpose)
 
     return JSONResponse(
         content={
