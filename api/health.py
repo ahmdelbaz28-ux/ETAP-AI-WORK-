@@ -10,7 +10,7 @@ import time
 from typing import Dict
 
 from fastapi import APIRouter, Request
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -130,7 +130,15 @@ async def readyz() -> Dict[str, object]:
     redis_required = is_prod
 
     all_ready = db_ok and (redis_ok or not redis_required)
-    return {"ready": all_ready, "checks": checks}
+    # SECURITY (LB-2): Return HTTP 503 when not ready — K8s/HF readiness
+    # probes check the HTTP status code, not the JSON body. Previously
+    # this always returned 200, so the probe would route traffic to a
+    # broken instance even when DB/Redis were down.
+    status_code = 200 if all_ready else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={"ready": all_ready, "checks": checks},
+    )
 
 
 @router.head("/health")
