@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from api.dependencies import get_api_key
+from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -505,12 +505,22 @@ async def etap_gui_activate_kill_switch(
 @router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
 async def etap_gui_deactivate_kill_switch(
     _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),
 ):
     """Deactivate the CUA kill switch.
 
-    Use with caution — only after the safety issue that triggered the
-    kill switch has been resolved and reviewed.
+    SECURITY (LAUNCH-BLOCKER): Requires admin role. Deactivating the kill
+    switch resumes potentially hazardous automated operations — this must
+    only be done by an authorized supervisor after verifying the safety
+    issue is resolved.
     """
+    if user.role != "admin":
+        from fastapi import HTTPException
+        from starlette import status as http_status
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can deactivate the kill switch.",
+        )
     from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
 
     was_active = deactivate_kill_switch()
