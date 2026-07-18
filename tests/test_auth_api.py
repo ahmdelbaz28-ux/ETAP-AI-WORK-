@@ -61,14 +61,20 @@ class TestRegister:
     """Tests for the user registration endpoint."""
 
     def test_register_success(self, client):
-        """Registering with valid data returns 201 and the user profile."""
+        """Registering with valid data returns 201 and the user profile.
+
+        SECURITY (CR-NEW-01): The request no longer accepts a 'role' field.
+        All new users get role='engineer' (hardcoded in api/auth.py:631).
+        Admin accounts must be created via scripts/seed_rbac.py or by an
+        existing admin via the RBAC endpoints.
+        """
         resp = client.post(
             "/api/v1/auth/register",
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
                 "password": TEST_USER_PASSWORD,
-                "role": "engineer",
+                # NOTE: 'role' intentionally omitted — CR-NEW-01 fix
             },
         )
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
@@ -79,6 +85,27 @@ class TestRegister:
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"
+
+    def test_register_rejects_role_field(self, client):
+        """SECURITY (CR-NEW-01): Requests with a 'role' field must be rejected.
+
+        Previously, any anonymous user could create an admin account by
+        sending {"role": "admin"} in the register request. Now Pydantic
+        rejects extra fields with 422.
+        """
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "attacker",
+                "email": "attacker@example.com",
+                "password": TEST_USER_PASSWORD,
+                "role": "admin",  # This must be REJECTED
+            },
+        )
+        assert resp.status_code == 422, (
+            f"Expected 422 for role field, got {resp.status_code}: {resp.text}. "
+            "CR-NEW-01: role field must be rejected to prevent privilege escalation."
+        )
 
     def test_register_duplicate_username(self, client):
         """Registering with an existing username returns 409."""

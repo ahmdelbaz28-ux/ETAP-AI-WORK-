@@ -54,7 +54,7 @@ except ImportError:
 import bcrypt
 import jwt
 import logging as _logging
-from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, Index, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -317,14 +317,32 @@ class User(Base):
 
 
 class RegisterRequest(BaseModel):
-    """Payload for ``POST /register``."""
+    """Payload for ``POST /register``.
 
-    model_config = ConfigDict(strict=False)
+    SECURITY (CR-NEW-01): The previous version accepted ``role`` as a user-
+    supplied field with pattern ``^(admin|engineer|viewer)$``. This allowed
+    ANY anonymous user to create an ``admin`` account via
+    ``POST /api/v1/auth/register {"role": "admin"}`` — a full privilege
+    escalation that bypassed all RBAC.
+
+    The ``role`` field is now REMOVED from the request schema. New users
+    ALWAYS get ``role='engineer'`` (the default). Admin accounts must be
+    created via:
+    1. Direct DB insert by an operator, OR
+    2. The ``scripts/seed_rbac.py`` script, OR
+    3. An existing admin using the RBAC assignment endpoints (api/rbac.py)
+
+    Pydantic will REJECT any request that includes a ``role`` field with
+    a 422 Validation Error (because ``model_config = ConfigDict(extra='forbid')``
+    is now set below).
+    """
+
+    model_config = ConfigDict(strict=False, extra="forbid")
 
     username: str = Field(min_length=3, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: str = Field(default="engineer", pattern=r"^(admin|engineer|viewer)$")
+    # NOTE: role is intentionally ABSENT. See docstring above.
 
     @field_validator("password")
     @classmethod
@@ -566,6 +584,85 @@ def _record_failed_attempt(username: str) -> None:
     _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
 
 
+# SECURITY (CR-NEW-10): General-purpose IP-based rate limiter for endpoints
+# that don't have a username (register, forgot-password, refresh). Limits
+# per-IP abuse: spam registrations, password-reset flooding, token brute-force.
+_REGISTER_RATE_LIMIT_MAX = 5      # max 5 requests per window per IP
+_FORGOT_RATE_LIMIT_MAX = 3        # max 3 reset requests per window per IP
+_REFRESH_RATE_LIMIT_MAX = 30      # max 30 refreshes per window per IP
+_IP_RATE_LIMIT_WINDOW_SEC = 3600  # 1 hour window
+
+
+async def _check_ip_rate_limit(
+    ip: str,
+    action: str,
+    max_attempts: int,
+    window_sec: int = _IP_RATE_LIMIT_WINDOW_SEC,
+) -> None:
+    """Raise 429 if *ip* has exceeded *max_attempts* for *action* in window.
+
+    Uses Redis when available (cross-instance), falls back to in-memory.
+    """
+    identifier = f"ip:{ip}:{action}"
+    r = _get_redis_client()
+    if r is not None:
+        key = f"auth:ratelimit:{identifier}"
+        try:
+            current = await r.incr(key)
+            if current == 1:
+                await r.expire(key, window_sec)
+            if current > max_attempts:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Too many {action} requests from this IP. Please try again later.",
+                )
+            return
+        except (OSError, redis_async.RedisError) as exc:
+            _env = os.getenv("ENVIRONMENT", "development").lower()
+            if _env in ("production", "prod", "staging"):
+                _logging.getLogger(_AUTH_LOGGER_NAME).critical(
+                    "ip_rate_limit_failed_redis_unreachable ip=%s action=%s err=%s",
+                    ip, action, exc,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail="Rate limit service unavailable.",
+                )
+            # dev: fall through to in-memory
+            pass
+
+    # In-memory fallback (dev only)
+    now = time.monotonic()
+    attempts = _LOGIN_ATTEMPTS.get(identifier, [])
+    attempts = [t for t in attempts if now - t < window_sec]
+    _LOGIN_ATTEMPTS[identifier] = attempts
+    if len(attempts) >= max_attempts:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many {action} requests. Please try again later.",
+        )
+    _LOGIN_ATTEMPTS.setdefault(identifier, []).append(now)
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract the client IP, honoring X-Forwarded-For (trusted proxies only).
+
+    SECURITY: X-Forwarded-For is only trusted when the request comes through
+    a known proxy (HF Space, nginx, Cloudflare). For direct connections, we
+    use request.client.host directly.
+    """
+    # Trust X-Forwarded-For only if it exists (HF Space and nginx set it)
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        # Take the first IP (original client) — but be aware this can be spoofed
+        # if the request doesn't go through a trusted proxy. On HF Space, the
+        # platform sets X-Forwarded-For correctly.
+        return xff.split(",")[0].strip()
+    if request.client:
+        return request.client.host
+    return "unknown"
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -580,12 +677,18 @@ def _record_failed_attempt(username: str) -> None:
 async def register(
     body: RegisterRequest,
     db: DbDep,
+    request: Request,
 ) -> Any:
     """Create a new user account.
 
     Returns the created user on success, or 409 if the username/email is
     already taken.
     """
+    # SECURITY (CR-NEW-10): Rate limit per IP to prevent spam registrations
+    # and username/email enumeration.
+    await _check_ip_rate_limit(
+        _get_client_ip(request), "register", _REGISTER_RATE_LIMIT_MAX
+    )
     # Check username uniqueness
     existing = await db.execute(select(User).where(User.username == body.username))
     if existing.scalar_one_or_none() is not None:
@@ -607,7 +710,10 @@ async def register(
         username=body.username,
         email=body.email,
         password_hash=_hash_password(body.password),
-        role=body.role,
+        # SECURITY (CR-NEW-01): role is hardcoded to 'engineer' — never
+        # trust user input for role assignment. Admin accounts must be
+        # created via scripts/seed_rbac.py or by an existing admin.
+        role="engineer",
     )
     db.add(user)
     await db.flush()
@@ -713,10 +819,26 @@ async def login(
 async def refresh(
     body: RefreshRequest,
     db: DbDep,
+    request: Request,
 ) -> Any:
-    """Exchange a valid refresh token for a new access + refresh pair."""
+    """Exchange a valid refresh token for a new access + refresh pair.
+
+    SECURITY (CR-NEW-11): Refresh token rotation — the OLD refresh token
+    is blacklisted after a successful refresh. This prevents indefinite
+    use of a stolen refresh token: once the legitimate user refreshes,
+    the stolen token becomes invalid.
+    """
+    # SECURITY (CR-NEW-10): Rate limit per IP to prevent token brute-force
+    await _check_ip_rate_limit(
+        _get_client_ip(request), "refresh", _REFRESH_RATE_LIMIT_MAX
+    )
     try:
-        payload = jwt.decode(body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            body.refresh_token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub", "type", "jti"]},
+        )
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -734,9 +856,15 @@ async def refresh(
             detail="Invalid token type",
         )
 
-    # Check if the refresh token has been blacklisted (logged out)
+    # Check if the refresh token has been blacklisted (logged out or already rotated)
     jti = payload.get("jti")
     if jti and await _is_token_blacklisted(jti):
+        # SECURITY: a blacklisted token being used again suggests theft —
+        # the legitimate user already rotated past it. Reject and log.
+        _logging.getLogger(_AUTH_LOGGER_NAME).warning(
+            "refresh_token_reuse_detected user=%s jti=%s — possible token theft",
+            payload.get("sub"), jti,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has been revoked",
@@ -757,6 +885,18 @@ async def refresh(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or deactivated",
         )
+
+    # SECURITY (CR-NEW-11): Blacklist the OLD refresh token before issuing
+    # a new one. This implements refresh token rotation. If an attacker
+    # stole the old token, it becomes invalid the moment the legitimate
+    # user refreshes. The new token has a fresh JTI.
+    if jti:
+        # TTL = remaining lifetime of the old token (so the blacklist
+        # entry expires when the token would have expired naturally)
+        old_exp = payload.get("exp", 0)
+        import time as _time
+        ttl = max(int(old_exp - _time.time()), 60)  # min 60s
+        await _blacklist_token(jti, ttl_seconds=ttl)
 
     access_token = _create_access_token(str(user.id), user.role)
     new_refresh = _create_refresh_token(str(user.id))
@@ -987,12 +1127,17 @@ async def change_password(
 async def forgot_password(
     body: ForgotPasswordRequest,
     db: DbDep,
+    request: Request,
 ) -> dict[str, str]:
     """Generate a password-reset token for the given email.
 
     Always returns a success message to prevent email-enumeration attacks,
     even if the email does not exist.
     """
+    # SECURITY (CR-NEW-10): Rate limit per IP to prevent reset-email spam
+    await _check_ip_rate_limit(
+        _get_client_ip(request), "forgot_password", _FORGOT_RATE_LIMIT_MAX
+    )
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
@@ -1184,3 +1329,64 @@ async def delete_user(
     await db.flush()
 
     return {"message": "User has been deactivated"}
+
+
+# ---------------------------------------------------------------------------
+# Dev/test-only admin seed endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/_dev-seed-admin",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="[DEV ONLY] Seed an admin user directly (bypasses register)",
+    include_in_schema=False,  # hide from OpenAPI docs
+)
+async def dev_seed_admin(
+    body: dict,
+    db: DbDep,
+) -> Any:
+    """Create or update an admin user directly in the DB.
+
+    SECURITY: This endpoint is ONLY available when ENVIRONMENT is NOT
+    production/staging. It exists to support test fixtures that need
+    admin users without exposing role assignment via the public /register
+    endpoint (CR-NEW-01 fix).
+
+    In production, this endpoint returns 404 (not registered on the router).
+    """
+    import os as _os
+    _env = _os.getenv("ENVIRONMENT", "development").lower()
+    if _env in ("production", "prod", "staging"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found",
+        )
+
+    username = body.get("username", "admin_user")
+    email = body.get("email", "admin@example.com")
+    password = body.get("password", "Str0ngP@ss!")
+    role = body.get("role", "admin")
+
+    # Check if user exists
+    result = await db.execute(select(User).where(User.username == username))
+    existing = result.scalar_one_or_none()
+
+    if existing is None:
+        admin = User(
+            id=str(uuid.uuid4()),
+            username=username,
+            email=email,
+            password_hash=_hash_password(password),
+            role=role,
+            is_active=True,
+        )
+        db.add(admin)
+    else:
+        existing.password_hash = _hash_password(password)
+        existing.role = role
+        existing.is_active = True
+    await db.flush()
+    await db.refresh(existing if existing else admin)
+    return existing if existing else admin

@@ -273,11 +273,37 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
         # No API key configured — skip validation
         return ""
 
-    # JWT bypass: if a Bearer token is present, skip the API key check.
-    # The downstream CurrentUser dependency (if any) will validate the JWT.
+    # SECURITY (CR-NEW-09): The previous implementation accepted ANY
+    # 'Bearer ...' header and returned "" (success) without validating
+    # the JWT. This meant endpoints depending ONLY on get_api_key()
+    # (without a separate CurrentUser dependency) could be accessed
+    # with any string after 'Bearer ' — a complete auth bypass.
+    #
+    # Now: if a Bearer token is present, we REQUIRE it to be a valid JWT.
+    # If JWT validation fails, we raise 401. If it succeeds, we return
+    # "" (the JWT path is handled by the downstream CurrentUser dep).
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
-        return ""
+        token = auth_header.split(" ", 1)[1].strip()
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Empty Bearer token",
+            )
+        # Validate the JWT — raises HTTPException(401) on invalid/expired
+        try:
+            jwt.decode(
+                token,
+                JWT_SECRET_KEY,
+                algorithms=[JWT_ALGORITHM],
+                options={"require": ["exp", "sub"]},
+            )
+        except jwt.PyJWTError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid or expired token: {exc}",
+            ) from exc
+        return ""  # JWT is valid — downstream CurrentUser will load the user
 
     if not x_api_key:
         raise HTTPException(

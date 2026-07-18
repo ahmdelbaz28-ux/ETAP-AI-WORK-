@@ -878,18 +878,23 @@ def _register_user(
     username: str = "testuser",
     email: str = "testuser@example.com",
     password: str = _TEST_DEFAULT_PASSWORD,
-    role: str = "engineer",
+    role: str = "engineer",  # kept for backward compat with callers, but IGNORED
 ) -> dict:
-    """Call POST /api/v1/auth/register and return the JSON response."""
-    resp = client.post(
-        "/api/v1/auth/register",
-        json={
-            "username": username,
-            "email": email,
-            "password": password,
-            "role": role,
-        },
-    )
+    """Call POST /api/v1/auth/register and return the JSON response.
+
+    SECURITY (CR-NEW-01): The 'role' parameter is accepted for backward
+    compatibility with existing test callers, but it is NOT sent in the
+    request body. The server always assigns role='engineer' to new users.
+    Tests that need an admin user should use the seed_rbac.py script or
+    directly insert into the DB via the db_session fixture.
+    """
+    payload = {
+        "username": username,
+        "email": email,
+        "password": password,
+        # NOTE: 'role' intentionally NOT sent — CR-NEW-01 fix
+    }
+    resp = client.post("/api/v1/auth/register", json=payload)
     assert resp.status_code in (200, 201), f"Registration failed: {resp.status_code} {resp.text}"
     return resp.json()
 
@@ -928,13 +933,31 @@ def auth_headers(client, registered_user: dict) -> dict:
 
 @pytest.fixture
 def admin_headers(client) -> dict:
-    """Register an admin user and return Authorization headers."""
-    _register_user(
-        client,
-        username="admin_user",
-        email="admin@example.com",
-        role="admin",
+    """Create an admin user via the dev-only seed endpoint and return auth headers.
+
+    SECURITY (CR-NEW-01): Admin accounts can no longer be created via the
+    public /register API endpoint. This fixture uses the /_dev-seed-admin
+    endpoint (which is ONLY available when ENVIRONMENT != production) to
+    create the admin user through the app's own DB session, ensuring
+    visibility across the async engine's connection pool.
+
+    In production, /_dev-seed-admin returns 404 — tests cannot create
+    admins via API.
+    """
+    # Seed admin via the dev endpoint (uses the app's DB session)
+    resp = client.post(
+        "/api/v1/auth/_dev-seed-admin",
+        json={
+            "username": "admin_user",
+            "email": "admin@example.com",
+            "password": _TEST_DEFAULT_PASSWORD,
+            "role": "admin",
+        },
     )
+    assert resp.status_code in (200, 201), (
+        f"Admin seed failed: {resp.status_code} {resp.text}"
+    )
+
     login_data = _login_user(client, username="admin_user")
     return _auth_headers(login_data["access_token"])
 
