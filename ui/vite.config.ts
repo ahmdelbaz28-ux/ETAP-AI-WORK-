@@ -38,7 +38,7 @@ export default defineConfig({
           // Split vendor libraries into separate chunks for better caching
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "charts-vendor": ["recharts"],
-          "animation-vendor": ["framer-motion"],
+          "animation-vendor": ["framer-motion", "gsap", "gsap/ScrollTrigger", "gsap/TextPlugin", "gsap/MotionPathPlugin", "gsap/Flip"],
           "icons-vendor": ["lucide-react", "react-icons"],
           "state-vendor": ["zustand", "@tanstack/react-query"],
           "i18n-vendor": ["i18next", "react-i18next", "i18next-browser-languagedetector"],

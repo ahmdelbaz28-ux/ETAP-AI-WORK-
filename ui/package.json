@@ -22,12 +22,18 @@
   "build": {
     "appId": "com.etap.ai-platform",
     "productName": "Ahmed etap Platform",
-    "files": ["dist/**/*", "electron/**/*"],
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
     "directories": {
       "output": "release"
     },
     "win": {
-      "target": ["nsis", "msi"],
+      "target": [
+        "nsis",
+        "msi"
+      ],
       "icon": "public/favicon.svg"
     },
     "nsis": {
@@ -40,7 +46,10 @@
       "createStartMenuShortcut": true
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "public/favicon.svg"
     }
   },
@@ -48,7 +57,8 @@
     "@tailwindcss/vite": "4.3.2",
     "@tanstack/react-query": "^5.101.1",
     "clsx": "2.1.1",
-    "framer-motion": "11.18.0",
+    "framer-motion": "^11.0.8",
+    "gsap": "^3.15.0",
     "i18next": "24.2.2",
     "i18next-browser-languagedetector": "8.0.4",
     "lucide-react": "^0.468.0",

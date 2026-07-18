@@ -1,4 +1,4 @@
-import { type ReactNode, Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
@@ -9,26 +9,62 @@ import { ErrorRecovery } from "./components/context/ErrorRecovery";
 import { MagicHelpInspector } from "./components/help/MagicHelpInspector";
 import { SmartHelpDrawer } from "./components/help/SmartHelpDrawer";
 import { OnboardingTour } from "./components/onboarding/OnboardingTour";
+import { GSAPRouteTransition } from "./components/GSAPPageTransition";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./hooks/useAuth";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useAppStore } from "./store";
 import "./i18n";
+import { gsap } from "gsap";
 
-// Lazy-loaded page components — loaded on demand
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-      <span className="text-sm text-[var(--text-muted)]">Loading...</span>
+// Lazy-loaded page components with GSAP loading animation
+const LoadingFallback = () => {
+  const loadingRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!loadingRef.current) return;
+    
+    const ctx = gsap.context(() => {
+      // Spinner animation
+      gsap.to(".loading-spinner", {
+        rotation: 360,
+        duration: 1.5,
+        repeat: -1,
+        ease: "power2.inOut"
+      });
+      
+      // Loading text animation
+      gsap.to(".loading-text", {
+        opacity: 0.7,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+      
+      // Power surge effect
+      gsap.to(".loading-container", {
+        boxShadow: "0 0 15px rgba(0, 212, 255, 0.3)",
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    });
+    
+    return () => ctx.revert();
+  }, []);
+  
+  return (
+    <div ref={loadingRef} className="loading-container flex items-center justify-center h-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="loading-spinner w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+        <span className="loading-text text-sm text-[var(--text-muted)]">Loading...</span>
+      </div>
     </div>
-  </div>
-);
-
-const LazyPage = ({ children }: { children: ReactNode }) => (
-  <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
-);
+  );
+};
 
 const DashboardPage = lazy(() => import("./pages/Dashboard"));
 const StudiesPage = lazy(() => import("./pages/Studies"));
@@ -158,21 +194,25 @@ export default function App() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
-              {/* Auth routes - no Layout */}
+               {/* Auth routes - no Layout */}
               <Route
                 path="/login"
                 element={
-                  <LazyPage>
-                    <LoginPage />
-                  </LazyPage>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <GSAPRouteTransition>
+                      <LoginPage />
+                    </GSAPRouteTransition>
+                  </Suspense>
                 }
               />
               <Route
                 path="/register"
                 element={
-                  <LazyPage>
-                    <RegisterPage />
-                  </LazyPage>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <GSAPRouteTransition>
+                      <RegisterPage />
+                    </GSAPRouteTransition>
+                  </Suspense>
                 }
               />
 
@@ -188,153 +228,191 @@ export default function App() {
                 <Route
                   path="/dashboard"
                   element={
-                    <LazyPage>
-                      <DashboardPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <DashboardPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/studies"
                   element={
-                    <LazyPage>
-                      <StudiesPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <StudiesPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/grid-editor"
                   element={
-                    <LazyPage>
-                      <GridEditorPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <GridEditorPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/studies/:studyType"
                   element={
-                    <LazyPage>
-                      <StudyRunPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <StudyRunPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/asset-management"
                   element={
-                    <LazyPage>
-                      <AssetManagementPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <AssetManagementPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/assistant"
                   element={
-                    <LazyPage>
-                      <AIAssistantPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <AIAssistantPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/projects"
                   element={
-                    <LazyPage>
-                      <ProjectsPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <ProjectsPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/etap"
                   element={
-                    <LazyPage>
-                      <EtapIntegrationPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <EtapIntegrationPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/gis"
                   element={
-                    <LazyPage>
-                      <GisIntegrationPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <GisIntegrationPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/scada"
                   element={
-                    <LazyPage>
-                      <ScadaIntegrationPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <ScadaIntegrationPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/reports"
                   element={
-                    <LazyPage>
-                      <ReportsPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <ReportsPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/settings"
                   element={
-                    <LazyPage>
-                      <SettingsPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <SettingsPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/admin"
                   element={
-                    <LazyPage>
-                      <AdministrationPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <AdministrationPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/diagnostics"
                   element={
-                    <LazyPage>
-                      <DiagnosticsPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <DiagnosticsPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/digital-twin"
                   element={
-                    <LazyPage>
-                      <DigitalTwinPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <DigitalTwinPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/data-import"
                   element={
-                    <LazyPage>
-                      <DataImportPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <DataImportPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/data-export"
                   element={
-                    <LazyPage>
-                      <DataExportPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <DataExportPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/logs"
                   element={
-                    <LazyPage>
-                      <LogsPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <LogsPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 <Route
                   path="/code-guard"
                   element={
-                    <LazyPage>
-                      <CodeGuardPage />
-                    </LazyPage>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <GSAPRouteTransition>
+                        <CodeGuardPage />
+                      </GSAPRouteTransition>
+                    </Suspense>
                   }
                 />
                 {/* Fallback */}

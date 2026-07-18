@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Activity,
   ArrowRight,
@@ -12,7 +11,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -32,8 +31,15 @@ import { useNotify } from "../context/NotificationContext";
 import { type AgentMeta, type HealthResponse, fetchAgents, fetchHealth } from "../lib/api";
 import { studyCategories } from "../lib/studyCategories";
 import { cn } from "../utils/helpers";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+
+// Register GSAP plugins
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 // Simulated time-series data for charts
 const generateTimeSeriesData = () => {
   const data = [];
@@ -67,16 +73,6 @@ const systemHealthData = [
   { name: "Cache Hit", value: 89, max: 100 },
 ];
 
-const fadeIn = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 },
-};
-
-const staggerContainer = {
-  animate: { transition: { staggerChildren: 0.06 } },
-};
-
 interface StatCardProps {
   icon: React.ElementType;
   label: string;
@@ -98,13 +94,62 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, onClick }:
     cyan: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
   };
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  
+  // GSAP hover animation
+  useEffect(() => {
+    if (!cardRef.current) return;
+    
+    const ctx = gsap.context(() => {
+      // Hover animation
+      gsap.to(cardRef.current, {
+        scale: 1.03,
+        boxShadow: "0 10px 40px -10px rgba(0, 212, 255, 0.15)",
+        duration: 0.3,
+        ease: "back.out(1.7)",
+        paused: true,
+        reversed: true
+      });
+      
+      // Add hover events
+      const handleMouseEnter = () => {
+        gsap.to(cardRef.current, {
+          scale: 1.03,
+          boxShadow: "0 10px 40px -10px rgba(0, 212, 255, 0.15)",
+          duration: 0.3,
+          ease: "back.out(1.7)"
+        });
+      };
+      
+      const handleMouseLeave = () => {
+        gsap.to(cardRef.current, {
+          scale: 1,
+          boxShadow: "0 0 0px rgba(0, 212, 255, 0)",
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      };
+      
+      const el = cardRef.current!;
+      el.addEventListener("mouseenter", handleMouseEnter);
+      el.addEventListener("mouseleave", handleMouseLeave);
+      
+      return () => {
+        el.removeEventListener("mouseenter", handleMouseEnter);
+        el.removeEventListener("mouseleave", handleMouseLeave);
+      };
+    });
+    
+    return () => ctx.revert();
+  }, []);
+  
   return (
-    <motion.div
-      {...fadeIn}
+    <div
+      ref={cardRef}
       onClick={onClick}
       className={cn(
-        "bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)] hover:border-[var(--border-secondary)] transition-all group",
-        onClick && "cursor-pointer hover:shadow-lg",
+        "bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)] hover:border-[var(--border-secondary)] transition-all group stat-card",
+        onClick && "cursor-pointer",
       )}
     >
       <div className="flex items-start justify-between">
@@ -131,7 +176,7 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, onClick }:
         <p className="text-sm text-[var(--text-tertiary)] mt-0.5">{label}</p>
         {sublabel && <p className="text-xs text-[var(--text-muted)] mt-0.5">{sublabel}</p>}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -145,7 +190,7 @@ function MiniGauge({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const pct = Math.round((value / max) * 100);
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="system-gauge flex flex-col items-center gap-1">
       <div className="relative w-12 h-12">
         <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
           <path
@@ -174,14 +219,50 @@ function MiniGauge({
 
 function DashboardLoading() {
   const { t } = useTranslation();
+  const loadingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!loadingRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Spinner animation
+      gsap.to(".loading-spinner", {
+        rotation: 360,
+        duration: 1.5,
+        repeat: -1,
+        ease: "power2.inOut"
+      });
+
+      // Loading text animation
+      gsap.to(".loading-text", {
+        opacity: 0.7,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+
+      // Power surge effect
+      gsap.to(".loading-container", {
+        boxShadow: "0 0 15px rgba(0, 212, 255, 0.3)",
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="flex items-center justify-center h-64">
+    <div ref={loadingRef} className="loading-container flex items-center justify-center h-64">
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-brand-500 border-t-transparent" />
+          <div className="loading-spinner rounded-full h-10 w-10 border-2 border-brand-500 border-t-transparent" />
           <Zap className="w-4 h-4 text-brand-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
-        <p className="text-[var(--text-tertiary)] text-sm">{t("common.loading")}</p>
+        <p className="loading-text text-[var(--text-tertiary)] text-sm">{t("common.loading")}</p>
       </div>
     </div>
   );
@@ -195,6 +276,86 @@ export default function Dashboard() {
   const { notify } = useNotify();
   const navigate = useNavigate();
   const [timeSeriesData] = useState(generateTimeSeriesData);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  // GSAP entrance animations and ScrollTrigger
+  useEffect(() => {
+    if (loading || !dashboardRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Page header entrance
+      gsap.from(".dashboard-header", {
+        y: -20,
+        opacity: 0,
+        duration: 0.6,
+        ease: "back.out(1.7)"
+      });
+
+      // Stat cards entrance with stagger
+      gsap.from(".stat-card", {
+        y: 30,
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.6,
+        stagger: 0.1,
+        delay: 0.2,
+        ease: "back.out(1.7)",
+        scrollTrigger: {
+          trigger: statsRef.current,
+          start: "top 80%",
+          toggleActions: "play none none none"
+        }
+      });
+
+      // Charts entrance
+      gsap.from(".dashboard-chart", {
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        delay: 0.4,
+        ease: "back.out(1.7)",
+        scrollTrigger: {
+          trigger: ".dashboard-chart",
+          start: "top 85%",
+          toggleActions: "play none none none"
+        }
+      });
+
+      // System gauges entrance
+      gsap.from(".system-gauge", {
+        y: 20,
+        opacity: 0,
+        duration: 0.5,
+        stagger: 0.05,
+        delay: 0.6,
+        ease: "back.out(1.7)"
+      });
+
+      // Quick actions entrance
+      gsap.from(".quick-action", {
+        x: -10,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        delay: 0.7,
+        ease: "back.out(1.7)"
+      });
+
+      // Agents list entrance
+      gsap.from(".agent-item", {
+        x: 10,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        delay: 0.7,
+        ease: "back.out(1.7)"
+      });
+    });
+
+    return () => ctx.revert();
+  }, [loading]);
 
   useEffect(() => {
     Promise.all([fetchHealth().catch(() => null), fetchAgents().catch(() => [])])
@@ -221,9 +382,9 @@ export default function Dashboard() {
     : undefined;
 
   return (
-    <div className="space-y-6">
+    <div ref={dashboardRef} className="space-y-6">
       {/* Page Header */}
-      <motion.div {...fadeIn} className="flex items-center justify-between">
+      <div className="dashboard-header flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t("dashboard.title")}</h2>
           <div className="flex items-center gap-2 mt-0.5">
@@ -237,13 +398,11 @@ export default function Dashboard() {
           </Badge>
           {health?.version && <Badge variant="neutral">v{health.version}</Badge>}
         </div>
-      </motion.div>
+      </div>
 
       {/* Status Cards */}
-      <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        animate="animate"
+      <div
+        ref={statsRef}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         <StatCard
@@ -277,12 +436,12 @@ export default function Dashboard() {
           sublabel={engSublabel}
           color={health?.engineeringService?.healthy ? "green" : "purple"}
         />
-      </motion.div>
+      </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Request Activity Chart */}
-        <Card padding="md">
+        <Card padding="md" className="dashboard-chart">
           <CardHeader
             title="API Activity"
             subtitle="Last 24 hours"
@@ -331,7 +490,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Study Distribution Chart */}
-        <Card padding="md">
+        <Card padding="md" className="dashboard-chart">
           <CardHeader
             title="Study Distribution"
             subtitle="By category"
@@ -380,23 +539,21 @@ export default function Dashboard() {
             icon={<Gauge className="w-4 h-4" />}
           />
           <div className="grid grid-cols-2 gap-4">
-            {systemHealthData.map((g) => (
-                {(() => {
-                  let gaugeColor;
-                  if (g.value > 80) gaugeColor = "#ef4444";
-                  else if (g.value > 60) gaugeColor = "#f59e0b";
-                  else gaugeColor = "#22c55e";
-                  return (
-                    <MiniGauge
-                      key={g.name}
-                      label={g.name}
-                      value={g.value}
-                      max={g.max}
-                      color={gaugeColor}
-                    />
-                  );
-                })()}
-            ))}
+            {systemHealthData.map((g) => {
+              let gaugeColor: string;
+              if (g.value > 80) gaugeColor = "#ef4444";
+              else if (g.value > 60) gaugeColor = "#f59e0b";
+              else gaugeColor = "#22c55e";
+              return (
+                <MiniGauge
+                  key={g.name}
+                  label={g.name}
+                  value={g.value}
+                  max={g.max}
+                  color={gaugeColor}
+                />
+              );
+            })}
           </div>
         </Card>
 
@@ -414,13 +571,13 @@ export default function Dashboard() {
               </button>
             }
           />
-          <div className="grid grid-cols-2 gap-2">
-            {studyCategories.slice(0, 6).map((s) => (
-              <button
-                key={s.id}
-                onClick={() => navigate(`/studies/${s.id}`)}
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-left rounded-lg bg-[var(--bg-elevated)] hover:bg-brand-600/20 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all group border border-transparent hover:border-brand-500/30"
-              >
+<div className="grid grid-cols-2 gap-2">
+             {studyCategories.slice(0, 6).map((s) => (
+               <button
+                 key={s.id}
+                 onClick={() => navigate(`/studies/${s.id}`)}
+                 className="quick-action flex items-center gap-2 px-3 py-2.5 text-sm text-left rounded-lg bg-[var(--bg-elevated)] hover:bg-brand-600/20 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all group border border-transparent hover:border-brand-500/30"
+               >
                 <span className="text-lg shrink-0">{s.icon}</span>
                 <span className="text-xs font-medium leading-tight line-clamp-2">{s.name}</span>
               </button>
@@ -445,11 +602,11 @@ export default function Dashboard() {
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {agents.length > 0 ? (
               agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => navigate("/assistant")}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors text-left group"
-                >
+<button
+                   key={agent.id}
+                   onClick={() => navigate("/assistant")}
+                   className="agent-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors text-left group"
+                 >
                   <div className="p-1.5 rounded-md bg-brand-500/10 shrink-0">
                     <Bot className="w-4 h-4 text-brand-400" />
                   </div>

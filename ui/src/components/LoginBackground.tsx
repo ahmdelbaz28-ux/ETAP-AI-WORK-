@@ -1,7 +1,13 @@
 // NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
-import { AnimatePresence, motion } from "framer-motion";
 import { Globe, Shield } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+
+// Register GSAP plugins
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(MotionPathPlugin);
+}
 
 interface LoginBackgroundProps {
   isRtl: boolean;
@@ -24,9 +30,60 @@ export function LoginBackground({
   onTerminalLog,
 }: LoginBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<Coords>({ x: 0, y: 0 });
   const [hoveredComponent, setHoveredComponent] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<Coords>({ x: 0, y: 0 });
+  const [tooltipAnimationStyle, setTooltipAnimationStyle] = useState<React.CSSProperties>({});
+
+  // GSAP animation for tooltip
+  useEffect(() => {
+    if (!tooltipRef.current) return;
+    
+    const ctx = gsap.context(() => {
+      if (hoveredComponent) {
+        // Entrance animation
+        gsap.from(tooltipRef.current, {
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.15,
+          ease: "back.out(1.7)",
+          onUpdate: () => {
+            if (tooltipRef.current) {
+              setTooltipAnimationStyle({
+                position: "absolute",
+                left: tooltipPos.x,
+                top: tooltipPos.y,
+                opacity: tooltipRef.current.style.opacity,
+                transform: `scale(${tooltipRef.current._gsap.scale || 1})`
+              });
+            }
+          }
+        });
+      } else {
+        // Exit animation
+        gsap.to(tooltipRef.current, {
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.15,
+          ease: "back.in(1.7)",
+          onUpdate: () => {
+            if (tooltipRef.current) {
+              setTooltipAnimationStyle({
+                position: "absolute",
+                left: tooltipPos.x,
+                top: tooltipPos.y,
+                opacity: tooltipRef.current.style.opacity,
+                transform: `scale(${tooltipRef.current._gsap.scale || 1})`
+              });
+            }
+          }
+        });
+      }
+    });
+    
+    return () => ctx.revert();
+  }, [hoveredComponent, tooltipPos]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -46,6 +103,59 @@ export function LoginBackground({
         y: e.clientY - rect.top + 15,
       });
     }
+  }, []);
+
+  // Entrance animation for the entire background
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const ctx = gsap.context(() => {
+      // Fade in the container
+      gsap.from(containerRef.current, {
+        opacity: 0,
+        duration: 1.5,
+        ease: "power3.out"
+      });
+      
+      // Animate grid lines
+      gsap.from(".cad-grid-line", {
+        opacity: 0,
+        scale: 0.95,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: "back.out(1.7)"
+      });
+      
+      // Animate power system components
+      gsap.from(["[data-component='bus']", "[data-component='transformer']", "[data-component='generator']"], {
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        stagger: 0.1,
+        delay: 0.3,
+        ease: "back.out(1.7)"
+      });
+      
+      // Animate breaker
+      gsap.from("[data-component='breaker']", {
+        opacity: 0,
+        scale: 0.8,
+        duration: 1,
+        delay: 0.5,
+        ease: "elastic.out(1, 0.7)"
+      });
+      
+      // Animate controls
+      gsap.from(".top-controls", {
+        opacity: 0,
+        y: -10,
+        duration: 0.8,
+        delay: 0.7,
+        ease: "back.out(1.7)"
+      });
+    });
+    
+    return () => ctx.revert();
   }, []);
 
   const handleBreakerToggle = useCallback(() => {
@@ -196,9 +306,9 @@ export function LoginBackground({
       onMouseMove={handleMouseMove}
       className="absolute inset-0 z-0 bg-[#070b14] overflow-hidden select-none"
     >
-      {/* Top Controls Overlay */}
+       {/* Top Controls Overlay */}
       <div
-        className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50 flex items-center gap-3`}
+        className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50 flex items-center gap-3 top-controls`}
       >
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/60 text-slate-400 text-[10px] font-mono">
           <Shield className="w-3.5 h-3.5 text-blue-500" />
@@ -214,9 +324,10 @@ export function LoginBackground({
         </button>
       </div>
 
-      {/* CAD Workbench Grid */}
+       {/* CAD Workbench Grid */}
       <div
-        className="absolute inset-0 opacity-[0.035]"
+        className="absolute inset-0 opacity-[0.035] cad-grid-line"
+        data-component="grid"
         style={{
           backgroundImage:
             "linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)",
@@ -224,7 +335,8 @@ export function LoginBackground({
         }}
       />
       <div
-        className="absolute inset-0 opacity-[0.015]"
+        className="absolute inset-0 opacity-[0.015] cad-grid-line"
+        data-component="grid"
         style={{
           backgroundImage:
             "linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)",
@@ -264,6 +376,7 @@ export function LoginBackground({
           strokeWidth="4"
           strokeLinecap="round"
           className="transition-colors duration-500"
+          data-component="bus"
         />
         <path
           d="M100,180 L1340,180"
@@ -295,13 +408,14 @@ export function LoginBackground({
           strokeWidth="1.5"
           strokeDasharray="10 10"
           strokeDashoffset="0"
-          style={{ animation: "gridFlowRev 12s linear infinite" }}
+          data-power-flow="generator"
         />
         {/* Generator Shell */}
         <g
           className="cursor-pointer group/gen"
           onMouseEnter={(e) => handleComponentHover("generator", e)}
           onMouseLeave={() => handleComponentHover(null)}
+          data-component="generator"
         >
           <circle
             cx="800"
@@ -340,12 +454,12 @@ export function LoginBackground({
         {/* Primary line to Transformer */}
         <path d="M400,180 L400,260" stroke="#3b82f6" strokeWidth="2.5" />
         <path
-          d="M400,180 L400,260"
+          d="M800,180 L400,180"
           stroke="#00d4ff"
           strokeWidth="1.5"
           strokeDasharray="8 12"
           strokeDashoffset="0"
-          style={{ animation: "gridFlow 10s linear infinite" }}
+          data-power-flow="main"
         />
 
         {/* Transformer Windings */}
@@ -353,6 +467,7 @@ export function LoginBackground({
           className="cursor-pointer group/trans"
           onMouseEnter={(e) => handleComponentHover("transformer", e)}
           onMouseLeave={() => handleComponentHover(null)}
+          data-component="transformer"
         >
           <circle
             cx="400"
@@ -388,7 +503,7 @@ export function LoginBackground({
             strokeWidth="1.5"
             strokeDasharray="8 12"
             strokeDashoffset="0"
-            style={{ animation: "gridFlow 10s linear infinite" }}
+            data-power-flow="main"
           />
         )}
 
@@ -398,6 +513,7 @@ export function LoginBackground({
           onClick={handleBreakerToggle}
           onMouseEnter={(e) => handleComponentHover("breaker", e)}
           onMouseLeave={() => handleComponentHover(null)}
+          data-component="breaker"
         >
           {/* Transparent hit target */}
           <rect x="375" y="350" width="50" height="40" fill="transparent" />
@@ -472,7 +588,7 @@ export function LoginBackground({
             strokeWidth="1.5"
             strokeDasharray="8 12"
             strokeDashoffset="0"
-            style={{ animation: "gridFlow 10s linear infinite" }}
+            data-power-flow="main"
           />
         )}
 
@@ -522,7 +638,7 @@ export function LoginBackground({
             strokeWidth="1.5"
             strokeDasharray="8 10"
             strokeDashoffset="0"
-            style={{ animation: "gridFlow 8s linear infinite" }}
+            data-power-flow="feeder"
           />
         )}
         {/* Load Arrow Symbol */}
@@ -544,41 +660,72 @@ export function LoginBackground({
         {/* Dynamic Electron Particles Motion */}
         {!isBreakerOpen && (
           <>
-            <circle r="3.5" fill="#00d4ff" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
-            <circle r="2.5" fill="#22c55e" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                begin="2.3s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
-            <circle r="2.5" fill="#fbbf24" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                begin="4.6s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
+            <circle r="3.5" fill="#00d4ff" opacity="0.8" className="electron-particle" data-path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554" />
+            <circle r="2.5" fill="#22c55e" opacity="0.8" className="electron-particle" data-path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554" />
+            <circle r="2.5" fill="#fbbf24" opacity="0.8" className="electron-particle" data-path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554" />
           </>
         )}
 
-        {/* Styles for continuous flow */}
-        <style>{`
-          @keyframes gridFlow {
-            to { stroke-dashoffset: -120; }
-          }
-          @keyframes gridFlowRev {
-            to { stroke-dashoffset: 120; }
-          }
-        `}</style>
+        {/* GSAP-powered power flow animations */}
+        <script>
+          {`
+          // GSAP power flow animations
+          document.addEventListener('DOMContentLoaded', () => {
+            // Main power flow from generator to load
+            gsap.to("[data-power-flow='main']", {
+              strokeDashoffset: -120,
+              duration: 10,
+              repeat: -1,
+              ease: "none"
+            });
+            
+            // Generator to bus flow
+            gsap.to("[data-power-flow='generator']", {
+              strokeDashoffset: 120,
+              duration: 12,
+              repeat: -1,
+              ease: "none"
+            });
+            
+            // Feeder flow
+            gsap.to("[data-power-flow='feeder']", {
+              strokeDashoffset: -100,
+              duration: 8,
+              repeat: -1,
+              ease: "none"
+            });
+            
+            // Electron particle animations
+            document.querySelectorAll('.electron-particle').forEach((particle, index) => {
+              const path = particle.getAttribute('data-path');
+              const duration = 7 + index * 0.5;
+              const delay = index * 1.2;
+              
+              // Create motion path animation
+              gsap.to(particle, {
+                duration: duration,
+                delay: delay,
+                repeat: -1,
+                ease: "none",
+                motionPath: {
+                  path: path,
+                  align: "self",
+                  autoRotate: false
+                },
+                onUpdate: function() {
+                  // Add pulse effect
+                  gsap.to(particle, {
+                    opacity: 0.5 + Math.random() * 0.5,
+                    scale: 1 + Math.random() * 0.3,
+                    duration: 0.3,
+                    overwrite: true
+                  });
+                }
+              });
+            });
+          });
+          `}
+        </script>
       </svg>
 
       {/* Dynamic Cursor Coordinates HUD (AutoCAD-style) */}
@@ -586,36 +733,27 @@ export function LoginBackground({
         CURSOR COORDINATES: X: {coords.x}px | Y: {coords.y}px
       </div>
 
-      {/* Floating Interactive CAD Tooltip */}
-      <AnimatePresence>
-        {hoveredComponent && tooltipData && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              position: "absolute",
-              left: tooltipPos.x,
-              top: tooltipPos.y,
-            }}
-            className="z-50 min-w-[200px] pointer-events-none p-3.5 bg-slate-950/95 border border-slate-800 rounded-lg shadow-2xl font-mono text-[10px] text-white leading-relaxed backdrop-blur-md"
-          >
-            <div className="font-bold text-blue-400 border-b border-slate-800/80 pb-1.5 mb-1.5 flex items-center justify-between">
-              <span>{tooltipData.title}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-            </div>
-            <ul className="space-y-1 text-slate-300">
-              {tooltipData.details.map((d, index) => (
-                <li key={index} className="flex items-center gap-1.5">
-                  <span className="text-blue-500">›</span>
-                  <span>{d}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+       {/* Floating Interactive CAD Tooltip */}
+      {hoveredComponent && tooltipData && (
+        <div
+          ref={tooltipRef}
+          style={tooltipAnimationStyle}
+          className="z-50 min-w-[200px] pointer-events-none p-3.5 bg-slate-950/95 border border-slate-800 rounded-lg shadow-2xl font-mono text-[10px] text-white leading-relaxed backdrop-blur-md"
+        >
+          <div className="font-bold text-blue-400 border-b border-slate-800/80 pb-1.5 mb-1.5 flex items-center justify-between">
+            <span>{tooltipData.title}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          </div>
+          <ul className="space-y-1 text-slate-300">
+            {tooltipData.details.map((d, index) => (
+              <li key={index} className="flex items-center gap-1.5">
+                <span className="text-blue-500">›</span>
+                <span>{d}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Ambient background glows */}
       <div className="absolute top-10 right-20 w-[600px] h-[600px] rounded-full bg-blue-500/[0.015] blur-[140px]" />
