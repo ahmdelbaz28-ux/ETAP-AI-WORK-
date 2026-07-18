@@ -11,10 +11,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'
           
@@ -27,7 +27,7 @@ jobs:
         run: python -m build
           
       - name: Create Release
-        uses: softprops/action-gh-release@v2  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           files: dist/**
           generate_release_notes: true

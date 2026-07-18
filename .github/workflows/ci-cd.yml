@@ -22,10 +22,10 @@ jobs:
     name: 🔍 Code Quality Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -47,7 +47,7 @@ jobs:
         run: ruff format . --check 2>&1 || echo "::warning::Ruff format check failed (pre-existing formatting debt). Run 'ruff format .' locally to fix."
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: 'npm'
@@ -67,7 +67,7 @@ jobs:
         run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 9
 
@@ -90,18 +90,18 @@ jobs:
     needs: [lint, python-tests]
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
           cache: 'pip'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: 'npm'
@@ -117,7 +117,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: coverage-report
           path: .
@@ -170,7 +170,7 @@ jobs:
           ls -la coverage.xml 2>&1 || echo "::warning::coverage.xml was not generated"
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -216,10 +216,10 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -290,7 +290,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact for SonarCloud
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: coverage-report
@@ -304,10 +304,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
 
@@ -343,7 +343,7 @@ jobs:
         run: python scripts/security_scan.py
 
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # Non-blocking: report vulnerabilities to GitHub Security tab but
         # don't fail the pipeline. Known CVEs in Python base images and
         # transitive JS dependencies (dev-only) are present on every push.
@@ -362,10 +362,10 @@ jobs:
     name: ⎈ Helm Chart Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Install Helm
-        uses: azure/setup-helm@v5  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           version: 'v3.15.0'
 
@@ -386,10 +386,10 @@ jobs:
     needs: [python-tests, security-scan]
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: 'npm'
@@ -407,7 +407,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -424,14 +424,14 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Download UI build artifact
         # The Dockerfile copies ui-dist/ into the image (line 87:
         # `COPY ui-dist/ /app/ui-dist/`). The build-ui job produces this as
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -445,7 +445,7 @@ jobs:
           echo "✅ ui-dist/ ready ($(find ui-dist -type f | wc -l) files)"
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -471,7 +471,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v6  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           images: ghcr.io/${{ steps.sanitize.outputs.image_name }}
           tags: |
@@ -480,12 +480,12 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/setup-buildx-action@bb053f5519dd87d3ba754cc423b652a5edd6d2c  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         # Required for GHA cache backend — the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v7  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           context: .
           file: ./Dockerfile
@@ -506,7 +506,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Sanitize Docker image name (must match docker-build job)
         id: sanitize
@@ -528,7 +528,7 @@ jobs:
           echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Trivy container vulnerability scan
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           image-ref: ghcr.io/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'sarif'
@@ -548,14 +548,14 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@master  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
           image-ref: ghcr.io/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'cyclonedx'
           output: 'sbom.json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json
@@ -572,10 +572,10 @@ jobs:
       url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
 
@@ -623,13 +623,13 @@ jobs:
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
           lfs: true
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
 
@@ -749,11 +749,11 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
 
