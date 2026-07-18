@@ -360,9 +360,15 @@ async def etap_gui_execute(
     request: Request,
     payload: ETAPGUIExecuteRequest,
     _: str = Depends(get_api_key),  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    user: CurrentUser = Depends(get_current_user_from_header),
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
+
+    SECURITY (LAUNCH-BLOCKER): Requires authenticated user with admin or
+    engineer role. pyautogui controls the server's mouse/keyboard — this
+    is a physical safety operation that must not be accessible to
+    unauthenticated or viewer-level users.
 
     This is the actual Computer Use Agent execution (not just planning).
     The agent:
@@ -388,6 +394,13 @@ async def etap_gui_execute(
       - DISPLAY or WAYLAND_DISPLAY — X11/Wayland session (Linux desktop)
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
+    # SECURITY (LAUNCH-BLOCKER): Only admin or engineer can execute CUA —
+    # pyautogui controls the server's mouse/keyboard (physical safety)
+    if user.role not in ("admin", "engineer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin or engineer roles can execute CUA operations.",
+        )
     try:
 
         from agents.etap_gui_agent import ETAPGUIAgent
