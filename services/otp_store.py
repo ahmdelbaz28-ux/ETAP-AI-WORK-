@@ -168,7 +168,12 @@ class OtpVerifyResult:
 
 
 async def issue_otp(email: str, purpose: str) -> OtpIssueResult:
-    """Generate + store a new OTP for (email, purpose)."""
+    """Generate + store a new OTP for (email, purpose).
+
+    SECURITY (LAUNCH-BLOCKER): Now uses Redis when available (multi-replica
+    safe). Previously only used in-memory store — OTPs were not shared
+    across replicas, breaking login in multi-instance deployments.
+    """
     key = _key(email, purpose)
 
     # Rate-limit issuance
@@ -188,18 +193,97 @@ async def issue_otp(email: str, purpose: str) -> OtpIssueResult:
         expires_at=now + OTP_TTL_SECONDS,
     )
     await _mem_store.set(key, rec)
+
+    # SECURITY (LAUNCH-BLOCKER): Also store in Redis for multi-replica sync
+    r = _get_redis()
+    if r is not None:
+        try:
+            import json as _json
+            redis_key = f"etap:{key}"
+            r_data = _json.dumps({
+                "code_hash": rec.code_hash,
+                "issued_at": rec.issued_at,
+                "expires_at": rec.expires_at,
+                "attempts": 0,
+            })
+            await r.setex(redis_key, OTP_TTL_SECONDS, r_data)
+        except Exception as exc:
+            logger.warning("otp_redis_set_failed key=%s err=%s", key, exc)
+        finally:
+            await r.aclose() if hasattr(r, "aclose") else None
+
     logger.info("otp_issued email=%s purpose=%s ttl=%ds", email, purpose, OTP_TTL_SECONDS)
     return OtpIssueResult(success=True, code=code)
 
 
 async def verify_otp(email: str, purpose: str, code: str) -> OtpVerifyResult:
-    """Verify an OTP. On success, the OTP is consumed (one-shot)."""
+    """Verify an OTP. On success, the OTP is consumed (one-shot).
+
+    SECURITY (LAUNCH-BLOCKER): Uses Redis atomic INCR for attempt counting
+    to prevent TOCTOU race. Previously, concurrent requests could each
+    read attempts=4, increment to 5, and all succeed — bypassing the
+    OTP_MAX_ATTEMPTS limit. Now uses Redis INCR (atomic) when available.
+    """
     key = _key(email, purpose)
     code = code.strip()
 
     if not code or not code.isdigit() or len(code) != 6:
         return OtpVerifyResult(success=False, error="invalid_code_format")
 
+    # Try Redis first (multi-replica + atomic)
+    r = _get_redis()
+    if r is not None:
+        try:
+            import json as _json
+            redis_key = f"etap:{key}"
+            attempts_key = f"etap:{key}:attempts"
+
+            raw = await r.get(redis_key)
+            if raw is None:
+                return OtpVerifyResult(success=False, error="code_not_found_or_expired")
+
+            data = _json.loads(raw)
+            if data["expires_at"] < time.time():
+                await r.delete(redis_key)
+                return OtpVerifyResult(success=False, error="code_not_found_or_expired")
+
+            # SECURITY: Atomic attempt increment via Redis INCR
+            current_attempts = await r.incr(attempts_key)
+            if current_attempts == 1:
+                await r.expire(attempts_key, OTP_TTL_SECONDS)
+
+            if current_attempts > OTP_MAX_ATTEMPTS:
+                await r.delete(redis_key)
+                await r.delete(attempts_key)
+                return OtpVerifyResult(success=False, error="max_attempts_exceeded")
+
+            if _hash_code(code) != data["code_hash"]:
+                # Record failure for rate-limiting
+                allowed, retry_after = await _mem_store.record_fail(key)
+                if not allowed:
+                    return OtpVerifyResult(
+                        success=False,
+                        error="too_many_attempts",
+                        retry_after=retry_after,
+                    )
+                remaining = OTP_MAX_ATTEMPTS - current_attempts
+                return OtpVerifyResult(
+                    success=False,
+                    error=f"invalid_code ({remaining} attempts remaining)",
+                )
+
+            # Success — consume atomically
+            await r.delete(redis_key)
+            await r.delete(attempts_key)
+            logger.info("otp_verified email=%s purpose=%s", email, purpose)
+            return OtpVerifyResult(success=True)
+
+        except Exception as exc:
+            logger.warning("otp_redis_verify_failed key=%s err=%s — falling back to memory", key, exc)
+        finally:
+            await r.aclose() if hasattr(r, "aclose") else None
+
+    # Fallback: in-memory store (single-replica only)
     rec = await _mem_store.get(key)
     if rec is None:
         return OtpVerifyResult(success=False, error="code_not_found_or_expired")
@@ -232,8 +316,22 @@ async def verify_otp(email: str, purpose: str, code: str) -> OtpVerifyResult:
 
 
 async def invalidate_otp(email: str, purpose: str) -> None:
-    """Force-invalidate an OTP (e.g. after a successful password reset)."""
-    await _mem_store.delete(_key(email, purpose))
+    """Force-invalidate an OTP (e.g. after a successful password reset).
+
+    SECURITY (LAUNCH-BLOCKER): Now also clears Redis keys.
+    """
+    key = _key(email, purpose)
+    await _mem_store.delete(key)
+
+    r = _get_redis()
+    if r is not None:
+        try:
+            await r.delete(f"etap:{key}")
+            await r.delete(f"etap:{key}:attempts")
+        except Exception as exc:
+            logger.warning("otp_redis_invalidate_failed key=%s err=%s", key, exc)
+        finally:
+            await r.aclose() if hasattr(r, "aclose") else None
 
 
 __all__ = [
