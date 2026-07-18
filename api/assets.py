@@ -40,6 +40,7 @@ from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
+    check_resource_ownership,
     get_api_key,
     get_current_user_from_header,
     pagination_params,
@@ -120,14 +121,21 @@ class AssetCreateRequest(BaseModel):
 
 
 class AssetUpdateRequest(BaseModel):
-    """Request body for updating an asset."""
+    """Request body for updating an asset.
+
+    SECURITY (CR-NEW-08): project_id and created_by are NOT updatable.
+    Previously, a user could move an asset to another user's project
+    via Mass Assignment. Now these fields are absent from the update schema.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     type: Optional[AssetType] = None
     rating: Optional[str] = Field(None, max_length=100)
     voltage: Optional[str] = Field(None, max_length=100)
     status: Optional[AssetStatus] = None
-    project_id: Optional[str] = Field(None)
+    # NOTE: project_id intentionally absent — prevents asset hijacking
     notes: Optional[str] = Field(None, max_length=1000)
 
 
@@ -213,12 +221,18 @@ async def list_assets(
 async def get_asset(
     asset_id: str,
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> Any:
-    """Return a single asset by ID."""
+    """Return a single asset by ID.
+
+    SECURITY (CR-NEW-08): Ownership check — only the asset owner or admin.
+    """
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+    # CR-NEW-08: Ownership authorization
+    check_resource_ownership(asset.created_by, user, "Asset")
     return AssetResponse.model_validate(asset)
 
 
@@ -262,12 +276,18 @@ async def update_asset(
     asset_id: str,
     body: AssetUpdateRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> Any:
-    """Update an existing asset. Only non-null fields are updated."""
+    """Update an existing asset. Only non-null fields are updated.
+
+    SECURITY (CR-NEW-08): Ownership check — only the asset owner or admin.
+    """
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+    # CR-NEW-08: Ownership authorization
+    check_resource_ownership(asset.created_by, user, "Asset")
 
     update_data = body.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -290,8 +310,11 @@ async def update_asset(
 async def delete_asset(
     asset_id: str,
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> Response:
     """Permanently delete an asset.
+
+    SECURITY (CR-NEW-08): Ownership check — only the asset owner or admin.
 
     Returns 204 No Content on success (per RFC 9110 §15.3.5). Uses
     `response_class=Response` to opt out of FastAPI's default response-model
@@ -302,5 +325,7 @@ async def delete_asset(
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+    # CR-NEW-08: Ownership authorization
+    check_resource_ownership(asset.created_by, user, "Asset")
     await db.delete(asset)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

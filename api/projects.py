@@ -255,6 +255,7 @@ from api.auth import CurrentUserDep  # noqa: E402
 from api.database import get_db  # noqa: E402
 from api.dependencies import (  # noqa: E402
     PaginationParams,
+    check_resource_ownership,
     get_api_key,
     pagination_params,
 )
@@ -280,10 +281,18 @@ UserDep = CurrentUserDep
 async def list_projects(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: DbDep,
+    user: UserDep,
     status_filter: Annotated[Optional[ProjectStatus], Query(alias="status", description="Filter by status")] = None,
 ) -> Any:
-    """Return a paginated, filterable list of power-system projects."""
+    """Return a paginated, filterable list of power-system projects.
+
+    SECURITY (CR-NEW-07): Non-admin users only see their own projects.
+    Admins see all projects.
+    """
     base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
+    # CR-NEW-07: Scope to user's own projects (admins see all)
+    if user.role != "admin":
+        base_query = base_query.where(Project.created_by == str(user.user_id))
     if status_filter is not None:
         base_query = base_query.where(Project.status == status_filter.value)
 
@@ -348,14 +357,21 @@ async def create_project(
 async def get_project(
     project_id: str,
     db: DbDep,
+    user: UserDep,
 ) -> Any:
-    """Return a single project by ID."""
+    """Return a single project by ID.
+
+    SECURITY (CR-NEW-07): Ownership check — users can only access their
+    own projects. Admins can access any project.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Project has been deleted")
+    # CR-NEW-07: Ownership authorization
+    check_resource_ownership(project.created_by, user, "Project")
     return ProjectResponse.model_validate(project)
 
 
@@ -370,11 +386,16 @@ async def update_project(
     db: DbDep,
     user: UserDep,
 ) -> Any:
-    """Update a project's name, description, or system config."""
+    """Update a project's name, description, or system config.
+
+    SECURITY (CR-NEW-07): Ownership check — only the project owner or admin.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    # CR-NEW-07: Ownership authorization
+    check_resource_ownership(project.created_by, user, "Project")
 
     if body.name is not None:
         project.name = body.name
@@ -399,11 +420,16 @@ async def delete_project(
     db: DbDep,
     user: UserDep,
 ) -> dict:
-    """Soft-delete a project by setting status to 'deleted'."""
+    """Soft-delete a project by setting status to 'deleted'.
+
+    SECURITY (CR-NEW-07): Ownership check — only the project owner or admin.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    # CR-NEW-07: Ownership authorization
+    check_resource_ownership(project.created_by, user, "Project")
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Project is already deleted")
     project.status = ProjectStatus.DELETED.value

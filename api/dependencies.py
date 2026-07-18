@@ -338,3 +338,40 @@ def _extract_bearer_token(authorization: str) -> str:
             detail="Invalid Authorization header format. Expected: Bearer <token>",
         )
     return parts[1]
+
+
+# ---------------------------------------------------------------------------
+# Ownership authorization helpers (CR-NEW-07, CR-NEW-08)
+# ---------------------------------------------------------------------------
+
+
+def check_resource_ownership(
+    resource_owner_id: str | None,
+    current_user: CurrentUser,
+    resource_name: str = "Resource",
+) -> None:
+    """Raise 403 if *current_user* does not own the resource and is not admin.
+
+    SECURITY (CR-NEW-07,08): Centralized ownership check to prevent
+    unauthorized access to other users' projects, assets, templates, etc.
+    Any authenticated user could previously read/modify/delete ANY
+    resource by ID — a horizontal privilege escalation.
+
+    Usage::
+
+        check_resource_ownership(project.created_by, current_user, "Project")
+
+    Admins bypass the ownership check (they can access any resource for
+    support/audit purposes).
+    """
+    if resource_owner_id is None:
+        # Resource has no owner (legacy data) — deny access to be safe
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"{resource_name} has no owner — access denied.",
+        )
+    if str(resource_owner_id) != str(current_user.user_id) and current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"You do not have permission to access this {resource_name.lower()}.",
+        )
