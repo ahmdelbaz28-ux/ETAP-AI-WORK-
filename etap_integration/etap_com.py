@@ -1324,10 +1324,21 @@ class ETAPAutomation:
         """
         Launch ETAP application.
 
+        SECURITY (LAUNCH-BLOCKER): CoInitialize() is required for COM to
+        work in threads other than the main thread (Celery workers, FastAPI
+        to_thread). Without it, Dispatch() fails with
+        'CoInitialize has not been called'.
+
         Returns:
         True if successful
         """
         try:
+            # SECURITY (LAUNCH-BLOCKER): Initialize COM for this thread
+            import sys as _sys
+            if _sys.platform == "win32":
+                import pythoncom
+                pythoncom.CoInitialize()
+
             self._com_app = win32com.client.Dispatch("ETAP.Application")
 
             if hasattr(self._com_app, "Visible"):
