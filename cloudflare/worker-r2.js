@@ -49,7 +49,71 @@ export default {
 
 // ─── R2 Direct Access Handler ────────────────────────────────────────────────
 
+// SECURITY (LB-FE-3,4): R2 routes require authentication.
+// Previously, /storage/* routes had NO authentication — any anonymous
+// user could upload, download, list, or delete files from the R2 bucket.
+// This is unacceptable for a platform storing user reports, project
+// files, and potentially sensitive engineering data.
+//
+// Auth strategy: the Worker forwards the Authorization header to the
+// origin's /api/v1/auth/verify endpoint. If the origin returns 200,
+// the JWT is valid and the R2 operation proceeds. If 401, the request
+// is rejected. This leverages the existing JWT validation on the origin
+// rather than duplicating JWT logic in the Worker.
+async function verifyAuth(request, env, rayID) {
+  const authHeader = request.headers.get("Authorization") || "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    return {
+      authorized: false,
+      response: jsonResponse(
+        { detail: "Authentication required. Send Authorization: Bearer <token>", cf_ray: rayID },
+        401
+      ),
+    };
+  }
+
+  // Forward to origin for JWT validation
+  try {
+    const verifyResponse = await fetch(ORIGIN_URL + "/api/v1/auth/me", {
+      method: "GET",
+      headers: {
+        "Authorization": authHeader,
+        "X-Origin-Verify": env.ORIGIN_VERIFY_SECRET || "",
+      },
+    });
+    if (!verifyResponse.ok) {
+      return {
+        authorized: false,
+        response: jsonResponse(
+          { detail: "Invalid or expired token", cf_ray: rayID },
+          401
+        ),
+      };
+    }
+    const userData = await verifyResponse.json();
+    return { authorized: true, user: userData };
+  } catch (err) {
+    return {
+      authorized: false,
+      response: jsonResponse(
+        { detail: "Auth service unavailable", cf_ray: rayID },
+        503
+      ),
+    };
+  }
+}
+
 async function handleR2Request(request, env, path, method, rayID) {
+  // SECURITY (LB-FE-3,4): Require authentication for all R2 operations.
+  // GET (download) could be public if files are meant to be shared,
+  // but PUT/DELETE/LIST must always be authenticated. For safety,
+  // we require auth for ALL methods by default. Public read can be
+  // enabled per-key via a separate /public/ route in the future.
+  const auth = await verifyAuth(request, env, rayID);
+  if (!auth.authorized) {
+    return auth.response;
+  }
+
   // Extract the object key from the path: /storage/<key>
   const key = decodeURIComponent(path.replace("/storage/", ""));
 

@@ -18,9 +18,22 @@
 // The HF Space origin (backend API + UI)
 const ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space";
 
-// Shared secret — must match CLOUDFLARE_ORIGIN_SECRET on the HF Space
-// Set this via `wrangler secret put ORIGIN_VERIFY_SECRET`
-const ORIGIN_VERIFY_SECRET = "REPLACE_WITH_YOUR_SECRET";
+// SECURITY (LB-FE-5): Removed hardcoded fallback secret.
+// The previous code had `const ORIGIN_VERIFY_SECRET = "REPLACE_WITH_YOUR_SECRET"`
+// as a fallback when env.ORIGIN_VERIFY_SECRET was not set. This meant if
+// an operator forgot to run `wrangler secret put ORIGIN_VERIFY_SECRET`,
+// the Worker would send the well-known string "REPLACE_WITH_YOUR_SECRET"
+// as the X-Origin-Verify header — and if the origin accepted it (because
+// CLOUDFLARE_ORIGIN_SECRET was also unset or set to the same default),
+// the origin verification was completely bypassed.
+//
+// Now: the secret MUST be set via `wrangler secret put ORIGIN_VERIFY_SECRET`.
+// If it's not set, the Worker refuses to forward requests (returns 503)
+// rather than silently sending a known-default secret.
+//
+// To set the secret:
+//   wrangler secret put ORIGIN_VERIFY_SECRET
+//   (paste the same value as CLOUDFLARE_ORIGIN_SECRET on the HF Space)
 
 // Rate limiting: max requests per window per IP
 const RATE_LIMIT_AUTH = 10;      // /api/v1/auth/* — 10 req/min
@@ -201,7 +214,14 @@ export default {
     const originRequest = new Request(ORIGIN_URL + path + url.search, request);
 
     // Inject the origin verification secret
-    originRequest.headers.set("X-Origin-Verify", env.ORIGIN_VERIFY_SECRET || ORIGIN_VERIFY_SECRET);
+    // SECURITY (LB-FE-5): No fallback — require env.ORIGIN_VERIFY_SECRET
+  if (!env.ORIGIN_VERIFY_SECRET) {
+    return jsonResponse({
+      detail: "Worker not configured: ORIGIN_VERIFY_SECRET secret is missing. Run: wrangler secret put ORIGIN_VERIFY_SECRET",
+      cf_ray: rayID,
+    }, 503);
+  }
+  originRequest.headers.set("X-Origin-Verify", env.ORIGIN_VERIFY_SECRET);
 
     // Preserve real client IP (Cloudflare already sets CF-Connecting-IP)
     // The origin middleware will use CF-Connecting-IP
