@@ -446,7 +446,55 @@ async def healthz_head():
 
 @app.get("/readyz", tags=["Health"])
 async def readyz():
-    return JSONResponse(content={"status": "ready"}, status_code=200)
+    """Readiness probe — checks critical dependencies.
+
+    SECURITY (LB-1): Previously this returned a hardcoded {"status":"ready"}
+    stub. K8s/HF readiness probes check HTTP status code — a 200 response
+    means traffic gets routed even when DB/Redis are down. Now performs
+    real DB + Redis checks and returns 503 when not ready.
+    """
+    import os
+    from sqlalchemy import text as _sql_text
+
+    checks = {"python": True, "imports": True}
+
+    # DB check
+    try:
+        from api.database import engine as _engine
+        from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
+        async with _AsyncSession(_engine) as db:
+            result = await db.execute(_sql_text("SELECT 1"))
+            if result.scalar() == 1:
+                checks["db"] = "ok"
+            else:
+                checks["db"] = "fail: unexpected scalar"
+    except Exception as exc:
+        checks["db"] = f"fail: {type(exc).__name__}: {exc}"
+
+    # Redis check
+    try:
+        from api.auth import _get_redis_client
+        r = _get_redis_client()
+        if r is None:
+            checks["redis"] = "not_configured"
+        else:
+            await r.ping()
+            checks["redis"] = "ok"
+    except Exception as exc:
+        checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
+
+    _env = os.getenv("ENVIRONMENT", "development").lower()
+    is_prod = _env in ("production", "prod", "staging")
+    db_ok = checks["db"] == "ok"
+    redis_ok = checks["redis"] == "ok"
+    redis_required = is_prod
+    all_ready = db_ok and (redis_ok or not redis_required)
+
+    status_code = 200 if all_ready else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={"ready": all_ready, "checks": checks},
+    )
 
 
 @app.get("/health", tags=["Health"])
