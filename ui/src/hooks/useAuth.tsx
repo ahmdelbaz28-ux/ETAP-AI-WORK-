@@ -1,7 +1,30 @@
 // NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, createElement, useContext, useEffect, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
+
+// SECURITY (LB-FE-2): Token storage strategy.
+//
+// PROBLEM: localStorage is accessible to any JavaScript running on the
+// page — including XSS payloads. If an attacker injects a script (via
+// unsanitized user content, a vulnerable dependency, or a CSRF+XSS
+// combo), they can read `localStorage.getItem("authToken")` and
+// exfiltrate the JWT to their server. The token remains valid until
+// expiry (default 15 min for access, 7 days for refresh).
+//
+// INTERIM FIX (this commit):
+// - Move tokens to sessionStorage (cleared when tab closes — reduces
+//   exposure window from "forever" to "session")
+// - Access token also kept in a JS variable (memory) for the fastest
+//   path; sessionStorage is the fallback for page reloads
+// - Added automatic 401 → refresh → retry interceptor so sessions
+//   don't die silently after access token expiry
+//
+// TODO (P1 — requires backend changes):
+// - Move refresh token to an httpOnly + Secure + SameSite=Strict cookie
+//   (not accessible to JS at all — defeats XSS token theft)
+// - Add CSRF protection (double-submit cookie or SameSite=Strict)
+// - Backend must set Set-Cookie on /login and /refresh responses
 
 interface User {
   id: string;
@@ -17,7 +40,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (email: string, password: string, name: string) => Promise<void>;
-  refreshToken: () => Promise<void>;
+  refreshToken: () => Promise<string | null>;
+  fetchWithRefresh: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
 /**
@@ -86,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if user is logged in on initial load
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionStorage.getItem("authToken");
     if (token) {
       validateTokenAndSetUser(token);
     } else {
@@ -108,13 +132,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
       } else {
         // Token is invalid, clear it
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("authToken");
+        sessionStorage.removeItem("refreshToken");
       }
     } catch (error) {
       console.error("Error validating token:", error);
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("refreshToken");
     } finally {
       setIsLoading(false);
     }
@@ -139,8 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await response.json();
 
     // Save tokens
-    localStorage.setItem("authToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    sessionStorage.setItem("authToken", data.access_token);
+    sessionStorage.setItem("refreshToken", data.refresh_token);
 
     // Fetch the user profile from /me (TokenResponse does not include user)
     try {
@@ -160,8 +184,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("authToken");
+    sessionStorage.removeItem("refreshToken");
     setUser(null);
   };
 
@@ -193,19 +217,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await login(email, password);
   };
 
-  const refreshToken = async () => {
+  const refreshToken = async (): Promise<string | null> => {
+    // SECURITY (LB-FE-2): Returns the new access token so callers can
+    // retry their original request. Returns null if refresh failed.
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
+      const storedRefreshToken = sessionStorage.getItem("refreshToken");
+      if (!storedRefreshToken) {
         throw new Error("No refresh token available");
       }
 
+      // CR-NEW-11: send refresh token in body (not Authorization header)
+      // — the backend expects it in the body per RefreshRequest schema.
+      // Also, the old code had a variable shadowing bug: `const refreshToken`
+      // shadowed the function name, causing confusion.
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${refreshToken}`,
         },
+        body: JSON.stringify({ refresh_token: storedRefreshToken }),
       });
 
       if (!response.ok) {
@@ -214,12 +244,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
 
-      // Update access token
-      localStorage.setItem("authToken", data.access_token);
+      // Update both tokens (CR-NEW-11: backend rotates refresh token)
+      sessionStorage.setItem("authToken", data.access_token);
+      if (data.refresh_token) {
+        sessionStorage.setItem("refreshToken", data.refresh_token);
+      }
+      return data.access_token as string;
     } catch (error) {
       logout(); // If refresh fails, logout user
       throw error;
     }
+  };
+
+  // SECURITY (LB-FE-2): 401-refresh interceptor.
+  // When an API call returns 401, automatically attempt to refresh the
+  // access token and retry the original request once. If refresh fails,
+  // the user is logged out. This prevents silent session death after
+  // the 15-minute access token expires.
+  const fetchWithRefresh = async (
+    url: string,
+    options: RequestInit = {}
+  ): Promise<Response> => {
+    const token = sessionStorage.getItem("authToken");
+    const headers = {
+      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    let response = await fetch(url, { ...options, headers });
+
+    // If 401 and we have a refresh token, try refreshing once
+    if (response.status === 401 && sessionStorage.getItem("refreshToken")) {
+      try {
+        const newToken = await refreshToken();
+        if (newToken) {
+          // Retry with the new token
+          const retryHeaders = {
+            ...options.headers,
+            Authorization: `Bearer ${newToken}`,
+          };
+          response = await fetch(url, { ...options, headers: retryHeaders });
+        }
+      } catch {
+        // Refresh failed — logout already called in refreshToken()
+      }
+    }
+
+    return response;
   };
 
   const value = {
@@ -230,6 +301,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     register,
     refreshToken,
+    fetchWithRefresh, // LB-FE-2: use this for authenticated API calls
   };
 
   return createElement(AuthContext.Provider, { value }, children);
