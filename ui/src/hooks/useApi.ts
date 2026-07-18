@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { API_BASE_URL } from "../lib/api-config";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// SECURITY (LB-FE-1): Previously this hardcoded http://localhost:8000 as
+// fallback, which broke all API calls in production. Now uses the centralized
+// API_BASE_URL from lib/api-config.ts which resolves correctly for HF Space,
+// Vercel, and local dev.
 
 // Define types for API responses
 interface ApiResponse<T> {
