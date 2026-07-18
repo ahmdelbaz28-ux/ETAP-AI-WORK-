@@ -179,12 +179,19 @@ class AssetListResponse(BaseModel):
 async def list_assets(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
     project_id: Annotated[Optional[str], Query(description="Filter by project ID")] = None,
     type_filter: Annotated[Optional[AssetType], Query(alias="type", description="Filter by asset type")] = None,
     status_filter: Annotated[Optional[AssetStatus], Query(alias="status", description="Filter by status")] = None,
 ) -> Any:
-    """Return a paginated, filterable list of electrical assets."""
+    """Return a paginated, filterable list of electrical assets.
+
+    SECURITY (LAUNCH-BLOCKER): Non-admin users only see their own assets.
+    """
     base_query = select(Asset)
+    # CR-NEW-08: Scope to user's own assets (admins see all)
+    if user.role != "admin":
+        base_query = base_query.where(Asset.created_by == str(user.user_id))
 
     if project_id is not None:
         base_query = base_query.where(Asset.project_id == project_id)
