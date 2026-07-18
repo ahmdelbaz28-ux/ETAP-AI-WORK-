@@ -1,0 +1,77 @@
+# Prometheus configuration for AhmedETAP Platform
+# OPS (E-14): Previously this file was referenced by docker-compose.copilot.yml:174
+# and docker-compose.monitoring.yml:37 but did NOT exist in the repo — causing
+# Prometheus container to fail on startup. This file provides a working baseline.
+
+global:
+  scrape_interval: 15s          # Default scrape interval for all jobs
+  evaluation_interval: 15s      # Default rule evaluation interval
+  external_labels:
+    cluster: 'ahmedetap'
+    environment: '${ENVIRONMENT:-development}'
+
+# Alerting — alertmanager is defined in monitoring/alertmanager.yml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Rule files (optional — create if alerting rules are needed)
+# rule_files:
+#   - 'alerts/*.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # AhmedETAP FastAPI engineering service
+  - job_name: 'etap-engineering-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['engineering-service:8000']
+        labels:
+          service: 'engineering-service'
+    # If the service exposes /metrics via auth, uncomment:
+    # bearer_token: '${PROMETHEUS_BEARER_TOKEN}'
+
+  # Celery worker (Flower exporter or celery-exporter)
+  - job_name: 'celery-worker'
+    static_configs:
+      - targets: ['celery-worker:9555']
+        labels:
+          service: 'celery-worker'
+
+  # PostgreSQL exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+
+  # Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+
+  # Node exporter (host metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node'
+
+  # HF Space (external — scrape via public URL when running in HF)
+  - job_name: 'hf-space'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['ahmdelbaz28-ahmedetap-platform.hf.space:443']
+        labels:
+          service: 'hf-space'
+          deployment: 'huggingface'
+    scheme: https
+    scrape_interval: 30s  # less frequent for external target

@@ -11,7 +11,10 @@ services:
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+      # OPS (E-15): Use Postgres, not SQLite. The previous SQLite URL caused
+      # silent data loss on restart and bypassed the postgres service defined
+      # below. Now uses asyncpg driver matching the SQLAlchemy URL scheme.
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-etap}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-etap_db}
     depends_on:
       redis:
         condition: service_healthy
@@ -39,6 +42,7 @@ services:
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-etap}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-etap_db}
     depends_on:
       redis:
         condition: service_healthy

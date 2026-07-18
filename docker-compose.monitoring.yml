@@ -112,8 +112,9 @@ services:
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:?GRAFANA_PASS is required}
+      # OPS (E-16): standardized on GRAFANA_ADMIN_USER / GRAFANA_ADMIN_PASSWORD
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
       # Auto-provision Prometheus and Jaeger data sources
       - GF_DATASOURCES_PROMETHEUS_URL=http://prometheus:9090
