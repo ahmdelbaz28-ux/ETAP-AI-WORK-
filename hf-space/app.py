@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
@@ -134,6 +134,12 @@ from api.assets import router as assets_router  # noqa: E402
 from api.auth import router as auth_router  # noqa: E402
 from api.data_import import router as data_import_router  # noqa: E402
 from api.email_dashboard import router as email_dashboard_router  # noqa: E402
+
+# SECURITY (CR-NEW-03,04): auth dependencies for Kill Switch + API Key Store
+from api.dependencies import (  # noqa: E402
+    CurrentUser,
+    get_current_user_from_header,
+)
 from api.email_digest import router as email_digest_router  # noqa: E402
 
 # Email integration routers (Resend integration v2 — added 2026-07-10)
@@ -744,12 +750,20 @@ async def etap_gui_health():
 
 
 @app.post("/api/v1/agents/etap-gui/kill-switch/activate", tags=["Agents", "Safety"])
-async def etap_gui_activate_kill_switch(reason: str = "manual_api_call"):
+async def etap_gui_activate_kill_switch(
+    reason: str = "manual_api_call",
+    user: CurrentUser = Depends(get_current_user_from_header),
+):
     """🚨 EMERGENCY STOP — Activate the CUA kill switch on HF Space.
 
     Once activated, the CUA Loop will abort on the next action check.
     The kill switch is file-based (/tmp/cua_kill_switch) so it works
     even if the API server is unresponsive.
+
+    SECURITY (CR-NEW-03): Requires authentication. Any authenticated user
+    can activate the kill switch (emergency stop is a safety feature that
+    should be accessible to all operators). However, anonymous access is
+    blocked to prevent remote attackers from stopping production workflows.
     """
     from agents.life_safety import activate_kill_switch
 
@@ -762,17 +776,34 @@ async def etap_gui_activate_kill_switch(reason: str = "manual_api_call"):
             "kill_switch_active": True,
             "reason": reason,
             "activated_at": datetime.now(UTC).isoformat(),
+            "activated_by": user.user_id,
             "message": "CUA Loop will abort on next action. Call /deactivate to resume.",
         },
     }
 
 
 @app.post("/api/v1/agents/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
-async def etap_gui_deactivate_kill_switch():
+async def etap_gui_deactivate_kill_switch(
+    user: CurrentUser = Depends(get_current_user_from_header),
+):
     """Deactivate the CUA kill switch.
 
     Use with caution — only after the safety issue has been resolved.
+
+    SECURITY (CR-NEW-03): Requires admin role. Deactivating the kill
+    switch resumes potentially hazardous automated operations — this
+    must only be done by an authorized supervisor after verifying the
+    safety issue is resolved.
     """
+    # CR-NEW-03: Only admins can deactivate the kill switch
+    if user.role != "admin":
+        from fastapi import HTTPException
+        from starlette import status as http_status
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can deactivate the kill switch. "
+                   "Contact an admin after verifying the safety issue is resolved.",
+        )
     from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
 
     was_active = deactivate_kill_switch()
@@ -781,6 +812,7 @@ async def etap_gui_deactivate_kill_switch():
         "data": {
             "was_active": was_active,
             "kill_switch_active": is_kill_switch_active(),
+            "deactivated_by": user.user_id,
             "message": "Kill switch deactivated. CUA Loop can resume."
             if was_active
             else "Kill switch was not active.",
@@ -1044,8 +1076,22 @@ async def knowledge_info():
 
 
 @app.get("/api/v1/settings/keys", tags=["Settings"])
-async def settings_list_keys():
-    """List all stored API keys (masked — never returns plaintext)."""
+async def settings_list_keys(
+    user: CurrentUser = Depends(get_current_user_from_header),
+):
+    """List all stored API keys (masked — never returns plaintext).
+
+    SECURITY (CR-NEW-04): Requires authentication + admin role.
+    API keys are sensitive configuration — only admins should view/manage them.
+    """
+    # CR-NEW-04: Admin-only
+    if user.role != "admin":
+        from fastapi import HTTPException
+        from starlette import status as http_status
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can view API key configuration.",
+        )
     from services.api_key_store import api_key_store
 
     keys = api_key_store.get_all_keys()
@@ -1053,8 +1099,21 @@ async def settings_list_keys():
 
 
 @app.get("/api/v1/settings/keys/{provider}", tags=["Settings"])
-async def settings_get_key(provider: str):
-    """Get a single API key (masked)."""
+async def settings_get_key(
+    provider: str,
+    user: CurrentUser = Depends(get_current_user_from_header),
+):
+    """Get a single API key (masked).
+
+    SECURITY (CR-NEW-04): Requires authentication + admin role.
+    """
+    if user.role != "admin":
+        from fastapi import HTTPException
+        from starlette import status as http_status
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can view API key configuration.",
+        )
     from services.api_key_store import APIKeyStore, api_key_store
 
     provider = provider.lower().strip()
@@ -1069,15 +1128,41 @@ async def settings_get_key(provider: str):
     return {"success": True, "data": config.to_masked_dict()}
 
 
+# CR-NEW-04: Pydantic model for save_key — replaces query params with body
+# (prevents api_key leakage in logs/referrer/URL history)
+from pydantic import BaseModel as _BaseModel
+
+
+class SaveKeyRequest(_BaseModel):
+    """Request body for saving an API key (CR-NEW-04)."""
+    api_key: str
+    base_url: str | None = None
+    model_name: str | None = None
+    is_active: bool = True
+
+
 @app.post("/api/v1/settings/keys/{provider}", tags=["Settings"])
 async def settings_save_key(
     provider: str,
-    api_key: str,
-    base_url: str = None,
-    model_name: str = None,
-    is_active: bool = True,
+    body: SaveKeyRequest,
+    user: CurrentUser = Depends(get_current_user_from_header),
 ):
-    """Save or update an API key (encrypted with AES-256)."""
+    """Save or update an API key (encrypted with AES-256).
+
+    SECURITY (CR-NEW-04):
+    1. Requires authentication + admin role
+    2. api_key moved from query param to request body (prevents leakage
+       in server logs, browser history, Referer headers)
+    3. base_url validated to prevent SSRF (blocks localhost, private IPs,
+       cloud metadata endpoints) — same pattern as CR-NEW-06
+    """
+    if user.role != "admin":
+        from fastapi import HTTPException
+        from starlette import status as http_status
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage API keys.",
+        )
     import logging
 
     from services.api_key_store import APIKeyStore, api_key_store
@@ -1089,8 +1174,42 @@ async def settings_save_key(
             status_code=400,
             content={"success": False, "error": f"Unsupported provider: {provider}"},
         )
+
+    # CR-NEW-04: SSRF validation on base_url
+    if body.base_url:
+        import ipaddress
+        from urllib.parse import urlparse
+        parsed = urlparse(body.base_url)
+        if parsed.scheme not in ("http", "https"):
+            return JSONResponse(
+                status_code=422,
+                content={"success": False, "error": f"base_url scheme '{parsed.scheme}' not allowed."},
+            )
+        hostname = (parsed.hostname or "").lower()
+        if hostname in ("localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254.169.254"):
+            return JSONResponse(
+                status_code=422,
+                content={"success": False, "error": "base_url cannot point to localhost/metadata."},
+            )
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_link_local or ip.is_loopback or ip.is_reserved:
+                return JSONResponse(
+                    status_code=422,
+                    content={"success": False, "error": f"base_url cannot point to private IP {ip}."},
+                )
+        except ValueError:
+            pass  # domain name — allowed
+
     try:
-        api_key_store.set_key(provider, api_key, base_url, model_name, is_active)
+        # CR-NEW-04: use body.* instead of query params
+        api_key_store.set_key(
+            provider,
+            body.api_key,
+            body.base_url,
+            body.model_name,
+            body.is_active,
+        )
         config = api_key_store.get_key(provider)
         masked = config.to_masked_dict() if config else None
         return {
