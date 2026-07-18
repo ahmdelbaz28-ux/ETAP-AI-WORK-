@@ -155,7 +155,15 @@ async def get_current_user(
     token = _extract_bearer_token(authorization)
 
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        # SECURITY (HI-NEW-09): require exp + sub claims — a token without
+        # an expiry could be used forever if stolen. Without sub, the token
+        # has no user identity.
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub"]},
+        )
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

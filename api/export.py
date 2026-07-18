@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Optional
@@ -25,6 +26,31 @@ UTC = UTC
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+
+
+def _sanitize_filename(name: str, max_length: int = 64) -> str:
+    """SECURITY (HI-NEW-04): Sanitize a string for use in a Content-Disposition filename.
+
+    Prevents HTTP header injection via project names containing CR/LF
+    characters (e.g. a project named 'evil\\r\\nSet-Cookie: x=1' would
+    inject a Set-Cookie header into the response).
+
+    Removes:
+    - CR/LF characters (\\r, \\n) — header injection
+    - Quotes — could break out of the filename="..." context
+    - Control characters (0x00-0x1F, 0x7F)
+    - Path separators (/, \\) — prevent path traversal in client save dialogs
+    Truncates to max_length to prevent overly long headers.
+    """
+    if not name:
+        return "untitled"
+    # Remove CR/LF, quotes, control chars, path separators
+    sanitized = re.sub(r'[\r\n"\x00-\x1f\x7f/\\]', "", str(name))
+    # Collapse whitespace
+    sanitized = re.sub(r"\s+", "_", sanitized).strip("._")
+    if not sanitized:
+        sanitized = "untitled"
+    return sanitized[:max_length]
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import (
     DateTime,
@@ -226,7 +252,7 @@ async def export_pdf(
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{project.name}_report.pdf"'},
+        headers={"Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_report.pdf"'},
     )
 
 
@@ -256,7 +282,7 @@ async def export_excel(
     return StreamingResponse(
         io.BytesIO(excel_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{project.name}_results.xlsx"'},
+        headers={"Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_results.xlsx"'},
     )
 
 

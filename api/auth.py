@@ -930,7 +930,13 @@ async def logout(
                 body.refresh_token,
                 JWT_SECRET_KEY,
                 algorithms=[JWT_ALGORITHM],
-                options={"verify_exp": False},  # Allow blacklisting even if expired
+                # SECURITY: verify_exp=False allows blacklisting even if
+                # the token just expired. But we still require sub+type+jti
+                # to ensure the token has the minimum required structure.
+                options={
+                    "verify_exp": False,
+                    "require": ["sub", "type", "jti"],
+                },
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds

@@ -26,7 +26,28 @@ import io
 import json
 import re
 import uuid
-import xml.etree.ElementTree as ET
+# SECURITY (CR-NEW-13): Use defusedxml instead of xml.etree.ElementTree
+# for parsing untrusted XML. defusedxml protects against:
+# - Billion-laughs DoS (entity expansion attacks)
+# - External entity (XXE) attacks (reading local files, SSRF)
+# - External DTD attacks
+# The previous code used ET.fromstring() with a nosec comment claiming
+# "trusted input" — but the XML is uploaded by authenticated users,
+# not trusted. A malicious user could upload a 10KB XML that expands
+# to GBs in memory, causing OOM kill.
+try:
+    import defusedxml.ElementTree as ET
+    _DEFUSED_XML = True
+except ImportError:
+    # Fallback to stdlib ET if defusedxml is not installed.
+    # This is LESS SECURE — log a warning so operators know.
+    import xml.etree.ElementTree as ET
+    import logging as _logging
+    _logging.getLogger("etap.api.data_import").warning(
+        "defusedxml is not installed — XML parsing is vulnerable to "
+        "billion-laughs and XXE attacks. Install with: pip install defusedxml"
+    )
+    _DEFUSED_XML = False
 from datetime import UTC, datetime
 from typing import Annotated, Any, Optional
 
@@ -466,7 +487,7 @@ def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord],
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads
+        root = ET.fromstring(text)  # CR-NEW-13: defusedxml protects against XXE/billion-laughs
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":

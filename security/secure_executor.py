@@ -284,11 +284,24 @@ def main() -> None:  # NOSONAR — S3776: cognitive complexity; scheduled for re
                 exec(_code, _globals)
             return {"ok": True, "output": f.getvalue(), "error": None, "traceback": None}
         except Exception as e:
+            # SECURITY (HI-NEW-01): Do NOT return full traceback to the caller.
+            # traceback.format_exc() reveals internal file paths, Python
+            # version, module structure, and line numbers — information
+            # that helps attackers understand the codebase and craft
+            # targeted exploits. In production, return only the error type
+            # and message. In development, include the traceback for
+            # easier debugging.
+            import os as _os
+            _env = _os.getenv("ENVIRONMENT", "development").lower()
+            if _env in ("production", "prod", "staging"):
+                _tb = None  # hide traceback in production
+            else:
+                _tb = traceback.format_exc()  # show in dev for debugging
             return {
                 "ok": False,
                 "output": None,
-                "error": str(e),
-                "traceback": traceback.format_exc(),
+                "error": f"{type(e).__name__}: {e}",
+                "traceback": _tb,
             }
 
     # Cross-platform timeout enforcement (replaces signal.SIGALRM)
