@@ -296,12 +296,18 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
 
     try:
         # Initialize study cache if needed
+        # SECURITY (OPS-2): Use REDIS_URL env var instead of hardcoded
+        # localhost. On HF Space, Redis is not on localhost — the hardcoded
+        # URL caused silent caching failure in production.
         study_cache = None
         try:
-            study_cache = StudyCache(
-                redis_url="redis://localhost:6379",
-                ttl=3600,
-            )
+            import os as _os
+            _redis_url = _os.getenv("REDIS_URL", "redis://localhost:6379")
+            if _redis_url:
+                study_cache = StudyCache(
+                    redis_url=_redis_url,
+                    ttl=3600,
+                )
         except Exception:
             logger.debug("StudyCache init failed (non-fatal)")
 

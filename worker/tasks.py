@@ -155,9 +155,20 @@ def process_large_calculation_task(self, calculation_data: dict):
         # In real implementation, this would contain the actual computational logic
         import numpy as np
 
-        # Example: Heavy matrix computation
-        size = calculation_data.get("size", 1000)
-        iterations = calculation_data.get("iterations", 100)
+        # SECURITY (OPS-4): Validate size and iterations to prevent DoS.
+        # Without these limits, an attacker could send size=100000 (80GB
+        # matrix → OOM kill) or iterations=1000000 (days of CPU time).
+        # Limits are generous for legitimate engineering work:
+        #   size=5000 → 200MB matrix (largest realistic power-system study)
+        #   iterations=1000 → ~10 minutes max
+        size = min(int(calculation_data.get("size", 1000)), 5000)
+        iterations = min(int(calculation_data.get("iterations", 100)), 1000)
+        if size < 1 or iterations < 1:
+            result = {
+                "success": False,
+                "error": "size and iterations must be positive integers",
+            }
+            return result
 
         # Simulate computation progress
         for i in range(iterations):

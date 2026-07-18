@@ -1358,6 +1358,14 @@ class ChiefEngineeringOrchestrator:
     prompt_handle = "power_system_coordinator_agent"
 
     def __init__(self):
+        # SECURITY (OPS-6): Initialize logger FIRST, before any other
+        # initialization that might fail. Previously self.logger was set
+        # at line 1406 (end of __init__) OR inside an except ImportError
+        # branch at line 1380. If any agent constructor raised a non-
+        # ImportError exception between 1373 and 1406, the except handler
+        # would try to use self.logger before it was set → AttributeError.
+        self.logger = logging.getLogger("orchestrator")
+
         self.agents = {
             "load_flow": LoadFlowAgent(),
             "short_circuit": ShortCircuitAgent(),
@@ -1377,7 +1385,7 @@ class ChiefEngineeringOrchestrator:
             self._code_guard_agent = CodeGuardAgent()
             self.agents["code_guard"] = self._code_guard_agent
         except ImportError:
-            self.logger = logging.getLogger("orchestrator")
+            # self.logger already initialized at the top of __init__ (OPS-6)
             self.logger.info("CodeGuardAgent not available — guard-skills review disabled")
 
         # ETAP Expert skill agent — 6-step workflow with Format A/B/C/D responses
@@ -1403,7 +1411,7 @@ class ChiefEngineeringOrchestrator:
 
         self.task_queue: list[EngineeringTask] = []
         self.completed_tasks: dict[str, EngineeringTask] = {}
-        self.logger = logging.getLogger("orchestrator")
+        # self.logger already initialized at the top of __init__ (OPS-6)
 
         # Load orchestrator's own prompt for coordination guidance
         self._system_prompt: Optional[str] = None
@@ -1462,8 +1470,13 @@ class ChiefEngineeringOrchestrator:
         required_studies = self._parse_user_goal(user_goal)
 
         # Create task
+        # SECURITY (OPS-7): Use UUID for task_id instead of timestamp.
+        # Previously: f"workflow_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        # Two requests in the same second would get the same task_id, causing
+        # self.completed_tasks[task_id] to overwrite the first task's result.
+        import uuid as _uuid
         task = EngineeringTask(
-            task_id=f"workflow_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+            task_id=f"workflow_{_uuid.uuid4().hex[:12]}",
             description=user_goal,
             study_types=required_studies,
             parameters={"system": system_data, **(parameters or {})},
@@ -1748,7 +1761,9 @@ class ChiefEngineeringOrchestrator:
                 "benchmark": benchmark,
             }
 
-        task_id = f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        # SECURITY (OPS-7): Use UUID to prevent task_id collisions
+        import uuid as _uuid
+        task_id = f"parallel_{_uuid.uuid4().hex[:12]}"
 
         # -----------------------------------------------------------
         # Helper: create an EngineeringTask for a single study
