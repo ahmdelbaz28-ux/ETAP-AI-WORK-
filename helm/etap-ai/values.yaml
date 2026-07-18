@@ -166,8 +166,8 @@ resources:
     memory: 1Gi
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
+  enabled: true  # SECURITY (LAUNCH-BLOCKER): was false — HPA template existed but never rendered
+  minReplicas: 2
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
