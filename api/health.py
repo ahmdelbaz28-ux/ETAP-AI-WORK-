@@ -1,16 +1,18 @@
 """
 Health and Metrics API Router
 =============================
-Handles all health check and metrics endpoints.
+Handles all health check endpoints with REAL dependency checks.
 Separated from main engineering service for better modularity.
 """
 
+import os
 import time
 from typing import Dict
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
+from sqlalchemy import text
 
 from core.bootstrap import (
     _failed_count,
@@ -22,6 +24,21 @@ from core.bootstrap import (
 from core.metrics import generate_metrics, get_metrics_content_type
 
 router = APIRouter(prefix="", tags=["health"])
+
+
+# Lazy imports for optional dependencies (DB + Redis). These are imported
+# lazily inside the readiness check so that a missing or unreachable DB/Redis
+# does not crash the /healthz liveness probe or import-time of this module.
+def _get_db_context():
+    """Lazy import of the DB session context manager."""
+    from api.database import get_db_context
+    return get_db_context
+
+
+def _get_redis_client_func():
+    """Lazy import of the Redis client getter (returns None if not configured)."""
+    from api.auth import _get_redis_client
+    return _get_redis_client
 
 
 # Fix for CRITICAL #1 (AhmedETAP_Error_Report_AR.pdf):
@@ -80,8 +97,7 @@ async def readyz() -> Dict[str, object]:
 
     # DB check
     try:
-        from api.database import get_db_context
-        from sqlalchemy import text
+        get_db_context = _get_db_context()
         async with get_db_context() as db:
             result = await db.execute(text("SELECT 1"))
             if result.scalar() == 1:
@@ -93,8 +109,8 @@ async def readyz() -> Dict[str, object]:
 
     # Redis check
     try:
-        from api.auth import _get_redis_client
-        r = _get_redis_client()
+        get_redis_client = _get_redis_client_func()
+        r = get_redis_client()
         if r is None:
             # Redis is optional — mark as not-configured, not failed
             checks["redis"] = "not_configured"
@@ -106,8 +122,7 @@ async def readyz() -> Dict[str, object]:
 
     # Critical dependencies: DB must be ok. Redis is optional in dev but
     # required in production (fail-closed if configured but unreachable).
-    import os as _os
-    _env = _os.getenv("ENVIRONMENT", "development").lower()
+    _env = os.getenv("ENVIRONMENT", "development").lower()
     is_prod = _env in ("production", "prod", "staging")
 
     db_ok = checks["db"] == "ok"
