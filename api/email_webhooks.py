@@ -42,9 +42,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Optional
 
-from fastapi import APIRouter, Header, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, HttpUrl
+
+from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("etap.api.email_webhooks")
 
@@ -358,14 +360,73 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _validate_webhook_url(url: str) -> None:
+    """SECURITY (CR-NEW-06): Validate webhook URL to prevent SSRF.
+
+    Blocks:
+    - Non-HTTP(S) schemes (file://, gopher://, ftp://, etc.)
+    - localhost / 127.0.0.1 / 0.0.0.0
+    - Private IP ranges (10.x, 172.16-31.x, 192.168.x)
+    - Link-local (169.254.x — AWS metadata endpoint)
+    - Cloud metadata endpoints (169.254.169.254)
+    """
+    import ipaddress
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Webhook URL scheme '{parsed.scheme}' not allowed. Use http or https.",
+        )
+    if not parsed.hostname:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Webhook URL must include a hostname.",
+        )
+
+    hostname = parsed.hostname.lower()
+    # Block localhost variants
+    if hostname in ("localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Webhook URL cannot point to localhost.",
+        )
+    # Block cloud metadata endpoints
+    if hostname in ("169.254.169.254", "metadata.google.internal"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Webhook URL cannot point to cloud metadata endpoints.",
+        )
+    # Block private IP ranges (if hostname is an IP)
+    try:
+        ip = ipaddress.ip_address(hostname)
+        if ip.is_private or ip.is_link_local or ip.is_loopback or ip.is_reserved:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Webhook URL cannot point to private/reserved IP {ip}.",
+            )
+    except ValueError:
+        # hostname is a domain name, not an IP — allow
+        pass
+
+
 @router.post(
     "/endpoints",
     response_model=EndpointResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register an outbound webhook endpoint",
 )
-async def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
-    """Register a new webhook endpoint to receive forwarded email events."""
+async def register_endpoint(
+    body: RegisterEndpointRequest,
+    current_user: CurrentUser = Depends(get_current_user_from_header),
+) -> JSONResponse:
+    """Register a new webhook endpoint to receive forwarded email events.
+
+    SECURITY (CR-NEW-06): Requires authentication. Webhook URL is validated
+    to prevent SSRF (blocks localhost, private IPs, cloud metadata endpoints).
+    """
+    _validate_webhook_url(str(body.url))
     ep_id = str(uuid.uuid4())
     ep = WebhookEndpoint(
         id=ep_id,
