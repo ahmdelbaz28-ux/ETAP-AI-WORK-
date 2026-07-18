@@ -96,19 +96,28 @@ def normalize_template_var(value: str, default: str = "") -> str:
 def get_api_key_auth(request: Request) -> Optional[dict]:
     """Check if request has valid API key auth. Returns service dict or None.
 
-    SECURITY: This no longer grants 'admin' role. The previous implementation
-    granted role='admin' to any request with a matching X-API-Key, which was
-    a full admin backdoor. The service role is now 'service' (read-only dashboard
-    access) — endpoints requiring admin must use JWT auth with require_permission().
+    SECURITY (E-06 rev2): The previous implementation granted role='admin'
+    unconditionally — a full admin backdoor if the API key leaked. Now:
+
+    1. is_test_mode() already returns False in production (E-04 fix), so
+       this function only returns a non-None value in development.
+    2. The role granted is configurable via TEST_MODE_API_KEY_ROLE env var
+       (default: 'service' — read-only dashboard access). Set to 'admin'
+       only if a specific test needs admin privileges.
+    3. Added 'service' to EMAIL_DASHBOARD_ADMIN_ROLES in email_dashboard.py
+       so dashboard access still works with the new role.
 
     Returns:
-        {"user_id": "service", "role": "service", "auth_method": "api_key"}
-        if valid API key, None otherwise.
+        {"user_id": "service", "role": "<configured>", "auth_method": "api_key"}
+        if valid API key in dev mode, None otherwise.
     """
     if is_test_mode(request):
+        # Role is configurable for flexibility, defaults to 'service'
+        # (read-only). Production is already blocked by is_test_mode().
+        role = os.getenv("TEST_MODE_API_KEY_ROLE", "service")
         return {
             "user_id": "service",
-            "role": "service",  # was 'admin' — security fix [E-06]
+            "role": role,
             "auth_method": "api_key",
         }
     return None

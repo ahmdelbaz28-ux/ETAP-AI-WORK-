@@ -36,9 +36,13 @@ logger = logging.getLogger("etap.api.email_dashboard")
 router = APIRouter(prefix="/api/v1/email-dashboard", tags=["email", "dashboard"])
 
 # Admin roles allowed to view dashboard
+# Includes 'service' for API-key auth in dev mode (E-06 rev2 compatibility)
 _ADMIN_ROLES = {
     r.strip()
-    for r in os.getenv("EMAIL_DASHBOARD_ADMIN_ROLES", "admin,super_admin").split(",")
+    for r in os.getenv(
+        "EMAIL_DASHBOARD_ADMIN_ROLES",
+        "admin,super_admin,service",
+    ).split(",")
     if r.strip()
 }
 
