@@ -1,30 +1,34 @@
-"""Add equipment, scada_tags, gis_features, email_send_log tables.
+"""Add scada_tags, gis_features, email_send_log tables.
 
-Revision ID: 006_equipment_scada_gis_email
+Revision ID: 006_scada_gis_email
 Revises: 005
 Create Date: 2026-07-18 00:00:00.000000
 
 Why this migration exists
 --------------------------
 The audit report (AhmedETAP_Audit_Report.pdf section 11) found that
-several API endpoints reference tables that did NOT exist in the
-database schema:
+several services referenced tables that did NOT exist in the database
+schema:
 
-* ``api/equipment.py`` exposes 12 CRUD endpoints but there was no
-  ``equipment`` table — endpoints would fail at runtime with undefined
-  behavior (SQLAlchemy might auto-create a table, or the query would
-  fail with NoSuchTableError).
 * ``services/email_send_log.py`` writes to an ``email_send_log`` table
   that was never created via migration — it relied on
-  ``Base.metadata.create_all`` which only runs at startup, missing
-  any pre-existing data.
+  ``Base.metadata.create_all`` which only runs at startup.
 * ``api/scada.py`` references ``scada_tags`` for SCADA tag metadata.
 * ``api/digital_twin.py`` references ``gis_features`` for GIS features
   linked to the digital twin.
 
-This migration creates all four tables with proper foreign keys to
-the ``projects`` table (CASCADE on project delete), indexes on the
-most common query columns, and JSON columns for flexible properties.
+NOTE on equipment table:
+  ``api/equipment.py`` already defines a full SQLAlchemy ORM model for
+  the ``equipment`` table (class Equipment at line 95). That model uses
+  UUID id (String(36)), category_id FK, specs JSON, weight_kg Float, etc.
+  We do NOT create the equipment table here — Base.metadata.create_all
+  handles it. Creating it manually in this migration would conflict with
+  the ORM model and cause schema drift.
+
+  The original audit report (section 11) incorrectly stated that no
+  equipment table exists. The model exists at api/equipment.py:95-130.
+  This migration only creates the three tables that genuinely lack
+  ORM models: scada_tags, gis_features, email_send_log.
 """
 from __future__ import annotations
 
@@ -32,53 +36,13 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "006_equipment_scada_gis_email"
+revision = "006_scada_gis_email"
 down_revision = "005"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    # --- equipment ---
-    # Stores engineering equipment (buses, lines, transformers, motors, etc.)
-    # linked to a project. The `properties` JSON column holds type-specific
-    # attributes (impedance, rating, voltage, etc.) — matching the
-    # core_model/ spec but flexible enough for custom equipment.
-    op.create_table(
-        "equipment",
-        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-        sa.Column(
-            "project_id",
-            sa.Integer(),
-            sa.ForeignKey("projects.id", ondelete="CASCADE"),
-            nullable=False,
-        ),
-        sa.Column("name", sa.String(255), nullable=False),
-        sa.Column(
-            "type",
-            sa.String(64),
-            nullable=False,
-            comment="bus, line, transformer, motor, generator, load, etc.",
-        ),
-        sa.Column(
-            "properties",
-            sa.JSON(),
-            nullable=True,
-            comment="Type-specific attributes (impedance, rating, etc.)",
-        ),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(), onupdate=sa.func.now()),
-        sa.Column(
-            "created_by",
-            sa.Integer(),
-            sa.ForeignKey("users.id"),
-            nullable=True,
-        ),
-    )
-    op.create_index("ix_equipment_project_id", "equipment", ["project_id"])
-    op.create_index("ix_equipment_type", "equipment", ["type"])
-    op.create_index("ix_equipment_name", "equipment", ["name"])
-
     # --- scada_tags ---
     # Stores SCADA tag metadata (tag name, source, data type, unit, etc.)
     # used by the digital twin and SCADA integration modules.
@@ -105,11 +69,7 @@ def upgrade() -> None:
             comment="analog, digital, string",
         ),
         sa.Column("unit", sa.String(32), nullable=True),
-        sa.Column(
-            "description",
-            sa.Text(),
-            nullable=True,
-        ),
+        sa.Column("description", sa.Text(), nullable=True),
         sa.Column("last_value", sa.Float(), nullable=True),
         sa.Column("last_timestamp", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),
@@ -237,8 +197,3 @@ def downgrade() -> None:
     op.drop_index("ix_scada_tags_tag_name", table_name="scada_tags")
     op.drop_index("ix_scada_tags_project_id", table_name="scada_tags")
     op.drop_table("scada_tags")
-
-    op.drop_index("ix_equipment_name", table_name="equipment")
-    op.drop_index("ix_equipment_type", table_name="equipment")
-    op.drop_index("ix_equipment_project_id", table_name="equipment")
-    op.drop_table("equipment")
