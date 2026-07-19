@@ -213,9 +213,83 @@ app.add_middleware(
 
 
 # -- Security headers middleware ----------------------------------------------
-#
-# Adds standard HTTP security headers to every response. The CSP is intentionally
-# permissive on ``'unsafe-inline'`` and ``'unsafe-eval'`` because:
+
+# PUBLIC PATHS that don't require authentication
+_PUBLIC_PATHS = frozenset({
+    "/", "/healthz", "/readyz", "/health", "/ready", "/metrics",
+    "/api/v1/info", "/docs", "/redoc", "/openapi.json",
+})
+_PUBLIC_PREFIXES = (
+    "/docs", "/redoc", "/openapi.json",
+)
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """SECURITY (LAUNCH-BLOCKER): Enforce auth on ALL non-public endpoints.
+
+    hf-space/app.py defines 31 endpoints directly on @app — adding auth
+    to each one individually is error-prone. This middleware enforces
+    auth globally: any path NOT in _PUBLIC_PATHS requires either:
+    - X-API-Key header matching ENGINEERING_SERVICE_API_KEY, OR
+    - Authorization: Bearer <valid JWT>
+
+    If ENGINEERING_SERVICE_API_KEY is not set (dev mode), auth is skipped.
+    """
+    import os as _os
+    path = request.url.path
+
+    # Allow public paths
+    if path in _PUBLIC_PATHS or any(path.startswith(p) for p in _PUBLIC_PREFIXES):
+        return await call_next(request)
+
+    # Allow static assets
+    if path.startswith("/assets/") or path.startswith("/static/"):
+        return await call_next(request)
+
+    # Skip auth if no API key configured (dev mode)
+    api_key = _os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+    auth_disabled = _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+    if not api_key or auth_disabled:
+        return await call_next(request)
+
+    # Check X-API-Key
+    x_api_key = request.headers.get("x-api-key", "")
+    if x_api_key:
+        import hmac as _hmac
+        if _hmac.compare_digest(x_api_key, api_key):
+            return await call_next(request)
+
+    # Check JWT Bearer token
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1].strip()
+        if token:
+            try:
+                import jwt as _jwt
+                from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+                _jwt.decode(
+                    token,
+                    JWT_SECRET_KEY,
+                    algorithms=[JWT_ALGORITHM],
+                    options={"require": ["exp", "sub"]},
+                )
+                return await call_next(request)
+            except Exception:
+                pass  # fall through to 401
+
+    # No valid auth → 401
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Authentication required. Send X-API-Key or Authorization: Bearer <token>."},
+    )
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add standard HTTP security headers to every response."""
+    # permissive on ``'unsafe-inline'`` and ``'unsafe-eval'`` because:
 #   1. Swagger UI (/docs) and ReDoc (/redoc) require inline scripts/styles.
 #   2. The homepage uses an inline <style> block.
 # A stricter CSP would break the API documentation viewers. The other headers

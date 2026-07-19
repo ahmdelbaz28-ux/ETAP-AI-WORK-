@@ -665,7 +665,7 @@ async def scada_live():
     }
 
 
-@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"])
+@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"], dependencies=[Depends(get_api_key)])
 async def digital_twin_status():
     """Return the digital-twin sync status.
 
@@ -690,7 +690,7 @@ async def digital_twin_status():
     }
 
 
-@app.get("/api/v1/benchmark", tags=["Benchmark"])
+@app.get("/api/v1/benchmark", tags=["Benchmark"], dependencies=[Depends(get_api_key)])
 async def benchmark():
     """Run a lightweight in-process benchmark and return timing metrics.
 
