@@ -50,14 +50,26 @@ except ImportError:  # pragma: no cover
     _REDIS_AVAILABLE = False
 
 
+_redis_client = None  # module-level singleton
+
+
 def _get_redis():
-    """Return shared async redis client or None."""
+    """Return shared async redis client singleton or None.
+
+    SECURITY (P0-2): Previously, this function called redis_async.from_url()
+    on EVERY invocation — creating a new connection pool each time. Under
+    load, this would exhaust file descriptors and memory. Now uses a
+    module-level singleton (created once, reused).
+    """
+    global _redis_client
     if not _REDIS_AVAILABLE:
         return None
     url = os.getenv("REDIS_URL", "").strip()
     if not url:
         return None
-    return redis_async.from_url(url, decode_responses=True)
+    if _redis_client is None:
+        _redis_client = redis_async.from_url(url, decode_responses=True)
+    return _redis_client
 
 
 # ---------------------------------------------------------------------------
@@ -209,8 +221,7 @@ async def issue_otp(email: str, purpose: str) -> OtpIssueResult:
             await r.setex(redis_key, OTP_TTL_SECONDS, r_data)
         except Exception as exc:
             logger.warning("otp_redis_set_failed key=%s err=%s", key, exc)
-        finally:
-            await r.aclose() if hasattr(r, "aclose") else None
+        # NOTE: do NOT close the redis client — it's a shared singleton
 
     logger.info("otp_issued email=%s purpose=%s ttl=%ds", email, purpose, OTP_TTL_SECONDS)
     return OtpIssueResult(success=True, code=code)
@@ -280,8 +291,7 @@ async def verify_otp(email: str, purpose: str, code: str) -> OtpVerifyResult:
 
         except Exception as exc:
             logger.warning("otp_redis_verify_failed key=%s err=%s — falling back to memory", key, exc)
-        finally:
-            await r.aclose() if hasattr(r, "aclose") else None
+        # NOTE: do NOT close the redis client — it's a shared singleton
 
     # Fallback: in-memory store (single-replica only)
     rec = await _mem_store.get(key)
@@ -330,8 +340,7 @@ async def invalidate_otp(email: str, purpose: str) -> None:
             await r.delete(f"etap:{key}:attempts")
         except Exception as exc:
             logger.warning("otp_redis_invalidate_failed key=%s err=%s", key, exc)
-        finally:
-            await r.aclose() if hasattr(r, "aclose") else None
+        # NOTE: do NOT close the redis client — it's a shared singleton
 
 
 __all__ = [

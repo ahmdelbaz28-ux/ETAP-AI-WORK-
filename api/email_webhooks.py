@@ -46,16 +46,18 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, HttpUrl
 
-from api.dependencies import CurrentUser, get_current_user_from_header
+from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
 
 logger = logging.getLogger("etap.api.email_webhooks")
 
-# SECURITY (LAUNCH-BLOCKER): All webhook endpoints require auth —
-# list/delete/test/events expose PII and enable sabotage
+# SECURITY (LAUNCH-BLOCKER): Router-level auth REMOVED — would break
+# inbound webhooks from Resend (which don't carry JWT). Instead, auth
+# is applied per-endpoint below. Inbound routes (/resend) use webhook
+# signature verification. Management routes (register/list/delete/test)
+# require JWT auth. The /events debug endpoint requires API key auth.
 router = APIRouter(
     prefix="/api/v1/email/webhooks",
     tags=["email", "webhooks"],
-    dependencies=[Depends(get_current_user_from_header)],
 )
 
 
@@ -462,7 +464,9 @@ async def register_endpoint(
     "/endpoints",
     summary="List registered outbound webhook endpoints",
 )
-async def list_endpoints() -> JSONResponse:
+async def list_endpoints(
+    _: CurrentUser = Depends(get_current_user_from_header),
+) -> JSONResponse:
     return JSONResponse(
         content={
             "success": True,
@@ -488,7 +492,10 @@ async def list_endpoints() -> JSONResponse:
     "/endpoints/{endpoint_id}",
     summary="Delete a webhook endpoint",
 )
-async def delete_endpoint(endpoint_id: str) -> JSONResponse:
+async def delete_endpoint(
+    endpoint_id: str,
+    _: CurrentUser = Depends(get_current_user_from_header),
+) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent)."""
     if endpoint_id and endpoint_id in _endpoints:
         del _endpoints[endpoint_id]
@@ -513,7 +520,10 @@ async def delete_endpoint(endpoint_id: str) -> JSONResponse:
     "/endpoints/{endpoint_id}/test",
     summary="Send a test event to a webhook endpoint",
 )
-async def test_endpoint(endpoint_id: str) -> JSONResponse:
+async def test_endpoint(
+    endpoint_id: str,
+    _: CurrentUser = Depends(get_current_user_from_header),
+) -> JSONResponse:
     """Send a test event to a webhook endpoint.
 
     If endpoint_id is empty or not found, returns a simulated success
@@ -552,7 +562,10 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
     "/events",
     summary="List recent inbound webhook events (debug)",
 )
-async def list_events(limit: int = 50) -> JSONResponse:
+async def list_events(
+    limit: int = 50,
+    _: str = Depends(get_api_key),
+) -> JSONResponse:
     return JSONResponse(
         content={
             "success": True,

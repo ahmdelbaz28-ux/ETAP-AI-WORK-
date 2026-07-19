@@ -1,24 +1,21 @@
 # Alertmanager configuration for ETAP-AI-WORK
-# SECURITY (LAUNCH-BLOCKER): Previously had hardcoded placeholder SMTP
-# credentials ('password') and fake Slack webhooks ('YOUR/SLACK/WEBHOOK').
-# The alerting pipeline was completely non-functional — no alerts would
-# ever be delivered. Now uses environment variable references that must
-# be set before production deployment.
+# SECURITY (P0-4): Alertmanager does NOT support ${ENV_VAR} substitution.
+# The previous version used ${SMTP_HOST:localhost} syntax which would
+# cause Alertmanager to fail parsing the config file.
 #
-# To configure alerting:
-# 1. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, ALERT_EMAIL_TO env vars
-# 2. Set SLACK_WEBHOOK_URL_GENERAL, SLACK_WEBHOOK_URL_ENGINEERING, SLACK_WEBHOOK_URL_ETAP
-# 3. Or: remove the email_configs and slack_configs sections entirely to
-#    disable alerting (alerts will still be visible in Prometheus/Alertmanager UI)
+# This config uses placeholder values that must be replaced before
+# production deployment. Either:
+# 1. Edit this file directly with real SMTP/Slack values, OR
+# 2. Use a config management tool (Helm, envsubst, sed) to inject values, OR
+# 3. Set up alertmanager with --config.file pointing to a generated config
 
 global:
-  # SMTP configuration — set via environment variables
-  # Default: localhost:25 (won't work in containers, but alertmanager will
-  # start and show alerts in its UI even if email delivery fails)
-  smtp_smarthost: '${SMTP_HOST:localhost}:${SMTP_PORT:25}'
-  smtp_from: '${SMTP_FROM:alertmanager@etap.local}'
-  smtp_auth_username: '${SMTP_USER:}'
-  smtp_auth_password: '${SMTP_PASSWORD:}'
+  # Replace 'localhost:25' with your SMTP server before production deploy
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@etap.local'
+  # Remove auth if your SMTP doesn't require it
+  smtp_auth_username: ''
+  smtp_auth_password: ''
   smtp_require_tls: false
 
 route:
@@ -43,32 +40,30 @@ route:
 
 receivers:
   - name: 'default'
-    # Email config — will silently fail if SMTP is not configured
-    # (alertmanager logs the error but continues running)
     email_configs:
-    - to: '${ALERT_EMAIL_TO:admin@etap.local}'
+    - to: 'admin@etap.local'
       send_resolved: true
 
   - name: 'slack_general'
     slack_configs:
     - channel: '#alerts'
       text: '{{ .CommonAnnotations.summary }}'
-      # SECURITY: api_url must be set via env var — no hardcoded webhooks
-      api_url: '${SLACK_WEBHOOK_URL_GENERAL:http://localhost/disabled}'
+      # Replace with real webhook URL before production deploy
+      api_url: 'http://localhost/disabled'
       send_resolved: true
 
   - name: 'engineering_alerts'
     slack_configs:
     - channel: '#engineering-alerts'
       text: '{{ .CommonAnnotations.summary }}'
-      api_url: '${SLACK_WEBHOOK_URL_ENGINEERING:http://localhost/disabled}'
+      api_url: 'http://localhost/disabled'
       send_resolved: true
 
   - name: 'etap_notifications'
     slack_configs:
     - channel: '#etap-notifications'
       text: '{{ .CommonAnnotations.summary }}'
-      api_url: '${SLACK_WEBHOOK_URL_ETAP:http://localhost/disabled}'
+      api_url: 'http://localhost/disabled'
       send_resolved: true
 
 inhibit_rules:

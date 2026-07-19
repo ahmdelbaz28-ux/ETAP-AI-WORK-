@@ -1488,6 +1488,12 @@ class ChiefEngineeringOrchestrator:
         # Store completed task
         task.results = results
         task.status = AgentStatus.COMPLETED
+        # P0-6: Cap completed_tasks to prevent unbounded memory growth.
+        # Keep last 1000 completed tasks (FIFO eviction).
+        if len(self.completed_tasks) >= 1000:
+            # Remove oldest 100 entries (by insertion order — Python 3.7+ dicts are ordered)
+            for old_key in list(self.completed_tasks.keys())[:100]:
+                del self.completed_tasks[old_key]
         self.completed_tasks[task.task_id] = task
 
         self.logger.info("Workflow completed: %s", task.task_id)

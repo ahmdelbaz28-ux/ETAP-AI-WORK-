@@ -133,7 +133,9 @@ class Equipment(Base):
     )
 
     # Relationships
-    category = relationship("EquipmentCategory", back_populates="equipment_list")
+    # P0-5: lazy="selectin" prevents N+1 queries when listing equipment
+    # (each equipment's category is loaded in a single IN clause, not per-row)
+    category = relationship("EquipmentCategory", back_populates="equipment_list", lazy="selectin")
 
 
 # ---------------------------------------------------------------------------

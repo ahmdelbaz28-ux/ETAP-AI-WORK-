@@ -85,6 +85,9 @@ RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "3
 _LOGIN_ATTEMPTS: dict[str, list[float]] = {}
 _RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "5"))
 _RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SEC", "900"))  # 15 minutes
+# P0-6: Periodic cleanup of _LOGIN_ATTEMPTS to prevent unbounded growth.
+# Old entries (beyond rate limit window) are pruned on each check.
+_MAX_LOGIN_ATTEMPTS_KEYS = 10000  # safety cap — if exceeded, clear all
 
 # ---------------------------------------------------------------------------
 # Token blacklist (Redis-backed)
@@ -563,6 +566,9 @@ async def _check_rate_limit(username: str) -> None:
 
     # In-memory fallback
     now = time.monotonic()
+    # P0-6: Prune expired entries to prevent unbounded dict growth
+    if len(_LOGIN_ATTEMPTS) > _MAX_LOGIN_ATTEMPTS_KEYS:
+        _LOGIN_ATTEMPTS.clear()  # safety reset
     attempts = _LOGIN_ATTEMPTS.get(username, [])
     attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
     _LOGIN_ATTEMPTS[username] = attempts
