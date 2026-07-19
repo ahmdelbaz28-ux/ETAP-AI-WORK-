@@ -578,10 +578,17 @@ def api_client():
 
 
 @pytest.fixture(autouse=True)
-def setup_test_environment():
-    """Sets up the test environment automatically for all tests."""
+def setup_test_environment(request):
+    """Sets up the test environment automatically for all tests.
+
+    NOTE: If a test sets ENGINEERING_SERVICE_AUTH_DISABLED=false via
+    monkeypatch or env var BEFORE this fixture, we respect that.
+    This allows tests/test_auth_enabled.py to test with auth ENABLED.
+    """
     # Set environment variables for testing
-    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+    # Only set AUTH_DISABLED if not already set to 'false' by the test
+    if os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "") != "false":
+        os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
     # SECURITY (E-09 test compat): Tests need to retrieve the reset_token

@@ -72,6 +72,17 @@ if not API_KEY:
     logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 
 
+def _get_current_api_key() -> str:
+    """Get the current API key from the environment at CALL time (not import time).
+
+    SECURITY FIX: Previously, get_api_key() used the module-level API_KEY
+    variable which was read once at import. If the env var changed after
+    import (e.g., in tests), the old value was used. Now reads the env
+    var at call time, so monkeypatching os.environ in tests works.
+    """
+    return os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
+
+
 # ---------------------------------------------------------------------------
 # Pagination parameters
 # ---------------------------------------------------------------------------
@@ -277,8 +288,16 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
     header. Without this bypass, every authenticated UI request to
     /assets, /projects returns 401.
     """
-    if not API_KEY:
-        # No API key configured — skip validation
+    # SECURITY: Check AUTH_DISABLED at CALL TIME (not import time).
+    # Previously, api/routes.py read _AUTH_DISABLED at module load and
+    # get_api_key() used that static value. Tests that monkeypatch the
+    # env var couldn't override the behavior.
+    _auth_disabled = os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
+        "true", "1", "yes",
+    )
+    _current_key = _get_current_api_key()
+    if _auth_disabled or not _current_key:
+        # Auth disabled or no API key configured — skip validation
         return ""
 
     # SECURITY (CR-NEW-09): The previous implementation accepted ANY
@@ -319,7 +338,7 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
             detail="Missing X-API-Key header",
         )
 
-    if not hmac.compare_digest(x_api_key, API_KEY):
+    if not hmac.compare_digest(x_api_key, _get_current_api_key()):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
