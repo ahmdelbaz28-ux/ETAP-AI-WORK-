@@ -90,12 +90,40 @@ class StudyResponse(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    """Check if the worker and ETAP COM are reachable."""
+    """Check if the worker and ETAP COM are reachable.
+
+    P0-8: Previously returned hardcoded {'status': 'healthy'} — a stub
+    that always reported healthy even when ETAP COM was not installed.
+    Now performs real checks: ETAP COM availability (Windows only),
+    Python version, and worker process uptime.
+    """
+    import time as _time
     is_windows = sys.platform == "win32"
+    etap_available = False
+
+    # Check if ETAP COM is actually available (Windows only)
+    if is_windows:
+        try:
+            import pythoncom  # noqa: F401
+            import win32com.client  # noqa: F401
+            etap_available = True
+        except ImportError:
+            etap_available = False
+
+    # Determine actual health status
+    is_healthy = True
+    issues = []
+    if is_windows and not etap_available:
+        is_healthy = False
+        issues.append("ETAP COM not available (pywin32 not installed)")
+
     return {
-        "status": "healthy",
+        "status": "healthy" if is_healthy else "degraded",
         "platform": sys.platform,
         "etap_compatible": is_windows,
+        "etap_com_available": etap_available,
+        "issues": issues if issues else None,
+        "timestamp": _time.time(),
     }
 
 

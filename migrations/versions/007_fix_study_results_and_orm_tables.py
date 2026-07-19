@@ -109,7 +109,7 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
             sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=sa.func.now()),
         )
-        op.create_index("ix_study_templates_created_by", "study_templates", ["created_by"])
+        # NOTE: index already created by index=True in Column definition above
 
     # notifications (ORM: api/notifications.py)
     notif_cols = {c["name"] for c in inspector.get_columns("notifications")} \
@@ -126,7 +126,7 @@ def upgrade() -> None:
             sa.Column("is_read", sa.Boolean(), default=False),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         )
-        op.create_index("ix_notifications_user_id", "notifications", ["user_id"])
+        # NOTE: index already created by index=True in Column definition above
 
     # export_history (ORM: api/export.py)
     export_cols = {c["name"] for c in inspector.get_columns("export_history")} \
@@ -142,7 +142,7 @@ def upgrade() -> None:
             sa.Column("created_by", sa.String(36), nullable=False),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         )
-        op.create_index("ix_export_history_project_id", "export_history", ["project_id"])
+        # NOTE: index already created by index=True in Column definition above
 
     # RBAC tables (ORM: api/rbac.py)
     roles_cols = {c["name"] for c in inspector.get_columns("roles")} \
@@ -189,7 +189,7 @@ def upgrade() -> None:
             sa.Column("assigned_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
             sa.UniqueConstraint("user_id", "role_id", name="uq_user_role"),
         )
-        op.create_index("ix_user_roles_user_id", "user_roles", ["user_id"])
+        # NOTE: index already created by index=True in Column definition above
 
 
 def downgrade() -> None:
