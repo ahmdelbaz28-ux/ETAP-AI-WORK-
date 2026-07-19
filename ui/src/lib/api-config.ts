@@ -80,6 +80,11 @@ const SECRET_FIELDS = new Set([
   "SCADA_API_KEY",
 ]);
 
+// SECURITY NOTE: This is NOT encryption. The key is in the frontend source
+// code, so anyone can read it. This "obfuscation" only prevents casual
+// reading of API keys in localStorage via browser dev tools — it does NOT
+// protect against XSS (which can call getDeobfuscatedSettings() directly).
+// Real protection requires httpOnly cookies (P1 backlog).
 const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
 
 export function deobfuscate(value: string): string {

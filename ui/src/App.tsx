@@ -284,9 +284,11 @@ export default function App() {
                 <Route
                   path="/admin"
                   element={
-                    <LazyPage>
-                      <AdministrationPage />
-                    </LazyPage>
+                    <ProtectedRoute requireRole="admin">
+                      <LazyPage>
+                        <AdministrationPage />
+                      </LazyPage>
+                    </ProtectedRoute>
                   }
                 />
                 <Route

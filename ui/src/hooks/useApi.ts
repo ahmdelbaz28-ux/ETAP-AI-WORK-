@@ -23,7 +23,8 @@ interface ApiError {
 // Generic API client with error handling and retries
 const apiClient = {
   get: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem("authToken");
+    // SECURITY (LB-FE-2): Use sessionStorage (consistent with useAuth.tsx)
+    const token = sessionStorage.getItem("authToken");
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
@@ -50,7 +51,7 @@ const apiClient = {
   },
 
   post: async <T, U = unknown>(endpoint: string, data?: U): Promise<T> => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionStorage.getItem("authToken");
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
@@ -79,7 +80,7 @@ const apiClient = {
   },
 
   put: async <T, U = unknown>(endpoint: string, data?: U): Promise<T> => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionStorage.getItem("authToken");
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
@@ -108,7 +109,7 @@ const apiClient = {
   },
 
   delete: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem("authToken");
+    const token = sessionStorage.getItem("authToken");
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };

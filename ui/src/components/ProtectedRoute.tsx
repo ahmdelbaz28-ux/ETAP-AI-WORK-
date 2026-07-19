@@ -8,6 +8,8 @@
  *   - If the user is not authenticated, redirects to /login with the
  *     intended destination preserved in the `from` search param so the
  *     login page can send them back after a successful login.
+ *   - If `requireRole` is specified, checks the user's role and redirects
+ *     to /dashboard if they don't have the required role (with a notification).
  *   - If the user is authenticated, renders the matched child route.
  *
  * This component MUST wrap every route that should not be publicly
@@ -20,10 +22,11 @@ import { useAuth } from "../hooks/useAuth";
 
 interface ProtectedRouteProps {
   readonly children: React.ReactNode;
+  readonly requireRole?: "admin" | "engineer";
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   // While validating the token on initial mount, show a loading screen.
@@ -43,6 +46,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!isAuthenticated) {
     const from = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?from=${from}`} replace />;
+  }
+
+  // Role-based access control: if requireRole is specified, check the user's role
+  if (requireRole && user?.role !== requireRole && user?.role !== "admin") {
+    // Non-admin users trying to access admin-only routes → redirect to dashboard
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Authenticated → render the protected route.
