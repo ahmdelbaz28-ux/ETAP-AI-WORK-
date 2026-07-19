@@ -138,6 +138,7 @@ from api.email_dashboard import router as email_dashboard_router  # noqa: E402
 # SECURITY (CR-NEW-03,04): auth dependencies for Kill Switch + API Key Store
 from api.dependencies import (  # noqa: E402
     CurrentUser,
+    get_api_key,
     get_current_user_from_header,
 )
 from api.email_digest import router as email_digest_router  # noqa: E402
