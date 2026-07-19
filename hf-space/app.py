@@ -333,12 +333,13 @@ async def auth_and_rate_limit(request: Request, call_next):
     # is public — it's just an HTML shell with no sensitive data.
     # Auth is enforced on the JavaScript API calls, not the HTML page.
     _is_dashboard_html = _path == "/api/v1/email-dashboard" or _path == "/api/v1/email-dashboard/"
+    _is_public_api = _path in ("/api/v1/info",)  # platform discovery for dashboards
 
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
     if _eng_key and not _hf_key:
         os.environ["HF_API_KEY"] = _eng_key
-    if not _is_dashboard_html:
+    if not _is_dashboard_html and not _is_public_api:
         try:
             verify_api_key(request)
         except HTTPException as exc:
@@ -1028,7 +1029,7 @@ async def study_types():
 # on HF Space. They delegate to shared handlers / lightweight in-process logic so
 # they work on cpu-basic HF hardware without external dependencies.
 
-@app.get("/api/v1/scada/live", tags=["SCADA"])
+@app.get("/api/v1/scada/live", tags=["SCADA"], dependencies=[Depends(get_api_key)])
 async def scada_live():
     """Return a snapshot of the latest SCADA telemetry.
 
@@ -1053,7 +1054,7 @@ async def scada_live():
     }
 
 
-@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"])
+@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"], dependencies=[Depends(get_api_key)])
 async def digital_twin_status():
     """Return the digital-twin sync status.
 
@@ -1078,7 +1079,7 @@ async def digital_twin_status():
     }
 
 
-@app.get("/api/v1/benchmark", tags=["Benchmark"])
+@app.get("/api/v1/benchmark", tags=["Benchmark"], dependencies=[Depends(get_api_key)])
 async def benchmark():
     """Run a lightweight in-process benchmark and return timing metrics.
 
@@ -1141,7 +1142,7 @@ async def websocket_cua_confirmation(websocket: WebSocket):
     await cua_confirmation_ws(websocket)
 
 
-@app.post("/api/v1/studies/run", tags=["Studies"])
+@app.post("/api/v1/studies/run", tags=["Studies"], dependencies=[Depends(get_api_key)])
 async def run_study(request: SharedStudyRequest):
     result = run_study_lightweight(request.study_type, request.system, request.parameters)
     status = result.pop("_status", None)
@@ -1151,7 +1152,7 @@ async def run_study(request: SharedStudyRequest):
 
 
 # -- Context Engine -----------------------------------------------------------
-@app.post("/api/v1/context/retrieve", tags=["Context Engine"])
+@app.post("/api/v1/context/retrieve", tags=["Context Engine"], dependencies=[Depends(get_api_key)])
 async def retrieve_context(request: SharedContextRetrieveRequest):
     """Retrieve and compress matching code snippets for a given query."""
     result = handle_context_retrieval(
@@ -1163,7 +1164,7 @@ async def retrieve_context(request: SharedContextRetrieveRequest):
     return result
 
 
-@app.post("/api/v1/context/impact", tags=["Context Engine"])
+@app.post("/api/v1/context/impact", tags=["Context Engine"], dependencies=[Depends(get_api_key)])
 async def analyze_impact(request: SharedImpactAnalysisRequest):
     """Perform dependency impact analysis on a component using the Code Property Graph."""
     result = handle_impact_analysis(component=request.component, max_depth=request.max_depth)
@@ -1174,7 +1175,7 @@ async def analyze_impact(request: SharedImpactAnalysisRequest):
 
 
 # -- Knowledge Base Info ------------------------------------------------------
-@app.get("/api/v1/knowledge", tags=["Knowledge"])
+@app.get("/api/v1/knowledge", tags=["Knowledge"], dependencies=[Depends(get_api_key)])
 async def knowledge_info():
     return build_knowledge_info()
 
