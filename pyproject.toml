@@ -184,6 +184,7 @@ markers = [
     "regression: marks tests as regression tests",
     "unit: marks tests as unit tests",
     "timeout: marks tests with a timeout limit",
+    "auth_enabled: marks tests that run with AUTH_ENABLED (no AUTH_DISABLED)",
 ]
 
 [tool.coverage.run]

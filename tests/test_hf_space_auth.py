@@ -3,9 +3,10 @@
 These tests verify that the global auth middleware on the HF Space app
 correctly enforces authentication on all non-public endpoints.
 
-Unlike the manual tests, these run in pytest and can be part of CI.
-They use AUTH_ENABLED=true (no AUTH_DISABLED env var) to test the
-actual auth behavior.
+ENVIRONMENT ISOLATION: All env var changes happen inside fixtures via
+monkeypatch — NO module-level env manipulation. This prevents test
+pollution that was breaking test_auth_api.py when run in the same
+session.
 
 NOTE: These tests import hf-space/app.py which has heavy dependencies.
 If deps are missing, the tests are skipped (not failed).
@@ -18,37 +19,56 @@ from pathlib import Path
 
 import pytest
 
-# Add hf-space to path so we can import the app
 HF_SPACE_DIR = str(Path(__file__).parent.parent / "hf-space")
 REPO_ROOT = str(Path(__file__).parent.parent)
-
-# Clean any cached modules from previous test runs
-for mod in list(sys.modules.keys()):
-    if mod.startswith("api.") or mod.startswith("core") or mod == "app":
-        del sys.modules[mod]
-
-# Set auth-enabled environment
-_auth_disabled = os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
-os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
-os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
-os.environ.setdefault("ENVIRONMENT", "development")
 
 sys.path.insert(0, REPO_ROOT)
 sys.path.insert(0, HF_SPACE_DIR)
 
+# We do NOT set any env vars here. The fixture below sets them with
+# monkeypatch so they're automatically restored after each test.
+
+# Try to import — if it fails, all tests skip
+_HF_APP = None
+_HF_APP_ERROR = None
+
+# Temporarily set env for the import ONLY, then restore
+_saved = {}
+for k in ("ENGINEERING_SERVICE_AUTH_DISABLED", "ENGINEERING_SERVICE_API_KEY",
+          "JWT_SECRET_KEY", "ENVIRONMENT", "DATABASE_URL"):
+    _saved[k] = os.environ.get(k)
+    os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
+    os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
+    os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
+    os.environ.setdefault("ENVIRONMENT", "development")
+    # Use a SEPARATE database for HF Space tests to avoid conflicts
+    # with test_auth_api.py which uses the default ./data/etap_platform.db
+    import tempfile as _tf
+    _hf_db = _tf.mktemp(suffix=".db")
+    os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_hf_db}"
+
+# Clean cached modules
+for mod in list(sys.modules.keys()):
+    if mod.startswith("api.") or mod.startswith("core") or mod == "app":
+        del sys.modules[mod]
+
 try:
     import app as hf_app_module
-    HF_APP = hf_app_module.app
-    _HF_APP_AVAILABLE = True
+    _HF_APP = hf_app_module.app
 except Exception as e:
-    _HF_APP_AVAILABLE = False
     _HF_APP_ERROR = str(e)
 
-# Restore env
-if _auth_disabled is not None:
-    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = _auth_disabled
+# Restore env immediately after import
+for k, v in _saved.items():
+    if v is not None:
+        os.environ[k] = v
+    else:
+        os.environ.pop(k, None)
 
-pytestmark = pytest.mark.skipif(not _HF_APP_AVAILABLE, reason=f"hf-space/app.py not importable: {_HF_APP_ERROR if not _HF_APP_AVAILABLE else ''}")
+pytestmark = pytest.mark.skipif(
+    _HF_APP is None,
+    reason=f"hf-space/app.py not importable: {_HF_APP_ERROR}",
+)
 
 
 @pytest.fixture
@@ -56,12 +76,14 @@ def hf_client(monkeypatch):
     """TestClient for hf-space/app.py with auth ENABLED.
 
     CRITICAL: The conftest.py autouse fixture sets AUTH_DISABLED=true.
-    We must override it here to test actual auth behavior.
+    We override it here with monkeypatch to test actual auth behavior.
+    monkeypatch automatically restores the original value after the test.
     """
     monkeypatch.delenv("ENGINEERING_SERVICE_AUTH_DISABLED", raising=False)
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
+    monkeypatch.setenv("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
     from fastapi.testclient import TestClient
-    return TestClient(HF_APP)
+    return TestClient(_HF_APP)
 
 
 @pytest.fixture
@@ -151,7 +173,7 @@ class TestProtectedEndpoints:
 class TestJWTAuth:
     """Test JWT Bearer token authentication path."""
 
-    def test_valid_jwt_grants_access(self, hf_client):
+    def test_valid_jwt_grants_access(self, hf_client, monkeypatch):
         """A valid JWT should grant access to protected endpoints."""
         import jwt as _jwt
         from datetime import datetime, timedelta, timezone
@@ -164,7 +186,7 @@ class TestJWTAuth:
                 "iat": datetime.now(timezone.utc),
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
             },
-            os.environ["JWT_SECRET_KEY"],
+            "test-jwt-secret-key-minimum-32-characters-long",
             algorithm="HS256",
         )
         resp = hf_client.get(
@@ -186,7 +208,7 @@ class TestJWTAuth:
                 "iat": datetime.now(timezone.utc) - timedelta(hours=2),
                 "exp": datetime.now(timezone.utc) - timedelta(hours=1),
             },
-            os.environ["JWT_SECRET_KEY"],
+            "test-jwt-secret-key-minimum-32-characters-long",
             algorithm="HS256",
         )
         resp = hf_client.get(

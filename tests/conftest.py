@@ -581,13 +581,25 @@ def api_client():
 def setup_test_environment(request):
     """Sets up the test environment automatically for all tests.
 
-    NOTE: If a test sets ENGINEERING_SERVICE_AUTH_DISABLED=false via
-    monkeypatch or env var BEFORE this fixture, we respect that.
-    This allows tests/test_auth_enabled.py to test with auth ENABLED.
+    SECURITY: AUTH_DISABLED is set to 'true' by default for backward
+    compatibility with existing tests that don't send auth headers.
+
+    However, tests that WANT to test with auth enabled can:
+    1. Use monkeypatch.delenv('ENGINEERING_SERVICE_AUTH_DISABLED') in
+       their own fixture (runs AFTER this autouse fixture)
+    2. Or mark the test with @pytest.mark.auth_enabled
+
+    This is NOT ideal — ideally all tests should work with auth enabled.
+    But changing this now would break 200+ existing tests. The
+    test_hf_space_auth.py tests use monkeypatch to override this.
     """
-    # Set environment variables for testing
-    # Only set AUTH_DISABLED if not already set to 'false' by the test
-    if os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "") != "false":
+    # Check if test marks itself as auth_enabled
+    if request.node.get_closest_marker("auth_enabled"):
+        # Test wants auth enabled — don't set AUTH_DISABLED
+        os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
+        os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-secret-key-12345")
+    else:
+        # Default: auth disabled for backward compat
         os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
