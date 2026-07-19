@@ -225,6 +225,31 @@ _PUBLIC_PREFIXES = (
 
 
 @app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add standard HTTP security headers to every response."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data: https://cdn.jsdelivr.net; "
+        "connect-src 'self'"
+    )
+    return response
+
+
+# Auth middleware — MUST be registered AFTER add_security_headers so it
+# becomes the OUTERMOST middleware (Starlette: last registered = outermost).
+# This ensures auth_middleware executes FIRST. When it returns 401 without
+# calling call_next, the request never reaches add_security_headers —
+# avoiding the 'NoneType not callable' error.
+@app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     """SECURITY (LAUNCH-BLOCKER): Enforce auth on ALL non-public endpoints.
 
@@ -284,43 +309,6 @@ async def auth_middleware(request: Request, call_next):
         status_code=401,
         content={"detail": "Authentication required. Send X-API-Key or Authorization: Bearer <token>."},
     )
-
-
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    """Add standard HTTP security headers to every response."""
-    # permissive on ``'unsafe-inline'`` and ``'unsafe-eval'`` because:
-#   1. Swagger UI (/docs) and ReDoc (/redoc) require inline scripts/styles.
-#   2. The homepage uses an inline <style> block.
-# A stricter CSP would break the API documentation viewers. The other headers
-# (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy) are safe to
-# enforce everywhere and protect against common attack vectors (MIME sniffing,
-# clickjacking, referrer leakage, SSL downgrade).
-#
-# HSTS is only sent over HTTPS — sending it over HTTP is a no-op (browsers
-# ignore it) but it pollutes dev logs and can confuse local testing.
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    # HSTS only over HTTPS (production). On localhost HTTP dev, skip it so the
-    # browser doesn't pin HSTS for a year on a non-TLS origin.
-    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    # Permissive CSP that allows Swagger UI + ReDoc + homepage inline styles.
-    # Tightening this requires moving Swagger/ReDoc to a CDN-less self-hosted
-    # build, which is out of scope for the HF Space deployment.
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' data: https://cdn.jsdelivr.net; "
-        "connect-src 'self'"
-    )
-    return response
 
 
 # -- Auth + Rate-limit middleware ---------------------------------------------
