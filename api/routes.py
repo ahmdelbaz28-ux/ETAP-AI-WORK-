@@ -422,8 +422,9 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
     # Perform API key authentication for WebSocket connection
     try:
         # Extract API key from headers
-        api_key = websocket.headers.get("x-api-key")
-        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
+        api_key = websocket.headers.get("x-api-key", "")
+        # SECURITY: reject if no key configured or no key provided
+        if not _EXPECTED_API_KEY or not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
             await websocket.close(code=1008, reason="Invalid or missing API key")
             return
     except Exception:
