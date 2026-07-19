@@ -13,7 +13,7 @@ import time
 import uuid
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -30,6 +30,7 @@ from api.assets import router as assets_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
+from api.dependencies import get_api_key
 from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
@@ -639,7 +640,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 # benchmark modules.
 # ============================================================================
 
-@app.get("/api/v1/scada/live", tags=["SCADA"])
+@app.get("/api/v1/scada/live", tags=["SCADA"], dependencies=[Depends(get_api_key)])
 async def scada_live():
     """Return a snapshot of the latest SCADA telemetry.
 
