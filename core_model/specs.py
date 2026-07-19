@@ -392,14 +392,35 @@ class StudyRequest(_BaseSpecModel):
     @field_validator("etap_project_path")
     @classmethod
     def validate_etap_path(cls, v: Optional[str]) -> Optional[str]:
-        """P1: Validate ETAP project path — prevent path traversal."""
+        """P1: Validate ETAP project path — prevent path traversal.
+
+        Allows:
+        - Windows paths: C:\\Projects\\test.etap, D:\\data\\grid.etap
+        - Relative paths: projects/test.etap, data/grids/study.etap
+        - ETAP-style: test.etap, grid_model.etap
+
+        Blocks:
+        - Unix absolute paths starting with / (potential /etc/passwd access)
+        - Path traversal with .. (../../etc/passwd)
+        - Paths longer than 512 chars (potential buffer overflow in ETAP COM)
+        """
         if v is None:
             return v
+        v = v.strip()
         if len(v) > 512:
             raise ValueError("etap_project_path too long (max 512 chars)")
-        if ".." in v or v.startswith("/"):
+        # Block Unix absolute paths (Windows paths like C:\ are allowed)
+        if v.startswith("/"):
             raise ValueError(
-                "etap_project_path must not contain '..' or start with '/' "
+                "etap_project_path must not start with '/' "
+                "(use relative paths or Windows-style C:\\ paths)"
+            )
+        # Block path traversal — check for .. as a path component
+        # (but allow .. inside filenames, which is extremely rare)
+        import re
+        if re.search(r"(^|[/\\])\.\.([/\\]|$)", v):
+            raise ValueError(
+                "etap_project_path must not contain '..' path components "
                 "(path traversal prevention)"
             )
         return v
