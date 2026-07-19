@@ -144,6 +144,20 @@ class LineSpec(_BaseSpecModel):
             raise ValueError(f"rating_mva must be positive, got {v}")
         return v
 
+    @model_validator(mode="after")
+    def validate_no_self_loop(self):
+        """P1: A line from a bus to itself creates a singularity in the
+        admittance matrix — the row/column becomes zero and the matrix
+        is non-invertible. This would cause load_flow to crash or produce
+        NaN results, leading to incorrect engineering decisions."""
+        if self.from_bus_id == self.to_bus_id:
+            raise ValueError(
+                f"Line {self.line_id}: from_bus_id ({self.from_bus_id}) "
+                f"must not equal to_bus_id ({self.to_bus_id}) — self-loops "
+                f"cause matrix singularity"
+            )
+        return self
+
 
 # ─── TransformerSpec ─────────────────────────────────────────────────────────
 
@@ -176,6 +190,25 @@ class TransformerSpec(_BaseSpecModel):
         if v < -180.0 or v > 180.0:
             raise ValueError(f"phase_shift_deg must be between -180 and 180, got {v}")
         return v
+
+    @field_validator("x1")
+    @classmethod
+    def validate_x1_positive(cls, v: float) -> float:
+        """P1: Transformer reactance x1 must be > 0 — zero reactance
+        causes division by zero in short-circuit calculations and
+        matrix singularity in load flow."""
+        if v <= 0:
+            raise ValueError(f"Transformer x1 must be positive (got {v}) — zero/negative reactance causes singularity")
+        return v
+
+    @model_validator(mode="after")
+    def validate_no_self_loop(self):
+        """P1: A transformer from a bus to itself is invalid."""
+        if self.from_bus_id == self.to_bus_id:
+            raise ValueError(
+                f"Transformer {self.transformer_id}: from_bus_id must not equal to_bus_id"
+            )
+        return self
 
 
 # ─── GeneratorSpec ───────────────────────────────────────────────────────────
@@ -212,6 +245,24 @@ class GeneratorSpec(_BaseSpecModel):
         default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"),
     )
 
+    @field_validator("x1")
+    @classmethod
+    def validate_x1_positive(cls, v: float) -> float:
+        """P1: Generator subtransient reactance x1 must be > 0 — zero
+        reactance causes division by zero in short-circuit calculations."""
+        if v <= 0:
+            raise ValueError(f"Generator x1 must be positive (got {v}) — zero reactance causes division by zero in fault analysis")
+        return v
+
+    @field_validator("internal_voltage_mag")
+    @classmethod
+    def validate_voltage_mag(cls, v: float) -> float:
+        """P1: Internal voltage magnitude must be reasonable (0.5–1.5 pu).
+        Values outside this range indicate data entry errors."""
+        if v < 0.5 or v > 1.5:
+            raise ValueError(f"internal_voltage_mag must be between 0.5 and 1.5 pu, got {v}")
+        return v
+
 
 # ─── LoadSpec ────────────────────────────────────────────────────────────────
 
@@ -229,6 +280,18 @@ class LoadSpec(_BaseSpecModel):
         validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
     )
     constant_impedance: bool = False
+
+    @field_validator("p_mw", "q_mvar")
+    @classmethod
+    def validate_power_values(cls, v: float, info: Any) -> float:
+        """P1: Power values must be finite and within reasonable bounds.
+        Extremely large values cause overflow in per-unit conversion."""
+        import math
+        if not math.isfinite(v):
+            raise ValueError(f"{info.field_name} must be finite, got {v}")
+        if abs(v) > 1e6:
+            raise ValueError(f"{info.field_name} is unreasonably large ({v}), max |1e6| MW/MVAR")
+        return v
 
 
 # ─── SystemSpec ──────────────────────────────────────────────────────────────
@@ -256,6 +319,18 @@ class SystemSpec(_BaseSpecModel):
             raise ValueError(f"base_mva must be positive, got {v}")
         if v > 10000:
             raise ValueError(f"base_mva is unreasonably large ({v}), max is 10000")
+        return v
+
+    @field_validator("buses", "lines", "transformers", "generators", "loads")
+    @classmethod
+    def validate_array_sizes(cls, v: list, info: Any) -> list:
+        """P1: Limit array sizes to prevent OOM from malicious input.
+        10000 buses is the largest realistic power-system study."""
+        if len(v) > 10000:
+            raise ValueError(
+                f"{info.field_name} has {len(v)} elements — max is 10000 "
+                f"(prevents OOM from malicious input)"
+            )
         return v
 
 
@@ -300,7 +375,34 @@ class StudyRequest(_BaseSpecModel):
     use_etap: bool = Field(
         default=False, description="If True, route to ETAP provider instead of native engine",
     )
-    etap_project_path: Optional[str] = None
+    etap_project_path: Optional[str] = Field(default=None, max_length=512)
+
+    @field_validator("parameters")
+    @classmethod
+    def validate_parameters_size(cls, v: dict) -> dict:
+        """P1: Limit parameters dict size to prevent OOM from malicious input.
+        100 keys is generous for study parameters (voltage, current, etc.)."""
+        if len(v) > 100:
+            raise ValueError(
+                f"parameters has {len(v)} keys — max is 100 "
+                f"(prevents OOM from malicious input)"
+            )
+        return v
+
+    @field_validator("etap_project_path")
+    @classmethod
+    def validate_etap_path(cls, v: Optional[str]) -> Optional[str]:
+        """P1: Validate ETAP project path — prevent path traversal."""
+        if v is None:
+            return v
+        if len(v) > 512:
+            raise ValueError("etap_project_path too long (max 512 chars)")
+        if ".." in v or v.startswith("/"):
+            raise ValueError(
+                "etap_project_path must not contain '..' or start with '/' "
+                "(path traversal prevention)"
+            )
+        return v
 
     @field_validator("study_type")
     @classmethod
