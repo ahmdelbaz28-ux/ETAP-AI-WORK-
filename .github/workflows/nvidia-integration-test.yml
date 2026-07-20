@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --quiet httpx
+          pip install --quiet --only-binary :all: httpx
           echo "✅ httpx installed"
           python3 -c "import httpx; print(f'httpx version: {httpx.__version__}')"
 

@@ -40,7 +40,7 @@ jobs:
           cache: 'pip'
 
       - name: Install linting tools
-        run: pip install ruff mypy
+        run: pip install --only-binary :all: ruff mypy
 
       - name: Ruff lint
         run: ruff check . --config ruff.toml
@@ -168,8 +168,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+          pip install --only-binary :all: -r requirements.txt
+          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
@@ -240,7 +240,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install security tools
-        run: pip install bandit safety
+        run: pip install --only-binary :all: bandit safety
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
@@ -557,7 +557,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install huggingface_hub
-        run: pip install huggingface_hub
+        run: pip install --only-binary :all: huggingface_hub
 
       - name: Update HF Space Secrets
         env:
