@@ -210,7 +210,7 @@ for target in checkpoints:
         "delta_mb": round(delta, 2),
         "delta_per_snapshot_kb": round(delta * 1024 / target, 1),
     })
-    print(f"  {target:5d} Union[snapshots, RSS={current_rss:7.2f}] Union[MB, delta={delta:7.2f}] Union[MB, {delta] * 1024 / target:6.1f} KB/snap")
+    print(f"  {target:5d} snapshots, RSS={current_rss:7.2f} MB, delta={delta:7.2f} MB, {delta * 1024 / target:6.1f} KB/snap")
 
 results["growth"] = growth_results
 results["growth_per_snapshot_kb"] = round(

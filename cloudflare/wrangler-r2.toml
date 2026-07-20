@@ -1,0 +1,33 @@
+name = "ahmedetap-proxy"
+main = "worker-r2.js"
+compatibility_date = "2024-09-01"
+account_id = "8ea12977423cb0079cf4d227a0195bb1"
+
+# النطاق المجاني على Cloudflare Workers
+workers_dev = true
+
+# متغيرات البيئة (غير حساسة)
+[vars]
+ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
+R2_PUBLIC_URL = "https://storage.ahmed.net"
+
+# ─── R2 Storage Binding ──────────────────────────────────────────────────────
+# يربط الـ Worker بـ R2 bucket لعمليات التخزين المباشرة (أسرع من S3 API)
+# يجب إنشاء الـ bucket أولاً عبر Dashboard أو API:
+#   curl -X POST "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/r2/buckets" \
+#     -H "Authorization: Bearer $TOKEN" \
+#     -d '{"name":"ahmedetap-storage","locationHint":"apac"}'
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "ahmedetap-storage"
+preview_bucket_name = "ahmedetap-storage-preview"
+
+# مسارات OBSERVABILITY
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# قواعد التوجيه للنطاق المخصص
+routes = [
+  { pattern = "etap.ahmed.net/*", custom_domain = true }
+]

@@ -14,6 +14,7 @@ Go to: **GitHub Repo → Settings → Secrets and variables → Actions → New 
 | `LANGWATCH_API_KEY` | https://app.langwatch.ai/onboarding (starts with `sk-lw-`) | Registering deployment markers |
 | `SMITHERY_API_KEY` | https://smithery.ai/console/api-keys | Verifying MCP registry reachability |
 | `GH_PAT` | GitHub → Settings → Developer settings → Personal access tokens (Fine-grained, with `Contents: Read+Write` and `Pull requests: Write`) | Drift-detection PRs (HF → GitHub) |
+| `DAYTONA_TOKEN` | Daytona → Settings → API Tokens → Create | Automated AI code review on every PR (`daytona-ai-review.yml`) |
 
 ## How to set each one (one-liner via GitHub CLI)
 
@@ -24,6 +25,7 @@ gh secret set HF_TOKEN            -b "hf_YOUR_HF_TOKEN_HERE"
 gh secret set LANGWATCH_API_KEY   -b "sk-lw-YOUR_LANGWATCH_KEY_HERE"
 gh secret set SMITHERY_API_KEY    -b "YOUR_SMITHERY_API_KEY_HERE"
 gh secret set GH_PAT              -b "github_pat_YOUR_GH_PAT_HERE"
+gh secret set DAYTONA_TOKEN       -b "day_YOUR_DAYTONA_TOKEN_HERE"
 ```
 
 > ⚠️ **Security note:** Never paste real token values into README/markdown files — GitHub Secret Scanning will block the push. Always use the `gh secret set` CLI command from your local terminal with the real values, or set them via the GitHub web UI.

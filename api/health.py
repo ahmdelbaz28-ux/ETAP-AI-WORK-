@@ -63,7 +63,7 @@ async def root() -> Dict[str, str]:
 @router.get("/healthz")
 async def healthz() -> Dict[str, str]:
     """Lightweight liveness probe (no heavy initialization)."""
-    return {"status": "alive"}
+    return {"status": "ok"}
 
 
 @router.head("/readyz")
@@ -86,7 +86,7 @@ async def health_check(request: Request) -> HealthResponse:
     )
 
 
-@router.get("/info")
+@router.get("/api/v1/info")
 async def platform_info(request: Request) -> Dict[str, object]:
     """Platform information endpoint — returns version, agent count, and module list.
 
@@ -111,6 +111,13 @@ async def platform_info(request: Request) -> Dict[str, object]:
         ],
         "trace_id": request.state.trace_id,
     }
+
+
+@router.get("/api/v1/knowledge")
+async def knowledge_info():
+    """Get knowledge base info (skills, RAG context metadata)."""
+    from api.shared_handlers import build_knowledge_info
+    return build_knowledge_info()
 
 
 @router.head("/ready")

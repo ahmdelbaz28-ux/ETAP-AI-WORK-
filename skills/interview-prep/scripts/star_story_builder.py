@@ -10,7 +10,7 @@ star_story_builder.py — 从简历文本里抽出工作 / 项目经历，生成
 - 每个经历的 STAR 骨架占位（让用户 / 模型补全）
 - 每个故事可以回答的行为题清单
 """
-from typing import Optional, Union
+
 
 from __future__ import annotations
 

@@ -13,7 +13,7 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
-from typing import Any, Generic, Optional, TypeVar, Union
+
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 

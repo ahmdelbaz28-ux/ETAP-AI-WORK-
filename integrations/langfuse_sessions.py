@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Langfuse Sessions, User Feedback, and Alerting for AhmedETAP
 =============================================================
@@ -53,9 +55,6 @@ Usage::
     # 5. Engineer shares the trace with their senior
     url = get_trace_share_url("trace_xxx")
 """
-from typing import Optional, Union
-
-from __future__ import annotations
 
 import json
 import logging
@@ -63,6 +62,7 @@ import math
 import os
 import time
 import uuid
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +189,7 @@ def end_engineering_session(session: EngineeringSession) -> None:
 def record_user_feedback(
     *,
     trace_id: str,
-    feedback: str,  # Union["positive", "negative"] | "neutral"
+    feedback: str,  # "positive" | "negative" | "neutral"
     comment: str = "",
     user_id: Optional[str] = None,
 ) -> bool:

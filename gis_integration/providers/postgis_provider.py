@@ -26,7 +26,7 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +105,8 @@ _HAS_POSTGIS = False
 _psycopg2 = None
 try:
     import psycopg2  # type: ignore
-    import psycopg2.extras  # type: ignore
-    import psycopg2.pool  # type: ignore
+
+
 
     _psycopg2 = psycopg2
     _HAS_POSTGIS = True

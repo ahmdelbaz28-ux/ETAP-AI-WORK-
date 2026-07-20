@@ -9,14 +9,14 @@ Provides reusable dependency callables for:
 * Pagination parameter parsing (``PaginationParams``)
 """
 from __future__ import annotations
-from typing import Optional, Union
 
 import hmac
 import logging
 import os
+from typing import Optional
 
 import jwt
-from fastapi import Depends, Header, HTTPException, Query, status
+from fastapi import Depends, Header, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -253,6 +253,7 @@ def require_role(*roles: str):
 
 
 async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    request: Request,
     x_api_key: str = Header(default="", alias="X-API-Key"),
 ) -> str:
     """Validate the ``X-API-Key`` header against the configured API key.
@@ -260,9 +261,22 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
     Raises 401 if the key is missing or does not match. If no
     ``ENGINEERING_SERVICE_API_KEY`` is configured, the check is skipped
     (useful for local development).
+
+    JWT bypass: if the request carries a valid ``Authorization: Bearer``
+    header (JWT), the X-API-Key check is skipped. This allows the React
+    frontend — which authenticates users via JWT from /api/v1/auth/login —
+    to access asset/project endpoints without also sending an X-API-Key
+    header. Without this bypass, every authenticated UI request to
+    /assets, /projects returns 401.
     """
     if not API_KEY:
         # No API key configured — skip validation
+        return ""
+
+    # JWT bypass: if a Bearer token is present, skip the API key check.
+    # The downstream CurrentUser dependency (if any) will validate the JWT.
+    auth_header = request.headers.get("authorization") or ""
+    if auth_header.lower().startswith("bearer "):
         return ""
 
     if not x_api_key:

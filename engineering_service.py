@@ -15,6 +15,12 @@ FastAPI() instance — extend `api/routes.py` or attach routers to it.
 import logging
 import os
 
+from dotenv import load_dotenv
+
+# Load .env file variables into environment
+load_dotenv()
+
+
 # Defensive import: ensure `trace` is available even if a middleware or downstream
 # module references `trace.SpanKind.SERVER` directly. This prevents NameError at
 # request time when OpenTelemetry tracing is wired into FastAPI middleware.

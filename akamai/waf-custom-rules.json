@@ -1,0 +1,202 @@
+{
+  "description": "Custom WAF rules for AhmedETAP Platform — layered on top of Akamai's managed rule sets (KRS). These rules are application-specific and catch attacks that generic signatures miss.",
+  "rules": [
+    {
+      "id": "ETAP-001",
+      "name": "Block JWT tampering attempts",
+      "description": "Block requests where the Authorization header contains a JWT with modified alg=none or weak algorithms (HS256 with empty key attacks).",
+      "severity": "critical",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-header",
+          "header": "Authorization",
+          "operator": "matches-regex",
+          "pattern": "(?i)eyJ[^.]+\\.eyJ[^.]+\\.eyJ[^.]+",
+          "negate": false
+        },
+        {
+          "type": "request-header",
+          "header": "Authorization",
+          "operator": "contains",
+          "pattern": "alg",
+          "negate": false
+        }
+      ],
+      "notes": "Inspects JWT structure in the Authorization header. Combined with origin-side JWT validation (api/dependencies.py), this catches malformed/tampered tokens at the edge."
+    },
+    {
+      "id": "ETAP-002",
+      "name": "Block excessive payload size on auth endpoints",
+      "description": "Auth endpoints don't need large payloads. Block any POST to /api/v1/auth/* with a body larger than 4KB to prevent buffer overflow and DoS attempts.",
+      "severity": "high",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-path",
+          "operator": "matches-regex",
+          "pattern": "^/api/v1/auth/(login|register|forgot-password|reset-password)$"
+        },
+        {
+          "type": "content-length",
+          "operator": "greater-than",
+          "value": 4096
+        }
+      ]
+    },
+    {
+      "id": "ETAP-003",
+      "name": "Block non-JSON content type on API POST/PUT",
+      "description": "All API mutating endpoints expect application/json. Block requests with other content types to prevent content-type confusion attacks.",
+      "severity": "medium",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-method",
+          "operator": "matches-one-of",
+          "values": ["POST", "PUT", "PATCH"]
+        },
+        {
+          "type": "request-path",
+          "operator": "matches-regex",
+          "pattern": "^/api/"
+        },
+        {
+          "type": "content-type",
+          "operator": "does-not-contain",
+          "pattern": "application/json"
+        },
+        {
+          "type": "content-type",
+          "operator": "does-not-contain",
+          "pattern": "multipart/form-data"
+        }
+      ],
+      "exceptions": [
+        "/api/v1/data-import/upload"
+      ]
+    },
+    {
+      "id": "ETAP-004",
+      "name": "Block HTTP method override attacks",
+      "description": "Block requests that try to override the HTTP method via headers (X-HTTP-Method-Override, X-Method-Override, X-Method-Override). These can bypass WAF method restrictions.",
+      "severity": "high",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-header-exists",
+          "header": "X-HTTP-Method-Override"
+        }
+      ]
+    },
+    {
+      "id": "ETAP-005",
+      "name": "Block credential stuffing patterns",
+      "description": "Detect credential stuffing by looking for common test credential patterns in login requests. Blocks 'test:test', 'admin:admin', 'user:password', etc.",
+      "severity": "high",
+      "action": "challenge",
+      "conditions": [
+        {
+          "type": "request-path",
+          "operator": "equals",
+          "value": "/api/v1/auth/login"
+        },
+        {
+          "type": "request-body",
+          "operator": "matches-regex",
+          "pattern": "(?i)(password|123456|qwerty|admin|letmein|welcome)"
+        }
+      ],
+      "action_detail": "Issue a CAPTCHA challenge instead of blocking outright — legitimate users with weak passwords can still proceed after solving the challenge."
+    },
+    {
+      "id": "ETAP-006",
+      "name": "Block requests with no User-Agent",
+      "description": "Legitimate browsers always send a User-Agent header. Missing UA often indicates scripted attacks. Combined with Bot Manager, this catches basic scrapers.",
+      "severity": "low",
+      "action": "challenge",
+      "conditions": [
+        {
+          "type": "request-header-exists",
+          "header": "User-Agent",
+          "negate": true
+        }
+      ]
+    },
+    {
+      "id": "ETAP-007",
+      "name": "Block requests with unusual Accept headers",
+      "description": "Block requests with Accept headers that don't include text/html, application/json, or */*. These are often automated tools.",
+      "severity": "low",
+      "action": "challenge",
+      "conditions": [
+        {
+          "type": "request-header",
+          "header": "Accept",
+          "operator": "does-not-contain",
+          "pattern": "text/html"
+        },
+        {
+          "type": "request-header",
+          "header": "Accept",
+          "operator": "does-not-contain",
+          "pattern": "application/json"
+        },
+        {
+          "type": "request-header",
+          "header": "Accept",
+          "operator": "does-not-contain",
+          "pattern": "*/*"
+        }
+      ]
+    },
+    {
+      "id": "ETAP-008",
+      "name": "Rate limit: registration abuse",
+      "description": "Block more than 3 registration attempts per IP per hour. Prevents mass account creation.",
+      "severity": "high",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-path",
+          "operator": "equals",
+          "value": "/api/v1/auth/register"
+        },
+        {
+          "type": "rate-limit",
+          "window": "3600",
+          "threshold": 3,
+          "key": "client-ip"
+        }
+      ]
+    },
+    {
+      "id": "ETAP-009",
+      "name": "Block SSRF patterns in JSON body",
+      "description": "Block requests containing internal IP addresses, localhost, or cloud metadata endpoints in the JSON body. Prevents Server-Side Request Forgery.",
+      "severity": "critical",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "request-body",
+          "operator": "matches-regex",
+          "pattern": "(?i)(169\\.254\\.169\\.254|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|10\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|192\\.168\\.|metadata\\.google\\.internal)"
+        }
+      ]
+    },
+    {
+      "id": "ETAP-010",
+      "name": "Block path traversal in query parameters",
+      "description": "Block requests with ../ or ..\\\\ in query parameters. Catches path traversal attempts that bypass the generic WAF signature.",
+      "severity": "high",
+      "action": "deny",
+      "conditions": [
+        {
+          "type": "query-string",
+          "operator": "matches-regex",
+          "pattern": "\\.\\.[\\/\\\\]"
+        }
+      ]
+    }
+  ]
+}

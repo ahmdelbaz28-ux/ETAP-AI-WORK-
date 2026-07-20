@@ -1,12 +1,15 @@
-import type { HelpTopic } from './types'
+import type { HelpTopic } from "./types";
 
 export const helpTopics: HelpTopic[] = [
   // ─── Getting Started ──────────────────────────────────────────────
   {
-    id: 'dashboard.overview',
-    category: 'getting-started',
-    title: { en: 'Dashboard Overview', ar: 'نظرة عامة على لوحة التحكم' },
-    description: { en: 'Navigate the main dashboard and understand system status', ar: 'التنقل في لوحة التحكم الرئيسية وفهم حالة النظام' },
+    id: "dashboard.overview",
+    category: "getting-started",
+    title: { en: "Dashboard Overview", ar: "نظرة عامة على لوحة التحكم" },
+    description: {
+      en: "Navigate the main dashboard and understand system status",
+      ar: "التنقل في لوحة التحكم الرئيسية وفهم حالة النظام",
+    },
     content: {
       en: `The Dashboard is your central hub for monitoring the AhmedETAP Platform.
 
@@ -47,15 +50,18 @@ export const helpTopics: HelpTopic[] = [
 - اضغط F1 في أي مكان للمساعدة السياقية
 - اضغط على أيقونة البريق (✨) في الشريط العلوي لتفعيل المساعدة السحرية`,
     },
-    tags: ['dashboard', 'overview', 'home', 'لوحة تحكم', 'نظرة عامة'],
-    navigateTo: '/dashboard',
-    relatedTopics: ['projects.manage', 'studies.load-flow'],
+    tags: ["dashboard", "overview", "home", "لوحة تحكم", "نظرة عامة"],
+    navigateTo: "/dashboard",
+    relatedTopics: ["projects.manage", "studies.load-flow"],
   },
   {
-    id: 'keyboard-shortcuts',
-    category: 'getting-started',
-    title: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' },
-    description: { en: 'Essential keyboard shortcuts for faster workflow', ar: 'اختصارات لوحة المفاتيح الأساسية لسرعة العمل' },
+    id: "keyboard-shortcuts",
+    category: "getting-started",
+    title: { en: "Keyboard Shortcuts", ar: "اختصارات لوحة المفاتيح" },
+    description: {
+      en: "Essential keyboard shortcuts for faster workflow",
+      ar: "اختصارات لوحة المفاتيح الأساسية لسرعة العمل",
+    },
     content: {
       en: `**Global Shortcuts:**
 - \`F1\` — Open Smart Help (context-aware)
@@ -96,14 +102,17 @@ export const helpTopics: HelpTopic[] = [
 **الإعدادات:**
 - \`Ctrl+S\` — حفظ الإعدادات الحالية (عند وجودك في صفحة الإعدادات)`,
     },
-    tags: ['keyboard', 'shortcuts', 'hotkeys', 'keys', 'لوحة مفاتيح', 'اختصارات'],
-    relatedTopics: ['dashboard.overview', 'magic-help.inspector'],
+    tags: ["keyboard", "shortcuts", "hotkeys", "keys", "لوحة مفاتيح", "اختصارات"],
+    relatedTopics: ["dashboard.overview", "magic-help.inspector"],
   },
   {
-    id: 'magic-help.inspector',
-    category: 'getting-started',
-    title: { en: 'Magic Help Inspector', ar: 'فاحص المساعدة السحرية' },
-    description: { en: 'Click any element to instantly see its documentation', ar: 'انقر على أي عنصر لرؤية شرحه فوراً' },
+    id: "magic-help.inspector",
+    category: "getting-started",
+    title: { en: "Magic Help Inspector", ar: "فاحص المساعدة السحرية" },
+    description: {
+      en: "Click any element to instantly see its documentation",
+      ar: "انقر على أي عنصر لرؤية شرحه فوراً",
+    },
     content: {
       en: `**What is Magic Help?**
 Magic Help is an interactive inspector that lets you click on ANY element in the application and instantly see its documentation.
@@ -160,16 +169,19 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
 - الفاحص يعمل في كل صفحات التطبيق
 - استخدمه لتعلم وظيفة كل زر قبل النقر عليه`,
     },
-    tags: ['magic', 'help', 'inspector', 'inspect', 'سحري', 'مساعدة', 'فحص'],
-    relatedTopics: ['keyboard-shortcuts', 'dashboard.overview'],
+    tags: ["magic", "help", "inspector", "inspect", "سحري", "مساعدة", "فحص"],
+    relatedTopics: ["keyboard-shortcuts", "dashboard.overview"],
   },
 
   // ─── Projects ─────────────────────────────────────────────────────
   {
-    id: 'projects.create',
-    category: 'projects',
-    title: { en: 'Creating a Project', ar: 'إنشاء مشروع' },
-    description: { en: 'How to create and configure a new engineering project', ar: 'كيفية إنشاء وتكوين مشروع هندسي جديد' },
+    id: "projects.create",
+    category: "projects",
+    title: { en: "Creating a Project", ar: "إنشاء مشروع" },
+    description: {
+      en: "How to create and configure a new engineering project",
+      ar: "كيفية إنشاء وتكوين مشروع هندسي جديد",
+    },
     content: {
       en: `**Steps to Create a Project:**
 1. Navigate to **Projects** from the sidebar
@@ -210,15 +222,18 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
 - تُحفظ المشاريع تلقائياً أثناء العمل
 - كل مشروع يمكن أن يحتوي على دراسات متعددة`,
     },
-    tags: ['project', 'create', 'new', 'مشروع', 'إنشاء', 'جديد'],
-    navigateTo: '/projects',
-    relatedTopics: ['projects.manage', 'studies.load-flow'],
+    tags: ["project", "create", "new", "مشروع", "إنشاء", "جديد"],
+    navigateTo: "/projects",
+    relatedTopics: ["projects.manage", "studies.load-flow"],
   },
   {
-    id: 'projects.manage',
-    category: 'projects',
-    title: { en: 'Managing Projects', ar: 'إدارة المشاريع' },
-    description: { en: 'Open, edit, archive, and delete projects', ar: 'فتح وتعديل وأرشفة وحذف المشاريع' },
+    id: "projects.manage",
+    category: "projects",
+    title: { en: "Managing Projects", ar: "إدارة المشاريع" },
+    description: {
+      en: "Open, edit, archive, and delete projects",
+      ar: "فتح وتعديل وأرشفة وحذف المشاريع",
+    },
     content: {
       en: `**Project Management Actions:**
 
@@ -275,17 +290,31 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
 - استخدم فلتر الحالة (نشط/مؤرشف/محذوف) لتضييق القائمة
 - رتّب حسب تاريخ الإنشاء أو الاسم أو آخر نشاط`,
     },
-    tags: ['project', 'manage', 'open', 'edit', 'archive', 'delete', 'مشروع', 'إدارة', 'فتح', 'تعديل'],
-    navigateTo: '/projects',
-    relatedTopics: ['projects.create', 'studies.load-flow'],
+    tags: [
+      "project",
+      "manage",
+      "open",
+      "edit",
+      "archive",
+      "delete",
+      "مشروع",
+      "إدارة",
+      "فتح",
+      "تعديل",
+    ],
+    navigateTo: "/projects",
+    relatedTopics: ["projects.create", "studies.load-flow"],
   },
 
   // ─── Studies (per type) ───────────────────────────────────────────
   {
-    id: 'studies.overview',
-    category: 'engineering',
-    title: { en: 'Studies Overview', ar: 'نظرة عامة على الدراسات' },
-    description: { en: 'All available engineering study types and how to run them', ar: 'جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها' },
+    id: "studies.overview",
+    category: "engineering",
+    title: { en: "Studies Overview", ar: "نظرة عامة على الدراسات" },
+    description: {
+      en: "All available engineering study types and how to run them",
+      ar: "جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها",
+    },
     content: {
       en: `**Available Study Types:**
 
@@ -342,15 +371,18 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
 - تُحفظ النتائج مؤقتاً للتشغيل المتكرر بنفس المدخلات
 - استخدم صفحة المشاريع لتنظيم الدراسات حسب المشروع`,
     },
-    tags: ['studies', 'overview', 'all', 'دراسات', 'نظرة عامة'],
-    navigateTo: '/studies',
-    relatedTopics: ['studies.load-flow', 'studies.short-circuit', 'studies.arc-flash'],
+    tags: ["studies", "overview", "all", "دراسات", "نظرة عامة"],
+    navigateTo: "/studies",
+    relatedTopics: ["studies.load-flow", "studies.short-circuit", "studies.arc-flash"],
   },
   {
-    id: 'studies.load-flow',
-    category: 'engineering',
-    title: { en: 'Load Flow Study', ar: 'دراسة تدفق الحمل' },
-    description: { en: 'Newton-Raphson power flow analysis per IEEE 3002.7', ar: 'تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7' },
+    id: "studies.load-flow",
+    category: "engineering",
+    title: { en: "Load Flow Study", ar: "دراسة تدفق الحمل" },
+    description: {
+      en: "Newton-Raphson power flow analysis per IEEE 3002.7",
+      ar: "تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7",
+    },
     content: {
       en: `**What it does:**
 Calculates bus voltages, branch power flows, and system losses under steady-state conditions.
@@ -403,15 +435,15 @@ Calculates bus voltages, branch power flows, and system losses under steady-stat
 - "لم يتقارب" — جرّب تخمين مبدئي مختلف أو تساهل في التسامح
 - خسائر سلبية — تحقق من اتساق قاعدة per-unit`,
     },
-    tags: ['load', 'flow', 'newton', 'raphson', 'power', 'تدفق', 'حمل', 'قدرة'],
-    navigateTo: '/studies/load_flow',
-    relatedTopics: ['studies.overview', 'studies.short-circuit'],
+    tags: ["load", "flow", "newton", "raphson", "power", "تدفق", "حمل", "قدرة"],
+    navigateTo: "/studies/load_flow",
+    relatedTopics: ["studies.overview", "studies.short-circuit"],
   },
   {
-    id: 'studies.short-circuit',
-    category: 'engineering',
-    title: { en: 'Short Circuit Study', ar: 'دراسة الدائرة القصيرة' },
-    description: { en: 'IEC 60909 fault current calculation', ar: 'حساب تيار العطل حسب IEC 60909' },
+    id: "studies.short-circuit",
+    category: "engineering",
+    title: { en: "Short Circuit Study", ar: "دراسة الدائرة القصيرة" },
+    description: { en: "IEC 60909 fault current calculation", ar: "حساب تيار العطل حسب IEC 60909" },
     content: {
       en: `**What it does:**
 Calculates three-phase, line-to-ground, line-to-line, and double-line-to-ground fault currents at every bus.
@@ -462,15 +494,18 @@ Calculates three-phase, line-to-ground, line-to-line, and double-line-to-ground 
 - IEC 60909-0:2016 — حساب التيارات
 - IEC 60909-1:2002 — معاملات الحسابات`,
     },
-    tags: ['short', 'circuit', 'fault', 'iec', '60909', 'قصر', 'دائرة', 'عطل'],
-    navigateTo: '/studies/short_circuit',
-    relatedTopics: ['studies.overview', 'studies.arc-flash', 'studies.protection'],
+    tags: ["short", "circuit", "fault", "iec", "60909", "قصر", "دائرة", "عطل"],
+    navigateTo: "/studies/short_circuit",
+    relatedTopics: ["studies.overview", "studies.arc-flash", "studies.protection"],
   },
   {
-    id: 'studies.arc-flash',
-    category: 'engineering',
-    title: { en: 'Arc Flash Study', ar: 'دراسة شرارة القوس' },
-    description: { en: 'IEEE 1584-2018 incident energy analysis', ar: 'تحليل طاقة الحادث حسب IEEE 1584-2018' },
+    id: "studies.arc-flash",
+    category: "engineering",
+    title: { en: "Arc Flash Study", ar: "دراسة شرارة القوس" },
+    description: {
+      en: "IEEE 1584-2018 incident energy analysis",
+      ar: "تحليل طاقة الحادث حسب IEEE 1584-2018",
+    },
     content: {
       en: `**What it does:**
 Calculates incident energy (cal/cm²) and arc-flash boundary at each bus, used to specify PPE (Personal Protective Equipment) levels.
@@ -525,15 +560,15 @@ Calculates incident energy (cal/cm²) and arc-flash boundary at each bus, used t
 - استخدم الأعلى من: (أ) تيار العطل الملحوم، (ب) حساب التيار المخفض
 - وثّق جميع الافتراضات للامتثال للتدقيق`,
     },
-    tags: ['arc', 'flash', 'ieee', '1584', 'incident', 'energy', 'قوس', 'شرارة', 'حادث'],
-    navigateTo: '/studies/arc_flash',
-    relatedTopics: ['studies.short-circuit', 'studies.protection', 'studies.overview'],
+    tags: ["arc", "flash", "ieee", "1584", "incident", "energy", "قوس", "شرارة", "حادث"],
+    navigateTo: "/studies/arc_flash",
+    relatedTopics: ["studies.short-circuit", "studies.protection", "studies.overview"],
   },
   {
-    id: 'studies.protection',
-    category: 'engineering',
-    title: { en: 'Protection Coordination', ar: 'تنسيق الحماية' },
-    description: { en: 'IEC 60255 relay curve coordination', ar: 'تنسيق منحنيات المُرحّل IEC 60255' },
+    id: "studies.protection",
+    category: "engineering",
+    title: { en: "Protection Coordination", ar: "تنسيق الحماية" },
+    description: { en: "IEC 60255 relay curve coordination", ar: "تنسيق منحنيات المُرحّل IEC 60255" },
     content: {
       en: `**What it does:**
 Analyzes time-current curves of protective relays (overcurrent, earth fault) to ensure proper coordination — upstream devices should clear faults slower than downstream devices.
@@ -584,15 +619,15 @@ Analyzes time-current curves of protective relays (overcurrent, earth fault) to 
 - تحقق من تنسيق الفيوز-المُرحّل وكذلك المُرحّل-المُرحّل
 - اعتبر التقاط الحمل البارد عند ضبط تيار الالتقاط`,
     },
-    tags: ['protection', 'relay', 'coordination', 'iec', '60255', 'حماية', 'مُرحّل', 'تنسيق'],
-    navigateTo: '/studies/protection_coordination',
-    relatedTopics: ['studies.short-circuit', 'studies.overview'],
+    tags: ["protection", "relay", "coordination", "iec", "60255", "حماية", "مُرحّل", "تنسيق"],
+    navigateTo: "/studies/protection_coordination",
+    relatedTopics: ["studies.short-circuit", "studies.overview"],
   },
   {
-    id: 'studies.harmonic',
-    category: 'engineering',
-    title: { en: 'Harmonic Analysis', ar: 'تحليل التوافقيات' },
-    description: { en: 'IEEE 519-2022 distortion study', ar: 'دراسة التشوه IEEE 519-2022' },
+    id: "studies.harmonic",
+    category: "engineering",
+    title: { en: "Harmonic Analysis", ar: "تحليل التوافقيات" },
+    description: { en: "IEEE 519-2022 distortion study", ar: "دراسة التشوه IEEE 519-2022" },
     content: {
       en: `**What it does:**
 Calculates harmonic voltage and current distortion at each bus, with frequency sweep and resonance detection.
@@ -629,15 +664,15 @@ Calculates harmonic voltage and current distortion at each bus, with frequency s
 - رسم المسح الترددي يُظهر الرنين المتوازي/المتسلسل
 - التخفيف الموصى به (فلاتر، تحديد مقاومة المفاعل)`,
     },
-    tags: ['harmonic', 'thd', 'ieee', '519', 'distortion', 'توافقيات', 'تشوه'],
-    navigateTo: '/studies/harmonic',
-    relatedTopics: ['studies.overview'],
+    tags: ["harmonic", "thd", "ieee", "519", "distortion", "توافقيات", "تشوه"],
+    navigateTo: "/studies/harmonic",
+    relatedTopics: ["studies.overview"],
   },
   {
-    id: 'studies.motor-starting',
-    category: 'engineering',
-    title: { en: 'Motor Starting Study', ar: 'دراسة بدء المحرك' },
-    description: { en: 'IEEE 399 transient analysis', ar: 'تحليل عابر IEEE 399' },
+    id: "studies.motor-starting",
+    category: "engineering",
+    title: { en: "Motor Starting Study", ar: "دراسة بدء المحرك" },
+    description: { en: "IEEE 399 transient analysis", ar: "تحليل عابر IEEE 399" },
     content: {
       en: `**What it does:**
 Simulates the voltage dip and recovery during motor starting, ensuring the dip stays within acceptable limits (typically ≤ 15% at the motor terminals).
@@ -668,15 +703,18 @@ Simulates the voltage dip and recovery during motor starting, ensuring the dip s
 - التأثير على المحركات الأخرى المشغّلة
 - التوصية لطريقة البدء إذا كان الانخفاض مفرطاً`,
     },
-    tags: ['motor', 'starting', 'ieee', '399', 'voltage', 'dip', 'محرك', 'بدء'],
-    navigateTo: '/studies/motor_starting',
-    relatedTopics: ['studies.overview', 'studies.load-flow'],
+    tags: ["motor", "starting", "ieee", "399", "voltage", "dip", "محرك", "بدء"],
+    navigateTo: "/studies/motor_starting",
+    relatedTopics: ["studies.overview", "studies.load-flow"],
   },
   {
-    id: 'studies.cable-sizing',
-    category: 'engineering',
-    title: { en: 'Cable Sizing', ar: 'تحديد مقاس الكابلات' },
-    description: { en: 'IEC 60364 current-carrying capacity', ar: 'القدرة على حمل التيار IEC 60364' },
+    id: "studies.cable-sizing",
+    category: "engineering",
+    title: { en: "Cable Sizing", ar: "تحديد مقاس الكابلات" },
+    description: {
+      en: "IEC 60364 current-carrying capacity",
+      ar: "القدرة على حمل التيار IEC 60364",
+    },
     content: {
       en: `**What it does:**
 Determines the minimum cable cross-section based on load current, installation method, ambient temperature, and voltage drop constraints.
@@ -725,15 +763,15 @@ Determines the minimum cable cross-section based on load current, installation m
 - انخفاض الجهد (% و V)
 - مقاس الكابل الموصى به (المقاس القياسي الأعلى التالي)`,
     },
-    tags: ['cable', 'sizing', 'iec', '60364', 'كابل', 'مقاس'],
-    navigateTo: '/studies/cable_sizing',
-    relatedTopics: ['studies.overview'],
+    tags: ["cable", "sizing", "iec", "60364", "كابل", "مقاس"],
+    navigateTo: "/studies/cable_sizing",
+    relatedTopics: ["studies.overview"],
   },
   {
-    id: 'studies.earth-grid',
-    category: 'engineering',
-    title: { en: 'Earth Grid Design', ar: 'تصميم شبكة التأريض' },
-    description: { en: 'IEEE 80 ground grid design', ar: 'تصميم شبكة التأريض IEEE 80' },
+    id: "studies.earth-grid",
+    category: "engineering",
+    title: { en: "Earth Grid Design", ar: "تصميم شبكة التأريض" },
+    description: { en: "IEEE 80 ground grid design", ar: "تصميم شبكة التأريض IEEE 80" },
     content: {
       en: `**What it does:**
 Designs a substation grounding grid that limits touch and step voltages to safe levels during ground faults.
@@ -778,15 +816,15 @@ Designs a substation grounding grid that limits touch and step voltages to safe 
 - ارتفاع جهد التأريض (GPR)
 - مقاس الموصل الموصى به (حسب السعة الحرارية IEEE 80)`,
     },
-    tags: ['earth', 'grid', 'ground', 'ieee', '80', 'تأريض', 'شبكة'],
-    navigateTo: '/studies/earth_grid',
-    relatedTopics: ['studies.short-circuit', 'studies.overview'],
+    tags: ["earth", "grid", "ground", "ieee", "80", "تأريض", "شبكة"],
+    navigateTo: "/studies/earth_grid",
+    relatedTopics: ["studies.short-circuit", "studies.overview"],
   },
   {
-    id: 'studies.opf',
-    category: 'engineering',
-    title: { en: 'Optimal Power Flow (OPF)', ar: 'تدفق القدرة الأمثل' },
-    description: { en: 'Cost-optimized generation dispatch', ar: 'إرسال توليد أمثل للتكلفة' },
+    id: "studies.opf",
+    category: "engineering",
+    title: { en: "Optimal Power Flow (OPF)", ar: "تدفق القدرة الأمثل" },
+    description: { en: "Cost-optimized generation dispatch", ar: "إرسال توليد أمثل للتكلفة" },
     content: {
       en: `**What it does:**
 Finds the optimal generation dispatch that minimizes total generation cost while satisfying all power flow constraints and limits.
@@ -831,15 +869,18 @@ Finds the optimal generation dispatch that minimizes total generation cost while
 - القيود المُلزِمة (خطوط/مولدات عند الحدود)
 - المقارنة مع الحالة الأساسية`,
     },
-    tags: ['opf', 'optimal', 'power', 'flow', 'cost', 'أمثل', 'تكلفة'],
-    navigateTo: '/studies/opf',
-    relatedTopics: ['studies.overview', 'studies.load-flow'],
+    tags: ["opf", "optimal", "power", "flow", "cost", "أمثل", "تكلفة"],
+    navigateTo: "/studies/opf",
+    relatedTopics: ["studies.overview", "studies.load-flow"],
   },
   {
-    id: 'studies.stability',
-    category: 'engineering',
-    title: { en: 'Transient Stability', ar: 'الاستقرار العابر' },
-    description: { en: 'Power system transient stability analysis', ar: 'تحليل الاستقرار العابر لنظام القدرة' },
+    id: "studies.stability",
+    category: "engineering",
+    title: { en: "Transient Stability", ar: "الاستقرار العابر" },
+    description: {
+      en: "Power system transient stability analysis",
+      ar: "تحليل الاستقرار العابر لنظام القدرة",
+    },
     content: {
       en: `**What it does:**
 Simulates the dynamic response of generators and loads to large disturbances (3-phase faults, line trips, generator outages) to verify the system remains stable.
@@ -872,15 +913,18 @@ Simulates the dynamic response of generators and loads to large disturbances (3-
 - هامش الاستقرار
 - التوصية للإجراءات التصحيحية إذا كان غير مستقر`,
     },
-    tags: ['stability', 'transient', 'rotor', 'angle', 'استقرار', 'عابر'],
-    navigateTo: '/studies/stability',
-    relatedTopics: ['studies.overview', 'studies.load-flow'],
+    tags: ["stability", "transient", "rotor", "angle", "استقرار", "عابر"],
+    navigateTo: "/studies/stability",
+    relatedTopics: ["studies.overview", "studies.load-flow"],
   },
   {
-    id: 'ai-assistant.overview',
-    category: 'getting-started',
-    title: { en: 'AI Assistant', ar: 'المساعد الذكي' },
-    description: { en: 'Chat with the ETAP Expert AI agent for engineering guidance', ar: 'تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية' },
+    id: "ai-assistant.overview",
+    category: "getting-started",
+    title: { en: "AI Assistant", ar: "المساعد الذكي" },
+    description: {
+      en: "Chat with the ETAP Expert AI agent for engineering guidance",
+      ar: "تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية",
+    },
     content: {
       en: `**What it does:**
 The AI Assistant page lets you chat with specialized AI agents (ETAP Expert, ETAP GUI, Load Flow Agent, etc.) to get engineering guidance, code suggestions, and step-by-step instructions.
@@ -931,17 +975,20 @@ The AI Assistant page lets you chat with specialized AI agents (ETAP Expert, ETA
 - للوكيل وصول إلى قاعدة معرفية لأدلة ETAP ومعايير IEEE/IEC
 - للمشاكل المعقدة، قسّمها لأسئلة أصغر متعددة`,
     },
-    tags: ['ai', 'assistant', 'chat', 'agent', 'ذكاء', 'اصطناعي', 'مساعد'],
-    navigateTo: '/assistant',
-    relatedTopics: ['dashboard.overview', 'code-guard.overview'],
+    tags: ["ai", "assistant", "chat", "agent", "ذكاء", "اصطناعي", "مساعد"],
+    navigateTo: "/assistant",
+    relatedTopics: ["dashboard.overview", "code-guard.overview"],
   },
 
   // ─── Asset Management ─────────────────────────────────────────────
   {
-    id: 'asset-management.overview',
-    category: 'engineering',
-    title: { en: 'Asset Management', ar: 'إدارة الأصول' },
-    description: { en: 'Track physical equipment across your power system', ar: 'تتبع المعدات الفيزيائية في نظام القدرة' },
+    id: "asset-management.overview",
+    category: "engineering",
+    title: { en: "Asset Management", ar: "إدارة الأصول" },
+    description: {
+      en: "Track physical equipment across your power system",
+      ar: "تتبع المعدات الفيزيائية في نظام القدرة",
+    },
     content: {
       en: `**What it does:**
 The Asset Management page tracks physical equipment (transformers, breakers, cables, generators) across your power system. Each asset has metadata (manufacturer, model, install date), maintenance history, and links to the engineering model.
@@ -978,17 +1025,20 @@ The Asset Management page tracks physical equipment (transformers, breakers, cab
 - المحركات (مع خصائص البدء)
 - المُرحّلات الحماية (مع الإعدادات)`,
     },
-    tags: ['asset', 'management', 'equipment', 'أصول', 'معدات'],
-    navigateTo: '/asset-management',
-    relatedTopics: ['dashboard.overview'],
+    tags: ["asset", "management", "equipment", "أصول", "معدات"],
+    navigateTo: "/asset-management",
+    relatedTopics: ["dashboard.overview"],
   },
 
   // ─── ETAP Integration ─────────────────────────────────────────────
   {
-    id: 'etap-integration.overview',
-    category: 'engineering',
-    title: { en: 'ETAP Integration', ar: 'تكامل ETAP' },
-    description: { en: 'Connect to ETAP desktop software for native study execution', ar: 'اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية' },
+    id: "etap-integration.overview",
+    category: "engineering",
+    title: { en: "ETAP Integration", ar: "تكامل ETAP" },
+    description: {
+      en: "Connect to ETAP desktop software for native study execution",
+      ar: "اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية",
+    },
     content: {
       en: `**What it does:**
 The ETAP Integration page configures the connection between AhmedETAP and the ETAP desktop software running on Windows. This allows running studies using the real ETAP engine instead of the native Python engine.
@@ -1035,17 +1085,20 @@ The ETAP Integration page configures the connection between AhmedETAP and the ET
 - استخدم Python الأصلي للتكرار الأسرع أثناء التطوير
 - يمكن موازنة حمل العامل عبر أجهزة Windows متعددة`,
     },
-    tags: ['etap', 'integration', 'worker', 'windows', 'تكامل', 'عامل'],
-    navigateTo: '/etap',
-    relatedTopics: ['studies.overview', 'settings.backend'],
+    tags: ["etap", "integration", "worker", "windows", "تكامل", "عامل"],
+    navigateTo: "/etap",
+    relatedTopics: ["studies.overview", "settings.backend"],
   },
 
   // ─── GIS Integration ──────────────────────────────────────────────
   {
-    id: 'gis-integration.overview',
-    category: 'engineering',
-    title: { en: 'GIS Integration', ar: 'تكامل GIS' },
-    description: { en: 'Connect to ArcGIS / QGIS / PostGIS for geospatial power system data', ar: 'اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية' },
+    id: "gis-integration.overview",
+    category: "engineering",
+    title: { en: "GIS Integration", ar: "تكامل GIS" },
+    description: {
+      en: "Connect to ArcGIS / QGIS / PostGIS for geospatial power system data",
+      ar: "اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية",
+    },
     content: {
       en: `**What it does:**
 The GIS Integration page connects AhmedETAP to Geographic Information Systems (ArcGIS, QGIS, PostGIS) to import geospatial data for power system assets (lines, substations, transformers with coordinates).
@@ -1104,17 +1157,20 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
 - استخدم WGS84 (EPSG:4326) للتوافق عبر المنصات
 - شغّل التحقق بعد كل استيراد لالتقاط عدم التطابق بين GIS والكهرباء`,
     },
-    tags: ['gis', 'arcgis', 'qgis', 'postgis', 'geo', 'جغرافي'],
-    navigateTo: '/gis',
-    relatedTopics: ['asset-management.overview', 'digital-twin.overview'],
+    tags: ["gis", "arcgis", "qgis", "postgis", "geo", "جغرافي"],
+    navigateTo: "/gis",
+    relatedTopics: ["asset-management.overview", "digital-twin.overview"],
   },
 
   // ─── Reports ──────────────────────────────────────────────────────
   {
-    id: 'reports.generate',
-    category: 'reports',
-    title: { en: 'Generating Reports', ar: 'إنشاء التقارير' },
-    description: { en: 'How to generate and customize engineering reports', ar: 'كيفية إنشاء وتخصيص التقارير الهندسية' },
+    id: "reports.generate",
+    category: "reports",
+    title: { en: "Generating Reports", ar: "إنشاء التقارير" },
+    description: {
+      en: "How to generate and customize engineering reports",
+      ar: "كيفية إنشاء وتخصيص التقارير الهندسية",
+    },
     content: {
       en: `**Report Types:**
 - **Compliance Report** — Standards verification (IEEE 1584, IEC 60909, etc.)
@@ -1175,17 +1231,20 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
 - استخدم تقرير التدقيق لإدارة الجودة ISO 9001 / IEC
 - تُنشأ التقارير من جانب الخادم؛ اسمح بـ 10-30 ثانية للتقارير الكبيرة`,
     },
-    tags: ['report', 'generate', 'pdf', 'compliance', 'تقرير', 'إنشاء', 'امتثال'],
-    navigateTo: '/reports',
-    relatedTopics: ['projects.manage', 'studies.overview'],
+    tags: ["report", "generate", "pdf", "compliance", "تقرير", "إنشاء", "امتثال"],
+    navigateTo: "/reports",
+    relatedTopics: ["projects.manage", "studies.overview"],
   },
 
   // ─── Digital Twin ─────────────────────────────────────────────────
   {
-    id: 'digital-twin.overview',
-    category: 'digital-twin',
-    title: { en: 'Digital Twin Overview', ar: 'نظرة عامة على التوأم الرقمي' },
-    description: { en: 'Real-time virtual replica of your physical power system', ar: 'نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي' },
+    id: "digital-twin.overview",
+    category: "digital-twin",
+    title: { en: "Digital Twin Overview", ar: "نظرة عامة على التوأم الرقمي" },
+    description: {
+      en: "Real-time virtual replica of your physical power system",
+      ar: "نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي",
+    },
     content: {
       en: `**What is a Digital Twin?**
 A digital twin is a real-time virtual replica of your physical power system. It syncs with SCADA, BMS, and IoT sensors to provide a live view of system state.
@@ -1244,17 +1303,20 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - استخدم بوابة التحقق للتحقق من الأوامر قبل الإرسال إلى SCADA
 - تتيح المقارنة التاريخية كشف انحراف الأداء بمرور الوقت`,
     },
-    tags: ['digital', 'twin', 'sync', 'real-time', 'توأم', 'رقمي', 'مزامنة'],
-    navigateTo: '/digital-twin',
-    relatedTopics: ['dashboard.overview', 'integration.scada'],
+    tags: ["digital", "twin", "sync", "real-time", "توأم", "رقمي", "مزامنة"],
+    navigateTo: "/digital-twin",
+    relatedTopics: ["dashboard.overview", "integration.scada"],
   },
 
   // ─── Settings ─────────────────────────────────────────────────────
   {
-    id: 'settings.backend',
-    category: 'settings',
-    title: { en: 'Backend Configuration', ar: 'تكوين الخادم' },
-    description: { en: 'Configure the engineering service backend connection', ar: 'تكوين اتصال خادم الخدمة الهندسية' },
+    id: "settings.backend",
+    category: "settings",
+    title: { en: "Backend Configuration", ar: "تكوين الخادم" },
+    description: {
+      en: "Configure the engineering service backend connection",
+      ar: "تكوين اتصال خادم الخدمة الهندسية",
+    },
     content: {
       en: `**Backend Settings (Engineering Service tab):**
 - **Service URL** — URL of the FastAPI engineering service (default: http://localhost:8000)
@@ -1303,15 +1365,21 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - لنشر HF Space: استخدم رابط hf.space الكامل
 - مفتاح API محفوظ في localStorage (مشوّه، وليس مشفّراً)`,
     },
-    tags: ['settings', 'backend', 'config', 'api', 'إعدادات', 'خادم', 'تكوين'],
-    navigateTo: '/settings',
-    relatedTopics: ['troubleshooting.backend', 'settings.external-services'],
+    tags: ["settings", "backend", "config", "api", "إعدادات", "خادم", "تكوين"],
+    navigateTo: "/settings",
+    relatedTopics: ["troubleshooting.backend", "settings.external-services"],
   },
   {
-    id: 'settings.external-services',
-    category: 'settings',
-    title: { en: 'External Services (LangWatch, Smithery, HF, GitHub, Vercel)', ar: 'الخدمات الخارجية (LangWatch, Smithery, HF, GitHub, Vercel)' },
-    description: { en: 'Configure and test third-party integrations', ar: 'تكوين واختبار التكاملات الخارجية' },
+    id: "settings.external-services",
+    category: "settings",
+    title: {
+      en: "External Services (LangWatch, Smithery, HF, GitHub, Vercel)",
+      ar: "الخدمات الخارجية (LangWatch, Smithery, HF, GitHub, Vercel)",
+    },
+    description: {
+      en: "Configure and test third-party integrations",
+      ar: "تكوين واختبار التكاملات الخارجية",
+    },
     content: {
       en: `**The External Services tab lets you configure 5 third-party integrations:**
 
@@ -1382,15 +1450,30 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - لا يتم إرسالها أبداً إلى الخادم
 - للاستخدام في الخادم، انسخها إلى .env أو أسرار HF Space`,
     },
-    tags: ['settings', 'external', 'services', 'langwatch', 'smithery', 'huggingface', 'github', 'vercel', 'إعدادات', 'خدمات', 'خارجية'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.backend', 'integration.scada'],
+    tags: [
+      "settings",
+      "external",
+      "services",
+      "langwatch",
+      "smithery",
+      "huggingface",
+      "github",
+      "vercel",
+      "إعدادات",
+      "خدمات",
+      "خارجية",
+    ],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.backend", "integration.scada"],
   },
   {
-    id: 'settings.ai-providers',
-    category: 'settings',
-    title: { en: 'AI Providers Configuration', ar: 'تكوين مزودي الذكاء الاصطناعي' },
-    description: { en: 'Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face, OpenRouter, etc.', ar: 'اتصل بـ OpenAI و Anthropic و Gemini و DeepSeek و Groq و Cohere و Hugging Face و OpenRouter' },
+    id: "settings.ai-providers",
+    category: "settings",
+    title: { en: "AI Providers Configuration", ar: "تكوين مزودي الذكاء الاصطناعي" },
+    description: {
+      en: "Connect to OpenAI, Anthropic, Gemini, DeepSeek, Groq, Cohere, Hugging Face, OpenRouter, etc.",
+      ar: "اتصل بـ OpenAI و Anthropic و Gemini و DeepSeek و Groq و Cohere و Hugging Face و OpenRouter",
+    },
     content: {
       en: `**The AI Providers tab lets you connect to 17+ popular LLM providers:**
 
@@ -1475,15 +1558,31 @@ A digital twin is a real-time virtual replica of your physical power system. It 
 - تتيح لك صفحة المساعد الذكي اختيار المزود المستخدم لكل دردشة
 - المزودون المجانين مميزون بـ "(مجاني)" في قائمة النماذج`,
     },
-    tags: ['ai', 'provider', 'openai', 'anthropic', 'gemini', 'deepseek', 'groq', 'cohere', 'huggingface', 'openrouter', 'مزود', 'ذكاء'],
-    navigateTo: '/settings',
-    relatedTopics: ['ai-assistant.overview', 'settings.backend'],
+    tags: [
+      "ai",
+      "provider",
+      "openai",
+      "anthropic",
+      "gemini",
+      "deepseek",
+      "groq",
+      "cohere",
+      "huggingface",
+      "openrouter",
+      "مزود",
+      "ذكاء",
+    ],
+    navigateTo: "/settings",
+    relatedTopics: ["ai-assistant.overview", "settings.backend"],
   },
   {
-    id: 'settings.mcp',
-    category: 'settings',
-    title: { en: 'MCP Servers', ar: 'خوادم MCP' },
-    description: { en: 'Model Context Protocol server configuration and exposed tools', ar: 'تكوين خوادم بروتوكول السياق النموذجي والأدوات المعروضة' },
+    id: "settings.mcp",
+    category: "settings",
+    title: { en: "MCP Servers", ar: "خوادم MCP" },
+    description: {
+      en: "Model Context Protocol server configuration and exposed tools",
+      ar: "تكوين خوادم بروتوكول السياق النموذجي والأدوات المعروضة",
+    },
     content: {
       en: `**What it does:**
 The MCP Servers tab shows which Model Context Protocol (MCP) servers are running and what tools they expose to AI agents.
@@ -1552,15 +1651,21 @@ The MCP Servers tab shows which Model Context Protocol (MCP) servers are running
 - لإضافة خادم MCP مخصص، أعد تشغيل الخادم مع تكوين الخادم في .env
 - استدعاءات الأدوات مسجلة لأغراض التدقيق`,
     },
-    tags: ['mcp', 'server', 'protocol', 'context', 'tool', 'خادم', 'بروتوكول'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.ai-providers', 'ai-assistant.overview'],
+    tags: ["mcp", "server", "protocol", "context", "tool", "خادم", "بروتوكول"],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.ai-providers", "ai-assistant.overview"],
   },
   {
-    id: 'settings.coding-agents',
-    category: 'settings',
-    title: { en: 'Coding Agents (OpenHands, OpenCode, KiloCode)', ar: 'وكلاء البرمجة (OpenHands, OpenCode, KiloCode)' },
-    description: { en: 'Configure autonomous coding agent integrations', ar: 'تكوين تكاملات وكلاء البرمجة المستقلين' },
+    id: "settings.coding-agents",
+    category: "settings",
+    title: {
+      en: "Coding Agents (OpenHands, OpenCode, KiloCode)",
+      ar: "وكلاء البرمجة (OpenHands, OpenCode, KiloCode)",
+    },
+    description: {
+      en: "Configure autonomous coding agent integrations",
+      ar: "تكوين تكاملات وكلاء البرمجة المستقلين",
+    },
     content: {
       en: `**What it does:**
 The Coding Agents tab configures integrations with autonomous coding agents that can write, review, and execute engineering code.
@@ -1623,15 +1728,18 @@ The Coding Agents tab configures integrations with autonomous coding agents that
 - كل تنفيذ كود مسجل
 - المستخدمون يجب他们 بالموافقة على الكود قبل تشغيله`,
     },
-    tags: ['coding', 'agent', 'openhands', 'opencode', 'kilocode', 'وكيل', 'برمجة'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.ai-providers', 'code-guard.overview'],
+    tags: ["coding", "agent", "openhands", "opencode", "kilocode", "وكيل", "برمجة"],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.ai-providers", "code-guard.overview"],
   },
   {
-    id: 'settings.database',
-    category: 'settings',
-    title: { en: 'Database & Cache Configuration', ar: 'تكوين قاعدة البيانات والذاكرة المؤقتة' },
-    description: { en: 'Configure database connection and cache settings', ar: 'تكوين اتصال قاعدة البيانات وإعدادات الذاكرة المؤقتة' },
+    id: "settings.database",
+    category: "settings",
+    title: { en: "Database & Cache Configuration", ar: "تكوين قاعدة البيانات والذاكرة المؤقتة" },
+    description: {
+      en: "Configure database connection and cache settings",
+      ar: "تكوين اتصال قاعدة البيانات وإعدادات الذاكرة المؤقتة",
+    },
     content: {
       en: `**What it does:**
 The Database & Cache tab configures the PostgreSQL database connection and Redis cache for the engineering service.
@@ -1684,15 +1792,18 @@ The Database & Cache tab configures the PostgreSQL database connection and Redis
 - عيّن CACHE_TTL إلى 3600 للاستخدام العادي، 86400 للبيانات نادرة التغيير
 - MAX_WORKERS = أنوية CPU - 1 (اترك نواة للنظام)`,
     },
-    tags: ['database', 'postgres', 'redis', 'cache', 'قاعدة بيانات', 'ذاكرة مؤقتة'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.backend', 'diagnostics.overview'],
+    tags: ["database", "postgres", "redis", "cache", "قاعدة بيانات", "ذاكرة مؤقتة"],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.backend", "diagnostics.overview"],
   },
   {
-    id: 'settings.security',
-    category: 'settings',
-    title: { en: 'Security & Secrets Management', ar: 'الأمان وإدارة الأسرار' },
-    description: { en: 'Configure authentication keys, JWT secrets, and Vault integration', ar: 'تكوين مفاتيح المصادقة وأسرار JWT وتكامل Vault' },
+    id: "settings.security",
+    category: "settings",
+    title: { en: "Security & Secrets Management", ar: "الأمان وإدارة الأسرار" },
+    description: {
+      en: "Configure authentication keys, JWT secrets, and Vault integration",
+      ar: "تكوين مفاتيح المصادقة وأسرار JWT وتكامل Vault",
+    },
     content: {
       en: `**What it does:**
 The Security tab configures authentication keys, JWT secrets, and optional HashiCorp Vault integration for secrets management.
@@ -1755,15 +1866,21 @@ The Security tab configures authentication keys, JWT secrets, and optional Hashi
 - سجل تدقيق للوصول للأسرار
 - أسرار ديناميكية (بيانات اعتماد قاعدة البيانات تنتهي)`,
     },
-    tags: ['security', 'vault', 'jwt', 'api-key', 'secret', 'أمان', 'أسرار'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.backend', 'troubleshooting.auth'],
+    tags: ["security", "vault", "jwt", "api-key", "secret", "أمان", "أسرار"],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.backend", "troubleshooting.auth"],
   },
   {
-    id: 'settings.integration',
-    category: 'settings',
-    title: { en: 'System Integration (ETAP, SCADA, Email)', ar: 'تكامل النظام (ETAP, SCADA, البريد)' },
-    description: { en: 'Configure ETAP desktop, SCADA zenon, and email alert integrations', ar: 'تكوين تكاملات ETAP المكتبي و SCADA zenon وتنبيهات البريد' },
+    id: "settings.integration",
+    category: "settings",
+    title: {
+      en: "System Integration (ETAP, SCADA, Email)",
+      ar: "تكامل النظام (ETAP, SCADA, البريد)",
+    },
+    description: {
+      en: "Configure ETAP desktop, SCADA zenon, and email alert integrations",
+      ar: "تكوين تكاملات ETAP المكتبي و SCADA zenon وتنبيهات البريد",
+    },
     content: {
       en: `**What it does:**
 The Integration tab configures connections to external engineering systems: ETAP desktop, SCADA zenon, and email alerts.
@@ -1816,15 +1933,18 @@ The Integration tab configures connections to external engineering systems: ETAP
 - لـ SCADA، استخدم فترة مزامنة منخفضة (5-10 ثواني) لمراقبة شبه مباشرة
 - للبريد، استخدم كلمة مرور خاصة بالتطبيق إذا كان مزودك يدعمها`,
     },
-    tags: ['integration', 'etap', 'scada', 'zenon', 'email', 'smtp', 'تكامل', 'إسكادا'],
-    navigateTo: '/settings',
-    relatedTopics: ['etap-integration.overview', 'scada-integration.overview'],
+    tags: ["integration", "etap", "scada", "zenon", "email", "smtp", "تكامل", "إسكادا"],
+    navigateTo: "/settings",
+    relatedTopics: ["etap-integration.overview", "scada-integration.overview"],
   },
   {
-    id: 'settings.performance',
-    category: 'settings',
-    title: { en: 'Performance & Observability', ar: 'الأداء والمراقبة' },
-    description: { en: 'Configure rate limiting, circuit breaker, caching, and Prometheus metrics', ar: 'تكوين تقييد المعدل وقاطع الدائرة والذاكرة المؤقتة ومقاييس Prometheus' },
+    id: "settings.performance",
+    category: "settings",
+    title: { en: "Performance & Observability", ar: "الأداء والمراقبة" },
+    description: {
+      en: "Configure rate limiting, circuit breaker, caching, and Prometheus metrics",
+      ar: "تكوين تقييد المعدل وقاطع الدائرة والذاكرة المؤقتة ومقاييس Prometheus",
+    },
     content: {
       en: `**What it does:**
 The Performance tab configures observability, rate limiting, circuit breaker, and feature flags for the engineering service.
@@ -1885,15 +2005,18 @@ The Performance tab configures observability, rate limiting, circuit breaker, an
 - فعّل التنفيذ غير المتزامن للدراسات طويلة التشغيل
 - مقاييس Prometheus متاحة عند نقطة نهاية /metrics`,
     },
-    tags: ['performance', 'prometheus', 'rate-limit', 'circuit-breaker', 'cache', 'أداء', 'مراقبة'],
-    navigateTo: '/settings',
-    relatedTopics: ['diagnostics.overview', 'settings.backend'],
+    tags: ["performance", "prometheus", "rate-limit", "circuit-breaker", "cache", "أداء", "مراقبة"],
+    navigateTo: "/settings",
+    relatedTopics: ["diagnostics.overview", "settings.backend"],
   },
   {
-    id: 'settings.vision',
-    category: 'settings',
-    title: { en: 'Vision API Keys', ar: 'مفاتيح API الرؤية' },
-    description: { en: 'Configure vision-capable LLM provider API keys', ar: 'تكوين مفاتيح مزودي LLM القادرون على الرؤية' },
+    id: "settings.vision",
+    category: "settings",
+    title: { en: "Vision API Keys", ar: "مفاتيح API الرؤية" },
+    description: {
+      en: "Configure vision-capable LLM provider API keys",
+      ar: "تكوين مفاتيح مزودي LLM القادرون على الرؤية",
+    },
     content: {
       en: `**What it does:**
 The Vision API Keys tab configures API keys for LLM providers that support image/multimodal inputs. These are used by features like "snap-to-analyze" in the Grid Editor and asset photo recognition.
@@ -1948,17 +2071,20 @@ The Vision API Keys tab configures API keys for LLM providers that support image
 - الصور لا تُخزن على خوادمنا
 - راجع سياسة الخصوصية لمزودك`,
     },
-    tags: ['vision', 'image', 'multimodal', 'gpt-4o', 'claude', 'gemini', 'رؤية', 'صورة'],
-    navigateTo: '/settings',
-    relatedTopics: ['settings.ai-providers', 'grid-editor.overview'],
+    tags: ["vision", "image", "multimodal", "gpt-4o", "claude", "gemini", "رؤية", "صورة"],
+    navigateTo: "/settings",
+    relatedTopics: ["settings.ai-providers", "grid-editor.overview"],
   },
 
   // ─── Code Guard ───────────────────────────────────────────────────
   {
-    id: 'code-guard.overview',
-    category: 'engineering',
-    title: { en: 'Code Guard', ar: 'حارس الكود' },
-    description: { en: 'AI-powered code review for engineering calculations', ar: 'مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية' },
+    id: "code-guard.overview",
+    category: "engineering",
+    title: { en: "Code Guard", ar: "حارس الكود" },
+    description: {
+      en: "AI-powered code review for engineering calculations",
+      ar: "مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية",
+    },
     content: {
       en: `**What it does:**
 Code Guard reviews your engineering Python/code for correctness, safety, and compliance with IEEE/IEC standards. It catches common bugs (unit conversion errors, missing factors, wrong formulas) before they cause real-world failures.
@@ -2011,17 +2137,20 @@ Code Guard reviews your engineering Python/code for correctness, safety, and com
 - اذكر المعيار الذي تستهدفه
 - للمراجع وصول إلى نفس قاعدة المعرفة IEEE/IEC مثل المساعد الذكي`,
     },
-    tags: ['code', 'guard', 'review', 'ai', 'كود', 'حارس', 'مراجعة'],
-    navigateTo: '/code-guard',
-    relatedTopics: ['ai-assistant.overview'],
+    tags: ["code", "guard", "review", "ai", "كود", "حارس", "مراجعة"],
+    navigateTo: "/code-guard",
+    relatedTopics: ["ai-assistant.overview"],
   },
 
   // ─── Data Import / Export ─────────────────────────────────────────
   {
-    id: 'data-import.overview',
-    category: 'engineering',
-    title: { en: 'Data Import', ar: 'استيراد البيانات' },
-    description: { en: 'Import engineering data from CSV, JSON, Excel, ETAP files', ar: 'استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP' },
+    id: "data-import.overview",
+    category: "engineering",
+    title: { en: "Data Import", ar: "استيراد البيانات" },
+    description: {
+      en: "Import engineering data from CSV, JSON, Excel, ETAP files",
+      ar: "استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP",
+    },
     content: {
       en: `**What it does:**
 The Data Import page lets you bulk-import engineering data (buses, lines, generators, loads, assets) from external files.
@@ -2082,15 +2211,18 @@ The Data Import page lets you bulk-import engineering data (buses, lines, genera
 - للاستيرادات الكبيرة (>1000 صف)، استخدم CSV (أسرع من Excel)
 - الاستيرادات معاملاتية — إذا فشل أي صف، يتم التراجع عن الاستيراد بالكامل`,
     },
-    tags: ['import', 'csv', 'json', 'excel', 'data', 'استيراد', 'بيانات'],
-    navigateTo: '/data-import',
-    relatedTopics: ['data-export.overview', 'projects.create'],
+    tags: ["import", "csv", "json", "excel", "data", "استيراد", "بيانات"],
+    navigateTo: "/data-import",
+    relatedTopics: ["data-export.overview", "projects.create"],
   },
   {
-    id: 'data-export.overview',
-    category: 'engineering',
-    title: { en: 'Data Export', ar: 'تصدير البيانات' },
-    description: { en: 'Export engineering data to CSV, JSON, Excel, PDF', ar: 'تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF' },
+    id: "data-export.overview",
+    category: "engineering",
+    title: { en: "Data Export", ar: "تصدير البيانات" },
+    description: {
+      en: "Export engineering data to CSV, JSON, Excel, PDF",
+      ar: "تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF",
+    },
     content: {
       en: `**What it does:**
 The Data Export page lets you export your engineering data and study results to various formats for sharing, archiving, or importing into other tools.
@@ -2147,17 +2279,20 @@ The Data Export page lets you export your engineering data and study results to 
 - للنسخ الاحتياطي، استخدم JSON (يحفظ جميع هياكل البيانات)
 - الملفات المصدّرة لا تتضمن أبداً الأسرار (مفاتيح API، الرموز) — تبقى في متصفحك`,
     },
-    tags: ['export', 'csv', 'json', 'excel', 'pdf', 'data', 'تصدير', 'بيانات'],
-    navigateTo: '/data-export',
-    relatedTopics: ['data-import.overview', 'reports.generate'],
+    tags: ["export", "csv", "json", "excel", "pdf", "data", "تصدير", "بيانات"],
+    navigateTo: "/data-export",
+    relatedTopics: ["data-import.overview", "reports.generate"],
   },
 
   // ─── Administration ───────────────────────────────────────────────
   {
-    id: 'administration.overview',
-    category: 'settings',
-    title: { en: 'Administration', ar: 'الإدارة' },
-    description: { en: 'User management, roles, and system administration', ar: 'إدارة المستخدمين والأدوار وإدارة النظام' },
+    id: "administration.overview",
+    category: "settings",
+    title: { en: "Administration", ar: "الإدارة" },
+    description: {
+      en: "User management, roles, and system administration",
+      ar: "إدارة المستخدمين والأدوار وإدارة النظام",
+    },
     content: {
       en: `**What it does:**
 The Administration page (admin-only) lets you manage users, roles, and system-wide settings.
@@ -2216,17 +2351,20 @@ The Administration page (admin-only) lets you manage users, roles, and system-wi
 - المستخدمون المعطلون لا يمكنهم تسجيل الدخول لكن بياناتهم محفوظة
 - سجل التدقيق محفوظ لمدة 90 يوماً`,
     },
-    tags: ['admin', 'user', 'management', 'role', 'إدارة', 'مستخدم', 'دور'],
-    navigateTo: '/admin',
-    relatedTopics: ['settings.backend', 'troubleshooting.auth'],
+    tags: ["admin", "user", "management", "role", "إدارة", "مستخدم", "دور"],
+    navigateTo: "/admin",
+    relatedTopics: ["settings.backend", "troubleshooting.auth"],
   },
 
   // ─── Diagnostics ──────────────────────────────────────────────────
   {
-    id: 'diagnostics.overview',
-    category: 'troubleshooting',
-    title: { en: 'Diagnostics', ar: 'التشخيص' },
-    description: { en: 'System health checks, logs, and performance metrics', ar: 'فحوصات صحة النظام والسجلات ومقاييس الأداء' },
+    id: "diagnostics.overview",
+    category: "troubleshooting",
+    title: { en: "Diagnostics", ar: "التشخيص" },
+    description: {
+      en: "System health checks, logs, and performance metrics",
+      ar: "فحوصات صحة النظام والسجلات ومقاييس الأداء",
+    },
     content: {
       en: `**What it does:**
 The Diagnostics page provides real-time system health monitoring, log viewing, and performance metrics for troubleshooting.
@@ -2289,17 +2427,20 @@ The Diagnostics page provides real-time system health monitoring, log viewing, a
 - استخدم trace_id من استجابة الخطأ للعثور على إدخالات السجل ذات الصلة
 - تساعد مقاييس الأداء في تحديد النقاط البطيئة`,
     },
-    tags: ['diagnostics', 'health', 'logs', 'metrics', 'تشخيص', 'صحة', 'سجلات'],
-    navigateTo: '/diagnostics',
-    relatedTopics: ['troubleshooting.backend', 'troubleshooting.api'],
+    tags: ["diagnostics", "health", "logs", "metrics", "تشخيص", "صحة", "سجلات"],
+    navigateTo: "/diagnostics",
+    relatedTopics: ["troubleshooting.backend", "troubleshooting.api"],
   },
 
   // ─── Logs Page ────────────────────────────────────────────────────
   {
-    id: 'logs.overview',
-    category: 'troubleshooting',
-    title: { en: 'Logs', ar: 'السجلات' },
-    description: { en: 'Real-time application logs with filtering', ar: 'سجلات التطبيق المباشرة مع الفلترة' },
+    id: "logs.overview",
+    category: "troubleshooting",
+    title: { en: "Logs", ar: "السجلات" },
+    description: {
+      en: "Real-time application logs with filtering",
+      ar: "سجلات التطبيق المباشرة مع الفلترة",
+    },
     content: {
       en: `**What it does:**
 The Logs page shows a real-time stream of application logs with powerful filtering.
@@ -2348,17 +2489,20 @@ The Logs page shows a real-time stream of application logs with powerful filteri
 - تُحفظ السجلات لمدة 7 أيام افتراضياً (قابلة للتكوين في إعدادات المسؤول)
 - استخدم صندوق البحث للعثور على رسائل خطأ محددة أو معرفات المستخدم`,
     },
-    tags: ['logs', 'stream', 'filter', 'debug', 'سجلات', 'تصحيح'],
-    navigateTo: '/logs',
-    relatedTopics: ['diagnostics.overview', 'troubleshooting.backend'],
+    tags: ["logs", "stream", "filter", "debug", "سجلات", "تصحيح"],
+    navigateTo: "/logs",
+    relatedTopics: ["diagnostics.overview", "troubleshooting.backend"],
   },
 
   // ─── SCADA Integration ─────────────────────────────────────────────
   {
-    id: 'scada-integration.overview',
-    category: 'digital-twin',
-    title: { en: 'SCADA Integration (zenon)', ar: 'تكامل الإسكادا (زينون)' },
-    description: { en: 'Connect and sync with Copa-Data zenon SCADA system', ar: 'الاتصال والمزامنة مع نظام إسكادا زينون من كوبا-داتا' },
+    id: "scada-integration.overview",
+    category: "digital-twin",
+    title: { en: "SCADA Integration (zenon)", ar: "تكامل الإسكادا (زينون)" },
+    description: {
+      en: "Connect and sync with Copa-Data zenon SCADA system",
+      ar: "الاتصال والمزامنة مع نظام إسكادا زينون من كوبا-داتا",
+    },
     content: {
       en: `**What it does:**
 The SCADA Integration page connects AhmedETAP with a Copa-Data zenon SCADA server to stream real-time telemetry (voltages, currents, frequencies) and receive alarms/events.
@@ -2419,15 +2563,28 @@ Enable the **Offline Simulation Mode** checkbox to test without a real zenon run
 - WebSocket يفشل — يحول تلقائيًا لاقتراع HTTP
 - لا توجد بيانات — تحقق من صلاحيات مفتاح API واسم المشروع`,
     },
-    tags: ['scada', 'zenon', 'copa-data', 'telemetry', 'websocket', 'alarm', 'إسكادا', 'زينون', 'هاتف'],
-    navigateTo: '/scada',
-    relatedTopics: ['digital-twin.overview', 'integration.scada'],
+    tags: [
+      "scada",
+      "zenon",
+      "copa-data",
+      "telemetry",
+      "websocket",
+      "alarm",
+      "إسكادا",
+      "زينون",
+      "هاتف",
+    ],
+    navigateTo: "/scada",
+    relatedTopics: ["digital-twin.overview", "integration.scada"],
   },
   {
-    id: 'grid-editor.overview',
-    category: 'engineering',
-    title: { en: 'Grid Editor', ar: 'محرر الشبكة' },
-    description: { en: 'Interactive power system diagram editor for buses, lines, and transformers', ar: 'محرر رسومي تفاعلي لنظام القدرة: باصات، خطوط، محولات' },
+    id: "grid-editor.overview",
+    category: "engineering",
+    title: { en: "Grid Editor", ar: "محرر الشبكة" },
+    description: {
+      en: "Interactive power system diagram editor for buses, lines, and transformers",
+      ar: "محرر رسومي تفاعلي لنظام القدرة: باصات، خطوط، محولات",
+    },
     content: {
       en: `**What it does:**
 The Grid Editor provides a visual canvas for building and editing single-line diagrams (SLDs) of power systems. Drag components from the palette, connect them with lines, and configure electrical parameters.
@@ -2481,21 +2638,24 @@ The Grid Editor provides a visual canvas for building and editing single-line di
 - تظهر المنافذ عند السحب قربها
 - تعرض لوحة الخصائص حقول حساسة لنوع المكون`,
     },
-    tags: ['grid', 'editor', 'sld', 'diagram', 'canvas', 'محرر', 'شبكة', 'رسم'],
-    navigateTo: '/grid-editor',
-    relatedTopics: ['studies.load-flow', 'asset-management.overview'],
+    tags: ["grid", "editor", "sld", "diagram", "canvas", "محرر", "شبكة", "رسم"],
+    navigateTo: "/grid-editor",
+    relatedTopics: ["studies.load-flow", "asset-management.overview"],
   },
-]
+];
 
 export const helpCategories = [
-  { id: 'all' as const, label: { en: 'All Topics', ar: 'جميع المواضيع' } },
-  { id: 'getting-started' as const, label: { en: 'Getting Started', ar: 'البدء' } },
-  { id: 'projects' as const, label: { en: 'Projects', ar: 'المشاريع' } },
-  { id: 'fire-alarm' as const, label: { en: 'Fire Alarm', ar: 'إنذار الحريق' } },
-  { id: 'engineering' as const, label: { en: 'Engineering', ar: 'الهندسة' } },
-  { id: 'reports' as const, label: { en: 'Reports', ar: 'التقارير' } },
-  { id: 'digital-twin' as const, label: { en: 'Digital Twin', ar: 'التوأم الرقمي' } },
-  { id: 'settings' as const, label: { en: 'Settings', ar: 'الإعدادات' } },
-  { id: 'troubleshooting' as const, label: { en: 'Troubleshooting', ar: 'استكشاف الأخطاء' } },
-  { id: 'keyboard-shortcuts' as const, label: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' } },
-] as const
+  { id: "all" as const, label: { en: "All Topics", ar: "جميع المواضيع" } },
+  { id: "getting-started" as const, label: { en: "Getting Started", ar: "البدء" } },
+  { id: "projects" as const, label: { en: "Projects", ar: "المشاريع" } },
+  { id: "fire-alarm" as const, label: { en: "Fire Alarm", ar: "إنذار الحريق" } },
+  { id: "engineering" as const, label: { en: "Engineering", ar: "الهندسة" } },
+  { id: "reports" as const, label: { en: "Reports", ar: "التقارير" } },
+  { id: "digital-twin" as const, label: { en: "Digital Twin", ar: "التوأم الرقمي" } },
+  { id: "settings" as const, label: { en: "Settings", ar: "الإعدادات" } },
+  { id: "troubleshooting" as const, label: { en: "Troubleshooting", ar: "استكشاف الأخطاء" } },
+  {
+    id: "keyboard-shortcuts" as const,
+    label: { en: "Keyboard Shortcuts", ar: "اختصارات لوحة المفاتيح" },
+  },
+] as const;

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from "framer-motion";
 
 export default function LoginHeroAnimation() {
   return (
@@ -8,8 +8,8 @@ export default function LoginHeroAnimation() {
         className="absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage:
-            'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
+            "linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
         }}
       />
 
@@ -40,7 +40,15 @@ export default function LoginHeroAnimation() {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker
+            id="dot"
+            viewBox="0 0 10 10"
+            refX="5"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
             <circle cx="5" cy="5" r="2.5" fill="#00d4ff" opacity="0.9" />
           </marker>
         </defs>
@@ -55,7 +63,13 @@ export default function LoginHeroAnimation() {
           strokeDasharray="10 16"
           opacity="0.6"
         >
-          <animate attributeName="stroke-dashoffset" from="0" to="-120" dur="2.8s" repeatCount="indefinite" />
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-120"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
         </path>
         <path
           d="M720,920 L1120,620"
@@ -64,12 +78,19 @@ export default function LoginHeroAnimation() {
           strokeDasharray="10 16"
           opacity="0.6"
         >
-          <animate attributeName="stroke-dashoffset" from="0" to="-120" dur="2.8s" begin="0.9s" repeatCount="indefinite" />
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-120"
+            dur="2.8s"
+            begin="0.9s"
+            repeatCount="indefinite"
+          />
         </path>
 
         <motion.g
           animate={{ y: [0, -14, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
         >
           <path
             d="M320,620 C340,610 400,600 460,590 C490,586 510,588 520,595 C525,600 524,608 518,615 C500,632 460,640 420,645 C380,650 340,648 320,640 C316,638 316,624 320,620 Z"
@@ -86,16 +107,32 @@ export default function LoginHeroAnimation() {
             opacity={0.95}
           />
           <circle cx="480" cy="576" r="3.5" fill="#00d4ff" opacity="0.9">
-            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.6s" repeatCount="indefinite" />
+            <animate
+              attributeName="opacity"
+              values="0.9;0.3;0.9"
+              dur="1.6s"
+              repeatCount="indefinite"
+            />
           </circle>
           <circle cx="496" cy="566" r="2.8" fill="#3b82f6" opacity="0.8">
-            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.6s" begin="0.4s" repeatCount="indefinite" />
+            <animate
+              attributeName="opacity"
+              values="0.8;0.3;0.8"
+              dur="1.6s"
+              begin="0.4s"
+              repeatCount="indefinite"
+            />
           </circle>
         </motion.g>
 
         <motion.g
           animate={{ y: [0, -14, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
+          transition={{
+            duration: 7,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+            delay: 0.15,
+          }}
         >
           <path
             d="M1120,620 C1100,610 1040,600 980,590 C950,586 930,588 920,595 C915,600 916,608 922,615 C940,632 980,640 1020,645 C1060,650 1100,648 1120,640 C1124,638 1124,624 1120,620 Z"
@@ -111,10 +148,32 @@ export default function LoginHeroAnimation() {
             strokeWidth="2"
             opacity={0.95}
           />
-          <line x1="948" y1="570" x2="966" y2="560" stroke="#a5f3fc" strokeWidth="3" opacity="0.7" />
-          <line x1="935" y1="556" x2="952" y2="548" stroke="#a5f3fc" strokeWidth="3" opacity="0.7" />
+          <line
+            x1="948"
+            y1="570"
+            x2="966"
+            y2="560"
+            stroke="#a5f3fc"
+            strokeWidth="3"
+            opacity="0.7"
+          />
+          <line
+            x1="935"
+            y1="556"
+            x2="952"
+            y2="548"
+            stroke="#a5f3fc"
+            strokeWidth="3"
+            opacity="0.7"
+          />
           <circle cx="940" cy="548" r="4" fill="#00d4ff" opacity="0.9">
-            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.6s" begin="0.7s" repeatCount="indefinite" />
+            <animate
+              attributeName="opacity"
+              values="0.9;0.3;0.9"
+              dur="1.6s"
+              begin="0.7s"
+              repeatCount="indefinite"
+            />
           </circle>
         </motion.g>
 
@@ -126,11 +185,26 @@ export default function LoginHeroAnimation() {
             r="9"
             fill="#00d4ff"
             animate={{ opacity: [0.75, 1, 0.75], r: [9, 11, 9] }}
-            transition={{ duration: 3, repeat: Infinity }}
+            transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
           />
         </g>
-        <circle cx="720" cy="760" r="34" fill="none" stroke="#00d4ff" strokeWidth="1.2" opacity="0.35">
-          <animateTransform attributeName="transform" type="rotate" from="0 720 760" to="360 720 760" dur="12s" repeatCount="indefinite" />
+        <circle
+          cx="720"
+          cy="760"
+          r="34"
+          fill="none"
+          stroke="#00d4ff"
+          strokeWidth="1.2"
+          opacity="0.35"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 720 760"
+            to="360 720 760"
+            dur="12s"
+            repeatCount="indefinite"
+          />
         </circle>
 
         <circle cx="720" cy="760" r="3.2" fill="#ffffff" opacity="0.85" />
@@ -139,13 +213,41 @@ export default function LoginHeroAnimation() {
         <circle cx="640" cy="920" r="2" fill="#60a5fa" opacity="0.6" />
         <circle cx="800" cy="920" r="2" fill="#60a5fa" opacity="0.6" />
 
-        <path d="M720,738 Q720,700 640,680" fill="none" stroke="#3b82f6" strokeWidth="1.4" opacity="0.35" strokeDasharray="4 5">
-          <animate attributeName="stroke-dashoffset" from="0" to="-120" dur="2.8s" begin="0s" repeatCount="indefinite" />
+        <path
+          d="M720,738 Q720,700 640,680"
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="1.4"
+          opacity="0.35"
+          strokeDasharray="4 5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-120"
+            dur="2.8s"
+            begin="0s"
+            repeatCount="indefinite"
+          />
         </path>
-        <path d="M720,738 Q720,700 800,680" fill="none" stroke="#22d3ee" strokeWidth="1.4" opacity="0.35" strokeDasharray="4 5">
-          <animate attributeName="stroke-dashoffset" from="0" to="-120" dur="2.8s" begin="1s" repeatCount="indefinite" />
+        <path
+          d="M720,738 Q720,700 800,680"
+          fill="none"
+          stroke="#22d3ee"
+          strokeWidth="1.4"
+          opacity="0.35"
+          strokeDasharray="4 5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-120"
+            dur="2.8s"
+            begin="1s"
+            repeatCount="indefinite"
+          />
         </path>
       </svg>
     </div>
-  )
+  );
 }

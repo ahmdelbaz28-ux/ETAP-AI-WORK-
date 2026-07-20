@@ -8,7 +8,7 @@ Usage:
 The output file name defaults to global.css so it slots straight into the
 ppt skill's `<work_dir>/slides/global.css` convention. Pass --name to override.
 """
-from typing import Optional, Union
+
 from __future__ import annotations
 
 import argparse

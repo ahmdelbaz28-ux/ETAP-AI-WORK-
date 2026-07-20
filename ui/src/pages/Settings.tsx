@@ -1,846 +1,1020 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge, Info, Code, CheckCircle2, XCircle, Loader2, ExternalLink, Eye, Key, Zap, ChevronRight } from 'lucide-react'  // QUALITY v2.1.1: removed unused Terminal
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
-import { cn } from '../utils/helpers'
-import { ProviderLogo } from '../components/ProviderLogo'
-import { testProviderConnection } from '../lib/llm-chat'
-
-import { ContextHelpButton } from '../components/help/ContextHelpButton'
+// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+import { motion } from "framer-motion";
 import {
+  Bot,
+  CheckCircle2,
+  ChevronRight,
+  Code,
+  Database,
+  Download,
+  ExternalLink,
+  Eye,
+  Gauge,
+  Info,
+  Key,
+  Link2,
+  Loader2,
+  Save,
+  Shield,
+  Trash2,
+  Upload,
+  Wrench,
+  XCircle,
+  Zap,
+} from "lucide-react"; // QUALITY v2.1.1: removed unused Terminal
+import { useCallback, useEffect, useState } from "react";
+import { ProviderLogo } from "../components/ProviderLogo";
+import { Button, Card, CardHeader, TabPanels, Tabs, Toggle, useTabState } from "../components/ui";
+import { useNotify } from "../context/NotificationContext";
+import { testProviderConnection } from "../lib/llm-chat";
+import { cn } from "../utils/helpers";
+
+import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import {
+  type VisionKeyConfig,
+  deleteVisionKey,
   fetchVisionKeys,
   saveVisionKey,
-  deleteVisionKey,
   testVisionKey,
-  type VisionKeyConfig,
-} from '../lib/api'
+} from "../lib/api";
 
 // ─── Provider card helpers ─────────────────────────────────────────
 // Extracted from the inline `POPULAR_PROVIDERS.map(...)` callback in
 // <Settings/> to keep the callback's cognitive complexity under 15
 // (SonarCloud S3776). Each helper is a small, flat function.
 
-type ProviderStatus = 'ok' | 'fail' | null | undefined
+type ProviderStatus = "ok" | "fail" | null | undefined;
 
 function providerCardClass(hasKey: boolean, isFree: boolean): string {
-  const base = 'p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)] relative'
-  if (hasKey) return cn(base, 'border-green-500/30')
-  if (isFree) return cn(base, 'border-green-500/20 hover:border-green-500/40')
-  return cn(base, 'border-[var(--border-primary)] hover:border-brand-500/40')
+  const base = "p-4 rounded-xl border-2 transition-all bg-[var(--bg-elevated)] relative";
+  if (hasKey) return cn(base, "border-green-500/30");
+  if (isFree) return cn(base, "border-green-500/20 hover:border-green-500/40");
+  return cn(base, "border-[var(--border-primary)] hover:border-brand-500/40");
 }
 
 function providerButtonClass(hasKey: boolean, isTesting: boolean, status: ProviderStatus): string {
-  const base = 'w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all'
+  const base =
+    "w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all";
   if (!hasKey || isTesting) {
-    return cn(base, 'bg-[var(--bg-primary)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-primary)]')
+    return cn(
+      base,
+      "bg-[var(--bg-primary)] text-[var(--text-muted)] cursor-not-allowed border border-[var(--border-primary)]",
+    );
   }
-  if (status === 'ok') return cn(base, 'bg-green-600 hover:bg-green-500 text-white')
-  if (status === 'fail') return cn(base, 'bg-red-600 hover:bg-red-500 text-white')
-  return cn(base, 'bg-brand-600 hover:bg-brand-500 text-white')
+  if (status === "ok") return cn(base, "bg-green-600 hover:bg-green-500 text-white");
+  if (status === "fail") return cn(base, "bg-red-600 hover:bg-red-500 text-white");
+  return cn(base, "bg-brand-600 hover:bg-brand-500 text-white");
 }
 
 function providerButtonContent(isTesting: boolean, status: ProviderStatus): React.ReactNode {
-  if (isTesting) return (<><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>)
-  if (status === 'ok') return (<><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>)
-  if (status === 'fail') return (<><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>)
-  return (<><Zap className="w-3.5 h-3.5" /> Test &amp; Save</>)
+  if (isTesting)
+    return (
+      <>
+        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...
+      </>
+    );
+  if (status === "ok")
+    return (
+      <>
+        <CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓
+      </>
+    );
+  if (status === "fail")
+    return (
+      <>
+        <XCircle className="w-3.5 h-3.5" /> Failed — Retry
+      </>
+    );
+  return (
+    <>
+      <Zap className="w-3.5 h-3.5" /> Test &amp; Save
+    </>
+  );
 }
 
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents
 // plaintext secrets from being readable via DevTools at a glance.
-const OBFUSCATION_KEY = 'ETAP-SEC-2024-OBFUSCATION'
+const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
 function obfuscate(value: string): string {
-  let result = ''
+  let result = "";
   for (let i = 0; i < value.length; i++) {
-    result += String.fromCodePoint(value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!)
+    result += String.fromCodePoint(
+      value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
+    );
   }
-  return btoa(result)
+  return btoa(result);
 }
 function deobfuscate(value: string): string {
   try {
-    const decoded = atob(value)
-    let result = ''
+    const decoded = atob(value);
+    let result = "";
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCodePoint(decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!)
+      result += String.fromCodePoint(
+        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
+      );
     }
-    return result
+    return result;
   } catch {
-    return value
+    return value;
   }
 }
 
 const SECRET_FIELDS = new Set([
-  'API_KEY_SECRET', 'JWT_SECRET_KEY', 'OPENAI_API_KEY', 'NVIDIA_API_KEY',
-  'QWEN_API_KEY', 'GLM_API_KEY', 'ENGINEERING_SERVICE_API_KEY',
-  'LANGWATCH_API_KEY', 'SMITHERY_API_KEY', 'HF_TOKEN', 'GITHUB_TOKEN',
-  'VERCEL_ACCESS_TOKEN', 'VERCEL_PROJECT_ID',
-  'REDIS_URL', 'DATABASE_URL', 'VAULT_TOKEN',
-  'SMTP_USERNAME', 'ETAP_LICENSE_PATH',
-  'CUSTOM_API_KEY',
-  'PROVIDER_OPENAI_KEY', 'PROVIDER_ANTHROPIC_KEY', 'PROVIDER_GEMINI_KEY',
-  'PROVIDER_DEEPSEEK_KEY', 'PROVIDER_GROQ_KEY', 'PROVIDER_COHERE_KEY',
-  'PROVIDER_HUGGINGFACE_KEY',
-  'SCADA_API_KEY',
+  "API_KEY_SECRET",
+  "JWT_SECRET_KEY",
+  "OPENAI_API_KEY",
+  "NVIDIA_API_KEY",
+  "QWEN_API_KEY",
+  "GLM_API_KEY",
+  "ENGINEERING_SERVICE_API_KEY",
+  "LANGWATCH_API_KEY",
+  "SMITHERY_API_KEY",
+  "HF_TOKEN",
+  "GITHUB_TOKEN",
+  "VERCEL_ACCESS_TOKEN",
+  "VERCEL_PROJECT_ID",
+  "REDIS_URL",
+  "DATABASE_URL",
+  "VAULT_TOKEN",
+  "SMTP_USERNAME",
+  "ETAP_LICENSE_PATH",
+  "CUSTOM_API_KEY",
+  "PROVIDER_OPENAI_KEY",
+  "PROVIDER_ANTHROPIC_KEY",
+  "PROVIDER_GEMINI_KEY",
+  "PROVIDER_DEEPSEEK_KEY",
+  "PROVIDER_GROQ_KEY",
+  "PROVIDER_COHERE_KEY",
+  "PROVIDER_HUGGINGFACE_KEY",
+  "SCADA_API_KEY",
   // Additional LLM providers (added 2026-07-07)
-  'RENDER_API_KEY', 'ZENMUX_API_KEY', 'FIREWORKS_API_KEY',
-  'GITHUB_MODELS_API_KEY', 'OPENMODEL_API_KEY', 'MODAL_API_KEY',
+  "RENDER_API_KEY",
+  "ZENMUX_API_KEY",
+  "FIREWORKS_API_KEY",
+  "GITHUB_MODELS_API_KEY",
+  "OPENMODEL_API_KEY",
+  "MODAL_API_KEY",
   // Additional LLM providers (added 2026-07-08)
-  'BYNARA_API_KEY', 'CLOUDFLARE_API_KEY',
-])
+  "BYNARA_API_KEY",
+  "CLOUDFLARE_API_KEY",
+]);
 
 const SETTINGS_SCHEMA = {
-  requiredKeys: ['OPENAI_MODEL', 'OPENAI_BASE_URL', 'ENGINEERING_SERVICE_URL'],
+  requiredKeys: ["OPENAI_MODEL", "OPENAI_BASE_URL", "ENGINEERING_SERVICE_URL"],
   maxFields: 100,
   maxKeyLength: 50,
   maxValueLength: 1000,
-}
+};
 
 export const POPULAR_PROVIDERS = [
   // ─── OpenCode Zen (verified endpoint: https://opencode.ai/zen/v1) ───
   {
-    id: 'opencode',
-    name: 'OpenCode Zen',
+    id: "opencode",
+    name: "OpenCode Zen",
     models: [
       // FREE models (verified from GET /zen/v1/models — 5 free models, tested with real API key)
-      { id: 'deepseek-v4-flash-free', name: 'DeepSeek V4 Flash', isFree: true },
-      { id: 'big-pickle', name: 'Big Pickle', isFree: true },
-      { id: 'mimo-v2.5-free', name: 'Xiaomi MiMo v2.5', isFree: true },
-      { id: 'nemotron-3-ultra-free', name: 'NVIDIA Nemotron 3 Ultra', isFree: true },
-      { id: 'north-mini-code-free', name: 'Cohere North Mini Code', isFree: true },
+      { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash", isFree: true },
+      { id: "big-pickle", name: "Big Pickle", isFree: true },
+      { id: "mimo-v2.5-free", name: "Xiaomi MiMo v2.5", isFree: true },
+      { id: "nemotron-3-ultra-free", name: "NVIDIA Nemotron 3 Ultra", isFree: true },
+      { id: "north-mini-code-free", name: "Cohere North Mini Code", isFree: true },
       // Paid models (verified from GET /zen/v1/models — 46 paid models)
-      { id: 'gpt-5.4-nano', name: 'GPT 5.4 Nano', isFree: false },
-      { id: 'gpt-5.4-mini', name: 'GPT 5.4 Mini', isFree: false },
-      { id: 'gpt-5.4', name: 'GPT 5.4', isFree: false },
-      { id: 'gpt-5.5', name: 'GPT 5.5', isFree: false },
-      { id: 'gpt-5.5-pro', name: 'GPT 5.5 Pro', isFree: false },
-      { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', isFree: false },
-      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', isFree: false },
-      { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', isFree: false },
-      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', isFree: false },
-      { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', isFree: false },
-      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', isFree: false },
-      { id: 'glm-5.2', name: 'GLM 5.2', isFree: false },
-      { id: 'qwen3.6-plus', name: 'Qwen 3.6 Plus', isFree: false },
-      { id: 'kimi-k2.7-code', name: 'Kimi K2.7 Code', isFree: false },
+      { id: "gpt-5.4-nano", name: "GPT 5.4 Nano", isFree: false },
+      { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", isFree: false },
+      { id: "gpt-5.4", name: "GPT 5.4", isFree: false },
+      { id: "gpt-5.5", name: "GPT 5.5", isFree: false },
+      { id: "gpt-5.5-pro", name: "GPT 5.5 Pro", isFree: false },
+      { id: "claude-sonnet-5", name: "Claude Sonnet 5", isFree: false },
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", isFree: false },
+      { id: "claude-opus-4-8", name: "Claude Opus 4.8", isFree: false },
+      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", isFree: false },
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", isFree: false },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", isFree: false },
+      { id: "glm-5.2", name: "GLM 5.2", isFree: false },
+      { id: "qwen3.6-plus", name: "Qwen 3.6 Plus", isFree: false },
+      { id: "kimi-k2.7-code", name: "Kimi K2.7 Code", isFree: false },
     ],
-    defaultModel: 'deepseek-v4-flash-free',
-    defaultBaseUrl: 'https://opencode.ai/zen/v1',
-    color: '#7c3aed',
-    apiKeyUrl: 'https://opencode.ai/auth',
+    defaultModel: "deepseek-v4-flash-free",
+    defaultBaseUrl: "https://opencode.ai/zen/v1",
+    color: "#7c3aed",
+    apiKeyUrl: "https://opencode.ai/auth",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── KiloCode (verified endpoint: https://api.kilocode.ai/v1) ──────
   {
-    id: 'kilocode',
-    name: 'KiloCode',
+    id: "kilocode",
+    name: "KiloCode",
     models: [
-      { id: 'kilocode-coder-v1', name: 'KiloCode Coder (free)', isFree: true },
-      { id: 'kilocode-standard', name: 'KiloCode Standard', isFree: false }
+      { id: "kilocode-coder-v1", name: "KiloCode Coder (free)", isFree: true },
+      { id: "kilocode-standard", name: "KiloCode Standard", isFree: false },
     ],
-    defaultModel: 'kilocode-coder-v1',
-    defaultBaseUrl: 'https://api.kilocode.ai/v1',
-    color: '#EC4899',
-    apiKeyUrl: 'https://kilocode.ai/keys',
+    defaultModel: "kilocode-coder-v1",
+    defaultBaseUrl: "https://api.kilocode.ai/v1",
+    color: "#EC4899",
+    apiKeyUrl: "https://kilocode.ai/keys",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Claude Code (verified endpoint: https://api.anthropic.com/v1) ─
   {
-    id: 'claudecode',
-    name: 'Claude Code',
+    id: "claudecode",
+    name: "Claude Code",
     models: [
-      { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet', isFree: false },
-      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', isFree: false }
+      { id: "claude-3-5-sonnet-latest", name: "Claude 3.5 Sonnet", isFree: false },
+      { id: "claude-3-5-haiku-latest", name: "Claude 3.5 Haiku", isFree: false },
     ],
-    defaultModel: 'claude-3-5-sonnet-latest',
-    defaultBaseUrl: 'https://api.anthropic.com/v1',
-    color: '#D97757',
-    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    defaultModel: "claude-3-5-sonnet-latest",
+    defaultBaseUrl: "https://api.anthropic.com/v1",
+    color: "#D97757",
+    apiKeyUrl: "https://console.anthropic.com/settings/keys",
     isFree: false,
-    apiType: 'anthropic' as const,
+    apiType: "anthropic" as const,
   },
   // ─── OpenClaude (verified endpoint: https://api.openclaude.com/v1) ─
   {
-    id: 'openclaude',
-    name: 'OpenClaude (Proxy)',
+    id: "openclaude",
+    name: "OpenClaude (Proxy)",
     models: [
-      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet (compatible)', isFree: true },
-      { id: 'claude-3-5-haiku', name: 'Claude 3.5 Haiku (compatible)', isFree: true }
+      { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet (compatible)", isFree: true },
+      { id: "claude-3-5-haiku", name: "Claude 3.5 Haiku (compatible)", isFree: true },
     ],
-    defaultModel: 'claude-3-5-sonnet',
-    defaultBaseUrl: 'https://api.openclaude.com/v1',
-    color: '#4f46e5',
-    apiKeyUrl: 'https://github.com/openclaude',
+    defaultModel: "claude-3-5-sonnet",
+    defaultBaseUrl: "https://api.openclaude.com/v1",
+    color: "#4f46e5",
+    apiKeyUrl: "https://github.com/openclaude",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── OpenRouter (verified: 340 models, 26 free) ──────────────────
   {
-    id: 'openrouter',
-    name: 'OpenRouter',
+    id: "openrouter",
+    name: "OpenRouter",
     models: [
       // Free models (verified from API — pricing.prompt = 0)
-      { id: 'openai/gpt-oss-120b:free', name: 'GPT-OSS 120B (free)', isFree: true },
-      { id: 'openai/gpt-oss-20b:free', name: 'GPT-OSS 20B (free)', isFree: true },
-      { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (free)', isFree: true },
-      { id: 'meta-llama/llama-3.2-3b-instruct:free', name: 'Llama 3.2 3B (free)', isFree: true },
-      { id: 'nousresearch/hermes-3-llama-3.1-405b:free', name: 'Hermes 3 405B (free)', isFree: true },
-      { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', name: 'Dolphin Mistral 24B (free)', isFree: true },
-      { id: 'liquid/lfm-2.5-1.2b-instruct:free', name: 'Liquid LFM 2.5 1.2B (free)', isFree: true },
-      { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder (free)', isFree: true },
+      { id: "openai/gpt-oss-120b:free", name: "GPT-OSS 120B (free)", isFree: true },
+      { id: "openai/gpt-oss-20b:free", name: "GPT-OSS 20B (free)", isFree: true },
+      { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B (free)", isFree: true },
+      { id: "meta-llama/llama-3.2-3b-instruct:free", name: "Llama 3.2 3B (free)", isFree: true },
+      {
+        id: "nousresearch/hermes-3-llama-3.1-405b:free",
+        name: "Hermes 3 405B (free)",
+        isFree: true,
+      },
+      {
+        id: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+        name: "Dolphin Mistral 24B (free)",
+        isFree: true,
+      },
+      { id: "liquid/lfm-2.5-1.2b-instruct:free", name: "Liquid LFM 2.5 1.2B (free)", isFree: true },
+      { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder (free)", isFree: true },
       // Paid models
-      { id: 'openai/gpt-4o', name: 'GPT-4o', isFree: false },
-      { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', isFree: false },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
-      { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku', isFree: false },
-      { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', isFree: false },
-      { id: 'google/gemini-flash-1.5', name: 'Gemini Flash 1.5', isFree: false },
-      { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', isFree: false },
-      { id: 'meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
+      { id: "openai/gpt-4o", name: "GPT-4o", isFree: false },
+      { id: "openai/gpt-4o-mini", name: "GPT-4o Mini", isFree: false },
+      { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", isFree: false },
+      { id: "anthropic/claude-3.5-haiku", name: "Claude 3.5 Haiku", isFree: false },
+      { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5", isFree: false },
+      { id: "google/gemini-flash-1.5", name: "Gemini Flash 1.5", isFree: false },
+      { id: "deepseek/deepseek-chat", name: "DeepSeek Chat", isFree: false },
+      { id: "meta-llama/llama-3.1-405b-instruct", name: "Llama 3.1 405B", isFree: false },
     ],
-    defaultModel: 'openai/gpt-oss-120b:free',
-    defaultBaseUrl: 'https://openrouter.ai/api/v1',
-    color: '#6366f1',
-    apiKeyUrl: 'https://openrouter.ai/keys',
+    defaultModel: "openai/gpt-oss-120b:free",
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
+    color: "#6366f1",
+    apiKeyUrl: "https://openrouter.ai/keys",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── OpenAI (verified: https://api.openai.com/v1) ────────────────
   {
-    id: 'openai',
-    name: 'OpenAI',
+    id: "openai",
+    name: "OpenAI",
     models: [
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', isFree: false },
-      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
-      { id: 'o1-mini', name: 'o1 Mini', isFree: false },
-      { id: 'o1-preview', name: 'o1 Preview', isFree: false },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', isFree: false },
+      { id: "gpt-4o-mini", name: "GPT-4o Mini", isFree: false },
+      { id: "gpt-4o", name: "GPT-4o", isFree: false },
+      { id: "o1-mini", name: "o1 Mini", isFree: false },
+      { id: "o1-preview", name: "o1 Preview", isFree: false },
+      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", isFree: false },
     ],
-    defaultModel: 'gpt-4o-mini',
-    defaultBaseUrl: 'https://api.openai.com/v1',
-    color: '#10a37f',
-    apiKeyUrl: 'https://platform.openai.com/api-keys',
+    defaultModel: "gpt-4o-mini",
+    defaultBaseUrl: "https://api.openai.com/v1",
+    color: "#10a37f",
+    apiKeyUrl: "https://platform.openai.com/api-keys",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Anthropic (verified: https://api.anthropic.com/v1) ──────────
   {
-    id: 'anthropic',
-    name: 'Anthropic',
+    id: "anthropic",
+    name: "Anthropic",
     models: [
-      { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet', isFree: false },
-      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', isFree: false },
-      { id: 'claude-3-opus-latest', name: 'Claude 3 Opus', isFree: false },
+      { id: "claude-3-5-sonnet-latest", name: "Claude 3.5 Sonnet", isFree: false },
+      { id: "claude-3-5-haiku-latest", name: "Claude 3.5 Haiku", isFree: false },
+      { id: "claude-3-opus-latest", name: "Claude 3 Opus", isFree: false },
     ],
-    defaultModel: 'claude-3-5-sonnet-latest',
-    defaultBaseUrl: 'https://api.anthropic.com/v1',
-    color: '#d97757',
-    apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    defaultModel: "claude-3-5-sonnet-latest",
+    defaultBaseUrl: "https://api.anthropic.com/v1",
+    color: "#d97757",
+    apiKeyUrl: "https://console.anthropic.com/settings/keys",
     isFree: false,
-    apiType: 'anthropic' as const,
+    apiType: "anthropic" as const,
   },
   // ─── Google Gemini (verified: free tier available) ───────────────
   {
-    id: 'gemini',
-    name: 'Google Gemini',
+    id: "gemini",
+    name: "Google Gemini",
     models: [
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (free tier)', isFree: true },
-      { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash Exp (free)', isFree: true },
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', isFree: false },
-      { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B (free tier)', isFree: true },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (free tier)", isFree: true },
+      { id: "gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp (free)", isFree: true },
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", isFree: false },
+      { id: "gemini-1.5-flash-8b", name: "Gemini 1.5 Flash 8B (free tier)", isFree: true },
     ],
-    defaultModel: 'gemini-1.5-flash',
-    defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-    color: '#1a73e8',
-    apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+    defaultModel: "gemini-1.5-flash",
+    defaultBaseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    color: "#1a73e8",
+    apiKeyUrl: "https://aistudio.google.com/app/apikey",
     isFree: true,
-    apiType: 'gemini' as const,
+    apiType: "gemini" as const,
   },
   // ─── NVIDIA NIM (verified: https://integrate.api.nvidia.com/v1) ──
   {
-    id: 'nvidia',
-    name: 'NVIDIA NIM',
+    id: "nvidia",
+    name: "NVIDIA NIM",
     models: [
-      { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
-      { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (free)', isFree: true },
-      { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
-      { id: 'mistralai/mixtral-8x22b-instruct-v0.1', name: 'Mixtral 8x22B', isFree: false },
-      { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', isFree: false },
-      { id: 'microsoft/phi-3-medium-4k-instruct', name: 'Phi-3 Medium', isFree: false },
-      { id: 'google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
-      { id: 'qwen/qwen2.5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
-      { id: 'minimaxai/minimax-m3', name: 'MiniMax-M3 (multimodal)', isFree: false },
+      { id: "meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B (free)", isFree: true },
+      { id: "meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B (free)", isFree: true },
+      { id: "meta/llama-3.1-405b-instruct", name: "Llama 3.1 405B", isFree: false },
+      { id: "mistralai/mixtral-8x22b-instruct-v0.1", name: "Mixtral 8x22B", isFree: false },
+      { id: "nvidia/nemotron-4-340b-instruct", name: "Nemotron 4 340B", isFree: false },
+      { id: "microsoft/phi-3-medium-4k-instruct", name: "Phi-3 Medium", isFree: false },
+      { id: "google/gemma-2-9b-it", name: "Gemma 2 9B (free)", isFree: true },
+      { id: "qwen/qwen2.5-coder-32b-instruct", name: "Qwen 2.5 Coder 32B", isFree: false },
+      { id: "minimaxai/minimax-m3", name: "MiniMax-M3 (multimodal)", isFree: false },
     ],
-    defaultModel: 'meta/llama-3.1-8b-instruct',
-    defaultBaseUrl: 'https://integrate.api.nvidia.com/v1',
-    color: '#76B900',
-    apiKeyUrl: 'https://build.nvidia.com',
+    defaultModel: "meta/llama-3.1-8b-instruct",
+    defaultBaseUrl: "https://integrate.api.nvidia.com/v1",
+    color: "#76B900",
+    apiKeyUrl: "https://build.nvidia.com",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── DeepSeek (verified: https://api.deepseek.com/v1) ────────────
   {
-    id: 'deepseek',
-    name: 'DeepSeek',
+    id: "deepseek",
+    name: "DeepSeek",
     models: [
-      { id: 'deepseek-chat', name: 'DeepSeek Chat (V3)', isFree: false },
-      { id: 'deepseek-coder', name: 'DeepSeek Coder', isFree: false },
-      { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner (R1)', isFree: false },
+      { id: "deepseek-chat", name: "DeepSeek Chat (V3)", isFree: false },
+      { id: "deepseek-coder", name: "DeepSeek Coder", isFree: false },
+      { id: "deepseek-reasoner", name: "DeepSeek Reasoner (R1)", isFree: false },
     ],
-    defaultModel: 'deepseek-chat',
-    defaultBaseUrl: 'https://api.deepseek.com/v1',
-    color: '#5786FE',
-    apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+    defaultModel: "deepseek-chat",
+    defaultBaseUrl: "https://api.deepseek.com/v1",
+    color: "#5786FE",
+    apiKeyUrl: "https://platform.deepseek.com/api_keys",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Groq (verified: https://api.groq.com/openai/v1, free tier) ──
   {
-    id: 'groq',
-    name: 'Groq',
+    id: "groq",
+    name: "Groq",
     models: [
-      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (free)', isFree: true },
-      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant (free)', isFree: true },
-      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B (free)', isFree: true },
-      { id: 'gemma2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
+      { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B (free)", isFree: true },
+      { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B Instant (free)", isFree: true },
+      { id: "mixtral-8x7b-32768", name: "Mixtral 8x7B (free)", isFree: true },
+      { id: "gemma2-9b-it", name: "Gemma 2 9B (free)", isFree: true },
     ],
-    defaultModel: 'llama-3.3-70b-versatile',
-    defaultBaseUrl: 'https://api.groq.com/openai/v1',
-    color: '#F55036',
-    apiKeyUrl: 'https://console.groq.com/keys',
+    defaultModel: "llama-3.3-70b-versatile",
+    defaultBaseUrl: "https://api.groq.com/openai/v1",
+    color: "#F55036",
+    apiKeyUrl: "https://console.groq.com/keys",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ──
   {
-    id: 'fireworks',
-    name: 'Fireworks AI',
+    id: "fireworks",
+    name: "Fireworks AI",
     models: [
-      { id: 'accounts/fireworks/models/llama-v3p1-8b-instruct', name: 'Llama 3.1 8B', isFree: false },
-      { id: 'accounts/fireworks/models/llama-v3p1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
-      { id: 'accounts/fireworks/models/llama-v3p1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
-      { id: 'accounts/fireworks/models/mixtral-8x22b-instruct', name: 'Mixtral 8x22B', isFree: false },
-      { id: 'accounts/fireworks/models/qwen2p5-72b-instruct', name: 'Qwen 2.5 72B', isFree: false },
-      { id: 'accounts/fireworks/models/qwen2p5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
+      {
+        id: "accounts/fireworks/models/llama-v3p1-8b-instruct",
+        name: "Llama 3.1 8B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+        name: "Llama 3.1 70B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/llama-v3p1-405b-instruct",
+        name: "Llama 3.1 405B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/mixtral-8x22b-instruct",
+        name: "Mixtral 8x22B",
+        isFree: false,
+      },
+      { id: "accounts/fireworks/models/qwen2p5-72b-instruct", name: "Qwen 2.5 72B", isFree: false },
+      {
+        id: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
+        name: "Qwen 2.5 Coder 32B",
+        isFree: false,
+      },
     ],
-    defaultModel: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
-    defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
-    color: '#FF6B35',
-    apiKeyUrl: 'https://fireworks.ai/api-keys',
+    defaultModel: "accounts/fireworks/models/llama-v3p1-8b-instruct",
+    defaultBaseUrl: "https://api.fireworks.ai/inference/v1",
+    color: "#FF6B35",
+    apiKeyUrl: "https://fireworks.ai/api-keys",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Cloudflare Workers AI (verified: free tier) ────────────────
   {
-    id: 'cloudflare',
-    name: 'Cloudflare Workers AI',
+    id: "cloudflare",
+    name: "Cloudflare Workers AI",
     models: [
-      { id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (free)', isFree: true },
-      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (free)', isFree: true },
-      { id: '@cf/meta/llama-3-8b-instruct', name: 'Llama 3 8B (free)', isFree: true },
-      { id: '@cf/mistral/mistral-7b-instruct-v0.1', name: 'Mistral 7B (free)', isFree: true },
-      { id: '@cf/qwen/qwen1.5-14b-chat-awq', name: 'Qwen 1.5 14B (free)', isFree: true },
-      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B (free)', isFree: true },
+      { id: "@cf/meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B (free)", isFree: true },
+      { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B (free)", isFree: true },
+      { id: "@cf/meta/llama-3-8b-instruct", name: "Llama 3 8B (free)", isFree: true },
+      { id: "@cf/mistral/mistral-7b-instruct-v0.1", name: "Mistral 7B (free)", isFree: true },
+      { id: "@cf/qwen/qwen1.5-14b-chat-awq", name: "Qwen 1.5 14B (free)", isFree: true },
+      { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B (free)", isFree: true },
     ],
-    defaultModel: '@cf/meta/llama-3.1-8b-instruct',
-    defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts',
-    color: '#F38020',
-    apiKeyUrl: 'https://dash.cloudflare.com/profile/api-tokens',
+    defaultModel: "@cf/meta/llama-3.1-8b-instruct",
+    defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts",
+    color: "#F38020",
+    apiKeyUrl: "https://dash.cloudflare.com/profile/api-tokens",
     isFree: true,
-    apiType: 'cloudflare' as const,
+    apiType: "cloudflare" as const,
   },
   // ─── Zhipu AI / GLM (verified: https://open.bigmodel.cn/api/paas/v4) ──
   {
-    id: 'zhipu',
-    name: 'Zhipu AI (GLM)',
+    id: "zhipu",
+    name: "Zhipu AI (GLM)",
     models: [
-      { id: 'glm-4-flash', name: 'GLM-4 Flash (free)', isFree: true },
-      { id: 'glm-4-flashx', name: 'GLM-4 FlashX (free)', isFree: true },
-      { id: 'glm-4-air', name: 'GLM-4 Air', isFree: false },
-      { id: 'glm-4-airx', name: 'GLM-4 AirX', isFree: false },
-      { id: 'glm-4-plus', name: 'GLM-4 Plus', isFree: false },
-      { id: 'glm-4-long', name: 'GLM-4 Long', isFree: false },
+      { id: "glm-4-flash", name: "GLM-4 Flash (free)", isFree: true },
+      { id: "glm-4-flashx", name: "GLM-4 FlashX (free)", isFree: true },
+      { id: "glm-4-air", name: "GLM-4 Air", isFree: false },
+      { id: "glm-4-airx", name: "GLM-4 AirX", isFree: false },
+      { id: "glm-4-plus", name: "GLM-4 Plus", isFree: false },
+      { id: "glm-4-long", name: "GLM-4 Long", isFree: false },
     ],
-    defaultModel: 'glm-4-flash',
-    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    color: '#3B5BFE',
-    apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+    defaultModel: "glm-4-flash",
+    defaultBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    color: "#3B5BFE",
+    apiKeyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Hugging Face (verified: https://api-inference.huggingface.co/v1) ──
   {
-    id: 'huggingface',
-    name: 'Hugging Face',
+    id: "huggingface",
+    name: "Hugging Face",
     models: [
-      { id: 'meta-llama/Llama-3.3-70B-Instruct', name: 'Llama 3.3 70B (free)', isFree: true },
-      { id: 'meta-llama/Llama-3.2-3B-Instruct', name: 'Llama 3.2 3B (free)', isFree: true },
-      { id: 'mistralai/Mixtral-8x7B-Instruct-v0.1', name: 'Mixtral 8x7B (free)', isFree: true },
-      { id: 'Qwen/Qwen2.5-72B-Instruct', name: 'Qwen 2.5 72B (free)', isFree: true },
+      { id: "meta-llama/Llama-3.3-70B-Instruct", name: "Llama 3.3 70B (free)", isFree: true },
+      { id: "meta-llama/Llama-3.2-3B-Instruct", name: "Llama 3.2 3B (free)", isFree: true },
+      { id: "mistralai/Mixtral-8x7B-Instruct-v0.1", name: "Mixtral 8x7B (free)", isFree: true },
+      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B (free)", isFree: true },
     ],
-    defaultModel: 'meta-llama/Llama-3.3-70B-Instruct',
-    defaultBaseUrl: 'https://api-inference.huggingface.co/v1',
-    color: '#FFD21E',
-    apiKeyUrl: 'https://huggingface.co/settings/tokens',
+    defaultModel: "meta-llama/Llama-3.3-70B-Instruct",
+    defaultBaseUrl: "https://api-inference.huggingface.co/v1",
+    color: "#FFD21E",
+    apiKeyUrl: "https://huggingface.co/settings/tokens",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Render API (verified: https://api.render.com/v1) ─────────────
   {
-    id: 'render',
-    name: 'Render API',
+    id: "render",
+    name: "Render API",
     models: [
-      { id: 'gpt-4o-mini', name: 'GPT-4o mini', isFree: false },
-      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
+      { id: "gpt-4o-mini", name: "GPT-4o mini", isFree: false },
+      { id: "gpt-4o", name: "GPT-4o", isFree: false },
     ],
-    defaultModel: 'gpt-4o-mini',
-    defaultBaseUrl: 'https://api.render.com/v1',
-    color: '#46E3B7',
-    apiKeyUrl: 'https://render.com',
+    defaultModel: "gpt-4o-mini",
+    defaultBaseUrl: "https://api.render.com/v1",
+    color: "#46E3B7",
+    apiKeyUrl: "https://render.com",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── ZenMux (verified: https://api.zenmux.ai/v1) ──────────────────
   {
-    id: 'zenmux',
-    name: 'ZenMux',
+    id: "zenmux",
+    name: "ZenMux",
     models: [
-      { id: 'gpt-4o-mini', name: 'GPT-4o mini', isFree: false },
-      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
-      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
+      { id: "gpt-4o-mini", name: "GPT-4o mini", isFree: false },
+      { id: "gpt-4o", name: "GPT-4o", isFree: false },
+      { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", isFree: false },
     ],
-    defaultModel: 'gpt-4o-mini',
-    defaultBaseUrl: 'https://api.zenmux.ai/v1',
-    color: '#6366F1',
-    apiKeyUrl: 'https://zenmux.ai',
+    defaultModel: "gpt-4o-mini",
+    defaultBaseUrl: "https://api.zenmux.ai/v1",
+    color: "#6366F1",
+    apiKeyUrl: "https://zenmux.ai",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ─
   {
-    id: 'fireworks',
-    name: 'Fireworks AI',
+    id: "fireworks",
+    name: "Fireworks AI",
     models: [
-      { id: 'accounts/fireworks/models/kimi-k2p7-code', name: 'Kimi K2 P7 Code', isFree: false },
-      { id: 'accounts/fireworks/models/llama-v3p1-405b-instruct', name: 'Llama 3.1 405B', isFree: false },
-      { id: 'accounts/fireworks/models/llama-v3p1-70b-instruct', name: 'Llama 3.1 70B', isFree: false },
-      { id: 'accounts/fireworks/models/mixtral-8x22b-instruct', name: 'Mixtral 8x22B', isFree: false },
-      { id: 'accounts/fireworks/models/qwen2p5-coder-32b-instruct', name: 'Qwen 2.5 Coder 32B', isFree: false },
+      { id: "accounts/fireworks/models/kimi-k2p7-code", name: "Kimi K2 P7 Code", isFree: false },
+      {
+        id: "accounts/fireworks/models/llama-v3p1-405b-instruct",
+        name: "Llama 3.1 405B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+        name: "Llama 3.1 70B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/mixtral-8x22b-instruct",
+        name: "Mixtral 8x22B",
+        isFree: false,
+      },
+      {
+        id: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
+        name: "Qwen 2.5 Coder 32B",
+        isFree: false,
+      },
     ],
-    defaultModel: 'accounts/fireworks/models/kimi-k2p7-code',
-    defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
-    color: '#F47F2A',
-    apiKeyUrl: 'https://fireworks.ai/api-keys',
+    defaultModel: "accounts/fireworks/models/kimi-k2p7-code",
+    defaultBaseUrl: "https://api.fireworks.ai/inference/v1",
+    color: "#F47F2A",
+    apiKeyUrl: "https://fireworks.ai/api-keys",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── GitHub Models (verified: https://models.inference.ai.azure.com/v1) ─
   {
-    id: 'github-models',
-    name: 'GitHub Models',
+    id: "github-models",
+    name: "GitHub Models",
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o', isFree: true },
-      { id: 'gpt-4o-mini', name: 'GPT-4o mini (free)', isFree: true },
-      { id: 'Phi-3.5-mini-instruct', name: 'Phi-3.5 Mini (free)', isFree: true },
-      { id: 'Mistral-large', name: 'Mistral Large', isFree: false },
-      { id: 'Mistral-Nemo', name: 'Mistral Nemo (free)', isFree: true },
-      { id: 'AI21-Jamba-1.5-Large', name: 'Jamba 1.5 Large', isFree: false },
-      { id: 'meta-Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B (free)', isFree: true },
-      { id: 'meta-Llama-3.1-70B-Instruct', name: 'Llama 3.1 70B', isFree: false },
-      { id: 'cohere-command-r-08-2024', name: 'Command R', isFree: false },
+      { id: "gpt-4o", name: "GPT-4o", isFree: true },
+      { id: "gpt-4o-mini", name: "GPT-4o mini (free)", isFree: true },
+      { id: "Phi-3.5-mini-instruct", name: "Phi-3.5 Mini (free)", isFree: true },
+      { id: "Mistral-large", name: "Mistral Large", isFree: false },
+      { id: "Mistral-Nemo", name: "Mistral Nemo (free)", isFree: true },
+      { id: "AI21-Jamba-1.5-Large", name: "Jamba 1.5 Large", isFree: false },
+      { id: "meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B (free)", isFree: true },
+      { id: "meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B", isFree: false },
+      { id: "cohere-command-r-08-2024", name: "Command R", isFree: false },
     ],
-    defaultModel: 'gpt-4o',
-    defaultBaseUrl: 'https://models.inference.ai.azure.com/v1',
-    color: '#6E40C9',
-    apiKeyUrl: 'https://github.com/marketplace/models',
+    defaultModel: "gpt-4o",
+    defaultBaseUrl: "https://models.inference.ai.azure.com/v1",
+    color: "#6E40C9",
+    apiKeyUrl: "https://github.com/marketplace/models",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── OpenModel (verified: https://api.openmodel.ai/v1) ────────────
   {
-    id: 'openmodel',
-    name: 'OpenModel',
+    id: "openmodel",
+    name: "OpenModel",
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o', isFree: false },
-      { id: 'gpt-5.4', name: 'GPT-5.4', isFree: false },
-      { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', isFree: false },
+      { id: "gpt-4o", name: "GPT-4o", isFree: false },
+      { id: "gpt-5.4", name: "GPT-5.4", isFree: false },
+      { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", isFree: false },
     ],
-    defaultModel: 'gpt-4o',
-    defaultBaseUrl: 'https://api.openmodel.ai/v1',
-    color: '#10B981',
-    apiKeyUrl: 'https://openmodel.ai',
+    defaultModel: "gpt-4o",
+    defaultBaseUrl: "https://api.openmodel.ai/v1",
+    color: "#10B981",
+    apiKeyUrl: "https://openmodel.ai",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Modal (verified: https://api.us-west-2.modal.direct/v1) ──────
   {
-    id: 'modal',
-    name: 'Modal (GLM-5.1)',
+    id: "modal",
+    name: "Modal (GLM-5.1)",
     models: [
-      { id: 'zai-org/GLM-5.1-FP8', name: 'GLM-5.1 FP8 (free research)', isFree: true },
-      { id: 'zai-org/GLM-4.5-FP8', name: 'GLM-4.5 FP8 (free research)', isFree: true },
+      { id: "zai-org/GLM-5.1-FP8", name: "GLM-5.1 FP8 (free research)", isFree: true },
+      { id: "zai-org/GLM-4.5-FP8", name: "GLM-4.5 FP8 (free research)", isFree: true },
     ],
-    defaultModel: 'zai-org/GLM-5.1-FP8',
-    defaultBaseUrl: 'https://api.us-west-2.modal.direct/v1',
-    color: '#7C3AED',
-    apiKeyUrl: 'https://modal.com',
+    defaultModel: "zai-org/GLM-5.1-FP8",
+    defaultBaseUrl: "https://api.us-west-2.modal.direct/v1",
+    color: "#7C3AED",
+    apiKeyUrl: "https://modal.com",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Bynara Router (verified: https://router.bynara.id/v1) ────────
   // 25+ models from byNara. Account requires credits — top up at https://bynara.id
   // Full model list: GET https://router.bynara.id/v1/models
   {
-    id: 'bynara',
-    name: 'Bynara Router',
+    id: "bynara",
+    name: "Bynara Router",
     models: [
-      { id: 'mimo-v2.5', name: 'MiMo v2.5', isFree: false },
-      { id: 'mimo-v2.5-hermes', name: 'MiMo v2.5 Hermes', isFree: false },
-      { id: 'mimo-v2.5-pro', name: 'MiMo v2.5 Pro', isFree: false },
-      { id: 'kimi-k2.6', name: 'Kimi K2.6', isFree: false },
-      { id: 'kimi-k2.7-code-free', name: 'Kimi K2.7 Code (free)', isFree: true },
-      { id: 'glm-5.1', name: 'GLM 5.1 (reasoning)', isFree: false },
-      { id: 'glm-5.2', name: 'GLM 5.2 (reasoning)', isFree: false },
-      { id: 'gpt-5.4', name: 'GPT 5.4', isFree: false },
-      { id: 'gpt-5.5', name: 'GPT 5.5', isFree: false },
-      { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', isFree: false },
-      { id: 'claude-opus-4.7', name: 'Claude Opus 4.7', isFree: false },
-      { id: 'minimax-m3', name: 'MiniMax M3 (multimodal)', isFree: false },
-      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', isFree: false },
-      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (reasoning)', isFree: false },
-      { id: 'mistral-large', name: 'Mistral Large', isFree: false },
-      { id: 'qwen3.7-max', name: 'Qwen 3.7 Max', isFree: false },
-      { id: 'tencent-hy3', name: 'Tencent HY3 (reasoning)', isFree: false },
+      { id: "mimo-v2.5", name: "MiMo v2.5", isFree: false },
+      { id: "mimo-v2.5-hermes", name: "MiMo v2.5 Hermes", isFree: false },
+      { id: "mimo-v2.5-pro", name: "MiMo v2.5 Pro", isFree: false },
+      { id: "kimi-k2.6", name: "Kimi K2.6", isFree: false },
+      { id: "kimi-k2.7-code-free", name: "Kimi K2.7 Code (free)", isFree: true },
+      { id: "glm-5.1", name: "GLM 5.1 (reasoning)", isFree: false },
+      { id: "glm-5.2", name: "GLM 5.2 (reasoning)", isFree: false },
+      { id: "gpt-5.4", name: "GPT 5.4", isFree: false },
+      { id: "gpt-5.5", name: "GPT 5.5", isFree: false },
+      { id: "claude-sonnet-5", name: "Claude Sonnet 5", isFree: false },
+      { id: "claude-opus-4.7", name: "Claude Opus 4.7", isFree: false },
+      { id: "minimax-m3", name: "MiniMax M3 (multimodal)", isFree: false },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", isFree: false },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro (reasoning)", isFree: false },
+      { id: "mistral-large", name: "Mistral Large", isFree: false },
+      { id: "qwen3.7-max", name: "Qwen 3.7 Max", isFree: false },
+      { id: "tencent-hy3", name: "Tencent HY3 (reasoning)", isFree: false },
     ],
-    defaultModel: 'mimo-v2.5',
-    defaultBaseUrl: 'https://router.bynara.id/v1',
-    color: '#06B6D4',
-    apiKeyUrl: 'https://bynara.id',
+    defaultModel: "mimo-v2.5",
+    defaultBaseUrl: "https://router.bynara.id/v1",
+    color: "#06B6D4",
+    apiKeyUrl: "https://bynara.id",
     isFree: false,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
   // ─── Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/) ─
   // Requires BOTH API token and account ID. The account ID goes in the URL path:
   // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
   // Verified working 2026-07-08: kimi-k2.6, llama-3.3-70b-instruct-fp8-fast
   {
-    id: 'cloudflare',
-    name: 'Cloudflare Workers AI',
+    id: "cloudflare",
+    name: "Cloudflare Workers AI",
     models: [
-      { id: '@cf/moonshotai/kimi-k2.6', name: 'Kimi K2.6 (Moonshot, reasoning)', isFree: true },
-      { id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', name: 'Llama 3.3 70B Fast', isFree: true },
-      { id: '@cf/meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', isFree: true },
-      { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B', isFree: true },
-      { id: '@cf/google/gemma-2-9b-it', name: 'Gemma 2 9B', isFree: true },
-      { id: '@cf/openchat/openchat-3.5-0106', name: 'OpenChat 3.5', isFree: true },
+      { id: "@cf/moonshotai/kimi-k2.6", name: "Kimi K2.6 (Moonshot, reasoning)", isFree: true },
+      { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B Fast", isFree: true },
+      { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B", isFree: true },
+      { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B", isFree: true },
+      { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B", isFree: true },
+      { id: "@cf/openchat/openchat-3.5-0106", name: "OpenChat 3.5", isFree: true },
     ],
-    defaultModel: '@cf/moonshotai/kimi-k2.6',
-    defaultBaseUrl: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',
-    color: '#F38020',
-    apiKeyUrl: 'https://dash.cloudflare.com/profile/api-tokens',
+    defaultModel: "@cf/moonshotai/kimi-k2.6",
+    defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1",
+    color: "#F38020",
+    apiKeyUrl: "https://dash.cloudflare.com/profile/api-tokens",
     isFree: true,
-    apiType: 'openai' as const,
+    apiType: "openai" as const,
   },
-]
-
+];
 
 function getDefaults(): Record<string, string> {
   return {
-    API_KEY_SECRET: '',
-    JWT_SECRET_KEY: '',
-    OPENAI_API_KEY: '',
-    OPENAI_MODEL: 'gpt-4o-mini',
-    OPENAI_BASE_URL: 'https://api.openai.com/v1',
-    NVIDIA_API_KEY: '',
-    NVIDIA_MODEL: 'meta/llama-3.1-8b-instruct',
-    NVIDIA_BASE_URL: 'https://integrate.api.nvidia.com/v1',
+    API_KEY_SECRET: "",
+    JWT_SECRET_KEY: "",
+    OPENAI_API_KEY: "",
+    OPENAI_MODEL: "gpt-4o-mini",
+    OPENAI_BASE_URL: "https://api.openai.com/v1",
+    NVIDIA_API_KEY: "",
+    NVIDIA_MODEL: "meta/llama-3.1-8b-instruct",
+    NVIDIA_BASE_URL: "https://integrate.api.nvidia.com/v1",
     // Additional LLM providers (added 2026-07-07)
-    RENDER_API_KEY: '',
-    RENDER_MODEL: 'gpt-4o-mini',
-    RENDER_BASE_URL: 'https://api.render.com/v1',
-    ZENMUX_API_KEY: '',
-    ZENMUX_MODEL: 'gpt-4o-mini',
-    ZENMUX_BASE_URL: 'https://api.zenmux.ai/v1',
-    FIREWORKS_API_KEY: '',
-    FIREWORKS_MODEL: 'accounts/fireworks/models/kimi-k2p7-code',
-    FIREWORKS_BASE_URL: 'https://api.fireworks.ai/inference/v1',
-    GITHUB_MODELS_API_KEY: '',
-    GITHUB_MODELS_MODEL: 'gpt-4o',
-    GITHUB_MODELS_BASE_URL: 'https://models.inference.ai.azure.com/v1',
-    OPENMODEL_API_KEY: '',
-    OPENMODEL_MODEL: 'gpt-4o',
-    OPENMODEL_BASE_URL: 'https://api.openmodel.ai/v1',
-    MODAL_API_KEY: '',
-    MODAL_MODEL: 'zai-org/GLM-5.1-FP8',
-    MODAL_BASE_URL: 'https://api.us-west-2.modal.direct/v1',
+    RENDER_API_KEY: "",
+    RENDER_MODEL: "gpt-4o-mini",
+    RENDER_BASE_URL: "https://api.render.com/v1",
+    ZENMUX_API_KEY: "",
+    ZENMUX_MODEL: "gpt-4o-mini",
+    ZENMUX_BASE_URL: "https://api.zenmux.ai/v1",
+    FIREWORKS_API_KEY: "",
+    FIREWORKS_MODEL: "accounts/fireworks/models/kimi-k2p7-code",
+    FIREWORKS_BASE_URL: "https://api.fireworks.ai/inference/v1",
+    GITHUB_MODELS_API_KEY: "",
+    GITHUB_MODELS_MODEL: "gpt-4o",
+    GITHUB_MODELS_BASE_URL: "https://models.inference.ai.azure.com/v1",
+    OPENMODEL_API_KEY: "",
+    OPENMODEL_MODEL: "gpt-4o",
+    OPENMODEL_BASE_URL: "https://api.openmodel.ai/v1",
+    MODAL_API_KEY: "",
+    MODAL_MODEL: "zai-org/GLM-5.1-FP8",
+    MODAL_BASE_URL: "https://api.us-west-2.modal.direct/v1",
     // Additional LLM providers (added 2026-07-08)
-    BYNARA_API_KEY: '',
-    BYNARA_MODEL: 'mimo-v2.5-free',
-    BYNARA_BASE_URL: 'https://router.bynara.id/v1',
-    CLOUDFLARE_API_KEY: '',
-    CLOUDFLARE_ACCOUNT_ID: '',
-    CLOUDFLARE_MODEL: '@cf/moonshotai/kimi-k2.6',
-    CLOUDFLARE_BASE_URL: 'https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1',
-    QWEN_API_KEY: '',
-    QWEN_BASE_URL: '',
-    GLM_API_KEY: '',
-    GLM_BASE_URL: '',
-    ENGINEERING_SERVICE_URL: 'http://localhost:8000',
-    ENGINEERING_SERVICE_API_KEY: '',
-    ENGINEERING_SERVICE_TIMEOUT_MS: '30000',
-    MASTRA_DB_URL: 'file:./mastra.db',
-    DATABASE_URL: '',
-    REDIS_URL: '',
-    LANGWATCH_API_KEY: '',
-    LANGWATCH_PROJECT: 'AhmedETAP',
-    LANGWATCH_ENDPOINT: 'https://app.langwatch.ai',
-    SMITHERY_API_KEY: '',
-    SMITHERY_BASE_URL: 'https://api.smithery.ai',
-    HF_TOKEN: '',
-    HF_SPACE_NAME: 'ahmdelbaz28/AhmedETAP-Platform',
-    HF_REPO_URL: 'https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform',
-    GITHUB_TOKEN: '',
-    GITHUB_REPO: 'ahmdelbaz28-ux/ETAP-AI-WORK-',
-    VERCEL_PROJECT_ID: '',
-    VERCEL_ACCESS_TOKEN: '',
-    HEALTH_CHECK_API_URL: '',
-    PROMETHEUS_ENABLED: '',
-    PROMETHEUS_PORT: '9090',
-    RATE_LIMIT_REQUESTS_PER_MINUTE: '60',
-    CIRCUIT_BREAKER_FAILURE_THRESHOLD: '3',
-    MAX_BODY_SIZE: '100000',
-    ETAP_LICENSE_PATH: '',
-    ETAP_WORKER_URL: '',
-    VAULT_ADDR: '',
-    VAULT_TOKEN: '',
-    SMTP_SERVER: '',
-    SMTP_PORT: '587',
-    SMTP_USERNAME: '',
-    ALERT_EMAIL_TO: '',
-    ENABLE_ASYNC_EXECUTION: 'true',
-    ENABLE_CACHING: 'true',
-    ENABLE_OBSERVABILITY: 'true',
-    MAX_WORKERS: '4',
-    CACHE_SIZE_MB: '512',
-    CACHE_DEFAULT_TTL: '3600',
+    BYNARA_API_KEY: "",
+    BYNARA_MODEL: "mimo-v2.5-free",
+    BYNARA_BASE_URL: "https://router.bynara.id/v1",
+    CLOUDFLARE_API_KEY: "",
+    CLOUDFLARE_ACCOUNT_ID: "",
+    CLOUDFLARE_MODEL: "@cf/moonshotai/kimi-k2.6",
+    CLOUDFLARE_BASE_URL: "https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1",
+    QWEN_API_KEY: "",
+    QWEN_BASE_URL: "",
+    GLM_API_KEY: "",
+    GLM_BASE_URL: "",
+    ENGINEERING_SERVICE_URL: "http://localhost:8000",
+    ENGINEERING_SERVICE_API_KEY: "",
+    ENGINEERING_SERVICE_TIMEOUT_MS: "30000",
+    MASTRA_DB_URL: "file:./mastra.db",
+    DATABASE_URL: "",
+    REDIS_URL: "",
+    LANGWATCH_API_KEY: "",
+    LANGWATCH_PROJECT: "AhmedETAP",
+    LANGWATCH_ENDPOINT: "https://app.langwatch.ai",
+    SMITHERY_API_KEY: "",
+    SMITHERY_BASE_URL: "https://api.smithery.ai",
+    HF_TOKEN: "",
+    HF_SPACE_NAME: "ahmdelbaz28/AhmedETAP-Platform",
+    HF_REPO_URL: "https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform",
+    GITHUB_TOKEN: "",
+    GITHUB_REPO: "ahmdelbaz28-ux/ETAP-AI-WORK-",
+    VERCEL_PROJECT_ID: "",
+    VERCEL_ACCESS_TOKEN: "",
+    HEALTH_CHECK_API_URL: "",
+    PROMETHEUS_ENABLED: "",
+    PROMETHEUS_PORT: "9090",
+    RATE_LIMIT_REQUESTS_PER_MINUTE: "60",
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: "3",
+    MAX_BODY_SIZE: "100000",
+    ETAP_LICENSE_PATH: "",
+    ETAP_WORKER_URL: "",
+    VAULT_ADDR: "",
+    VAULT_TOKEN: "",
+    SMTP_SERVER: "",
+    SMTP_PORT: "587",
+    SMTP_USERNAME: "",
+    ALERT_EMAIL_TO: "",
+    ENABLE_ASYNC_EXECUTION: "true",
+    ENABLE_CACHING: "true",
+    ENABLE_OBSERVABILITY: "true",
+    MAX_WORKERS: "4",
+    CACHE_SIZE_MB: "512",
+    CACHE_DEFAULT_TTL: "3600",
     // SCADA zenon Configs
-    SCADA_SYSTEM_TYPE: 'Copa-Data zenon SCADA',
-    SCADA_SERVER_URL: 'http://localhost:8080/zenon',
-    SCADA_PROJECT_NAME: 'ETAP_Zenon_Sync',
-    SCADA_SYNC_INTERVAL_SEC: '10',
-    SCADA_API_KEY: '',
+    SCADA_SYSTEM_TYPE: "Copa-Data zenon SCADA",
+    SCADA_SERVER_URL: "http://localhost:8080/zenon",
+    SCADA_PROJECT_NAME: "ETAP_Zenon_Sync",
+    SCADA_SYNC_INTERVAL_SEC: "10",
+    SCADA_API_KEY: "",
     // Custom Model Configs
-    CUSTOM_BASE_URL: 'https://api.yourproxy.com/v1',
-    CUSTOM_MODEL_ID: 'deepseek-coder',
-    CUSTOM_API_KEY: '',
-    CUSTOM_CONFIG_TYPE: 'json',
-    CURL_PASTE_CONTENT: '',
+    CUSTOM_BASE_URL: "https://api.yourproxy.com/v1",
+    CUSTOM_MODEL_ID: "deepseek-coder",
+    CUSTOM_API_KEY: "",
+    CUSTOM_CONFIG_TYPE: "json",
+    CURL_PASTE_CONTENT: "",
     // Coding Agents Configs
-    OPENHANDS_ENABLED: 'false',
-    OPENHANDS_URL: 'http://localhost:3000',
-    OPENHANDS_WORKSPACE: '',
-    OPENCODE_ENABLED: 'false',
-    OPENCODE_URL: 'http://localhost:8080',
-    KILOCODE_ENABLED: 'false',
-    KILOCODE_URL: 'http://localhost:8090',
+    OPENHANDS_ENABLED: "false",
+    OPENHANDS_URL: "http://localhost:3000",
+    OPENHANDS_WORKSPACE: "",
+    OPENCODE_ENABLED: "false",
+    OPENCODE_URL: "http://localhost:8080",
+    KILOCODE_ENABLED: "false",
+    KILOCODE_URL: "http://localhost:8090",
     // Popular Providers Configs
-    PROVIDER_OPENAI_KEY: '',
-    PROVIDER_OPENAI_MODEL: 'gpt-4o-mini',
-    PROVIDER_ANTHROPIC_KEY: '',
-    PROVIDER_ANTHROPIC_MODEL: 'claude-3-5-sonnet-latest',
-    PROVIDER_GEMINI_KEY: '',
-    PROVIDER_GEMINI_MODEL: 'gemini-1.5-flash',
-    PROVIDER_DEEPSEEK_KEY: '',
-    PROVIDER_DEEPSEEK_MODEL: 'deepseek-chat',
-    PROVIDER_GROQ_KEY: '',
-    PROVIDER_GROQ_MODEL: 'llama-3.3-70b-versatile',
-    PROVIDER_COHERE_KEY: '',
-    PROVIDER_COHERE_MODEL: 'command-r-plus',
-    PROVIDER_HUGGINGFACE_KEY: '',
-    PROVIDER_HUGGINGFACE_MODEL: 'meta-llama/Llama-3.3-70B-Instruct',
-  }
+    PROVIDER_OPENAI_KEY: "",
+    PROVIDER_OPENAI_MODEL: "gpt-4o-mini",
+    PROVIDER_ANTHROPIC_KEY: "",
+    PROVIDER_ANTHROPIC_MODEL: "claude-3-5-sonnet-latest",
+    PROVIDER_GEMINI_KEY: "",
+    PROVIDER_GEMINI_MODEL: "gemini-1.5-flash",
+    PROVIDER_DEEPSEEK_KEY: "",
+    PROVIDER_DEEPSEEK_MODEL: "deepseek-chat",
+    PROVIDER_GROQ_KEY: "",
+    PROVIDER_GROQ_MODEL: "llama-3.3-70b-versatile",
+    PROVIDER_COHERE_KEY: "",
+    PROVIDER_COHERE_MODEL: "command-r-plus",
+    PROVIDER_HUGGINGFACE_KEY: "",
+    PROVIDER_HUGGINGFACE_MODEL: "meta-llama/Llama-3.3-70B-Instruct",
+  };
 }
 
 function validateImportedSettings(data: unknown): { valid: boolean; errors: string[] } {
-  const errors: string[] = []
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return { valid: false, errors: ['Invalid settings format: expected an object'] }
+  const errors: string[] = [];
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return { valid: false, errors: ["Invalid settings format: expected an object"] };
   }
-  const obj = data as Record<string, unknown>
-  const keys = Object.keys(obj)
+  const obj = data as Record<string, unknown>;
+  const keys = Object.keys(obj);
   if (keys.length > SETTINGS_SCHEMA.maxFields) {
-    errors.push(`Too many fields: ${keys.length} (max ${SETTINGS_SCHEMA.maxFields})`)
+    errors.push(`Too many fields: ${keys.length} (max ${SETTINGS_SCHEMA.maxFields})`);
   }
   for (const key of keys) {
-    if (typeof key !== 'string' || key.length > SETTINGS_SCHEMA.maxKeyLength) {
-      errors.push(`Invalid key: ${key.substring(0, 20)}`)
+    if (typeof key !== "string" || key.length > SETTINGS_SCHEMA.maxKeyLength) {
+      errors.push(`Invalid key: ${key.substring(0, 20)}`);
     }
-    if (typeof obj[key] !== 'string') {
-      errors.push(`Non-string value for key: ${key}`)
+    if (typeof obj[key] !== "string") {
+      errors.push(`Non-string value for key: ${key}`);
     }
-    if (typeof obj[key] === 'string' && obj[key].length > SETTINGS_SCHEMA.maxValueLength) {
-      errors.push(`Value too long for key: ${key}`)
+    if (typeof obj[key] === "string" && obj[key].length > SETTINGS_SCHEMA.maxValueLength) {
+      errors.push(`Value too long for key: ${key}`);
     }
   }
-  return { valid: errors.length === 0, errors }
+  return { valid: errors.length === 0, errors };
 }
 
 interface SettingsSection {
-  title: string
-  fields: string[]
+  title: string;
+  fields: string[];
 }
 
-const TAB_SECTIONS: Record<string, { label: string; icon: React.ReactNode; sections: SettingsSection[] }> = {
+const TAB_SECTIONS: Record<
+  string,
+  { label: string; icon: React.ReactNode; sections: SettingsSection[] }
+> = {
   ai: {
-    label: 'AI Providers',
+    label: "AI Providers",
     icon: <Bot className="w-4 h-4" />,
     sections: [], // Custom-rendered panel
   },
   mcp: {
-    label: 'MCP Servers',
+    label: "MCP Servers",
     icon: <Database className="w-4 h-4" />,
     sections: [], // Custom-rendered panel
   },
   agents: {
-    label: 'Coding Agents',
+    label: "Coding Agents",
     icon: <Code className="w-4 h-4" />,
     sections: [
-      { title: 'OpenHands Integration (formerly Devin)', fields: ['OPENHANDS_ENABLED', 'OPENHANDS_URL', 'OPENHANDS_WORKSPACE'] },
-      { title: 'OpenCode Integration', fields: ['OPENCODE_ENABLED', 'OPENCODE_URL'] },
-      { title: 'KiloCode Integration', fields: ['KILOCODE_ENABLED', 'KILOCODE_URL'] },
+      {
+        title: "OpenHands Integration (formerly Devin)",
+        fields: ["OPENHANDS_ENABLED", "OPENHANDS_URL", "OPENHANDS_WORKSPACE"],
+      },
+      { title: "OpenCode Integration", fields: ["OPENCODE_ENABLED", "OPENCODE_URL"] },
+      { title: "KiloCode Integration", fields: ["KILOCODE_ENABLED", "KILOCODE_URL"] },
     ],
   },
   engineering: {
-    label: 'Engineering Service',
+    label: "Engineering Service",
     icon: <Wrench className="w-4 h-4" />,
     sections: [
-      { title: 'Engineering Service', fields: ['ENGINEERING_SERVICE_URL', 'ENGINEERING_SERVICE_API_KEY', 'ENGINEERING_SERVICE_TIMEOUT_MS'] },
+      {
+        title: "Engineering Service",
+        fields: [
+          "ENGINEERING_SERVICE_URL",
+          "ENGINEERING_SERVICE_API_KEY",
+          "ENGINEERING_SERVICE_TIMEOUT_MS",
+        ],
+      },
     ],
   },
   database: {
-    label: 'Database & Cache',
+    label: "Database & Cache",
     icon: <Database className="w-4 h-4" />,
     sections: [
-      { title: 'Database', fields: ['MASTRA_DB_URL', 'DATABASE_URL', 'REDIS_URL'] },
-      { title: 'Cache & Performance', fields: ['CACHE_SIZE_MB', 'CACHE_DEFAULT_TTL', 'MAX_WORKERS'] },
+      { title: "Database", fields: ["MASTRA_DB_URL", "DATABASE_URL", "REDIS_URL"] },
+      {
+        title: "Cache & Performance",
+        fields: ["CACHE_SIZE_MB", "CACHE_DEFAULT_TTL", "MAX_WORKERS"],
+      },
     ],
   },
   security: {
-    label: 'Security',
+    label: "Security",
     icon: <Shield className="w-4 h-4" />,
     sections: [
-      { title: 'Authentication', fields: ['API_KEY_SECRET', 'JWT_SECRET_KEY'] },
-      { title: 'Vault & Secrets', fields: ['VAULT_ADDR', 'VAULT_TOKEN'] },
+      { title: "Authentication", fields: ["API_KEY_SECRET", "JWT_SECRET_KEY"] },
+      { title: "Vault & Secrets", fields: ["VAULT_ADDR", "VAULT_TOKEN"] },
     ],
   },
   integration: {
-    label: 'Integration',
+    label: "Integration",
     icon: <Link2 className="w-4 h-4" />,
     sections: [
-      { title: 'ETAP Integration', fields: ['ETAP_LICENSE_PATH', 'ETAP_WORKER_URL'] },
-      { title: 'Copa-Data zenon SCADA Integration', fields: ['SCADA_SYSTEM_TYPE', 'SCADA_SERVER_URL', 'SCADA_PROJECT_NAME', 'SCADA_SYNC_INTERVAL_SEC', 'SCADA_API_KEY'] },
-      { title: 'Email Alerts', fields: ['SMTP_SERVER', 'SMTP_PORT', 'SMTP_USERNAME', 'ALERT_EMAIL_TO'] },
+      { title: "ETAP Integration", fields: ["ETAP_LICENSE_PATH", "ETAP_WORKER_URL"] },
+      {
+        title: "Copa-Data zenon SCADA Integration",
+        fields: [
+          "SCADA_SYSTEM_TYPE",
+          "SCADA_SERVER_URL",
+          "SCADA_PROJECT_NAME",
+          "SCADA_SYNC_INTERVAL_SEC",
+          "SCADA_API_KEY",
+        ],
+      },
+      {
+        title: "Email Alerts",
+        fields: ["SMTP_SERVER", "SMTP_PORT", "SMTP_USERNAME", "ALERT_EMAIL_TO"],
+      },
     ],
   },
   external: {
-    label: 'External Services',
+    label: "External Services",
     icon: <Link2 className="w-4 h-4" />,
     sections: [
-      { title: 'LangWatch (LLM Observability)', fields: ['LANGWATCH_API_KEY', 'LANGWATCH_PROJECT', 'LANGWATCH_ENDPOINT'] },
-      { title: 'Smithery MCP', fields: ['SMITHERY_API_KEY', 'SMITHERY_BASE_URL'] },
-      { title: 'Hugging Face', fields: ['HF_TOKEN', 'HF_SPACE_NAME', 'HF_REPO_URL'] },
-      { title: 'GitHub', fields: ['GITHUB_TOKEN', 'GITHUB_REPO'] },
-      { title: 'Vercel', fields: ['VERCEL_PROJECT_ID', 'VERCEL_ACCESS_TOKEN'] },
+      {
+        title: "LangWatch (LLM Observability)",
+        fields: ["LANGWATCH_API_KEY", "LANGWATCH_PROJECT", "LANGWATCH_ENDPOINT"],
+      },
+      { title: "Smithery MCP", fields: ["SMITHERY_API_KEY", "SMITHERY_BASE_URL"] },
+      { title: "Hugging Face", fields: ["HF_TOKEN", "HF_SPACE_NAME", "HF_REPO_URL"] },
+      { title: "GitHub", fields: ["GITHUB_TOKEN", "GITHUB_REPO"] },
+      { title: "Vercel", fields: ["VERCEL_PROJECT_ID", "VERCEL_ACCESS_TOKEN"] },
     ],
   },
   performance: {
-    label: 'Performance',
+    label: "Performance",
     icon: <Gauge className="w-4 h-4" />,
     sections: [
-      { title: 'Observability', fields: ['HEALTH_CHECK_API_URL', 'PROMETHEUS_ENABLED', 'PROMETHEUS_PORT'] },
-      { title: 'Rate Limiting & Circuit Breaker', fields: ['RATE_LIMIT_REQUESTS_PER_MINUTE', 'CIRCUIT_BREAKER_FAILURE_THRESHOLD', 'MAX_BODY_SIZE'] },
-      { title: 'Feature Flags', fields: ['ENABLE_ASYNC_EXECUTION', 'ENABLE_CACHING', 'ENABLE_OBSERVABILITY'] },
+      {
+        title: "Observability",
+        fields: ["HEALTH_CHECK_API_URL", "PROMETHEUS_ENABLED", "PROMETHEUS_PORT"],
+      },
+      {
+        title: "Rate Limiting & Circuit Breaker",
+        fields: [
+          "RATE_LIMIT_REQUESTS_PER_MINUTE",
+          "CIRCUIT_BREAKER_FAILURE_THRESHOLD",
+          "MAX_BODY_SIZE",
+        ],
+      },
+      {
+        title: "Feature Flags",
+        fields: ["ENABLE_ASYNC_EXECUTION", "ENABLE_CACHING", "ENABLE_OBSERVABILITY"],
+      },
     ],
   },
   vision: {
-    label: 'Vision API Keys',
+    label: "Vision API Keys",
     icon: <Eye className="w-4 h-4" />,
     sections: [],
   },
-}
+};
 
 interface MCPConfig {
-  id: string
-  name: string
-  status: 'connected' | 'standby' | 'disabled'
-  type: string
-  urlOrPath: string
-  description: string
-  tools: string[]
+  id: string;
+  name: string;
+  status: "connected" | "standby" | "disabled";
+  type: string;
+  urlOrPath: string;
+  description: string;
+  tools: string[];
 }
 
 const MCP_SERVERS: MCPConfig[] = [
   {
-    id: 'weather',
-    name: 'Weather MCP Server',
-    status: 'connected',
-    type: 'Local/Service',
-    urlOrPath: 'src/mastra/agents/weather-agent.ts',
-    description: 'Retrieves real-time weather and temperature details for renewable energy capacity planning.',
-    tools: ['weatherTool'],
+    id: "weather",
+    name: "Weather MCP Server",
+    status: "connected",
+    type: "Local/Service",
+    urlOrPath: "src/mastra/agents/weather-agent.ts",
+    description:
+      "Retrieves real-time weather and temperature details for renewable energy capacity planning.",
+    tools: ["weatherTool"],
   },
   {
-    id: 'gis',
-    name: 'QGIS Map Service MCP Server',
-    status: 'connected',
-    type: 'Local/GIS Provider',
-    urlOrPath: 'gis_integration/providers/',
-    description: 'Bridges and extracts coordinates, lines, and substations from active QGIS layers or shapefiles.',
-    tools: ['load_gis_features', 'sync_gis_telemetry'],
+    id: "gis",
+    name: "QGIS Map Service MCP Server",
+    status: "connected",
+    type: "Local/GIS Provider",
+    urlOrPath: "gis_integration/providers/",
+    description:
+      "Bridges and extracts coordinates, lines, and substations from active QGIS layers or shapefiles.",
+    tools: ["load_gis_features", "sync_gis_telemetry"],
   },
   {
-    id: 'scada',
-    name: 'SCADA zenon Telemetry MCP Server',
-    status: 'connected',
-    type: 'WebSocket/SCADA API',
-    urlOrPath: 'api/scada.py',
-    description: 'Subscribes and queries active Copa-Data zenon alerts and live telemetry registers (I, V, P, Q).',
-    tools: ['fetch_live_telemetry', 'trigger_zenon_alarm'],
+    id: "scada",
+    name: "SCADA zenon Telemetry MCP Server",
+    status: "connected",
+    type: "WebSocket/SCADA API",
+    urlOrPath: "api/scada.py",
+    description:
+      "Subscribes and queries active Copa-Data zenon alerts and live telemetry registers (I, V, P, Q).",
+    tools: ["fetch_live_telemetry", "trigger_zenon_alarm"],
   },
   {
-    id: 'etap_com',
-    name: 'ETAP COM Automation MCP Server',
-    status: 'standby',
-    type: 'COM/Windows Service',
-    urlOrPath: 'etap_integration/etap_com.py',
-    description: 'Executes direct COM automation scripts to run Newton-Raphson studies in Windows-only desktop clients.',
-    tools: ['run_etap_study', 'export_etap_one_line'],
+    id: "etap_com",
+    name: "ETAP COM Automation MCP Server",
+    status: "standby",
+    type: "COM/Windows Service",
+    urlOrPath: "etap_integration/etap_com.py",
+    description:
+      "Executes direct COM automation scripts to run Newton-Raphson studies in Windows-only desktop clients.",
+    tools: ["run_etap_study", "export_etap_one_line"],
   },
   {
-    id: 'guard',
-    name: 'AI Code Guard MCP Server',
-    status: 'connected',
-    type: 'Local/Validation',
-    urlOrPath: 'guards/code_guard_agent.py',
-    description: 'Enforces safety boundaries, double-confirmation checks, and SIEM logging rules on generated code.',
-    tools: ['validate_code'],
+    id: "guard",
+    name: "AI Code Guard MCP Server",
+    status: "connected",
+    type: "Local/Validation",
+    urlOrPath: "guards/code_guard_agent.py",
+    description:
+      "Enforces safety boundaries, double-confirmation checks, and SIEM logging rules on generated code.",
+    tools: ["validate_code"],
   },
-]
+];
 
 function MCPSettingsPanel() {
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'connected':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">● Active</span>
-      case 'standby':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">● Standby</span>
+      case "connected":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">
+            ● Active
+          </span>
+        );
+      case "standby":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+            ● Standby
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">● Offline</span>
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+            ● Offline
+          </span>
+        );
     }
-  }
+  };
 
   return (
     <div className="space-y-6 col-span-2">
@@ -850,29 +1024,48 @@ function MCPSettingsPanel() {
             <Database className="w-5 h-5 text-brand-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-[var(--text-primary)]">Model Context Protocol (MCP) Servers</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">
+              Model Context Protocol (MCP) Servers
+            </h3>
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              The platform utilizes MCP to expose local files, databases, SCADA bridges, and engineering scripts to AI specialist agents as secure tools.
+              The platform utilizes MCP to expose local files, databases, SCADA bridges, and
+              engineering scripts to AI specialist agents as secure tools.
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
-          {MCP_SERVERS.map(srv => (
-            <div key={srv.id} className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl hover:border-brand-500/30 transition-all">
+          {MCP_SERVERS.map((srv) => (
+            <div
+              key={srv.id}
+              className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl hover:border-brand-500/30 transition-all"
+            >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">{srv.name}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)] font-mono">{srv.type}</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    {srv.name}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)] font-mono">
+                    {srv.type}
+                  </span>
                 </div>
                 {getStatusBadge(srv.status)}
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed">{srv.description}</p>
-              
+              <p className="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed">
+                {srv.description}
+              </p>
+
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Exposed Tools:</span>
-                {srv.tools.map(tool => (
-                  <span key={tool} className="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/5 text-brand-400 border border-brand-500/10">{tool}</span>
+                <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                  Exposed Tools:
+                </span>
+                {srv.tools.map((tool) => (
+                  <span
+                    key={tool}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/5 text-brand-400 border border-brand-500/10"
+                  >
+                    {tool}
+                  </span>
                 ))}
               </div>
             </div>
@@ -880,58 +1073,68 @@ function MCPSettingsPanel() {
         </div>
       </Card>
     </div>
-  )
+  );
 }
 
-type NotifyType = 'success' | 'error' | 'info' | 'warning'
+type NotifyType = "success" | "error" | "info" | "warning";
 
 interface AISettingsPanelProps {
-  settings: Record<string, string>
-  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  notify: (type: NotifyType, message: string) => void
+  settings: Record<string, string>;
+  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  notify: (type: NotifyType, message: string) => void;
 }
 
-function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   // Quick Setup: which provider is being tested + status
-  const [testingProvider, setTestingProvider] = useState<string | null>(null)
-  const [providerStatus, setProviderStatus] = useState<Record<string, 'ok' | 'fail' | null>>({})
+  const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<Record<string, "ok" | "fail" | null>>({});
 
   // Quick Setup: test a provider API key by making a REAL chat completion
   // request to the provider's endpoint. Returns detailed error info.
   // Uses the testProviderConnection() function from llm-chat.ts which
   // performs an actual /chat/completions call (not just /models).
-  const [testResults, setTestResults] = useState<Record<string, { message: string; details?: string; suggestion?: string; latencyMs?: number } | null>>({})
+  const [testResults, setTestResults] = useState<
+    Record<
+      string,
+      { message: string; details?: string; suggestion?: string; latencyMs?: number } | null
+    >
+  >({});
 
   const handleTestProvider = async (providerId: string) => {
-    if (providerId === 'custom_openai') {
+    if (providerId === "custom_openai") {
       // Custom provider requires all 3 fields
-      if (!settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID) {
-        notify('error', 'Please fill in all 3 fields: Endpoint URL, API Key, Model ID')
-        return
+      if (
+        !settings.CUSTOM_OPENAI_API_KEY ||
+        !settings.CUSTOM_OPENAI_BASE_URL ||
+        !settings.CUSTOM_OPENAI_MODEL_ID
+      ) {
+        notify("error", "Please fill in all 3 fields: Endpoint URL, API Key, Model ID");
+        return;
       }
     } else {
       // Built-in providers require just the API key
-      const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`
+      const keyName = `PROVIDER_${providerId.toUpperCase()}_KEY`;
       if (!settings[keyName]) {
-        notify('error', 'Please enter an API key first')
-        return
+        notify("error", "Please enter an API key first");
+        return;
       }
     }
 
-    setTestingProvider(providerId)
-    setProviderStatus(prev => ({ ...prev, [providerId]: null }))
-    setTestResults(prev => ({ ...prev, [providerId]: null }))
+    setTestingProvider(providerId);
+    setProviderStatus((prev) => ({ ...prev, [providerId]: null }));
+    setTestResults((prev) => ({ ...prev, [providerId]: null }));
 
     try {
       // Save settings to localStorage BEFORE testing so testProviderConnection can read them.
       // We store the raw values (the llm-chat.ts getSettings() reads them directly).
-      localStorage.setItem('etap-settings', JSON.stringify(settings))
+      localStorage.setItem("etap-settings", JSON.stringify(settings));
 
       // Call the real test function from llm-chat.ts
-      const result = await testProviderConnection(providerId)
+      const result = await testProviderConnection(providerId);
 
-      setProviderStatus(prev => ({ ...prev, [providerId]: result.success ? 'ok' : 'fail' }))
-      setTestResults(prev => ({
+      setProviderStatus((prev) => ({ ...prev, [providerId]: result.success ? "ok" : "fail" }));
+      setTestResults((prev) => ({
         ...prev,
         [providerId]: {
           message: result.message,
@@ -939,101 +1142,134 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
           suggestion: result.suggestion,
           latencyMs: result.latencyMs,
         },
-      }))
+      }));
 
       if (result.success) {
-        notify('success', result.message)
+        notify("success", result.message);
       } else {
-        notify('error', result.message)
+        notify("error", result.message);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      setProviderStatus(prev => ({ ...prev, [providerId]: 'fail' }))
-      setTestResults(prev => ({
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setProviderStatus((prev) => ({ ...prev, [providerId]: "fail" }));
+      setTestResults((prev) => ({
         ...prev,
         [providerId]: { message: `Test failed: ${msg}` },
-      }))
-      notify('error', `Test failed: ${msg}`)
+      }));
+      notify("error", `Test failed: ${msg}`);
     } finally {
-      setTestingProvider(null)
+      setTestingProvider(null);
     }
-  }
+  };
 
   // Quick Setup: check which providers have keys
-  const connectedCount = POPULAR_PROVIDERS.filter(p => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length +
-    (settings.CUSTOM_OPENAI_API_KEY ? 1 : 0)
+  const connectedCount =
+    POPULAR_PROVIDERS.filter((p) => !!settings[`PROVIDER_${p.id.toUpperCase()}_KEY`]).length +
+    (settings.CUSTOM_OPENAI_API_KEY ? 1 : 0);
 
-  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || 'openai'
-  const activeProvider = POPULAR_PROVIDERS.find(p => p.id === activeProviderId)
+  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
+  const activeProvider = POPULAR_PROVIDERS.find((p) => p.id === activeProviderId);
 
   // Custom OpenAI compatible presets
   const customPresets = [
-    { name: 'Ollama (Local)', url: 'http://localhost:11434/v1', model: 'llama3.2', key: 'ollama' },
-    { name: 'LM Studio (Local)', url: 'http://localhost:1234/v1', model: 'loaded-model-name', key: 'lm-studio' },
-    { name: 'OpenRouter (Proxy)', url: 'https://openrouter.ai/api/v1', model: 'openai/gpt-4o-mini', key: '' },
-    { name: 'OpenClaude (Proxy)', url: 'https://api.openclaude.com/v1', model: 'claude-3-5-sonnet', key: '' },
-  ]
+    { name: "Ollama (Local)", url: "http://localhost:11434/v1", model: "llama3.2", key: "ollama" },
+    {
+      name: "LM Studio (Local)",
+      url: "http://localhost:1234/v1",
+      model: "loaded-model-name",
+      key: "lm-studio",
+    },
+    {
+      name: "OpenRouter (Proxy)",
+      url: "https://openrouter.ai/api/v1",
+      model: "openai/gpt-4o-mini",
+      key: "",
+    },
+    {
+      name: "OpenClaude (Proxy)",
+      url: "https://api.openclaude.com/v1",
+      model: "claude-3-5-sonnet",
+      key: "",
+    },
+  ];
 
-  const applyCustomPreset = (preset: { name: string, url: string, model: string, key: string }) => {
-    setSettings(prev => ({
+  const applyCustomPreset = (preset: { name: string; url: string; model: string; key: string }) => {
+    setSettings((prev) => ({
       ...prev,
       CUSTOM_OPENAI_BASE_URL: preset.url,
       CUSTOM_OPENAI_MODEL_ID: preset.model,
       CUSTOM_OPENAI_API_KEY: preset.key,
-      PROVIDER_ACTIVE_PROVIDER_ID: 'custom_openai'
-    }))
-    notify('info', `Applied preset for ${preset.name}`)
-  }
+      PROVIDER_ACTIVE_PROVIDER_ID: "custom_openai",
+    }));
+    notify("info", `Applied preset for ${preset.name}`);
+  };
 
   return (
     <div className="space-y-6 col-span-2">
       {/* ─── Active AI Provider Card ────────────────────────────────── */}
-      <Card padding="md" className="border-2 border-brand-500/30 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-500/[0.03] to-transparent">
+      <Card
+        padding="md"
+        className="border-2 border-brand-500/30 shadow-lg shadow-brand-500/5 bg-gradient-to-br from-brand-500/[0.03] to-transparent"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[var(--border-primary)]">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
               <Bot className="w-5 h-5 text-brand-400" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">Active AI Engine / حدد المحرك النشط</h3>
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                Active AI Engine / حدد المحرك النشط
+              </h3>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Select your default AI Provider and model. All engineering chat pages will route through this provider.
+                Select your default AI Provider and model. All engineering chat pages will route
+                through this provider.
               </p>
             </div>
           </div>
           <div className="shrink-0 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)] text-center">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Connected</div>
+            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+              Connected
+            </div>
             <div className="text-lg font-bold text-brand-400">{connectedCount}</div>
           </div>
         </div>
 
         {/* Dropdown for Active Provider */}
         <div className="mb-6 max-w-md">
-          <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-2" htmlFor="active-provider-select">
+          <label
+            className="block text-xs font-semibold text-[var(--text-secondary)] mb-2"
+            htmlFor="active-provider-select"
+          >
             Active Provider
           </label>
           <select
             id="active-provider-select"
             value={activeProviderId}
-            onChange={e => setSettings(prev => ({ ...prev, PROVIDER_ACTIVE_PROVIDER_ID: e.target.value }))}
+            onChange={(e) =>
+              setSettings((prev) => ({ ...prev, PROVIDER_ACTIVE_PROVIDER_ID: e.target.value }))
+            }
             className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer font-medium"
           >
-            {POPULAR_PROVIDERS.map(p => (
+            {POPULAR_PROVIDERS.map((p) => (
               <option key={p.id} value={p.id} className="dark:bg-gray-800">
-                {p.name} {p.isFree ? '(Free Tier Available)' : ''}
+                {p.name} {p.isFree ? "(Free Tier Available)" : ""}
               </option>
             ))}
-            <option value="custom_openai" className="dark:bg-gray-800">Custom (OpenAI-compatible) ...</option>
+            <option value="custom_openai" className="dark:bg-gray-800">
+              Custom (OpenAI-compatible) ...
+            </option>
           </select>
         </div>
 
         {/* Dynamic configuration inputs based on selection */}
-        {activeProviderId === 'custom_openai' ? (
+        {activeProviderId === "custom_openai" ? (
           <div className="space-y-4 pt-2 border-t border-[var(--border-primary)]">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Custom Presets:</span>
+              <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                Custom Presets:
+              </span>
               <div className="flex flex-wrap gap-1.5">
-                {customPresets.map(preset => (
+                {customPresets.map((preset) => (
                   <button
                     key={preset.name}
                     type="button"
@@ -1048,21 +1284,29 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="custom-openai-url" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                <label
+                  htmlFor="custom-openai-url"
+                  className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
+                >
                   Endpoint URL
                 </label>
                 <input
                   id="custom-openai-url"
                   type="url"
                   placeholder="https://api.example.com/v1"
-                  value={settings.CUSTOM_OPENAI_BASE_URL || ''}
-                  onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_BASE_URL: e.target.value }))}
+                  value={settings.CUSTOM_OPENAI_BASE_URL || ""}
+                  onChange={(e) =>
+                    setSettings((prev) => ({ ...prev, CUSTOM_OPENAI_BASE_URL: e.target.value }))
+                  }
                   className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                 />
               </div>
 
               <div>
-                <label htmlFor="custom-openai-key" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                <label
+                  htmlFor="custom-openai-key"
+                  className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
+                >
                   API Key
                 </label>
                 <div className="relative">
@@ -1070,8 +1314,10 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     id="custom-openai-key"
                     type="password"
                     placeholder="sk-... or dummy-key"
-                    value={settings.CUSTOM_OPENAI_API_KEY || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_API_KEY: e.target.value }))}
+                    value={settings.CUSTOM_OPENAI_API_KEY || ""}
+                    onChange={(e) =>
+                      setSettings((prev) => ({ ...prev, CUSTOM_OPENAI_API_KEY: e.target.value }))
+                    }
                     className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                   />
                   <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
@@ -1079,15 +1325,20 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               </div>
 
               <div>
-                <label htmlFor="custom-openai-model" className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                <label
+                  htmlFor="custom-openai-model"
+                  className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
+                >
                   Model ID
                 </label>
                 <input
                   id="custom-openai-model"
                   type="text"
                   placeholder="llama3.2 / loaded-model-name"
-                  value={settings.CUSTOM_OPENAI_MODEL_ID || ''}
-                  onChange={e => setSettings(prev => ({ ...prev, CUSTOM_OPENAI_MODEL_ID: e.target.value }))}
+                  value={settings.CUSTOM_OPENAI_MODEL_ID || ""}
+                  onChange={(e) =>
+                    setSettings((prev) => ({ ...prev, CUSTOM_OPENAI_MODEL_ID: e.target.value }))
+                  }
                   className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                 />
               </div>
@@ -1096,37 +1347,65 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <button
                 type="button"
-                onClick={() => handleTestProvider('custom_openai')}
-                disabled={testingProvider === 'custom_openai' || !settings.CUSTOM_OPENAI_API_KEY || !settings.CUSTOM_OPENAI_BASE_URL || !settings.CUSTOM_OPENAI_MODEL_ID}
+                onClick={() => handleTestProvider("custom_openai")}
+                disabled={
+                  testingProvider === "custom_openai" ||
+                  !settings.CUSTOM_OPENAI_API_KEY ||
+                  !settings.CUSTOM_OPENAI_BASE_URL ||
+                  !settings.CUSTOM_OPENAI_MODEL_ID
+                }
                 className={cn(
-                  'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
-                  'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
+                  "flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0",
+                  "disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]",
                   (() => {
                     const s = providerStatus.custom_openai;
-                    if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
-                    if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
-                    return 'bg-purple-600 hover:bg-purple-500 text-white';
-                  })()
+                    if (s === "ok") return "bg-green-600 hover:bg-green-500 text-white";
+                    if (s === "fail") return "bg-red-600 hover:bg-red-500 text-white";
+                    return "bg-purple-600 hover:bg-purple-500 text-white";
+                  })(),
                 )}
               >
                 {(() => {
-                  if (testingProvider === 'custom_openai') return <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...</>;
-                  if (providerStatus.custom_openai === 'ok') return <><CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓</>;
-                  if (providerStatus.custom_openai === 'fail') return <><XCircle className="w-3.5 h-3.5" /> Failed — Retry</>;
-                  return <><Zap className="w-3.5 h-3.5" /> Test Connection</>;
+                  if (testingProvider === "custom_openai")
+                    return (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing...
+                      </>
+                    );
+                  if (providerStatus.custom_openai === "ok")
+                    return (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Valid ✓
+                      </>
+                    );
+                  if (providerStatus.custom_openai === "fail")
+                    return (
+                      <>
+                        <XCircle className="w-3.5 h-3.5" /> Failed — Retry
+                      </>
+                    );
+                  return (
+                    <>
+                      <Zap className="w-3.5 h-3.5" /> Test Connection
+                    </>
+                  );
                 })()}
               </button>
 
               {testResults.custom_openai && (
-                <div className={cn(
-                  'flex-1 min-w-0 p-3 rounded-lg border text-xs',
-                  providerStatus.custom_openai === 'ok'
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
-                )}>
+                <div
+                  className={cn(
+                    "flex-1 min-w-0 p-3 rounded-lg border text-xs",
+                    providerStatus.custom_openai === "ok"
+                      ? "bg-green-500/10 border-green-500/30 text-green-400"
+                      : "bg-red-500/10 border-red-500/30 text-red-400",
+                  )}
+                >
                   <div className="font-semibold mb-1">{testResults.custom_openai.message}</div>
                   {testResults.custom_openai.latencyMs && (
-                    <div className="text-[10px] opacity-80 mb-1">Latency: {testResults.custom_openai.latencyMs}ms</div>
+                    <div className="text-[10px] opacity-80 mb-1">
+                      Latency: {testResults.custom_openai.latencyMs}ms
+                    </div>
                   )}
                   {testResults.custom_openai.suggestion && (
                     <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
@@ -1142,23 +1421,35 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             <div className="flex items-center gap-3">
               <ProviderLogo providerId={activeProvider.id} size={48} />
               <div>
-                <h4 className="text-sm font-semibold text-[var(--text-primary)]">{activeProvider.name} Config</h4>
-                <p className="text-xs text-[var(--text-muted)]">Configure authentication and default models for {activeProvider.name}.</p>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)]">
+                  {activeProvider.name} Config
+                </h4>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Configure authentication and default models for {activeProvider.name}.
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
               <div>
-                <label htmlFor={`prov-active-key`} className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                <label
+                  htmlFor={"prov-active-key"}
+                  className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
+                >
                   API Key
                 </label>
                 <div className="relative">
                   <input
-                    id={`prov-active-key`}
+                    id={"prov-active-key"}
                     type="password"
                     placeholder={`Paste ${activeProvider.name} API key...`}
-                    value={settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`] || ''}
-                    onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]: e.target.value }))}
+                    value={settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`] || ""}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        [`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
                   />
                   <Key className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
@@ -1166,18 +1457,30 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               </div>
 
               <div>
-                <label htmlFor={`prov-active-model`} className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
+                <label
+                  htmlFor={"prov-active-model"}
+                  className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
+                >
                   Select Model
                 </label>
                 <select
-                  id={`prov-active-model`}
-                  value={settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] || activeProvider.defaultModel}
-                  onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`]: e.target.value }))}
+                  id={"prov-active-model"}
+                  value={
+                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] ||
+                    activeProvider.defaultModel
+                  }
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      [`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`]: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
                 >
-                  {activeProvider.models.map(m => (
+                  {activeProvider.models.map((m) => (
                     <option key={m.id} value={m.id} className="dark:bg-gray-800">
-                      {m.isFree ? 'Freelimit ' : ''}{m.name} ({m.id})
+                      {m.isFree ? "Freelimit " : ""}
+                      {m.name} ({m.id})
                     </option>
                   ))}
                 </select>
@@ -1188,31 +1491,43 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               <button
                 type="button"
                 onClick={() => handleTestProvider(activeProvider.id)}
-                disabled={testingProvider === activeProvider.id || !settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]}
+                disabled={
+                  testingProvider === activeProvider.id ||
+                  !settings[`PROVIDER_${activeProvider.id.toUpperCase()}_KEY`]
+                }
                 className={cn(
-                  'flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0',
-                  'disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]',
+                  "flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold transition-all shrink-0",
+                  "disabled:bg-[var(--bg-primary)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:border disabled:border-[var(--border-primary)]",
                   (() => {
                     const s = providerStatus[activeProvider.id];
-                    if (s === 'ok') return 'bg-green-600 hover:bg-green-500 text-white';
-                    if (s === 'fail') return 'bg-red-600 hover:bg-red-500 text-white';
-                    return 'bg-brand-600 hover:bg-brand-500 text-white';
-                  })()
+                    if (s === "ok") return "bg-green-600 hover:bg-green-500 text-white";
+                    if (s === "fail") return "bg-red-600 hover:bg-red-500 text-white";
+                    return "bg-brand-600 hover:bg-brand-500 text-white";
+                  })(),
                 )}
               >
-                {providerButtonContent(testingProvider === activeProvider.id, providerStatus[activeProvider.id])}
+                {providerButtonContent(
+                  testingProvider === activeProvider.id,
+                  providerStatus[activeProvider.id],
+                )}
               </button>
 
               {testResults[activeProvider.id] && (
-                <div className={cn(
-                  'flex-1 min-w-0 p-3 rounded-lg border text-xs',
-                  providerStatus[activeProvider.id] === 'ok'
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
-                )}>
-                  <div className="font-semibold mb-1">{testResults[activeProvider.id]?.message}</div>
+                <div
+                  className={cn(
+                    "flex-1 min-w-0 p-3 rounded-lg border text-xs",
+                    providerStatus[activeProvider.id] === "ok"
+                      ? "bg-green-500/10 border-green-500/30 text-green-400"
+                      : "bg-red-500/10 border-red-500/30 text-red-400",
+                  )}
+                >
+                  <div className="font-semibold mb-1">
+                    {testResults[activeProvider.id]?.message}
+                  </div>
                   {testResults[activeProvider.id]?.latencyMs && (
-                    <div className="text-[10px] opacity-80 mb-1">Latency: {testResults[activeProvider.id]?.latencyMs}ms</div>
+                    <div className="text-[10px] opacity-80 mb-1">
+                      Latency: {testResults[activeProvider.id]?.latencyMs}ms
+                    </div>
                   )}
                   {testResults[activeProvider.id]?.suggestion && (
                     <div className="text-[10px] opacity-80 mt-1.5 p-2 bg-black/20 rounded">
@@ -1224,19 +1539,25 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
             </div>
 
             <a
-              href={activeProvider.apiKeyUrl || '#'}
+              href={activeProvider.apiKeyUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                'mt-2 inline-flex items-center gap-1 text-[10px] transition-colors',
+                "mt-2 inline-flex items-center gap-1 text-[10px] transition-colors",
                 activeProvider.isFree
-                  ? 'text-green-500 hover:text-green-400 font-medium'
-                  : 'text-[var(--text-muted)] hover:text-brand-400'
+                  ? "text-green-500 hover:text-green-400 font-medium"
+                  : "text-[var(--text-muted)] hover:text-brand-400",
               )}
             >
-              {activeProvider.isFree && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />}
+              {activeProvider.isFree && (
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+              )}
               Get API key from {activeProvider.name}
-              {activeProvider.isFree && <span className="text-[9px] uppercase tracking-wide ml-1">(free tier available)</span>}
+              {activeProvider.isFree && (
+                <span className="text-[9px] uppercase tracking-wide ml-1">
+                  (free tier available)
+                </span>
+              )}
               <ExternalLink className="w-2.5 h-2.5 ml-1" />
             </a>
           </div>
@@ -1247,18 +1568,21 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
       <details className="group border border-[var(--border-primary)] rounded-lg bg-[var(--bg-elevated)]">
         <summary className="flex items-center gap-2 cursor-pointer p-4 text-sm font-semibold text-[var(--text-secondary)] list-none hover:text-[var(--text-primary)] transition-colors select-none">
           <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-open:rotate-90 transition-transform" />
-          <span>Configure Other Providers / تهيئة موفري الخدمة الآخرين ({POPULAR_PROVIDERS.length} Available)</span>
+          <span>
+            Configure Other Providers / تهيئة موفري الخدمة الآخرين ({POPULAR_PROVIDERS.length}{" "}
+            Available)
+          </span>
         </summary>
         <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--bg-primary)] space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {POPULAR_PROVIDERS.map(p => {
-              const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`
-              const hasKey = !!settings[keyName]
-              const status = providerStatus[p.id]
-              const isTesting = testingProvider === p.id
-              const cardClass = providerCardClass(hasKey, p.isFree)
-              const buttonClass = providerButtonClass(!!settings[keyName], isTesting, status)
-              const buttonContent = providerButtonContent(isTesting, status)
+            {POPULAR_PROVIDERS.map((p) => {
+              const keyName = `PROVIDER_${p.id.toUpperCase()}_KEY`;
+              const hasKey = !!settings[keyName];
+              const status = providerStatus[p.id];
+              const isTesting = testingProvider === p.id;
+              const cardClass = providerCardClass(hasKey, p.isFree);
+              const buttonClass = providerButtonClass(!!settings[keyName], isTesting, status);
+              const buttonContent = providerButtonContent(isTesting, status);
               return (
                 <div key={p.id} className={cardClass}>
                   {p.isFree && !hasKey && (
@@ -1270,7 +1594,9 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     <div className="flex items-center gap-2.5">
                       <ProviderLogo providerId={p.id} size={40} />
                       <div>
-                        <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
+                        <div className="text-sm font-semibold text-[var(--text-primary)]">
+                          {p.name}
+                        </div>
                         <div className="text-[10px] text-[var(--text-muted)]">{p.defaultModel}</div>
                       </div>
                     </div>
@@ -1286,11 +1612,11 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     <input
                       type="password"
                       placeholder={`Paste ${p.name} API key...`}
-                      value={settings[keyName] || ''}
-                      onChange={e => {
-                        setSettings(prev => ({ ...prev, [keyName]: e.target.value }))
+                      value={settings[keyName] || ""}
+                      onChange={(e) => {
+                        setSettings((prev) => ({ ...prev, [keyName]: e.target.value }));
                         if (providerStatus[p.id]) {
-                          setProviderStatus(prev => ({ ...prev, [p.id]: null }))
+                          setProviderStatus((prev) => ({ ...prev, [p.id]: null }));
                         }
                       }}
                       className="w-full px-3 py-2 pr-9 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 outline-none transition-colors font-mono"
@@ -1299,18 +1625,27 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                   </div>
 
                   <div className="mb-2">
-                    <label className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide" htmlFor={`model-collapsible-${p.id}`}>
+                    <label
+                      className="block text-[9px] text-[var(--text-tertiary)] mb-1 font-medium uppercase tracking-wide"
+                      htmlFor={`model-collapsible-${p.id}`}
+                    >
                       Model
                     </label>
                     <select
                       id={`model-collapsible-${p.id}`}
                       value={settings[`PROVIDER_${p.id.toUpperCase()}_MODEL`] || p.defaultModel}
-                      onChange={e => setSettings(prev => ({ ...prev, [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value }))}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          [`PROVIDER_${p.id.toUpperCase()}_MODEL`]: e.target.value,
+                        }))
+                      }
                       className="w-full px-2 py-1.5 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-[11px] text-[var(--text-primary)] focus:border-brand-500 outline-none transition-colors cursor-pointer"
                     >
-                      {p.models.map(m => (
+                      {p.models.map((m) => (
                         <option key={m.id} value={m.id} className="dark:bg-gray-800">
-                          {m.isFree ? 'Freelimit ' : ''}{m.name} ({m.id})
+                          {m.isFree ? "Freelimit " : ""}
+                          {m.name} ({m.id})
                         </option>
                       ))}
                     </select>
@@ -1325,243 +1660,308 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
                     {buttonContent}
                   </button>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       </details>
     </div>
-  )
+  );
 }
 
 // ============================================================================
 // ExternalServicesPanel — dedicated panel with Test Connection buttons + status
 // ============================================================================
-type TestStatus = 'idle' | 'testing' | 'ok' | 'fail'
+type TestStatus = "idle" | "testing" | "ok" | "fail";
 
 interface ServiceDescriptor {
-  id: 'langwatch' | 'smithery' | 'huggingface' | 'github' | 'vercel'
-  name: string
-  description: string
-  dashboardUrl: string
-  color: string
-  fields: { key: string; label: string; placeholder: string; required: boolean; type?: 'text' | 'password' }[]
+  id: "langwatch" | "smithery" | "huggingface" | "github" | "vercel";
+  name: string;
+  description: string;
+  dashboardUrl: string;
+  color: string;
+  fields: {
+    key: string;
+    label: string;
+    placeholder: string;
+    required: boolean;
+    type?: "text" | "password";
+  }[];
   // Returns null if the request cannot be attempted (missing fields),
   // otherwise returns a Promise that resolves to { ok: boolean; detail: string }.
-  testConnection: (settings: Record<string, string>) => Promise<{ ok: boolean; detail: string }> | null
+  testConnection: (
+    settings: Record<string, string>,
+  ) => Promise<{ ok: boolean; detail: string }> | null;
 }
 
 const EXTERNAL_SERVICES: ServiceDescriptor[] = [
   {
-    id: 'langwatch',
-    name: 'LangWatch',
-    description: 'LLM observability & tracing dashboard',
-    dashboardUrl: 'https://app.langwatch.ai',
-    color: '#6366f1',
+    id: "langwatch",
+    name: "LangWatch",
+    description: "LLM observability & tracing dashboard",
+    dashboardUrl: "https://app.langwatch.ai",
+    color: "#6366f1",
     fields: [
-      { key: 'LANGWATCH_API_KEY', label: 'API Key', placeholder: 'sk-lw-...', required: true, type: 'password' },
-      { key: 'LANGWATCH_PROJECT', label: 'Project Name', placeholder: 'AhmedETAP', required: true },
-      { key: 'LANGWATCH_ENDPOINT', label: 'Endpoint', placeholder: 'https://app.langwatch.ai', required: true },
+      {
+        key: "LANGWATCH_API_KEY",
+        label: "API Key",
+        placeholder: "sk-lw-...",
+        required: true,
+        type: "password",
+      },
+      { key: "LANGWATCH_PROJECT", label: "Project Name", placeholder: "AhmedETAP", required: true },
+      {
+        key: "LANGWATCH_ENDPOINT",
+        label: "Endpoint",
+        placeholder: "https://app.langwatch.ai",
+        required: true,
+      },
     ],
     testConnection: (s) => {
-      const apiKey = s.LANGWATCH_API_KEY?.trim()
-      const endpoint = s.LANGWATCH_ENDPOINT?.trim() || 'https://app.langwatch.ai'
-      if (!apiKey) return null
+      const apiKey = s.LANGWATCH_API_KEY?.trim();
+      const endpoint = s.LANGWATCH_ENDPOINT?.trim() || "https://app.langwatch.ai";
+      if (!apiKey) return null;
       // LangWatch has CORS restrictions on browser fetches. We use a no-cors mode
       // probe to verify the server is reachable (we won't be able to read the response,
       // but the request will resolve on network success).
       // Step 1: probe /api/v1/projects with normal mode — if it succeeds, great.
       // Step 2: fall back to no-cors mode HEAD probe — if it resolves, server is reachable.
       const tryNormal = fetch(`${endpoint}/api/v1/projects`, {
-        method: 'GET',
-        headers: { 'X-Auth-Token': apiKey, 'Accept': 'application/json' },
-      })
-        .then(async (r) => {
-          if (r.ok) return { ok: true, detail: 'Connected — project list reachable' }
-          if (r.status === 401 || r.status === 403) return { ok: false, detail: 'Invalid API key (401/403)' }
-          if (r.status === 404) return { ok: true, detail: 'Endpoint reachable (path 404 is normal)' }
-          return { ok: false, detail: `HTTP ${r.status}` }
-        })
+        method: "GET",
+        headers: { "X-Auth-Token": apiKey, Accept: "application/json" },
+      }).then(async (r) => {
+        if (r.ok) return { ok: true, detail: "Connected — project list reachable" };
+        if (r.status === 401 || r.status === 403)
+          return { ok: false, detail: "Invalid API key (401/403)" };
+        if (r.status === 404)
+          return { ok: true, detail: "Endpoint reachable (path 404 is normal)" };
+        return { ok: false, detail: `HTTP ${r.status}` };
+      });
 
       // If normal fetch throws (CORS), try no-cors probe as fallback
       return tryNormal.catch(() =>
         fetch(`${endpoint}/api/v1/projects`, {
-          method: 'GET',
-          mode: 'no-cors',
-          headers: { 'X-Auth-Token': apiKey },
+          method: "GET",
+          mode: "no-cors",
+          headers: { "X-Auth-Token": apiKey },
         })
-          .then(() => ({ ok: true, detail: 'Endpoint reachable (no-cors probe OK)' }))
-          .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
-      )
+          .then(() => ({ ok: true, detail: "Endpoint reachable (no-cors probe OK)" }))
+          .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` })),
+      );
     },
   },
   {
-    id: 'smithery',
-    name: 'Smithery MCP',
-    description: 'Model Context Protocol server registry',
-    dashboardUrl: 'https://smithery.ai/console/api-keys',
-    color: '#10b981',
+    id: "smithery",
+    name: "Smithery MCP",
+    description: "Model Context Protocol server registry",
+    dashboardUrl: "https://smithery.ai/console/api-keys",
+    color: "#10b981",
     fields: [
-      { key: 'SMITHERY_API_KEY', label: 'API Key', placeholder: 'UUID-format key', required: true, type: 'password' },
-      { key: 'SMITHERY_BASE_URL', label: 'Base URL', placeholder: 'https://api.smithery.ai', required: true },
+      {
+        key: "SMITHERY_API_KEY",
+        label: "API Key",
+        placeholder: "UUID-format key",
+        required: true,
+        type: "password",
+      },
+      {
+        key: "SMITHERY_BASE_URL",
+        label: "Base URL",
+        placeholder: "https://api.smithery.ai",
+        required: true,
+      },
     ],
     testConnection: (s) => {
-      const apiKey = s.SMITHERY_API_KEY?.trim()
-      const baseUrl = s.SMITHERY_BASE_URL?.trim() || 'https://api.smithery.ai'
-      if (!apiKey) return null
+      const apiKey = s.SMITHERY_API_KEY?.trim();
+      const baseUrl = s.SMITHERY_BASE_URL?.trim() || "https://api.smithery.ai";
+      if (!apiKey) return null;
       // Smithery exposes /v1/servers as a public listing endpoint
       return fetch(`${baseUrl}/v1/servers?limit=1`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' },
+        method: "GET",
+        headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
       })
         .then(async (r) => {
-          if (r.ok) return { ok: true, detail: 'Connected — server registry reachable' }
-          if (r.status === 401 || r.status === 403) return { ok: false, detail: 'Invalid API key' }
+          if (r.ok) return { ok: true, detail: "Connected — server registry reachable" };
+          if (r.status === 401 || r.status === 403) return { ok: false, detail: "Invalid API key" };
           // Try alternative endpoint
           return fetch(`${baseUrl}/servers?limit=1`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${apiKey}` },
-          }).then(r2 => r2.ok
-            ? { ok: true, detail: 'Connected (alt path)' }
-            : { ok: false, detail: `HTTP ${r.status} / ${r2.status}` })
+            method: "GET",
+            headers: { Authorization: `Bearer ${apiKey}` },
+          }).then((r2) =>
+            r2.ok
+              ? { ok: true, detail: "Connected (alt path)" }
+              : { ok: false, detail: `HTTP ${r.status} / ${r2.status}` },
+          );
         })
-        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }));
     },
   },
   {
-    id: 'huggingface',
-    name: 'Hugging Face',
-    description: 'Model hub & Spaces deployment',
-    dashboardUrl: 'https://huggingface.co/settings/tokens',
-    color: '#ffd21e',
+    id: "huggingface",
+    name: "Hugging Face",
+    description: "Model hub & Spaces deployment",
+    dashboardUrl: "https://huggingface.co/settings/tokens",
+    color: "#ffd21e",
     fields: [
-      { key: 'HF_TOKEN', label: 'Access Token', placeholder: 'hf_...', required: true, type: 'password' },
-      { key: 'HF_SPACE_NAME', label: 'Space Name', placeholder: 'username/space-name', required: true },
-      { key: 'HF_REPO_URL', label: 'Space URL', placeholder: 'https://huggingface.co/spaces/...', required: false },
+      {
+        key: "HF_TOKEN",
+        label: "Access Token",
+        placeholder: "hf_...",
+        required: true,
+        type: "password",
+      },
+      {
+        key: "HF_SPACE_NAME",
+        label: "Space Name",
+        placeholder: "username/space-name",
+        required: true,
+      },
+      {
+        key: "HF_REPO_URL",
+        label: "Space URL",
+        placeholder: "https://huggingface.co/spaces/...",
+        required: false,
+      },
     ],
     testConnection: (s) => {
-      const token = s.HF_TOKEN?.trim()
-      if (!token) return null
+      const token = s.HF_TOKEN?.trim();
+      if (!token) return null;
       // HuggingFace exposes /api/whoami-v2 which validates the token
-      return fetch('https://huggingface.co/api/whoami-v2', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      return fetch("https://huggingface.co/api/whoami-v2", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       })
         .then(async (r) => {
           if (r.ok) {
             try {
-              const data = await r.json()
-              const username = data.name || data.user?.name || 'unknown'
-              return { ok: true, detail: `Connected as @${username}` }
+              const data = await r.json();
+              const username = data.name || data.user?.name || "unknown";
+              return { ok: true, detail: `Connected as @${username}` };
             } catch {
-              return { ok: true, detail: 'Connected (token valid)' }
+              return { ok: true, detail: "Connected (token valid)" };
             }
           }
-          if (r.status === 401) return { ok: false, detail: 'Invalid or expired token' }
-          return { ok: false, detail: `HTTP ${r.status}` }
+          if (r.status === 401) return { ok: false, detail: "Invalid or expired token" };
+          return { ok: false, detail: `HTTP ${r.status}` };
         })
-        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }));
     },
   },
   {
-    id: 'github',
-    name: 'GitHub',
-    description: 'Repository access & CI/CD',
-    dashboardUrl: 'https://github.com/settings/tokens',
-    color: '#6e7681',
+    id: "github",
+    name: "GitHub",
+    description: "Repository access & CI/CD",
+    dashboardUrl: "https://github.com/settings/tokens",
+    color: "#6e7681",
     fields: [
-      { key: 'GITHUB_TOKEN', label: 'Personal Access Token', placeholder: 'github_pat_... or ghp_...', required: true, type: 'password' },
-      { key: 'GITHUB_REPO', label: 'Repository', placeholder: 'owner/repo-name', required: true },
+      {
+        key: "GITHUB_TOKEN",
+        label: "Personal Access Token",
+        placeholder: "github_pat_... or ghp_...",
+        required: true,
+        type: "password",
+      },
+      { key: "GITHUB_REPO", label: "Repository", placeholder: "owner/repo-name", required: true },
     ],
     testConnection: (s) => {
-      const token = s.GITHUB_TOKEN?.trim()
-      if (!token) return null
-      return fetch('https://api.github.com/user', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      const token = s.GITHUB_TOKEN?.trim();
+      if (!token) return null;
+      return fetch("https://api.github.com/user", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
       })
         .then(async (r) => {
           if (r.ok) {
             try {
-              const data = await r.json()
-              return { ok: true, detail: `Connected as @${data.login}` }
+              const data = await r.json();
+              return { ok: true, detail: `Connected as @${data.login}` };
             } catch {
-              return { ok: true, detail: 'Connected (token valid)' }
+              return { ok: true, detail: "Connected (token valid)" };
             }
           }
-          if (r.status === 401) return { ok: false, detail: 'Invalid token' }
-          if (r.status === 403) return { ok: false, detail: 'Rate-limited or forbidden' }
-          return { ok: false, detail: `HTTP ${r.status}` }
+          if (r.status === 401) return { ok: false, detail: "Invalid token" };
+          if (r.status === 403) return { ok: false, detail: "Rate-limited or forbidden" };
+          return { ok: false, detail: `HTTP ${r.status}` };
         })
-        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }));
     },
   },
   {
-    id: 'vercel',
-    name: 'Vercel',
-    description: 'Frontend deployment & preview',
-    dashboardUrl: 'https://vercel.com/account/tokens',
-    color: '#000000',
+    id: "vercel",
+    name: "Vercel",
+    description: "Frontend deployment & preview",
+    dashboardUrl: "https://vercel.com/account/tokens",
+    color: "#000000",
     fields: [
-      { key: 'VERCEL_PROJECT_ID', label: 'Project ID', placeholder: 'prj_...', required: true },
-      { key: 'VERCEL_ACCESS_TOKEN', label: 'Access Token', placeholder: 'vcp_...', required: true, type: 'password' },
+      { key: "VERCEL_PROJECT_ID", label: "Project ID", placeholder: "prj_...", required: true },
+      {
+        key: "VERCEL_ACCESS_TOKEN",
+        label: "Access Token",
+        placeholder: "vcp_...",
+        required: true,
+        type: "password",
+      },
     ],
     testConnection: (s) => {
-      const token = s.VERCEL_ACCESS_TOKEN?.trim()
-      const projectId = s.VERCEL_PROJECT_ID?.trim()
-      if (!token || !projectId) return null
+      const token = s.VERCEL_ACCESS_TOKEN?.trim();
+      const projectId = s.VERCEL_PROJECT_ID?.trim();
+      if (!token || !projectId) return null;
       // Vercel API: GET /v9/projects/{id}
       return fetch(`https://api.vercel.com/v9/projects/${projectId}`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       })
         .then(async (r) => {
           if (r.ok) {
             try {
-              const data = await r.json()
-              return { ok: true, detail: `Connected — project "${data.name}"` }
+              const data = await r.json();
+              return { ok: true, detail: `Connected — project "${data.name}"` };
             } catch {
-              return { ok: true, detail: 'Connected (project reachable)' }
+              return { ok: true, detail: "Connected (project reachable)" };
             }
           }
-          if (r.status === 401) return { ok: false, detail: 'Invalid access token' }
-          if (r.status === 404) return { ok: false, detail: 'Project not found (bad project ID?)' }
-          return { ok: false, detail: `HTTP ${r.status}` }
+          if (r.status === 401) return { ok: false, detail: "Invalid access token" };
+          if (r.status === 404) return { ok: false, detail: "Project not found (bad project ID?)" };
+          return { ok: false, detail: `HTTP ${r.status}` };
         })
-        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }))
+        .catch((e) => ({ ok: false, detail: `Network error: ${e.message}` }));
     },
   },
-]
+];
 
-function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function ExternalServicesPanel({
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   settings,
   setSettings,
   notify,
 }: {
-  settings: Record<string, string>
-  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  notify: (type: NotifyType, message: string) => void
+  settings: Record<string, string>;
+  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  notify: (type: NotifyType, message: string) => void;
 }) {
   // status[id] = { state, detail }
-  const [status, setStatus] = useState<Record<string, { state: TestStatus; detail: string }>>({})
+  const [status, setStatus] = useState<Record<string, { state: TestStatus; detail: string }>>({});
 
   const handleTest = async (svc: ServiceDescriptor) => {
-    const result = svc.testConnection(settings)
+    const result = svc.testConnection(settings);
     if (result === null) {
-      notify('warning', `Please fill in all required fields for ${svc.name}`)
-      return
+      notify("warning", `Please fill in all required fields for ${svc.name}`);
+      return;
     }
-    setStatus(prev => ({ ...prev, [svc.id]: { state: 'testing', detail: 'Testing…' } }))
+    setStatus((prev) => ({ ...prev, [svc.id]: { state: "testing", detail: "Testing…" } }));
     try {
-      const r = await result
-      setStatus(prev => ({ ...prev, [svc.id]: { state: r.ok ? 'ok' : 'fail', detail: r.detail } }))
-      notify(r.ok ? 'success' : 'error', `${svc.name}: ${r.detail}`)
+      const r = await result;
+      setStatus((prev) => ({
+        ...prev,
+        [svc.id]: { state: r.ok ? "ok" : "fail", detail: r.detail },
+      }));
+      notify(r.ok ? "success" : "error", `${svc.name}: ${r.detail}`);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e)
-      setStatus(prev => ({ ...prev, [svc.id]: { state: 'fail', detail: msg } }))
-      notify('error', `${svc.name}: ${msg}`)
+      const msg = e instanceof Error ? e.message : String(e);
+      setStatus((prev) => ({ ...prev, [svc.id]: { state: "fail", detail: msg } }));
+      notify("error", `${svc.name}: ${msg}`);
     }
-  }
+  };
 
   return (
     <div className="space-y-6 col-span-2">
@@ -1571,18 +1971,18 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
           <div>
             <h3 className="text-sm font-semibold text-[var(--text-primary)]">External Services</h3>
             <p className="text-[10px] text-[var(--text-muted)]">
-              Configure and verify connections to LangWatch, Smithery, Hugging Face, GitHub, and Vercel.
-              Click "Test" to verify each integration in real-time.
+              Configure and verify connections to LangWatch, Smithery, Hugging Face, GitHub, and
+              Vercel. Click "Test" to verify each integration in real-time.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {EXTERNAL_SERVICES.map(svc => {
-            const st = status[svc.id] || { state: 'idle' as TestStatus, detail: '' }
+          {EXTERNAL_SERVICES.map((svc) => {
+            const st = status[svc.id] || { state: "idle" as TestStatus, detail: "" };
             const isConfigured = svc.fields
-              .filter(f => f.required)
-              .every(f => (settings[f.key] || '').trim().length > 0)
+              .filter((f) => f.required)
+              .every((f) => (settings[f.key] || "").trim().length > 0);
 
             return (
               <div
@@ -1597,55 +1997,60 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
                       aria-hidden
                     />
                     <div>
-                      <h4 className="text-sm font-semibold text-[var(--text-primary)]">{svc.name}</h4>
+                      <h4 className="text-sm font-semibold text-[var(--text-primary)]">
+                        {svc.name}
+                      </h4>
                       <p className="text-[10px] text-[var(--text-muted)]">{svc.description}</p>
                     </div>
                   </div>
-                  {st.state === 'ok' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                  {st.state === 'fail' && <XCircle className="w-4 h-4 text-red-500" />}
-                  {st.state === 'testing' && <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />}
+                  {st.state === "ok" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                  {st.state === "fail" && <XCircle className="w-4 h-4 text-red-500" />}
+                  {st.state === "testing" && (
+                    <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />
+                  )}
                 </div>
 
                 <div className="space-y-2 mb-3">
-                  {svc.fields.map(f => (
+                  {svc.fields.map((f) => (
                     <div key={f.key}>
                       <label className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
-                        {f.label}{f.required && <span className="text-red-400"> *</span>}
+                        {f.label}
+                        {f.required && <span className="text-red-400"> *</span>}
                       </label>
                       <input
-                        type={f.type === 'password' ? 'password' : 'text'}
+                        type={f.type === "password" ? "password" : "text"}
                         placeholder={f.placeholder}
-                        value={settings[f.key] || ''}
-                        onChange={e => setSettings(prev => ({ ...prev, [f.key]: e.target.value }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
+                        value={settings[f.key] || ""}
+                        onChange={(e) => // NOSONAR — S2004: inline form onChange
+                          setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
+                        }
                         className="w-full px-2.5 py-1.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-md text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none font-mono transition-colors"
                       />
                     </div>
                   ))}
                 </div>
 
-                {st.detail && (
-                  <div
-                    className={`text-[10px] mb-2 px-2 py-1 rounded ${
-                      st.state === 'ok'
-                        ? 'bg-green-500/10 text-green-400'
-                        : st.state === 'fail'
-                        ? 'bg-red-500/10 text-red-400'
-                        : 'bg-yellow-500/10 text-yellow-400'
-                    }`}
-                  >
-                    {st.detail}
-                  </div>
-                )}
+                {st.detail && (() => {
+                  let stateColor;
+                  if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
+                  else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
+                  else stateColor = "bg-yellow-500/10 text-yellow-400";
+                  return (
+                    <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
+                      {st.detail}
+                    </div>
+                  );
+                })()}
 
                 <div className="flex items-center gap-2">
                   <Button
-                    variant={isConfigured ? 'primary' : 'ghost'}
+                    variant={isConfigured ? "primary" : "ghost"}
                     size="sm"
-                    disabled={st.state === 'testing'}
+                    disabled={st.state === "testing"}
                     onClick={() => handleTest(svc)}
                     className="flex-1"
                   >
-                    {st.state === 'testing' ? 'Testing…' : 'Test Connection'}
+                    {st.state === "testing" ? "Testing…" : "Test Connection"}
                   </Button>
                   <a
                     href={svc.dashboardUrl}
@@ -1658,7 +2063,7 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
                   </a>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
 
@@ -1671,59 +2076,80 @@ function ExternalServicesPanel({  // NOSONAR — S6759: React props read-only; r
         </div>
       </Card>
     </div>
-  )
+  );
 }
 
-function SettingsField({ field, value, onChange }: { field: string; value: string; onChange: (v: string) => void }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-  const isSecret = field.includes('KEY') || field.includes('SECRET')
-  const isFeatureFlag = field.startsWith('ENABLE_') || field.endsWith('_ENABLED')
-  const isNumber = field.includes('_MS') || field.includes('PORT') || field.includes('SIZE') || field.includes('TTL') || field.includes('RATE') || field.includes('THRESHOLD') || field.includes('MAX_')
-  const inputType = isSecret ? 'password' : isNumber ? 'number' : 'text'
+function SettingsField({
+  field,
+  value,
+  onChange,
+}: { field: string; value: string; onChange: (v: string) => void }) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+  const isSecret = field.includes("KEY") || field.includes("SECRET");
+  const isFeatureFlag = field.startsWith("ENABLE_") || field.endsWith("_ENABLED");
+  const isNumber =
+    field.includes("_MS") ||
+    field.includes("PORT") ||
+    field.includes("SIZE") ||
+    field.includes("TTL") ||
+    field.includes("RATE") ||
+    field.includes("THRESHOLD") ||
+    field.includes("MAX_");
+  let inputType;
+  if (isSecret) inputType = "password";
+  else if (isNumber) inputType = "number";
+  else inputType = "text";
 
   if (isFeatureFlag) {
     return (
       <Toggle
-        checked={value === 'true'}
-        onChange={(checked) => onChange(checked ? 'true' : 'false')}
-        label={field.replaceAll('_', ' ').replaceAll('ENABLE ', '').replaceAll(' ENABLED', '')}
-        description={`Toggle ${field.replaceAll('_', ' ').toLowerCase()}`}
+        checked={value === "true"}
+        onChange={(checked) => onChange(checked ? "true" : "false")}
+        label={field.replaceAll("_", " ").replaceAll("ENABLE ", "").replaceAll(" ENABLED", "")}
+        description={`Toggle ${field.replaceAll("_", " ").toLowerCase()}`}
         size="sm"
       />
-    )
+    );
   }
 
   return (
     <div>
-      <label htmlFor={`field-${field}`} className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
-        {field.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+      <label
+        htmlFor={`field-${field}`}
+        className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
+      >
+        {field
+          .replaceAll("_", " ")
+          .toLowerCase()
+          .replace(/\b\w/g, (c) => c.toUpperCase())}
       </label>
       <input
         id={`field-${field}`}
         type={inputType}
-        value={value || ''}
-        onChange={e => onChange(e.target.value)}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-[var(--color-brand-500)] focus:ring-1 focus:ring-[var(--color-brand-500)]/30 outline-none font-mono transition-colors"
       />
     </div>
-  )
+  );
 }
 
 function loadInitialSettings(): Record<string, string> {
-  const stored = localStorage.getItem('etap-settings')
-  const defaults = getDefaults()
+  const stored = localStorage.getItem("etap-settings");
+  const defaults = getDefaults();
   if (stored) {
     try {
-      const parsed = JSON.parse(stored)
-      const deobfuscated: Record<string, string> = {}
+      const parsed = JSON.parse(stored);
+      const deobfuscated: Record<string, string> = {};
       for (const [k, v] of Object.entries(parsed)) {
-        deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string)
+        deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string);
       }
-      return { ...defaults, ...deobfuscated }
+      return { ...defaults, ...deobfuscated };
     } catch {
-      return defaults
+      return defaults;
     }
   }
-  return defaults
+  return defaults;
 }
 
 // ─── Vision API Keys Panel ─────────────────────────────────────────────────
@@ -1732,150 +2158,167 @@ function loadInitialSettings(): Record<string, string> {
 
 const VISION_PROVIDERS = [
   {
-    id: 'openai',
-    label: 'OpenAI-Compatible',
-    description: 'Works with OpenAI, Azure, Together AI, Groq, freemodel.dev, etc.',
-    defaultBaseUrl: 'https://api.openai.com/v1',
-    defaultModel: 'gpt-4o',
-    placeholder: 'sk-...',
-    docsUrl: 'https://platform.openai.com/api-keys',
+    id: "openai",
+    label: "OpenAI-Compatible",
+    description: "Works with OpenAI, Azure, Together AI, Groq, freemodel.dev, etc.",
+    defaultBaseUrl: "https://api.openai.com/v1",
+    defaultModel: "gpt-4o",
+    placeholder: "sk-...",
+    docsUrl: "https://platform.openai.com/api-keys",
   },
   {
-    id: 'gemini',
-    label: 'Google Gemini',
-    description: 'Google AI Studio Gemini Vision API',
-    defaultBaseUrl: '',
-    defaultModel: 'gemini-2.0-flash-exp',
-    placeholder: 'AIza...',
-    docsUrl: 'https://aistudio.google.com/app/apikey',
+    id: "gemini",
+    label: "Google Gemini",
+    description: "Google AI Studio Gemini Vision API",
+    defaultBaseUrl: "",
+    defaultModel: "gemini-2.0-flash-exp",
+    placeholder: "AIza...",
+    docsUrl: "https://aistudio.google.com/app/apikey",
   },
   {
-    id: 'anthropic',
-    label: 'Anthropic Claude',
-    description: 'Claude 3.5 Sonnet / Opus / Haiku Vision',
-    defaultBaseUrl: 'https://api.anthropic.com',
-    defaultModel: 'claude-3-5-sonnet-20241022',
-    placeholder: 'sk-ant-...',
-    docsUrl: 'https://console.anthropic.com/',
+    id: "anthropic",
+    label: "Anthropic Claude",
+    description: "Claude 3.5 Sonnet / Opus / Haiku Vision",
+    defaultBaseUrl: "https://api.anthropic.com",
+    defaultModel: "claude-3-5-sonnet-20241022",
+    placeholder: "sk-ant-...",
+    docsUrl: "https://console.anthropic.com/",
   },
-]
+];
 
-function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: string) => void }) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-  const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({})
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState<Record<string, { apiKey: string; baseUrl: string; modelName: string }>>({})
-  const [savingProvider, setSavingProvider] = useState<string | null>(null)
-  const [testingProvider, setTestingProvider] = useState<string | null>(null)
-  const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({})
+function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: string) => void }) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+  const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({});
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<
+    Record<string, { apiKey: string; baseUrl: string; modelName: string }>
+  >({});
+  const [savingProvider, setSavingProvider] = useState<string | null>(null);
+  const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<
+    Record<string, { success: boolean; message: string }>
+  >({});
 
   const loadKeys = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const resp = await fetchVisionKeys()
-      setKeys(resp.data || {})
+      const resp = await fetchVisionKeys();
+      setKeys(resp.data || {});
     } catch (err) {
-      notify('error', `Failed to load API keys: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      notify(
+        "error",
+        `Failed to load API keys: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [notify])
+  }, [notify]);
 
   useEffect(() => {
-    loadKeys()
-  }, [loadKeys])
+    loadKeys();
+  }, [loadKeys]);
 
   const handleSave = async (providerId: string) => {
-    const edit = editing[providerId]
+    const edit = editing[providerId];
     if (!edit?.apiKey?.trim()) {
-      notify('error', 'Please enter an API key')
-      return
+      notify("error", "Please enter an API key");
+      return;
     }
-    setSavingProvider(providerId)
+    setSavingProvider(providerId);
     try {
       await saveVisionKey(
         providerId,
         edit.apiKey.trim(),
         edit.baseUrl.trim() || undefined,
         edit.modelName.trim() || undefined,
-        true
-      )
-      notify('success', `${providerId} API key saved (encrypted)`)
-      setEditing(prev => {
-        const next = { ...prev }
-        delete next[providerId]
-        return next
-      })
-      setTestResults(prev => {
-        const next = { ...prev }
-        delete next[providerId]
-        return next
-      })
-      await loadKeys()
+        true,
+      );
+      notify("success", `${providerId} API key saved (encrypted)`);
+      setEditing((prev) => {
+        const next = { ...prev };
+        delete next[providerId];
+        return next;
+      });
+      setTestResults((prev) => {
+        const next = { ...prev };
+        delete next[providerId];
+        return next;
+      });
+      await loadKeys();
     } catch (err) {
-      notify('error', `Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      notify("error", `Failed to save: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
-      setSavingProvider(null)
+      setSavingProvider(null);
     }
-  }
+  };
 
   const handleDelete = async (providerId: string) => {
-    if (!confirm(`Delete the ${providerId} API key? This cannot be undone.`)) return
+    if (!confirm(`Delete the ${providerId} API key? This cannot be undone.`)) return;
     try {
-      await deleteVisionKey(providerId)
-      notify('info', `${providerId} API key deleted`)
-      setTestResults(prev => {
-        const next = { ...prev }
-        delete next[providerId]
-        return next
-      })
-      await loadKeys()
+      await deleteVisionKey(providerId);
+      notify("info", `${providerId} API key deleted`);
+      setTestResults((prev) => {
+        const next = { ...prev };
+        delete next[providerId];
+        return next;
+      });
+      await loadKeys();
     } catch (err) {
-      notify('error', `Failed to delete: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      notify("error", `Failed to delete: ${err instanceof Error ? err.message : "Unknown error"}`);
     }
-  }
+  };
 
   const handleTest = async (providerId: string) => {
-    setTestingProvider(providerId)
-    setTestResults(prev => ({ ...prev, [providerId]: { success: false, message: 'Testing...' } }))
+    setTestingProvider(providerId);
+    setTestResults((prev) => ({
+      ...prev,
+      [providerId]: { success: false, message: "Testing..." },
+    }));
     try {
-      const resp = await testVisionKey(providerId)
-      const result = resp.data
-      setTestResults(prev => ({
+      const resp = await testVisionKey(providerId);
+      const result = resp.data;
+      setTestResults((prev) => ({
         ...prev,
         [providerId]: { success: result.success, message: result.message },
-      }))
+      }));
       if (result.success) {
-        notify('success', `${providerId} key is valid!`)
+        notify("success", `${providerId} key is valid!`);
       } else {
-        notify('warning', `${providerId} key test failed: ${result.message}`)
+        notify("warning", `${providerId} key test failed: ${result.message}`);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      setTestResults(prev => ({ ...prev, [providerId]: { success: false, message: msg } }))
-      notify('error', `Test failed: ${msg}`)
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setTestResults((prev) => ({ ...prev, [providerId]: { success: false, message: msg } }));
+      notify("error", `Test failed: ${msg}`);
     } finally {
-      setTestingProvider(null)
+      setTestingProvider(null);
     }
-  }
+  };
 
   const startEditing = (providerId: string, existing?: VisionKeyConfig) => {
-    setEditing(prev => ({
+    setEditing((prev) => ({
       ...prev,
       [providerId]: {
-        apiKey: '',
-        baseUrl: existing?.base_url || VISION_PROVIDERS.find(p => p.id === providerId)?.defaultBaseUrl || '',
-        modelName: existing?.model_name || VISION_PROVIDERS.find(p => p.id === providerId)?.defaultModel || '',
+        apiKey: "",
+        baseUrl:
+          existing?.base_url ||
+          VISION_PROVIDERS.find((p) => p.id === providerId)?.defaultBaseUrl ||
+          "",
+        modelName:
+          existing?.model_name ||
+          VISION_PROVIDERS.find((p) => p.id === providerId)?.defaultModel ||
+          "",
       },
-    }))
-  }
+    }));
+  };
 
   const cancelEditing = (providerId: string) => {
-    setEditing(prev => {
-      const next = { ...prev }
-      delete next[providerId]
-      return next
-    })
-  }
+    setEditing((prev) => {
+      const next = { ...prev };
+      delete next[providerId];
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -1883,7 +2326,7 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
         <span className="ml-3 text-[var(--text-muted)]">Loading API keys...</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -1900,24 +2343,36 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
             <div className="text-sm text-[var(--text-secondary)]">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>Keys are <strong>optional</strong> — the CUA Loop works without them (falls back to OpenCV)</li>
-                <li>Keys are <strong>encrypted</strong> with AES-256 before storage</li>
-                <li>Keys <strong>override</strong> server-side env vars when set</li>
-                <li>Keys are <strong>masked</strong> in the UI (sk-***...***) — never shown in plaintext</li>
-                <li>You can enter keys <strong>anytime</strong> — changes take effect immediately</li>
+                <li>
+                  Keys are <strong>optional</strong> — the CUA Loop works without them (falls back
+                  to OpenCV)
+                </li>
+                <li>
+                  Keys are <strong>encrypted</strong> with AES-256 before storage
+                </li>
+                <li>
+                  Keys <strong>override</strong> server-side env vars when set
+                </li>
+                <li>
+                  Keys are <strong>masked</strong> in the UI (sk-***...***) — never shown in
+                  plaintext
+                </li>
+                <li>
+                  You can enter keys <strong>anytime</strong> — changes take effect immediately
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </Card>
 
-      {VISION_PROVIDERS.map(provider => {
-        const existing = keys[provider.id]
-        const isEditing = !!editing[provider.id]
-        const edit = editing[provider.id]
-        const testResult = testResults[provider.id]
-        const isSaving = savingProvider === provider.id
-        const isTesting = testingProvider === provider.id
+      {VISION_PROVIDERS.map((provider) => {
+        const existing = keys[provider.id];
+        const isEditing = !!editing[provider.id];
+        const edit = editing[provider.id];
+        const testResult = testResults[provider.id];
+        const isSaving = savingProvider === provider.id;
+        const isTesting = testingProvider === provider.id;
 
         return (
           <Card key={provider.id} padding="md">
@@ -1967,12 +2422,18 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
                   </div>
 
                   {testResult && (
-                    <div className={`flex items-center gap-2 p-2 rounded-md text-sm ${
-                      testResult.success
-                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                    }`}>
-                      {testResult.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-md text-sm ${
+                        testResult.success
+                          ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                          : "bg-red-500/10 text-red-400 border border-red-500/20"
+                      }`}
+                    >
+                      {testResult.success ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <XCircle className="w-4 h-4" />
+                      )}
                       <span className="truncate">{testResult.message}</span>
                     </div>
                   )}
@@ -1985,7 +2446,7 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
                       onClick={() => handleTest(provider.id)}
                       disabled={isTesting}
                     >
-                      {isTesting ? 'Testing...' : 'Test'}
+                      {isTesting ? "Testing..." : "Test"}
                     </Button>
                     <Button
                       variant="ghost"
@@ -2019,15 +2480,22 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
               {(isEditing || !existing) && edit && (
                 <div className="space-y-3">
                   <div>
-                    <label htmlFor={`vision-${provider.id}-key`} className="text-xs text-[var(--text-muted)] mb-1 block">API Key</label>
+                    <label
+                      htmlFor={`vision-${provider.id}-key`}
+                      className="text-xs text-[var(--text-muted)] mb-1 block"
+                    >
+                      API Key
+                    </label>
                     <input
                       id={`vision-${provider.id}-key`}
                       type="password"
                       value={edit.apiKey}
-                      onChange={e => setEditing(prev => ({
-                        ...prev,
-                        [provider.id]: { ...edit, apiKey: e.target.value }
-                      }))}
+                      onChange={(e) =>
+                        setEditing((prev) => ({
+                          ...prev,
+                          [provider.id]: { ...edit, apiKey: e.target.value },
+                        }))
+                      }
                       placeholder={provider.placeholder}
                       className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
                       autoComplete="off"
@@ -2035,29 +2503,43 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor={`vision-${provider.id}-base`} className="text-xs text-[var(--text-muted)] mb-1 block">Base URL (optional)</label>
+                      <label
+                        htmlFor={`vision-${provider.id}-base`}
+                        className="text-xs text-[var(--text-muted)] mb-1 block"
+                      >
+                        Base URL (optional)
+                      </label>
                       <input
                         id={`vision-${provider.id}-base`}
                         type="text"
                         value={edit.baseUrl}
-                        onChange={e => setEditing(prev => ({
-                          ...prev,
-                          [provider.id]: { ...edit, baseUrl: e.target.value }
-                        }))}
-                        placeholder={provider.defaultBaseUrl || '(default)'}
+                        onChange={(e) =>
+                          setEditing((prev) => ({
+                            ...prev,
+                            [provider.id]: { ...edit, baseUrl: e.target.value },
+                          }))
+                        }
+                        placeholder={provider.defaultBaseUrl || "(default)"}
                         className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
                       />
                     </div>
                     <div>
-                      <label htmlFor={`vision-${provider.id}-model`} className="text-xs text-[var(--text-muted)] mb-1 block">Model (optional)</label>
+                      <label
+                        htmlFor={`vision-${provider.id}-model`}
+                        className="text-xs text-[var(--text-muted)] mb-1 block"
+                      >
+                        Model (optional)
+                      </label>
                       <input
                         id={`vision-${provider.id}-model`}
                         type="text"
                         value={edit.modelName}
-                        onChange={e => setEditing(prev => ({
-                          ...prev,
-                          [provider.id]: { ...edit, modelName: e.target.value }
-                        }))}
+                        onChange={(e) =>
+                          setEditing((prev) => ({
+                            ...prev,
+                            [provider.id]: { ...edit, modelName: e.target.value },
+                          }))
+                        }
                         placeholder={provider.defaultModel}
                         className="w-full px-3 py-2 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent-primary)]"
                       />
@@ -2071,14 +2553,10 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
                       onClick={() => handleSave(provider.id)}
                       disabled={isSaving || !edit.apiKey.trim()}
                     >
-                      {isSaving ? 'Saving...' : 'Save Key'}
+                      {isSaving ? "Saving..." : "Save Key"}
                     </Button>
                     {isEditing && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => cancelEditing(provider.id)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => cancelEditing(provider.id)}>
                         Cancel
                       </Button>
                     )}
@@ -2097,7 +2575,9 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
               {/* No key + not editing → show "Add Key" button */}
               {!existing && !isEditing && (
                 <div className="flex items-center gap-3">
-                  <p className="text-sm text-[var(--text-muted)]">No key configured — using server default or OpenCV fallback</p>
+                  <p className="text-sm text-[var(--text-muted)]">
+                    No key configured — using server default or OpenCV fallback
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -2118,106 +2598,126 @@ function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: st
               )}
             </div>
           </Card>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 export default function Settings() {
-  const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings)
-  const [saving, setSaving] = useState(false)
-  const { notify } = useNotify()
-  const { activeTab, setActiveTab } = useTabState('ai')
+  const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings);
+  const [saving, setSaving] = useState(false);
+  const { notify } = useNotify();
+  const { activeTab, setActiveTab } = useTabState("ai");
 
   const handleSave = () => {
-    setSaving(true)
-    const toStore: Record<string, string> = {}
+    setSaving(true);
+    const toStore: Record<string, string> = {};
     for (const [k, v] of Object.entries(settings)) {
-      toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v
+      toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
     }
-    localStorage.setItem('etap-settings', JSON.stringify(toStore))
+    localStorage.setItem("etap-settings", JSON.stringify(toStore));
     if (settings.API_KEY_SECRET) {
-      localStorage.setItem('etap-api-key', obfuscate(settings.API_KEY_SECRET))
+      localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
     }
     // localStorage.setItem is synchronous — the save is already complete.
     // Show success immediately (no fake setTimeout delay).
-    setSaving(false)
-    notify('success', 'Settings saved successfully')
-  }
+    setSaving(false);
+    notify("success", "Settings saved successfully");
+  };
 
   const handleReset = () => {
-    const d = getDefaults()
-    setSettings(d)
-    localStorage.removeItem('etap-settings')
-    notify('info', 'Settings reset to defaults')
-  }
+    const d = getDefaults();
+    setSettings(d);
+    localStorage.removeItem("etap-settings");
+    notify("info", "Settings reset to defaults");
+  };
 
   const handleExport = () => {
-    const exportData: Record<string, string> = {}
+    const exportData: Record<string, string> = {};
     for (const [k, v] of Object.entries(settings)) {
-      exportData[k] = SECRET_FIELDS.has(k) ? '' : v
+      exportData[k] = SECRET_FIELDS.has(k) ? "" : v;
     }
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = 'etap-settings.json'; a.click()
-    URL.revokeObjectURL(url)
-    notify('success', 'Settings exported (secrets excluded for security)')
-  }
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "etap-settings.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    notify("success", "Settings exported (secrets excluded for security)");
+  };
 
   const handleImport = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json'
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
     input.onchange = async () => {
-      const file = input.files?.[0]
-      if (!file) return
-      const text = await file.text()
+      const file = input.files?.[0];
+      if (!file) return;
+      const text = await file.text();
       try {
-        const parsed = JSON.parse(text)
-        const validation = validateImportedSettings(parsed)
+        const parsed = JSON.parse(text);
+        const validation = validateImportedSettings(parsed);
         if (!validation.valid) {
-          notify('error', `Invalid settings: ${validation.errors.join(', ')}`)
-          return
+          notify("error", `Invalid settings: ${validation.errors.join(", ")}`);
+          return;
         }
-        setSettings(prev => ({ ...prev, ...parsed }))
-        notify('success', 'Settings imported (secrets must be re-entered)')
+        setSettings((prev) => ({ ...prev, ...parsed }));
+        notify("success", "Settings imported (secrets must be re-entered)");
       } catch {
-        notify('error', 'Invalid settings file format')
+        notify("error", "Invalid settings file format");
       }
-    }
-    input.click()
-  }
+    };
+    input.click();
+  };
 
   const tabs = Object.entries(TAB_SECTIONS).map(([id, tab]) => ({
     id,
     label: tab.label,
     icon: tab.icon,
-  }))
+  }));
 
-  const currentSections = TAB_SECTIONS[activeTab]?.sections ?? []
+  const currentSections = TAB_SECTIONS[activeTab]?.sections ?? [];
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div className="flex items-center gap-2">
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h2>
           <ContextHelpButton contextId="settings.backend" />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" icon={Upload} onClick={handleImport}>Import</Button>
-          <Button variant="ghost" size="sm" icon={Download} onClick={handleExport}>Export</Button>
-          <Button variant="ghost" size="sm" icon={Trash2} onClick={handleReset} className="text-red-400 hover:text-red-300">
+          <Button variant="ghost" size="sm" icon={Upload} onClick={handleImport}>
+            Import
+          </Button>
+          <Button variant="ghost" size="sm" icon={Download} onClick={handleExport}>
+            Export
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={Trash2}
+            onClick={handleReset}
+            className="text-red-400 hover:text-red-300"
+          >
             Reset
           </Button>
           <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? "Saving..." : "Save"}
           </Button>
         </div>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </motion.div>
 
@@ -2228,39 +2728,37 @@ export default function Settings() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'ai' ? (
-            <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === 'mcp' ? (
-            <MCPSettingsPanel />
-          ) : activeTab === 'external' ? (
-            <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />
-          ) : activeTab === 'vision' ? (
-            <VisionApiKeysPanel notify={notify} />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {currentSections.map(section => (
+          {(() => {
+            if (activeTab === "ai") return <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "mcp") return <MCPSettingsPanel />;
+            if (activeTab === "external") return <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
+            return (
+            <>
+              {currentSections.map((section) => (
                 <Card key={section.title} padding="md">
                   <CardHeader
                     title={section.title}
-                    subtitle={`${section.fields.length} field${section.fields.length === 1 ? '' : 's'}`}
+                    subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
                     icon={TAB_SECTIONS[activeTab]?.icon}
                   />
                   <div className="space-y-4">
-                    {section.fields.map(field => (
+                    {section.fields.map((field) => (
                       <SettingsField
                         key={field}
                         field={field}
-                        value={settings[field] || ''}
-                        onChange={(v) => setSettings(p => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
+                        value={settings[field] || ""}
+                        onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
                       />
                     ))}
                   </div>
                 </Card>
               ))}
-            </div>
-          )}
+            </>
+          );
+          })()}
         </motion.div>
       </TabPanels>
     </div>
-  )
+  );
 }

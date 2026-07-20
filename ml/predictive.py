@@ -28,7 +28,7 @@ from __future__ import annotations
 import contextlib
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 
@@ -549,23 +549,17 @@ class FaultPredictor:
             if self._optimize:
                 best_params = self._optimize_rf(features, labels)
 
-            self.model = RandomForestClassifier(
-                **(
-                    best_params
-                    if best_params
-                    else {
-                        "n_estimators": 100,
-                        "max_depth": 10,
-                        # SonarCloud python:S6973 + S6709: explicit values for
-                        # min_samples_leaf and max_features (recommended), and
-                        # an explicit random_state seed for reproducibility.
-                        "min_samples_leaf": 1,
-                        "max_features": "sqrt",
-                        "random_state": 42,
-                        "n_jobs": -1,
-                    }
-                ),
-            )
+            if best_params:
+                self.model = RandomForestClassifier(**best_params)
+            else:
+                self.model = RandomForestClassifier(
+                    n_estimators=100,
+                    max_depth=10,
+                    min_samples_leaf=1,
+                    max_features='sqrt',
+                    random_state=42,
+                    n_jobs=-1,
+                )
             self.model.fit(features, labels)
             method = "random_forest"
 

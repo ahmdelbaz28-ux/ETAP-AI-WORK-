@@ -11,7 +11,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,18 +27,25 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
-from api.rbac import router as rbac_router
-from api.equipment import router as equipment_router
-from api.notifications import router as notifications_router, notification_websocket_endpoint
-from api.study_versions import router as study_versions_router
-from api.templates import router as templates_router
-from api.export import router as export_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.data_import import router as data_import_router
+from api.email_dashboard import router as email_dashboard_router
+from api.email_digest import router as email_digest_router
+from api.email_otp import router as email_otp_router
+from api.email_webhooks import router as email_webhooks_router
+from api.equipment import router as equipment_router
+from api.export import router as export_router
 from api.health import router as health_router
+from api.magic_links import router as magic_links_router
+from api.notifications import notification_websocket_endpoint
+from api.notifications import router as notifications_router
 from api.projects import router as projects_router
+from api.rbac import router as rbac_router
+from api.settings import router as settings_router
 from api.studies import router as studies_router
+from api.study_versions import router as study_versions_router
+from api.templates import router as templates_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from core.bootstrap import lifespan, logger
@@ -372,7 +379,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
             "submitted_at": str(time.time()),
         }
     except Exception as e:
-        logger.error("Error submitting async study: %s", e, exc_info=True)
+        logger.exception("Error submitting async study: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
@@ -404,7 +411,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
         return response
     except Exception as e:
-        logger.error("Error getting task status: %s", e, exc_info=True)
+        logger.exception("Error getting task status: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
 
 
@@ -523,7 +530,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     import traceback
 
     # Log the full exception details server-side
-    logger.error(
+    logger.exception(
         f"Unhandled exception in {request.method} {request.url.path}: {str(exc)}",
         extra={
             "trace_id": getattr(request.state, "trace_id", "unknown"),
@@ -562,14 +569,22 @@ app.include_router(notifications_router)
 app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
+app.include_router(settings_router)
+# ─── Resend email integration routers ─────────────────────────────────────
+app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)     # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/notifications")
 async def websocket_notifications_handler(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time notifications."""
-    from api.dependencies import get_current_user_from_header, JWT_SECRET_KEY, JWT_ALGORITHM
-    from api.database import get_db
     import jwt
+
+    from api.database import get_db
+    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     # Authenticate via token in query params (since WebSocket headers are limited)
     token = websocket.query_params.get("token", "")
@@ -589,8 +604,9 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 
     # Get user from database
     async with get_db() as db:
-        from api.auth import User
         from sqlalchemy import select
+
+        from api.auth import User
 
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()

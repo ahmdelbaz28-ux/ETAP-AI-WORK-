@@ -1,12 +1,11 @@
 """Shared utilities for skill-creator scripts."""
 
 from pathlib import Path
-
+from typing import Optional, Union
 
 
 def parse_skill_md(skill_path: Path) -> tuple[str, str, str]:
     """Parse a SKILL.md file, returning (name, description, full_content)."""
-from typing import Optional, Union
     content = (skill_path / "SKILL.md").read_text()
     lines = content.split("\n")
 

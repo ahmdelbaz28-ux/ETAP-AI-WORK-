@@ -17,30 +17,31 @@
  * complexity under 15 (SonarCloud S3776).
  */
 function parseProxyRequest(req, res) {
-  const { endpoint, apiKey, body, headers: customHeaders, stream } = req.body || {}
+  const { endpoint, apiKey, body, headers: customHeaders, stream } = req.body || {};
 
   if (!endpoint || !apiKey || !body) {
     res.status(400).json({
-      error: 'Missing required fields: endpoint, apiKey, body',
-    })
-    return null
+      error: "Missing required fields: endpoint, apiKey, body",
+    });
+    return null;
   }
 
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...customHeaders,
-  }
+  };
 
-  if (!headers['Authorization'] && !headers['authorization']) {
-    headers['Authorization'] = `Bearer ${apiKey}`
+  if (!headers.Authorization && !headers.authorization) {
+    headers.Authorization = `Bearer ${apiKey}`;
   }
 
   // Add stream: true to the body if streaming is requested
-  const requestBody = typeof body === 'string'
-    ? body
-    : JSON.stringify({ ...body, stream: stream ? true : undefined })
+  const requestBody =
+    typeof body === "string"
+      ? body
+      : JSON.stringify({ ...body, stream: stream ? true : undefined });
 
-  return { endpoint, apiKey, headers, requestBody, stream: !!stream }
+  return { endpoint, apiKey, headers, requestBody, stream: !!stream };
 }
 
 /**
@@ -48,42 +49,44 @@ function parseProxyRequest(req, res) {
  * Extracted from `handler` to reduce cognitive complexity (SonarCloud S3776).
  */
 async function handleStreamingMode(res, endpoint, headers, requestBody) {
-  res.setHeader('Content-Type', 'text/event-stream')
-  res.setHeader('Cache-Control', 'no-cache')
-  res.setHeader('Connection', 'keep-alive')
-  res.setHeader('X-Accel-Buffering', 'no') // Disable Nginx buffering
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering
 
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: requestBody,
-  })
+  });
 
   if (!response.ok) {
-    const errorText = await response.text()
-    res.write(`data: ${JSON.stringify({ error: true, status: response.status, message: errorText.slice(0, 500) })}\n\n`)
-    res.end()
-    return
+    const errorText = await response.text();
+    res.write(
+      `data: ${JSON.stringify({ error: true, status: response.status, message: errorText.slice(0, 500) })}\n\n`,
+    );
+    res.end();
+    return;
   }
 
   // Pipe the stream through
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
 
   try {
     while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      const chunk = decoder.decode(value, { stream: true })
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
       // Forward each SSE chunk
-      res.write(chunk)
+      res.write(chunk);
     }
-  } catch (_streamErr) {  // NOSONAR — javascript:S2486: intentional empty catch — client disconnects are expected during SSE streaming
-    // Client disconnected or stream error — best-effort, nothing to do.
+  } catch (_streamErr) {
+    console.warn("SSE stream error (client may have disconnected):", _streamErr instanceof Error ? _streamErr.message : String(_streamErr));
   }
 
-  res.write('data: [DONE]\n\n')
-  res.end()
+  res.write("data: [DONE]\n\n");
+  res.end();
 }
 
 /**
@@ -92,53 +95,53 @@ async function handleStreamingMode(res, endpoint, headers, requestBody) {
  */
 async function handleNonStreamingMode(res, endpoint, headers, requestBody) {
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: requestBody,
-  })
+  });
 
-  const responseText = await response.text()
+  const responseText = await response.text();
 
-  let responseData
+  let responseData;
   try {
-    responseData = JSON.parse(responseText)
+    responseData = JSON.parse(responseText);
   } catch {
-    responseData = { raw: responseText }
+    responseData = { raw: responseText };
   }
 
-  res.status(response.status).json(responseData)
+  res.status(response.status).json(responseData);
 }
 
 export default async function handler(req, res) {
   // CORS preflight + method gate
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const parsed = parseProxyRequest(req, res)
-    if (!parsed) return // parseProxyRequest already sent the error response
+    const parsed = parseProxyRequest(req, res);
+    if (!parsed) return; // parseProxyRequest already sent the error response
 
-    const { endpoint, headers, requestBody, stream } = parsed
+    const { endpoint, headers, requestBody, stream } = parsed;
 
     if (stream) {
-      await handleStreamingMode(res, endpoint, headers, requestBody)
-      return
+      await handleStreamingMode(res, endpoint, headers, requestBody);
+      return;
     }
 
-    await handleNonStreamingMode(res, endpoint, headers, requestBody)
+    await handleNonStreamingMode(res, endpoint, headers, requestBody);
   } catch (err) {
-    console.error('LLM Proxy error:', err)
+    console.error("LLM Proxy error:", err);
     return res.status(500).json({
-      error: 'Proxy request failed',
+      error: "Proxy request failed",
       message: err.message,
-    })
+    });
   }
 }

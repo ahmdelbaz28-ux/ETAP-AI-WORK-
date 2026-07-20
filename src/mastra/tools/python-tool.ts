@@ -23,14 +23,22 @@ export const run_python = createTool({
         timeoutMs: PYTHON_TIMEOUT_MS,
       });
 
+      const stdoutStream = child.stdout;
+      const stderrStream = child.stderr;
+
+      if (!stdoutStream || !stderrStream) {
+        reject(new Error('Failed to get stdio streams from secure executor'));
+        return;
+      }
+
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data: Buffer) => {
+      stdoutStream.on('data', (data: Buffer) => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data: Buffer) => {
+      stderrStream.on('data', (data: Buffer) => {
         stderr += data.toString();
       });
 
@@ -66,8 +74,13 @@ export const run_python = createTool({
       });
 
       // Pass code via stdin instead of CLI arguments (prevents shell injection)
-      child.stdin.write(code);
-      child.stdin.end();
+      const stdinStream = child.stdin;
+      if (stdinStream) {
+        stdinStream.write(code);
+        stdinStream.end();
+      } else {
+        reject(new Error('Failed to get stdin stream from secure executor'));
+      }
     });
   }
 });

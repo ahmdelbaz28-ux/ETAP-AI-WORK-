@@ -14,7 +14,7 @@ import pathlib
 import sys
 import urllib.error
 import urllib.request
-from typing import Any, Callable, Optional, Tuple, Union
+
 
 REQUEST_TIMEOUT = 60
 CONFIG_PATHS = [
@@ -59,7 +59,7 @@ ACTIONS: dict[str, dict[str, Any]] = {
             ("--author", "author", "str", "Author name"),
             ("--org", "org", "str", "Organization name"),
             ("--venue", "venue", "str", "Venue name"),
-            ("--order", "order", "str", "Sort: Union[citation, year"]),
+            ("--order", "order", "str", 'Sort: Union[citation, year]'),
             ("--page", "page", "int", "Page number, default 0"),
             ("--size", "size", "int", "Page size, default 10"),
         ],

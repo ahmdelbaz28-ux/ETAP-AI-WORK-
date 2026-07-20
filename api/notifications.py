@@ -19,29 +19,34 @@ Exposes endpoints under the ``/api/v1/notifications`` prefix:
 
 from __future__ import annotations
 
-import json
+import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
-UTC = timezone.utc
-
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
-    Boolean, DateTime, Integer, String, Text, JSON,
-    select, func, and_, desc,
+    JSON,
+    Boolean,
+    DateTime,
+    String,
+    Text,
+    and_,
+    desc,
+    func,
+    select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base, get_db
+from api.database import Base
 from api.dependencies import (
     CurrentUser,
+    PaginationParams,
     get_current_user_from_header,
     pagination_params,
-    PaginationParams,
 )
 from api.rbac import require_permission
 
@@ -57,7 +62,7 @@ DbDep = Any
 # ---------------------------------------------------------------------------
 
 
-class NotificationType(str, Enum):
+class NotificationType(str, Enum):  # noqa: UP042 — StrEnum not used for backward compat with <3.11
     """Supported notification types."""
     STUDY_COMPLETED = "study_completed"
     STUDY_FAILED = "study_failed"
@@ -75,7 +80,7 @@ class NotificationType(str, Enum):
     ERROR_ALERT = "error_alert"
 
 
-class NotificationPriority(str, Enum):
+class NotificationPriority(str, Enum):  # noqa: UP042 — StrEnum not used for backward compat with <3.11
     """Notification priority levels."""
     LOW = "low"
     NORMAL = "normal"
@@ -257,6 +262,56 @@ async def create_notification(
         "created_at": notification.created_at.isoformat() if notification.created_at else None,
     }
     await notification_manager.send_notification(user_id, notification_data)
+
+    # Send via email if flagged AND Resend is configured (additive, best-effort)
+    if requires_email and os.getenv("RESEND_NOTIFICATION_EMAILS_ENABLED", "true").lower() == "true":
+        try:
+            from services.email_send_log import log_email_send
+            from services.email_service import send_notification_email
+
+            # Look up user's email — try a couple of common import paths
+            user_email = None
+            user_name = None
+            try:
+                # api/auth.py defines User ORM model
+                from api.auth import User
+                result = await db.execute(
+                    select(User).where(User.id == user_id)
+                )
+                user_obj = result.scalar_one_or_none()
+                if user_obj is not None:
+                    user_email = getattr(user_obj, "email", None)
+                    user_name = getattr(user_obj, "full_name", None) or getattr(user_obj, "username", None)
+            except Exception:
+                pass  # User model lookup is best-effort
+
+            if user_email:
+                result_email = await send_notification_email(
+                    email=user_email,
+                    title=title,
+                    message=message,
+                    priority=priority,
+                    user_name=user_name,
+                )
+                # Update notification + log to dashboard
+                notification.email_sent = result_email.success
+                await db.flush()
+                await log_email_send(
+                    recipient=user_email,
+                    subject=f"[AhmedETAP] {title}",
+                    flow="notification",
+                    success=result_email.success,
+                    message_id=result_email.message_id,
+                    error=result_email.error,
+                    status_code=result_email.status_code,
+                    elapsed_ms=result_email.elapsed_ms,
+                )
+        except Exception as exc:
+            # Notification itself is still delivered via WebSocket; email is best-effort
+            import logging
+            logging.getLogger("etap.notifications").warning(
+                "notification_email_failed user=%s err=%s", user_id, exc
+            )
 
     return notification
 

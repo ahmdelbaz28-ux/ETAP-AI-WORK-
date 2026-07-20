@@ -39,10 +39,12 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional
+
+import fastapi
 
 try:
-    from typing import Annotated, Optional, Union
+    from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 
@@ -222,7 +224,7 @@ async def activate_key(
     )
 
 @router.post("/keys/{provider}/test")
-async def test_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Test an API key by making a minimal API call.
 
     For OpenAI: lists models
@@ -236,16 +238,37 @@ async def test_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — 
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
 
-    config = api_key_store.get_key(provider)
-    if not config:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "success": False,
-                "error": "key_not_found",
-                "message": f"No key stored for provider '{provider}'. Save a key first.",
-            },
-        )
+    inline_config = None
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            from services.api_key_store import APIKeyConfig
+            inline_api_key = body.get("api_key")
+            if isinstance(inline_api_key, str) and inline_api_key.strip():
+                inline_config = APIKeyConfig(
+                    provider=provider,
+                    api_key=inline_api_key.strip(),
+                    base_url=body.get("base_url"),
+                    model_name=body.get("model_name"),
+                    is_active=True,
+                )
+    except Exception:
+        inline_config = None
+
+    if inline_config is not None:
+        config = inline_config
+    else:
+        config = api_key_store.get_key(provider)
+        if not config:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "key_not_found",
+                    "message": f"No key stored for provider '{provider}'. Save a key first.",
+                },
+            )
+
 
     # Test the key by making a minimal API call
     try:

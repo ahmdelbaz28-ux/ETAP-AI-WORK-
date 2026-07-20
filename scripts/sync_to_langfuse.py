@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 Upload all prompts from the prompts/ directory to Langfuse Cloud.

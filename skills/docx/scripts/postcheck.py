@@ -25,7 +25,7 @@ Checks:
   14. Document cleanliness — whether placeholder text, Markdown syntax, or draft expressions remain
   15. Report content quality — whether summary exists, whether titles are specific, whether vague conclusions are used
 """
-from typing import Optional, Union
+
 
 import zipfile
 import sys

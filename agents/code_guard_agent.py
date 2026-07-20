@@ -10,6 +10,8 @@ Adapted from: github.com/amElnagdy/guard-skills
 Integration point: agents/orchestrator.py → ChiefEngineeringOrchestrator
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from typing import Any
@@ -132,7 +134,7 @@ class CodeGuardAgent(BaseAgent):
 
         except Exception as e:
             self.status = AgentStatus.FAILED
-            self.logger.error.exception("Code guard review failed: ")
+            self.logger.exception("Code guard review failed: ")
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,

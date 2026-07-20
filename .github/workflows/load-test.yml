@@ -5,14 +5,11 @@
 name: Load & Stress Tests
 
 on:
-  # Run after the main CI pipeline succeeds
+  # Run after the main CI pipeline succeeds (avoids duplicate triggers
+  # with the push event — pushes already trigger CI/CD which fans out)
   workflow_run:
     workflows: ["AhmedETAP CI/CD"]
     types: [completed]
-    branches: [main, staging]
-
-  # Trigger on push to main / staging directly (for quick iteration)
-  push:
     branches: [main, staging]
 
   # Manual dispatch with configurable parameters
@@ -80,7 +77,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -88,11 +85,184 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-- name: Install Python dependencies
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install --only-binary :all: -r requirements.txt
-          pip install --only-binary :all: locust==${{ env.LOCUST_VERSION }}
+          pip install -r requirements.txt
+
+      # ── Start the engineering service ──────────────────────────────────────
+      - name: Start engineering service in background
+        run: |
+          python engineering_service.py &
+          echo "Engineering service starting on ${{ env.BASE_URL }} ..."
+        env:
+          ENGINEERING_SERVICE_AUTH_DISABLED: "true"
+          ENVIRONMENT: testing
+          REDIS_URL: redis://localhost:6379/0
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+
+      - name: Wait for health check
+        run: |
+          echo "Waiting for service to become healthy..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -sf -o /dev/null -w "%{http_code}" ${{ env.BASE_URL }}/health 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Service is healthy (attempt $i)"
+              exit 0
+            fi
+            echo "  Attempt $i/30 — status: $STATUS, retrying in 2s..."
+            sleep 2
+          done
+          echo "❌ Service did not become healthy in 60 seconds"
+          exit 1
+
+      # ── Install and run k6 ─────────────────────────────────────────────────
+      - name: Install k6
+        run: |
+          curl -sfL https://github.com/grafana/k6/releases/download/v${{ env.K6_VERSION }}/k6-v${{ env.K6_VERSION }}-linux-amd64.tar.gz | tar -xz
+          sudo mv k6-*/k6 /usr/local/bin/k6
+          k6 version
+
+      - name: Run k6 load test
+        run: |
+          mkdir -p load-test-results/k6
+
+          # SECURITY: pass user-controlled inputs via env vars (not GitHub Actions expression interpolation)
+          # to prevent shell injection from malicious workflow_dispatch inputs
+          k6 run \
+            --out json=load-test-results/k6/summary.json \
+            --env BASE_URL="$K6_BASE_URL" \
+            --env K6_VUS="$K6_VUS" \
+            --env K6_DURATION="$K6_DURATION" \
+            --summary-export=load-test-results/k6/summary-export.json \
+            k6-load-test.js 2>&1 | tee load-test-results/k6/console-output.txt
+        env:
+          K6_BASE_URL: ${{ env.BASE_URL }}
+          K6_VUS: ${{ github.event.inputs.k6_vus || '100' }}
+          K6_DURATION: ${{ github.event.inputs.k6_duration || '2m' }}
+
+      - name: Parse k6 results
+        if: always()
+        run: |
+          python - <<'PYEOF'
+          import json, os, sys
+
+          summary_path = "load-test-results/k6/summary-export.json"
+          if not os.path.exists(summary_path):
+              print("⚠️  k6 summary file not found — skipping result parsing")
+              sys.exit(0)
+
+          with open(summary_path) as f:
+              data = json.load(f)
+
+          # Extract key metrics
+          root_metrics = data.get("metrics", {})
+          http_duration = root_metrics.get("http_req_duration", {}).get("values", {})
+          p95 = http_duration.get("p(95)", "N/A")
+          p99 = http_duration.get("p(99)", "N/A")
+          avg = http_duration.get("avg", "N/A")
+
+          errors_metric = root_metrics.get("errors", {}).get("values", {})
+          error_rate = errors_metric.get("rate", "N/A")
+
+          iterations = root_metrics.get("iterations", {}).get("values", {}).get("count", "N/A")
+          reqs = root_metrics.get("http_reqs", {}).get("values", {}).get("count", "N/A")
+
+          # Check threshold results
+          threshold_results = {}
+          for metric_name, metric_data in root_metrics.items():
+              thresholds = metric_data.get("thresholds", {})
+              for t_name, t_data in thresholds.items():
+                  threshold_results[f"{metric_name}: {t_name}"] = t_data.get("ok", None)
+
+          # Build summary
+          print("\n" + "=" * 60)
+          print("  k6 LOAD TEST RESULTS")
+          print("=" * 60)
+          print(f"  Requests:        {reqs}")
+          print(f"  Iterations:      {iterations}")
+          print(f"  Avg Duration:    {avg} ms")
+          print(f"  P95 Duration:    {p95} ms")
+          print(f"  P99 Duration:    {p99} ms")
+          print(f"  Error Rate:      {error_rate}")
+          print()
+          print("  Threshold Results:")
+          all_passed = True
+          for name, ok in threshold_results.items():
+              status = "✅ PASS" if ok else "❌ FAIL"
+              if not ok:
+                  all_passed = False
+              print(f"    {status}  {name}")
+          print("=" * 60)
+
+          # Write parsed results for downstream steps
+          parsed = {
+              "p95_ms": p95,
+              "p99_ms": p99,
+              "avg_ms": avg,
+              "error_rate": error_rate,
+              "requests": reqs,
+              "iterations": iterations,
+              "thresholds_passed": all_passed,
+              "threshold_results": threshold_results,
+          }
+          with open("load-test-results/k6/parsed-results.json", "w") as f:
+              json.dump(parsed, f, indent=2)
+
+          if not all_passed:
+              print("\n❌ k6 threshold checks FAILED")
+              sys.exit(1)
+          else:
+              print("\n✅ All k6 threshold checks PASSED")
+          PYEOF
+
+      - name: Upload k6 results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test-results-${{ github.sha }}
+          path: load-test-results/k6/
+          retention-days: 30
+
+      - name: Stop engineering service
+        if: always()
+        run: |
+          pkill -f "engineering_service.py" 2>/dev/null || true
+
+  # ── 2. LOCUST STRESS TEST ──────────────────────────────────────────────────
+  locust-stress-test:
+    name: "🦗 Locust Stress Test"
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install locust==${{ env.LOCUST_VERSION }}
 
       # ── Start the engineering service ──────────────────────────────────────
       - name: Start engineering service in background
@@ -260,14 +430,14 @@ jobs:
 
     steps:
       - name: Download k6 results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: k6-results
         continue-on-error: true
 
       - name: Download Locust results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: locust-stress-test-results-${{ github.sha }}
           path: locust-results

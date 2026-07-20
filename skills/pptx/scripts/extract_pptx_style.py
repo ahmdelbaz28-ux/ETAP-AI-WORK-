@@ -15,7 +15,7 @@ The script imitates the pptx's palette / typography so downstream slide
 generation can stay faithful to the reference deck. No external deps —
 uses zipfile + xml.etree only.
 """
-from typing import Optional, Union
+
 from __future__ import annotations
 
 import argparse

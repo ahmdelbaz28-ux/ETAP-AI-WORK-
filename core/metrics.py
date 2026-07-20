@@ -16,6 +16,9 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
+from fastapi import (
+    Request,  # noqa: F401 — required for decorator-wrapped endpoint annotation resolution
+)
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     REGISTRY,
@@ -163,6 +166,25 @@ ACTIVE_CONNECTIONS = Gauge(
 # ---------------------------------------------------------------------------
 
 
+def _wrap_with_original_globals(wrapper: Callable, original: Callable) -> Callable:
+    """Ensure *wrapper* can resolve annotations from *original*'s module.
+
+    Decorators defined in one module (e.g. ``core/metrics.py``) wrap endpoint
+    functions defined in another module (e.g. ``api/studies.py``).  Because
+    FastAPI/Pydantic resolve string annotations using the *wrapper* function's
+    ``__globals__``, types imported only in the *original* module (such as
+    ``fastapi.Request`` or ``core_model.specs.StudyRequest``) would otherwise
+    be unresolved, breaking OpenAPI schema generation.
+
+    We mutate the wrapper's ``__globals__`` in-place so that the wrapper
+    retains access to both its own module globals (e.g. Prometheus metrics)
+    and the original function's module globals (e.g. Pydantic models).
+    """
+    wrapper.__globals__.update(original.__globals__)  # type: ignore[attr-defined]
+    wrapper.__wrapped__ = original
+    return wrapper
+
+
 def track_skill_operation(operation: str) -> Callable:
     """Instrument a function with in-flight gauge + result counter.
 
@@ -194,7 +216,7 @@ def track_skill_operation(operation: str) -> Callable:
                 finally:
                     SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
 
-            return async_wrapper
+            return _wrap_with_original_globals(async_wrapper, func)
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -210,7 +232,7 @@ def track_skill_operation(operation: str) -> Callable:
             finally:
                 SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
 
-        return sync_wrapper
+        return _wrap_with_original_globals(sync_wrapper, func)
 
     return decorator
 
@@ -251,7 +273,7 @@ def count_executions(skill_name: str) -> Callable:
                     EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
                     raise
 
-            return async_wrapper
+            return _wrap_with_original_globals(async_wrapper, func)
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -263,7 +285,7 @@ def count_executions(skill_name: str) -> Callable:
                 EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
                 raise
 
-        return sync_wrapper
+        return _wrap_with_original_globals(sync_wrapper, func)
 
     return decorator
 

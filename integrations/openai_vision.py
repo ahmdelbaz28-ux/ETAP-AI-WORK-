@@ -44,14 +44,12 @@ References:
 
 from __future__ import annotations
 
-import base64
-import io
 import json
 import logging
 import os
-import time
-from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
+
+from integrations import _vision_base
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +64,8 @@ except ImportError:
     logger.info("httpx not installed — OpenAI vision will use urllib fallback")
 
 try:
-    from PIL import Image
+    import PIL  # noqa: F401 — used for type checks
+    from PIL import Image  # noqa: F401 — kept for isinstance() checks in callers
 
     PIL_AVAILABLE = True
 except ImportError:
@@ -110,7 +109,7 @@ You MUST respond with valid JSON only (no markdown, no prose). The JSON schema:
 {
   "description": "<one-paragraph summary of the screen>",
   "ui_elements": [
-    {"type": Union["button|menu|input|dialog|text, icon",] "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
+    {"type": "button|menu|input|dialog|text|icon", "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
   ],
   "next_action": {
     "type": Union["click|type|hotkey|wait|done, unknown",]
@@ -244,27 +243,15 @@ class OpenAIVisionClient:
         # Build URL
         url = f"{self.base_url}/chat/completions"
 
-        # Retry loop — first try WITHOUT response_format, then try WITH it
-        last_error: Optional[str] = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self._make_request(url, headers, payload)
-                return self._parse_response(response)
-            except Exception as exc:  # noqa: BLE001
-                last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning(
-                    "OpenAI Vision attempt %d/%d failed: %s",
-                    attempt,
-                    self.max_retries,
-                    last_error,
-                )
-                if attempt < self.max_retries:
-                    time.sleep(RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1)))
-
-        return {
-            "error": "api_error",
-            "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
-        }
+        # Retry loop — delegate to the shared helper (eliminates duplication
+        # with integrations/anthropic_vision.py — SonarCloud S4144).
+        return _vision_base.retry_with_backoff(
+            make_request=lambda: self._make_request(url, headers, payload),
+            parse_response=self._parse_response,
+            max_retries=self.max_retries,
+            backoff_seconds=RETRY_BACKOFF_SECONDS,
+            provider_name="OpenAI Vision",
+        )
 
     def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
@@ -283,41 +270,23 @@ class OpenAIVisionClient:
 
     @staticmethod
     def _to_pil_image(image: Any):
-        """Coerce various image inputs into a PIL.Image.Image."""
-        if not PIL_AVAILABLE:
-            return None
-        try:
-            if isinstance(image, Image.Image):
-                return image
-            if isinstance(image, (bytes, bytearray)):
-                return Image.open(io.BytesIO(image))
-            if isinstance(image, (str, Path)):
-                return Image.open(image)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to convert image: %s", exc)
-        return None
+        """Coerce various image inputs into a PIL.Image.Image.
+
+        Delegates to integrations._vision_base.to_pil_image (shared helper,
+        eliminates duplication with anthropic_vision.py).
+        """
+        return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
     def _image_to_data_url(pil_image) -> Optional[str]:
         """Convert PIL Image to base64 data URL.
 
         Returns: data:image/png;base64,<base64-encoded-png>
-        """
-        try:
-            buffer = io.BytesIO()
-            # Resize if too large (OpenAI has a 20MB limit per image)
-            max_dim = 1568  # OpenAI's recommended max dimension
-            if pil_image.width > max_dim or pil_image.height > max_dim:
-                ratio = max_dim / max(pil_image.width, pil_image.height)
-                new_size = (int(pil_image.width * ratio), int(pil_image.height * ratio))
-                pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
 
-            pil_image.save(buffer, format="PNG")
-            b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
-            return f"data:image/png;base64,{b64}"
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Image encoding failed: %s", exc)
-            return None
+        Delegates to integrations._vision_base.image_to_data_url (shared
+        helper, eliminates duplication with anthropic_vision.py).
+        """
+        return _vision_base.image_to_data_url(pil_image)
 
     @staticmethod
     def _build_user_content(
@@ -387,7 +356,7 @@ class OpenAIVisionClient:
         self, url: str, headers: dict[str, str], payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Fallback: make request using urllib (no external deps)."""
-        import urllib.error
+
         import urllib.request
 
         data = json.dumps(payload).encode("utf-8")

@@ -16,6 +16,8 @@ MANDATORY RULE:
 - If information is not found, explicitly state it
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 

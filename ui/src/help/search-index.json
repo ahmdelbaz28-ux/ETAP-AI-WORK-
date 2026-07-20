@@ -11,13 +11,7 @@
         "en": "Navigate the main dashboard and understand system status",
         "ar": "التنقل في لوحة التحكم الرئيسية وفهم حالة النظام"
       },
-      "tags": [
-        "dashboard",
-        "overview",
-        "home",
-        "لوحة تحكم",
-        "نظرة عامة"
-      ],
+      "tags": ["dashboard", "overview", "home", "لوحة تحكم", "نظرة عامة"],
       "navigateTo": null
     },
     {
@@ -31,14 +25,7 @@
         "en": "Essential keyboard shortcuts for faster workflow",
         "ar": "اختصارات لوحة المفاتيح الأساسية لسرعة العمل"
       },
-      "tags": [
-        "keyboard",
-        "shortcuts",
-        "hotkeys",
-        "keys",
-        "لوحة مفاتيح",
-        "اختصارات"
-      ],
+      "tags": ["keyboard", "shortcuts", "hotkeys", "keys", "لوحة مفاتيح", "اختصارات"],
       "navigateTo": null
     },
     {
@@ -52,15 +39,7 @@
         "en": "Click any element to instantly see its documentation",
         "ar": "انقر على أي عنصر لرؤية شرحه فوراً"
       },
-      "tags": [
-        "magic",
-        "help",
-        "inspector",
-        "inspect",
-        "سحري",
-        "مساعدة",
-        "فحص"
-      ],
+      "tags": ["magic", "help", "inspector", "inspect", "سحري", "مساعدة", "فحص"],
       "navigateTo": null
     },
     {
@@ -74,14 +53,7 @@
         "en": "How to create and configure a new engineering project",
         "ar": "كيفية إنشاء وتكوين مشروع هندسي جديد"
       },
-      "tags": [
-        "project",
-        "create",
-        "new",
-        "مشروع",
-        "إنشاء",
-        "جديد"
-      ],
+      "tags": ["project", "create", "new", "مشروع", "إنشاء", "جديد"],
       "navigateTo": null
     },
     {
@@ -120,13 +92,7 @@
         "en": "All available engineering study types and how to run them",
         "ar": "جميع أنواع الدراسات الهندسية المتاحة وكيفية تشغيلها"
       },
-      "tags": [
-        "studies",
-        "overview",
-        "all",
-        "دراسات",
-        "نظرة عامة"
-      ],
+      "tags": ["studies", "overview", "all", "دراسات", "نظرة عامة"],
       "navigateTo": null
     },
     {
@@ -140,16 +106,7 @@
         "en": "Newton-Raphson power flow analysis per IEEE 3002.7",
         "ar": "تحليل تدفق القدرة بطريقة نيوتن-رافسون حسب IEEE 3002.7"
       },
-      "tags": [
-        "load",
-        "flow",
-        "newton",
-        "raphson",
-        "power",
-        "تدفق",
-        "حمل",
-        "قدرة"
-      ],
+      "tags": ["load", "flow", "newton", "raphson", "power", "تدفق", "حمل", "قدرة"],
       "navigateTo": null
     },
     {
@@ -163,16 +120,7 @@
         "en": "IEC 60909 fault current calculation",
         "ar": "حساب تيار العطل حسب IEC 60909"
       },
-      "tags": [
-        "short",
-        "circuit",
-        "fault",
-        "iec",
-        "60909",
-        "قصر",
-        "دائرة",
-        "عطل"
-      ],
+      "tags": ["short", "circuit", "fault", "iec", "60909", "قصر", "دائرة", "عطل"],
       "navigateTo": null
     },
     {
@@ -186,17 +134,7 @@
         "en": "IEEE 1584-2018 incident energy analysis",
         "ar": "تحليل طاقة الحادث حسب IEEE 1584-2018"
       },
-      "tags": [
-        "arc",
-        "flash",
-        "ieee",
-        "1584",
-        "incident",
-        "energy",
-        "قوس",
-        "شرارة",
-        "حادث"
-      ],
+      "tags": ["arc", "flash", "ieee", "1584", "incident", "energy", "قوس", "شرارة", "حادث"],
       "navigateTo": null
     },
     {
@@ -210,16 +148,7 @@
         "en": "IEC 60255 relay curve coordination",
         "ar": "تنسيق منحنيات المُرحّل IEC 60255"
       },
-      "tags": [
-        "protection",
-        "relay",
-        "coordination",
-        "iec",
-        "60255",
-        "حماية",
-        "مُرحّل",
-        "تنسيق"
-      ],
+      "tags": ["protection", "relay", "coordination", "iec", "60255", "حماية", "مُرحّل", "تنسيق"],
       "navigateTo": null
     },
     {
@@ -233,15 +162,7 @@
         "en": "IEEE 519-2022 distortion study",
         "ar": "دراسة التشوه IEEE 519-2022"
       },
-      "tags": [
-        "harmonic",
-        "thd",
-        "ieee",
-        "519",
-        "distortion",
-        "توافقيات",
-        "تشوه"
-      ],
+      "tags": ["harmonic", "thd", "ieee", "519", "distortion", "توافقيات", "تشوه"],
       "navigateTo": null
     },
     {
@@ -255,16 +176,7 @@
         "en": "IEEE 399 transient analysis",
         "ar": "تحليل عابر IEEE 399"
       },
-      "tags": [
-        "motor",
-        "starting",
-        "ieee",
-        "399",
-        "voltage",
-        "dip",
-        "محرك",
-        "بدء"
-      ],
+      "tags": ["motor", "starting", "ieee", "399", "voltage", "dip", "محرك", "بدء"],
       "navigateTo": null
     },
     {
@@ -278,14 +190,7 @@
         "en": "IEC 60364 current-carrying capacity",
         "ar": "القدرة على حمل التيار IEC 60364"
       },
-      "tags": [
-        "cable",
-        "sizing",
-        "iec",
-        "60364",
-        "كابل",
-        "مقاس"
-      ],
+      "tags": ["cable", "sizing", "iec", "60364", "كابل", "مقاس"],
       "navigateTo": null
     },
     {
@@ -299,15 +204,7 @@
         "en": "IEEE 80 ground grid design",
         "ar": "تصميم شبكة التأريض IEEE 80"
       },
-      "tags": [
-        "earth",
-        "grid",
-        "ground",
-        "ieee",
-        "80",
-        "تأريض",
-        "شبكة"
-      ],
+      "tags": ["earth", "grid", "ground", "ieee", "80", "تأريض", "شبكة"],
       "navigateTo": null
     },
     {
@@ -321,14 +218,7 @@
         "en": "Power system transient stability analysis",
         "ar": "تحليل الاستقرار العابر لنظام القدرة"
       },
-      "tags": [
-        "stability",
-        "transient",
-        "rotor",
-        "angle",
-        "استقرار",
-        "عابر"
-      ],
+      "tags": ["stability", "transient", "rotor", "angle", "استقرار", "عابر"],
       "navigateTo": null
     },
     {
@@ -342,15 +232,7 @@
         "en": "Cost-optimized generation dispatch",
         "ar": "إرسال توليد أمثل للتكلفة"
       },
-      "tags": [
-        "opf",
-        "optimal",
-        "power",
-        "flow",
-        "cost",
-        "أمثل",
-        "تكلفة"
-      ],
+      "tags": ["opf", "optimal", "power", "flow", "cost", "أمثل", "تكلفة"],
       "navigateTo": null
     },
     {
@@ -364,15 +246,7 @@
         "en": "Chat with the ETAP Expert AI agent for engineering guidance",
         "ar": "تحدث مع وكيل ETAP Expert الذكي للحصول على إرشادات هندسية"
       },
-      "tags": [
-        "ai",
-        "assistant",
-        "chat",
-        "agent",
-        "ذكاء",
-        "اصطناعي",
-        "مساعد"
-      ],
+      "tags": ["ai", "assistant", "chat", "agent", "ذكاء", "اصطناعي", "مساعد"],
       "navigateTo": null
     },
     {
@@ -386,13 +260,7 @@
         "en": "Track physical equipment across your power system",
         "ar": "تتبع المعدات الفيزيائية في نظام القدرة"
       },
-      "tags": [
-        "asset",
-        "management",
-        "equipment",
-        "أصول",
-        "معدات"
-      ],
+      "tags": ["asset", "management", "equipment", "أصول", "معدات"],
       "navigateTo": null
     },
     {
@@ -406,14 +274,7 @@
         "en": "Connect to ETAP desktop software for native study execution",
         "ar": "اتصل ببرنامج ETAP المكتبي لتنفيذ الدراسات الأصلية"
       },
-      "tags": [
-        "etap",
-        "integration",
-        "worker",
-        "windows",
-        "تكامل",
-        "عامل"
-      ],
+      "tags": ["etap", "integration", "worker", "windows", "تكامل", "عامل"],
       "navigateTo": null
     },
     {
@@ -427,14 +288,7 @@
         "en": "Connect to ArcGIS / QGIS / PostGIS for geospatial power system data",
         "ar": "اتصل بـ ArcGIS / QGIS / PostGIS لبيانات نظام القدرة الجغرافية"
       },
-      "tags": [
-        "gis",
-        "arcgis",
-        "qgis",
-        "postgis",
-        "geo",
-        "جغرافي"
-      ],
+      "tags": ["gis", "arcgis", "qgis", "postgis", "geo", "جغرافي"],
       "navigateTo": null
     },
     {
@@ -448,15 +302,7 @@
         "en": "How to generate and customize engineering reports",
         "ar": "كيفية إنشاء وتخصيص التقارير الهندسية"
       },
-      "tags": [
-        "report",
-        "generate",
-        "pdf",
-        "compliance",
-        "تقرير",
-        "إنشاء",
-        "امتثال"
-      ],
+      "tags": ["report", "generate", "pdf", "compliance", "تقرير", "إنشاء", "امتثال"],
       "navigateTo": null
     },
     {
@@ -470,15 +316,7 @@
         "en": "Real-time virtual replica of your physical power system",
         "ar": "نسخة افتراضية في الوقت الفعلي من نظام القدرة الفيزيائي"
       },
-      "tags": [
-        "digital",
-        "twin",
-        "sync",
-        "real-time",
-        "توأم",
-        "رقمي",
-        "مزامنة"
-      ],
+      "tags": ["digital", "twin", "sync", "real-time", "توأم", "رقمي", "مزامنة"],
       "navigateTo": null
     },
     {
@@ -492,15 +330,7 @@
         "en": "Configure the engineering service backend connection",
         "ar": "تكوين اتصال خادم الخدمة الهندسية"
       },
-      "tags": [
-        "settings",
-        "backend",
-        "config",
-        "api",
-        "إعدادات",
-        "خادم",
-        "تكوين"
-      ],
+      "tags": ["settings", "backend", "config", "api", "إعدادات", "خادم", "تكوين"],
       "navigateTo": null
     },
     {
@@ -565,15 +395,7 @@
         "en": "AI-powered code review for engineering calculations",
         "ar": "مراجعة أكواد بالذكاء الاصطناعي للحسابات الهندسية"
       },
-      "tags": [
-        "code",
-        "guard",
-        "review",
-        "ai",
-        "كود",
-        "حارس",
-        "مراجعة"
-      ],
+      "tags": ["code", "guard", "review", "ai", "كود", "حارس", "مراجعة"],
       "navigateTo": null
     },
     {
@@ -587,15 +409,7 @@
         "en": "Import engineering data from CSV, JSON, Excel, ETAP files",
         "ar": "استيراد بيانات هندسية من CSV، JSON، Excel، ملفات ETAP"
       },
-      "tags": [
-        "import",
-        "csv",
-        "json",
-        "excel",
-        "data",
-        "استيراد",
-        "بيانات"
-      ],
+      "tags": ["import", "csv", "json", "excel", "data", "استيراد", "بيانات"],
       "navigateTo": null
     },
     {
@@ -609,16 +423,7 @@
         "en": "Export engineering data to CSV, JSON, Excel, PDF",
         "ar": "تصدير بيانات هندسية إلى CSV، JSON، Excel، PDF"
       },
-      "tags": [
-        "export",
-        "csv",
-        "json",
-        "excel",
-        "pdf",
-        "data",
-        "تصدير",
-        "بيانات"
-      ],
+      "tags": ["export", "csv", "json", "excel", "pdf", "data", "تصدير", "بيانات"],
       "navigateTo": null
     },
     {
@@ -632,15 +437,7 @@
         "en": "User management, roles, and system administration",
         "ar": "إدارة المستخدمين والأدوار وإدارة النظام"
       },
-      "tags": [
-        "admin",
-        "user",
-        "management",
-        "role",
-        "إدارة",
-        "مستخدم",
-        "دور"
-      ],
+      "tags": ["admin", "user", "management", "role", "إدارة", "مستخدم", "دور"],
       "navigateTo": null
     },
     {
@@ -654,15 +451,7 @@
         "en": "System health checks, logs, and performance metrics",
         "ar": "فحوصات صحة النظام والسجلات ومقاييس الأداء"
       },
-      "tags": [
-        "diagnostics",
-        "health",
-        "logs",
-        "metrics",
-        "تشخيص",
-        "صحة",
-        "سجلات"
-      ],
+      "tags": ["diagnostics", "health", "logs", "metrics", "تشخيص", "صحة", "سجلات"],
       "navigateTo": null
     },
     {
@@ -676,14 +465,7 @@
         "en": "Real-time application logs with filtering",
         "ar": "سجلات التطبيق المباشرة مع الفلترة"
       },
-      "tags": [
-        "logs",
-        "stream",
-        "filter",
-        "debug",
-        "سجلات",
-        "تصحيح"
-      ],
+      "tags": ["logs", "stream", "filter", "debug", "سجلات", "تصحيح"],
       "navigateTo": null
     },
     {
@@ -697,15 +479,7 @@
         "en": "The engineering service is not responding",
         "ar": "خدمة الخدمة الهندسية لا تستجيب"
       },
-      "tags": [
-        "backend",
-        "unavailable",
-        "error",
-        "connection",
-        "خادم",
-        "غير متاح",
-        "خطأ"
-      ],
+      "tags": ["backend", "unavailable", "error", "connection", "خادم", "غير متاح", "خطأ"],
       "navigateTo": null
     },
     {
@@ -719,18 +493,7 @@
         "en": "Common API error codes and their solutions",
         "ar": "أكواد أخطاء API الشائعة وحلولها"
       },
-      "tags": [
-        "api",
-        "error",
-        "400",
-        "401",
-        "403",
-        "404",
-        "429",
-        "500",
-        "api",
-        "خطأ"
-      ],
+      "tags": ["api", "error", "400", "401", "403", "404", "429", "500", "api", "خطأ"],
       "navigateTo": null
     },
     {
@@ -744,16 +507,7 @@
         "en": "Login failures and token problems",
         "ar": "فشل تسجيل الدخول ومشاكل الرمز"
       },
-      "tags": [
-        "auth",
-        "login",
-        "token",
-        "jwt",
-        "mfa",
-        "مصادقة",
-        "دخول",
-        "رمز"
-      ],
+      "tags": ["auth", "login", "token", "jwt", "mfa", "مصادقة", "دخول", "رمز"],
       "navigateTo": null
     },
     {
@@ -767,15 +521,7 @@
         "en": "Configure and monitor Copa-Data zenon SCADA system connection",
         "ar": "تكوين ومراقبة اتصال نظام إسكادا زينون (zenon)"
       },
-      "tags": [
-        "scada",
-        "zenon",
-        "integration",
-        "iec61850",
-        "إسكادا",
-        "زينون",
-        "ربط"
-      ],
+      "tags": ["scada", "zenon", "integration", "iec61850", "إسكادا", "زينون", "ربط"],
       "navigateTo": null
     },
     {
@@ -789,11 +535,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -807,11 +549,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -825,11 +563,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -843,11 +577,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -861,11 +591,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -879,11 +605,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -897,11 +619,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -915,11 +633,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -933,11 +647,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -951,11 +661,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -969,11 +675,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -987,11 +689,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1005,11 +703,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1023,11 +717,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1041,11 +731,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1059,11 +745,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1077,11 +759,7 @@
         "en": "API endpoint in api/routes.py",
         "ar": "نقطة API في api/routes.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1095,11 +773,7 @@
         "en": "API endpoint in api/routes.py",
         "ar": "نقطة API في api/routes.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1113,11 +787,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1131,11 +801,7 @@
         "en": "API endpoint in api/agents.py",
         "ar": "نقطة API في api/agents.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1149,11 +815,7 @@
         "en": "API endpoint in api/agents.py",
         "ar": "نقطة API في api/agents.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1167,11 +829,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1185,11 +843,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1203,11 +857,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1221,11 +871,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1239,11 +885,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1257,11 +899,7 @@
         "en": "API endpoint in api/context_engine.py",
         "ar": "نقطة API في api/context_engine.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1275,11 +913,7 @@
         "en": "API endpoint in api/agents.py",
         "ar": "نقطة API في api/agents.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1293,11 +927,7 @@
         "en": "API endpoint in api/scada.py",
         "ar": "نقطة API في api/scada.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1311,11 +941,7 @@
         "en": "API endpoint in api/dependencies.py",
         "ar": "نقطة API في api/dependencies.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1329,11 +955,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1347,11 +969,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1365,11 +983,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1383,11 +997,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1401,11 +1011,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1419,11 +1025,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1437,11 +1039,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1455,11 +1053,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1473,11 +1067,7 @@
         "en": "API endpoint in api/ai_ml.py",
         "ar": "نقطة API في api/ai_ml.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1491,11 +1081,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1509,11 +1095,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1527,11 +1109,7 @@
         "en": "API endpoint in api/health.py",
         "ar": "نقطة API في api/health.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1545,11 +1123,7 @@
         "en": "API endpoint in api/refactored_service.py",
         "ar": "نقطة API في api/refactored_service.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1563,11 +1137,7 @@
         "en": "API endpoint in api/context_engine.py",
         "ar": "نقطة API في api/context_engine.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1581,11 +1151,7 @@
         "en": "API endpoint in api/studies.py",
         "ar": "نقطة API في api/studies.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1599,11 +1165,7 @@
         "en": "API endpoint in api/digital_twin.py",
         "ar": "نقطة API في api/digital_twin.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "get"
-      ],
+      "tags": ["api", "endpoint", "get"],
       "navigateTo": null
     },
     {
@@ -1617,11 +1179,7 @@
         "en": "API endpoint in api/mfa.py",
         "ar": "نقطة API في api/mfa.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1635,11 +1193,7 @@
         "en": "API endpoint in api/mfa.py",
         "ar": "نقطة API في api/mfa.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1653,11 +1207,7 @@
         "en": "API endpoint in api/dependencies.py",
         "ar": "نقطة API في api/dependencies.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "delete"
-      ],
+      "tags": ["api", "endpoint", "delete"],
       "navigateTo": null
     },
     {
@@ -1671,11 +1221,7 @@
         "en": "API endpoint in api/validation.py",
         "ar": "نقطة API في api/validation.py"
       },
-      "tags": [
-        "api",
-        "endpoint",
-        "post"
-      ],
+      "tags": ["api", "endpoint", "post"],
       "navigateTo": null
     },
     {
@@ -1689,15 +1235,9 @@
         "en": "UI page at ui/src/pages/AIAssistant.tsx",
         "ar": "صفحة UI في ui/src/pages/AIAssistant.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "aiassistant"
-      ],
+      "tags": ["page", "ui", "aiassistant"],
       "navigateTo": "/aiassistant",
-      "exports": [
-        "AIAssistant"
-      ]
+      "exports": ["AIAssistant"]
     },
     {
       "type": "ui-page",
@@ -1710,15 +1250,9 @@
         "en": "UI page at ui/src/pages/Administration.tsx",
         "ar": "صفحة UI في ui/src/pages/Administration.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "administration"
-      ],
+      "tags": ["page", "ui", "administration"],
       "navigateTo": "/administration",
-      "exports": [
-        "Administration"
-      ]
+      "exports": ["Administration"]
     },
     {
       "type": "ui-page",
@@ -1731,15 +1265,9 @@
         "en": "UI page at ui/src/pages/AssetManagement.tsx",
         "ar": "صفحة UI في ui/src/pages/AssetManagement.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "assetmanagement"
-      ],
+      "tags": ["page", "ui", "assetmanagement"],
       "navigateTo": "/assetmanagement",
-      "exports": [
-        "AssetManagement"
-      ]
+      "exports": ["AssetManagement"]
     },
     {
       "type": "ui-page",
@@ -1752,15 +1280,9 @@
         "en": "UI page at ui/src/pages/CodeGuard.tsx",
         "ar": "صفحة UI في ui/src/pages/CodeGuard.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "codeguard"
-      ],
+      "tags": ["page", "ui", "codeguard"],
       "navigateTo": "/codeguard",
-      "exports": [
-        "CodeGuard"
-      ]
+      "exports": ["CodeGuard"]
     },
     {
       "type": "ui-page",
@@ -1773,15 +1295,9 @@
         "en": "UI page at ui/src/pages/Dashboard.tsx",
         "ar": "صفحة UI في ui/src/pages/Dashboard.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "dashboard"
-      ],
+      "tags": ["page", "ui", "dashboard"],
       "navigateTo": "/dashboard",
-      "exports": [
-        "Dashboard"
-      ]
+      "exports": ["Dashboard"]
     },
     {
       "type": "ui-page",
@@ -1794,15 +1310,9 @@
         "en": "UI page at ui/src/pages/DataExport.tsx",
         "ar": "صفحة UI في ui/src/pages/DataExport.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "dataexport"
-      ],
+      "tags": ["page", "ui", "dataexport"],
       "navigateTo": "/dataexport",
-      "exports": [
-        "DataExport"
-      ]
+      "exports": ["DataExport"]
     },
     {
       "type": "ui-page",
@@ -1815,15 +1325,9 @@
         "en": "UI page at ui/src/pages/DataImport.tsx",
         "ar": "صفحة UI في ui/src/pages/DataImport.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "dataimport"
-      ],
+      "tags": ["page", "ui", "dataimport"],
       "navigateTo": "/dataimport",
-      "exports": [
-        "DataImport"
-      ]
+      "exports": ["DataImport"]
     },
     {
       "type": "ui-page",
@@ -1836,15 +1340,9 @@
         "en": "UI page at ui/src/pages/Diagnostics.tsx",
         "ar": "صفحة UI في ui/src/pages/Diagnostics.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "diagnostics"
-      ],
+      "tags": ["page", "ui", "diagnostics"],
       "navigateTo": "/diagnostics",
-      "exports": [
-        "Diagnostics"
-      ]
+      "exports": ["Diagnostics"]
     },
     {
       "type": "ui-page",
@@ -1857,15 +1355,9 @@
         "en": "UI page at ui/src/pages/DigitalTwin.tsx",
         "ar": "صفحة UI في ui/src/pages/DigitalTwin.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "digitaltwin"
-      ],
+      "tags": ["page", "ui", "digitaltwin"],
       "navigateTo": "/digitaltwin",
-      "exports": [
-        "DigitalTwin"
-      ]
+      "exports": ["DigitalTwin"]
     },
     {
       "type": "ui-page",
@@ -1878,15 +1370,9 @@
         "en": "UI page at ui/src/pages/EtapIntegration.tsx",
         "ar": "صفحة UI في ui/src/pages/EtapIntegration.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "etapintegration"
-      ],
+      "tags": ["page", "ui", "etapintegration"],
       "navigateTo": "/etapintegration",
-      "exports": [
-        "EtapIntegration"
-      ]
+      "exports": ["EtapIntegration"]
     },
     {
       "type": "ui-page",
@@ -1899,15 +1385,9 @@
         "en": "UI page at ui/src/pages/GisIntegration.tsx",
         "ar": "صفحة UI في ui/src/pages/GisIntegration.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "gisintegration"
-      ],
+      "tags": ["page", "ui", "gisintegration"],
       "navigateTo": "/gisintegration",
-      "exports": [
-        "GisIntegration"
-      ]
+      "exports": ["GisIntegration"]
     },
     {
       "type": "ui-page",
@@ -1920,15 +1400,9 @@
         "en": "UI page at ui/src/pages/Login.tsx",
         "ar": "صفحة UI في ui/src/pages/Login.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "login"
-      ],
+      "tags": ["page", "ui", "login"],
       "navigateTo": "/login",
-      "exports": [
-        "Login"
-      ]
+      "exports": ["Login"]
     },
     {
       "type": "ui-page",
@@ -1941,15 +1415,9 @@
         "en": "UI page at ui/src/pages/Logs.tsx",
         "ar": "صفحة UI في ui/src/pages/Logs.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "logs"
-      ],
+      "tags": ["page", "ui", "logs"],
       "navigateTo": "/logs",
-      "exports": [
-        "Logs"
-      ]
+      "exports": ["Logs"]
     },
     {
       "type": "ui-page",
@@ -1962,15 +1430,9 @@
         "en": "UI page at ui/src/pages/Projects.tsx",
         "ar": "صفحة UI في ui/src/pages/Projects.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "projects"
-      ],
+      "tags": ["page", "ui", "projects"],
       "navigateTo": "/projects",
-      "exports": [
-        "Projects"
-      ]
+      "exports": ["Projects"]
     },
     {
       "type": "ui-page",
@@ -1983,15 +1445,9 @@
         "en": "UI page at ui/src/pages/Register.tsx",
         "ar": "صفحة UI في ui/src/pages/Register.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "register"
-      ],
+      "tags": ["page", "ui", "register"],
       "navigateTo": "/register",
-      "exports": [
-        "Register"
-      ]
+      "exports": ["Register"]
     },
     {
       "type": "ui-page",
@@ -2004,15 +1460,9 @@
         "en": "UI page at ui/src/pages/Reports.tsx",
         "ar": "صفحة UI في ui/src/pages/Reports.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "reports"
-      ],
+      "tags": ["page", "ui", "reports"],
       "navigateTo": "/reports",
-      "exports": [
-        "Reports"
-      ]
+      "exports": ["Reports"]
     },
     {
       "type": "ui-page",
@@ -2025,15 +1475,9 @@
         "en": "UI page at ui/src/pages/Settings.tsx",
         "ar": "صفحة UI في ui/src/pages/Settings.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "settings"
-      ],
+      "tags": ["page", "ui", "settings"],
       "navigateTo": "/settings",
-      "exports": [
-        "Settings"
-      ]
+      "exports": ["Settings"]
     },
     {
       "type": "ui-page",
@@ -2046,15 +1490,9 @@
         "en": "UI page at ui/src/pages/Studies.tsx",
         "ar": "صفحة UI في ui/src/pages/Studies.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "studies"
-      ],
+      "tags": ["page", "ui", "studies"],
       "navigateTo": "/studies",
-      "exports": [
-        "Studies"
-      ]
+      "exports": ["Studies"]
     },
     {
       "type": "ui-page",
@@ -2067,15 +1505,9 @@
         "en": "UI page at ui/src/pages/StudyRun.tsx",
         "ar": "صفحة UI في ui/src/pages/StudyRun.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "studyrun"
-      ],
+      "tags": ["page", "ui", "studyrun"],
       "navigateTo": "/studyrun",
-      "exports": [
-        "StudyRun"
-      ]
+      "exports": ["StudyRun"]
     },
     {
       "type": "ui-page",
@@ -2088,11 +1520,7 @@
         "en": "UI page at ui/src/pages/__tests__/AIAssistant.test.tsx",
         "ar": "صفحة UI في ui/src/pages/__tests__/AIAssistant.test.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "aiassistant.test"
-      ],
+      "tags": ["page", "ui", "aiassistant.test"],
       "navigateTo": "/aiassistant.test",
       "exports": []
     },
@@ -2107,11 +1535,7 @@
         "en": "UI page at ui/src/pages/__tests__/Dashboard.test.tsx",
         "ar": "صفحة UI في ui/src/pages/__tests__/Dashboard.test.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "dashboard.test"
-      ],
+      "tags": ["page", "ui", "dashboard.test"],
       "navigateTo": "/dashboard.test",
       "exports": []
     },
@@ -2126,11 +1550,7 @@
         "en": "UI page at ui/src/pages/__tests__/Login.test.tsx",
         "ar": "صفحة UI في ui/src/pages/__tests__/Login.test.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "login.test"
-      ],
+      "tags": ["page", "ui", "login.test"],
       "navigateTo": "/login.test",
       "exports": []
     },
@@ -2145,11 +1565,7 @@
         "en": "UI page at ui/src/pages/__tests__/Settings.test.tsx",
         "ar": "صفحة UI في ui/src/pages/__tests__/Settings.test.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "settings.test"
-      ],
+      "tags": ["page", "ui", "settings.test"],
       "navigateTo": "/settings.test",
       "exports": []
     },
@@ -2164,11 +1580,7 @@
         "en": "UI page at ui/src/pages/__tests__/Studies.test.tsx",
         "ar": "صفحة UI في ui/src/pages/__tests__/Studies.test.tsx"
       },
-      "tags": [
-        "page",
-        "ui",
-        "studies.test"
-      ],
+      "tags": ["page", "ui", "studies.test"],
       "navigateTo": "/studies.test",
       "exports": []
     },
@@ -2183,12 +1595,7 @@
         "en": "components component in ui/src/components/Breadcrumbs.tsx",
         "ar": "مكون components في ui/src/components/Breadcrumbs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "breadcrumbs"
-      ],
+      "tags": ["component", "ui", "components", "breadcrumbs"],
       "navigateTo": null
     },
     {
@@ -2202,12 +1609,7 @@
         "en": "components component in ui/src/components/ErrorBoundary.tsx",
         "ar": "مكون components في ui/src/components/ErrorBoundary.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "errorboundary"
-      ],
+      "tags": ["component", "ui", "components", "errorboundary"],
       "navigateTo": null
     },
     {
@@ -2221,12 +1623,7 @@
         "en": "components component in ui/src/components/Layout.tsx",
         "ar": "مكون components في ui/src/components/Layout.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "layout"
-      ],
+      "tags": ["component", "ui", "components", "layout"],
       "navigateTo": null
     },
     {
@@ -2240,12 +1637,7 @@
         "en": "components component in ui/src/components/Navbar.tsx",
         "ar": "مكون components في ui/src/components/Navbar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "navbar"
-      ],
+      "tags": ["component", "ui", "components", "navbar"],
       "navigateTo": null
     },
     {
@@ -2259,12 +1651,7 @@
         "en": "components component in ui/src/components/Sidebar.tsx",
         "ar": "مكون components في ui/src/components/Sidebar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "sidebar"
-      ],
+      "tags": ["component", "ui", "components", "sidebar"],
       "navigateTo": null
     },
     {
@@ -2278,12 +1665,7 @@
         "en": "components component in ui/src/components/TitleBar.tsx",
         "ar": "مكون components في ui/src/components/TitleBar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "titlebar"
-      ],
+      "tags": ["component", "ui", "components", "titlebar"],
       "navigateTo": null
     },
     {
@@ -2297,12 +1679,7 @@
         "en": "components component in ui/src/components/command/CommandPalette.tsx",
         "ar": "مكون components في ui/src/components/command/CommandPalette.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "commandpalette"
-      ],
+      "tags": ["component", "ui", "components", "commandpalette"],
       "navigateTo": null
     },
     {
@@ -2316,12 +1693,7 @@
         "en": "components component in ui/src/components/command/ShortcutsPanel.tsx",
         "ar": "مكون components في ui/src/components/command/ShortcutsPanel.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "shortcutspanel"
-      ],
+      "tags": ["component", "ui", "components", "shortcutspanel"],
       "navigateTo": null
     },
     {
@@ -2335,12 +1707,7 @@
         "en": "components component in ui/src/components/context/ContextPanel.tsx",
         "ar": "مكون components في ui/src/components/context/ContextPanel.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "contextpanel"
-      ],
+      "tags": ["component", "ui", "components", "contextpanel"],
       "navigateTo": null
     },
     {
@@ -2354,12 +1721,7 @@
         "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
         "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "errorrecovery"
-      ],
+      "tags": ["component", "ui", "components", "errorrecovery"],
       "navigateTo": null
     },
     {
@@ -2373,12 +1735,7 @@
         "en": "components component in ui/src/components/context/ErrorRecovery.tsx",
         "ar": "مكون components في ui/src/components/context/ErrorRecovery.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "useerrorrecovery"
-      ],
+      "tags": ["component", "ui", "components", "useerrorrecovery"],
       "navigateTo": null
     },
     {
@@ -2392,12 +1749,7 @@
         "en": "components component in ui/src/components/help/ContextHelpButton.tsx",
         "ar": "مكون components في ui/src/components/help/ContextHelpButton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "contexthelpbutton"
-      ],
+      "tags": ["component", "ui", "components", "contexthelpbutton"],
       "navigateTo": null
     },
     {
@@ -2411,12 +1763,7 @@
         "en": "components component in ui/src/components/help/MagicHelpInspector.tsx",
         "ar": "مكون components في ui/src/components/help/MagicHelpInspector.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "magichelpinspector"
-      ],
+      "tags": ["component", "ui", "components", "magichelpinspector"],
       "navigateTo": null
     },
     {
@@ -2430,12 +1777,7 @@
         "en": "components component in ui/src/components/help/SmartHelpDrawer.tsx",
         "ar": "مكون components في ui/src/components/help/SmartHelpDrawer.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "smarthelpdrawer"
-      ],
+      "tags": ["component", "ui", "components", "smarthelpdrawer"],
       "navigateTo": null
     },
     {
@@ -2449,12 +1791,7 @@
         "en": "components component in ui/src/components/layout/AppShell.tsx",
         "ar": "مكون components في ui/src/components/layout/AppShell.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "appshell"
-      ],
+      "tags": ["component", "ui", "components", "appshell"],
       "navigateTo": null
     },
     {
@@ -2468,12 +1805,7 @@
         "en": "components component in ui/src/components/layout/EngineeringWorkspace.tsx",
         "ar": "مكون components في ui/src/components/layout/EngineeringWorkspace.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "engineeringworkspace"
-      ],
+      "tags": ["component", "ui", "components", "engineeringworkspace"],
       "navigateTo": null
     },
     {
@@ -2487,12 +1819,7 @@
         "en": "components component in ui/src/components/layout/Sidebar.tsx",
         "ar": "مكون components في ui/src/components/layout/Sidebar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "sidebar"
-      ],
+      "tags": ["component", "ui", "components", "sidebar"],
       "navigateTo": null
     },
     {
@@ -2506,12 +1833,7 @@
         "en": "components component in ui/src/components/layout/StatusBar.tsx",
         "ar": "مكون components في ui/src/components/layout/StatusBar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "statusbar"
-      ],
+      "tags": ["component", "ui", "components", "statusbar"],
       "navigateTo": null
     },
     {
@@ -2525,12 +1847,7 @@
         "en": "components component in ui/src/components/layout/TopBar.tsx",
         "ar": "مكون components في ui/src/components/layout/TopBar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "topbar"
-      ],
+      "tags": ["component", "ui", "components", "topbar"],
       "navigateTo": null
     },
     {
@@ -2544,12 +1861,7 @@
         "en": "components component in ui/src/components/onboarding/OnboardingTour.tsx",
         "ar": "مكون components في ui/src/components/onboarding/OnboardingTour.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "onboardingtour"
-      ],
+      "tags": ["component", "ui", "components", "onboardingtour"],
       "navigateTo": null
     },
     {
@@ -2563,12 +1875,7 @@
         "en": "components component in ui/src/components/ui/Badge.tsx",
         "ar": "مكون components في ui/src/components/ui/Badge.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "badge"
-      ],
+      "tags": ["component", "ui", "components", "badge"],
       "navigateTo": null
     },
     {
@@ -2582,12 +1889,7 @@
         "en": "components component in ui/src/components/ui/Button.tsx",
         "ar": "مكون components في ui/src/components/ui/Button.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "button"
-      ],
+      "tags": ["component", "ui", "components", "button"],
       "navigateTo": null
     },
     {
@@ -2601,12 +1903,7 @@
         "en": "components component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "card"
-      ],
+      "tags": ["component", "ui", "components", "card"],
       "navigateTo": null
     },
     {
@@ -2620,12 +1917,7 @@
         "en": "components component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "cardheader"
-      ],
+      "tags": ["component", "ui", "components", "cardheader"],
       "navigateTo": null
     },
     {
@@ -2639,12 +1931,7 @@
         "en": "components component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "cardsection"
-      ],
+      "tags": ["component", "ui", "components", "cardsection"],
       "navigateTo": null
     },
     {
@@ -2658,12 +1945,7 @@
         "en": "components component in ui/src/components/ui/EmptyState.tsx",
         "ar": "مكون components في ui/src/components/ui/EmptyState.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "emptystate"
-      ],
+      "tags": ["component", "ui", "components", "emptystate"],
       "navigateTo": null
     },
     {
@@ -2677,12 +1959,7 @@
         "en": "components component in ui/src/components/ui/Modal.tsx",
         "ar": "مكون components في ui/src/components/ui/Modal.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "modal"
-      ],
+      "tags": ["component", "ui", "components", "modal"],
       "navigateTo": null
     },
     {
@@ -2696,12 +1973,7 @@
         "en": "components component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "skeleton"
-      ],
+      "tags": ["component", "ui", "components", "skeleton"],
       "navigateTo": null
     },
     {
@@ -2715,12 +1987,7 @@
         "en": "components component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "skeletoncard"
-      ],
+      "tags": ["component", "ui", "components", "skeletoncard"],
       "navigateTo": null
     },
     {
@@ -2734,12 +2001,7 @@
         "en": "components component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "skeletontable"
-      ],
+      "tags": ["component", "ui", "components", "skeletontable"],
       "navigateTo": null
     },
     {
@@ -2753,12 +2015,7 @@
         "en": "components component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "tabs"
-      ],
+      "tags": ["component", "ui", "components", "tabs"],
       "navigateTo": null
     },
     {
@@ -2772,12 +2029,7 @@
         "en": "components component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "tabpanels"
-      ],
+      "tags": ["component", "ui", "components", "tabpanels"],
       "navigateTo": null
     },
     {
@@ -2791,12 +2043,7 @@
         "en": "components component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "usetabstate"
-      ],
+      "tags": ["component", "ui", "components", "usetabstate"],
       "navigateTo": null
     },
     {
@@ -2810,12 +2057,7 @@
         "en": "components component in ui/src/components/ui/Toggle.tsx",
         "ar": "مكون components في ui/src/components/ui/Toggle.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "toggle"
-      ],
+      "tags": ["component", "ui", "components", "toggle"],
       "navigateTo": null
     },
     {
@@ -2829,12 +2071,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "glasspanel"
-      ],
+      "tags": ["component", "ui", "components", "glasspanel"],
       "navigateTo": null
     },
     {
@@ -2848,12 +2085,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "animatedbackground"
-      ],
+      "tags": ["component", "ui", "components", "animatedbackground"],
       "navigateTo": null
     },
     {
@@ -2867,12 +2099,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "statusindicator"
-      ],
+      "tags": ["component", "ui", "components", "statusindicator"],
       "navigateTo": null
     },
     {
@@ -2886,12 +2113,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "premiumemptystate"
-      ],
+      "tags": ["component", "ui", "components", "premiumemptystate"],
       "navigateTo": null
     },
     {
@@ -2905,12 +2127,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "premiumloading"
-      ],
+      "tags": ["component", "ui", "components", "premiumloading"],
       "navigateTo": null
     },
     {
@@ -2924,12 +2141,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "gradienttext"
-      ],
+      "tags": ["component", "ui", "components", "gradienttext"],
       "navigateTo": null
     },
     {
@@ -2943,12 +2155,7 @@
         "en": "components component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components",
-        "glowcard"
-      ],
+      "tags": ["component", "ui", "components", "glowcard"],
       "navigateTo": null
     },
     {
@@ -2962,12 +2169,7 @@
         "en": "components/help component in ui/src/components/help/ContextHelpButton.tsx",
         "ar": "مكون components/help في ui/src/components/help/ContextHelpButton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/help",
-        "contexthelpbutton"
-      ],
+      "tags": ["component", "ui", "components/help", "contexthelpbutton"],
       "navigateTo": null
     },
     {
@@ -2981,12 +2183,7 @@
         "en": "components/help component in ui/src/components/help/MagicHelpInspector.tsx",
         "ar": "مكون components/help في ui/src/components/help/MagicHelpInspector.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/help",
-        "magichelpinspector"
-      ],
+      "tags": ["component", "ui", "components/help", "magichelpinspector"],
       "navigateTo": null
     },
     {
@@ -3000,12 +2197,7 @@
         "en": "components/help component in ui/src/components/help/SmartHelpDrawer.tsx",
         "ar": "مكون components/help في ui/src/components/help/SmartHelpDrawer.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/help",
-        "smarthelpdrawer"
-      ],
+      "tags": ["component", "ui", "components/help", "smarthelpdrawer"],
       "navigateTo": null
     },
     {
@@ -3019,12 +2211,7 @@
         "en": "components/layout component in ui/src/components/layout/AppShell.tsx",
         "ar": "مكون components/layout في ui/src/components/layout/AppShell.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/layout",
-        "appshell"
-      ],
+      "tags": ["component", "ui", "components/layout", "appshell"],
       "navigateTo": null
     },
     {
@@ -3038,12 +2225,7 @@
         "en": "components/layout component in ui/src/components/layout/EngineeringWorkspace.tsx",
         "ar": "مكون components/layout في ui/src/components/layout/EngineeringWorkspace.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/layout",
-        "engineeringworkspace"
-      ],
+      "tags": ["component", "ui", "components/layout", "engineeringworkspace"],
       "navigateTo": null
     },
     {
@@ -3057,12 +2239,7 @@
         "en": "components/layout component in ui/src/components/layout/Sidebar.tsx",
         "ar": "مكون components/layout في ui/src/components/layout/Sidebar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/layout",
-        "sidebar"
-      ],
+      "tags": ["component", "ui", "components/layout", "sidebar"],
       "navigateTo": null
     },
     {
@@ -3076,12 +2253,7 @@
         "en": "components/layout component in ui/src/components/layout/StatusBar.tsx",
         "ar": "مكون components/layout في ui/src/components/layout/StatusBar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/layout",
-        "statusbar"
-      ],
+      "tags": ["component", "ui", "components/layout", "statusbar"],
       "navigateTo": null
     },
     {
@@ -3095,12 +2267,7 @@
         "en": "components/layout component in ui/src/components/layout/TopBar.tsx",
         "ar": "مكون components/layout في ui/src/components/layout/TopBar.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/layout",
-        "topbar"
-      ],
+      "tags": ["component", "ui", "components/layout", "topbar"],
       "navigateTo": null
     },
     {
@@ -3114,12 +2281,7 @@
         "en": "components/ui component in ui/src/components/ui/Badge.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Badge.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "badge"
-      ],
+      "tags": ["component", "ui", "components/ui", "badge"],
       "navigateTo": null
     },
     {
@@ -3133,12 +2295,7 @@
         "en": "components/ui component in ui/src/components/ui/Button.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Button.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "button"
-      ],
+      "tags": ["component", "ui", "components/ui", "button"],
       "navigateTo": null
     },
     {
@@ -3152,12 +2309,7 @@
         "en": "components/ui component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "card"
-      ],
+      "tags": ["component", "ui", "components/ui", "card"],
       "navigateTo": null
     },
     {
@@ -3171,12 +2323,7 @@
         "en": "components/ui component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "cardheader"
-      ],
+      "tags": ["component", "ui", "components/ui", "cardheader"],
       "navigateTo": null
     },
     {
@@ -3190,12 +2337,7 @@
         "en": "components/ui component in ui/src/components/ui/Card.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Card.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "cardsection"
-      ],
+      "tags": ["component", "ui", "components/ui", "cardsection"],
       "navigateTo": null
     },
     {
@@ -3209,12 +2351,7 @@
         "en": "components/ui component in ui/src/components/ui/EmptyState.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/EmptyState.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "emptystate"
-      ],
+      "tags": ["component", "ui", "components/ui", "emptystate"],
       "navigateTo": null
     },
     {
@@ -3228,12 +2365,7 @@
         "en": "components/ui component in ui/src/components/ui/Modal.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Modal.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "modal"
-      ],
+      "tags": ["component", "ui", "components/ui", "modal"],
       "navigateTo": null
     },
     {
@@ -3247,12 +2379,7 @@
         "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "skeleton"
-      ],
+      "tags": ["component", "ui", "components/ui", "skeleton"],
       "navigateTo": null
     },
     {
@@ -3266,12 +2393,7 @@
         "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "skeletoncard"
-      ],
+      "tags": ["component", "ui", "components/ui", "skeletoncard"],
       "navigateTo": null
     },
     {
@@ -3285,12 +2407,7 @@
         "en": "components/ui component in ui/src/components/ui/Skeleton.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Skeleton.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "skeletontable"
-      ],
+      "tags": ["component", "ui", "components/ui", "skeletontable"],
       "navigateTo": null
     },
     {
@@ -3304,12 +2421,7 @@
         "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "tabs"
-      ],
+      "tags": ["component", "ui", "components/ui", "tabs"],
       "navigateTo": null
     },
     {
@@ -3323,12 +2435,7 @@
         "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "tabpanels"
-      ],
+      "tags": ["component", "ui", "components/ui", "tabpanels"],
       "navigateTo": null
     },
     {
@@ -3342,12 +2449,7 @@
         "en": "components/ui component in ui/src/components/ui/Tabs.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Tabs.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "usetabstate"
-      ],
+      "tags": ["component", "ui", "components/ui", "usetabstate"],
       "navigateTo": null
     },
     {
@@ -3361,12 +2463,7 @@
         "en": "components/ui component in ui/src/components/ui/Toggle.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Toggle.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "toggle"
-      ],
+      "tags": ["component", "ui", "components/ui", "toggle"],
       "navigateTo": null
     },
     {
@@ -3380,12 +2477,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "glasspanel"
-      ],
+      "tags": ["component", "ui", "components/ui", "glasspanel"],
       "navigateTo": null
     },
     {
@@ -3399,12 +2491,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "animatedbackground"
-      ],
+      "tags": ["component", "ui", "components/ui", "animatedbackground"],
       "navigateTo": null
     },
     {
@@ -3418,12 +2505,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "statusindicator"
-      ],
+      "tags": ["component", "ui", "components/ui", "statusindicator"],
       "navigateTo": null
     },
     {
@@ -3437,12 +2519,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "premiumemptystate"
-      ],
+      "tags": ["component", "ui", "components/ui", "premiumemptystate"],
       "navigateTo": null
     },
     {
@@ -3456,12 +2533,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "premiumloading"
-      ],
+      "tags": ["component", "ui", "components/ui", "premiumloading"],
       "navigateTo": null
     },
     {
@@ -3475,12 +2547,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "gradienttext"
-      ],
+      "tags": ["component", "ui", "components/ui", "gradienttext"],
       "navigateTo": null
     },
     {
@@ -3494,12 +2561,7 @@
         "en": "components/ui component in ui/src/components/ui/Visual.tsx",
         "ar": "مكون components/ui في ui/src/components/ui/Visual.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/ui",
-        "glowcard"
-      ],
+      "tags": ["component", "ui", "components/ui", "glowcard"],
       "navigateTo": null
     },
     {
@@ -3513,12 +2575,7 @@
         "en": "components/command component in ui/src/components/command/CommandPalette.tsx",
         "ar": "مكون components/command في ui/src/components/command/CommandPalette.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/command",
-        "commandpalette"
-      ],
+      "tags": ["component", "ui", "components/command", "commandpalette"],
       "navigateTo": null
     },
     {
@@ -3532,12 +2589,7 @@
         "en": "components/command component in ui/src/components/command/ShortcutsPanel.tsx",
         "ar": "مكون components/command في ui/src/components/command/ShortcutsPanel.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/command",
-        "shortcutspanel"
-      ],
+      "tags": ["component", "ui", "components/command", "shortcutspanel"],
       "navigateTo": null
     },
     {
@@ -3551,12 +2603,7 @@
         "en": "components/context component in ui/src/components/context/ContextPanel.tsx",
         "ar": "مكون components/context في ui/src/components/context/ContextPanel.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/context",
-        "contextpanel"
-      ],
+      "tags": ["component", "ui", "components/context", "contextpanel"],
       "navigateTo": null
     },
     {
@@ -3570,12 +2617,7 @@
         "en": "components/context component in ui/src/components/context/ErrorRecovery.tsx",
         "ar": "مكون components/context في ui/src/components/context/ErrorRecovery.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/context",
-        "errorrecovery"
-      ],
+      "tags": ["component", "ui", "components/context", "errorrecovery"],
       "navigateTo": null
     },
     {
@@ -3589,12 +2631,7 @@
         "en": "components/context component in ui/src/components/context/ErrorRecovery.tsx",
         "ar": "مكون components/context في ui/src/components/context/ErrorRecovery.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/context",
-        "useerrorrecovery"
-      ],
+      "tags": ["component", "ui", "components/context", "useerrorrecovery"],
       "navigateTo": null
     },
     {
@@ -3608,12 +2645,7 @@
         "en": "components/onboarding component in ui/src/components/onboarding/OnboardingTour.tsx",
         "ar": "مكون components/onboarding في ui/src/components/onboarding/OnboardingTour.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "components/onboarding",
-        "onboardingtour"
-      ],
+      "tags": ["component", "ui", "components/onboarding", "onboardingtour"],
       "navigateTo": null
     },
     {
@@ -3627,12 +2659,7 @@
         "en": "hooks component in ui/src/hooks/useApi.ts",
         "ar": "مكون hooks في ui/src/hooks/useApi.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "useapi"
-      ],
+      "tags": ["component", "ui", "hooks", "useapi"],
       "navigateTo": null
     },
     {
@@ -3646,12 +2673,7 @@
         "en": "hooks component in ui/src/hooks/useAuth.tsx",
         "ar": "مكون hooks في ui/src/hooks/useAuth.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "useauth"
-      ],
+      "tags": ["component", "ui", "hooks", "useauth"],
       "navigateTo": null
     },
     {
@@ -3665,12 +2687,7 @@
         "en": "hooks component in ui/src/hooks/useAuth.tsx",
         "ar": "مكون hooks في ui/src/hooks/useAuth.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "authprovider"
-      ],
+      "tags": ["component", "ui", "hooks", "authprovider"],
       "navigateTo": null
     },
     {
@@ -3684,12 +2701,7 @@
         "en": "hooks component in ui/src/hooks/useKeyboardShortcuts.ts",
         "ar": "مكون hooks في ui/src/hooks/useKeyboardShortcuts.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "usekeyboardshortcuts"
-      ],
+      "tags": ["component", "ui", "hooks", "usekeyboardshortcuts"],
       "navigateTo": null
     },
     {
@@ -3703,12 +2715,7 @@
         "en": "hooks component in ui/src/hooks/useKeyboardShortcuts.ts",
         "ar": "مكون hooks في ui/src/hooks/useKeyboardShortcuts.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "shortcut_definitions"
-      ],
+      "tags": ["component", "ui", "hooks", "shortcut_definitions"],
       "navigateTo": null
     },
     {
@@ -3722,12 +2729,7 @@
         "en": "hooks component in ui/src/hooks/useSmartHelp.ts",
         "ar": "مكون hooks في ui/src/hooks/useSmartHelp.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "hooks",
-        "usesmarthelp"
-      ],
+      "tags": ["component", "ui", "hooks", "usesmarthelp"],
       "navigateTo": null
     },
     {
@@ -3741,12 +2743,7 @@
         "en": "store component in ui/src/store/index.ts",
         "ar": "مكون store في ui/src/store/index.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "store",
-        "useappstore"
-      ],
+      "tags": ["component", "ui", "store", "useappstore"],
       "navigateTo": null
     },
     {
@@ -3760,12 +2757,7 @@
         "en": "context component in ui/src/context/NotificationContext.tsx",
         "ar": "مكون context في ui/src/context/NotificationContext.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "context",
-        "notificationprovider"
-      ],
+      "tags": ["component", "ui", "context", "notificationprovider"],
       "navigateTo": null
     },
     {
@@ -3779,12 +2771,7 @@
         "en": "context component in ui/src/context/NotificationContext.tsx",
         "ar": "مكون context في ui/src/context/NotificationContext.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "context",
-        "usenotify"
-      ],
+      "tags": ["component", "ui", "context", "usenotify"],
       "navigateTo": null
     },
     {
@@ -3798,12 +2785,7 @@
         "en": "context component in ui/src/context/ThemeContext.tsx",
         "ar": "مكون context في ui/src/context/ThemeContext.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "context",
-        "themeprovider"
-      ],
+      "tags": ["component", "ui", "context", "themeprovider"],
       "navigateTo": null
     },
     {
@@ -3817,12 +2799,7 @@
         "en": "context component in ui/src/context/ThemeContext.tsx",
         "ar": "مكون context في ui/src/context/ThemeContext.tsx"
       },
-      "tags": [
-        "component",
-        "ui",
-        "context",
-        "usetheme"
-      ],
+      "tags": ["component", "ui", "context", "usetheme"],
       "navigateTo": null
     },
     {
@@ -3836,12 +2813,7 @@
         "en": "utils component in ui/src/utils/helpers.ts",
         "ar": "مكون utils في ui/src/utils/helpers.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "utils",
-        "cn"
-      ],
+      "tags": ["component", "ui", "utils", "cn"],
       "navigateTo": null
     },
     {
@@ -3855,12 +2827,7 @@
         "en": "utils component in ui/src/utils/helpers.ts",
         "ar": "مكون utils في ui/src/utils/helpers.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "utils",
-        "formatnumber"
-      ],
+      "tags": ["component", "ui", "utils", "formatnumber"],
       "navigateTo": null
     },
     {
@@ -3874,12 +2841,7 @@
         "en": "utils component in ui/src/utils/helpers.ts",
         "ar": "مكون utils في ui/src/utils/helpers.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "utils",
-        "formatdate"
-      ],
+      "tags": ["component", "ui", "utils", "formatdate"],
       "navigateTo": null
     },
     {
@@ -3893,12 +2855,7 @@
         "en": "utils component in ui/src/utils/helpers.ts",
         "ar": "مكون utils في ui/src/utils/helpers.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "utils",
-        "formatduration"
-      ],
+      "tags": ["component", "ui", "utils", "formatduration"],
       "navigateTo": null
     },
     {
@@ -3912,12 +2869,7 @@
         "en": "utils component in ui/src/utils/helpers.ts",
         "ar": "مكون utils في ui/src/utils/helpers.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "utils",
-        "generateid"
-      ],
+      "tags": ["component", "ui", "utils", "generateid"],
       "navigateTo": null
     },
     {
@@ -3931,12 +2883,7 @@
         "en": "lib component in ui/src/lib/logger.ts",
         "ar": "مكون lib في ui/src/lib/logger.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "lib",
-        "logger"
-      ],
+      "tags": ["component", "ui", "lib", "logger"],
       "navigateTo": null
     },
     {
@@ -3950,12 +2897,7 @@
         "en": "lib component in ui/src/lib/logger.ts",
         "ar": "مكون lib في ui/src/lib/logger.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "lib",
-        "installtelemetry"
-      ],
+      "tags": ["component", "ui", "lib", "installtelemetry"],
       "navigateTo": null
     },
     {
@@ -3969,12 +2911,7 @@
         "en": "lib component in ui/src/lib/studyCategories.ts",
         "ar": "مكون lib في ui/src/lib/studyCategories.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "lib",
-        "studycategories"
-      ],
+      "tags": ["component", "ui", "lib", "studycategories"],
       "navigateTo": null
     },
     {
@@ -3988,12 +2925,7 @@
         "en": "help component in ui/src/help/contextRegistry.ts",
         "ar": "مكون help في ui/src/help/contextRegistry.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "help",
-        "contextregistry"
-      ],
+      "tags": ["component", "ui", "help", "contextregistry"],
       "navigateTo": null
     },
     {
@@ -4007,12 +2939,7 @@
         "en": "help component in ui/src/help/contextRegistry.ts",
         "ar": "مكون help في ui/src/help/contextRegistry.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "help",
-        "resolvecontext"
-      ],
+      "tags": ["component", "ui", "help", "resolvecontext"],
       "navigateTo": null
     },
     {
@@ -4026,12 +2953,7 @@
         "en": "help component in ui/src/help/helpTopics.ts",
         "ar": "مكون help في ui/src/help/helpTopics.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "help",
-        "helptopics"
-      ],
+      "tags": ["component", "ui", "help", "helptopics"],
       "navigateTo": null
     },
     {
@@ -4045,12 +2967,7 @@
         "en": "help component in ui/src/help/helpTopics.ts",
         "ar": "مكون help في ui/src/help/helpTopics.ts"
       },
-      "tags": [
-        "component",
-        "ui",
-        "help",
-        "helpcategories"
-      ],
+      "tags": ["component", "ui", "help", "helpcategories"],
       "navigateTo": null
     },
     {
@@ -4064,12 +2981,7 @@
         "en": "Python package: agents/",
         "ar": "حزمة Python: agents/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "agents"
-      ],
+      "tags": ["python", "module", "package", "agents"],
       "navigateTo": null
     },
     {
@@ -4083,12 +2995,7 @@
         "en": "Python package: api/",
         "ar": "حزمة Python: api/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "api"
-      ],
+      "tags": ["python", "module", "package", "api"],
       "navigateTo": null
     },
     {
@@ -4102,12 +3009,7 @@
         "en": "Python package: core/",
         "ar": "حزمة Python: core/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "core"
-      ],
+      "tags": ["python", "module", "package", "core"],
       "navigateTo": null
     },
     {
@@ -4121,12 +3023,7 @@
         "en": "Python package: engine/",
         "ar": "حزمة Python: engine/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "engine"
-      ],
+      "tags": ["python", "module", "package", "engine"],
       "navigateTo": null
     },
     {
@@ -4140,12 +3037,7 @@
         "en": "Python package: fault_analysis/",
         "ar": "حزمة Python: fault_analysis/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "fault_analysis"
-      ],
+      "tags": ["python", "module", "package", "fault_analysis"],
       "navigateTo": null
     },
     {
@@ -4159,12 +3051,7 @@
         "en": "Python package: load_flow/",
         "ar": "حزمة Python: load_flow/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "load_flow"
-      ],
+      "tags": ["python", "module", "package", "load_flow"],
       "navigateTo": null
     },
     {
@@ -4178,12 +3065,7 @@
         "en": "Python package: services/",
         "ar": "حزمة Python: services/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "services"
-      ],
+      "tags": ["python", "module", "package", "services"],
       "navigateTo": null
     },
     {
@@ -4197,12 +3079,7 @@
         "en": "Python package: security/",
         "ar": "حزمة Python: security/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "security"
-      ],
+      "tags": ["python", "module", "package", "security"],
       "navigateTo": null
     },
     {
@@ -4216,12 +3093,7 @@
         "en": "Python package: ml/",
         "ar": "حزمة Python: ml/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "ml"
-      ],
+      "tags": ["python", "module", "package", "ml"],
       "navigateTo": null
     },
     {
@@ -4235,12 +3107,7 @@
         "en": "Python package: worker/",
         "ar": "حزمة Python: worker/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "worker"
-      ],
+      "tags": ["python", "module", "package", "worker"],
       "navigateTo": null
     },
     {
@@ -4254,12 +3121,7 @@
         "en": "Python package: reporting/",
         "ar": "حزمة Python: reporting/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "reporting"
-      ],
+      "tags": ["python", "module", "package", "reporting"],
       "navigateTo": null
     },
     {
@@ -4273,12 +3135,7 @@
         "en": "Python package: digital_twin/",
         "ar": "حزمة Python: digital_twin/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "digital_twin"
-      ],
+      "tags": ["python", "module", "package", "digital_twin"],
       "navigateTo": null
     },
     {
@@ -4292,12 +3149,7 @@
         "en": "Python package: network_solver/",
         "ar": "حزمة Python: network_solver/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "network_solver"
-      ],
+      "tags": ["python", "module", "package", "network_solver"],
       "navigateTo": null
     },
     {
@@ -4311,12 +3163,7 @@
         "en": "Python package: coordination/",
         "ar": "حزمة Python: coordination/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "coordination"
-      ],
+      "tags": ["python", "module", "package", "coordination"],
       "navigateTo": null
     },
     {
@@ -4330,12 +3177,7 @@
         "en": "Python package: relays/",
         "ar": "حزمة Python: relays/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "relays"
-      ],
+      "tags": ["python", "module", "package", "relays"],
       "navigateTo": null
     },
     {
@@ -4349,12 +3191,7 @@
         "en": "Python package: adms_control/",
         "ar": "حزمة Python: adms_control/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "adms_control"
-      ],
+      "tags": ["python", "module", "package", "adms_control"],
       "navigateTo": null
     },
     {
@@ -4368,12 +3205,7 @@
         "en": "Python package: utils/",
         "ar": "حزمة Python: utils/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "utils"
-      ],
+      "tags": ["python", "module", "package", "utils"],
       "navigateTo": null
     },
     {
@@ -4387,12 +3219,7 @@
         "en": "Python package: guards/",
         "ar": "حزمة Python: guards/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "guards"
-      ],
+      "tags": ["python", "module", "package", "guards"],
       "navigateTo": null
     },
     {
@@ -4406,12 +3233,7 @@
         "en": "Python package: copilot/",
         "ar": "حزمة Python: copilot/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "copilot"
-      ],
+      "tags": ["python", "module", "package", "copilot"],
       "navigateTo": null
     },
     {
@@ -4425,12 +3247,7 @@
         "en": "Python package: schemas/",
         "ar": "حزمة Python: schemas/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "schemas"
-      ],
+      "tags": ["python", "module", "package", "schemas"],
       "navigateTo": null
     },
     {
@@ -4444,12 +3261,7 @@
         "en": "Python package: migrations/",
         "ar": "حزمة Python: migrations/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "migrations"
-      ],
+      "tags": ["python", "module", "package", "migrations"],
       "navigateTo": null
     },
     {
@@ -4463,12 +3275,7 @@
         "en": "Python package: etap_integration/",
         "ar": "حزمة Python: etap_integration/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "etap_integration"
-      ],
+      "tags": ["python", "module", "package", "etap_integration"],
       "navigateTo": null
     },
     {
@@ -4482,12 +3289,7 @@
         "en": "Python package: core_model/",
         "ar": "حزمة Python: core_model/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "core_model"
-      ],
+      "tags": ["python", "module", "package", "core_model"],
       "navigateTo": null
     },
     {
@@ -4501,12 +3303,7 @@
         "en": "Python package: scada_model/",
         "ar": "حزمة Python: scada_model/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "scada_model"
-      ],
+      "tags": ["python", "module", "package", "scada_model"],
       "navigateTo": null
     },
     {
@@ -4520,12 +3317,7 @@
         "en": "Python package: acp_runtime/",
         "ar": "حزمة Python: acp_runtime/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "acp_runtime"
-      ],
+      "tags": ["python", "module", "package", "acp_runtime"],
       "navigateTo": null
     },
     {
@@ -4539,12 +3331,7 @@
         "en": "Python package: integrations/",
         "ar": "حزمة Python: integrations/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "integrations"
-      ],
+      "tags": ["python", "module", "package", "integrations"],
       "navigateTo": null
     },
     {
@@ -4558,12 +3345,7 @@
         "en": "Python package: knowledge/",
         "ar": "حزمة Python: knowledge/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "knowledge"
-      ],
+      "tags": ["python", "module", "package", "knowledge"],
       "navigateTo": null
     },
     {
@@ -4577,12 +3359,7 @@
         "en": "Python package: visualization/",
         "ar": "حزمة Python: visualization/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "visualization"
-      ],
+      "tags": ["python", "module", "package", "visualization"],
       "navigateTo": null
     },
     {
@@ -4596,12 +3373,7 @@
         "en": "Python package: gis_integration/",
         "ar": "حزمة Python: gis_integration/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "gis_integration"
-      ],
+      "tags": ["python", "module", "package", "gis_integration"],
       "navigateTo": null
     },
     {
@@ -4615,12 +3387,7 @@
         "en": "Python package: gis_model/",
         "ar": "حزمة Python: gis_model/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "gis_model"
-      ],
+      "tags": ["python", "module", "package", "gis_model"],
       "navigateTo": null
     },
     {
@@ -4634,12 +3401,7 @@
         "en": "Python package: gis_validation/",
         "ar": "حزمة Python: gis_validation/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "gis_validation"
-      ],
+      "tags": ["python", "module", "package", "gis_validation"],
       "navigateTo": null
     },
     {
@@ -4653,12 +3415,7 @@
         "en": "Python package: gis_validation_real/",
         "ar": "حزمة Python: gis_validation_real/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "gis_validation_real"
-      ],
+      "tags": ["python", "module", "package", "gis_validation_real"],
       "navigateTo": null
     },
     {
@@ -4672,12 +3429,7 @@
         "en": "Python package: gis_validation_electrical/",
         "ar": "حزمة Python: gis_validation_electrical/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "gis_validation_electrical"
-      ],
+      "tags": ["python", "module", "package", "gis_validation_electrical"],
       "navigateTo": null
     },
     {
@@ -4691,12 +3443,7 @@
         "en": "Python package: curves/",
         "ar": "حزمة Python: curves/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "curves"
-      ],
+      "tags": ["python", "module", "package", "curves"],
       "navigateTo": null
     },
     {
@@ -4710,12 +3457,7 @@
         "en": "Python package: zenon_user_guide/",
         "ar": "حزمة Python: zenon_user_guide/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "zenon_user_guide"
-      ],
+      "tags": ["python", "module", "package", "zenon_user_guide"],
       "navigateTo": null
     },
     {
@@ -4729,12 +3471,7 @@
         "en": "Python package: etap_user_guide/",
         "ar": "حزمة Python: etap_user_guide/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "etap_user_guide"
-      ],
+      "tags": ["python", "module", "package", "etap_user_guide"],
       "navigateTo": null
     },
     {
@@ -4748,12 +3485,7 @@
         "en": "Python package: ai_context_engine/",
         "ar": "حزمة Python: ai_context_engine/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "ai_context_engine"
-      ],
+      "tags": ["python", "module", "package", "ai_context_engine"],
       "navigateTo": null
     },
     {
@@ -4767,12 +3499,7 @@
         "en": "Python package: backend/",
         "ar": "حزمة Python: backend/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "backend"
-      ],
+      "tags": ["python", "module", "package", "backend"],
       "navigateTo": null
     },
     {
@@ -4786,12 +3513,7 @@
         "en": "Python package: autodesk_connector/",
         "ar": "حزمة Python: autodesk_connector/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "autodesk_connector"
-      ],
+      "tags": ["python", "module", "package", "autodesk_connector"],
       "navigateTo": null
     },
     {
@@ -4805,12 +3527,7 @@
         "en": "Python package: config/",
         "ar": "حزمة Python: config/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "config"
-      ],
+      "tags": ["python", "module", "package", "config"],
       "navigateTo": null
     },
     {
@@ -4824,12 +3541,7 @@
         "en": "Python package: monitoring/",
         "ar": "حزمة Python: monitoring/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "monitoring"
-      ],
+      "tags": ["python", "module", "package", "monitoring"],
       "navigateTo": null
     },
     {
@@ -4843,12 +3555,7 @@
         "en": "Python package: helm/",
         "ar": "حزمة Python: helm/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "helm"
-      ],
+      "tags": ["python", "module", "package", "helm"],
       "navigateTo": null
     },
     {
@@ -4862,12 +3569,7 @@
         "en": "Python package: terraform/",
         "ar": "حزمة Python: terraform/"
       },
-      "tags": [
-        "python",
-        "module",
-        "package",
-        "terraform"
-      ],
+      "tags": ["python", "module", "package", "terraform"],
       "navigateTo": null
     }
   ],

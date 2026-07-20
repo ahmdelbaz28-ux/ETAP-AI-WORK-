@@ -1,9 +1,11 @@
+
+from __future__ import annotations
+
 # =============================================================================
 # AhmedETAP — Locust Stress Test Suite
 # Comprehensive stress testing with study execution, AI assistant, auth flows,
 # and custom metrics for study execution time tracking.
 # =============================================================================
-
 import json
 import logging
 import os
@@ -63,7 +65,7 @@ def on_test_stop(environment, **kwargs):
 
 
 @events.request.add_listener
-def on_request(request_type, name, response_time, response_length, exception, **kwargs):
+def on_request(_request_type, name, response_time, _response_length, exception, **kwargs):
     """Track study-specific metrics on each request."""
     global _study_success_count, _study_failure_count
     if exception is None:
@@ -219,7 +221,7 @@ class AuthenticatedUser(HttpUser):
             )
             if reg_resp.status_code in (200, 201):
                 # Registration succeeded — now log in to get a JWT.
-                self._do_login()
+                self._do_login()  # NOSONAR(python:S1871): intentional duplicate
             elif reg_resp.status_code == 409:
                 # 409 Conflict = username already registered (race condition
                 # when 100 concurrent locust users all try to register the

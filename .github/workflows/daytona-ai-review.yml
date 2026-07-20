@@ -1,0 +1,235 @@
+# =============================================================================
+# AhmedETAP AI Engineering Platform — Daytona AI Code Review
+# =============================================================================
+# Runs automated AI code review on every PR using Daytona.
+# Posts findings (bugs, security issues, style, complexity) directly
+# to the PR as GitHub comment threads — no external tool required.
+#
+# Secret required:
+#   DAYTONA_TOKEN  → Daytona Personal Access Token
+#                     (Settings → Security → Daytona Tokens)
+#
+# Trigger: pull_request (opened, synchronize, reopened)
+# Skip:    PRs opened by bots / dependabot
+# =============================================================================
+
+name: Daytona AI Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Files to review (glob pattern, default: all changed files)"
+        required: false
+        default: ""
+
+# Permissions moved to job level per S8264/S8233
+# check-token: contents:read
+# daytona-review: contents:read, pull-requests:write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-token:
+    name: Check Daytona Token
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      token_set: ${{ steps.check.outputs.token_set }}
+    steps:
+      - name: Verify DAYTONA_TOKEN is configured
+        id: check
+        run: |
+          if [ -n "${{ secrets.DAYTONA_TOKEN }}" ] && [ "${{ secrets.DAYTONA_TOKEN }}" != "" ]; then
+            echo "token_set=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "token_set=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  daytona-review:
+    name: Daytona AI Code Review
+    runs-on: ubuntu-latest
+    needs: check-token
+    permissions:
+      contents: read
+      pull-requests: write
+    if: |
+      needs.check-token.outputs.token_set == 'true' &&
+      !contains(github.event.pull_request.user.login, '[bot]') &&
+      !contains(github.event.pull_request.user.login, 'dependabot[bot]') &&
+      !contains(github.event.pull_request.user.login, 'dependabot')
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get PR metadata
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const result = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            return {
+              title: result.data.title,
+              base_sha: result.data.base.sha,
+              head_sha: result.data.head.sha,
+              changed_files: result.data.changed_files,
+              additions: result.data.additions,
+              deletions: result.data.deletions,
+            };
+          result-encoding: json
+
+      - name: Collect changed files
+        id: changed
+        run: |
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          git diff --name-only origin/${{ github.event.repository.default_branch }}...HEAD \
+            | grep -vE '^\.git/|^node_modules/|dist/|build/|\.venv/|\.venv312/|htmlcov/|\.pytest_cache/|__pycache__/|\.egg-info/' \
+            | grep -E '\.(py|ts|tsx|js|jsx|yaml|yml|json|dockerfile|Dockerfile|md|toml|cfg)$' \
+            | tr '\n' ' ' \
+            >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Compute diff patch
+        id: diff
+        env:
+          DIFF_BASE: ${{ steps.pr.outputs.base_sha }}
+          DIFF_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          LIMIT_BYTES=100000
+          DIFF=$(git diff --patch "$DIFF_BASE...$DIFF_HEAD" \
+            -- . \
+            ':!node_modules' ':!dist' ':!build' \
+            ':!.venv' ':!.venv312' ':!htmlcov' ':!__pycache__' \
+            ':!*.pyc' ':!*.pyo' ':(exclude).venv312/*' 2>&1 || true)
+          DIFF_LEN=$(printf '%s' "$DIFF" | wc -c)
+          if [ "$DIFF_LEN" -gt "$LIMIT_BYTES" ]; then
+            DIFF=$(printf '%s' "$DIFF" | head -c "$LIMIT_BYTES")
+            DIFF="$DIFF\n\n[... diff truncated at ${LIMIT_BYTES} bytes]"
+          fi
+          {
+            echo "patch<<DIFFEOF"
+            printf '%s' "$DIFF"
+            echo ""
+            echo "DIFFEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Request Daytona AI review
+        id: review
+        env:
+          DAYTONA_TOKEN: ${{ secrets.DAYTONA_TOKEN }}
+          DAYTONA_BASE_URL: ${{ vars.DAYTONA_BASE_URL || 'https://api.daytona.ai' }}
+          PR_TITLE: ${{ steps.pr.outputs.title }}
+          DIFF_PATCH: ${{ steps.diff.outputs.patch }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          set +e
+          # Build JSON payload using jq (avoids inline Python YAML issues)
+          PAYLOAD=$(jq -n \
+            --arg review_type "pr" \
+            --arg title "$PR_TITLE" \
+            --arg diff "$DIFF_PATCH" \
+            --argjson changed_files "[$(echo "$CHANGED_FILES" | sed 's/ /","/g')]" \
+            '{
+              review_type: $review_type,
+              title: $title,
+              changed_files: $changed_files,
+              diff: $diff,
+              language: "mixed",
+              max_findings: 30
+            }')
+          
+          RESPONSE=$(curl -sS -X POST "${DAYTONA_BASE_URL}/v1/review" \
+            -H "Authorization: Bearer ${DAYTONA_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            --max-time 120 2>&1 || echo '{"ok":false,"error":"curl_failed"}')
+          
+          OK=$(echo "$RESPONSE" | jq -r '.ok // false')
+          echo "ok=$OK" >> "$GITHUB_OUTPUT"
+          echo "raw=$RESPONSE" >> "$GITHUB_OUTPUT"
+
+      - name: Post review to PR
+        if: ${{ steps.review.outputs.ok == 'true' }}
+        uses: actions/github-script@v7
+        env:
+          REVIEW_RESULT: ${{ steps.review.outputs.raw }}
+        with:
+          script: |
+            const result = JSON.parse(process.env.REVIEW_RESULT);
+            const data = result.result || result;
+            const findings = data.findings || data.review || [];
+
+            let body = `## 🤖 Daytona AI Code Review\n\n`;
+
+            if (!findings || findings.length === 0) {
+              body += `✅ No issues found — code looks clean.\n\n> Auto-generated by Daytona AI · ${new Date().toISOString().slice(0,19)}Z`;
+            } else {
+              const SEVERITY_EMOJI = { high: "🔴", medium: "🟡", low: "🟢" };
+              const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
+
+              const sorted = [...findings].sort((a, b) =>
+                (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9)
+              );
+
+              body += `<details><summary>📋 ${sorted.length} finding${sorted.length !== 1 ? 's' : ''} — click to expand</summary>\n\n`;
+
+              for (const f of sorted) {
+                const sev  = (f.severity || f.level || "info").toLowerCase();
+                const icon = SEVERITY_EMOJI[sev] || "ℹ️";
+                const file = f.file  || f.path || f.filename  || "unknown";
+                const line = f.line  || f.line_number || f.lines  || "";
+                const msg  = f.message || f.title || f.description || String(f);
+                const rule = f.rule_id || f.rule || f.check_id || "";
+
+                body += `<details>\n<summary>${icon} <strong>[${sev.toUpperCase()}]</strong> ${msg.substring(0, 80)}${msg.length > 80 ? '…' : ''}</summary>\n\n`;
+                body += `| Field | Value |\n|---|---|\n`;
+                body += `| File | \`${file}\` |\n`;
+                if (line) body += `| Line | \`${line}\` |\n`;
+                if (rule) body += `| Rule | \`${rule}\` |\n`;
+                body += `| Severity | **${sev.toUpperCase()}** |\n`;
+                body += `\n> ${msg}\n\n`;
+                if (f.suggestion || f.fix) {
+                  body += `**Suggestion:**\n\`\`\`\n${f.suggestion || f.fix}\n\`\`\`\n\n`;
+                }
+                body += `</details>\n\n`;
+              }
+              body += `</details>\n\n> Auto-generated by [Daytona AI](https://daytona.ai) · ${new Date().toISOString().slice(0,19)}Z`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Report empty-review (no token or API error)
+        if: ${{ steps.review.outputs.ok == 'false' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ts = new Date().toISOString().slice(0,19) + "Z";
+            const body = "## ⚙️ Daytona AI Review — Skipped\n\n" +
+              "Daytona token not configured or API unavailable. To enable automated AI\n" +
+              "code review on this PR:\n\n" +
+              "1. Go to **Settings → Actions secrets and variables**\n" +
+              "2. Add secret **DAYTONA_TOKEN** with your Daytona Personal Access Token\n" +
+              "3. Re-open or re-request a review\n\n" +
+              "> Action: `disable-review` · " + ts;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            })

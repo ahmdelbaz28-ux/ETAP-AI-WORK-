@@ -1,0 +1,97 @@
+<!doctype html>
+
+
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>{{ brand_name }} — {{ purpose_label }}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    .otp-code { font-family: 'Courier New', monospace !important; }
+  </style>
+  <![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <!-- Preheader (hidden) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Your {{ brand_name }} verification code is {{ otp_code }}. Do not share this code with anyone.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:560px;">
+          <!-- Header (AhmedETAP gradient: yellow → red) -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);padding:24px 32px;text-align:center;">
+              <div style="font-size:36px;margin-bottom:4px;">⚡</div>
+              <h1 style="margin:0;color:#1f2937;font-size:22px;font-weight:700;letter-spacing:0.5px;">{{ brand_name }}</h1>
+              <p style="margin:4px 0 0;color:#1f2937;font-size:12px;font-weight:500;">{{ brand_tagline }}</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 32px 16px 32px;">
+              <h2 style="margin:0 0 16px;color:#111827;font-size:20px;font-weight:600;">{{ purpose_label }}</h2>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                Hi {{ recipient_name }},
+              </p>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                Use the code below to complete your request. This code is valid for
+                <strong>{{ ttl_minutes }} minutes</strong>.
+              </p>
+
+              <!-- OTP Code Block -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#fef3c7 0%,#fee2e2 100%);border:2px dashed #ef4444;border-radius:8px;padding:24px;text-align:center;">
+                    <div class="otp-code" style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:700;letter-spacing:10px;color:#dc2626;">
+                      {{ otp_code }}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;color:#6b7280;font-size:13px;line-height:1.5;">
+                <strong>Didn't request this?</strong>
+              </p>
+              <p style="margin:0 0 24px;color:#6b7280;font-size:13px;line-height:1.5;">
+                Ignore this email — your account security has not been compromised.
+                Someone may have entered your email address by mistake. If you receive
+                repeated unwanted codes, contact
+                <a href="mailto:{{ support_email }}" style="color:#ef4444;text-decoration:none;">{{ support_email }}</a>.
+              </p>
+
+              <!-- Security note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef3c7;border-radius:6px;margin:0 0 24px;">
+                <tr>
+                  <td style="padding:12px 16px;">
+                    <p style="margin:0;color:#92400e;font-size:12px;line-height:1.5;">
+                      <strong>Security tip:</strong> Never share this code with anyone.
+                      {{ brand_name }} will never ask for your code by phone, email, or chat.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 32px;border-top:1px solid #e5e7eb;">
+              <p style="margin:0 0 8px;color:#6b7280;font-size:12px;line-height:1.5;">
+                This is an automated message from {{ brand_name }}. Please do not reply.
+              </p>
+              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5;">
+                © {{ current_year }} {{ brand_name }}. All rights reserved.<br>
+                <a href="{{ app_url }}" style="color:#9ca3af;text-decoration:none;">{{ app_url }}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

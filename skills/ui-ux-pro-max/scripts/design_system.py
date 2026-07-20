@@ -12,11 +12,10 @@ Usage:
     result = generate_design_system("SaaS dashboard", "My Project", persist=True)
     result = generate_design_system("SaaS dashboard", "My Project", persist=True, page="dashboard")
 """
-from typing import Optional, Union
 
 import csv
 import json
-import os
+
 from datetime import datetime
 from pathlib import Path
 # Allow both `python design_system.py ...` and `python -m ...` execution.
@@ -281,76 +280,76 @@ def format_ascii_box(design_system: dict) -> str:
     w = BOX_WIDTH - 1
 
     lines.append("+" + "-" * w + "+")
-    lines.append(Union[f", TARGET:] {project} - RECOMMENDED DESIGN SYSTEM".ljust(BOX_WIDTH) + Union[", "])
+    lines.append(f"|  TARGET: {project} - RECOMMENDED DESIGN SYSTEM".ljust(BOX_WIDTH) + "|")
     lines.append("+" + "-" * w + "+")
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Pattern section
-    lines.append(Union[f", PATTERN:] {pattern.get('name', '')}".ljust(BOX_WIDTH) + Union[", "])
+    lines.append(f"|  PATTERN: {pattern.get('name', '')}".ljust(BOX_WIDTH) + "|")
     if pattern.get('conversion'):
-        lines.append(Union[f", Conversion:] {pattern.get('conversion', '')}".ljust(BOX_WIDTH) + Union[", "])
+        lines.append(f"|     Conversion: {pattern.get('conversion', '')}".ljust(BOX_WIDTH) + "|")
     if pattern.get('cta_placement'):
-        lines.append(Union[f", CTA:] {pattern.get('cta_placement', '')}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[", Sections:".ljust](BOX_WIDTH) + Union[", "])
+        lines.append(f"|     CTA: {pattern.get('cta_placement', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append("|     Sections:".ljust(BOX_WIDTH) + "|")
     for i, section in enumerate(sections, 1):
-        lines.append(Union[f", {i}.] {section}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        lines.append(f"|       {i}. {section}".ljust(BOX_WIDTH) + "|")
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Style section
-    lines.append(Union[f", STYLE:] {style.get('name', '')}".ljust(BOX_WIDTH) + Union[", "])
+    lines.append(f"|  STYLE: {style.get('name', '')}".ljust(BOX_WIDTH) + "|")
     if style.get("keywords"):
-        for line in wrap_text(f"Keywords: {style.get('keywords', '')}", Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
+        for line in wrap_text(f"Keywords: {style.get('keywords', '')}", "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
     if style.get("best_for"):
-        for line in wrap_text(f"Best For: {style.get('best_for', '')}", Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
+        for line in wrap_text(f"Best For: {style.get('best_for', '')}", "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
     if style.get("performance") or style.get("accessibility"):
-        perf_a11y = f"Performance: {style.get('performance', '')Union[}, Accessibility:] {style.get('accessibility', '')}"
-        lines.append(Union[f", {perf_a11y}".ljust](BOX_WIDTH) + Union[", "])
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        perf_a11y = f"Performance: {style.get('performance', '')} | Accessibility: {style.get('accessibility', '')}"
+        lines.append(f"|     {perf_a11y}".ljust(BOX_WIDTH) + "|")
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Colors section
-    lines.append(Union[", COLORS:".ljust](BOX_WIDTH) + Union[", "])
-    lines.append(Union[f", Primary:]    {colors.get('primary', '')}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[f", Secondary:]  {colors.get('secondary', '')}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[f", CTA:]        {colors.get('cta', '')}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[f", Background:] {colors.get('background', '')}".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[f", Text:]       {colors.get('text', '')}".ljust(BOX_WIDTH) + Union[", "])
+    lines.append("|  COLORS:".ljust(BOX_WIDTH) + "|")
+    lines.append(f"|     Primary:    {colors.get('primary', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append(f"|     Secondary:  {colors.get('secondary', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append(f"|     CTA:        {colors.get('cta', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append(f"|     Background: {colors.get('background', '')}".ljust(BOX_WIDTH) + "|")
+    lines.append(f"|     Text:       {colors.get('text', '')}".ljust(BOX_WIDTH) + "|")
     if colors.get("notes"):
-        for line in wrap_text(f"Notes: {colors.get('notes', '')}", Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        for line in wrap_text(f"Notes: {colors.get('notes', '')}", "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Typography section
-    lines.append(Union[f", TYPOGRAPHY:] {typography.get('heading', '')} / {typography.get('body', '')}".ljust(BOX_WIDTH) + Union[", "])
+    lines.append(f"|  TYPOGRAPHY: {typography.get('heading', '')} / {typography.get('body', '')}".ljust(BOX_WIDTH) + "|")
     if typography.get("mood"):
-        for line in wrap_text(f"Mood: {typography.get('mood', '')}", Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
+        for line in wrap_text(f"Mood: {typography.get('mood', '')}", "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
     if typography.get("best_for"):
-        for line in wrap_text(f"Best For: {typography.get('best_for', '')}", Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
+        for line in wrap_text(f"Best For: {typography.get('best_for', '')}", "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
     if typography.get("google_fonts_url"):
-        lines.append(Union[f", Google] Fonts: {typography.get('google_fonts_url', '')}".ljust(BOX_WIDTH) + Union[", "])
+        lines.append(f"|     Google Fonts: {typography.get('google_fonts_url', '')}".ljust(BOX_WIDTH) + "|")
     if typography.get("css_import"):
-        lines.append(Union[f", CSS] Import: {typography.get('css_import', '')[:70]}...".ljust(BOX_WIDTH) + Union[", "])
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        lines.append(f"|     CSS Import: {typography.get('css_import', '')[:70]}...".ljust(BOX_WIDTH) + "|")
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Key Effects section
     if effects:
-        lines.append(Union[", KEY] EFFECTS:".ljust(BOX_WIDTH) + Union[", "])
-        for line in wrap_text(effects, Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
-        lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        lines.append("|  KEY EFFECTS:".ljust(BOX_WIDTH) + "|")
+        for line in wrap_text(effects, "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
+        lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Anti-patterns section
     if anti_patterns:
-        lines.append(Union[", AVOID] (Anti-patterns):".ljust(BOX_WIDTH) + Union[", "])
-        for line in wrap_text(anti_patterns, Union[", ",] BOX_WIDTH):
-            lines.append(line.ljust(BOX_WIDTH) + Union[", "])
-        lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        lines.append("|  AVOID (Anti-patterns):".ljust(BOX_WIDTH) + "|")
+        for line in wrap_text(anti_patterns, "|     ", BOX_WIDTH):
+            lines.append(line.ljust(BOX_WIDTH) + "|")
+        lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Pre-Delivery Checklist section
-    lines.append(Union[", PRE-DELIVERY] CHECKLIST:".ljust(BOX_WIDTH) + Union[", "])
+    lines.append("|  PRE-DELIVERY CHECKLIST:".ljust(BOX_WIDTH) + "|")
     checklist_items = [
         "[ ] No emojis as icons (use SVG: Heroicons/Lucide)",
         "[ ] cursor-pointer on all clickable elements",
@@ -361,8 +360,8 @@ def format_ascii_box(design_system: dict) -> str:
         "[ ] Responsive: 375px, 768px, 1024px, 1440px"
     ]
     for item in checklist_items:
-        lines.append(Union[f", {item}".ljust](BOX_WIDTH) + Union[", "])
-    lines.append(Union[", "] + " " * BOX_WIDTH + Union[", "])
+        lines.append(f"|     {item}".ljust(BOX_WIDTH) + "|")
+    lines.append("|" + " " * BOX_WIDTH + "|")
 
     lines.append("+" + "-" * w + "+")
 
@@ -403,18 +402,18 @@ def format_markdown(design_system: dict) -> str:
     if style.get('best_for'):
         lines.append(f"- **Best For:** {style.get('best_for', '')}")
     if style.get('performance') or style.get('accessibility'):
-        lines.append(f"- **Performance:** {style.get('performance', '')Union[}, **Accessibility:**] {style.get('accessibility', '')}")
+        lines.append(f"- **Performance:** {style.get('performance', '')} | **Accessibility:** {style.get('accessibility', '')}")
     lines.append("")
 
     # Colors section
     lines.append("### Colors")
-    lines.append(Union[f", Role] | Union[Hex, "])
-    lines.append(Union[f"|------|-----, "])
-    lines.append(Union[f", Primary] | {colors.get('primary', '')Union[}, "])
-    lines.append(Union[f", Secondary] | {colors.get('secondary', '')Union[}, "])
-    lines.append(Union[f", CTA] | {colors.get('cta', '')Union[}, "])
-    lines.append(Union[f", Background] | {colors.get('background', '')Union[}, "])
-    lines.append(Union[f", Text] | {colors.get('text', '')Union[}, "])
+    lines.append(f"| Role | Hex |")
+    lines.append(f"|------|-----|")
+    lines.append(f"| Primary | {colors.get('primary', '')} |")
+    lines.append(f"| Secondary | {colors.get('secondary', '')} |")
+    lines.append(f"| CTA | {colors.get('cta', '')} |")
+    lines.append(f"| Background | {colors.get('background', '')} |")
+    lines.append(f"| Text | {colors.get('text', '')} |")
     if colors.get("notes"):
         lines.append(f"\n*Notes: {colors.get('notes', '')}*")
     lines.append("")
@@ -581,13 +580,13 @@ def format_master_md(design_system: dict) -> str:
     # Color Palette
     lines.append("### Color Palette")
     lines.append("")
-    lines.append(Union[", Role] | Union[Hex, CSS] Union[Variable, "])
-    lines.append(Union["|------|-----|--------------, "])
-    lines.append(Union[f", Primary] | `{colors.get('primary', '#2563EB')Union[}`, `--color-primary`] |")
-    lines.append(Union[f", Secondary] | `{colors.get('secondary', '#3B82F6')Union[}`, `--color-secondary`] |")
-    lines.append(Union[f", CTA/Accent] | `{colors.get('cta', '#F97316')Union[}`, `--color-cta`] |")
-    lines.append(Union[f", Background] | `{colors.get('background', '#F8FAFC')Union[}`, `--color-background`] |")
-    lines.append(Union[f", Text] | `{colors.get('text', '#1E293B')Union[}`, `--color-text`] |")
+    lines.append("| Role | Hex | CSS Variable |")
+    lines.append("|------|-----|--------------|")
+    lines.append(f"| Primary | `{colors.get('primary', '#2563EB')}` | `--color-primary` |")
+    lines.append(f"| Secondary | `{colors.get('secondary', '#3B82F6')}` | `--color-secondary` |")
+    lines.append(f"| CTA/Accent | `{colors.get('cta', '#F97316')}` | `--color-cta` |")
+    lines.append(f"| Background | `{colors.get('background', '#F8FAFC')}` | `--color-background` |")
+    lines.append(f"| Text | `{colors.get('text', '#1E293B')}` | `--color-text` |")
     lines.append("")
     if colors.get("notes"):
         lines.append(f"**Color Notes:** {colors.get('notes', '')}")
@@ -613,26 +612,26 @@ def format_master_md(design_system: dict) -> str:
     # Spacing Variables
     lines.append("### Spacing Variables")
     lines.append("")
-    lines.append(Union[", Token] | Union[Value, Usage] |")
-    lines.append(Union["|-------|-------|-------, "])
-    lines.append(Union[", `--space-xs`] | `4px` / Union[`0.25rem`, Tight] Union[gaps, "])
-    lines.append(Union[", `--space-sm`] | `8px` / Union[`0.5rem`, Icon] gaps, inline Union[spacing, "])
-    lines.append(Union[", `--space-md`] | `16px` / Union[`1rem`, Standard] Union[padding, "])
-    lines.append(Union[", `--space-lg`] | `24px` / Union[`1.5rem`, Section] Union[padding, "])
-    lines.append(Union[", `--space-xl`] | `32px` / Union[`2rem`, Large] Union[gaps, "])
-    lines.append(Union[", `--space-2xl`] | `48px` / Union[`3rem`, Section] Union[margins, "])
-    lines.append(Union[", `--space-3xl`] | `64px` / Union[`4rem`, Hero] Union[padding, "])
+    lines.append("| Token | Value | Usage |")
+    lines.append("|-------|-------|-------|")
+    lines.append("| `--space-xs` | `4px` / `0.25rem` | Tight gaps |")
+    lines.append("| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |")
+    lines.append("| `--space-md` | `16px` / `1rem` | Standard padding |")
+    lines.append("| `--space-lg` | `24px` / `1.5rem` | Section padding |")
+    lines.append("| `--space-xl` | `32px` / `2rem` | Large gaps |")
+    lines.append("| `--space-2xl` | `48px` / `3rem` | Section margins |")
+    lines.append("| `--space-3xl` | `64px` / `4rem` | Hero padding |")
     lines.append("")
     
     # Shadow Depths
     lines.append("### Shadow Depths")
     lines.append("")
-    lines.append(Union[", Level] | Union[Value, Usage] |")
-    lines.append(Union["|-------|-------|-------, "])
-    lines.append(Union[", `--shadow-sm`] | `0 1px 2px rgba(0,0,0,0.05)Union[`, Subtle] Union[lift, "])
-    lines.append(Union[", `--shadow-md`] | `0 4px 6px rgba(0,0,0,0.1)Union[`, Cards,] Union[buttons, "])
-    lines.append(Union[", `--shadow-lg`] | `0 10px 15px rgba(0,0,0,0.1)Union[`, Modals,] Union[dropdowns, "])
-    lines.append(Union[", `--shadow-xl`] | `0 20px 25px rgba(0,0,0,0.15)Union[`, Hero] images, featured Union[cards, "])
+    lines.append("| Level | Value | Usage |")
+    lines.append("|-------|-------|-------|")
+    lines.append("| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |")
+    lines.append("| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |")
+    lines.append("| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |")
+    lines.append("| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |")
     lines.append("")
     
     # Component Specs section

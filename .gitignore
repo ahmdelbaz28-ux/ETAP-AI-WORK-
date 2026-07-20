@@ -1,371 +1,45 @@
-# ETAP AI Engineering Platform - Git Ignore File
-
-# ==========================================
 # Python
-# ==========================================
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-!ui/src/lib/
-!src/mastra/lib/
-parts/
-sdist/
-var/
-wheels/
+*.pyc
+*.pyo
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-*.pyd
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-
-# Virtual environments
+dist/
+build/
+.venv/
 venv/
 env/
-ENV/
-.venv
-.venv/
-env.bak/
-venv.bak/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Scan / temp files
+dead_code_report.json
+dead_code_scan.py
+fix_dead_code.py
+scan_deadcode.py
+scan.py
+scanner.py
+scanner2.py
+filter_findings.py
+fix_all_sonarcloud.py
+analyze_sonar.py
+analyze_sonar_detailed.py
+fix_future_imports.py
+output.txt
+results.txt
+scan_results.txt
+test2.txt
+test3.py
+test_write.txt
 
-# IPython
-profile_default/
-ipython_config.py
+# Git clones
+AhmedETAP-Platform/
+ETAP-AI-WORK-/
+temp_repo/
 
-# ==========================================
-# Node.js / TypeScript
-# ==========================================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-store/
-
-# Build outputs
-.next/
-out/
-
-# Testing
-coverage/
-.nyc_output/
-
-# ==========================================
-# IDE & Editors
-# ==========================================
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.classpath
-.settings/
-*.sublime-workspace
-*.sublime-project
-
-# ==========================================
-# OS Files
-# ==========================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
-
-# Windows
-$RECYCLE.BIN/
-System Volume Information/
-# Stale git worktree artifacts (left over from interrupted operations)
-/worktree-*/
-
-# Windows reserved device names that can never be created as files on Windows
-# (git for Windows refuses to add them)
-/nul
-/con
-/prn
-/aux
-/com1
-/com2
-/com3
-/com4
-/com5
-/com6
-/com7
-/com8
-/com9
-/lpt1
-/lpt2
-/lpt3
-/lpt4
-/lpt5
-/lpt6
-/lpt7
-/lpt8
-/lpt9
-
-# Linux
-.fuse_hidden*
-.directory
-.Trash-*
-
-# ==========================================
-# Environment & Secrets
-# ==========================================
-.env
-.env.local
-.env.*.local
-!.env.example
-
-# Secrets
-*.pem
-*.key
-*.cert
-secrets/
-credentials/
-
-# API Keys (never commit)
-api_keys.json
-service-account.json
-*.secret
-jwt_key.txt
-
-# ==========================================
-# Logs
-# ==========================================
-logs/
-*.log
-
-# ==========================================
-# Database & Data
-# ==========================================
-*.db
-*.db-shm
-*.db-wal
-*.duckdb
-*.sqlite
-*.sqlite3
-*.sqlite-shm
-*.sqlite-wal
+# Data
 data/
-knowledge_db/
-chroma_db/
-faiss_index/
-
-# ==========================================
-# Reports & Generated Files
-# ==========================================
-reports/
-exports/
-output/
-results/
-power_system_report.txt
-health-check-report.json
+.hypothesis/
+sonar_issues.json
 security_audit.log
-coordination_margin.png
-# Generated PNGs at project root (charts/plots)
-/*.png
-# Generated TXT reports at project root
-/*.report.txt
 
-# ==========================================
-# Temporary Files
-# ==========================================
-tmp/
-temp/
-temp-hf/
-*.tmp
-*.bak
-*.backup
-
-# ==========================================
-# Lint / Audit Outputs
-# ==========================================
-ui/eslint-*.json
-
-# ==========================================
-# Docker
-# ==========================================
-docker-compose.override.yml
-
-# ==========================================
-# Terraform
-# ==========================================
-.terraform/
-
-# ==========================================
-# Deployment Configs (per-environment)
-# ==========================================
-fly.toml
-railway.json
-railway.toml
-render.yaml
-k8s-deployment.yaml
-wrangler.jsonc
-
-# ==========================================
-# Documentation Build
-# ==========================================
-docs/_build/
-site/
-
-# ==========================================
-# AI Tools
-# ==========================================
-.blackbox/
-.better-agents/
-.cursor/
-.kilo/
-.mastra/
-.agent/
-.mcp.json
-# AI tool local configs (do NOT commit personal/workspace settings)
-.blackboxrules
-blackbox_mcp_settings.json
-kilo.json
-
-# ==========================================
-# Cloudflare / Wrangler local runtime state
-# ==========================================
-.wrangler/
-.dev.vars*
-.dev.vars
-
-# ==========================================
-# Playwright / Browser MCP caches
-# ==========================================
-.playwright-mcp/
-
-# ==========================================
-# Performance Profiling
-# ==========================================
-*.prof
-.profiling/
-
-# ==========================================
-# Certificates
-# ==========================================
-ssl/
-certs/
-*.crt
-*.csr
-
-# ==========================================
-# Backup Files
-# ==========================================
-*.orig
-*.save
-
-# ==========================================
-# Lock Files (optional - uncomment if needed)
-# ==========================================
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
-# poetry.lock
-# Pipfile.lock
-
-# ==========================================
-# Large Files
-# ==========================================
-*.iso
-*.dmg
-*.zip
-*.tar.gz
-*.rar
-*.7z
-
-# ==========================================
-# Model Files
-# ==========================================
-*.bin
-*.pt
-*.pth
-*.onnx
-models/
-
-# ==========================================
-# Test Fixtures
-# ==========================================
-test_data/
-fixtures/
-
-# ==========================================
-# CI/CD
-# ==========================================
-.github/workflows/*.local.yml
-
-# ==========================================
-# ETAP User Guide - Large PDF Files
-# ==========================================
-# Exclude large PDF files from Git (they are stored locally)
-etap_user_guide/pdfs/*.pdf
-etap_user_guide/ac_element/*.pdf
-etap_user_guide/extracted/*.txt
-etap_user_guide/chunks/*.json
-etap_user_guide/index/*.json
-!etap_user_guide/README.md
-!etap_user_guide/extract_guide.py
-!etap_user_guide/etap_guide_rag.py
-!etap_user_guide/setup_etap_guide.py
-
-# ==========================================
-# Zenon User Guide - Generated Files
-# ==========================================
-# Exclude generated extracted text, chunks, and index (large files stored locally)
-zenon_user_guide/pdfs/*.pdf
-zenon_user_guide/extracted/*.txt
-zenon_user_guide/chunks/*.json
-zenon_user_guide/index/*.json
-!zenon_user_guide/zenon_guide_rag.py
-!zenon_user_guide/extraction_summary.json
-
-.env.engineering-service
-ui/release/
-ui/release
-*.asar
-security/_tmp_secure_executor_test_runner.py
-# Helm downloaded dependency charts
-helm/**/charts/
-.venv312/
-ui-dist/
-
-testsprite_tests\tmp\config.json
-
-# Temp scripts from QA session
-fix_secrets*.py
-check_supabase.py
-final_fix.py
-fix_db_url.py
-api/agents_fixed.py
-api/data_import_fixed.py
-api/projects_fixed.py
-api/settings_fixed.py
-
-
-# ─── Agent work logs (never commit — may contain operational secrets) ───
-worklog.md
-worklog*.md
+# OS
+.DS_Store
+Thumbs.db
