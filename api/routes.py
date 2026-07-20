@@ -29,6 +29,7 @@ from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
 from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
+from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
 from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
@@ -491,13 +492,15 @@ if not _cors_origin_list:
             "Set ENGINEERING_SERVICE_CORS_ORIGINS for production.",
         )
     _cors_origin_list = []  # No origins allowed = restrictive by default
-# NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer.
-# CORSMiddleware must be added LAST so it is outermost and can answer
-# preflight OPTIONS requests before any body-size check rejects them
-# (SonarCloud S8414).
-# BodySizeLimit must be added BEFORE CORSMiddleware so CORS is outermost
-# (last added = first executed on incoming requests)
+# NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer
+# (first executed on incoming requests). Execution order:
+#   CORSMiddleware (preflight) → CSRFMiddleware → BodySizeLimit → trace_middleware → handler
+# CORSMiddleware must be outermost so it can answer OPTIONS preflight before
+# any other middleware rejects them (SonarCloud S8414).
+# CSRFMiddleware sits between CORS and BodySizeLimit so that state-changing
+# requests are validated before the body is examined.
 app.add_middleware(_BodySizeLimitMiddleware)
+app.add_middleware(CSRFMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
     app.add_middleware(  # NOSONAR — S8414: CORSMiddleware added last to make it outermost in the middleware chain
@@ -505,7 +508,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         allow_origins=_cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model", "x-csrf-token"],
         expose_headers=["x-trace-id"],
     )
 else:
@@ -515,7 +518,7 @@ else:
         allow_origins=_cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model", "x-csrf-token"],
         expose_headers=["x-trace-id"],
     )
 
@@ -553,6 +556,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 
 # Register only the routers that exist
+app.include_router(csrf_router)  # /api/v1/csrf/token — CSRF token endpoint
 app.include_router(health_router)
 app.include_router(studies_router)
 app.include_router(agents_router)
@@ -749,8 +753,13 @@ async def audit_verify(request: Request):
 
 # ─── CUA Admin Endpoints ───────────────────────────────────────────────────
 # These endpoints are consumed by the CUA Monitor dashboard at /admin/cua-monitor.
-# They delegate to the life_safety module for kill switch management and read
-# the tamper-evident audit log for the action audit trail.
+# They delegate to the life_safety module for kill switch management, rollback
+# operations, and audit log access.
+# 
+# IMPORTANT — Life-Safety Context:
+# The kill switch is a software-only emergency stop. It CANNOT physically
+# disconnect relays or de-energize switchgear. Operators must verify the
+# corresponding physical safety measures separately.
 
 
 @app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"])
@@ -814,6 +823,51 @@ async def cua_kill_switch_deactivate():
         "active": is_kill_switch_active(),
         "was_active": was_active,
     }
+
+
+class CUARollbackRequest(BaseModel):
+    """Request body for POST /admin/cua/rollback."""
+    snapshot_id: str
+    reason: str = "manual_rollback"
+
+
+@app.post("/admin/cua/rollback", tags=["CUA", "Admin"])
+async def cua_rollback(body: CUARollbackRequest):
+    """Execute a CUA rollback using a previously captured state snapshot.
+
+    The rollback loads the pre-action snapshot (captured by
+    :meth:`LifeSafetyGuard._capture_state_snapshot`), logs a tamper-evident
+    audit entry, and returns manual rollback instructions to the operator.
+
+    **Limitation**: In a GUI automation (CUA) context, there is no
+    deterministic automated undo. The operator must manually reverse the
+    action (e.g. re-open a protection dialog and restore the original value)
+    following the instructions returned in the response.
+
+    Flow:
+      1. Load snapshot by ID from the audit directory.
+      2. Generate manual rollback steps based on the action type + target.
+      3. Append a tamper-evident audit entry (SHA-256 chain).
+      4. Return snapshot + instructions to the operator.
+
+    Args:
+        snapshot_id: The ID returned by ``_capture_state_snapshot`` during
+                     the pre-action safety check.
+        reason:      Why the rollback is being triggered (e.g.
+                     ``"safety_check_failed"``, ``"operator_request"``,
+                     ``"dual_confirmation_denied"``). Default: ``manual_rollback``.
+
+    Returns:
+        dict with ``success``, ``message``, and ``snapshot`` keys.
+    """
+    from agents.life_safety import life_safety_guard
+
+    result = life_safety_guard.rollback(
+        snapshot_id=body.snapshot_id,
+        reason=body.reason,
+    )
+    status_code = 200 if result.get("success") else 404
+    return JSONResponse(content=result, status_code=status_code)
 
 
 @app.get("/admin/cua/audit-log", tags=["CUA", "Admin"])

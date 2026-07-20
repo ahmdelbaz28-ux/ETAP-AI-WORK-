@@ -495,6 +495,19 @@ class CUAExecutor:
                 mode=mode,
             )
             if safety_check.blocked:
+                # ── Attempt rollback from pre-action snapshot ────────────
+                # The safety guard already captured a state snapshot in
+                # pre_action_check(). We call rollback() to log a tamper-
+                # evident audit entry and return operator instructions.
+                # Best-effort: never fail the execution because of a rollback
+                # error.
+                if safety_check.state_snapshot_id:
+                    with contextlib.suppress(Exception):
+                        life_safety_guard.rollback(
+                            snapshot_id=safety_check.state_snapshot_id,
+                            reason=f"safety_check_blocked: {safety_check.reason}",
+                        )
+
                 step_result = CUAStepResult(
                     step_number=step_num,
                     action=action,
@@ -533,6 +546,14 @@ class CUAExecutor:
                 # The callback should ask TWO humans; we just pass the flag
                 approved = on_confirmation_request(action)
                 if not approved:
+                    # ── Rollback on dual confirmation denial ─────────────
+                    if safety_check.state_snapshot_id:
+                        with contextlib.suppress(Exception):
+                            life_safety_guard.rollback(
+                                snapshot_id=safety_check.state_snapshot_id,
+                                reason="dual_confirmation_denied",
+                            )
+
                     step_result = CUAStepResult(
                         step_number=step_num,
                         action=action,
