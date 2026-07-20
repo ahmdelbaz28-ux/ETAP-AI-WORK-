@@ -81,12 +81,20 @@ RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "3
 # Rate-limiting (Redis-backed, per username, with in-memory fallback)
 # ---------------------------------------------------------------------------
 
-_LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+from collections import OrderedDict
+import threading
+
+_LOGIN_ATTEMPTS: "OrderedDict[str, list[float]]" = OrderedDict()
+_LOGIN_ATTEMPTS_LOCK = threading.Lock()
+_MAX_LOGIN_ATTEMPTS_ENTRIES: int = 10000  # Prevent unbounded growth
 _RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "5"))
 _RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SEC", "900"))  # 15 minutes
 
+# Number of replicas (for replica-aware rate limiting when Redis unavailable)
+_REPLICA_COUNT: int = max(1, int(os.getenv("REPLICA_COUNT", "1")))
+
 # ---------------------------------------------------------------------------
-# Token blacklist (Redis-backed)
+# Token blacklist (Redis-backed with in-memory fallback)
 # ---------------------------------------------------------------------------
 
 try:
@@ -99,6 +107,10 @@ except ImportError:
 
 _REDIS_URL = os.getenv("REDIS_URL", "").strip()
 _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
+
+# In-memory token blacklist fallback (with TTL cleanup)
+_token_blacklist_memory: dict[str, float] = {}  # jti -> expiry timestamp
+_token_blacklist_lock = threading.Lock()
 
 # Redis async client singleton. NOTE: this client binds to the event loop
 # that is current when first created. In tests with TestClient, each test
@@ -126,35 +138,58 @@ def _get_redis_client() -> Optional[redis_async.Redis]:
     return _redis_client
 
 
+def _cleanup_expired_blacklist() -> None:
+    """Remove expired entries from in-memory token blacklist."""
+    now = time.time()
+    with _token_blacklist_lock:
+        expired = [jti for jti, exp in _token_blacklist_memory.items() if exp < now]
+        for jti in expired:
+            del _token_blacklist_memory[jti]
+
+
 async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
-    """Blacklist a refresh token JTI using Redis (with TTL)."""
+    """Blacklist a refresh token JTI using Redis (with TTL), with in-memory fallback."""
     r = _get_redis_client()
-    if r is None:
-        return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
-    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    try:
-        if ttl_seconds and ttl_seconds > 0:
-            await r.set(key, "1", ex=int(ttl_seconds))
-        else:
-            await r.set(key, "1")
-    except (OSError, redis_async.RedisError):
-        # Redis unreachable — silently skip blacklisting (in-memory fallback
-        # would not survive restarts, so we prefer to log and continue).
-        pass
+    if r is not None:
+        key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+        try:
+            if ttl_seconds and ttl_seconds > 0:
+                await r.set(key, "1", ex=int(ttl_seconds))
+            else:
+                await r.set(key, "1")
+            return
+        except (OSError, redis_async.RedisError):
+            # Redis unreachable — fall through to in-memory fallback
+            logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
+
+    # In-memory fallback with TTL
+    expiry = time.time() + (ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400)
+    with _token_blacklist_lock:
+        _cleanup_expired_blacklist()
+        _token_blacklist_memory[jti] = expiry
+    logger.info("Token blacklisted in memory (Redis unavailable): %s", jti[:8] + "...")
 
 
 async def _is_token_blacklisted(jti: str) -> bool:
-    """Check if token JTI is blacklisted in Redis."""
+    """Check if token JTI is blacklisted in Redis or in-memory fallback."""
     r = _get_redis_client()
-    if r is None:
-        return False
-    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    try:
-        val = await r.get(key)
-        return val is not None
-    except (OSError, redis_async.RedisError):
-        # Redis unreachable — assume not blacklisted so valid tokens still work.
-        return False
+    if r is not None:
+        key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
+        try:
+            val = await r.get(key)
+            if val is not None:
+                return True
+        except (OSError, redis_async.RedisError):
+            # Redis unreachable — fall through to in-memory check
+            pass
+
+    # In-memory fallback check
+    _cleanup_expired_blacklist()
+    with _token_blacklist_lock:
+        expiry = _token_blacklist_memory.get(jti)
+        if expiry is not None and expiry > time.time():
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
