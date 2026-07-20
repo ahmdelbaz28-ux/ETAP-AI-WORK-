@@ -2610,20 +2610,34 @@ export default function Settings() {
   const { notify } = useNotify();
   const { activeTab, setActiveTab } = useTabState("ai");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
-    const toStore: Record<string, string> = {};
-    for (const [k, v] of Object.entries(settings)) {
-      toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
+    try {
+      // Use the new AES-GCM encryption for secret fields
+      const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
+      await setEncryptedSettings(settings);
+      
+      // Also save legacy XOR format for backward compatibility with older code
+      const toStore: Record<string, string> = {};
+      for (const [k, v] of Object.entries(settings)) {
+        toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
+      }
+      localStorage.setItem("etap-settings", JSON.stringify(toStore));
+      
+      if (settings.API_KEY_SECRET) {
+        localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
+      }
+      
+      // Refresh the sync cache so getCachedSettings() returns the new values
+      await refreshSettingsCache();
+      
+      notify("success", "Settings saved successfully");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to save settings";
+      notify("error", msg);
+    } finally {
+      setSaving(false);
     }
-    localStorage.setItem("etap-settings", JSON.stringify(toStore));
-    if (settings.API_KEY_SECRET) {
-      localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
-    }
-    // localStorage.setItem is synchronous — the save is already complete.
-    // Show success immediately (no fake setTimeout delay).
-    setSaving(false);
-    notify("success", "Settings saved successfully");
   };
 
   const handleReset = () => {

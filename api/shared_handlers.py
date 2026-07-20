@@ -660,9 +660,32 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "success": True,
                 "data": result,
             }
+        except ImportError as ie:
+            logger.exception("etap_expert module not available")
+            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            return {
+                "error": f"ETAP Expert agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "status": "unavailable",
+                "study_type": "etap_expert",
+                "_status": 503,
+            }
         except Exception as exc:
             logger.exception("etap_expert study failed")
-            return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
+            exc_str = str(exc)
+            # Provide more specific error messages for common failures
+            if "API key" in exc_str or "api_key" in exc_str or "GEMINI" in exc_str:
+                return {
+                    "error": "ETAP Expert agent requires a Vision API key (e.g., Gemini) configured on the server. Please set the GEMINI_API_KEY environment variable.",
+                    "status": "unavailable",
+                    "study_type": "etap_expert",
+                    "_status": 503,
+                }
+            return {
+                "error": f"ETAP Expert agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "status": "failed",
+                "study_type": "etap_expert",
+                "_status": 500,
+            }
 
     # -- ETAP GUI Agent -----------------------------------------------------
     if study_type == "etap_gui":
@@ -684,9 +707,32 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "success": True,
                 "data": result,
             }
+        except ImportError as ie:
+            logger.exception("etap_gui module not available")
+            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            return {
+                "error": f"ETAP GUI agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "status": "unavailable",
+                "study_type": "etap_gui",
+                "_status": 503,
+            }
         except Exception as exc:
             logger.exception("etap_gui study failed")
-            return {"error": f"ETAP GUI agent error: {exc}", "_status": 500}
+            exc_str = str(exc)
+            # Provide more specific error messages for common failures
+            if "API key" in exc_str or "api_key" in exc_str or "GEMINI" in exc_str:
+                return {
+                    "error": "ETAP GUI agent requires a Vision API key (e.g., Gemini) configured on the server. Please set the GEMINI_API_KEY environment variable.",
+                    "status": "unavailable",
+                    "study_type": "etap_gui",
+                    "_status": 503,
+                }
+            return {
+                "error": f"ETAP GUI agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "status": "failed",
+                "study_type": "etap_gui",
+                "_status": 500,
+            }
 
     # -- Load Flow (native engine) ------------------------------------------
     result_data: Any = None

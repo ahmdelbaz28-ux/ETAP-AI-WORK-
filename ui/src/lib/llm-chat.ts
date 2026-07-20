@@ -15,7 +15,7 @@
  */
 
 import { POPULAR_PROVIDERS } from "../pages/Settings";
-import { getDeobfuscatedSettings } from "./api-config";
+import { getCachedSettings } from "./api-config";
 
 // --- section ---
 export interface ChatMessage {
@@ -65,7 +65,7 @@ async function proxyFetch(
 
 // --- section ---
 function getSettings(): Record<string, string> {
-  return getDeobfuscatedSettings();
+  return getCachedSettings();
 }
 
 export function getActiveProvider(): ProviderConfig | null {

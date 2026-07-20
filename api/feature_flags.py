@@ -3,6 +3,7 @@ Feature flags for incomplete/unverified study types.
 Studies behind feature flags are disabled in production/staging
 and shown as 'Coming Soon' in the UI.
 """
+from __future__ import annotations
 
 import os
 
