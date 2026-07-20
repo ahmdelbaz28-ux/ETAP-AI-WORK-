@@ -117,8 +117,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install security tools
-        run: pip install bandit safety
+- name: Install security tools
+         run: pip install --only-binary :all: bandit safety
 
       - name: Run Bandit security scan
         run: |
@@ -179,11 +179,11 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+- name: Install dependencies
+         run: |
+           pip install --only-binary :all: --upgrade pip
+           pip install --only-binary :all: -r requirements.txt
+           pip install --only-binary :all: pytest pytest-asyncio httpx
 
       - name: Start service for runtime checks
         run: |
