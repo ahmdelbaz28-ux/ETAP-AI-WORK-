@@ -132,13 +132,14 @@ def _build_sqlite_engine(url: str):
     )
 
 
-# Fallback SQLite URL used when the primary Postgres instance is unreachable.
-# Lives under /tmp so it is writable on HF Spaces and other container runtimes.
-_FALLBACK_SQLITE_URL = "sqlite+aiosqlite:////tmp/data/etap_platform_fallback.db"
-
 # Whether we have permanently fallen back to SQLite during this process.
 # Mutated by init_db() if the primary engine cannot reach its database.
+# DISABLED by default to prevent silent data loss on HF Space (/tmp wiped on restart).
+# Set ALLOW_SQLITE_FALLBACK=true to enable (NOT RECOMMENDED for production).
 _FELL_BACK_TO_SQLITE: bool = False
+_ALLOW_SQLITE_FALLBACK = os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true"
+
+_FALLBACK_SQLITE_URL = "sqlite+aiosqlite:////tmp/data/etap_platform_fallback.db"
 
 
 if _IS_POSTGRES:

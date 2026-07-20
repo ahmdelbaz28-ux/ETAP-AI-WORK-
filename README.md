@@ -314,7 +314,7 @@ mkdocs serve -f docs/mkdocs.yml   # http://127.0.0.1:8000
 
 ## 🤖 AI Agent Inventory
 
-25 specialist agents, each backed by an IEEE/IEC computational core and
+24 specialist agents, each backed by an IEEE/IEC computational core and
 governed by Langfuse prompt-versioning + safety alerts. Highlights:
 
 | Domain | Agents |

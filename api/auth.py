@@ -502,7 +502,8 @@ def _create_refresh_token(user_id: str) -> str:
 async def _check_rate_limit(username: str) -> None:
     """Raise 429 if *username* has exceeded the login attempt threshold.
 
-    Uses Redis when available, falls back to in-memory store.
+    Uses Redis when available (distributed rate limiting across replicas).
+    Falls back to in-memory store with replica-aware limits.
     """
     r = _get_redis_client()
     if r is not None:
@@ -520,15 +521,27 @@ async def _check_rate_limit(username: str) -> None:
         except (OSError, redis_async.RedisError):
             # Redis is configured but unreachable — fall through to
             # in-memory rate limiting so login still works.
-            pass
+            logger.warning("Redis unavailable for rate limiting, using in-memory fallback")
 
-    # In-memory fallback
+    # In-memory fallback with replica-aware limits
+    # When Redis is unavailable, divide the limit by replica count to prevent
+    # attackers from exploiting multiple replicas (5 replicas = 5x limit)
+    effective_limit = max(1, _RATE_LIMIT_MAX_ATTEMPTS // _REPLICA_COUNT)
+    
     now = time.monotonic()
-    attempts = _LOGIN_ATTEMPTS.get(username, [])
-    attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
-    _LOGIN_ATTEMPTS[username] = attempts
+    with _LOGIN_ATTEMPTS_LOCK:
+        # Clean up old entries to prevent memory leak
+        if len(_LOGIN_ATTEMPTS) > _MAX_LOGIN_ATTEMPTS_ENTRIES:
+            # Remove oldest 20% of entries
+            remove_count = _MAX_LOGIN_ATTEMPTS_ENTRIES // 5
+            for _ in range(remove_count):
+                _LOGIN_ATTEMPTS.popitem(last=False)
+        
+        attempts = _LOGIN_ATTEMPTS.get(username, [])
+        attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
+        _LOGIN_ATTEMPTS[username] = attempts
 
-    if len(attempts) >= _RATE_LIMIT_MAX_ATTEMPTS:
+    if len(attempts) >= effective_limit:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Please try again later.",
@@ -1018,10 +1031,10 @@ async def forgot_password(
             )
 
         # In production, the reset token is sent via email (above) and NOT
-        # returned in the response. We still return it here for testability
-        # AND because the existing test suite depends on it. Toggle with
-        # env var AUTH_RETURN_RESET_TOKEN=true (default) for backward compat.
-        if os.getenv("AUTH_RETURN_RESET_TOKEN", "true").lower() == "true":
+        # returned in the response. The default is FALSE to prevent token
+        # leakage through proxies, APM tools, browser extensions, etc.
+        # Set AUTH_RETURN_RESET_TOKEN=true ONLY for local development/testing.
+        if os.getenv("AUTH_RETURN_RESET_TOKEN", "false").lower() == "true":
             return {
                 "message": "If the email exists, a reset token has been sent",
                 "reset_token": reset_token,

@@ -701,7 +701,7 @@ etap-ai-work/                          ← AhmedETAP v2.1.0
 
 | 🌐 API Endpoints | 🤖 AI Agents | 🧪 Test Files | ✅ Total Tests |
 |:---:|:---:|:---:|:---:|
-| **51+** | **24** | **65+** | **1,030+** |
+| **40+** | **24** | **65+** | **1,030+** |
 
 | 🗄️ DB Migrations | 📊 Grafana Panels | 🚨 DR Coverage | 🔒 CI Coverage Gate |
 |:---:|:---:|:---:|:---:|

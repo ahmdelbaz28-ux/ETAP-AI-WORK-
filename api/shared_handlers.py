@@ -359,7 +359,7 @@ def verify_api_key(
         return
 
     # ─── JWT bypass ───────────────────────────────────────────────────────
-    # If the request carries a valid JWT Bearer token, skip the API key
+    # If the request carries a VALID JWT Bearer token, skip the API key
     # check. The frontend (React UI) authenticates users via JWT issued
     # by /api/v1/auth/login — those users should NOT also be required to
     # send an X-API-Key header. Without this bypass, every authenticated
@@ -368,11 +368,22 @@ def verify_api_key(
     # is present.
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
-        # Validate the JWT lazily — only import jwt machinery if needed.
-        # If the JWT is invalid/expired, the downstream route's own
-        # CurrentUser dependency will reject it with 401. We don't need
-        # to re-validate here; we just need to NOT require an API key.
-        return
+        # Validate the JWT here to prevent bypass with any "bearer " string.
+        # Import locally to avoid circular imports.
+        try:
+            import jwt
+            from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+            token = auth_header[7:].strip()  # Remove "Bearer " prefix
+            jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            # JWT is valid — skip API key check
+            return
+        except jwt.InvalidTokenError:
+            # Invalid/expired JWT — fall through to API key check
+            # The downstream route's CurrentUser dependency will reject it
+            pass
+        except Exception:
+            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through
+            pass
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, expected_key):

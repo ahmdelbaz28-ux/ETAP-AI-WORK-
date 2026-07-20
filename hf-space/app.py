@@ -666,14 +666,27 @@ async def etap_gui_execute(request: Request):
     # an asyncio loop, so we offload to a thread.
     import asyncio
 
-    result = await asyncio.to_thread(
-        agent.execute_cua_loop,
-        question=question,
-        max_steps=max_steps,
-        require_confirmation=require_confirmation,
-        audit_dir=audit_dir,
-        start_url=start_url,
-    )
+    # Add timeout to prevent thread pool exhaustion from hung CUA tasks
+    # Default: 5 minutes (300 seconds) — configurable via CUA_LOOP_TIMEOUT_SEC
+    cua_timeout = int(os.getenv("CUA_LOOP_TIMEOUT_SEC", "300"))
+    try:
+        result = await asyncio.wait_for(
+            asyncio.to_thread(
+                agent.execute_cua_loop,
+                question=question,
+                max_steps=max_steps,
+                require_confirmation=require_confirmation,
+                audit_dir=audit_dir,
+                start_url=start_url,
+            ),
+            timeout=cua_timeout,
+        )
+    except asyncio.TimeoutError:
+        logger.error("CUA Loop timed out after %d seconds", cua_timeout)
+        raise HTTPException(
+            status_code=504,
+            detail=f"CUA Loop timed out after {cua_timeout} seconds. The task may be stuck or the target application is unresponsive.",
+        )
     return {"success": True, "data": result}
 
 
