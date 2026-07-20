@@ -446,6 +446,14 @@ class BrowserCUAExecutor:
                         mode=mode,
                     )
                     if safety_check.blocked:
+                        # ── Attempt rollback from pre-action snapshot ─────
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason=f"safety_check_blocked: {safety_check.reason}",
+                                )
+
                         step_result = CUAStepResult(
                             step_number=step_num,
                             action=action,
@@ -484,6 +492,14 @@ class BrowserCUAExecutor:
                     ):
                         approved = on_confirmation_request(action)
                         if not approved:
+                            # ── Rollback on dual confirmation denial ─────
+                            if safety_check.state_snapshot_id:
+                                with contextlib.suppress(Exception):
+                                    life_safety_guard.rollback(
+                                        snapshot_id=safety_check.state_snapshot_id,
+                                        reason="dual_confirmation_denied",
+                                    )
+
                             step_result = CUAStepResult(
                                 step_number=step_num,
                                 action=action,
