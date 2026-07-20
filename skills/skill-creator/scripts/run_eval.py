@@ -4,7 +4,7 @@
 Tests whether a skill's description causes GLM to trigger (read the skill)
 for a set of queries. Outputs results as JSON.
 """
-from typing import Optional, Union
+
 
 import argparse
 import json
@@ -60,7 +60,7 @@ def run_single_query(
         indented_desc = "\n  ".join(skill_description.split("\n"))
         command_content = (
             f"---\n"
-            Union[f"description:, \n"]
+            f"description:, \n"
             f"  {indented_desc}\n"
             f"---\n\n"
             f"# {skill_name}\n\n"

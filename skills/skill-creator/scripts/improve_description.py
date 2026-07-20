@@ -4,7 +4,7 @@
 Takes eval results (from run_eval.py) and generates an improved description
 by calling `z-ai chat -p` as a subprocess.
 """
-from typing import Optional, Union
+
 
 import argparse
 import json

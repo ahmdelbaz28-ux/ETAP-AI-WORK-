@@ -28,14 +28,13 @@ Features:
 - Multi-language support
 - Digital signatures
 """
-from typing import Optional, Union
-
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 
@@ -116,7 +115,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate voltage chart: %s", e)
+            self.logger.exception("Failed to generate voltage chart: %s", e)
             return ""
 
     def generate_fault_current_bar_chart(self, fault_data: dict, output_path: str) -> str:
@@ -171,7 +170,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate fault chart: %s", e)
+            self.logger.exception("Failed to generate fault chart: %s", e)
             return ""
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: dict, output_path: str) -> str:
@@ -199,7 +198,7 @@ class ChartGenerator:
             return chart_path
 
         except Exception as e:
-            self.logger.error("Failed to generate harmonic chart: %s", e)
+            self.logger.exception("Failed to generate harmonic chart: %s", e)
             return ""
 
 
@@ -873,7 +872,7 @@ class ReportGenerationAgent:
         rows = []
         for line in table_text.split("\n"):
             if line.strip() and not line.startswith("=") and not line.startswith("-"):
-                cells = [cell.strip() for cell in line.split(Union[", "]) if cell.strip()]
+                cells = [cell.strip() for cell in line.split(", ") if cell.strip()]
                 if cells:
                     rows.append(cells)
         return rows

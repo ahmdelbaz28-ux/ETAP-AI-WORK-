@@ -11,7 +11,7 @@ from security.abac import (
     make_ip_allowlist_policy,
     make_role_policy,
 )
-from security.log_redaction import SecretRedactionFilter, install_globally, redact_text
+from security.log_redaction import SecretRedactionFilter, install_globally, redact_text  # NOSONAR
 from security.mfa import (
     MFAOrchestrator,
     TOTPProvider,

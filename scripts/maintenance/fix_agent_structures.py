@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 Script to identify and fix agent structural issues.

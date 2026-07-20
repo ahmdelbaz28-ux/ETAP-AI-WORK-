@@ -1,12 +1,12 @@
 /**
- * Shared helpers for Mastra tool executors that spawn Python helper scripts.
+ * Shared helpers for Mastra tool executors that spawn helper scripts.
  *
  * Centralises the security hardening that EVERY tool must apply:
- *   1. Spawn via `spawn('python', [script])` — never `exec` — to prevent
+ *   1. Spawn via `spawn(binary, [script])` — never `exec` — to prevent
  *      shell injection.
  *   2. Pass untrusted input via stdin, never as a CLI arg.
  *   3. Override `PATH` with a vetted list of system directories so a
- *      poisoned parent `PATH` cannot make us exec a trojaned `python`.
+ *      poisoned parent `PATH` cannot make us exec a trojaned binary.
  *      (SonarCloud typescript:S4036)
  *   4. Always set a hard timeout + max-output guard.
  *
@@ -22,8 +22,9 @@ import { spawn, type ChildProcess } from 'node:child_process';
  * a non-root user can write to (no `/usr/local/share`, no npm/yarn global
  * dirs, no `~/.local/bin`).
  *
- * If `python` is not resolvable inside this list, `spawn` will fail loudly
- * with ENOENT — which is exactly what we want (no silent fallback).
+ * If the target binary is not resolvable inside this list, `spawn` will
+ * fail loudly with ENOENT — which is exactly what we want (no silent
+ * fallback).
  */
 export const SAFE_SYSTEM_PATH = [
   '/usr/local/bin',
@@ -42,7 +43,8 @@ export const SAFE_SYSTEM_PATH = [
  *     process's PATH could be poisoned by an attacker with write access to
  *     a non-vetted directory).
  *   - Sets our `SAFE_SYSTEM_PATH` as the only PATH the child sees.
- *   - Sets Python hardening flags (no .pyc, unbuffered output).
+ *   - Sets Python hardening flags (no .pyc, unbuffered output) — harmless
+ *     for non-Python children.
  *
  * Returns a fresh object — does NOT mutate `process.env`.
  */
@@ -64,13 +66,21 @@ export function buildSafeSpawnEnv(): Record<string, string> {
 }
 
 /**
- * Spawn a Python helper script with all the security hardening applied.
+ * Spawn a helper script with all the security hardening applied.
+ *
+ * Generic version: caller specifies which binary (`python`, `node`, etc.)
+ * to invoke. The PATH and env hardening is identical for any language.
  *
  * Caller is responsible for wiring up `stdin`/`stdout`/`stderr` handlers
  * on the returned `ChildProcess` (so each tool can implement its own
  * output truncation / timeout cleanup).
+ *
+ * @param binary - executable to run (`python`, `node`, `bash`, etc.)
+ * @param scriptPath - path to the helper script
+ * @param opts.timeoutMs - hard kill timeout for the child process
  */
-export function spawnPythonSecure(
+export function spawnSecure(
+  binary: string,
   scriptPath: string,
   opts: { timeoutMs: number },
 ): ChildProcess {
@@ -78,9 +88,28 @@ export function spawnPythonSecure(
   // buildSafeSpawnEnv() which replaces PATH with SAFE_SYSTEM_PATH (a
   // fixed list of root-owned system directories). See the comment on
   // `env.PATH = SAFE_SYSTEM_PATH` above for the full security rationale.
-  return spawn('python', [scriptPath], {  // NOSONAR — S4036: env uses vetted SAFE_SYSTEM_PATH
+  return spawn(binary, [scriptPath], {  // NOSONAR — S4036: env uses vetted SAFE_SYSTEM_PATH
     env: buildSafeSpawnEnv(),
     stdio: ['pipe', 'pipe', 'pipe'],
     timeout: opts.timeoutMs,
   });
+}
+
+/**
+ * Spawn a Python helper script with all the security hardening applied.
+ *
+ * Backwards-compatible wrapper around `spawnSecure('python', ...)`.
+ * Existing callers (python-tool.ts, powershell-tool.ts) do not need to change.
+ *
+ * Caller is responsible for wiring up `stdin`/`stdout`/`stderr` handlers
+ * on the returned `ChildProcess` (so each tool can implement its own
+ * output truncation / timeout cleanup).
+ *
+ * @deprecated prefer `spawnSecure('python', ...)` for new code.
+ */
+export function spawnPythonSecure(
+  scriptPath: string,
+  opts: { timeoutMs: number },
+): ChildProcess {
+  return spawnSecure('python', scriptPath, opts);
 }

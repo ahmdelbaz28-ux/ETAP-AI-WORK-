@@ -1,24 +1,23 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import {
-  Search, HelpCircle, Settings, ChevronDown, Sparkles,
-} from 'lucide-react'
-import { useAppStore } from '../../store'
-import { BrandLogo } from '../BrandLogo'
+import { ChevronDown, HelpCircle, Search, Settings, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useAppStore } from "../../store";
+import { BrandLogo } from "../BrandLogo";
 
 interface TopBarProps {
-  onHelpOpen?: () => void
+  readonly onHelpOpen?: () => void;
 }
 
-export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { toggleHelpPanel } = useAppStore()
+export function TopBar({ onHelpOpen }: TopBarProps) {
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { toggleHelpPanel } = useAppStore();
 
   const handleHelp = () => {
-    if (onHelpOpen) onHelpOpen()
-    else toggleHelpPanel()
-  }
+    if (onHelpOpen) onHelpOpen();
+    else toggleHelpPanel();
+  };
 
   return (
     <header className="h-12 flex items-center justify-between px-4 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] shrink-0">
@@ -45,8 +44,10 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
           type="button"
           className="flex items-center gap-2 cursor-pointer bg-transparent border-0 p-0"
           aria-label="Go to dashboard"
-          onClick={() => navigate('/dashboard')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard') }}
+          onClick={() => navigate("/dashboard")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") navigate("/dashboard");
+          }}
         >
           <BrandLogo size={28} />
           <span className="text-sm font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
@@ -79,7 +80,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
           className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
           title="Magic Help Inspector / فاحص المساعدة الذكي"
           onClick={() => {
-            globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+            globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect"));
           }}
         >
           <Sparkles className="w-4 h-4" />
@@ -87,19 +88,19 @@ export function TopBar({ onHelpOpen }: TopBarProps) {  // NOSONAR — S6759: Rea
         </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
-          title={t('help.title') || 'Help'}
+          title={t("help.title") || "Help"}
           onClick={handleHelp}
         >
           <HelpCircle className="w-4 h-4" />
         </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors relative"
-          title={t('settings.title') || 'Settings'}
-          onClick={() => navigate('/settings')}
+          title={t("settings.title") || "Settings"}
+          onClick={() => navigate("/settings")}
         >
           <Settings className="w-4 h-4" />
         </button>
       </div>
     </header>
-  )
+  );
 }

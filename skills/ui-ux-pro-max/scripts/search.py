@@ -13,7 +13,6 @@ Persistence (Master + Overrides pattern):
   --persist    Save design system to design-system/MASTER.md
   --page       Also create a page-specific override file in design-system/pages/
 """
-from typing import Optional, Union
 
 import argparse
 # Allow both `python search.py ...` and `python -m ...` execution.
@@ -22,7 +21,7 @@ try:
     from design_system import generate_design_system, persist_design_system
 except ImportError:  # pragma: no cover
     from .core import CSV_CONFIG, AVAILABLE_STACKS, MAX_RESULTS, search, search_stack
-    from .design_system import generate_design_system, persist_design_system
+
 
 
 def format_output(result):
@@ -33,11 +32,11 @@ def format_output(result):
     output = []
     if result.get("stack"):
         output.append(f"## UI Pro Max Stack Guidelines")
-        output.append(f"**Stack:** {result['stack']Union[}, **Query:**] {result['query']}")
+        output.append(f"**Stack:** {result['stack']} | **Query:** {result['query']}")
     else:
         output.append(f"## UI Pro Max Search Results")
-        output.append(f"**Domain:** {result['domain']Union[}, **Query:**] {result['query']}")
-    output.append(f"**Source:** {result['file']Union[}, **Found:**] {result['count']} results\n")
+        output.append(f"**Domain:** {result['domain']} | **Query:** {result['query']}")
+    output.append(f"**Source:** {result['file']} | **Found:** {result['count']} results\n")
 
     for i, row in enumerate(result['results'], 1):
         output.append(f"### Result {i}")

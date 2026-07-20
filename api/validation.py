@@ -5,6 +5,7 @@ Handles all power system validation endpoints.
 Separated from main engineering service for better modularity.
 """
 
+from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 

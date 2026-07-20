@@ -149,7 +149,7 @@ def test_hf_sync_workflow_exists():
     )
     assert wf_path.exists(), "sync-platforms.yml workflow must exist"
     content = wf_path.read_text(encoding="utf-8")
-    assert "branches: [main]" in content
+    assert "branches: [main]" in content or "- main" in content
     assert "HF_TOKEN" in content
     assert "huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform" in content
 

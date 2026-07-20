@@ -5,7 +5,7 @@ Combines run_eval.py and improve_description.py in a loop, tracking history
 and returning the best description found. Supports train/test split to prevent
 overfitting.
 """
-from typing import Optional, Union
+
 
 import argparse
 import json

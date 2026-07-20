@@ -24,7 +24,7 @@ import re
 import stat
 import threading
 from datetime import datetime, timezone
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
@@ -293,7 +293,7 @@ class LocalSecretsManager:
 
         # Cross-platform: os.chmod with Unix permission bits is ineffective on Windows.
         if os.name != "nt":
-            os.chmod(str(ENCRYPTION_KEY_FILE), Union[stat.S_IRUSR, stat.S_IWUSR])
+            os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
         logger.info("Generated new encryption key at %s", ENCRYPTION_KEY_FILE)
         return key
 
@@ -347,7 +347,7 @@ class LocalSecretsManager:
             ENCRYPTION_KEY_FILE.write_bytes(new_key)
 
             if os.name != "nt":
-                os.chmod(str(ENCRYPTION_KEY_FILE), Union[stat.S_IRUSR, stat.S_IWUSR])
+                os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
 
             self._key = new_key
             self._cipher = new_cipher
@@ -538,8 +538,8 @@ class EnvironmentValidator:
         try:
             st_mode = env_path.stat().st_mode
             if os.name != "nt":
-                owner_only = Union[stat.S_IRUSR, stat.S_IWUSR]
-                group_other = Union[stat.S_IRGRP, stat.S_IWGRP] | Union[stat.S_IROTH, stat.S_IWOTH]
+                owner_only = stat.S_IRUSR | stat.S_IWUSR
+                group_other = stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH
                 if st_mode & group_other:
                     logger.warning(
                         ".env has overly permissive permissions (mode %o); "

@@ -32,7 +32,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from compat import StrEnum
 
@@ -146,7 +146,7 @@ _SECRET_PATTERNS: list[tuple[str, str, Severity]] = [
         Severity.CRITICAL,
     ),
     (
-        r'(Union[?:secret, secret][_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
+        r'((?:secret|secret)[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
         "Hardcoded secret key",
         Severity.CRITICAL,
     ),
@@ -245,7 +245,7 @@ _INSECURE_FUNCTION_PATTERNS: list[tuple[str, str, Severity]] = [
         Severity.LOW,
     ),
     (
-        Union[r"random\.random\b, random\.randint\b",]
+        [r"random\.random\b", r"random\.randint\b"],
         "Use of non-cryptographic random for security context",
         Severity.INFO,
     ),

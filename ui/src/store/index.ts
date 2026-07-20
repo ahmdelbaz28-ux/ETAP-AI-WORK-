@@ -1,54 +1,54 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 interface ContextItem {
-  label: string
-  value: string | number | React.ReactNode
-  icon?: React.ElementType
+  label: string;
+  value: string | number | React.ReactNode;
+  icon?: React.ElementType;
 }
 
 interface SelectedItem {
-  type: string
-  name: string
-  details?: ContextItem[]
+  type: string;
+  name: string;
+  details?: ContextItem[];
 }
 
 interface AppState {
   // Sidebar
-  sidebarCollapsed: boolean
-  toggleSidebar: () => void
-  setSidebarCollapsed: (collapsed: boolean) => void
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   // Mobile sidebar (drawer overlay)
-  mobileSidebarOpen: boolean
-  toggleMobileSidebar: () => void
-  setMobileSidebarOpen: (open: boolean) => void
+  mobileSidebarOpen: boolean;
+  toggleMobileSidebar: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
 
   // Language
-  language: 'en' | 'ar'
-  setLanguage: (lang: 'en' | 'ar') => void
+  language: "en" | "ar";
+  setLanguage: (lang: "en" | "ar") => void;
 
   // Search
-  searchQuery: string
-  setSearchQuery: (query: string) => void
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 
   // Command Palette
-  commandPaletteOpen: boolean
-  setCommandPaletteOpen: (open: boolean) => void
-  toggleCommandPalette: () => void
+  commandPaletteOpen: boolean;
+  setCommandPaletteOpen: (open: boolean) => void;
+  toggleCommandPalette: () => void;
 
   // Context Panel
-  contextPanelOpen: boolean
-  setContextPanelOpen: (open: boolean) => void
-  selectedItem: SelectedItem | null
-  setSelectedItem: (item: SelectedItem | null) => void
+  contextPanelOpen: boolean;
+  setContextPanelOpen: (open: boolean) => void;
+  selectedItem: SelectedItem | null;
+  setSelectedItem: (item: SelectedItem | null) => void;
 
   // Help Panel
-  helpPanelOpen: boolean
-  setHelpPanelOpen: (open: boolean) => void
-  toggleHelpPanel: () => void
+  helpPanelOpen: boolean;
+  setHelpPanelOpen: (open: boolean) => void;
+  toggleHelpPanel: () => void;
 
   // Error state
-  lastError: Error | string | null
-  setLastError: (error: Error | string | null) => void
+  lastError: Error | string | null;
+  setLastError: (error: Error | string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -62,11 +62,11 @@ export const useAppStore = create<AppState>((set) => ({
   setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
 
   // Language
-  language: (localStorage.getItem('i18nextLng') as 'en' | 'ar') || 'en',
+  language: (localStorage.getItem("i18nextLng") as "en" | "ar") || "en",
   setLanguage: (language) => set({ language }),
 
   // Search
-  searchQuery: '',
+  searchQuery: "",
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   // Command Palette
@@ -88,4 +88,4 @@ export const useAppStore = create<AppState>((set) => ({
   // Error state
   lastError: null,
   setLastError: (lastError) => set({ lastError }),
-}))
+}));

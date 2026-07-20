@@ -10,11 +10,20 @@ are defined in one place and reused by both the HF Space and the main API.
 
 from __future__ import annotations
 
+# datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
+# (pyproject.toml) in production, but local testing may run on Python <3.11.
+# The polyfill is restored with a noqa comment to suppress Ruff UP017 checks.
+import datetime
+
+if not hasattr(datetime, "UTC"):
+    datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
+
+import asyncio
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     # Forward-only import for type hints; runtime import happens inside
@@ -64,7 +73,7 @@ from api.shared_handlers import (
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)Union[s, %](levelname)Union[s, %](name)Union[s, %](message)s",
+    format="%(asctime)s, %(levelname)s, %(name)s, %(message)s",
 )
 logger = logging.getLogger("etap-ai")
 
@@ -80,7 +89,7 @@ def _utc_now_iso() -> str:
 
 # -- Lifespan -----------------------------------------------------------------
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
     logger.info(
         "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,
@@ -124,12 +133,64 @@ app = FastAPI(
 from api.assets import router as assets_router  # noqa: E402
 from api.auth import router as auth_router  # noqa: E402
 from api.data_import import router as data_import_router  # noqa: E402
+from api.email_dashboard import router as email_dashboard_router  # noqa: E402
+from api.email_digest import router as email_digest_router  # noqa: E402
+
+# Email integration routers (Resend integration v2 — added 2026-07-10)
+from api.email_otp import router as email_otp_router  # noqa: E402
+from api.email_webhooks import router as email_webhooks_router  # noqa: E402
+from api.magic_links import router as magic_links_router  # noqa: E402
+from api.notifications import router as notifications_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
 
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
+app.include_router(notifications_router)
+# Email integration routers
+app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)     # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
+
+
+# -- Global JSON exception handler --------------------------------------------
+#
+# FastAPI's default 500 response is a plain-text "Internal Server Error"
+# body, which the frontend cannot parse as JSON — resulting in the
+# unhelpful "Registration failed: Registration failed" message.
+#
+# This handler intercepts unhandled exceptions on /api/* routes and returns
+# a structured JSON response with the exception type and message so the
+# frontend can show something actionable to the user.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Import here to avoid circular imports at module load.
+    import logging as _logging
+    _log = _logging.getLogger("etap-ai")
+    _log.exception("Unhandled exception on %s %s", request.method, request.url.path)
+
+    # Don't leak internal details in production, but DO return JSON.
+    # The frontend's existing error parsing expects { detail: string }.
+    safe_message = "Internal server error"
+    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+        safe_message = "Database connection timed out. The service is degraded — please retry in a moment."
+    elif isinstance(exc, OSError):
+        safe_message = "Network or database connection error. Please retry."
+
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": safe_message,
+            "type": type(exc).__name__,
+            "path": request.url.path,
+        },
+        headers={"X-Error-Type": type(exc).__name__},
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -199,18 +260,25 @@ async def auth_and_rate_limit(request: Request, call_next):
     # backward compatibility with older Space secrets. If NEITHER is set,
     # verify_api_key() returns early and auth is DISABLED — which is
     # acceptable only in development, NOT in production.
+    #
+    # EXCEPTION: The email dashboard HTML page (/api/v1/email-dashboard/)
+    # is public — it's just an HTML shell with no sensitive data.
+    # Auth is enforced on the JavaScript API calls, not the HTML page.
+    _is_dashboard_html = _path == "/api/v1/email-dashboard" or _path == "/api/v1/email-dashboard/"
+
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
     if _eng_key and not _hf_key:
         os.environ["HF_API_KEY"] = _eng_key
-    try:
-        verify_api_key(request)
-    except HTTPException as exc:
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail},
-            headers=getattr(exc, "headers", None),
-        )
+    if not _is_dashboard_html:
+        try:
+            verify_api_key(request)
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=getattr(exc, "headers", None),
+            )
     # Rate limit (skip health/docs)
     if _path not in PUBLIC_PATHS:
         client_id = request.client.host if request.client else "unknown"
@@ -221,6 +289,40 @@ async def auth_and_rate_limit(request: Request, call_next):
                 headers={"Retry-After": str(rate_limiter.window)},
             )
     return await call_next(request)
+
+
+# -- Akamai edge protection middleware ----------------------------------------
+#
+# IMPORTANT: This middleware is added AFTER auth_and_rate_limit so it runs
+# FIRST (outermost). This ensures origin verification happens before any
+# API key / JWT checks — direct origin access is blocked at the earliest
+# possible point.
+from api.akamai_protection import akamai_protection_middleware, is_akamai_enabled  # noqa: E402
+
+if is_akamai_enabled():
+    logger.info("Akamai origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Akamai origin protection DISABLED (AKAMAI_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(akamai_protection_middleware)
+
+
+# -- Cloudflare edge protection middleware ------------------------------------
+#
+# IMPORTANT: Added LAST so it runs FIRST (outermost middleware). This ensures
+# origin verification happens before any other middleware — direct origin
+# access is blocked at the earliest possible point.
+from api.cloudflare_protection import (  # noqa: E402
+    cloudflare_protection_middleware,
+    is_cloudflare_enabled,
+)
+
+if is_cloudflare_enabled():
+    logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
+else:
+    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
+
+app.middleware("http")(cloudflare_protection_middleware)
 
 
 # -- Root ---------------------------------------------------------------------
@@ -459,8 +561,8 @@ async def etap_gui_execute(request: Request):
                     "question": "string (required)",
                     "max_steps": "int (default 15)",
                     "require_confirmation": "bool (default true)",
-                    "audit_dir": Union["string, null",]
-                    "start_url": Union["string, null",]
+                    "audit_dir": "string or null",
+                    "start_url": "string or null",
                 },
             },
         )

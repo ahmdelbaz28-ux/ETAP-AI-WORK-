@@ -41,7 +41,7 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
-from typing import Any, Optional, Union
+
 
 
 SKILL_DIR = Path(__file__).resolve().parent.parent

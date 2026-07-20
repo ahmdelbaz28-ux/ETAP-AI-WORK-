@@ -73,7 +73,7 @@ class SCADALiveFeed:
                 else:
                     disconnected_clients.append(connection)
             except Exception:
-                logger.error.exception("Error sending message to WebSocket: ")
+                logger.exception("Error sending message to WebSocket: ")
                 disconnected_clients.append(connection)
 
         # Remove disconnected clients
@@ -181,7 +181,7 @@ class SCADALiveFeed:
                 logger.info("SCADA broadcast loop cancelled")
                 raise  # SonarCloud S7497: re-raise CancelledError so the caller's task sees the cancellation
             except Exception:
-                logger.error.exception("Error in SCADA broadcast loop: ")
+                logger.exception("Error in SCADA broadcast loop: ")
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying
 
 
@@ -203,5 +203,5 @@ async def scada_websocket_endpoint(websocket: WebSocket) -> None:
     except WebSocketDisconnect:
         scada_feed.disconnect(websocket)
     except Exception:
-        logger.error.exception("WebSocket error: ")
+        logger.exception("WebSocket error: ")
         scada_feed.disconnect(websocket)

@@ -18,13 +18,12 @@ Endpoints:
   GET    /copilot/statistics         — Usage statistics
   POST   /copilot/validate           — Run design validation
 """
-from typing import Optional, Union
-
 from __future__ import annotations
 
 import json
 import logging
 import time
+from typing import Optional
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field

@@ -16,7 +16,8 @@ Where:
 Reference: IEEE Task Force on Load Representation, "Load Representation for
 Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
-from typing import Optional, Union
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -178,7 +179,7 @@ class ZIPLoadModel:
         }
 
     @staticmethod
-    def from_dict(data: dict) -> "ZIPLoadModel":
+    def from_dict(data: dict) -> ZIPLoadModel:
         """Create ZIPLoadModel from dictionary."""
         coeffs = ZIPCoefficients(
             aZ=data.get("aZ", 0.0),

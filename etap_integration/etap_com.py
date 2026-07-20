@@ -964,7 +964,7 @@ class ETAPAutomation:
         min_val: Optional[float] = None,
         max_val: Optional[float] = None,
         max_length: Optional[int] = None,
-    ) -> Union[int, float] | Union[str, bool:]
+    ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
 
@@ -1511,7 +1511,7 @@ class ETAPAutomation:
         self.launch()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, _exc_val, _exc_tb):
         """Context manager exit."""
         self.shutdown()
 

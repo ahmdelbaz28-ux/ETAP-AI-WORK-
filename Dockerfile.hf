@@ -14,7 +14,7 @@ WORKDIR /build
 
 # Install build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libgomp1 libopenblas-dev \
+    g++ gcc libgomp1 libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy deps and install

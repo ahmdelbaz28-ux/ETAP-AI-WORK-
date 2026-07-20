@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional, Union
+from typing import Any
 
 from guards.base import BaseGuard, GuardResult, GuardSeverity, GuardViolation
 
@@ -108,7 +108,7 @@ class DocsGuard(BaseGuard):
 
         # Find Python-style symbol references in docs
         # Pattern: ``ClassName``, `function_name`, ::ClassName, etc.
-        ref_pattern = r"(Union[?:``|`, ::])([A-Za-z_]\w*)"
+        ref_pattern = r"(``|`|::)([A-Za-z_]\w*)"
         for match in re.finditer(ref_pattern, docs):
             symbol = match.group(1)
             if symbol.startswith("_") or symbol in ("True", "False", "None", "self", "cls"):
@@ -137,15 +137,15 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         unverifiable_patterns = [
             (
-                r"(?i)(?:it\s+is\s+)?(Union[?:well\s*-?known|obvious|clearly|everyone\s+knows, undoubtedly])\s+that",
+                r"(?i)(?:it\s+is\s+)?(?:well\s*-?known|obvious|clearly|everyone\s+knows|undoubtedly)\s+that",
                 "unverifiable claim",
             ),
             (
-                r"(?i)(?:the\s+)?(Union[?:best|worst|fastest|slowest|most\s+efficient, only\s+way])\s+(Union[?:way|method|approach, solution])",
+                r"(?i)(?:the\s+)?(?:best|worst|fastest|slowest|most\s+efficient|only\s+way)\s+(?:way|method|approach|solution)",
                 "superlative without evidence",
             ),
             (
-                r"(?i)(Union[?:always|never|all|none, every])\s+(Union[?:works|fails|returns, produces])",
+                r"(?i)(?:always|never|all|none|every)\s+(?:works|fails|returns|produces)",
                 "absolute claim without qualification",
             ),
         ]
@@ -175,7 +175,7 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         # Pattern: "latest", "current version", "new" without a specific version number
         vague_version_patterns = [
-            r"(?i)(?:the\s+)?(Union[?:latest|current|new|recent, stable])\s+(Union[?:version, release])\s+(?:of\s+)?",
+            r"(?i)(?:the\s+)?(?:latest|current|new|recent|stable)\s+(?:version|release)\s+(?:of\s+)?",
         ]
         for pat in vague_version_patterns:
             for match in re.finditer(pat, source):
@@ -321,11 +321,11 @@ class DocsGuard(BaseGuard):
         violations: list[GuardViolation] = []
         intended_patterns = [
             (
-                r"(?i)(Union[?:should|will|is\s+going\s+to, supposed\s+to])\s+(Union[?:return|compute|calculate|generate, produce])",
+                r"(?i)(?:should|will|is\s+going\s+to|supposed\s+to)\s+(?:return|compute|calculate|generate|produce)",
                 "documents intended behavior, not actual",
             ),
             (
-                r"(?i)this\s+(Union[?:function|method|class, module])\s+(Union[?:should, will])\s+",
+                r"(?i)this\s+(?:function|method|class|module)\s+(?:should|will)\s+",
                 "describes future intent, not current behavior",
             ),
         ]

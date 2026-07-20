@@ -15,6 +15,7 @@ Standards:
 - IEEE 1584-2018: Guide for Performing Arc-Flash Hazard Calculations
 - NFPA 70E-2021: Standard for Electrical Safety in the Workplace
 """
+from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
@@ -427,6 +428,9 @@ class ArcFlashAgent(BaseAgent):
         - PPE category is valid (0-4 or -1 for danger)
         - Voltage is within IEEE 1584 range
         """
+        if result is None:
+            return False
+
         errors: list[str] = []
 
         ie_data = result.data.get("incident_energy")

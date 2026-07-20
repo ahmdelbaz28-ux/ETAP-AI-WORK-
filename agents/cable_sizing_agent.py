@@ -281,7 +281,7 @@ class CableSizingAgent(BaseAgent):
         system_voltage_V: float = 400.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         power_factor: float = 0.85,
         n_phases: int = 3,
-        frequency_Hz: float = 50.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        frequency_Hz: float = 50.0,  # NOSONAR — S117, S1172: physics notation + unused param kept for API compat (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> dict[str, Any]:
         """
         Calculate voltage drop per IEC 60364-5-52 Annex G.

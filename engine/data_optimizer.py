@@ -172,7 +172,7 @@ class MemoryOptimizedSystem:
         self.transformers = []
         self.generators = []
         self.loads = []  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_seq = {}
+        self.Ybus_seq = {}  # NOSONAR
         self._inc_gen_z = False
         self._use_arr = False
         self._ids = self._vmag = self._vang = None  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability

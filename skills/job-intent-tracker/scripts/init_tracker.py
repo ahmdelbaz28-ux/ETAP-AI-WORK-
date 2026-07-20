@@ -9,7 +9,7 @@ init_tracker.py — 初始化求职投递追踪表
 xlsx 模式生成带表头、下拉验证、条件格式的 Excel。
 md 模式生成轻量的 Markdown 表格，便于在 Notion / Obsidian / 飞书文档里粘贴。
 """
-from typing import Optional, Union
+
 
 from __future__ import annotations
 

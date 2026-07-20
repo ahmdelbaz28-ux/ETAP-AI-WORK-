@@ -1,0 +1,11 @@
+# =============================================================================
+# AhmedETAP — Git Submodules Configuration
+# =============================================================================
+# This file explicitly declares that this repository has NO submodules.
+# It exists to prevent Vercel build warnings:
+#   "Warning: Failed to fetch one or more git submodules"
+#
+# Previous gitlink references (ETAP-AI-WORK, public-apis) were removed
+# in commit 2485d7b. This file ensures git/Vercel knows there are no
+# submodules to fetch.
+# =============================================================================

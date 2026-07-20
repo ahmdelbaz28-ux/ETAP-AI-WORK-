@@ -7,16 +7,12 @@
  * Clean, high-contrast, schematic vector overlay representing generation, distribution, and grounding.
  */
 interface BrandLogoProps {
-  size?: number
-  withWordmark?: boolean
-  className?: string
+  size?: number;
+  withWordmark?: boolean;
+  className?: string;
 }
 
-export function BrandLogo({
-  size = 44,
-  withWordmark = false,
-  className = '',
-}: BrandLogoProps) {
+export function BrandLogo({ size = 44, withWordmark = false, className = "" }: BrandLogoProps) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <svg
@@ -85,15 +81,33 @@ export function BrandLogo({
         <line x1="256" y1="70" x2="256" y2="256" stroke="#ffffff" strokeWidth="3" opacity="0.3" />
 
         {/* Left plane node track */}
-        <path d="M150,210 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <path
+          d="M150,210 L256,256"
+          stroke="#ffffff"
+          strokeWidth="4"
+          strokeLinecap="round"
+          opacity="0.85"
+        />
         <circle cx="150" cy="210" r="12" fill="#00d4ff" stroke="#ffffff" strokeWidth="3" />
 
         {/* Right plane node track */}
-        <path d="M362,210 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <path
+          d="M362,210 L256,256"
+          stroke="#ffffff"
+          strokeWidth="4"
+          strokeLinecap="round"
+          opacity="0.85"
+        />
         <circle cx="362" cy="210" r="12" fill="#0d9488" stroke="#ffffff" strokeWidth="3" />
 
         {/* Ground node track */}
-        <path d="M256,370 L256,256" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.85" />
+        <path
+          d="M256,370 L256,256"
+          stroke="#ffffff"
+          strokeWidth="4"
+          strokeLinecap="round"
+          opacity="0.85"
+        />
         <circle cx="256" cy="370" r="12" fill="#00d4ff" stroke="#ffffff" strokeWidth="3" />
 
         {/* Central hub connection */}
@@ -103,10 +117,7 @@ export function BrandLogo({
 
       {withWordmark && (
         <div className="flex flex-col leading-none">
-          <span
-            className="font-bold tracking-tight text-white"
-            style={{ fontSize: size * 0.42 }}
-          >
+          <span className="font-bold tracking-tight text-white" style={{ fontSize: size * 0.42 }}>
             AhmedETAP
           </span>
           <span
@@ -118,7 +129,7 @@ export function BrandLogo({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default BrandLogo
+export default BrandLogo;

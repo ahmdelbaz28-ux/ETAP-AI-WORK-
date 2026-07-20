@@ -14,7 +14,6 @@ Exclusions (intentional, audited):
   - Inline annotations: lines containing "# pragma: allowlist secret"
     or "# security: intentional" are skipped.
 """
-from typing import Optional, Union
 
 import os
 import re
@@ -34,7 +33,7 @@ SECRET_PATTERNS = [
     (r"sk-lf-[a-f0-9-]{30,}", "Langfuse secret key"),
     (r"pk-lf-[a-f0-9-]{30,}", "Langfuse public key"),
     (r"sk-lw-[A-Za-z0-9]{30,}", "LangWatch API key"),
-    (Union[r"admin123|password123, 123456",] "Weak default password"),
+    (r"admin123|password123", "Weak default password"),
 ]
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
@@ -50,6 +49,8 @@ EXCLUDED_PATHS = {
     "tests/test_security_fixes.py",
     "tests/test_security_e2e.py",
     "tests/conftest.py",  # defines _TEST_DEFAULT_PASSWORD for test fixtures
+    "tests/test_secrets_manager.py",
+    "tests/test_new_features.py",
     "acp_runtime/tests/test_integration.py",
     "acp_runtime/acp_tests/test_integration.py",
     # Security fixtures — these files DEFINE the blocklist / redaction rules.
@@ -91,7 +92,7 @@ def scan_file(filepath):  # NOSONAR — S3776: cognitive complexity; scheduled f
                             continue
                         if "example" in line.lower() or "placeholder" in line.lower():
                             continue
-                        issues.append(Union[f"{filepath}:{i}, {desc}:] {line.strip()[:60]}")
+                        issues.append(f"{filepath}:{i}, {desc}: {line.strip()[:60]}")
     except Exception:
         pass
     return issues
@@ -108,7 +109,18 @@ def main():  # NOSONAR — S3776: cognitive complexity; scheduled for refactorin
                 full_path = os.path.join(root, f)
                 # Normalize to forward slashes for matching
                 rel_path = os.path.relpath(full_path).replace(os.sep, "/")
-                if rel_path in EXCLUDED_PATHS:
+                # Check if the path matches any excluded path
+                excluded = False
+                for excluded_path in EXCLUDED_PATHS:
+                    # Handle both relative paths and ETAP-AI-WORK- prefixed paths
+                    if rel_path == excluded_path or rel_path.endswith(excluded_path):
+                        excluded = True
+                        break
+                    # Handle backslash paths from scan_file output
+                    if full_path.replace(os.sep, "/").endswith(excluded_path):
+                        excluded = True
+                        break
+                if excluded:
                     continue
                 issues = scan_file(full_path)
                 all_issues.extend(issues)

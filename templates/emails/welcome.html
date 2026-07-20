@@ -1,0 +1,90 @@
+<!doctype html>
+
+
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to {{ brand_name }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Welcome to {{ brand_name }}. Get started with your engineering intelligence platform.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:560px;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);padding:32px;text-align:center;">
+              <div style="font-size:48px;margin-bottom:8px;">⚡</div>
+              <h1 style="margin:0;color:#1f2937;font-size:26px;font-weight:700;letter-spacing:0.5px;">Welcome to {{ brand_name }}</h1>
+              <p style="margin:8px 0 0;color:#1f2937;font-size:13px;font-weight:500;">{{ brand_tagline }}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
+                Hi {{ recipient_name }},
+              </p>
+              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
+                Your account has been created successfully. You now have access to a comprehensive
+                suite of electrical engineering tools — power flow analysis, fault studies,
+                protection coordination, arc flash hazard analysis, and AI-powered engineering agents.
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="{{ login_url }}" target="_blank" rel="noopener"
+                       style="display:inline-block;background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);color:#1f2937;font-size:15px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:6px;">
+                      ⚡ Sign in to your account
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <h3 style="margin:0 0 12px;color:#111827;font-size:16px;font-weight:600;">Quick start</h3>
+              <ul style="margin:0 0 24px;padding-left:20px;color:#374151;font-size:14px;line-height:1.8;">
+                <li>Complete your profile in <strong>Settings</strong></li>
+                <li>Enable two-factor authentication for stronger security</li>
+                <li>Create your first project in the <strong>Projects</strong> dashboard</li>
+                <li>Explore AI engineering agents for load flow, short circuit, and more</li>
+                <li>Read the <a href="{{ docs_url }}" style="color:#ef4444;text-decoration:none;">documentation</a> for in-depth guides</li>
+              </ul>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#fef3c7 0%,#fee2e2 100%);border-radius:6px;margin:0 0 24px;">
+                <tr>
+                  <td style="padding:16px;">
+                    <p style="margin:0;color:#92400e;font-size:13px;line-height:1.5;">
+                      <strong>Security recommendation:</strong> Enable MFA from
+                      <em>Settings → Security</em> to add an extra layer of protection to your account.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.5;">
+                Need help? Contact our support team at
+                <a href="mailto:{{ support_email }}" style="color:#ef4444;text-decoration:none;">{{ support_email }}</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 32px;border-top:1px solid #e5e7eb;">
+              <p style="margin:0 0 8px;color:#6b7280;font-size:12px;line-height:1.5;">
+                You received this email because an account was registered with this address.
+              </p>
+              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5;">
+                © {{ current_year }} {{ brand_name }}. All rights reserved.<br>
+                <a href="{{ app_url }}" style="color:#9ca3af;text-decoration:none;">{{ app_url }}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

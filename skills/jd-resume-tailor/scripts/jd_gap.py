@@ -7,7 +7,7 @@ jd_gap.py — 把 parse_jd.py 的 JSON 与简历文本做 gap 分析
 
 输出 markdown 报告：完美命中 / 隐性命中 / 真缺口 三类，附改写建议。
 """
-from typing import Optional, Union
+
 
 from __future__ import annotations
 

@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 Upload all 31 prompts from the prompts/ directory to LangWatch.

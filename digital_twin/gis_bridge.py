@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from digital_twin.event_bus import (
     DigitalTwinStateUpdated,
@@ -478,7 +478,7 @@ class GISSyncBridge:
             sim = snapshot.simulation_results
             if sim and hasattr(sim, "load_flow_converged"):
                 metadata_asset = self.postgis.get_asset("_simulation_metadata")
-                from gis_integration.providers.postgis_provider import SpatialAsset
+
 
                 if metadata_asset:
                     metadata_asset.properties.update(

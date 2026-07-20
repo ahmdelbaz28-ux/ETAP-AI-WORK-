@@ -35,13 +35,12 @@ The filter is also auto-attached by ``security.security_framework`` when
 the ``AUDIT_LOG_REDACT_SECRETS`` env var is set to ``true`` (default).
 """
 from __future__ import annotations
-from typing import Optional, Union
-
 
 import contextlib
 import logging
 import re
 from re import Pattern
+from typing import Optional
 
 __all__ = ["SecretRedactionFilter", "redact_text", "install_globally"]
 
@@ -95,10 +94,10 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
         re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b"),
         r"[REDACTED-JWT]",
     ),
-    # --- Connection strings with embedded password ---
-    # postgresql://user:password@host:port/db
-    # redis://:password@host:port
-    # mongodb://user:password@host:port
+
+
+
+
     (
         re.compile(r"((?:postgresql|postgres|mysql|mongodb|redis|amqp)://[^:]+:)[^@\s]+(@)"),
         r"\1[REDACTED]\2",

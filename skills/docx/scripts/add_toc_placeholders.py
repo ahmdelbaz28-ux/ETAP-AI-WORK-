@@ -28,7 +28,7 @@ Example:
 from typing import Optional, Union
 
 import argparse
-import html
+
 import json
 import os
 import re

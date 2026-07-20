@@ -45,10 +45,10 @@
   --color-engine-protection: #06b6d4;
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-arabic: 'Cairo', 'Inter', system-ui, sans-serif;
-  --font-mono: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
-  --font-engineering: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-arabic: "Cairo", "Inter", system-ui, sans-serif;
+  --font-mono: "Fira Code", "Cascadia Code", ui-monospace, monospace;
+  --font-engineering: "JetBrains Mono", "Fira Code", monospace;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -132,14 +132,30 @@
    `--container-md` (28rem). Tailwind v4.1+ fixes this, but we're on v4.0.0.
    These explicit rules override the broken utility classes to use the correct
    --container-* variables defined above. */
-.max-w-3xs { max-width: var(--container-3xs) !important; }
-.max-w-2xs { max-width: var(--container-2xs) !important; }
-.max-w-xs  { max-width: var(--container-xs)  !important; }
-.max-w-sm  { max-width: var(--container-sm)  !important; }
-.max-w-md  { max-width: var(--container-md)  !important; }
-.max-w-lg  { max-width: var(--container-lg)  !important; }
-.max-w-xl  { max-width: var(--container-xl)  !important; }
-.max-w-2xl { max-width: var(--container-2xl) !important; }
+.max-w-3xs {
+  max-width: var(--container-3xs) !important;
+}
+.max-w-2xs {
+  max-width: var(--container-2xs) !important;
+}
+.max-w-xs {
+  max-width: var(--container-xs) !important;
+}
+.max-w-sm {
+  max-width: var(--container-sm) !important;
+}
+.max-w-md {
+  max-width: var(--container-md) !important;
+}
+.max-w-lg {
+  max-width: var(--container-lg) !important;
+}
+.max-w-xl {
+  max-width: var(--container-xl) !important;
+}
+.max-w-2xl {
+  max-width: var(--container-2xl) !important;
+}
 /* max-w-3xl/4xl/5xl already work correctly in v4.0.0 */
 
 /* ============================
@@ -267,116 +283,235 @@ body {
    ANIMATIONS
    ============================ */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 212, 255, 0);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes glow-border {
-  0%, 100% { border-color: var(--accent-primary); box-shadow: var(--glow-primary); }
-  50% { border-color: var(--accent-secondary); box-shadow: none; }
+  0%,
+  100% {
+    border-color: var(--accent-primary);
+    box-shadow: var(--glow-primary);
+  }
+  50% {
+    border-color: var(--accent-secondary);
+    box-shadow: none;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 @keyframes ripple {
-  0% { transform: scale(0); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Aurora / ambient glow effect */
 @keyframes aurora {
-  0% { transform: translate(-30%, -30%) rotate(0deg); opacity: 0.3; }
-  25% { transform: translate(10%, -50%) rotate(90deg); opacity: 0.5; }
-  50% { transform: translate(30%, 20%) rotate(180deg); opacity: 0.4; }
-  75% { transform: translate(-10%, 40%) rotate(270deg); opacity: 0.5; }
-  100% { transform: translate(-30%, -30%) rotate(360deg); opacity: 0.3; }
+  0% {
+    transform: translate(-30%, -30%) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(10%, -50%) rotate(90deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(30%, 20%) rotate(180deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(-10%, 40%) rotate(270deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-30%, -30%) rotate(360deg);
+    opacity: 0.3;
+  }
 }
 
 /* Card hover lift */
 @keyframes card-lift {
-  0% { transform: translateY(0); box-shadow: var(--shadow-md); }
-  100% { transform: translateY(-4px); box-shadow: var(--shadow-xl); }
+  0% {
+    transform: translateY(0);
+    box-shadow: var(--shadow-md);
+  }
+  100% {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
 }
 
 /* Shine sweep for buttons */
 @keyframes shine {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* Number count-up visual pulse */
 @keyframes count-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Border draw-in animation */
 @keyframes border-draw {
-  0% { width: 0; }
-  100% { width: 100%; }
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 /* Notification slide in from right */
 @keyframes notif-in {
-  0% { transform: translateX(120%) scale(0.9); opacity: 0; }
-  100% { transform: translateX(0) scale(1); opacity: 1; }
+  0% {
+    transform: translateX(120%) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes notif-out {
-  0% { transform: translateX(0) scale(1); opacity: 1; }
-  100% { transform: translateX(120%) scale(0.9); opacity: 0; }
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120%) scale(0.9);
+    opacity: 0;
+  }
 }
 
 /* Pulsing ring for active states */
 @keyframes ring-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.3); }
-  70% { box-shadow: 0 0 0 6px rgba(0, 212, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 212, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
+  }
 }
 
 /* Subtle breathing glow */
 @keyframes breathe {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
@@ -404,7 +539,12 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -426,7 +566,12 @@ body {
 }
 
 .animate-shine {
-  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
   background-size: 200% 100%;
   animation: shine 3s ease-in-out infinite;
 }
@@ -453,7 +598,12 @@ body {
 
 /* Skeleton loading */
 .skeleton {
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border-primary) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--border-primary) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-md);
@@ -517,7 +667,7 @@ body {
 }
 
 .nav-indicator::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -536,7 +686,7 @@ body {
 
 /* Glass card with more depth */
 .glass-premium {
-  background: linear-gradient(135deg, var(--glass-bg), rgba(255,255,255,0.03));
+  background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.03));
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
@@ -544,7 +694,12 @@ body {
 
 /* Gradient text with shimmer */
 .text-gradient-shimmer {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary),
+    var(--accent-secondary),
+    var(--accent-primary)
+  );
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -558,7 +713,7 @@ body {
 }
 
 .depth-overlay::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse at 30% 20%, rgba(0, 212, 255, 0.03) 0%, transparent 60%);
@@ -605,9 +760,15 @@ body {
 
 /* Print styles */
 @media print {
-  .no-print { display: none !important; }
-  body { background: white !important; color: black !important; }
-  .card, .card-interactive {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .card,
+  .card-interactive {
     border: 1px solid #ddd !important;
     box-shadow: none !important;
   }
@@ -615,11 +776,15 @@ body {
 
 /* Responsive helpers */
 @media (max-width: 768px) {
-  .hide-mobile { display: none !important; }
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 @media (min-width: 769px) {
-  .hide-desktop { display: none !important; }
+  .hide-desktop {
+    display: none !important;
+  }
 }
 
 /* Hide Vercel live feedback / toolbar widget */
@@ -647,21 +812,36 @@ iframe[src*="vercel.com"] {
 
 /* Power-grid bus node pulse — used in Login background SVG */
 @keyframes etap-pulse-bus {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.4); }
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
 }
 .etap-grid-bus {
   transform-origin: center;
   transform-box: fill-box;
   animation: etap-pulse-bus 3s ease-in-out infinite;
 }
-.etap-grid-bus-amber { animation-delay: 0.6s; }
-.etap-grid-bus-green { animation-delay: 1.2s; }
+.etap-grid-bus-amber {
+  animation-delay: 0.6s;
+}
+.etap-grid-bus-green {
+  animation-delay: 1.2s;
+}
 
 /* Vertical scanline sweep across the page */
 @keyframes etap-scan {
-  0% { background-position: 0 -220px; }
-  100% { background-position: 0 900px; }
+  0% {
+    background-position: 0 -220px;
+  }
+  100% {
+    background-position: 0 900px;
+  }
 }
 .etap-scanline {
   position: absolute;
@@ -676,10 +856,20 @@ iframe[src*="vercel.com"] {
 
 /* Floating electron particles rising from bottom */
 @keyframes etap-float-particle {
-  0% { opacity: 0; transform: translateY(0) translateX(0); }
-  10% { opacity: 0.8; }
-  90% { opacity: 0.8; }
-  100% { opacity: 0; transform: translateY(-950px) translateX(40px); }
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-950px) translateX(40px);
+  }
 }
 .etap-particle {
   position: absolute;
@@ -699,10 +889,30 @@ iframe[src*="vercel.com"] {
   opacity: 0.35;
   pointer-events: none;
 }
-.etap-corner-tl { top: 24px; left: 24px; border-top: 1px solid; border-left: 1px solid; }
-.etap-corner-tr { top: 24px; right: 24px; border-top: 1px solid; border-right: 1px solid; }
-.etap-corner-bl { bottom: 24px; left: 24px; border-bottom: 1px solid; border-left: 1px solid; }
-.etap-corner-br { bottom: 24px; right: 24px; border-bottom: 1px solid; border-right: 1px solid; }
+.etap-corner-tl {
+  top: 24px;
+  left: 24px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+.etap-corner-tr {
+  top: 24px;
+  right: 24px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+.etap-corner-bl {
+  bottom: 24px;
+  left: 24px;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+}
+.etap-corner-br {
+  bottom: 24px;
+  right: 24px;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
 
 /* Top status bar */
 .etap-topbar {
@@ -713,13 +923,17 @@ iframe[src*="vercel.com"] {
   display: flex;
   align-items: center;
   gap: 18px;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
   font-size: 10px;
   color: var(--text-muted, #475569);
   letter-spacing: 0.1em;
   z-index: 11;
 }
-.etap-topbar-sep { width: 1px; height: 10px; background: var(--border-strong, rgba(148, 163, 184, 0.25)); }
+.etap-topbar-sep {
+  width: 1px;
+  height: 10px;
+  background: var(--border-strong, rgba(148, 163, 184, 0.25));
+}
 .etap-topbar-live {
   color: var(--color-success, #22c55e);
   display: flex;
@@ -727,7 +941,7 @@ iframe[src*="vercel.com"] {
   gap: 6px;
 }
 .etap-topbar-live::before {
-  content: '';
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -738,8 +952,13 @@ iframe[src*="vercel.com"] {
 
 /* Gradient text flow for the headline */
 @keyframes etap-gradient-flow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 .etap-gradient-text {
   background: linear-gradient(110deg, #60a5fa 0%, #00d4ff 50%, #06b6d4 100%);
@@ -752,11 +971,15 @@ iframe[src*="vercel.com"] {
 
 /* Shine sweep over the submit button */
 @keyframes etap-shine {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 .etap-shine::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -767,7 +990,7 @@ iframe[src*="vercel.com"] {
   pointer-events: none;
 }
 .etap-btn-shine::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -783,12 +1006,18 @@ iframe[src*="vercel.com"] {
   position: relative;
 }
 .etap-card-border::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.4), transparent 30%, transparent 70%, rgba(59, 130, 246, 0.4));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.4),
+    transparent 30%,
+    transparent 70%,
+    rgba(59, 130, 246, 0.4)
+  );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -801,7 +1030,7 @@ iframe[src*="vercel.com"] {
   overflow: hidden;
 }
 .etap-stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -814,8 +1043,6 @@ iframe[src*="vercel.com"] {
 /* Input focus glow */
 .etap-input:focus {
   border-color: var(--color-brand-500, #3b82f6);
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.18),
-    0 0 24px rgba(0, 212, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18), 0 0 24px rgba(0, 212, 255, 0.18);
   background: color-mix(in srgb, var(--bg-input, #0f1525) 95%, transparent);
 }

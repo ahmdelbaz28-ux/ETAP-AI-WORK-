@@ -1094,8 +1094,8 @@ def fix_docx(docx_path: str, output_path: Optional[str] = None) -> Dict[str, Any
     Returns the result dict.
     """
     from docx import Document as DocxDocument
-    from docx.shared import Pt, Twips
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+
     from docx.oxml.ns import qn
     from docx.oxml import OxmlElement
 
@@ -1797,7 +1797,7 @@ def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_pa
     """
     import zipfile as zf_mod
     import tempfile
-    import shutil
+
 
     try:
         import pdfplumber
@@ -1806,7 +1806,7 @@ def fix_docx_accurate_pages(fixed_docx_path: str, pass1_pdf_path: str, output_pa
 
     try:
         from docx import Document
-        from docx.oxml.ns import qn as docx_qn
+
     except ImportError:
         return {"pass": False, "error": "python-docx not installed"}
 

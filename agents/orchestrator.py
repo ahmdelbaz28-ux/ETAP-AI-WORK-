@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 
@@ -1558,7 +1558,7 @@ class ChiefEngineeringOrchestrator:
                 parallel_results = await asyncio.gather(*parallel_tasks, return_exceptions=True)
                 for pr in parallel_results:
                     if isinstance(pr, BaseException):
-                        self.logger.error("Parallel agent failed: %s", pr)
+                        self.logger.exception("Parallel agent failed: %s", pr)
                     else:
                         results.append(pr)
                         if not pr.validation_status:
@@ -1787,7 +1787,7 @@ class ChiefEngineeringOrchestrator:
                     )
                     return (study_str, result)
                 except Exception as exc:
-                    self.logger.error("[parallel] Failed %s: %s", study_str, exc)
+                    self.logger.exception("[parallel] Failed %s: %s", study_str, exc)
                     # Return a failure AgentResult instead of propagating
                     return (
                         study_str,
@@ -1824,7 +1824,7 @@ class ChiefEngineeringOrchestrator:
         parallel_results: dict[str, AgentResult] = {}
         for item in parallel_raw:
             if isinstance(item, BaseException):
-                self.logger.error("[parallel] Unexpected exception: %s", item)
+                self.logger.exception("[parallel] Unexpected exception: %s", item)
                 continue
             study_str, result = item
             if not isinstance(result, AgentResult):
@@ -1858,7 +1858,7 @@ class ChiefEngineeringOrchestrator:
                     seq_result = await agent.execute(task)
                     sequential_results[study_str] = seq_result
                 except Exception as exc:
-                    self.logger.error("[sequential] Failed %s: %s", study_str, exc)
+                    self.logger.exception("[sequential] Failed %s: %s", study_str, exc)
                     sequential_results[study_str] = AgentResult(
                         agent_name=agent.agent_name,
                         study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,

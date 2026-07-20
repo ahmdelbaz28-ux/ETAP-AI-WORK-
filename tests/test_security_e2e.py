@@ -70,8 +70,9 @@ class TestAPIKeyBypass:
         # so get_api_key always passes.  We test the logic by verifying
         # that when an API key IS required, missing keys are rejected.
         with patch("api.dependencies.API_KEY", "test-secret-key"):
-            # Reload the dependency with the patched value
-            resp = client.get("/api/v1/projects/", headers=auth_headers)
+            # Send request WITHOUT Authorization header to ensure the
+            # API-key check is evaluated (JWT bypass would otherwise skip it).
+            resp = client.get("/api/v1/projects/")
             # Should fail because no X-API-Key header was provided
             assert resp.status_code == 401, f"Expected 401 without API key, got {resp.status_code}"
 
@@ -80,7 +81,7 @@ class TestAPIKeyBypass:
         with patch("api.dependencies.API_KEY", "test-secret-key"):
             resp = client.get(
                 "/api/v1/projects/",
-                headers={**auth_headers, "X-API-Key": "test-secret-key"},
+                headers={"X-API-Key": "test-secret-key"},
             )
             assert resp.status_code == 200, (
                 f"Expected 200 with correct API key, got {resp.status_code}"
@@ -91,7 +92,7 @@ class TestAPIKeyBypass:
         with patch("api.dependencies.API_KEY", "test-secret-key"):
             resp = client.get(
                 "/api/v1/projects/",
-                headers={**auth_headers, "X-API-Key": "wrong-key"},
+                headers={"X-API-Key": "wrong-key"},
             )
             assert resp.status_code == 401, (
                 f"Expected 401 with wrong API key, got {resp.status_code}"

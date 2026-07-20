@@ -7,7 +7,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Optional, Union
+
 
 # 意向城市 → API provinces（省份意向）
 CITY_TO_PROVINCE: dict[str, str] = {

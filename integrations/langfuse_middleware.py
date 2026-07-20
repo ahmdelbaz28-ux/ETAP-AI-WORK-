@@ -38,7 +38,7 @@ import logging
 import os
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -193,7 +193,9 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         response_body = b""
         try:
             # Re-wrap the request body since we already consumed it
-            async def receive() -> dict[str, Any]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+            def receive() -> dict[
+                str, Any
+            ]:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
                 return {"type": "http.request", "body": body_bytes, "more_body": False}
 
             request._receive = receive  # type: ignore[attr-defined]
@@ -241,7 +243,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
                         severity="critical",
                     )
             raise
-        else:
+        else:  # else after raise IS reachable (runs when no exception)
             elapsed = time.monotonic() - start
 
             # Capture output + status — best-effort, must not break the response
