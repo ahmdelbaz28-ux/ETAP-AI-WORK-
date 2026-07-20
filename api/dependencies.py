@@ -13,6 +13,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+import secrets
 from typing import Optional
 
 import jwt
@@ -35,21 +36,18 @@ if not _jwt_key:
     if _env in ("production", "prod", "staging"):
         raise RuntimeError(
             "JWT_SECRET_KEY must be set in production/staging. "
-            "Refusing to start with a default secret.",
+            "Refusing to start with a default secret. "
+            "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
         )
-    import hashlib as _hashlib
-    import logging as _logging
-
-    _logger = _logging.getLogger(__name__)
-    _hostname = os.getenv("HOSTNAME", os.getenv("COMPUTERNAME", "unknown"))
-    _seed = f"etap-dev-{_hostname}"
-    _jwt_key = _hashlib.sha256(_seed.encode()).hexdigest()
-    _logger.warning(
-        "JWT_SECRET_KEY not set; using deterministic fallback (hostname=%s). "
-        "Tokens survive restarts on same host but are NOT cryptographically "
-        "secure. Set JWT_SECRET_KEY in production.", _hostname,
+    # Development fallback: generate a random key at startup.
+    # This is unique per process restart — tokens won't persist across restarts,
+    # which is acceptable for local development.
+    _jwt_key = secrets.token_hex(32)
+    logger.warning(
+        "JWT_SECRET_KEY not set. Generated random development key. "
+        "Tokens will be invalidated on restart. DO NOT USE IN PRODUCTION."
     )
-    _logger.warning(
+    logger.warning(
         "On HF Space with multiple replicas, each replica MUST have the "
         "same JWT_SECRET_KEY env var set — otherwise tokens are rejected "
         "with 'Invalid token' across replicas.",
@@ -262,22 +260,28 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
     ``ENGINEERING_SERVICE_API_KEY`` is configured, the check is skipped
     (useful for local development).
 
-    JWT bypass: if the request carries a valid ``Authorization: Bearer``
+    JWT bypass: if the request carries a VALID ``Authorization: Bearer``
     header (JWT), the X-API-Key check is skipped. This allows the React
     frontend — which authenticates users via JWT from /api/v1/auth/login —
     to access asset/project endpoints without also sending an X-API-Key
-    header. Without this bypass, every authenticated UI request to
-    /assets, /projects returns 401.
+    header. The JWT is validated here to prevent bypass with arbitrary
+    "Bearer <anything>" strings.
     """
     if not API_KEY:
         # No API key configured — skip validation
         return ""
 
-    # JWT bypass: if a Bearer token is present, skip the API key check.
-    # The downstream CurrentUser dependency (if any) will validate the JWT.
+    # JWT bypass: if a VALID Bearer token is present, skip the API key check.
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
-        return ""
+        token = _extract_bearer_token(auth_header)
+        try:
+            # Validate the JWT — if invalid, fall through to API key check
+            jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            return ""
+        except jwt.InvalidTokenError:
+            # Invalid JWT — fall through to API key validation
+            pass
 
     if not x_api_key:
         raise HTTPException(
