@@ -4,13 +4,19 @@ import ast
 import os
 import sys
 
+# SonarCloud S1192: Avoid magic string duplication
+EXCLUDED_DIRS = ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
+
+
+def _filter_dirs(dirs):
+    """Filter out excluded directories from os.walk."""
+    return [d for d in dirs if not d.startswith(".") and d not in EXCLUDED_DIRS]
+
 
 def validate_python_syntax():
     results = []
     for root, dirs, files in os.walk("."):
-        dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
-        ]
+        dirs[:] = _filter_dirs(dirs)
         for f in files:
             if f.endswith(".py"):
                 path = os.path.join(root, f)
@@ -29,9 +35,7 @@ def check_imports():  # NOSONAR — S3776: cognitive complexity; scheduled for r
     results = []
     py_files = []
     for root, dirs, files in os.walk("."):
-        dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
-        ]
+        dirs[:] = _filter_dirs(dirs)
         for f in files:
             if f.endswith(".py"):
                 py_files.append(os.path.join(root, f))
@@ -61,9 +65,7 @@ def detect_circular_deps():  # NOSONAR — S3776: cognitive complexity; schedule
     """Simple circular dependency detection for local packages."""
     packages = {}
     for root, dirs, files in os.walk("."):
-        dirs[:] = [
-            d for d in dirs if not d.startswith(".") and d not in ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
-        ]
+        dirs[:] = _filter_dirs(dirs)
         if "__init__.py" in files:
             pkg = root.replace(os.sep, ".").lstrip(".")
             imports = []

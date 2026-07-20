@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Optional
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -114,7 +114,7 @@ def _require_admin(request: Request) -> dict:
 async def get_stats(
     request: Request,
     window_hours: int = 24,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)],
 ) -> JSONResponse:
     """Aggregate stats for the last `window_hours`."""
     from services.email_send_log import get_send_stats
@@ -132,7 +132,7 @@ async def get_recent(
     request: Request,
     limit: int = 100,
     flow: Optional[str] = None,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)],
 ) -> JSONResponse:
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends

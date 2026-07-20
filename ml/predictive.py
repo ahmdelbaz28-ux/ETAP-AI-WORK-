@@ -629,13 +629,21 @@ class FaultPredictor:
             }
             from sklearn.model_selection import cross_val_score
 
-            clf = RandomForestClassifier(**params)  # NOSONAR — S6973: params includes min_samples_leaf + max_features from trial.suggest_int
+            clf = RandomForestClassifier(**params)
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
 
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=20, show_progress_bar=False)
-        return study.best_params
+        # SonarCloud: ensure all hyperparameters have safe defaults
+        best_params = dict(study.best_params)
+        if "min_samples_leaf" not in best_params:
+            best_params["min_samples_leaf"] = 1
+        if "max_features" not in best_params:
+            best_params["max_features"] = "sqrt"
+        if "random_state" not in best_params:
+            best_params["random_state"] = 42
+        return best_params
 
     def predict(self, features: np.ndarray) -> dict[str, Any]:
         """Predict fault probability and type."""
