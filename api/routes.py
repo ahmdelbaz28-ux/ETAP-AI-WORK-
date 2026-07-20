@@ -643,16 +643,18 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 async def scada_live():
     """Return a snapshot of the latest SCADA telemetry.
 
-    On HF Space (cpu-basic, no Zenon runtime) this returns a deterministic
-    synthetic snapshot so dashboards and curl smoke tests can verify the
-    endpoint is wired up. A real Zenon-backed deployment would replace
-    this with `scada_etap_consumer.get_live_snapshot()`.
+    **WARNING**: This returns SIMULATED data unless a real Zenon/IEC 61850 feed is
+    configured. On HF Space (cpu-basic, no Zenon runtime) this returns a deterministic
+    synthetic snapshot. The ``is_simulated`` flag allows the frontend to display a
+    red banner indicating non-production data. A real Zenon-backed deployment would
+    replace this with ``scada_etap_consumer.get_live_snapshot()`` and set is_simulated=false.
     """
     return {
         "success": True,
+        "is_simulated": True,
         "data": {
             "timestamp": _utc_now_iso(),
-            "source": "synthetic" if os.environ.get("ENVIRONMENT") != "production" else "zenon",
+            "source": "synthetic",
             "points": [
                 {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"},
                 {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"},

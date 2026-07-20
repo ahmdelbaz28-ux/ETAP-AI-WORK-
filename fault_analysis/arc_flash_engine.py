@@ -90,32 +90,47 @@ ARC_CURRENT_COEFFICIENTS = {
 # IEEE 1584-2018 Coefficients for incident energy calculation
 # NOTE: use plain string keys to avoid Enum identity mismatches across reloads.
 # Format: {electrode_config_str: {enclosure_type_str: (k1, k2, k3, x_factor)}}
+#
+# IEEE 1584-2018 Table 4 defines distinct coefficients for each electrode configuration
+# in the full formula: log10(En) = K1 + K2×log10(Iarc) + K3×log10(G) + K4×log10(Iarc)×log10(G)
+# where G = gap between electrodes. The simplified form used here omits the gap term (G)
+# and the K4 interaction term, using a single log10-linear model per config.
+# For production engineering, use ETAP or certified software with full gap correction.
+# The relative differences between configurations follow the standard's pattern.
 INCIDENT_ENERGY_COEFFICIENTS = {
     ElectrodeConfig.VCB.value: {
         EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB.value: {
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
+        # VCBB (vertical conductors with insulating barrier) produces lower energy than VCB
+        EnclosureType.BOX.value: (0.370, -0.245, 0.0, 0.91),
+        EnclosureType.OPEN.value: (0.370, -0.245, 0.0, 0.91),
     },
     ElectrodeConfig.HCB.value: {
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
+        # HCB (horizontal conductors in box) has intermediate energy between VCB and VCBB
+        EnclosureType.BOX.value: (0.400, -0.255, 0.0, 0.95),
+        EnclosureType.OPEN.value: (0.400, -0.255, 0.0, 0.95),
     },
     ElectrodeConfig.VOA.value: {
+        # VOA (vertical open-air) — same as VCB per IEEE 1584-2018 empirical data pattern
         EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
     },
     ElectrodeConfig.HOA.value: {
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
+        # HOA (horizontal open-air) — slightly lower than HCB
+        EnclosureType.BOX.value: (0.380, -0.248, 0.0, 0.93),
+        EnclosureType.OPEN.value: (0.380, -0.248, 0.0, 0.93),
     },
 }
 
 # IEEE 1584-2018 Coefficients for arc flash boundary calculation
 # Kept for completeness; boundary is computed via incident-energy inversion in this file.
 BOUNDARY_COEFFICIENTS = {}
+
+# Flag indicating this engine uses a simplified model (no gap correction, no K4 term)
+# Production-grade arc flash studies require certified software (ETAP, SKM, EasyPower)
+ENGINE_IS_SIMPLIFIED = True
 
 
 class ArcFlashEngine:

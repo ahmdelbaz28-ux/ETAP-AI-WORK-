@@ -48,7 +48,7 @@ app_port: 7860
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci-cd.yml?style=flat-square&label=CI%2FCD&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
 [![Coverage](https://img.shields.io/badge/Coverage-≥80%25-brightgreen?style=flat-square&logo=pytest&logoColor=white)](tests/)
 [![AI Agents](https://img.shields.io/badge/AI%20Agents-24%20Specialist-8b5cf6?style=flat-square&logo=openai&logoColor=white)](agents/)
-[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-51+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](API_REFERENCE.md)
+[![API Endpoints](https://img.shields.io/badge/API%20Endpoints-40+-f59e0b?style=flat-square&logo=swagger&logoColor=white)](API_REFERENCE.md)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Production-336791?style=flat-square&logo=postgresql&logoColor=white)](api/database.py)
 [![Redis](https://img.shields.io/badge/Redis-State%20%26%20Queue-DC382D?style=flat-square&logo=redis&logoColor=white)](core/redis_state.py)
 [![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-ef4444?style=flat-square&logo=shield&logoColor=white)](security/)

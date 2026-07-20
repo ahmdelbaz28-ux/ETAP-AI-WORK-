@@ -31,7 +31,7 @@ jobs:
           cache: 'pip'
 
       - name: Install linting tools
-        run: pip install --only-binary :all: ruff mypy
+        run: "pip install --only-binary :all: ruff mypy"
 
       - name: Ruff lint
         run: ruff check . --config ruff.toml

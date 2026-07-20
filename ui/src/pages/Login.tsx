@@ -79,15 +79,18 @@ export default function Login() {
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
     "[SYS-INIT] Core Engineering engine loaded in memory.",
     "[SYS-INIT] Connected to Supabase DB: active session pool ready.",
-    "[SYS-INIT] 25 Autonomous Specialist Agents loaded.",
+    "[SYS-INIT] Autonomous Specialist Agents loaded (polling /info for count).",
     "[SYS-INIT] Standby. Waiting for engineer authentication...",
   ]);
 
   // Live Telemetry State
   const [serverStatus, setServerStatus] = useState<"online" | "offline" | "checking">("checking");
   const [latency, setLatency] = useState<number | null>(null);
-  const [activeAgents, setActiveAgents] = useState<number>(25);
-  const [backendVersion, setBackendVersion] = useState<string>("2.1.0");
+  // NOTE: Initial values are null — the real values are fetched from /info endpoint.
+  // Hardcoding 25/2.1.0 here was misleading (previously claimed "Live Telemetry" while
+  // being static defaults). We now wait for the API response before displaying numbers.
+  const [activeAgents, setActiveAgents] = useState<number | null>(null);
+  const [backendVersion, setBackendVersion] = useState<string | null>(null);
 
   const appendLog = useCallback((msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -332,7 +335,7 @@ export default function Login() {
                   <span className="text-[10px] font-sans font-semibold">AI Agents</span>
                 </div>
                 <div className="font-mono text-xs font-bold text-white">
-                  {activeAgents} / 25 Units
+                  {activeAgents !== null ? `${activeAgents} Agents` : "—"}
                 </div>
               </div>
               <div className="space-y-1">
@@ -592,7 +595,7 @@ export default function Login() {
                 {t("auth.registerLink")}
               </Link>
             </span>
-            <span className="text-[9px] text-slate-700 font-mono">v{backendVersion}</span>
+            <span className="text-[9px] text-slate-700 font-mono">{backendVersion !== null ? `v${backendVersion}` : "—"}</span>
           </div>
         </motion.div>
       </div>

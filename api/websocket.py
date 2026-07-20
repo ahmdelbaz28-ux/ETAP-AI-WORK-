@@ -83,11 +83,15 @@ class SCADALiveFeed:
     async def _generate_scada_data(self) -> dict:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
         """Generate mock SCADA data for demonstration purposes.
 
-        In a real implementation, this would connect to actual SCADA systems.
+        **SIMULATED DATA**: This generates synthetic data for UI/UX demos only.
+        The ``is_simulated`` flag is set to `True` so the frontend can show a
+        red banner to operators. In a real deployment, this method would connect
+        to actual SCADA systems (Zenon 7 / IEC 61850) and is_simulated would be `False`.
         """
         import random
 
         scada_data = {
+            "is_simulated": True,
             "timestamp": datetime.now(UTC).isoformat(),
             "measurements": {
                 "bus_voltages": [

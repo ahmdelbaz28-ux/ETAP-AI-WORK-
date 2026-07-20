@@ -15,7 +15,7 @@ app_port: 7860
 <h3>Enterprise AI-Powered Power Systems Engineering</h3>
 
 <p>
-  An autonomous engineering-intelligence system that fuses 25 specialist AI agents
+  An autonomous engineering-intelligence system that fuses 24 specialist AI agents
   with rigorous IEC / IEEE computational engines — taking engineers from a natural-language
   question to a validated, auditable engineering report in seconds.
 </p>
@@ -59,7 +59,7 @@ app_port: 7860
 
 **AhmedETAP** is a production-grade, autonomous engineering-intelligence platform that
 wraps ETAP-style power-systems analysis in a conversational, agent-driven interface.
-It pairs a FastAPI backend (25 specialist agents, 51 API endpoints, IEEE/IEC engines
+It pairs a FastAPI backend (24 specialist agents, IEEE/IEC engines
 for load-flow / short-circuit / arc-flash / protection-coordination) with a React 19 +
 Vite 6 single-page application that runs in any modern browser.
 
@@ -183,8 +183,8 @@ correctly, all assets return HTTP 200 with the immutable cache header from
  │  Vercel Edge (CDN)       │         │  Hugging Face Space (Docker SDK)   │
  │  ──────────────────────  │  HTTPS  │  ───────────────────────────────── │
  │  React 19 SPA            │ ──────► │  FastAPI 0.115 + uvicorn           │
- │  Vite 6 build            │  JSON   │  25 AI agents                      │
- │  Tailwind 4              │         │  51 API endpoints (/api/v1/*)      │
+ │  Vite 6 build            │  JSON   │  24 AI agents                      │
+ │  Tailwind 4              │         │  40+ API endpoints (/api/v1/*)     │
  │  React Router 7          │         │  IEEE/IEC computational engines    │
  │  Zustand + React Query 5 │         │  JWT auth + bcrypt password hash   │
  │  i18next (ar/en)         │         │  ETAP / Zenon / GIS integrations   │
@@ -353,8 +353,8 @@ See [`SECURITY.md`](SECURITY.md) and [`docs/SECURITY_OPERATIONS_MANUAL.md`](docs
 │   ├── src/                  #   application source
 │   ├── public/               #   static assets
 │   └── vite.config.ts        #   Vite config + dev-server proxy
-├── api/                      # FastAPI routers (51 endpoints under /api/v1/)
-├── agents/                   # 25 specialist AI agent definitions + prompts
+├── api/                      # FastAPI routers (40+ endpoints under /api/v1/)
+├── agents/                   # 24 specialist AI agent definitions + prompts
 ├── core/                     # Shared core (auth, redis_state, logging)
 ├── core_model/               # Domain models (load-flow, short-circuit, ...)
 ├── security/                 # LLM guardrails, audit, SIEM integration

@@ -733,6 +733,8 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
             engine_error = str(exc)
 
     # -- Build response -----------------------------------------------------
+    # IMPORTANT: Studies that cannot be executed are NOT queued — there is no
+    # background queue worker. The response honestly reports the actual state.
     response: dict[str, Any] = {
         "study_type": study_type,
         "reference": f"STUDY-{int(time.time())}",
@@ -741,8 +743,12 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
         response["status"] = "completed"
         response["result"] = result_data
     else:
-        response["status"] = "accepted"
-        response["message"] = f"Study '{study_type}' queued for processing."
+        response["status"] = "unavailable"
+        response["is_simulated"] = True
+        response["message"] = (
+            f"Study '{study_type}' cannot be executed in this deployment. "
+            "No background queue processes this request."
+        )
         if engine_error:
             response["engine_note"] = engine_error
         response["note"] = (

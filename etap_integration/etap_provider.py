@@ -38,12 +38,14 @@ class ETAPResult:
         warnings: list[str],
         errors: list[str],
         execution_time: float = 0.0,
+        is_simulated: bool = False,
     ):
         self.success = success
         self.data = data
         self.warnings = warnings
         self.errors = errors
         self.execution_time = execution_time
+        self.is_simulated = is_simulated
 
 
 class IEtapProvider(ABC):
@@ -434,6 +436,7 @@ class MockEtapProvider(IEtapProvider):
                 [],
                 ["Mock ETAP provider disabled via USE_ETAP environment variable"],
                 0.0,
+                is_simulated=True,
             )
 
         import time
@@ -441,12 +444,17 @@ class MockEtapProvider(IEtapProvider):
         start_time = time.time()
 
         mock_data = self.MOCK_RESULTS.get(study_type, {})
+        # Mark all mock results as simulated — warnings field alone may not be
+        # surfaced in the UI. The is_simulated flag allows the frontend to show
+        # a prominent red banner (see MockEtapProvider result handling).
+        mock_data["is_simulated"] = True
         return ETAPResult(
             success=True,
             data=mock_data,
             warnings=["Using MockEtapProvider - results are simulated"],
             errors=[],
             execution_time=time.time() - start_time,
+            is_simulated=True,
         )
 
 
