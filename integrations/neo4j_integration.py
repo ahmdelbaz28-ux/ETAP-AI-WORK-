@@ -79,7 +79,12 @@ class Neo4jClient:
     ) -> dict[str, Any]:
         """Execute a Cypher query."""
         if not self.enabled or not self.driver:
-            return {"error": "Neo4j is not enabled", "data": []}
+            logger.error(
+                "Neo4j execute_query called but client is disabled. "
+                "Set NEO4J_URI + NEO4J_PASSWORD and pip install neo4j. "
+                "Query was: %.200s", query,
+            )
+            return {"error": "Neo4j is not enabled — configure NEO4J_URI/NEO4J_PASSWORD and install neo4j SDK", "data": []}
         try:
             with self.driver.session() as session:
                 result = session.run(query, parameters or {})
@@ -99,8 +104,54 @@ class Neo4jClient:
         }
 
 
+class NullNeo4jClient(Neo4jClient):
+    """Stand-in for when Neo4j SDK is not available.
+
+    Every method returns a clear error message so callers can distinguish
+    "Neo4j is intentionally disabled" from a silent AttributeError crash.
+    This class is used as the platform-wide singleton when ``NEO4J_AVAILABLE``
+    is ``False`` and no configuration is set.
+    """
+
+    def __init__(self):
+        # Do NOT attempt GraphDatabase.driver() — SDK is not even installed.
+        self.uri = ""
+        self.username = ""
+        self.password = ""
+        self.driver = None
+        self.enabled = False
+        logger.warning(
+            "NullNeo4jClient active — Neo4j SDK not available. "
+            "Install with: pip install neo4j"
+        )
+
+    def close(self):
+        """No-op — no driver to close."""
+
+    def execute_query(
+        self, query: str, parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        logger.error(
+            "Neo4j execute_query called but Neo4j SDK is not installed. "
+            "Install it with: pip install neo4j. Query was: %.200s", query,
+        )
+        return {
+            "error": "Neo4j SDK not installed. Run: pip install neo4j",
+            "data": [],
+        }
+
+    def health_check(self) -> dict[str, Any]:
+        return {
+            "enabled": False,
+            "uri": "",
+            "sdk_available": False,
+            "driver_initialized": False,
+            "note": "Neo4j SDK not installed. Run: pip install neo4j",
+        }
+
+
 # ─── Module-level singleton ───────────────────────────────────────────────────
-neo4j_client = Neo4jClient()
+neo4j_client: Neo4jClient = NullNeo4jClient() if not NEO4J_AVAILABLE else Neo4jClient()
 
 
 def get_neo4j_db() -> Neo4jClient:

@@ -208,6 +208,15 @@ export default function ScadaIntegration() {
       socketRef.current.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
+          // Respect the backend's is_simulated flag — when the backend tells us
+          // the data is simulated (e.g. HF Space synthetic feed), we show a
+          // red banner warning operators that this is NOT live production data.
+          if (parsed.is_simulated === true) {
+            setIsSimulation(true);
+            setConnectionStatus("simulated");
+          } else if (parsed.is_simulated === false) {
+            setIsSimulation(false);
+          }
           if (parsed.measurements) {
             // Map structured measurements back to points format
             const mappedPoints: TelemetryPoint[] = [];
@@ -277,9 +286,15 @@ export default function ScadaIntegration() {
         });
         if (response.ok) {
           const body = await response.json();
+          // Respect is_simulated flag from backend for HTTP polling fallback
+          if (body.is_simulated === true) {
+            setIsSimulation(true);
+            setConnectionStatus("simulated");
+          } else if (body.is_simulated === false) {
+            setIsSimulation(false);
+          }
           if (body.success && body.data?.points) {
             setTelemetryPoints(body.data.points);
-            setConnectionStatus("connected");
           }
         } else {
           setConnectionStatus("disconnected");
@@ -404,6 +419,20 @@ export default function ScadaIntegration() {
           )}
         </div>
       </div>
+
+      {/* ─── Prominent simulated-data watermark ─────────────────────────── */}
+      {isSimulation && (
+        <div className="w-full bg-red-600/90 border-2 border-red-400 rounded-lg px-4 py-3 text-center shadow-lg shadow-red-600/30">
+          <p className="text-white font-bold text-sm uppercase tracking-widest">
+            {isRtl ? "⚠️ بيانات محاكاة — ليست بيانات حقيقية من النظام" : "⚠️ SIMULATED DATA — NOT REAL PRODUCTION TELEMETRY"}
+          </p>
+          <p className="text-red-100 text-[10px] mt-0.5">
+            {isRtl
+              ? "هذه القراءات مولّدة لأغراض العرض التوضيحي فقط. لا تعتمد عليها في اتخاذ قرارات هندسية."
+              : "These readings are synthetically generated for demo purposes. Do NOT use for engineering decisions."}
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Connection & Configuration Panel */}

@@ -423,6 +423,20 @@ class MockEtapProvider(IEtapProvider):
         if not self.use_etap:
             logger.info("Mock ETAP provider disabled via USE_ETAP environment variable")
 
+        # ─── PRODUCTION GUARD ──────────────────────────────────────────────
+        # Never return hardcoded mock results in production/staging.
+        # Mock results contain fixed values (Bus1=1.05 pu, Bus2=0.98 pu, etc.)
+        # that do NOT represent the actual power system. Using them in a real
+        # deployment could lead to catastrophic engineering decisions.
+        _env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+        if _env in ("production", "prod", "staging"):
+            logger.critical(
+                "MockEtapProvider BLOCKED in %s environment. "
+                "ETAP_PROVIDER=mock must never be set in production. "
+                "Use a real ETAP worker (ETAP_WORKER_URL) or native solvers.",
+                _env,
+            )
+
     def is_available(self) -> bool:
         return self.use_etap
 
@@ -435,6 +449,21 @@ class MockEtapProvider(IEtapProvider):
                 {},
                 [],
                 ["Mock ETAP provider disabled via USE_ETAP environment variable"],
+                0.0,
+                is_simulated=True,
+            )
+
+        # ─── Production guard — never return hardcoded mock results ─────────
+        _env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+        if _env in ("production", "prod", "staging"):
+            return ETAPResult(
+                False,
+                {},
+                [],
+                [
+                    f"MockEtapProvider BLOCKED in {_env} environment. "
+                    "ETAP_PROVIDER=mock must never be set in production."
+                ],
                 0.0,
                 is_simulated=True,
             )

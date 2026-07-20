@@ -196,7 +196,71 @@ jobs:
           fi
           echo "✅ HF Space synced"
 
-      # ── 1d. Notify LangWatch of new deployment version ──────────────────────
+      # ── 1d. Post-deploy smoke test on HF Space ─────────────────────────────
+      # After pushing to HF Space, the Docker container rebuilds and restarts.
+      # This step waits for the Space to become healthy (up to 5 min) and runs
+      # a basic smoke test against the production URL.
+      - name: 🔥 Post-deploy smoke test (HF Space)
+        env:
+          HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
+        run: |
+          set -e
+          echo "⏳ Waiting for HF Space to become healthy (up to 5 min)..."
+          MAX_RETRIES=30
+          RETRY=0
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              --connect-timeout 10 \
+              --max-time 15 \
+              "$HF_SPACE_URL/health" 2>/dev/null || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ HF Space is healthy (HTTP 200)"
+              break
+            fi
+            RETRY=$((RETRY + 1))
+            if [ $RETRY -ge $MAX_RETRIES ]; then
+              echo "❌ HF Space did not become healthy after $MAX_RETRIES retries"
+              echo "   Last HTTP status: $HTTP_STATUS"
+              exit 1
+            fi
+            echo "   Retry $RETRY/$MAX_RETRIES — HTTP $HTTP_STATUS, waiting 10s..."
+            sleep 10
+          done
+
+          # Basic smoke checks
+          echo ""
+          echo "🔍 Running smoke tests against $HF_SPACE_URL..."
+
+          # 1. Root endpoint
+          ROOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/" 2>/dev/null || echo "000")
+          echo "   GET / → HTTP $ROOT_STATUS"
+          [ "$ROOT_STATUS" = "200" ] || { echo "❌ Root endpoint failed"; exit 1; }
+
+          # 2. Health endpoint returns valid JSON
+          HEALTH_JSON=$(curl -s --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/health" 2>/dev/null || echo "{}")
+          HEALTH_STATUS=$(echo "$HEALTH_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','unknown'))" 2>/dev/null || echo "parse_failed")
+          echo "   /health → status=$HEALTH_STATUS"
+          [ "$HEALTH_STATUS" = "healthy" ] || { echo "❌ Health check failed"; exit 1; }
+
+          # 3. SCADA endpoint returns is_simulated flag
+          SCADA_JSON=$(curl -s --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/api/v1/scada/live" 2>/dev/null || echo "{}")
+          SIMULATED=$(echo "$SCADA_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('is_simulated', 'missing'))" 2>/dev/null || echo "parse_failed")
+          echo "   /api/v1/scada/live → is_simulated=$SIMULATED"
+          [ "$SIMULATED" = "True" ] || { echo "❌ SCADA endpoint not returning simulated flag"; exit 1; }
+
+          # 4. Study types endpoint returns list
+          TYPES_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/api/v1/studies/types" 2>/dev/null || echo "000")
+          echo "   GET /api/v1/studies/types → HTTP $TYPES_STATUS"
+          [ "$TYPES_STATUS" = "200" ] || { echo "❌ Study types endpoint failed"; exit 1; }
+
+          echo ""
+          echo "✅ All smoke tests passed against HF Space production URL"
+          echo "   Commit: $GITHUB_SHA"
+          echo "   URL:    $HF_SPACE_URL"
+
+      # ── 1e. Notify LangWatch of new deployment version ──────────────────────
       - name: 📊 Notify LangWatch of new deployment
         env:
           LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
@@ -230,7 +294,7 @@ jobs:
             echo "⚠️ LangWatch API returned HTTP $STATUS — non-blocking"
           fi
 
-      # ── 1e. Verify Smithery MCP integration is wired correctly ──────────────
+      # ── 1f. Verify Smithery MCP integration is wired correctly ──────────────
       - name: 🔧 Verify Smithery MCP integration
         env:
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}

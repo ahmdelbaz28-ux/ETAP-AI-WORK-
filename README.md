@@ -231,6 +231,21 @@ correctly, all assets return HTTP 200 with the immutable cache header from
 - **Smithery** is the Model Context Protocol registry that the agents use to
   discover and bind external tools at runtime.
 
+### ⚠️ Computation Engine Architecture
+
+This platform uses **two distinct computation layers** — it is critical to understand the difference:
+
+| Layer | Engine | Availability | Purpose |
+|:---|:---|:---|:---|
+| **Native Python Solvers** | `engine/engine.py`, `fault_analysis/`, `load_flow/`, `coordination/` | **All platforms** (HF Space, Linux, Windows) | Load flow (Newton-Raphson), short-circuit (IEC 60909), arc flash (IEEE 1584-2018), harmonic analysis (IEEE 519), protection coordination, transient stability |
+| **ETAP COM Automation** | `etap_integration/etap_com.py` | **Windows only** with pywin32 + licensed ETAP installation | Wraps real ETAP 2021/22 COM API for studies requiring certified ETAP output |
+
+**On HF Space and all Linux deployments**, the real ETAP COM provider is **not available** (line 488-520 in `etap_integration/etap_provider.py` returns `NullEtapProvider`). All engineering computations run through the **native Python solvers** listed above. The `get_etap_provider()` factory falls through to `NullEtapProvider` on any platform lacking `pywin32` or an `ETAP_WORKER_URL`.
+
+To run ETAP-dependent studies, deploy on **Windows with pywin32 and ETAP 2021+**, or configure `ETAP_WORKER_URL` + `ETAP_WORKER_API_KEY` to point to a remote ETAP worker. Without these, studies that require COM automation return empty results with `is_simulated: true`.
+
+**Never set `ETAP_PROVIDER=mock` in production** — this returns hardcoded demo values (Bus1=1.05 pu, Bus2=0.98 pu) that do **not** represent your system.
+
 ---
 
 ## 🚀 Quick Start

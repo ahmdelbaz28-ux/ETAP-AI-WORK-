@@ -202,43 +202,113 @@ class PowerSystemEngine:
         }
 
     def run_protection_coordination(
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list[float],
+        self,
+        upstream_relay_id: int,
+        downstream_relay_id: int,
+        fault_currents: list[float],
+        relays_config: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.
 
-        Note: This method assumes that the relays are already defined and accessible.
-        In a full implementation, we would retrieve relays from a protection system database.
+        **IMPORTANT — Life-Safety Warning:**
+        This method requires real relay parameters (TMS, Ip, curve_type) to produce
+        meaningful results. When ``relays_config`` is provided with the required fields,
+        those values are used. Without them this method returns an error —
+        it MUST NOT silently fall back to dummy relays, as the resulting coordination
+        analysis would be dangerously misleading in a real protection system.
 
-        For demonstration, we will create dummy relays.
+        Parameters
+        ----------
+        upstream_relay_id : int
+            ID of upstream relay.
+        downstream_relay_id : int
+            ID of downstream relay.
+        fault_currents : list[float]
+            List of fault currents in per-unit.
+        relays_config : dict, optional
+            Relay parameter dictionary with the following schema::
 
-        Parameters:
-        upstream_relay_id (int): ID of upstream relay.
-        downstream_relay_id (int): ID of downstream relay.
-        fault_currents (list): List of fault currents in per-unit.
+                {
+                    "upstream": {"tms": float, "pickup_current_a": float, "curve_type": str},
+                    "downstream": {"tms": float, "pickup_current_a": float, "curve_type": str},
+                }
 
-        Returns:
-        dict: Coordination results.
+            If omitted or incomplete, the method returns an error with
+            ``is_simulated: true`` rather than fabricating relay values.
+
+        Returns
+        -------
+        dict
+            Coordination results with ``is_simulated`` flag.
         """
-        # In a real system, we would fetch the relay objects from a protection database.
-        # For now, we create example relays.
+        # ── Validate relay configuration ───────────────────────────────────
+        if not relays_config or not isinstance(relays_config, dict):
+            return {
+                "all_coordinated": False,
+                "is_simulated": True,
+                "error": (
+                    "Protection coordination requires real relay parameters "
+                    "(relays_config with upstream/downstream TMS, pickup_current, curve_type). "
+                    "No relay database is configured — see docs/ARCHITECTURE.md for setup."
+                ),
+                "results": [],
+            }
+
+        up_conf = relays_config.get("upstream")
+        down_conf = relays_config.get("downstream")
+
+        if not up_conf or not down_conf:
+            return {
+                "all_coordinated": False,
+                "is_simulated": True,
+                "error": (
+                    "Both upstream and downstream relay configurations are required. "
+                    "Received: upstream=%s, downstream=%s" % ("present" if up_conf else "missing",
+                                                              "present" if down_conf else "missing")
+                ),
+                "results": [],
+            }
+
+        # ── Build relay objects from real config ────────────────────────────
         upstream_relay = OvercurrentRelay(
-            relay_id=upstream_relay_id, name=f"Upstream_{upstream_relay_id}", TMS=0.5, Ip=1.0,
+            relay_id=upstream_relay_id,
+            name=up_conf.get("name", f"Upstream_{upstream_relay_id}"),
+            TMS=up_conf["tms"],
+            Ip=up_conf["pickup_current_a"],
+            curve_type=up_conf.get("curve_type", "CO-8"),
         )
         downstream_relay = OvercurrentRelay(
-            relay_id=downstream_relay_id, name=f"Downstream_{downstream_relay_id}", TMS=0.2, Ip=1.0,
+            relay_id=downstream_relay_id,
+            name=down_conf.get("name", f"Downstream_{downstream_relay_id}"),
+            TMS=down_conf["tms"],
+            Ip=down_conf["pickup_current_a"],
+            curve_type=down_conf.get("curve_type", "CO-8"),
         )
+
         # Check coordination
         results = self.coordination_engine.check_coordination_range(
             upstream_relay, downstream_relay, fault_currents,
         )
+
         # Determine if coordinated for all faults
         all_coordinated = all(r["coordinated"] for r in results)
         return {
             "all_coordinated": all_coordinated,
+            "is_simulated": False,
             "results": results,
-            "upstream_relay": upstream_relay,
-            "downstream_relay": downstream_relay,
+            "upstream_relay": {
+                "id": upstream_relay_id,
+                "tms": up_conf["tms"],
+                "pickup_current_a": up_conf["pickup_current_a"],
+                "curve_type": up_conf.get("curve_type", "CO-8"),
+            },
+            "downstream_relay": {
+                "id": downstream_relay_id,
+                "tms": down_conf["tms"],
+                "pickup_current_a": down_conf["pickup_current_a"],
+                "curve_type": down_conf.get("curve_type", "CO-8"),
+            },
         }
 
     def run_study(self, study_type: str, **kwargs: Any) -> dict[str, Any]:

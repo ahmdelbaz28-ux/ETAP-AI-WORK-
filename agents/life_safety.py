@@ -587,6 +587,9 @@ class LifeSafetyGuard:
                 )
                 time.sleep(wait_needed)
 
+        # ── LAYER 6: State snapshot for rollback ─────────────────────────
+        state_snapshot_id = self._capture_state_snapshot(action, screenshot_before, timestamp)
+
         # ── Build the result ─────────────────────────────────────────────
         safety_level = "ok"
         if requires_dual:
@@ -598,6 +601,7 @@ class LifeSafetyGuard:
             matched_pattern=matched_dual_pattern,
             safety_level=safety_level,
             annotated_screenshot=annotated_path,
+            state_snapshot_id=state_snapshot_id,
             timestamp=timestamp,
         )
 
@@ -634,6 +638,143 @@ class LifeSafetyGuard:
                 "pre_check_hash": pre_check.audit_entry_hash,
             },
         )
+
+    # ─── State snapshot for rollback ───────────────────────────────────────
+
+    def _capture_state_snapshot(
+        self,
+        action,
+        screenshot_before: Optional[str],
+        timestamp: str,
+    ) -> Optional[str]:
+        """Capture a serialisable snapshot of the pre-action state.
+
+        The snapshot is written as a JSON file in the audit directory under
+        ``snapshots/``. It can be loaded later by :meth:`rollback` to
+        reconstruct what was about to change.
+
+        Returns a unique snapshot ID (hex digest of the content), or
+        ``None`` if the snapshot could not be written.
+        """
+        snapshot = {
+            "captured_at": timestamp,
+            "action": {
+                "type": getattr(action, "type", "unknown"),
+                "target": str(getattr(action, "target", "")),
+                "value": str(getattr(action, "value", "")),
+                "coordinates": {
+                    "x": getattr(action, "x", None),
+                    "y": getattr(action, "y", None),
+                },
+            },
+            "screenshot_before": screenshot_before,
+            "last_safety_check": (
+                asdict(self._last_safety_check) if self._last_safety_check else None
+            ),
+        }
+        payload = json.dumps(snapshot, indent=2, default=str)
+        snapshot_id = hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+        snap_dir = self.audit_dir / "snapshots"
+        snap_dir.mkdir(parents=True, exist_ok=True)
+        snap_path = snap_dir / f"snapshot_{snapshot_id}.json"
+        try:
+            _write_secure_file(snap_path, payload)
+            logger.debug("State snapshot saved: %s", snap_path)
+            return snapshot_id
+        except OSError:
+            logger.exception("Failed to write state snapshot to %s", snap_path)
+            return None
+
+    def rollback(
+        self,
+        snapshot_id: str,
+        reason: str = "manual_rollback",
+    ) -> dict[str, Any]:
+        """Attempt to rollback the last control action.
+
+        **Limitation**: In a GUI automation context (CUA), there is no
+        deterministic way to "undo" an action that already executed
+        (e.g., a changed protection setting dialog). The rollback
+        operates as follows:
+
+        1. Load the pre-action snapshot to show operators exactly what
+           state was about to change and what the screen looked like.
+        2. Log a tamper-evident audit entry recording the rollback attempt.
+        3. Return the snapshot data so operators can manually reverse the
+           action (e.g., re-open the dialog and restore the original value).
+
+        In a future iteration this could be extended to replay keystrokes
+        in reverse, but that carries its own safety risks and should only
+        be done after thorough validation.
+
+        Args:
+            snapshot_id: The ID returned by ``_capture_state_snapshot``.
+            reason: Why the rollback was triggered (e.g. "safety_check_failed",
+                    "operator_request", "dual_confirmation_denied").
+
+        Returns:
+            dict with ``success``, ``message``, and ``snapshot`` keys.
+        """
+        snap_dir = self.audit_dir / "snapshots"
+        snap_path = snap_dir / f"snapshot_{snapshot_id}.json"
+
+        if not snap_path.exists():
+            logger.error("Rollback requested for unknown snapshot: %s", snapshot_id)
+            return {
+                "success": False,
+                "message": f"No snapshot found for ID '{snapshot_id}'. Cannot rollback.",
+                "snapshot": None,
+            }
+
+        try:
+            with open(snap_path, encoding="utf-8") as f:
+                snapshot = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.exception("Failed to load snapshot %s: %s", snapshot_id, exc)
+            return {
+                "success": False,
+                "message": f"Failed to load snapshot '{snapshot_id}': {exc}",
+                "snapshot": None,
+            }
+
+        # ── Determine manual rollback instructions ────────────────────────
+        action_type = snapshot.get("action", {}).get("type", "unknown")
+        target = snapshot.get("action", {}).get("target", "unknown")
+        screenshot = snapshot.get("screenshot_before")
+
+        manual_steps = (
+            f"MANUAL ROLLBACK REQUIRED (snapshot {snapshot_id}): "
+            f"Action type '{action_type}' targeted '{target}'. "
+            f"To reverse: re-open the dialog, locate the changed field, "
+            f"and restore the original value. "
+            f"Pre-action screenshot: {screenshot or 'not available'}. "
+        )
+
+        # ── Log the rollback in the tamper-evident audit chain ────────────
+        self._append_audit(
+            "rollback",
+            snapshot.get("action", {}),
+            SafetyCheckResult(
+                blocked=False,
+                safety_level="ok",
+                timestamp=datetime.now(UTC).isoformat(),
+            ),
+            extra={
+                "rollback_reason": reason,
+                "snapshot_id": snapshot_id,
+                "manual_steps": manual_steps,
+                "rollback_type": "manual_only",
+            },
+        )
+
+        logger.warning("⚠️ Rollback recorded for snapshot %s — %s", snapshot_id, manual_steps)
+
+        return {
+            "success": True,
+            "message": manual_steps,
+            "snapshot": snapshot,
+        }
 
     # ─── Internal: screenshot annotation ───────────────────────────────────
 
