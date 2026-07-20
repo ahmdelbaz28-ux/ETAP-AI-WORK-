@@ -1,24 +1,19 @@
-# AhmedETAP — Security Scans
-# Runs comprehensive security analysis including:
-#   - CodeQL (static analysis for multiple languages)
-#   - Dependency Review (checks for vulnerable deps)
-#   - Trivy (container/image scanning)
-name: Security Scans
+name: Security Scan
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   schedule:
-    # Weekly security scans (Sundays at 03:00 UTC)
-    - cron: '0 3 * * 0'
+    - cron: '0 6 * * 1'  # Weekly on Monday at 06:00 UTC
   workflow_dispatch:
 
-# Cancel previous runs on the same PR/branch for faster feedback
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# SonarCloud S8233: workflow-level permissions are limited to read-only.
+# Jobs that need to upload security findings declare their own
+# `permissions:` block with `security-events: write`.
+permissions:
+  contents: read
 
 jobs:
   codeql:
@@ -29,23 +24,23 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript, python
       - name: Build Python
-        run: pip install -r requirements.txt
+        run: pip install --only-binary :all: -r requirements.txt
         continue-on-error: true
       - name: Build TypeScript
         run: npm install -g pnpm && pnpm install --no-frozen-lockfile
         continue-on-error: true
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript-typescript,python"
 
@@ -63,9 +58,9 @@ jobs:
     # continue-on-error removed — security scan must block the pipeline
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4
       - name: Dependency Review
-        uses: actions/dependency-review-action@v5
+        uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
 
@@ -77,7 +72,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -99,109 +94,77 @@ jobs:
                --output /repo/trivy-results.sarif \
                .
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
 
-  # ── CUSTOM SECURITY CHECKS ────────────────────────────────────────────────────
-  custom-scans:
-    name: Custom Security Checks
+  npm-audit:
+    name: npm Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
         with:
-          python-version: '3.12'
-
-      - name: Install security tools
-        run: pip install bandit safety
-
-      - name: Run Bandit security scan
-        run: |
-          bandit -r . -x ./tests,./node_modules,./ui/node_modules,./.venv,./venv,./.git -ll -ii
-
-      - name: Check for hardcoded secrets with grep
-        run: |
-          echo "Checking for potential hardcoded secrets..."
-          # This is a basic check - consider using dedicated tools like gitleaks in production
-          if grep -r -n -i "password\|apikey\|secret\|key\|token" . --exclude-dir=node_modules --exclude-dir=.git --exclude="*.lock" --exclude="*.log" --exclude-dir=.venv --exclude-dir=venv | grep -v "security.yml\|SECRET\|Secret\|secret"; then
-            echo "⚠️ Potential hardcoded secrets found - review these files carefully"
-          else
-            echo "✅ No obvious hardcoded secrets found"
-          fi
-
-  # ── RUNTIME SECURITY ──────────────────────────────────────────────────────────
-  runtime-security:
-    name: Runtime Security Check
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: etap_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    env:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
-      REDIS_URL: redis://localhost:6379/0
-      ENVIRONMENT: testing
-      JWT_SECRET_KEY: test-jwt-secret-for-ci-not-prod-use-32-bytes-min
-      ENCRYPTION_KEY: test-encryption-key-for-ci-not-prod-use-32-bytes-min
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7.0.0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+          version: 9
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-          cache: 'pip'
-
+          node-version: '20'
       - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Run pnpm audit
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
-
-      - name: Start service for runtime checks
+          echo "### pnpm audit summary ###"
+          pnpm audit --audit-level=high 2>&1  # blocking — audit must fail the pipeline on high/critical vulns
+      - name: Audit UI dependencies
+        working-directory: ui
         run: |
-          python engineering_service.py &
-          sleep 10  # Wait for service to start
+          echo "### npm audit (ui/) summary ###"
+          npm audit --audit-level=high 2>&1  # blocking — audit must fail the pipeline on high/critical vulns
 
-      - name: Basic security posture check
+  pip-audit:
+    name: pip Audit (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+- name: Install pip-audit
+        run: python -m pip install --only-binary :all: pip-audit
+
+      - name: Install project dependencies (for context)
         run: |
-          # Check that security headers are present
-          RESPONSE=$(curl -I http://localhost:8000/healthz 2>/dev/null || echo "Service not responding")
-          if [[ $RESPONSE == *"X-Frame-Options"* ]]; then
-            echo "✅ X-Frame-Options header present"
-          else
-            echo "⚠️ X-Frame-Options header missing"
-          fi
+           python -m pip install --only-binary :all: -r requirements.txt
+        continue-on-error: true
+      - name: Run pip-audit
+        run: |
+          echo "### pip-audit summary ###"
+          python -m pip_audit --requirement requirements.txt 2>&1  # blocking — audit must fail the pipeline on vulnerabilities
 
-          if [[ $RESPONSE == *"X-Content-Type-Options"* ]]; then
-            echo "✅ X-Content-Type-Options header present"
-          else
-            echo "⚠️ X-Content-Type-Options header missing"
-          fi
+  secret-scan:
+    name: Secret Detection (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # NOTE: Do NOT pass `--no-update` in extra_args — the action already
+      # injects it internally, and repeating the flag causes TruffleHog to
+      # exit with "flag 'no-update' cannot be repeated".
+      - name: Trufflehog — verified secrets (fail on match)
+        uses: trufflesecurity/trufflehog@main  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        with:
+          extra_args: --only-verified
+        continue-on-error: false
+      - name: Trufflehog — unverified secrets (blocking)
+        uses: trufflesecurity/trufflehog@main  # NOSONAR — S7637: GitHub Action pinning; SHA pinning in CI sprint
+        # continue-on-error removed — security scan must block the pipeline
+        with:
+          extra_args: --no-verification

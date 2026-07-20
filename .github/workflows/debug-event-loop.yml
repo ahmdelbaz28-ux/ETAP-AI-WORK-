@@ -55,8 +55,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+          pip install --only-binary :all: -r requirements.txt
+          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Smoke test — api.routes:app imports
         run: |

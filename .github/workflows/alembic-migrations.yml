@@ -37,7 +37,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -45,27 +45,27 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       
-      - name: Install dependencies
+- name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install alembic asyncpg
-      
+          pip install --only-binary :all: -r requirements.txt
+          pip install --only-binary :all: alembic psycopg2-binary
+
       - name: Run Alembic migrations
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
         run: |
           alembic upgrade head
       
       - name: Verify migration version
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
         run: |
           alembic current
       
       - name: Run rollback test
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/etap_test
         run: |
           alembic downgrade -1
           alembic upgrade head
@@ -78,7 +78,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -86,12 +86,12 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       
-      - name: Install dependencies
+- name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install alembic asyncpg
-      
+          pip install --only-binary :all: -r requirements.txt
+          pip install --only-binary :all: alembic psycopg2-binary
+
       - name: Deploy migrations to Supabase
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
