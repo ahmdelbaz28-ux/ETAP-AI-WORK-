@@ -875,7 +875,48 @@ class LifeSafetyGuard:
         except Exception as exc:  # noqa: BLE001
             logger.debug("SIEM forward failed (non-critical): %s", exc)
 
+        # ── CLOUD BACKUP (S3/R2) — non-blocking ──────────────────────────
+        self._backup_audit_entry(data)
+
         return audit_hash
+
+    # ─── Cloud backup (S3/R2) for audit entries ─────────────────────────
+
+    def _backup_audit_entry(self, entry: dict) -> None:
+        """Backup a single audit entry to cloud storage (R2/S3).
+        Falls back silently if not configured; never blocks the main flow."""
+        import threading
+
+        bucket_url = os.environ.get("AUDIT_BACKUP_URL", "")
+        access_key = os.environ.get("AUDIT_BACKUP_ACCESS_KEY", "")
+        secret_key = os.environ.get("AUDIT_BACKUP_SECRET_KEY", "")
+
+        if not bucket_url or not access_key or not secret_key:
+            return  # Backup not configured — skip silently
+
+        def _do_upload(entry: dict, url: str, ak: str, sk: str) -> None:
+            try:
+                import requests
+                entry_id = entry.get("entry_id", "unknown")
+                resp = requests.put(
+                    f"{url.rstrip('/')}/safety_chain_{entry_id}.json",
+                    json=entry,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-amz-acl": "private",
+                    },
+                    auth=(ak, sk),
+                    timeout=10,
+                )
+                if resp.ok:
+                    logger.debug("Audit entry %s backed up to %s", entry_id, url)
+                else:
+                    logger.warning("Audit backup failed: HTTP %s for entry %s", resp.status_code, entry_id)
+            except Exception as exc:
+                logger.debug("Audit backup skipped (non-blocking): %s", exc)
+
+        t = threading.Thread(target=_do_upload, args=(entry, bucket_url, access_key, secret_key), daemon=True)
+        t.start()
 
     # ─── Internal: helpers ─────────────────────────────────────────────────
 

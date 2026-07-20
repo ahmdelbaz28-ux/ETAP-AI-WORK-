@@ -16,6 +16,8 @@ from typing import Any, Dict, Mapping, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.dependencies import get_api_key
+from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
+from api.risk_scoring import compute_risk
 from core.metrics import count_executions, track_skill_operation
 
 # SonarCloud duplicated_lines_density: ALL Spec/Request/Result classes are now
@@ -265,6 +267,51 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
         raise ValueError(f"Unsupported native study type: {study_type}")
 
 
+def pre_flight_check(system: dict) -> Optional[dict]:
+    """Validate system configuration before running a study.
+    Returns None if OK, or an error dict if validation fails."""
+    if not system:
+        return {"error": "System configuration is required"}
+
+    buses = system.get("buses", [])
+    lines = system.get("lines", [])
+    base_mva = system.get("base_mva", 0)
+
+    if not buses:
+        return {"error": "System must have at least one bus"}
+    if not lines:
+        return {"error": "System must have at least one line"}
+    if base_mva <= 0:
+        return {"error": "base_mva must be > 0"}
+
+    bus_ids = {b.get("bus_id") for b in buses if b.get("bus_id") is not None}
+
+    for line in lines:
+        if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
+            return {"error": f"Line {line.get('line_id')} has zero/negative impedance"}
+        if line.get("from_bus_id") not in bus_ids:
+            return {"error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"}
+        if line.get("to_bus_id") not in bus_ids:
+            return {"error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"}
+
+    # Check for isolated buses (buses not connected to any line)
+    connected_buses = set()
+    for line in lines:
+        connected_buses.add(line.get("from_bus_id"))
+        connected_buses.add(line.get("to_bus_id"))
+    isolated = bus_ids - connected_buses
+    if isolated and len(bus_ids) > 1:
+        return {"error": f"Isolated buses with no connections: {isolated}"}
+
+    # Check voltage bounds
+    for bus in buses:
+        v = bus.get("voltage_magnitude")
+        if v is not None and (v < 0.01 or v > 1.5):
+            return {"error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"}
+
+    return None
+
+
 @router.post("/run", response_model=StudyResult)
 @count_executions(skill_name="study")
 @track_skill_operation("study")
@@ -272,6 +319,35 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
+
+    # --- Feature flag check (Item 9) ---
+    if not is_feature_enabled(payload.study_type):
+        flag_info = FEATURE_FLAGS.get(payload.study_type, {})
+        raise HTTPException(
+            status_code=400,
+            detail=f"This study type is currently disabled in production. Status: {flag_info.get('status', 'unknown')}. Description: {flag_info.get('description', 'No description')}",
+        )
+
+    # --- System required check (Item 11) ---
+    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "arc_flash", "protection_coordination", "coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid"}
+    if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
+        raise HTTPException(
+            status_code=400,
+            detail="System configuration is required. Please provide a valid power system model.",
+        )
+
+    # --- Pre-flight check (Item 7) ---
+    if payload.system is not None:
+        pf_result = pre_flight_check(payload.system.model_dump())
+        if pf_result is not None:
+            raise HTTPException(status_code=400, detail=pf_result["error"])
+
+    # --- PE stamp check (Item 5) ---
+    if requires_stamp(payload.study_type) and not payload.pe_stamp:
+        warnings.append(
+            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
+            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
+        )
 
     from core.bootstrap import _add_execution_time, _increment_counter
 
@@ -437,6 +513,12 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
     # Strip numpy types so FastAPI / Pydantic can serialize the response
     data = _to_jsonable(data)
 
+    # --- Risk scoring (Item 3) ---
+    if status == "success":
+        risk_info = compute_risk(payload.study_type, data)
+        data["risk_score"] = risk_info["risk_score"]
+        data["risk_violations"] = risk_info["risk_violations"]
+
     elapsed_sec = time.perf_counter() - start
     _add_execution_time(elapsed_sec)
 
@@ -465,6 +547,12 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
 @router.get("/types")
 async def get_study_types(request: Request):
     """Return the list of supported power system study types."""
+    from api.feature_flags import get_disabled_studies
     from api.shared_handlers import STUDY_TYPES
-    return {"study_types": STUDY_TYPES}
+
+    disabled = {d["study_type"] for d in get_disabled_studies()}
+    return {
+        "study_types": [t for t in STUDY_TYPES if t not in disabled],
+        "disabled_studies": get_disabled_studies(),
+    }
 

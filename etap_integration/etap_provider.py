@@ -17,6 +17,8 @@ from typing import Any
 
 import requests
 
+from utils.circuit_breaker import get_circuit_breaker, CircuitBreakerOpenError
+
 logger = logging.getLogger(__name__)
 
 
@@ -139,14 +141,12 @@ class RemoteEtapProvider(IEtapProvider):
 
     Features:
     - Retry with exponential backoff
-    - Circuit breaker pattern
+    - Circuit breaker pattern (shared via utils.circuit_breaker)
     - Configurable timeouts
     """
 
     MAX_RETRIES = 3
     RETRY_DELAYS = [1, 2, 4]  # seconds - exponential backoff
-    CIRCUIT_BREAKER_THRESHOLD = 5  # consecutive failures before opening
-    CIRCUIT_BREAKER_RESET_SECONDS = 60  # seconds before trying again
 
     def __init__(self, worker_url: str, api_key: str):
         # Check if ETAP functionality is enabled via environment variable
@@ -156,43 +156,12 @@ class RemoteEtapProvider(IEtapProvider):
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
             self.api_key = ""
+            self.circuit_breaker = get_circuit_breaker("etap_remote", threshold=5, reset_seconds=60)
             return
 
         self.worker_url = worker_url.rstrip("/")
         self.api_key = api_key
-        self._consecutive_failures = 0
-        self._circuit_open_until = 0.0
-
-    def _is_circuit_open(self) -> bool:
-        """Check if the circuit breaker is currently open."""
-        if not self.use_etap:
-            return True  # Consider circuit open if ETAP is disabled
-        if self._consecutive_failures < self.CIRCUIT_BREAKER_THRESHOLD:
-            return False
-        if time.time() < self._circuit_open_until:
-            return True
-        # Circuit has expired, allow a probe request (half-open)
-        logger.info("RemoteEtapProvider circuit breaker transitioning to HALF_OPEN")
-        return False
-
-    def _record_success(self) -> None:
-        """Reset circuit breaker on successful call."""
-        if self._consecutive_failures > 0:
-            logger.info("RemoteEtapProvider circuit breaker reset to CLOSED after success")
-        self._consecutive_failures = 0
-        self._circuit_open_until = 0.0
-
-    def _record_failure(self) -> None:
-        """Record a failure and open circuit if threshold exceeded."""
-        self._consecutive_failures += 1
-        if self._consecutive_failures >= self.CIRCUIT_BREAKER_THRESHOLD:
-            self._circuit_open_until = time.time() + self.CIRCUIT_BREAKER_RESET_SECONDS
-            logger.warning(
-                "RemoteEtapProvider circuit breaker OPEN after %d consecutive failures. "
-                "Will retry after %d seconds.",
-                self._consecutive_failures,
-                self.CIRCUIT_BREAKER_RESET_SECONDS,
-            )
+        self.circuit_breaker = get_circuit_breaker("etap_remote", threshold=5, reset_seconds=60)
 
     def is_available(self) -> bool:
         if not self.use_etap:
@@ -215,15 +184,15 @@ class RemoteEtapProvider(IEtapProvider):
                 0.0,
             )
 
-        # Circuit breaker check
-        if self._is_circuit_open():
+        # Circuit breaker check — use shared CircuitBreaker
+        if self.circuit_breaker.is_open:
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
-                    f"ETAP Worker circuit breaker is OPEN after {self._consecutive_failures} consecutive failures. "
-                    f"Retry after {int(self._circuit_open_until - time.time())}s.",
+                    f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._consecutive_failures} consecutive failures. "
+                    f"Retry after {int(self.circuit_breaker._circuit_open_until - time.time())}s.",
                 ],
                 0.0,
             )
@@ -239,7 +208,7 @@ class RemoteEtapProvider(IEtapProvider):
                 )
                 if response.status_code == 200:
                     data = response.json()
-                    self._record_success()
+                    self.circuit_breaker.record_success()
                     return ETAPResult(
                         data["success"],
                         data["data"],
@@ -269,7 +238,7 @@ class RemoteEtapProvider(IEtapProvider):
                 time.sleep(self.RETRY_DELAYS[attempt])
 
         # All retries exhausted
-        self._record_failure()
+        self.circuit_breaker.record_failure()
         return ETAPResult(False, {}, [], [last_error or "All retry attempts exhausted"], 0.0)
 
 

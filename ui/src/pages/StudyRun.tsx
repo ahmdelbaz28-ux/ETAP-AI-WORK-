@@ -467,16 +467,44 @@ export default function StudyRun() {
                   <h3 className="text-base font-semibold text-[var(--text-primary)]">
                     {t("studyRun.studyResult")}
                   </h3>
-                  <Badge
-                    variant={
-                      result.status === "completed" || result.status === "dry_run"
-                        ? "success"
-                        : "danger"
-                    }
-                    className="ml-auto"
-                  >
-                    {String(result.status)}
-                  </Badge>
+                  <div className="flex items-center gap-2 ml-auto">
+                    {(result as Record<string, unknown>)?.data &&
+                      (result.data as Record<string, unknown>)?.risk_score && (
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider",
+                            (result.data as Record<string, unknown>).risk_score === "low" &&
+                              "bg-green-500/20 text-green-400 border border-green-500/30",
+                            (result.data as Record<string, unknown>).risk_score === "medium" &&
+                              "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+                            (result.data as Record<string, unknown>).risk_score === "high" &&
+                              "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+                            (result.data as Record<string, unknown>).risk_score === "critical" &&
+                              "bg-red-500/20 text-red-400 border border-red-500/30",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              (result.data as Record<string, unknown>).risk_score === "low" && "bg-green-400",
+                              (result.data as Record<string, unknown>).risk_score === "medium" && "bg-yellow-400",
+                              (result.data as Record<string, unknown>).risk_score === "high" && "bg-orange-400",
+                              (result.data as Record<string, unknown>).risk_score === "critical" && "bg-red-400",
+                            )}
+                          />
+                          {(result.data as Record<string, unknown>).risk_score as string}
+                        </span>
+                      )}
+                    <Badge
+                      variant={
+                        result.status === "completed" || result.status === "dry_run"
+                          ? "success"
+                          : "danger"
+                      }
+                    >
+                      {String(result.status)}
+                    </Badge>
+                  </div>
                 </div>
                 <ResultSummary result={result} />
               </Card>

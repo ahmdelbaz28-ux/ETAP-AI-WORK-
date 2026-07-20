@@ -43,6 +43,9 @@ COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.hf.txt
 
+# Install pre-commit hooks
+RUN pip install --no-cache-dir pre-commit && pre-commit install
+
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.
 # We install WITHOUT deps (the apt-get deps were already installed above:

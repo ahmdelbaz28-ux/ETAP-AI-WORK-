@@ -691,6 +691,166 @@ async def digital_twin_status():
     }
 
 
+@app.get("/api/v1/audit/verify", tags=["Audit"])
+async def audit_verify(request: Request):
+    """Verify the safety audit chain file integrity.
+    
+    Reads the safety audit chain file (~/.cache/cua/safety_chain.jsonl)
+    and verifies the SHA-256 hash chain (each entry's hash must match
+    SHA256(prev_entry + data)). Protected by admin API key.
+    """
+    _require_api_key(request)
+    import hashlib
+    import json
+    import os
+
+    audit_path = os.path.expanduser("~/.cache/cua/safety_chain.jsonl")
+    if not os.path.isfile(audit_path):
+        return JSONResponse(
+            status_code=200,
+            content={"valid": False, "error": "No audit chain found"},
+        )
+
+    try:
+        with open(audit_path, "r") as f:
+            lines = [line.strip() for line in f if line.strip()]
+
+        entries = []
+        for line in lines:
+            entries.append(json.loads(line))
+
+        valid = True
+        broken_at = None
+        prev_hash = ""
+
+        for i, entry in enumerate(entries):
+            data_str = json.dumps(entry.get("data", {}), sort_keys=True)
+            expected_hash = hashlib.sha256((prev_hash + data_str).encode()).hexdigest()
+            entry_hash = entry.get("hash", "")
+            if entry_hash != expected_hash:
+                valid = False
+                broken_at = entry.get("id", i)
+                break
+            prev_hash = expected_hash
+
+        return {
+            "valid": valid,
+            "entries": len(entries),
+            "broken_at": broken_at,
+            "first_entry_hash": entries[0].get("hash", "") if entries else None,
+            "last_entry_hash": entries[-1].get("hash", "") if entries else None,
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=200,
+            content={"valid": False, "error": f"Failed to verify audit chain: {str(e)}"},
+        )
+
+
+# ─── CUA Admin Endpoints ───────────────────────────────────────────────────
+# These endpoints are consumed by the CUA Monitor dashboard at /admin/cua-monitor.
+# They delegate to the life_safety module for kill switch management and read
+# the tamper-evident audit log for the action audit trail.
+
+
+@app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"])
+async def cua_kill_switch_status():
+    """Return the current CUA kill switch status.
+    
+    Reads the kill switch file (written by agents/life_safety.py) and returns
+    the active state, activation timestamp, and reason.
+    """
+    from agents.life_safety import KILL_SWITCH_PATH, is_kill_switch_active
+
+    active = is_kill_switch_active()
+    activated_at = None
+    reason = None
+    if active:
+        try:
+            import json
+            data = json.loads(KILL_SWITCH_PATH.read_text())
+            activated_at = data.get("activated_at")
+            reason = data.get("reason")
+        except (OSError, json.JSONDecodeError):
+            pass
+    return {
+        "active": active,
+        "activated_at": activated_at,
+        "reason": reason,
+    }
+
+
+@app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"])
+async def cua_kill_switch_activate(request: Request):
+    """🚨 Activate the CUA kill switch — blocks all CUA agent actions.
+    
+    Once activated, the CUA Loop will abort on the next action check.
+    """
+    from agents.life_safety import activate_kill_switch
+
+    try:
+        body = await request.json()
+        reason = body.get("reason", "manual_from_dashboard")
+    except Exception:
+        reason = "manual_from_dashboard"
+
+    activate_kill_switch(reason=reason)
+    from datetime import UTC, datetime
+
+    return {
+        "active": True,
+        "reason": reason,
+        "activated_at": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.post("/admin/cua/kill-switch/deactivate", tags=["CUA", "Admin"])
+async def cua_kill_switch_deactivate():
+    """Deactivate the CUA kill switch — resumes CUA agent actions."""
+    from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
+
+    was_active = deactivate_kill_switch()
+    return {
+        "active": is_kill_switch_active(),
+        "was_active": was_active,
+    }
+
+
+@app.get("/admin/cua/audit-log", tags=["CUA", "Admin"])
+async def cua_audit_log(limit: int = 50):
+    """Return the last N entries from the CUA tamper-evident audit log.
+    
+    Reads the safety_chain.jsonl file produced by agents/life_safety.py
+    and returns the most recent entries.
+    """
+    import json
+
+    from agents.life_safety import _CUA_AUDIT_DIR
+
+    log_path = _CUA_AUDIT_DIR / "safety_chain.jsonl"
+    if not log_path.exists():
+        return {"entries": [], "total": 0}
+
+    limit = max(1, min(limit, 200))
+    entries = []
+    try:
+        with open(log_path, encoding="utf-8") as fh:
+            lines = fh.readlines()
+        for line in lines[-limit:]:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                entries.append(entry)
+            except json.JSONDecodeError:
+                continue
+    except OSError:
+        return {"entries": [], "total": 0, "error": "read_failed"}
+
+    return {"entries": entries, "total": len(entries)}
+
+
 @app.get("/api/v1/benchmark", tags=["Benchmark"])
 async def benchmark():
     """Run a lightweight in-process benchmark and return timing metrics.

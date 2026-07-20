@@ -48,6 +48,7 @@ const DigitalTwinPage = lazy(() => import("./pages/DigitalTwin"));
 const DataImportPage = lazy(() => import("./pages/DataImport"));
 const DataExportPage = lazy(() => import("./pages/DataExport"));
 const LogsPage = lazy(() => import("./pages/Logs"));
+const CuaMonitorPage = lazy(() => import("./pages/CuaMonitor"));
 const CodeGuardPage = lazy(() => import("./pages/CodeGuard"));
 const LoginPage = lazy(() => import("./pages/Login"));
 const RegisterPage = lazy(() => import("./pages/Register"));
@@ -334,6 +335,14 @@ export default function App() {
                   element={
                     <LazyPage>
                       <CodeGuardPage />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="/admin/cua-monitor"
+                  element={
+                    <LazyPage>
+                      <CuaMonitorPage />
                     </LazyPage>
                   }
                 />

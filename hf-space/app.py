@@ -840,6 +840,134 @@ async def etap_gui_siem_health():
     return {"success": True, "data": siem_forwarder.health_check()}
 
 
+# ─── Dual-Control Approval (protection operations) ───────────────────────
+
+
+@app.websocket("/ws/dual-control/approve")
+async def websocket_dual_control_approve(websocket: WebSocket):
+    """WebSocket endpoint for real-time dual-control approval.
+
+    Accepts WebSocket connections authenticated via a query param ``token``.
+    Listens for JSON messages:
+
+      - ``{"action": "list"}`` → returns all pending approvals
+      - ``{"action": "approve", "request_id": "...", "approver_id": "..."}`` → approve
+      - ``{"action": "reject", "request_id": "...", "rejector_id": "...", "reason": "..."}`` → reject
+
+    Sends real-time ``approval_update`` events when any approval status changes.
+    """
+    from api.dual_control import (
+        _pending_approvals,
+        approve_request,
+        get_pending_approvals,
+        reject_request,
+    )
+
+    # Auth via query param token
+    token = websocket.query_params.get("token", "")
+    expected = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if expected and token != expected:
+        await websocket.close(code=4001, reason="Invalid or missing token")
+        return
+
+    await websocket.accept()
+    logger.info("Dual-control WS client connected")
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+            except json.JSONDecodeError:
+                await websocket.send_json({"type": "error", "message": "invalid JSON"})
+                continue
+
+            action = msg.get("action")
+            if action == "list":
+                pending = get_pending_approvals()
+                await websocket.send_json({"type": "pending_list", "data": pending})
+            elif action == "approve":
+                result = approve_request(
+                    msg.get("request_id", ""),
+                    msg.get("approver_id", ""),
+                )
+                await websocket.send_json({"type": "approve_result", "data": result})
+            elif action == "reject":
+                result = reject_request(
+                    msg.get("request_id", ""),
+                    msg.get("rejector_id", ""),
+                    msg.get("reason", ""),
+                )
+                await websocket.send_json({"type": "reject_result", "data": result})
+            else:
+                await websocket.send_json({"type": "error", "message": f"unknown action: {action}"})
+    except WebSocketDisconnect:
+        logger.info("Dual-control WS client disconnected")
+    except Exception as exc:
+        logger.exception("Dual-control WS error: %s", exc)
+
+
+@app.post("/api/v1/dual-control/request", tags=["Dual Control"])
+async def dual_control_create_request(request: Request):
+    """Create a new dual-control approval request."""
+    from api.dual_control import create_approval_request
+
+    body = await request.json()
+    result = create_approval_request(
+        action=body.get("action", {}),
+        operator_id=body.get("operator_id", "unknown"),
+    )
+    return {"success": True, "data": result}
+
+
+@app.post("/api/v1/dual-control/approve/{request_id}", tags=["Dual Control"])
+async def dual_control_approve(request_id: str, request: Request):
+    """Approve a dual-control request via REST."""
+    from api.dual_control import approve_request
+
+    body = await request.json()
+    result = approve_request(
+        request_id=request_id,
+        approver_id=body.get("approver_id", ""),
+        secret=body.get("secret"),
+    )
+    return result
+
+
+@app.post("/api/v1/dual-control/reject/{request_id}", tags=["Dual Control"])
+async def dual_control_reject(request_id: str, request: Request):
+    """Reject a dual-control request via REST."""
+    from api.dual_control import reject_request
+
+    body = await request.json()
+    result = reject_request(
+        request_id=request_id,
+        rejector_id=body.get("rejector_id", ""),
+        reason=body.get("reason", ""),
+    )
+    return result
+
+
+@app.get("/api/v1/dual-control/pending", tags=["Dual Control"])
+async def dual_control_pending():
+    """List all pending approval requests."""
+    from api.dual_control import get_pending_approvals
+
+    return {"success": True, "data": get_pending_approvals()}
+
+
+@app.get("/api/v1/dual-control/qr/{request_id}", tags=["Dual Control"])
+async def dual_control_qr(request_id: str):
+    """Return QR secret for a pending approval request (for mobile approval)."""
+    from api.dual_control import _pending_approvals
+
+    req = _pending_approvals.get(request_id)
+    if not req:
+        return JSONResponse(status_code=404, content={"success": False, "error": "Request not found"})
+    if req["status"] != "pending":
+        return JSONResponse(status_code=400, content={"success": False, "error": f"Request is {req['status']}"})
+    return {"success": True, "data": {"request_id": request_id, "qr_secret": req["qr_secret"]}}
+
+
 @app.get("/api/v1/agents/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(limit: int = 50):
     """Read recent SIEM events from the logging-only JSONL file on HF Space."""

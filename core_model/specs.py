@@ -301,6 +301,9 @@ class StudyRequest(_BaseSpecModel):
         default=False, description="If True, route to ETAP provider instead of native engine",
     )
     etap_project_path: Optional[str] = None
+    pe_stamp: Optional[dict[str, Any]] = Field(
+        default=None, description="Professional Engineer (PE) stamp for regulated studies",
+    )
 
     @field_validator("study_type")
     @classmethod
@@ -333,6 +336,9 @@ class StudyResult(_BaseSpecModel):
     task_id: Optional[str] = None
     study_type: str = ""
     provider: str = "native"
+    pe_stamp: Optional[dict[str, Any]] = Field(
+        default=None, description="Professional Engineer (PE) stamp for regulated studies",
+    )
 
     @model_validator(mode="before")
     @classmethod

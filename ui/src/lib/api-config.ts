@@ -80,6 +80,82 @@ const SECRET_FIELDS = new Set([
   "SCADA_API_KEY",
 ]);
 
+// ─── Synchronous settings cache ──────────────────────────────────────────
+// Provides a sync fallback for code that cannot use async/await (api.ts
+// request headers, llm-chat.ts synchronous access).
+// The cache is populated from localStorage on module init using the legacy
+// XOR deobfuscation. When new encrypted values (AES-GCM) are stored, the
+// cache is re-populated asynchronously via refreshSettingsCache().
+
+/** In-memory cache of decrypted settings */
+let _cachedSettings: Record<string, string> = {};
+let _cacheInitialized = false;
+
+function _initCacheSync(): Record<string, string> {
+  if (typeof window === "undefined" || !window.localStorage) return {};
+  try {
+    const stored = localStorage.getItem("etap-settings");
+    if (!stored) return {};
+    const parsed = JSON.parse(stored);
+    const result: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (SECRET_FIELDS.has(k)) {
+        // Try legacy XOR deobfuscation (sync) for backward compat
+        result[k] = deobfuscateLegacy(v as string);
+      } else {
+        result[k] = v as string;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Synchronously get cached settings. Populated on first call.
+ * The cache tries AES-GCM decryption first; if not yet available,
+ * falls back to XOR deobfuscation for backward compatibility with
+ * previously stored values.
+ */
+export function getCachedSettings(): Record<string, string> {
+  if (!_cacheInitialized) {
+    _cachedSettings = _initCacheSync();
+    _cacheInitialized = true;
+  }
+  return _cachedSettings;
+}
+
+/**
+ * Asynchronously refresh the settings cache with AES-GCM decryption.
+ * Call this after storing new encrypted settings via setEncryptedSettings().
+ */
+export async function refreshSettingsCache(): Promise<void> {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    const stored = localStorage.getItem("etap-settings");
+    if (!stored) return;
+    const parsed = JSON.parse(stored);
+    const result: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (SECRET_FIELDS.has(k)) {
+        try {
+          result[k] = await decryptSecret(v as string);
+        } catch {
+          result[k] = deobfuscateLegacy(v as string);
+        }
+      } else {
+        result[k] = v as string;
+      }
+    }
+    _cachedSettings = result;
+    _cacheInitialized = true;
+  } catch {
+    _cachedSettings = _initCacheSync();
+    _cacheInitialized = true;
+  }
+}
+
 /**
  * Secure encryption for sensitive settings using Web Crypto API (AES-GCM).
  * This replaces the weak XOR obfuscation with proper encryption.

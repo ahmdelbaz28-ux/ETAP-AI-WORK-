@@ -8,7 +8,7 @@
  * See that file for configuration options (VITE_API_URL env var).
  */
 
-import { API_BASE_URL, getDeobfuscatedSettings } from "./api-config";
+import { API_BASE_URL, getCachedSettings } from "./api-config";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
@@ -24,7 +24,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   // Forward user's active provider key/model to backend dynamically
-  const settings = getDeobfuscatedSettings();
+  // Use a cached settings snapshot to avoid async overhead on every request.
+  // The cache is populated on first call and refreshed periodically.
+  const settings = getCachedSettings();
   const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
   headers["x-active-provider"] = activeProviderId;
 
@@ -150,30 +152,31 @@ export async function runStudy(
   params: Record<string, unknown>,
   dryRun = false,
 ): Promise<StudyResult> {
+  if (!params.system) {
+    throw new Error("System configuration is required. Please provide a valid power system model.");
+  }
   return request<StudyResult>("/api/v1/studies/run", {
     method: "POST",
     body: JSON.stringify({
       study_type: studyType,
       params,
       dry_run: dryRun,
-      system: params.system ?? {
-        base_mva: 100,
-        buses: [
-          { bus_id: 1, bus_type: "slack", voltage_magnitude: 1.05 },
-          { bus_id: 2, bus_type: "pv", voltage_magnitude: 1.0 },
-          { bus_id: 3, bus_type: "pq", load_power_real: 1, load_power_reactive: 0.3 },
-        ],
-        lines: [
-          { line_id: 1, from_bus_id: 1, to_bus_id: 2, r1: 0.01, x1: 0.05 },
-          { line_id: 2, from_bus_id: 2, to_bus_id: 3, r1: 0.015, x1: 0.06 },
-        ],
-      },
+      system: params.system,
     }),
   });
 }
 
 export async function fetchStudies(): Promise<unknown[]> {
   return request<unknown[]>("/api/v1/studies");
+}
+
+export interface StudyTypesResponse {
+  study_types: string[];
+  disabled_studies: Array<{ study_type: string; status: string; description: string }>;
+}
+
+export async function fetchStudyTypes(): Promise<StudyTypesResponse> {
+  return request<StudyTypesResponse>("/api/v1/studies/types");
 }
 
 export async function validateSystem(): Promise<{ valid: boolean; errors?: string[] }> {

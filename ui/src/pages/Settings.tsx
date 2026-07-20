@@ -92,9 +92,9 @@ function providerButtonContent(isTesting: boolean, status: ProviderStatus): Reac
   );
 }
 
-// Simple XOR-based obfuscation for localStorage storage.
-// NOT a substitute for server-side encryption — but prevents
-// plaintext secrets from being readable via DevTools at a glance.
+// Legacy XOR deobfuscation for backward compatibility with stored values.
+// New values use AES-GCM encryption via getDeobfuscatedSettings/setEncryptedSettings
+// from api-config.ts.
 const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
 function obfuscate(value: string): string {
   let result = "";
