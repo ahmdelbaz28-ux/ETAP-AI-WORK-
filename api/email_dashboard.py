@@ -95,7 +95,21 @@ def _require_admin(request: Request) -> dict:
             ) from jwt_err
 
     # ─── Method 3: Dev mode (no auth) ────────────────────────────────────
-    if os.getenv("EMAIL_DASHBOARD_DEV_OPEN", "false").lower() == "true":
+    # SECURITY (2026-07-21): EMAIL_DASHBOARD_DEV_OPEN is now HARD-REJECTED
+    # in production/staging environments. The previous code accepted this
+    # flag in any environment, which meant a single leaked env var would
+    # expose the entire email dashboard (stats, send logs, audit trail)
+    # without ANY authentication.
+    _dev_open = os.getenv("EMAIL_DASHBOARD_DEV_OPEN", "false").lower() == "true"
+    if _dev_open:
+        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+        if _env in ("production", "prod", "staging"):
+            # Refuse to serve unauthenticated in production — fail closed.
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="EMAIL_DASHBOARD_DEV_OPEN=true is forbidden in production/staging. "
+                       "Remove this env var to start the dashboard safely.",
+            )
         return {"user_id": "dev", "role": "dev", "auth_method": "dev"}
 
     # ─── No valid auth ───────────────────────────────────────────────────
