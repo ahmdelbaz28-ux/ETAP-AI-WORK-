@@ -183,14 +183,19 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         safe_message = "Network or database connection error. Please retry."
 
     from fastapi.responses import JSONResponse
+    # SECURITY (2026-07-21): The previous response included a `type` field
+    # containing the exception class name and an `X-Error-Type` header —
+    # both leak internal implementation details (e.g. "SQLAlchemyError",
+    # "JWTError") which help attackers fingerprint the stack and craft
+    # targeted exploits. We now return only the safe message in the body
+    # and no identifying headers. The full exception type is still logged
+    # server-side for debugging.
     return JSONResponse(
         status_code=500,
         content={
             "detail": safe_message,
-            "type": type(exc).__name__,
             "path": request.url.path,
         },
-        headers={"X-Error-Type": type(exc).__name__},
     )
 
 
@@ -214,14 +219,20 @@ app.add_middleware(CSRFMiddleware)
 
 # -- Security headers middleware ----------------------------------------------
 #
-# Adds standard HTTP security headers to every response. The CSP is intentionally
-# permissive on ``'unsafe-inline'`` and ``'unsafe-eval'`` because:
-#   1. Swagger UI (/docs) and ReDoc (/redoc) require inline scripts/styles.
-#   2. The homepage uses an inline <style> block.
-# A stricter CSP would break the API documentation viewers. The other headers
-# (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy) are safe to
-# enforce everywhere and protect against common attack vectors (MIME sniffing,
-# clickjacking, referrer leakage, SSL downgrade).
+# Adds standard HTTP security headers to every response.
+#
+# SECURITY (2026-07-21): 'unsafe-eval' has been REMOVED from all CSP
+# directives. 'unsafe-eval' allows arbitrary string-to-code execution
+# (eval, Function, setTimeout(string), ...) which is the primary vector
+# for DOM-based XSS escalation. The previous justification (Swagger UI
+# + ReDoc) only requires 'unsafe-inline' for script-src, NOT 'unsafe-eval'.
+#
+# 'unsafe-inline' for script-src is still required for /docs (Swagger UI)
+# and /redoc — these are admin-only API doc viewers, not user-facing
+# pages. For all other paths, we now ship a strict CSP with NO inline
+# scripts. HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+# are enforced everywhere and protect against MIME sniffing, clickjacking,
+# referrer leakage, and SSL downgrade.
 #
 # HSTS is only sent over HTTPS — sending it over HTTP is a no-op (browsers
 # ignore it) but it pollutes dev logs and can confuse local testing.
@@ -235,17 +246,31 @@ async def add_security_headers(request: Request, call_next):
     # browser doesn't pin HSTS for a year on a non-TLS origin.
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    # Permissive CSP that allows Swagger UI + ReDoc + homepage inline styles.
-    # Tightening this requires moving Swagger/ReDoc to a CDN-less self-hosted
-    # build, which is out of scope for the HF Space deployment.
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' data: https://cdn.jsdelivr.net; "
-        "connect-src 'self'"
-    )
+
+    # Strict CSP: NO 'unsafe-eval' anywhere. 'unsafe-inline' for script-src
+    # ONLY on API doc routes (/docs, /redoc) where Swagger/ReDoc need it.
+    path = request.url.path
+    is_doc_route = path in ("/docs", "/redoc", "/openapi.json") or path.startswith("/docs/")
+    if is_doc_route:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data: https://cdn.jsdelivr.net; "
+            "connect-src 'self'"
+        )
+    else:
+        # Strict policy for all user-facing routes — no inline scripts.
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data: https://cdn.jsdelivr.net; "
+            "connect-src 'self'; "
+            "frame-ancestors 'self'"
+        )
     return response
 
 
