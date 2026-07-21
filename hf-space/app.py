@@ -137,12 +137,14 @@ from api.email_dashboard import router as email_dashboard_router  # noqa: E402
 from api.email_digest import router as email_digest_router  # noqa: E402
 
 # Email integration routers (Resend integration v2 — added 2026-07-10)
+from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
 from api.email_otp import router as email_otp_router  # noqa: E402
 from api.email_webhooks import router as email_webhooks_router  # noqa: E402
 from api.magic_links import router as magic_links_router  # noqa: E402
 from api.notifications import router as notifications_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
 
+app.include_router(csrf_router)  # /api/v1/csrf/token
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
@@ -204,6 +206,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# CSRF middleware — validates X-CSRF-Token on state-changing requests
+# Added AFTER CORSMiddleware so CORS handles OPTIONS preflight first.
+app.add_middleware(CSRFMiddleware)
 
 
 # -- Security headers middleware ----------------------------------------------

@@ -19,7 +19,7 @@ jobs:
 
   # ── 1. CODE QUALITY ─────────────────────────────────────────────────────────
   lint:
-    name: 🔍 Code Quality Check
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.0
@@ -37,7 +37,21 @@ jobs:
         run: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push
 
       - name: Ruff lint
-        run: ruff check . --config ruff.toml
+        # On push to main/develop: check ALL files for complete coverage.
+        # On pull_request: only check files changed in the PR vs the base
+        # branch, so pre-existing issues in unrelated files don't block
+        # meaningful changes. The full scan still runs when the PR merges.
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}" HEAD -- '*.py' | tr '\n' ' ')
+            if [ -z "$CHANGED" ]; then
+              echo "No Python files changed — skipping ruff lint"
+              exit 0
+            fi
+            exec ruff check $CHANGED --config ruff.toml
+          else
+            exec ruff check . --config ruff.toml
+          fi
 
       - name: Ruff format check
         # Pre-existing formatting debt: 217 files would be reformatted by
@@ -191,7 +205,7 @@ jobs:
 
   # ── 2. PYTHON TESTS ─────────────────────────────────────────────────────────
   python-tests:
-    name: 🧪 Python Test Suite
+    name: test
     runs-on: ubuntu-latest
     needs: lint
     if: ${{ !cancelled() }}
@@ -230,8 +244,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install --only-binary :all: -r requirements.txt
-          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+          # --only-binary :all: speeds up CI but packages without binary wheels
+          # (e.g. langdetect has no cp312 wheel) would fail the whole job.
+          # Try binary-only first; fall back to source build if needed.
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt
+          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist || pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
@@ -315,7 +332,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        run: pip install --only-binary :all: bandit safety
+        run: 'pip install --only-binary :all: bandit safety'
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
@@ -384,10 +401,10 @@ jobs:
 
   # ── 5. BUILD UI (VITE) ──────────────────────────────────────────────────────
   build-ui:
-    name: 🏗️ Build UI (Vite)
+    name: build
     runs-on: ubuntu-latest
     needs: [python-tests, security-scan]
-    if: github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v7.0.0
 
@@ -637,7 +654,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install huggingface_hub
-        run: pip install --only-binary :all: huggingface_hub
+        run: 'pip install --only-binary :all: huggingface_hub'
 
       - name: Update HF Space Secrets
         env:

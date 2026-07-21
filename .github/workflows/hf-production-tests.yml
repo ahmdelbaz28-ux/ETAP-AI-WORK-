@@ -26,7 +26,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install pytest + pydantic + fastapi
-        run: pip install --only-binary :all: pytest pydantic fastapi
+        run: 'pip install --only-binary :all: pytest pydantic fastapi'
 
       - name: Wake HF Space (if sleeping) + wait for RUNNING stage
         run: |

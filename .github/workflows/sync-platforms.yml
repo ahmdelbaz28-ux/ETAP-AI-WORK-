@@ -359,10 +359,108 @@ jobs:
           echo "| HF Space | ✅ Pushed to ahmdelbaz28/AhmedETAP-Platform |" >> $GITHUB_STEP_SUMMARY
           echo "| LangWatch | ✅ Deployment marker registered |" >> $GITHUB_STEP_SUMMARY
           echo "| Smithery  | ✅ Registry reachable |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Test  | 🧪 Comprehensive production test running as separate job |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Commit: \`$GITHUB_SHA\`" >> $GITHUB_STEP_SUMMARY
 
-  # ── 2. DRIFT DETECTION: HF Space → GitHub (creates a PR if drift detected) ──
+  # ── 2. COMPREHENSIVE E2E PRODUCTION TEST ───────────────────────────────────
+  # After the forward sync completes (including the basic smoke test), this job
+  # runs the full production test suite against the deployed HF Space URL.
+  # This validates Format A/B/C/D responses, study type availability, chat
+  # endpoints, and backward compatibility — not just HTTP status codes.
+  e2e-production-test:
+    name: 🧪 E2E Production Test (HF Space)
+    needs: [forward-sync]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install test dependencies
+        run: |
+          pip install --upgrade pip
+          # Only install packages needed by test_hf_space_production.py
+          # (urllib is stdlib, pytest is the only external dep)
+          pip install pytest
+
+      - name: ⏳ Wait for HF Space to become healthy (up to 6 min)
+        env:
+          HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
+        run: |
+          set -e
+          echo "Waiting for HF Space to be ready..."
+          MAX_RETRIES=36
+          RETRY=0
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              --connect-timeout 10 \
+              --max-time 15 \
+              "$HF_SPACE_URL/health" 2>/dev/null || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ HF Space is healthy (HTTP 200)"
+              break
+            fi
+            RETRY=$((RETRY + 1))
+            if [ $RETRY -ge $MAX_RETRIES ]; then
+              echo "❌ HF Space did not become healthy after $MAX_RETRIES retries"
+              exit 1
+            fi
+            echo "   Retry $RETRY/$MAX_RETRIES — HTTP $HTTP_STATUS, waiting 10s..."
+            sleep 10
+          done
+
+      - name: 🧪 Run comprehensive E2E production tests
+        env:
+          HF_SPACE_PRODUCTION_TESTS: "true"
+          HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
+        run: |
+          set -e
+          echo "🧪 Running production E2E test suite against $HF_SPACE_URL..."
+          echo "    Tests: Format A/B/C/D, chat, study types, backward compat"
+          echo ""
+
+          # Run the full production test suite and capture output
+          python -m pytest tests/test_hf_space_production.py -v \
+            --tb=short \
+            -o "log_cli=true" \
+            -o "log_cli_level=INFO" 2>&1 | tee /tmp/e2e-output.log
+
+          # The pytest exit code is the last line with "passed"/"failed"
+          RESULT=${PIPESTATUS[0]}
+          if [ $RESULT -eq 0 ]; then
+            echo ""
+            echo "✅ All E2E production tests PASSED"
+          else
+            echo ""
+            echo "❌ Some E2E production tests FAILED (exit code: $RESULT)"
+            exit $RESULT
+          fi
+
+      - name: 📝 E2E test summary
+        if: always()
+        run: |
+          echo "### 🧪 E2E Production Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          if [ -f /tmp/e2e-output.log ]; then
+            grep -E "^(PASSED|FAILED|ERROR)" /tmp/e2e-output.log | \
+              sed 's/PASSED/✅ PASSED/g; s/FAILED/❌ FAILED/g; s/ERROR/⚠️ ERROR/g' | \
+              while IFS= read -r line; do
+                echo "| $line | |" >> $GITHUB_STEP_SUMMARY
+              done
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: \`$GITHUB_SHA\` | URL: https://ahmdelbaz28-ahmedetap-platform.hf.space" >> $GITHUB_STEP_SUMMARY
+
+  # ── 3. DRIFT DETECTION: HF Space → GitHub (creates a PR if drift detected) ──
   drift-detection:
     name: 🔍 Drift Detection (HF → GitHub)
     runs-on: ubuntu-latest

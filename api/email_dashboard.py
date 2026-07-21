@@ -113,8 +113,8 @@ def _require_admin(request: Request) -> dict:
 @router.get("/api/stats", summary="Email send statistics")
 async def get_stats(
     request: Request,
-    window_hours: int = 24,
     _: Annotated[dict, Depends(_require_admin)],
+    window_hours: int = 24,
 ) -> JSONResponse:
     """Aggregate stats for the last `window_hours`."""
     from services.email_send_log import get_send_stats
@@ -130,9 +130,9 @@ async def get_stats(
 @router.get("/api/recent", summary="Recent email sends")
 async def get_recent(
     request: Request,
+    _: Annotated[dict, Depends(_require_admin)],
     limit: int = 100,
     flow: Optional[str] = None,
-    _: Annotated[dict, Depends(_require_admin)],
 ) -> JSONResponse:
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends

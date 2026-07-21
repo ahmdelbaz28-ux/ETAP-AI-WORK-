@@ -27,6 +27,7 @@ Security features
 from __future__ import annotations
 
 import hashlib
+import logging as _logging
 import os
 import time
 import uuid
@@ -36,6 +37,7 @@ from typing import Any, Optional
 UTC = timezone.utc  # noqa: UP017
 # Module-level constants
 _AUTH_LOGGER_NAME = "etap.auth"
+_logger = _logging.getLogger(_AUTH_LOGGER_NAME)
 
 
 def _validate_password_strength(v: str) -> str:
@@ -81,10 +83,10 @@ RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "3
 # Rate-limiting (Redis-backed, per username, with in-memory fallback)
 # ---------------------------------------------------------------------------
 
-from collections import OrderedDict
 import threading
+from collections import OrderedDict
 
-_LOGIN_ATTEMPTS: "OrderedDict[str, list[float]]" = OrderedDict()
+_LOGIN_ATTEMPTS: OrderedDict[str, list[float]] = OrderedDict()
 _LOGIN_ATTEMPTS_LOCK = threading.Lock()
 _MAX_LOGIN_ATTEMPTS_ENTRIES: int = 10000  # Prevent unbounded growth
 _RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "5"))
@@ -160,14 +162,14 @@ async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
             return
         except (OSError, redis_async.RedisError):
             # Redis unreachable — fall through to in-memory fallback
-            logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
+            _logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
 
     # In-memory fallback with TTL
     expiry = time.time() + (ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400)
     with _token_blacklist_lock:
         _cleanup_expired_blacklist()
         _token_blacklist_memory[jti] = expiry
-    logger.info("Token blacklisted in memory (Redis unavailable): %s", jti[:8] + "...")
+    _logger.info("Token blacklisted in memory (Redis unavailable): %s", jti[:8] + "...")
 
 
 async def _is_token_blacklisted(jti: str) -> bool:
@@ -521,13 +523,13 @@ async def _check_rate_limit(username: str) -> None:
         except (OSError, redis_async.RedisError):
             # Redis is configured but unreachable — fall through to
             # in-memory rate limiting so login still works.
-            logger.warning("Redis unavailable for rate limiting, using in-memory fallback")
+            _logger.warning("Redis unavailable for rate limiting, using in-memory fallback")
 
     # In-memory fallback with replica-aware limits
     # When Redis is unavailable, divide the limit by replica count to prevent
     # attackers from exploiting multiple replicas (5 replicas = 5x limit)
     effective_limit = max(1, _RATE_LIMIT_MAX_ATTEMPTS // _REPLICA_COUNT)
-    
+
     now = time.monotonic()
     with _LOGIN_ATTEMPTS_LOCK:
         # Clean up old entries to prevent memory leak
@@ -536,7 +538,7 @@ async def _check_rate_limit(username: str) -> None:
             remove_count = _MAX_LOGIN_ATTEMPTS_ENTRIES // 5
             for _ in range(remove_count):
                 _LOGIN_ATTEMPTS.popitem(last=False)
-        
+
         attempts = _LOGIN_ATTEMPTS.get(username, [])
         attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
         _LOGIN_ATTEMPTS[username] = attempts

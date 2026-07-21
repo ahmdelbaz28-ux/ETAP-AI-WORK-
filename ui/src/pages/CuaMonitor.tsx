@@ -1,7 +1,7 @@
 // NOSONAR — admin dashboard with complex UI patterns
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Activity, AlertTriangle, Power, Shield, ShieldOff, StopCircle } from "lucide-react";
+import { Activity, AlertTriangle, Power, Shield, ShieldOff } from "lucide-react";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
@@ -81,13 +81,13 @@ export default function CuaMonitor() {
         body: JSON.stringify({ reason: "manual_from_dashboard" }),
       });
       if (resp.ok) {
-        notify("Kill switch activated", "success");
+        notify("success", "Kill switch activated");
         fetchKillSwitch();
       } else {
-        notify("Failed to activate kill switch", "error");
+        notify("error", "Failed to activate kill switch");
       }
     } catch {
-      notify("Network error activating kill switch", "error");
+      notify("error", "Network error activating kill switch");
     }
   };
 
@@ -99,13 +99,13 @@ export default function CuaMonitor() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (resp.ok) {
-        notify("Kill switch deactivated", "success");
+        notify("success", "Kill switch deactivated");
         fetchKillSwitch();
       } else {
-        notify("Failed to deactivate kill switch", "error");
+        notify("error", "Failed to deactivate kill switch");
       }
     } catch {
-      notify("Network error deactivating kill switch", "error");
+      notify("error", "Network error deactivating kill switch");
     }
   };
 
