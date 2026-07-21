@@ -37,7 +37,21 @@ jobs:
         run: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push
 
       - name: Ruff lint
-        run: ruff check . --config ruff.toml
+        # On push to main/develop: check ALL files for complete coverage.
+        # On pull_request: only check files changed in the PR vs the base
+        # branch, so pre-existing issues in unrelated files don't block
+        # meaningful changes. The full scan still runs when the PR merges.
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}" HEAD -- '*.py' | tr '\n' ' ')
+            if [ -z "$CHANGED" ]; then
+              echo "No Python files changed — skipping ruff lint"
+              exit 0
+            fi
+            exec ruff check $CHANGED --config ruff.toml
+          else
+            exec ruff check . --config ruff.toml
+          fi
 
       - name: Ruff format check
         # Pre-existing formatting debt: 217 files would be reformatted by
