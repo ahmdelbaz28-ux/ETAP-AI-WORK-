@@ -7,4 +7,7 @@ allowBuilds:
   electron: set this to true or false
   electron-winstaller: true
   esbuild: true
+  ffmpeg-static: set this to true or false
   protobufjs: true
+
+onlyBuiltDependencies: ''

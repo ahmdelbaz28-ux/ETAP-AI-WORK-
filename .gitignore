@@ -44,3 +44,4 @@ security_audit.log
 .DS_Store
 Thumbs.db
 node_modules
+.env
