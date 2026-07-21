@@ -6,22 +6,32 @@ Comprehensive test for new features:
 4. Email dashboard endpoints
 5. Webhook endpoint registration
 6. Digest context building
+
+SECURITY NOTE (2026-07-21):
+    The previous version of this file contained a hardcoded live RESEND_API_KEY
+    (re_FpxUQQs1_...) committed to a public repository. The key was rotated
+    and revoked. The test now reads from environment variables only —
+    set them in your local `.env` (gitignored) before running.
 """
 
 import asyncio
 import json
 import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, '/home/z/my-project/etap-local-clone')
+# Resolve the project root from this file's location (no hardcoded absolute paths).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
 
-# Set required env
-os.environ['RESEND_API_KEY'] = 're_FpxUQQs1_CCnu4BKfuAsyyvH6V8PSAXSB'
-os.environ['RESEND_FROM_EMAIL'] = 'onboarding@resend.dev'
-os.environ['RESEND_FROM_NAME'] = 'AhmedETAP'
-os.environ['EMAIL_APP_URL'] = 'https://etap-ai-work.vercel.app'
-os.environ['EMAIL_BRAND_NAME'] = 'AhmedETAP'
-os.environ['EMAIL_BRAND_TAGLINE'] = 'Enterprise AI-Powered Power Systems Engineering'
+# Set required env — read from process env or fall back to safe test defaults.
+# NEVER hardcode real credentials in test files. Use a local `.env` for real keys.
+os.environ.setdefault('RESEND_API_KEY', os.getenv('RESEND_API_KEY', 're_test_disabled_key'))
+os.environ.setdefault('RESEND_FROM_EMAIL', os.getenv('RESEND_FROM_EMAIL', 'onboarding@resend.dev'))
+os.environ.setdefault('RESEND_FROM_NAME', os.getenv('RESEND_FROM_NAME', 'AhmedETAP'))
+os.environ.setdefault('EMAIL_APP_URL', os.getenv('EMAIL_APP_URL', 'http://localhost:3000'))
+os.environ.setdefault('EMAIL_BRAND_NAME', os.getenv('EMAIL_BRAND_NAME', 'AhmedETAP'))
+os.environ.setdefault('EMAIL_BRAND_TAGLINE', os.getenv('EMAIL_BRAND_TAGLINE', 'Test Brand'))
 
 
 async def test_1_otp():

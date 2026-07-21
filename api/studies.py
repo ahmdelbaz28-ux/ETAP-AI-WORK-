@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
 import uuid
 from typing import Any, Dict, Mapping, Optional
@@ -17,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.dependencies import get_api_key
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
+from api.pe_stamp import requires_stamp
 from api.risk_scoring import compute_risk
 from core.metrics import count_executions, track_skill_operation
 
@@ -342,6 +344,17 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         if pf_result is not None:
             raise HTTPException(status_code=400, detail=pf_result["error"])
 
+    # Initialise result containers BEFORE any branch that may append to them.
+    # Previous code called `warnings.append(...)` below before this assignment,
+    # which raised NameError at runtime whenever a PE-stamp-required study
+    # type (arc_flash, protection_coordination, etc.) was submitted without
+    # a pe_stamp field — i.e. the default happy path for most callers.
+    warnings: list[str] = []
+    errors: list[str] = []
+    data: dict[str, Any] = {}
+    provider_name = "native"
+    cache_hit = False
+
     # --- PE stamp check (Item 5) ---
     if requires_stamp(payload.study_type) and not payload.pe_stamp:
         warnings.append(
@@ -364,18 +377,12 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         extra={"trace_id": trace_id},
     )
 
-    warnings: list[str] = []
-    errors: list[str] = []
-    data: dict[str, Any] = {}
-    provider_name = "native"
-    cache_hit = False
-
     try:
         # Initialize study cache if needed
         study_cache = None
         try:
             study_cache = StudyCache(
-                redis_url="redis://localhost:6379",
+                redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
                 ttl=3600,
             )
         except Exception:
