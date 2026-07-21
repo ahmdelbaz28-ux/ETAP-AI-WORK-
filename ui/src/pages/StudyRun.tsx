@@ -469,7 +469,7 @@ export default function StudyRun() {
                   </h3>
                   <div className="flex items-center gap-2 ml-auto">
                     {!!(result as Record<string, unknown>)?.data &&
-                      (result.data as Record<string, unknown>)?.risk_score && (
+                      !!(result.data as Record<string, unknown>)?.risk_score && (
                         <span
                           className={cn(
                             "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider",
