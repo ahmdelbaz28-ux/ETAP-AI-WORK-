@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "4.3.2",
-    "@tanstack/react-query": "^5.101.1",
+    "@tanstack/react-query": "^5.101.4",
     "clsx": "2.1.1",
     "framer-motion": "11.18.0",
     "i18next": "24.2.2",
