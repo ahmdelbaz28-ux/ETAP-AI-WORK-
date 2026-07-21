@@ -54,8 +54,17 @@ _CSRF_TOKEN_TTL = 3600  # seconds (1 hour)
 _CSRF_HEADER = "x-csrf-token"
 _BYPASS_VALUE = "bypass"  # API clients can opt-out
 
-# Default secret — must be overridden in production via CSRF_SECRET env var
-_DEFAULT_SECRET = "change-me-csrf-secret-in-production"
+# Placeholder used ONLY to detect that no secret was configured. NEVER used
+# to actually sign tokens — `_get_secret()` raises in production if no
+# env var is set, and logs a warning in development when falling back to a
+# per-process random key.
+_SENTINEL_DEFAULT = "change-me-csrf-secret-in-production"
+
+
+def _is_production_env() -> bool:
+    """Return True when running in a production-like environment."""
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    return env in ("production", "prod", "staging")
 
 
 # ─── Token helpers ────────────────────────────────────────────────────────────
@@ -66,14 +75,38 @@ def _get_secret() -> str:
 
     Falls back to ``SECRET_KEY`` then ``JWT_SECRET_KEY`` for environments that
     already have one configured, so deployments don't need yet another env var.
+
+    SECURITY: In production/staging, raises RuntimeError if NO secret is
+    configured via env var. A known-default secret in a public repo would
+    allow attackers to forge CSRF tokens and bypass protection entirely.
+    In development, falls back to a per-process random key (logged).
     """
     secret = (
         os.environ.get("CSRF_SECRET")
         or os.environ.get("SECRET_KEY")
         or os.environ.get("JWT_SECRET_KEY")
-        or _DEFAULT_SECRET
     )
-    return secret
+    if secret:
+        return secret
+
+    if _is_production_env():
+        raise RuntimeError(
+            "CSRF_SECRET (or SECRET_KEY or JWT_SECRET_KEY) MUST be set in "
+            "production/staging. The default placeholder secret is public "
+            "and would allow CSRF token forgery. "
+            "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
+
+    # Development only: per-process random key (not stable across restarts,
+    # but at least not the publicly known placeholder).
+    import secrets as _secrets
+
+    random_secret = _secrets.token_hex(32)
+    logger.warning(
+        "CSRF_SECRET not set — generated per-process random key. "
+        "CSRF tokens will NOT survive a restart. Set CSRF_SECRET in production."
+    )
+    return random_secret
 
 
 def generate_csrf_token() -> str:
