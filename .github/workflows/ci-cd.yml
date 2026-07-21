@@ -404,7 +404,7 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     needs: [python-tests, security-scan]
-    if: github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v7.0.0
 
