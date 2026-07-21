@@ -182,8 +182,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install "--only-binary :all:" --upgrade pip
-          pip install "--only-binary :all:" -r requirements.txt
-          pip install "--only-binary :all:" pytest pytest-asyncio httpx
+          pip install "--only-binary :all:" -r requirements.txt || pip install -r requirements.txt
+          pip install "--only-binary :all:" pytest pytest-asyncio httpx || pip install pytest pytest-asyncio httpx
 
       - name: Start service for runtime checks
         run: |

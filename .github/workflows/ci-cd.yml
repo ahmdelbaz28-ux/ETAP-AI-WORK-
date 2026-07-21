@@ -230,8 +230,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install --only-binary :all: -r requirements.txt
-          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+          # --only-binary :all: speeds up CI but packages without binary wheels
+          # (e.g. langdetect has no cp312 wheel) would fail the whole job.
+          # Try binary-only first; fall back to source build if needed.
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt
+          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist || pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
