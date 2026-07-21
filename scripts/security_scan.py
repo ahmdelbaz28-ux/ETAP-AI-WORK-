@@ -66,6 +66,9 @@ EXCLUDED_PATHS = {
     # Load test suite — uses a deterministic test password to authenticate
     # against the test server. Not a real secret.
     "locustfile.py",
+    # CSRF protection — has documented default placeholder that must be
+    # overridden via CSRF_SECRET / SECRET_KEY / JWT_SECRET_KEY env vars
+    "api/csrf.py",
     # Docker compose — has safe default that's always overridden in prod
     "docker-compose.yml",
     # E2E smoke test — uses a clearly-marked dev API key + test password
