@@ -380,23 +380,19 @@ export default function Dashboard() {
             icon={<Gauge className="w-4 h-4" />}
           />
           <div className="grid grid-cols-2 gap-4">
-            {systemHealthData.map((g) => (
-                {(() => {
-                  let gaugeColor;
-                  if (g.value > 80) gaugeColor = "#ef4444";
-                  else if (g.value > 60) gaugeColor = "#f59e0b";
-                  else gaugeColor = "#22c55e";
-                  return (
-                    <MiniGauge
-                      key={g.name}
-                      label={g.name}
-                      value={g.value}
-                      max={g.max}
-                      color={gaugeColor}
-                    />
-                  );
-                })()}
-            ))}
+            {systemHealthData.map((g) => {
+              const gaugeColor =
+                g.value > 80 ? "#ef4444" : g.value > 60 ? "#f59e0b" : "#22c55e";
+              return (
+                <MiniGauge
+                  key={g.name}
+                  label={g.name}
+                  value={g.value}
+                  max={g.max}
+                  color={gaugeColor}
+                />
+              );
+            })}
           </div>
         </Card>
 
