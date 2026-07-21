@@ -315,7 +315,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        run: pip install --only-binary :all: bandit safety
+        run: pip install "--only-binary :all:" bandit safety
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
@@ -637,7 +637,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install huggingface_hub
-        run: pip install --only-binary :all: huggingface_hub
+        run: pip install "--only-binary :all:" huggingface_hub
 
       - name: Update HF Space Secrets
         env:
