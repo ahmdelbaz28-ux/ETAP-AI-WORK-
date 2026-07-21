@@ -10,7 +10,11 @@ import {
 import { useNotify } from '../context/NotificationContext'
 import { runStudy } from '../lib/api'
 import { studyCategories } from '../lib/studyCategories'
-import { Card, CardHeader, Badge, Button, Toggle, Tabs, TabPanels, useTabState } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
+import {Toggle} from '../components/ui/Toggle'
+import {Tabs, TabPanels, useTabState} from '../components/ui/Tabs'
 import { cn } from '../utils/helpers'
 
 // One-line diagram SVG component for study results visualization

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter } from 'lucide-react'
-import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import {Card, CardSection} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
+import {EmptyState} from '../components/ui/EmptyState'
 import { cn } from '../utils/helpers'
 
 interface Asset {

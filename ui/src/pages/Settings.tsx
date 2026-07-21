@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Button, Tabs, TabPanels, useTabState, Toggle } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Button} from '../components/ui/Button'
+import {Tabs, TabPanels, useTabState} from '../components/ui/Tabs'
+import {Toggle} from '../components/ui/Toggle'
 
 // Simple XOR-based obfuscation for localStorage storage.
 // NOT a substitute for server-side encryption — but prevents

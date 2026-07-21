@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { Map, Layers, CheckCircle, XCircle, AlertTriangle, Shield, RefreshCw, Globe, Database } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
 import { cn } from '../utils/helpers'
 
 export function GisIntegration() {

@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 import { Shield, Users, Key, Activity, Clock, RefreshCw, Zap, TrendingUp } from 'lucide-react'
 import { fetchMetrics, fetchAgents, type MetricsResponse, type AgentMeta } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
 import { cn } from '../utils/helpers'
 
 export function Administration() {

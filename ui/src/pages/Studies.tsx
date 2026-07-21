@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Play, BookOpen, Beaker } from 'lucide-react'
 import { studyCategories } from '../lib/studyCategories'
-import { Card, Badge } from '../components/ui'
+import {Card} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
 import { cn } from '../utils/helpers'
 
 const categoryColors: Record<string, string> = {

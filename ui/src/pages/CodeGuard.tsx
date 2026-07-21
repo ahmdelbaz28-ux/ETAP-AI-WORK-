@@ -7,7 +7,8 @@ import {
 } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { guardReview, type GuardReviewResult, type GuardViolation } from '../lib/api'
-import { Card, CardHeader, Badge } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },

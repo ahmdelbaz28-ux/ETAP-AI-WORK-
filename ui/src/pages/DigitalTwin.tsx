@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Layers, RefreshCw, Activity, Box, HardDrive, Cpu, Wifi, WifiOff, AlertTriangle } from 'lucide-react'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
 import { cn } from '../utils/helpers'
 
 interface SyncSource {

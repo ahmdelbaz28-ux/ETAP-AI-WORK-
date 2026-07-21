@@ -3,7 +3,10 @@ import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity, Cpu } from 'lucide-react'
 import { fetchHealth, type HealthResponse } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, Badge, Button, EmptyState } from '../components/ui'
+import {Card} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
+import {EmptyState} from '../components/ui/EmptyState'
 import { cn } from '../utils/helpers'
 
 interface DiagnosticCheck {

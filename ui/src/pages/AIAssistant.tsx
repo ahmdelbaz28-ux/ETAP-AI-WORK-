@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, MessageSquare } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
 import { chatWithAgent, fetchAgents, type AgentMeta } from '../lib/api'
-import { Badge, Button } from '../components/ui'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
 import { cn } from '../utils/helpers'
 
 interface Message {

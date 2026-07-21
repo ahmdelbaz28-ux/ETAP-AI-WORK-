@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Upload, CloudUpload, FileJson, FileSpreadsheet, FileText, Database, Cable } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
 
 const supportedFormats = [
   { name: 'CIM/XML', icon: <FileText className="w-5 h-5" />, desc: 'IEC Common Information Model' },

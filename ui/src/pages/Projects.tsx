@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FolderOpen, Plus, FlaskConical, Calendar } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardSection, Badge, Button, EmptyState } from '../components/ui'
+import {Card, CardSection} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
+import {EmptyState} from '../components/ui/EmptyState'
 
 interface Project {
   id: string

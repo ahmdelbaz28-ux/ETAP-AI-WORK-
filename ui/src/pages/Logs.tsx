@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 import { RefreshCw, Filter, Terminal, AlertTriangle, Info, XCircle } from 'lucide-react'
 import { fetchMetrics, fetchAuditLogs, type MetricsResponse, type AuditEntry } from '../lib/api'
 import { useNotify } from '../context/NotificationContext'
-import { Card, Button, EmptyState } from '../components/ui'
+import {Card} from '../components/ui/Card'
+import {Button} from '../components/ui/Button'
+import {EmptyState} from '../components/ui/EmptyState'
 import { cn } from '../utils/helpers'
 
 interface LogEntry {

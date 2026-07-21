@@ -7,7 +7,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useNotify } from '../context/NotificationContext'
 import { fetchHealth, fetchAgents, type HealthResponse, type AgentMeta } from '../lib/api'
 import { studyCategories } from '../lib/studyCategories'
-import { Card, CardHeader, Badge } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
 import { cn } from '../utils/helpers'
 
 // Simulated time-series data for charts

@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { Cable, Settings2, Link2, Activity, Clock, CheckCircle, Server, FileText } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
+import {Card, CardHeader} from '../components/ui/Card'
+import {Badge} from '../components/ui/Badge'
+import {Button} from '../components/ui/Button'
 
 export function EtapIntegration() {
   const { notify } = useNotify()
