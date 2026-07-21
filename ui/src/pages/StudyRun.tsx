@@ -468,7 +468,7 @@ export default function StudyRun() {
                     {t("studyRun.studyResult")}
                   </h3>
                   <div className="flex items-center gap-2 ml-auto">
-                    {(result as Record<string, unknown>)?.data &&
+                    {!!(result as Record<string, unknown>)?.data &&
                       (result.data as Record<string, unknown>)?.risk_score && (
                         <span
                           className={cn(
