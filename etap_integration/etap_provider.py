@@ -22,6 +22,29 @@ from utils.circuit_breaker import get_circuit_breaker, CircuitBreakerOpenError
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+
+def _is_etap_enabled() -> bool:
+    """Check whether ETAP functionality is enabled via environment variable.
+
+    All providers should use this single source of truth so that changing
+    the env-var name or semantics requires only one edit.
+    """
+    return os.getenv("USE_ETAP", "false").lower() == "true"
+
+
+def _is_production() -> bool:
+    """Return True if the current environment is production or staging."""
+    return os.getenv("ENV", os.getenv("APP_ENV", "development")).lower() in (
+        "production",
+        "prod",
+        "staging",
+    )
+
+
 class ETAPStudyType(Enum):
     LOAD_FLOW = "LOAD_FLOW"
     SHORT_CIRCUIT = "SHORT_CIRCUIT"
@@ -77,8 +100,7 @@ class LocalEtapProvider(IEtapProvider):
     """Windows-only provider using direct COM automation."""
 
     def __init__(self):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+        self.use_etap = _is_etap_enabled()
 
         if not self.use_etap:
             self._available = False
@@ -149,8 +171,7 @@ class RemoteEtapProvider(IEtapProvider):
     RETRY_DELAYS = [1, 2, 4]  # seconds - exponential backoff
 
     def __init__(self, worker_url: str, api_key: str):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+        self.use_etap = _is_etap_enabled()
 
         if not self.use_etap:
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
@@ -387,8 +408,7 @@ class MockEtapProvider(IEtapProvider):
     }
 
     def __init__(self):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+        self.use_etap = _is_etap_enabled()
         if not self.use_etap:
             logger.info("Mock ETAP provider disabled via USE_ETAP environment variable")
 
@@ -397,13 +417,12 @@ class MockEtapProvider(IEtapProvider):
         # Mock results contain fixed values (Bus1=1.05 pu, Bus2=0.98 pu, etc.)
         # that do NOT represent the actual power system. Using them in a real
         # deployment could lead to catastrophic engineering decisions.
-        _env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-        if _env in ("production", "prod", "staging"):
+        if _is_production():
             logger.critical(
                 "MockEtapProvider BLOCKED in %s environment. "
                 "ETAP_PROVIDER=mock must never be set in production. "
                 "Use a real ETAP worker (ETAP_WORKER_URL) or native solvers.",
-                _env,
+                os.getenv("ENV", os.getenv("APP_ENV", "development")),
             )
 
     def is_available(self) -> bool:
@@ -423,8 +442,8 @@ class MockEtapProvider(IEtapProvider):
             )
 
         # ─── Production guard — never return hardcoded mock results ─────────
-        _env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-        if _env in ("production", "prod", "staging"):
+        if _is_production():
+            _env = os.getenv("ENV", os.getenv("APP_ENV", "development"))
             return ETAPResult(
                 False,
                 {},
@@ -460,8 +479,7 @@ class NullEtapProvider(IEtapProvider):
     """Fallback provider when no ETAP is available."""
 
     def __init__(self):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+        self.use_etap = _is_etap_enabled()
         if self.use_etap:
             logger.info("Null ETAP provider - ETAP is enabled but no provider available")
 
