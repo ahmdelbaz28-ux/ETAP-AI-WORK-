@@ -2190,38 +2190,43 @@
 <a id="__codelineno-1-100" name="__codelineno-1-100" href="#__codelineno-1-100"></a>│   └── evaluations/                # Performance evaluations
 <a id="__codelineno-1-101" name="__codelineno-1-101" href="#__codelineno-1-101"></a>│
 <a id="__codelineno-1-102" name="__codelineno-1-102" href="#__codelineno-1-102"></a>├── prompts/                         # Agent Prompt Templates
-<a id="__codelineno-1-103" name="__codelineno-1-103" href="#__codelineno-1-103"></a>│   ├── etap_engineer_agent.yaml
-<a id="__codelineno-1-104" name="__codelineno-1-104" href="#__codelineno-1-104"></a>│   ├── loadflow_agent.yaml
-<a id="__codelineno-1-105" name="__codelineno-1-105" href="#__codelineno-1-105"></a>│   ├── shortcircuit_agent.yaml
-<a id="__codelineno-1-106" name="__codelineno-1-106" href="#__codelineno-1-106"></a>│   └── ... (11 prompt files)
-<a id="__codelineno-1-107" name="__codelineno-1-107" href="#__codelineno-1-107"></a>│
-<a id="__codelineno-1-108" name="__codelineno-1-108" href="#__codelineno-1-108"></a>├── docs/                            # Documentation
-<a id="__codelineno-1-109" name="__codelineno-1-109" href="#__codelineno-1-109"></a>│   ├── ARCHITECTURE.md             # This file
-<a id="__codelineno-1-110" name="__codelineno-1-110" href="#__codelineno-1-110"></a>│   ├── EXECUTIVE_SUMMARY.md        # Executive summary
-<a id="__codelineno-1-111" name="__codelineno-1-111" href="#__codelineno-1-111"></a>│   ├── AUDIT_REPORT.md             # Technical audit
-<a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a>│   ├── DEPLOYMENT_GUIDE.md         # Deployment instructions
-<a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a>│   ├── DELIVERABLES_SUMMARY.md     # Deliverables list
-<a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a>│   └── CERTIFICATE_OF_COMPLETION.md # Completion certificate
-<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a>│
-<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a>├── scripts/                         # Utility Scripts
-<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a>│   ├── init_database.py            # Database initialization
-<a id="__codelineno-1-118" name="__codelineno-1-118" href="#__codelineno-1-118"></a>│   ├── create_admin.py             # Admin user creation
-<a id="__codelineno-1-119" name="__codelineno-1-119" href="#__codelineno-1-119"></a>│   ├── backup.sh                   # Backup automation
-<a id="__codelineno-1-120" name="__codelineno-1-120" href="#__codelineno-1-120"></a>│   └── migrate.py                  # Database migrations
-<a id="__codelineno-1-121" name="__codelineno-1-121" href="#__codelineno-1-121"></a>│
-<a id="__codelineno-1-122" name="__codelineno-1-122" href="#__codelineno-1-122"></a>├── reports/                         # Generated Reports Output
-<a id="__codelineno-1-123" name="__codelineno-1-123" href="#__codelineno-1-123"></a>│
-<a id="__codelineno-1-124" name="__codelineno-1-124" href="#__codelineno-1-124"></a>├── knowledge_db/                    # Vector Database Storage
-<a id="__codelineno-1-125" name="__codelineno-1-125" href="#__codelineno-1-125"></a>│
-<a id="__codelineno-1-126" name="__codelineno-1-126" href="#__codelineno-1-126"></a>├── main.py                          # Main entry point (Python)
-<a id="__codelineno-1-127" name="__codelineno-1-127" href="#__codelineno-1-127"></a>├── validation_suite.py              # Engineering validation
-<a id="__codelineno-1-128" name="__codelineno-1-128" href="#__codelineno-1-128"></a>├── validation_campaign.py           # Extended validation
-<a id="__codelineno-1-129" name="__codelineno-1-129" href="#__codelineno-1-129"></a>├── requirements.txt                 # Python dependencies
-<a id="__codelineno-1-130" name="__codelineno-1-130" href="#__codelineno-1-130"></a>├── package.json                     # Node.js dependencies
-<a id="__codelineno-1-131" name="__codelineno-1-131" href="#__codelineno-1-131"></a>├── .env.example                     # Environment template
-<a id="__codelineno-1-132" name="__codelineno-1-132" href="#__codelineno-1-132"></a>├── tsconfig.json                    # TypeScript config
-<a id="__codelineno-1-133" name="__codelineno-1-133" href="#__codelineno-1-133"></a>├── vitest.config.ts                 # Test configuration
-<a id="__codelineno-1-134" name="__codelineno-1-134" href="#__codelineno-1-134"></a>└── README.md                        # Project overview
+<a id="__codelineno-1-103" name="__codelineno-1-103" href="#__codelineno-1-103"></a>│   ├── etap_engineer_agent_v2.yaml   # (handle: etap_engineer_agent)
+<a id="__codelineno-1-104" name="__codelineno-1-104" href="#__codelineno-1-104"></a>│   ├── etap_expert_agent.prompt.yaml
+<a id="__codelineno-1-105" name="__codelineno-1-105" href="#__codelineno-1-105"></a>│   ├── etap_gui_agent.prompt.yaml
+<a id="__codelineno-1-106" name="__codelineno-1-106" href="#__codelineno-1-106"></a>│   ├── load_flow_agent.prompt.yaml
+<a id="__codelineno-1-107" name="__codelineno-1-107" href="#__codelineno-1-107"></a>│   ├── short_circuit_agent.prompt.yaml
+<a id="__codelineno-1-108" name="__codelineno-1-108" href="#__codelineno-1-108"></a>│   ├── protection_agent.prompt.yaml  # (coordination_agent is an alias)
+<a id="__codelineno-1-109" name="__codelineno-1-109" href="#__codelineno-1-109"></a>│   ├── power_system_coordinator_agent.prompt.yaml
+<a id="__codelineno-1-110" name="__codelineno-1-110" href="#__codelineno-1-110"></a>│   ├── fallback_agent.prompt.yaml    # safety-net
+<a id="__codelineno-1-111" name="__codelineno-1-111" href="#__codelineno-1-111"></a>│   └── ... (28+ prompt files)
+<a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a>│
+<a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a>├── docs/                            # Documentation
+<a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a>│   ├── ARCHITECTURE.md             # This file
+<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a>│   ├── EXECUTIVE_SUMMARY.md        # Executive summary
+<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a>│   ├── AUDIT_REPORT.md             # Technical audit
+<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a>│   ├── DEPLOYMENT_GUIDE.md         # Deployment instructions
+<a id="__codelineno-1-118" name="__codelineno-1-118" href="#__codelineno-1-118"></a>│   ├── DELIVERABLES_SUMMARY.md     # Deliverables list
+<a id="__codelineno-1-119" name="__codelineno-1-119" href="#__codelineno-1-119"></a>│   └── CERTIFICATE_OF_COMPLETION.md # Completion certificate
+<a id="__codelineno-1-120" name="__codelineno-1-120" href="#__codelineno-1-120"></a>│
+<a id="__codelineno-1-121" name="__codelineno-1-121" href="#__codelineno-1-121"></a>├── scripts/                         # Utility Scripts
+<a id="__codelineno-1-122" name="__codelineno-1-122" href="#__codelineno-1-122"></a>│   ├── init_database.py            # Database initialization
+<a id="__codelineno-1-123" name="__codelineno-1-123" href="#__codelineno-1-123"></a>│   ├── create_admin.py             # Admin user creation
+<a id="__codelineno-1-124" name="__codelineno-1-124" href="#__codelineno-1-124"></a>│   ├── backup.sh                   # Backup automation
+<a id="__codelineno-1-125" name="__codelineno-1-125" href="#__codelineno-1-125"></a>│   └── migrate.py                  # Database migrations
+<a id="__codelineno-1-126" name="__codelineno-1-126" href="#__codelineno-1-126"></a>│
+<a id="__codelineno-1-127" name="__codelineno-1-127" href="#__codelineno-1-127"></a>├── reports/                         # Generated Reports Output
+<a id="__codelineno-1-128" name="__codelineno-1-128" href="#__codelineno-1-128"></a>│
+<a id="__codelineno-1-129" name="__codelineno-1-129" href="#__codelineno-1-129"></a>├── knowledge_db/                    # Vector Database Storage
+<a id="__codelineno-1-130" name="__codelineno-1-130" href="#__codelineno-1-130"></a>│
+<a id="__codelineno-1-131" name="__codelineno-1-131" href="#__codelineno-1-131"></a>├── main.py                          # Main entry point (Python)
+<a id="__codelineno-1-132" name="__codelineno-1-132" href="#__codelineno-1-132"></a>├── validation_suite.py              # Engineering validation
+<a id="__codelineno-1-133" name="__codelineno-1-133" href="#__codelineno-1-133"></a>├── validation_campaign.py           # Extended validation
+<a id="__codelineno-1-134" name="__codelineno-1-134" href="#__codelineno-1-134"></a>├── requirements.txt                 # Python dependencies
+<a id="__codelineno-1-135" name="__codelineno-1-135" href="#__codelineno-1-135"></a>├── package.json                     # Node.js dependencies
+<a id="__codelineno-1-136" name="__codelineno-1-136" href="#__codelineno-1-136"></a>├── .env.example                     # Environment template
+<a id="__codelineno-1-137" name="__codelineno-1-137" href="#__codelineno-1-137"></a>├── tsconfig.json                    # TypeScript config
+<a id="__codelineno-1-138" name="__codelineno-1-138" href="#__codelineno-1-138"></a>├── vitest.config.ts                 # Test configuration
+<a id="__codelineno-1-139" name="__codelineno-1-139" href="#__codelineno-1-139"></a>└── README.md                        # Project overview
 </code></pre></div>
 <hr />
 <h2 id="4-agent-orchestration-logic">4. Agent Orchestration Logic</h2>
