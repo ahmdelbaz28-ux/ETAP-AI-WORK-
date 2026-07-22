@@ -210,6 +210,7 @@
     "backToLogin": "Back to Login",
     "cancel": "Cancel",
     "securityBadge": "Connection secured with JWT + bcrypt • SOC2 compliant audit logs",
+    "secureLogin": "Secured with TLS 1.3",
     "registerTitle": "Create New Engineer Account",
     "registerSubtitle": "Start analyzing and designing electrical grids to international standards",
     "fullNameLabel": "Full Name",

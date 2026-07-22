@@ -210,6 +210,7 @@
     "backToLogin": "العودة لصفحة الدخول",
     "cancel": "إلغاء",
     "securityBadge": "اتصال مؤمن بتشفير JWT + bcrypt • سجلات تدقيق متوافقة مع SOC2",
+    "secureLogin": "مؤمن بـ TLS 1.3",
     "registerTitle": "إنشاء حساب مهندس جديد",
     "registerSubtitle": "ابدأ تحليل وتصميم الشبكات الكهربائية وفقاً للمعايير الدولية",
     "fullNameLabel": "الاسم الكامل",

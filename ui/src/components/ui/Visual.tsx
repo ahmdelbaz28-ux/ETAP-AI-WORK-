@@ -237,6 +237,90 @@ export function GradientText({
   );
 }
 
+// ─── Sparkline SVG Mini-Chart ─────────────────────────────────────
+interface SparklineProps {
+  readonly data: number[];
+  readonly width?: number;
+  readonly height?: number;
+  readonly color?: string;
+  readonly className?: string;
+  readonly showArea?: boolean;
+  readonly strokeWidth?: number;
+}
+
+/**
+ * Sparkline — a tiny, inline SVG line chart trend visualization.
+ * Perfect for dashboard stat cards to show data direction at a glance.
+ */
+export function Sparkline({
+  data,
+  width = 80,
+  height = 28,
+  color = "var(--accent-primary)",
+  className,
+  showArea = true,
+  strokeWidth = 1.5,
+}: SparklineProps) {
+  if (!data.length) return null;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+
+  const xStep = width / (data.length - 1);
+
+  const points = data.map((val, i) => `${i * xStep},${height - ((val - min) / range) * (height - 4) - 2}`).join(" ");
+
+  // Build area path
+  const firstX = 0;
+  const lastX = (data.length - 1) * xStep;
+  const areaPath = `${points} L${lastX},${height + 2} L${firstX},${height + 2} Z`;
+
+  const trend = data[data.length - 1] >= data[0];
+  const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
+  const lineColor = color || trendColor;
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className={cn("overflow-visible shrink-0", className)}
+      aria-hidden="true"
+    >
+      {showArea && (
+        <defs>
+          <linearGradient id={`spark-gradient-${trend ? "up" : "down"}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+      )}
+      {showArea && (
+        <path d={areaPath} fill={`url(#spark-gradient-${trend ? "up" : "down"})`} />
+      )}
+      <polyline
+        points={points}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="drop-shadow-sm"
+      />
+      {/* End dot */}
+      <circle
+        cx={(data.length - 1) * xStep}
+        cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2}
+        r={2.5}
+        fill={lineColor}
+        stroke="var(--bg-card, #1a2340)"
+        strokeWidth={1.5}
+      />
+    </svg>
+  );
+}
+
 // ─── Glow Card ──────────────────────────────────────────────────────
 interface GlowCardProps {
   readonly children: ReactNode;

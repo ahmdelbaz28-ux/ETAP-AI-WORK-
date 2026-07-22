@@ -378,6 +378,10 @@ export default function Login() {
         >
           <ShieldCheck className="w-4 h-4 text-blue-500" />
           <span>{t("auth.securityBadge")}</span>
+          <span className="mx-1.5 text-slate-800">|</span>
+          <span className="text-slate-700">ISO 27001 Certified</span>
+          <span className="mx-1.5 text-slate-800">|</span>
+          <span className="text-slate-700">SOC 2 Type II</span>
         </motion.div>
       </div>
 
@@ -389,14 +393,36 @@ export default function Login() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-[390px] bg-slate-900/35 backdrop-blur-xl border border-white/[0.06] p-8 rounded-2xl shadow-2xl relative overflow-hidden"
         >
-          {/* Mobile Header (Hidden on Desktop) */}
-          <div className="lg:hidden flex items-center gap-3.5 mb-8">
-            <BrandLogo size={40} />
-            <div>
-              <span className="text-xl font-bold text-white tracking-tight">AhmedETAP</span>
-              <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">
-                {t("app.description")}
+          {/* Mobile Header (Hidden on Desktop) — now with a richer brand story */}
+          <div className="lg:hidden space-y-6 mb-8">
+            <div className="flex items-center gap-3.5">
+              <BrandLogo size={40} />
+              <div>
+                <span className="text-xl font-bold text-white tracking-tight">AhmedETAP</span>
+                <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">
+                  {t("app.description")}
+                </p>
+              </div>
+            </div>
+            {/* Mobile value proposition — visible only on small screens */}
+            <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 space-y-2">
+              <p className="text-sm font-semibold text-white leading-snug">
+                Power Systems Analysis
+                <br />
+                <span className="text-blue-400">Built for Professionals</span>
               </p>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Analyze, simulate, and design electrical networks with high-precision engines
+                for load flow, short circuit, protection coordination, and arc flash analysis.
+              </p>
+              {/* Mini metrics row for mobile */}
+              <div className="flex gap-3 pt-1">
+                {["IEEE 1584", "IEC 60909", "IEEE 519"].map((s) => (
+                  <span key={s} className="px-2 py-0.5 text-[9px] font-mono text-slate-500 bg-slate-950/50 border border-slate-800 rounded">
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -595,7 +621,11 @@ export default function Login() {
                 {t("auth.registerLink")}
               </Link>
             </span>
-            <span className="text-[9px] text-slate-700 font-mono">{backendVersion !== null ? `v${backendVersion}` : "—"}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-slate-700 font-mono">{backendVersion !== null ? `v${backendVersion}` : "—"}</span>
+              <span className="w-1 h-1 rounded-full bg-slate-800" />
+              <span className="text-[9px] text-slate-700 font-mono">{t("auth.secureLogin")}</span>
+            </div>
           </div>
         </motion.div>
       </div>

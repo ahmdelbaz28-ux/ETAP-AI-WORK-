@@ -127,36 +127,18 @@
 /* ============================
    TAILWIND v4.0.0 BUG WORKAROUND
    ============================
-   Tailwind v4.0.0 (installed) generates `.max-w-md { max-width: var(--spacing-md) }`
-   which evaluates to 1rem = 16px (broken). The correct mapping should use
-   `--container-md` (28rem). Tailwind v4.1+ fixes this, but we're on v4.0.0.
-   These explicit rules override the broken utility classes to use the correct
-   --container-* variables defined above. */
-.max-w-3xs {
-  max-width: var(--container-3xs) !important;
-}
-.max-w-2xs {
-  max-width: var(--container-2xs) !important;
-}
-.max-w-xs {
-  max-width: var(--container-xs) !important;
-}
-.max-w-sm {
-  max-width: var(--container-sm) !important;
-}
-.max-w-md {
-  max-width: var(--container-md) !important;
-}
-.max-w-lg {
-  max-width: var(--container-lg) !important;
-}
-.max-w-xl {
-  max-width: var(--container-xl) !important;
-}
-.max-w-2xl {
-  max-width: var(--container-2xl) !important;
-}
-/* max-w-3xl/4xl/5xl already work correctly in v4.0.0 */
+   The `@theme` block above defines --container-* and --max-width-* variables
+   so that Tailwind v4.0.0's broken max-w-* → --spacing-* mapping is overridden.
+   The !important fallbacks below ensure backwards compatibility if the @theme
+   variables don't propagate to utility classes (depends on Tailwind v4 version). */
+.max-w-3xs { max-width: var(--container-3xs) !important; }
+.max-w-2xs { max-width: var(--container-2xs) !important; }
+.max-w-xs  { max-width: var(--container-xs)  !important; }
+.max-w-sm  { max-width: var(--container-sm)  !important; }
+.max-w-md  { max-width: var(--container-md)  !important; }
+.max-w-lg  { max-width: var(--container-lg)  !important; }
+.max-w-xl  { max-width: var(--container-xl)  !important; }
+.max-w-2xl { max-width: var(--container-2xl) !important; }
 
 /* ============================
    DARK MODE (Default)
@@ -282,6 +264,34 @@ body {
 /* ============================
    ANIMATIONS
    ============================ */
+
+/* Sparkle / particle burst — used on hover states */
+@keyframes sparkle {
+  0% { transform: scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+}
+.animate-sparkle {
+  animation: sparkle 0.6s ease-out forwards;
+}
+
+/* Progress bar indeterminate */
+@keyframes indeterminate {
+  0% { transform: translateX(-100%) scaleX(0.3); }
+  40% { transform: translateX(0%) scaleX(0.6); }
+  100% { transform: translateX(100%) scaleX(0.3); }
+}
+.animate-indeterminate {
+  animation: indeterminate 1.8s ease-in-out infinite;
+}
+
+/* Scale up from center (for modals) */
+@keyframes scale-up-center {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-scale-up-center {
+  animation: scale-up-center 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -661,6 +671,62 @@ body {
   transform: scale(0.97);
 }
 
+/* Card shimmer sweep on hover — subtle gradient sweep across card top */
+@keyframes card-shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.card-shimmer-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%);
+  background-size: 200% 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+.card-shimmer-hover:hover::before {
+  opacity: 1;
+  animation: card-shimmer-sweep 1.5s ease-in-out infinite;
+}
+
+/* Stat value pulse on change */
+@keyframes stat-flash {
+  0% { background-color: rgba(0, 212, 255, 0.15); }
+  100% { background-color: transparent; }
+}
+.stat-flash {
+  animation: stat-flash 0.6s ease-out;
+}
+
+/* Focus ring glow */
+.focus-ring-accent:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent-primary);
+}
+
+/* Dashboard stat card accent line with gradient sweep */
+.stat-accent-line {
+  position: relative;
+  overflow: hidden;
+}
+.stat-accent-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stat-accent-line:hover::after {
+  transform: translateX(100%);
+}
+
 /* Active nav indicator */
 .nav-indicator {
   position: relative;
@@ -690,6 +756,15 @@ body {
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--glass-border);
+}
+
+/* Glass card variant — brighter, for elevated surfaces */
+.glass-elevated {
+  background: linear-gradient(135deg, rgba(15, 21, 37, 0.85), rgba(30, 42, 74, 0.4));
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* Gradient text with shimmer */

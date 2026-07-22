@@ -1361,9 +1361,9 @@ class ChiefEngineeringOrchestrator:
         self.agents = {
             "load_flow": LoadFlowAgent(),
             "short_circuit": ShortCircuitAgent(),
-            "harmonic": HarmonicAnalysisAgent(),
-            "opf": OptimalPowerFlowAgent(),
-            "protection": ProtectionCoordinationAgent(),
+            "harmonic_analysis": HarmonicAnalysisAgent(),
+            "optimal_power_flow": OptimalPowerFlowAgent(),
+            "protection_coordination": ProtectionCoordinationAgent(),
             "etap_execution": ETAPExecutionAgent(),
             "validation": ValidationAgent(),
             "report": ReportGenerationAgent(),
