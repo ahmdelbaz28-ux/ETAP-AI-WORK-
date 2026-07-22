@@ -45,3 +45,74 @@ security_audit.log
 Thumbs.db
 node_modules
 .env
+
+# Multi-agent workflow dev artifacts (explorer/worker/reviewer/sentinel
+# conversation briefings, handoffs, progress reports — never shipped)
+.agents/
+
+# Tool execution outputs (agent tool-result dumps — runtime only)
+tool-results/
+
+# Generic ClawHub skill packages — only the 3 ETAP-specific skill files
+# (etap-expert.md, etap-ai-agent-system-prompt.md, etap-gui-agent.md)
+# belong in this repo. Generic marketplace skills (gaokao, dream-interpreter,
+# gift-evaluator, design/, etc.) are 60MB of unrelated content and must
+# NOT be committed. Install via the ClawHub skill CLI into a separate dir.
+skills/ASR/
+skills/LLM/
+skills/TTS/
+skills/VLM/
+skills/agent-browser/
+skills/ai-news-collectors/
+skills/aminer-*/
+skills/anti-pua/
+skills/auto-target-tracker/
+skills/blog-writer/
+skills/charts/
+skills/cheat-sheet/
+skills/coding-agent/
+skills/content-strategy/
+skills/contentanalysis/
+skills/design/
+skills/docx/
+skills/dream-interpreter/
+skills/fullstack-dev/
+skills/gaokao-*/
+skills/get-fortune-analysis/
+skills/gift-evaluator/
+skills/image-edit/
+skills/image-generation/
+skills/image-search/
+skills/image-understand/
+skills/interview-designer/
+skills/interview-prep/
+skills/jd-resume-tailor/
+skills/job-intent-tracker/
+skills/market-research-reports/
+skills/marketing-mode/
+skills/mindfulness-meditation/
+skills/multi-search-engine/
+skills/pdf/
+skills/podcast-generate/
+skills/pptx/
+skills/qingyan-research/
+skills/quiz-html/
+skills/quiz-mastery/
+skills/resume-builder/
+skills/seo-content-writer/
+skills/skill-creator/
+skills/skill-finder-cn/
+skills/stock-analysis-skill/
+skills/storyboard-manager/
+skills/study-buddy/
+skills/task-review/
+skills/ui-ux-pro-max/
+skills/version-management/
+skills/video-generation/
+skills/video-understand/
+skills/visual-design-foundations/
+skills/web-reader/
+skills/web-search/
+skills/web-shader-extractor/
+skills/writing-plans/
+skills/xlsx/

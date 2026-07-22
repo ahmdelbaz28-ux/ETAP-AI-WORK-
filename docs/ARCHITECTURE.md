@@ -245,10 +245,15 @@ etap-ai-platform/
 │   └── evaluations/                # Performance evaluations
 │
 ├── prompts/                         # Agent Prompt Templates
-│   ├── etap_engineer_agent.yaml
-│   ├── loadflow_agent.yaml
-│   ├── shortcircuit_agent.yaml
-│   └── ... (11 prompt files)
+│   ├── etap_engineer_agent_v2.yaml   # (handle: etap_engineer_agent)
+│   ├── etap_expert_agent.prompt.yaml
+│   ├── etap_gui_agent.prompt.yaml
+│   ├── load_flow_agent.prompt.yaml
+│   ├── short_circuit_agent.prompt.yaml
+│   ├── protection_agent.prompt.yaml  # (coordination_agent is an alias)
+│   ├── power_system_coordinator_agent.prompt.yaml
+│   ├── fallback_agent.prompt.yaml    # safety-net
+│   └── ... (28+ prompt files)
 │
 ├── docs/                            # Documentation
 │   ├── ARCHITECTURE.md             # This file

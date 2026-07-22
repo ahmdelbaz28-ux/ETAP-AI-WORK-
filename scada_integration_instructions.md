@@ -31,9 +31,10 @@
 - يستخدم نموذج التضمين "sentence-transformers/all-mpnet-base-v2" لتحويل النصوص إلى متجهات
 
 ### 2. تعليمات الذكاء الاصطناعي
-- [ai_agent_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_agent_instructions.md): تعليمات مفصلة للذكاء الاصطناعي
-- [ai_quick_reference.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_quick_reference.md): مرجع سريع للذكاء الاصطناعي
-- [ai_system_prompt.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_system_prompt.md): تعليمات النظام الشاملة
+- [AGENTS.md](AGENTS.md): المرجع الإنجليزي الكامل لكل وكلاء المنصة (المحفوظ بعد مراجعة 2026-07-22)
+- [AI_AGENT_INDEX.md](AI_AGENT_INDEX.md): فهرس ذكاء اصطناعي بالمخططات والخرائط
+
+> **ملاحظة (2026-07-22):** الملفات العربية السابقة `ai_agent_instructions.md` و`ai_system_prompt.md` و`ai_quick_reference.md` تم حذفها لأنها كانت مكررة بنسبة 95% وتحتوي على مسارات Windows مكسورة (`file:///c:/Users/Repair%20SC/Desktop/...`) لا تعمل إلا على جهاز المطور الأصلي.
 
 ## مثال على الاستخدام
 

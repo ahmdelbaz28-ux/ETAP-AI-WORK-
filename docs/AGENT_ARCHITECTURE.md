@@ -498,7 +498,7 @@ prompts/
 ├── harmonic_agent.prompt.yaml           ← Read by both
 ├── protection_agent.prompt.yaml         ← Read by both
 ├── etap_expert_agent.prompt.yaml        ← Read by both
-├── etap_engineer_agent.yaml             ← Read by both
+├── etap_engineer_agent_v2.yaml        ← Read by both (handle: etap_engineer_agent)
 ├── power_system_coordinator_agent.yaml  ← Read by both
 ├── code_guard_agent.prompt.yaml         ← Read by both
 ├── fallback_agent.prompt.yaml           ← Read by both
