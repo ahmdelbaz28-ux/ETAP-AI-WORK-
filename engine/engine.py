@@ -316,7 +316,7 @@ class PowerSystemEngine:
         Run a study based on study type.
 
         Parameters:
-        study_type (str): Type of study: 'load_flow', 'fault', 'coordination'.
+        study_type (str): Type of study: 'load_flow', 'short_circuit', 'protection_coordination'.
         **kwargs: Additional arguments specific to the study type.
 
         Returns:
@@ -324,13 +324,13 @@ class PowerSystemEngine:
         """
         if study_type == "load_flow":
             return self.run_load_flow()
-        elif study_type == "fault":
+        elif study_type == "short_circuit":
             fault_type = kwargs.get("fault_type", "three_phase")
             bus_id = kwargs.get("bus_id")
             if bus_id is None:
                 raise ValueError("bus_id must be provided for fault study")
             return self.run_fault_analysis(fault_type, bus_id)
-        elif study_type == "coordination":
+        elif study_type == "protection_coordination":
             upstream_relay_id = kwargs.get("upstream_relay_id")
             downstream_relay_id = kwargs.get("downstream_relay_id")
             fault_currents = kwargs.get("fault_currents")

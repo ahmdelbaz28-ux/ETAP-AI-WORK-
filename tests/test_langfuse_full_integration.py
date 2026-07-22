@@ -287,11 +287,11 @@ class TestEngineeringSession:
 
         s = start_engineering_session(
             user_id="u",
-            study_type="coordination",
+            study_type="protection_coordination",
             project_id="sub_north",
             metadata={"voltage": "13.8kV"},
         )
-        assert s.metadata["study_type"] == "coordination"
+        assert s.metadata["study_type"] == "protection_coordination"
         assert s.metadata["project_id"] == "sub_north"
         assert s.metadata["voltage"] == "13.8kV"
 

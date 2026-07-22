@@ -190,9 +190,8 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR — S3776: cogn
 _STUDIES_REQUIRING_SYSTEM = {
     "load_flow",
     "short_circuit",
-    "fault",
+    "harmonic_analysis",
     "protection_coordination",
-    "coordination",
     "motor_starting",
 }
 
@@ -232,7 +231,7 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
 
     if study_type in ("load_flow",):
         return engine.run_load_flow()
-    elif study_type in ("short_circuit", "fault"):
+    elif study_type in ("short_circuit",):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")
         if bus_id is None and system and hasattr(system, "buses") and system.buses:
@@ -258,7 +257,7 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
             enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
             enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
         )
-    elif study_type in ("protection_coordination", "coordination"):
+    elif study_type == "protection_coordination":
         upstream = parameters.get("upstream_relay_id", 1)
         downstream = parameters.get("downstream_relay_id", 2)
         fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
@@ -329,7 +328,7 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         )
 
     # --- System required check (Item 11) ---
-    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "fault", "arc_flash", "protection_coordination", "coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid"}
+    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "arc_flash", "protection_coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid", "renewable_integration", "battery_storage", "scada"}
     if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
         raise HTTPException(
             status_code=400,

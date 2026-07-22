@@ -46,7 +46,7 @@ class AgentStatus(Enum):
 
 
 class StudyType(Enum):
-    """Power system study types."""
+    """Power system study types (canonical snake_case values)."""
 
     LOAD_FLOW = "load_flow"
     SHORT_CIRCUIT = "short_circuit"
@@ -56,6 +56,13 @@ class StudyType(Enum):
     MOTOR_STARTING = "motor_starting"
     TRANSIENT_STABILITY = "transient_stability"
     ARC_FLASH = "arc_flash"
+    CABLE_SIZING = "cable_sizing"
+    EARTH_GRID = "earth_grid"
+    RENEWABLE_INTEGRATION = "renewable_integration"
+    BATTERY_STORAGE = "battery_storage"
+    SCADA = "scada"
+    ETAP_EXPERT = "etap_expert"
+    ETAP_GUI = "etap_gui"
 
 
 @dataclass
@@ -1626,6 +1633,14 @@ class ChiefEngineeringOrchestrator:
             StudyType.HARMONIC_ANALYSIS: 3,
             StudyType.OPTIMAL_POWER_FLOW: 4,
             StudyType.PROTECTION_COORDINATION: 5,
+            StudyType.MOTOR_STARTING: 6,
+            StudyType.ARC_FLASH: 7,
+            StudyType.TRANSIENT_STABILITY: 8,
+            StudyType.CABLE_SIZING: 9,
+            StudyType.EARTH_GRID: 10,
+            StudyType.RENEWABLE_INTEGRATION: 11,
+            StudyType.BATTERY_STORAGE: 12,
+            StudyType.SCADA: 13,
         }
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
@@ -1635,9 +1650,9 @@ class ChiefEngineeringOrchestrator:
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
             StudyType.SHORT_CIRCUIT: "short_circuit",
-            StudyType.HARMONIC_ANALYSIS: "harmonic",
-            StudyType.OPTIMAL_POWER_FLOW: "opf",
-            StudyType.PROTECTION_COORDINATION: "protection",
+            StudyType.HARMONIC_ANALYSIS: "harmonic_analysis",
+            StudyType.OPTIMAL_POWER_FLOW: "optimal_power_flow",
+            StudyType.PROTECTION_COORDINATION: "protection_coordination",
         }
 
         agent_key = agent_mapping.get(study_type)
@@ -1659,13 +1674,12 @@ class ChiefEngineeringOrchestrator:
         return {
             "load_flow": "load_flow",
             "short_circuit": "short_circuit",
-            "harmonic": "harmonic",
-            "harmonic_analysis": "harmonic",
-            "opf": "opf",
-            "optimal_power_flow": "opf",
-            "protection": "protection",
-            "protection_coordination": "protection",
+            "harmonic_analysis": "harmonic_analysis",
+            "optimal_power_flow": "optimal_power_flow",
+            "protection_coordination": "protection_coordination",
             "etap_execution": "etap_execution",
+            "etap_expert": "etap_expert",
+            "etap_gui": "etap_gui",
             "validation": "validation",
             "report": "report",
         }
