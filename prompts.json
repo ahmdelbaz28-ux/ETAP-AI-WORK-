@@ -1,12 +1,12 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "prompts": {
-    "etap_engineer_agent": "prompts/etap_engineer_agent.yaml",
+    "etap_engineer_agent": "prompts/etap_engineer_agent_v2.yaml",
     "etap_engineer_agent_v2": "prompts/etap_engineer_agent_v2.yaml",
     "etap_expert_agent": "prompts/etap_expert_agent.prompt.yaml",
     "etap_gui_agent": "prompts/etap_gui_agent.prompt.yaml",
     "goal_planner_agent": "prompts/goal_planner_agent.yaml",
-    "sample_prompt": "prompts/sample_prompt.yaml",
+    "arcflash_agent": "prompts/arcflash_agent.prompt.yaml",
     "arcflash_agent_prompt": "prompts/arcflash_agent.prompt.yaml",
     "load_flow_agent": "prompts/load_flow_agent.prompt.yaml",
     "short_circuit_agent": "prompts/short_circuit_agent.prompt.yaml",
@@ -29,7 +29,10 @@
     "predictive_agent": "prompts/predictive_agent.prompt.yaml",
     "anomaly_agent": "prompts/anomaly_agent.prompt.yaml",
     "coordination_agent": "prompts/coordination_agent.prompt.yaml",
-    "fallback_agent": "prompts/fallback_agent.prompt.yaml",
-    "generic_agent_chat": "prompts/generic_agent_chat.prompt.yaml"
+    "code_guard_agent": "prompts/code_guard_agent.prompt.yaml",
+    "fallback_agent": "prompts/fallback_agent.prompt.yaml"
+  },
+  "_aliases": {
+    "arcflash_agent_prompt": "Alias for arcflash_agent (kept for back-compat with src/mastra/agents/arcflash-agent.ts and tests)."
   }
 }

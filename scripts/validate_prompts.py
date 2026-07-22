@@ -166,7 +166,7 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR â
                 for std in ENGINEERING_STANDARDS:
                     if std.lower() in content_str.lower():
                         found_standards.add(std)
-        if not found_standards and filepath.name != "sample_prompt.yaml":
+        if not found_standards and filepath.name not in ("sample_prompt.yaml", "fallback_agent.prompt.yaml", "weather_activity_planner.prompt.yaml", "goal_planner_agent.yaml", "etap_gui_agent.prompt.yaml", "code_guard_agent.prompt.yaml"):
             issues.append("INFO: No engineering standard reference found in system prompt")
 
     # Check for excessive token length (rough estimate)

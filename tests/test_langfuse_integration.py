@@ -475,6 +475,7 @@ class TestAllPromptsLoadFromYAML:
     EXPECTED_HANDLES = [
         "anomaly_agent",
         "arcflash_agent",
+        "arcflash_agent_prompt",  # legacy alias of arcflash_agent
         "battery_storage_agent",
         "cable_sizing_agent",
         "code_guard_agent",
@@ -482,11 +483,10 @@ class TestAllPromptsLoadFromYAML:
         "digital_twin_agent",
         "earth_grid_agent",
         "etap_engineer_agent",
-        "etap_engineer_agent_v2",
+        "etap_engineer_agent_v2",  # filename alias of etap_engineer_agent
         "etap_expert_agent",
         "etap_gui_agent",
         "fallback_agent",
-        "generic_agent_chat",
         "goal_planner_agent",
         "harmonic_agent",
         "load_flow_agent",

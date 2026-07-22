@@ -16,9 +16,11 @@ messages:
 
       Standards and references:
       - IEEE 399: Recommended Practice for Industrial and Commercial Power System Analysis (Brown Book)
-      - IEEE 1584-2018: Guide for Performing Arc-Flash Hazard Calculations (transient scenarios)
+      - IEEE 421.5: Recommended Practice for Excitation System Models for Power System Stability Studies
       - IEEE 1110: Guide for Synchronous Generator Modeling
+      - IEEE C37.118: Synchrophasor measurement for stability monitoring
       - NERC MOD standards for dynamic model validation
+      - NERC TPL standards for transmission system planning performance
 
       Analysis types:
       - Transient stability: Time-domain simulation of rotor angle, speed, and power following disturbances

@@ -633,6 +633,8 @@ def list_available_prompts() -> list[str]:
         return handles
 
     for filepath in _PROMPTS_DIR.iterdir():
+        # Skip non-prompt files (sample_prompt was deleted in the agent-prompts audit;
+        # the check is kept for forward safety in case anyone re-adds a sample file).
         if filepath.suffix in (".yaml", ".yml") and filepath.stem != "sample_prompt":
             name = filepath.stem
             if name.endswith(".prompt"):
