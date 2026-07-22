@@ -27,7 +27,6 @@
   --color-surface-900: #0f172a;
   --color-surface-950: #020617;
 
-  /* Semantic Colors */
   --color-success: #22c55e;
   --color-success-light: #4ade80;
   --color-warning: #f59e0b;
@@ -35,6 +34,9 @@
   --color-danger: #ef4444;
   --color-danger-light: #f87171;
   --color-info: #3b82f6;
+  --color-primary: #2563eb;
+  --color-secondary: #3b82f6;
+  --color-cta: #f97316;
 
   /* Engineering Colors */
   --color-engine-voltage: #60a5fa;
@@ -144,7 +146,20 @@
    DARK MODE (Default)
    ============================ */
 :root {
+  /* Dark mode defaults (existing) */
   --bg-primary: #0a0e1a;
+
+  /* Light mode defaults (for contrast) */
+  --bg-secondary: #F8FAFC;
+  --text-primary: #1E293B;
+  --text-secondary: #3B82F6;
+  --text-muted: #64748B;
+  --cta: #f97316;
+  --primary: #2563eb;
+  --secondary: #3b82f6;
+
+  /* Hover transitions */
+  --transition-base: 150ms ease;
   --bg-secondary: #0f1525;
   --bg-tertiary: #141c2e;
   --bg-card: #1a2340;

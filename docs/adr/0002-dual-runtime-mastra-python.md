@@ -1,0 +1,3 @@
+# Dual-runtime architecture: Mastra (TypeScript) + Python
+
+The platform uses two runtimes: Mastra (TypeScript) agents for LLM-powered user interaction and specialist routing, and Python agents for validated engineering calculations. The Engineering Service API bridges both runtimes via `POST /api/v1/studies/run`. This was chosen because LLM orchestration is natural in the TypeScript/Node ecosystem (Mastra framework, AI SDK), while power-system calculations require NumPy/SciPy and validated Python libraries. The cost is operational complexity (two runtimes to deploy and monitor), but the alternative — reimplementing Newton-Raphson/IEC 60909 in TypeScript — would sacrifice both correctness and the IEEE/IEC validation pedigree of the Python engines.
