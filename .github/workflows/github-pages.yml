@@ -49,4 +49,10 @@ jobs:
           # mkdocs.yml lives at docs/mkdocs.yml (NOT at repo root) so Vercel
           # doesn't auto-detect MkDocs and override the Vite framework build.
           # See DEPLOYMENT_FIX.md and SECURITY_INCIDENT_2026-07-08.md for context.
-          mkdocs gh-deploy --force -f docs/mkdocs.yml
+          #
+          # The commit message includes "[skip vercel]" so the Vercel GitHub app
+          # skips building the gh-pages branch (which has no ui/ folder and would
+          # fail with ENOENT on `npm --prefix ui install`). Belt-and-suspenders
+          # alongside the project-level commandForIgnoringBuildStep on Vercel.
+          mkdocs gh-deploy --force -f docs/mkdocs.yml \
+            --message "Deployed ${GITHUB_SHA::7} with MkDocs [skip vercel]"
