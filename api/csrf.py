@@ -68,13 +68,33 @@ def _get_secret() -> str:
 
     Falls back to ``SECRET_KEY`` then ``JWT_SECRET_KEY`` for environments that
     already have one configured, so deployments don't need yet another env var.
+
+    SECURITY AUDIT 2026-07-25 — Fix S-06: Production guard added.
+    In production/staging, if no secret is configured, raise RuntimeError
+    rather than silently using the default insecure secret.
     """
     secret = (
         os.environ.get("CSRF_SECRET")
         or os.environ.get("SECRET_KEY")
         or os.environ.get("JWT_SECRET_KEY")
-        or _DEFAULT_SECRET
     )
+
+    if not secret:
+        # Production guard: refuse to use default secret in production
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development"))
+        if env.lower() not in ("development", "dev", "test"):
+            raise RuntimeError(
+                "CSRF_SECRET (or SECRET_KEY/JWT_SECRET_KEY) must be set in "
+                f"environment '{env}'. Refusing to use insecure default secret."
+            )
+        # Dev/test: use default (logged as warning)
+        import logging as _csrf_log
+        _csrf_log.getLogger("api.csrf").warning(
+            "CSRF: Using default insecure secret in %s environment. "
+            "Set CSRF_SECRET for production.", env
+        )
+        return _DEFAULT_SECRET
+
     return secret
 
 

@@ -272,13 +272,41 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
         return ""
 
     # JWT bypass: if a VALID Bearer token is present, skip the API key check.
+    # SECURITY AUDIT 2026-07-25 — Fix S-09: Now checks token type, expiry, and blacklist.
+    # Previously only validated JWT signature — now also verifies:
+    # 1. Token type must be 'access' (not 'refresh')
+    # 2. Token is not expired
+    # 3. Token JTI is not in the blacklist (revoked via logout)
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
         token = _extract_bearer_token(auth_header)
         try:
-            # Validate the JWT — if invalid, fall through to API key check
-            jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            # Reject refresh tokens used as access tokens
+            if payload.get("type") != "access":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Bearer token must be an access token, not a refresh token",
+                )
+            # SECURITY (S-09): Check token blacklist (revoked tokens).
+            # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
+            jti = payload.get("jti")
+            if jti:
+                try:
+                    from api.auth import _is_token_blacklisted
+                    if await _is_token_blacklisted(jti):
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Token has been revoked",
+                        )
+                except ImportError:
+                    pass  # blacklist unavailable, continue
             return ""
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Bearer token has expired",
+            )
         except jwt.InvalidTokenError:
             # Invalid JWT — fall through to API key validation
             pass
