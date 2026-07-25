@@ -31,14 +31,24 @@ export type AuthResult =
 /*
  * Timing-safe string comparison.
  * Prevents timing side-channel attacks on secret comparison.
- * Uses manual constant-time XOR loop (works in all runtimes including
- * Cloudflare Workers where SubtleCrypto.timingSafeEqual may not be typed).
+ *
+ * CRITICAL: Both strings are hashed to a fixed-length SHA-256 digest before
+ * comparison, eliminating any timing leak from length differences.
+ * The XOR loop then operates on equal-length buffers only.
+ *
+ * Works in all runtimes including Cloudflare Workers.
  */
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
+async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const [bufA, bufB] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const bytesA = new Uint8Array(bufA);
+  const bytesB = new Uint8Array(bufB);
   let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  for (let i = 0; i < bytesA.length; i++) {
+    result |= bytesA[i] ^ bytesB[i];
   }
   return result === 0;
 }
@@ -103,7 +113,7 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
   }
 
   // CRITICAL: timing-safe comparison instead of ===
-  if (!timingSafeEqual(apiKey, secret)) {
+  if (!(await timingSafeEqual(apiKey, secret))) {
     return { valid: false, error: 'Invalid API key', auditAction: 'AUTH_FAILURE' };
   }
 

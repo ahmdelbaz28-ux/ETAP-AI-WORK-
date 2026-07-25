@@ -3,7 +3,7 @@
  * All engineering studies route through the Python Engineering Service.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
-import { jsonResponse, errorResponse, corsHeaders } from '../utils/response.js';
+import { jsonResponse, errorResponse, corsHeaders, extractClientIp } from '../utils/response.js';
 import { recordAudit } from '../utils/audit.js';
 import { bumpApiMetric } from '../utils/metrics.js';
 import { CONFIG } from '../core/config.js';
@@ -67,14 +67,14 @@ export async function handleStudyRun(
     task.result = { dryRun: true, message: 'Dry-run mode: study parameters validated.', studyType, parameters };
     await setTask(env, taskId, task);
     bumpApiMetric('studyCompleted');
-    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: request.headers.get('cf-connecting-ip') || 'unknown', method: 'POST', path: '/api/v1/studies/run', statusCode: 200, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_DRY', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, taskId } });
+    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: 200, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_DRY', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, taskId } });
     return jsonResponse(200, { studyType, status: 'dry_run', message: 'Dry-run successful.', taskId, parameters, statusUrl: `/api/v1/studies/status/${taskId}`, traceId }, corsHeaders(origin, env));
   }
 
   if (!isEngineeringServiceConfigured(env)) {
     task.status = 'failed'; await setTask(env, taskId, task);
     bumpApiMetric('studyFailed'); bumpApiMetric('errors');
-    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: request.headers.get('cf-connecting-ip') || 'unknown', method: 'POST', path: '/api/v1/studies/run', statusCode: 503, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_NO_ENGINE', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, error: 'Engineering Service not configured' } });
+    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: 503, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_NO_ENGINE', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, error: 'Engineering Service not configured' } });
     return errorResponse(503, 'Engineering Service is not configured. Set ENGINEERING_SERVICE_URL to enable real computation.', traceId, corsHeaders(origin, env));
   }
 
@@ -88,14 +88,14 @@ export async function handleStudyRun(
     task.result = { data: result.data, warnings: result.warnings, errors: result.errors, executionTimeSec: result.executionTimeSec, provider: result.provider, traceId: result.traceId };
     await setTask(env, taskId, task);
     if (result.success) bumpApiMetric('studyCompleted'); else { bumpApiMetric('studyFailed'); bumpApiMetric('errors'); }
-    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: request.headers.get('cf-connecting-ip') || 'unknown', method: 'POST', path: '/api/v1/studies/run', statusCode: result.success ? 200 : 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE', authenticated: true, rateLimited: false, apiKeyId, scope, latencyMs: Math.round(result.executionTimeSec * 1000), details: { studyType, taskId, provider: result.provider, success: result.success } });
+    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: result.success ? 200 : 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE', authenticated: true, rateLimited: false, apiKeyId, scope, latencyMs: Math.round(result.executionTimeSec * 1000), details: { studyType, taskId, provider: result.provider, success: result.success } });
     if (!result.success) return errorResponse(502, `Engineering computation failed: ${result.errors.join('; ') || 'Unknown error'}`, traceId, corsHeaders(origin, env));
     return jsonResponse(200, { studyType, status: 'completed', message: 'Study completed via real engineering computation.', taskId, parameters, result: { data: result.data, warnings: result.warnings, executionTimeSec: result.executionTimeSec, provider: result.provider }, statusUrl: `/api/v1/studies/status/${taskId}`, traceId }, corsHeaders(origin, env));
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Engineering Service call failed';
     task.status = 'failed'; task.completedAt = Date.now(); task.result = { error: msg }; await setTask(env, taskId, task);
     bumpApiMetric('studyFailed'); bumpApiMetric('errors');
-    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: request.headers.get('cf-connecting-ip') || 'unknown', method: 'POST', path: '/api/v1/studies/run', statusCode: 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE_ERROR', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, taskId, error: msg } });
+    recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE_ERROR', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, taskId, error: msg } });
     return errorResponse(502, `Engineering Service error: ${msg}`, traceId, corsHeaders(origin, env));
   }
 }

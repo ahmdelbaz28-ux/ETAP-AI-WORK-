@@ -25,6 +25,40 @@ ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
 enabled = true
 head_sampling_rate = 1  # تسجيل 100% من الطلبات
 
+# KV Namespace bindings
+# SECURITY: Create these namespaces before deploying. Commands:
+#   wrangler kv namespace create RATE_LIMIT_KV
+#   wrangler kv namespace create TASK_STORE_KV
+#   wrangler kv namespace create METRICS_KV
+#   wrangler kv namespace create API_KEYS_KV
+#   wrangler kv namespace create AUDIT_KV          # Dedicated audit log storage (tamper-evident)
+#   wrangler kv namespace create IP_BLOCK_KV        # IP ban list for brute-force defense
+# Then replace <ID> with the actual namespace ID from each command's output.
+
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "<ID>"
+
+# [[kv_namespaces]]
+# binding = "TASK_STORE_KV"
+# id = "<ID>"
+
+# [[kv_namespaces]]
+# binding = "METRICS_KV"
+# id = "<ID>"
+
+# [[kv_namespaces]]
+# binding = "API_KEYS_KV"
+# id = "<ID>"
+
+# [[kv_namespaces]]
+# binding = "AUDIT_KV"
+# id = "<ID>"
+
+# [[kv_namespaces]]
+# binding = "IP_BLOCK_KV"
+# id = "<ID>"
+
 # قواعد التوجيه (اختياري — للنطاق المخصص)
 # routes = [
 #   { pattern = "etap.ahmdelbaz28.com/*", zone_name = "ahmdelbaz28.com" }

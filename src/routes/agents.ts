@@ -3,7 +3,7 @@
  */
 import type { Env, ExecutionContext } from '../core/types.js';
 import { type ModelMessage } from 'ai';
-import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey } from '../utils/response.js';
+import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey, extractClientIp } from '../utils/response.js';
 import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
 import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
 import { recordAudit } from '../utils/audit.js';
@@ -20,7 +20,7 @@ export async function handleListAgents(
   bumpPerRoute('agents-list');
   recordAudit({
     timestamp: new Date().toISOString(), traceId,
-    clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+    clientIp: extractClientIp(request),
     method: 'GET', path: '/api/v1/agents', statusCode: 200,
     userAgent: request.headers.get('user-agent') || 'unknown',
     action: 'LIST_AGENTS', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -37,7 +37,7 @@ export async function handleChat(
   if (!getAgent(agentId)) {
     recordAudit({
       timestamp: new Date().toISOString(), traceId,
-      clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+      clientIp: extractClientIp(request),
       method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 404,
       userAgent: request.headers.get('user-agent') || 'unknown',
       action: 'AGENT_CHAT_AGENT_NOT_FOUND', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -55,7 +55,7 @@ export async function handleChat(
       bumpApiMetric('idempotentReplays');
       recordAudit({
         timestamp: new Date().toISOString(), traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+        clientIp: extractClientIp(request),
         method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: cached.status,
         userAgent: request.headers.get('user-agent') || 'unknown',
         action: 'AGENT_CHAT_IDEMPOTENT_REPLAY', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -84,7 +84,7 @@ export async function handleChat(
         const respBody = JSON.stringify({ ...proxyJson, traceId });
         recordAudit({
           timestamp: new Date().toISOString(), traceId,
-          clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+          clientIp: extractClientIp(request),
           method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 200,
           userAgent: request.headers.get('user-agent') || 'unknown',
           action: 'AGENT_CHAT_PROXY', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -127,7 +127,7 @@ export async function handleChat(
     });
     recordAudit({
       timestamp: new Date().toISOString(), traceId,
-      clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+      clientIp: extractClientIp(request),
       method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 200,
       userAgent: request.headers.get('user-agent') || 'unknown',
       action: 'AGENT_CHAT', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -140,7 +140,7 @@ export async function handleChat(
     const msg = aiError instanceof Error ? aiError.message : 'AI generation failed';
     recordAudit({
       timestamp: new Date().toISOString(), traceId,
-      clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+      clientIp: extractClientIp(request),
       method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 502,
       userAgent: request.headers.get('user-agent') || 'unknown',
       action: 'AGENT_CHAT_AI_ERROR', authenticated: true, rateLimited: false, apiKeyId, scope,

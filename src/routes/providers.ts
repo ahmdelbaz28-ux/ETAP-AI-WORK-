@@ -2,7 +2,7 @@
  * Provider listing and (disabled) dynamic registration.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
-import { jsonResponse, errorResponse, corsHeaders } from '../utils/response.js';
+import { jsonResponse, errorResponse, corsHeaders, extractClientIp } from '../utils/response.js';
 import { listConfiguredProviders, getProviderLatency } from '../core/providers.js';
 import { getAllCircuitHealth } from '../core/circuitBreaker.js';
 import { recordAudit } from '../utils/audit.js';
@@ -36,7 +36,7 @@ export async function handleListProviders(
 
   recordAudit({
     timestamp: new Date().toISOString(), traceId,
-    clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+    clientIp: extractClientIp(request),
     method: 'GET', path: '/api/v1/providers', statusCode: 200,
     userAgent: request.headers.get('user-agent') || 'unknown',
     action: 'LIST_PROVIDERS', authenticated: true, rateLimited: false, apiKeyId, scope,
@@ -52,7 +52,7 @@ export async function handleRegisterProvider(
   const origin = request.headers.get('origin') || '';
   recordAudit({
     timestamp: new Date().toISOString(), traceId,
-    clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
+    clientIp: extractClientIp(request),
     method: 'POST', path: '/api/v1/providers', statusCode: 410,
     userAgent: request.headers.get('user-agent') || 'unknown',
     action: 'PROVIDER_REGISTER_DISABLED', authenticated: true, rateLimited: false, apiKeyId, scope,
