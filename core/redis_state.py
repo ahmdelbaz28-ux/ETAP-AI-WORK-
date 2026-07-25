@@ -108,6 +108,50 @@ async def close_redis_state_client() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Sync lazy singleton (for modules that need a sync factory)
+# ---------------------------------------------------------------------------
+
+_sync_client: Optional[Any] = None
+
+
+def get_redis_client_sync() -> Optional[Any]:
+    """Return a shared async Redis client (sync factory, lazy singleton).
+
+    This is the sync counterpart to ``get_redis_state_client()``. It creates
+    the client lazily on first call and caches it for reuse — avoiding the
+    wasteful pattern of creating a new connection per call that was previously
+    used in ``services/otp_store._get_redis()`` and
+    ``services/email_send_log._get_redis()``.
+
+    The returned client is still an **async** redis client (redis.asyncio.Redis)
+    — this function just doesn't require ``await`` to obtain it. The initial
+    connection is not validated (no ping); if Redis is unavailable, operations
+    on the client will fail at call time, which is handled by each module's
+    try/except fallback logic.
+
+    Returns None if REDIS_URL is not configured or redis.asyncio is not installed.
+    """
+    global _sync_client
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if not REDIS_AVAILABLE or not redis_url:
+        return None
+    if _sync_client is None:
+        try:
+            _sync_client = aioredis.from_url(
+                redis_url,
+                decode_responses=True,
+                socket_timeout=5,
+                socket_connect_timeout=5,
+                retry_on_timeout=True,
+            )
+            logger.info("Redis sync client created (lazy, no ping): %s", redis_url.split("@")[-1])
+        except Exception as exc:
+            logger.warning("Redis sync client creation failed: %s", exc)
+            _sync_client = None
+    return _sync_client
+
+
+# ---------------------------------------------------------------------------
 # Circuit Breaker Redis Adapter
 # ---------------------------------------------------------------------------
 

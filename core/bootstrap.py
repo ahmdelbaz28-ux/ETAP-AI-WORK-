@@ -428,11 +428,11 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
 
 # Initialize cache placeholder (actual init happens in lifespan)
 _study_cache: Any = None
-
-
-def get_study_cache() -> Any:
-    """Get the global study cache instance."""
-    return _study_cache
+# NOTE: get_study_cache() accessor removed — had 0 external callers.
+# The cache is initialized in lifespan() and used only internally
+# for cleanup. External modules should import the canonical factory:
+#   from engine.caching import get_study_cache   (engine-layer singleton)
+#   from services.cache_service import get_study_cache  (service-layer async factory)
 
 
 def get_logger() -> Any:

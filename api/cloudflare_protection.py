@@ -244,15 +244,12 @@ async def cloudflare_protection_middleware(request: Request, call_next):
 def _verify_origin_secret(request: Request) -> bool:
     """Verify the X-Origin-Verify header against the configured secret.
 
-    Uses constant-time comparison to prevent timing attacks. Returns
-    True if:
-      - No secret is configured (dev mode → always passes), OR
-      - The header matches the secret exactly.
+    Delegates to the shared ``verify_origin_secret`` helper from
+    ``api._cdn_base`` to eliminate duplication with Akamai's
+    identical implementation.
     """
-    if not CLOUDFLARE_ORIGIN_SECRET:
-        return True  # dev mode — no secret configured
-    provided = request.headers.get("x-origin-verify", "")
-    return hmac.compare_digest(provided, CLOUDFLARE_ORIGIN_SECRET)
+    from api._cdn_base import verify_origin_secret
+    return verify_origin_secret(request, CLOUDFLARE_ORIGIN_SECRET)
 
 
 def _parse_visitor_scheme(cf_visitor: str) -> str:
@@ -273,12 +270,11 @@ def _parse_visitor_scheme(cf_visitor: str) -> str:
 def _rate_limit_check(client_ip: str) -> bool:
     """Sliding-window rate limit per client IP. Returns True if allowed.
 
-    Delegates to the shared RateLimiter instance `_rate_limiter` (initialized
-    at module load from _ORIGIN_RATE_LIMIT_PER_MIN and _RATE_LIMIT_WINDOW_SEC).
-    Kept as a module-level function for backward compatibility with existing
-    callers that import `_rate_limit_check` directly.
+    Delegates to ``api._cdn_base.rate_limit_check`` with the module's
+    own ``_rate_limiter`` instance.
     """
-    return _rate_limiter.is_allowed(client_ip)
+    from api._cdn_base import rate_limit_check
+    return rate_limit_check(client_ip, _rate_limiter)
 
 
 # ---------------------------------------------------------------------------
@@ -295,20 +291,18 @@ def log_security_event(
 ) -> None:
     """Log a structured security event with Cloudflare metadata.
 
-    Called by route handlers when they detect suspicious activity that
-    the middleware didn't catch (e.g., a valid JWT user trying to access
-    another user's data). The log includes the CF-RAY ID so SIEM
-    correlation with Cloudflare's logs is possible.
+    Delegates to ``api._cdn_base.log_security_event`` with the
+    Cloudflare-specific metadata attribute and extra log fields.
     """
+    from api._cdn_base import log_security_event as _log_cdn_event
     metadata = getattr(request.state, "cloudflare", {}) or {}
-    logger.log(
-        logging.WARNING if severity == "warning" else logging.INFO,
-        "security_event: type=%s severity=%s detail=%s client_ip=%s "
-        "cf_ray=%s country=%s",
-        event_type,
-        severity,
-        detail[:200],
-        metadata.get("client_ip", "?"),
-        metadata.get("ray_id", ""),
-        metadata.get("country", ""),
+    extra = (
+        f"cf_ray={metadata.get('ray_id', '')} "
+        f"country={metadata.get('country', '')}"
+    )
+    _log_cdn_event(
+        request, event_type,
+        detail=detail, severity=severity,
+        metadata_attr="cloudflare",
+        extra_log_fields=extra,
     )

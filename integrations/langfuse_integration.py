@@ -89,10 +89,9 @@ class _NoOpContext:
 
 
 def _env_truthy(var: str, default: bool = False) -> bool:
-    val = os.environ.get(var)
-    if val is None:
-        return default
-    return val.strip().lower() in ("1", "true", "yes", "on")
+    """Delegate to shared ``core.utils.env_truthy`` to eliminate duplication."""
+    from core.utils import env_truthy
+    return env_truthy(var, default)
 
 
 def _truncate_for_capture(text: Any, max_chars: int) -> Optional[str]:

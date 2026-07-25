@@ -47,12 +47,14 @@ except ImportError:  # pragma: no cover
 
 
 def _get_redis():
-    if not _REDIS_AVAILABLE:
-        return None
-    url = os.getenv("REDIS_URL", "").strip()
-    if not url:
-        return None
-    return redis_async.from_url(url, decode_responses=True)
+    """Return shared async redis client or None.
+
+    Delegates to ``core.redis_state.get_redis_client_sync()`` — a lazy
+    singleton that avoids creating a new connection per call (the old
+    pattern was wasteful and could exhaust connection pools under load).
+    """
+    from core.redis_state import get_redis_client_sync
+    return get_redis_client_sync()
 
 
 # ---------------------------------------------------------------------------
