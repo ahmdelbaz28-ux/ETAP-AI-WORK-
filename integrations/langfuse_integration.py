@@ -68,24 +68,7 @@ except ImportError:
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 
-
-class _NoOpContext:
-    """Silent no-op context manager when Langfuse is disabled or unavailable."""
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        return False
-
-    def update(self, *args, **kwargs):
-        return self
-
-    def end(self, *args, **kwargs):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
-
-    def record_exception(self, exc):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+from integrations._observability_base import NoOpContext as _NoOpContext, build_health_check
 
 
 def _env_truthy(var: str, default: bool = False) -> bool:
@@ -341,16 +324,18 @@ class LangfuseTracker:
 
     def health_check(self) -> dict[str, Any]:
         """Return Langfuse integration status."""
-        return {
-            "enabled": self.enabled,
-            "endpoint": self.base_url,
-            "sdk_available": LANGFUSE_AVAILABLE,
-            "client_initialized": self._client is not None,
-            "public_key_prefix": ((self.public_key[:12] + "...") if self.public_key else None),
-            "timeout_seconds": self.timeout,
-            "max_capture_chars": self.max_capture_chars,
-            "dashboard": self.dashboard_url if self.enabled else None,
-        }
+        return build_health_check(
+            enabled=self.enabled,
+            provider_name="Langfuse",
+            project="",  # Langfuse doesn't have a project concept
+            sdk_available=LANGFUSE_AVAILABLE,
+            dashboard_url=self.dashboard_url if self.enabled else None,
+            endpoint=self.base_url,
+            client_initialized=self._client is not None,
+            public_key_prefix=((self.public_key[:12] + "...") if self.public_key else None),
+            timeout_seconds=self.timeout,
+            max_capture_chars=self.max_capture_chars,
+        )
 
 
 # ─── Module-level singleton ────────────────────────────────────────────────

@@ -17,6 +17,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+from integrations._observability_base import NoOpContext as _NoOpContext, build_health_check
+
 # ─── LangWatch SDK (optional dependency) ─────────────────────────────────────
 try:
     import langwatch
@@ -96,28 +98,13 @@ class LangWatchTracker:
 
     def health_check(self) -> dict:
         """Return LangWatch integration status."""
-        return {
-            "enabled": self.enabled,
-            "project": self.project,
-            "sdk_available": LANGWATCH_AVAILABLE,
-            "dashboard": self.dashboard_url if self.enabled else None,
-        }
-
-
-class _NoOpContext:
-    """Silent no-op context manager when LangWatch is disabled."""
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
-
-    def update(self, **kwargs):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
-
-    def send(self):
-        pass  # NOSONAR — S1186: intentional no-op (protocol stub / test fixture)
+        return build_health_check(
+            enabled=self.enabled,
+            provider_name="LangWatch",
+            project=self.project,
+            sdk_available=LANGWATCH_AVAILABLE,
+            dashboard_url=self.dashboard_url if self.enabled else None,
+        )
 
 
 # ─── Module-level singleton ───────────────────────────────────────────────────
