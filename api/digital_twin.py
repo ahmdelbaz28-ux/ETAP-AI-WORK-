@@ -5,10 +5,12 @@ Handles all digital twin synchronization endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1/digital-twin", tags=["digital_twin"])
+from api.dependencies import get_api_key
+
+router = APIRouter(prefix="/api/v1/digital-twin", tags=["digital_twin"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 # Global state stores for digital twin
 _shared_state_store = None

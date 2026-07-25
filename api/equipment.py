@@ -58,6 +58,7 @@ from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
+    get_api_key,
     pagination_params,
 )
 from api.rbac import require_permission
@@ -271,7 +272,7 @@ class EquipmentListResponse(BaseModel):
 # Router
 # ---------------------------------------------------------------------------
 
-router = APIRouter(prefix="/api/v1/equipment", tags=["Equipment"])
+router = APIRouter(prefix="/api/v1/equipment", tags=["Equipment"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 
 # ---------------------------------------------------------------------------

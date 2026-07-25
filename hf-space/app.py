@@ -19,6 +19,7 @@ if not hasattr(datetime, "UTC"):
     datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
 
 import asyncio
+import hmac
 import logging
 import os
 import time
@@ -888,7 +889,7 @@ async def websocket_dual_control_approve(websocket: WebSocket):
     # Auth via query param token
     token = websocket.query_params.get("token", "")
     expected = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-    if expected and token != expected:
+    if expected and not hmac.compare_digest(token, expected):
         await websocket.close(code=4001, reason="Invalid or missing token")
         return
 
@@ -1151,13 +1152,17 @@ async def websocket_cua_confirmation(websocket: WebSocket):
 
     Allows two humans to approve life-safety-critical CUA actions
     (protection setting changes, breaker operations) in real time.
-
-    Protocol:
-      Client → Server: {"action": "confirm", "request_id": "...", "session_id": "..."}
-                       {"action": "reject", "request_id": "...", "session_id": "...", "reason": "..."}
-      Server → Client: {"type": "confirmation_request", "data": {...}}
-                       {"type": "confirmation_resolved", "approved": true/false}
+    SECURITY: API key required — same pattern as routes.py.
     """
+    # SECURITY AUDIT R7-2: API key authentication required for life-safety endpoint
+    import hmac as _hmac
+    _hf_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if _hf_api_key:
+        api_key = websocket.headers.get("x-api-key") or websocket.query_params.get("token", "")
+        if not api_key or not _hmac.compare_digest(api_key, _hf_api_key):
+            await websocket.close(code=1008, reason="Invalid or missing API key")
+            return
+
     from api.cua_confirmation_ws import cua_confirmation_ws
 
     await cua_confirmation_ws(websocket)
