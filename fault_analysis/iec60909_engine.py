@@ -109,6 +109,7 @@ class IEC60909Engine:
         self.base_kv = base_kv
         self.generators = generators or []
         self.r_override = r_override or {}
+        self.frequency_hz = max(1.0, float(frequency_hz))  # SECURITY: S-20 — was hardcoded 50.0
 
         # Base impedance and current
         self.base_z = (base_kv**2) / base_mva  # ohms
@@ -165,7 +166,10 @@ class IEC60909Engine:
         Per IEC 60909, the R/X ratio determines the peak factor kappa.
         """
         z_pos = self.Zbus_pos[bus_index, bus_index]
-        rx_ratio = z_pos.real / abs(z_pos.imag) if z_pos.imag != 0 else _DEFAULT_RX_RATIO
+        # SECURITY AUDIT 2026-07-25 — Fix S-21: Use z_pos.imag (not abs).
+        # Per IEC 60909 Clause 4.3.3.1, R/X ratio uses the actual (signed) imaginary
+        # component. Using abs() incorrectly makes inductive/capacitive X equivalent.
+        rx_ratio = z_pos.real / z_pos.imag if z_pos.imag != 0 else _DEFAULT_RX_RATIO
         return rx_ratio
 
     def _calculate_kappa(self, bus_index: int) -> float:
@@ -228,8 +232,8 @@ class IEC60909Engine:
         """
         # Factor n (aperiodic component)
         if t_k > 0:
-            f_50 = 50.0  # assume 50 Hz
-            n = 2.0 * (1.0 / (4.0 * f_50 * t_k)) * (1.0 - np.exp(-2.0 * f_50 * t_k))
+            f = self.frequency_hz  # SECURITY AUDIT 2026-07-25 — Fix S-20: was hardcoded 50 Hz
+            n = 2.0 * (1.0 / (4.0 * f * t_k)) * (1.0 - np.exp(-2.0 * f * t_k))
             # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
             if Ik_initial > 0:
                 n_simplified = (ip / Ik_initial - 1.0) ** 2
