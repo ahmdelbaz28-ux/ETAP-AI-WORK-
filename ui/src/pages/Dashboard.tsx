@@ -35,12 +35,24 @@ import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 
-// Generate deterministic-ish sparkline data for trend visualization
+// Deterministic seeded PRNG (mulberry32) — avoids Math.random() security flag
+const mulberry32 = (seed: number): (() => number) => {
+  let s = seed | 0;
+  return () => {
+    s |= 0; s = s + 0x6D2B79F5 | 0;
+    let t = Math.imul(s ^ s >>> 15, 1 | s);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+};
+
+// Generate deterministic sparkline data for trend visualization
 const generateSparklineData = (seed: number, points = 12): number[] => {
   const data: number[] = [];
+  const rng = mulberry32(seed);
   let val = 30 + seed;
   for (let i = 0; i < points; i++) {
-    val += Math.sin(i * 0.8 + seed) * 8 + (Math.random() - 0.5) * 6;
+    val += Math.sin(i * 0.8 + seed) * 8 + (rng() - 0.5) * 6;
     data.push(Math.max(5, Math.round(val)));
   }
   return data;
@@ -54,18 +66,19 @@ const sparklineDatasets = [
   generateSparklineData(55),
 ];
 
-// Simulated time-series data for charts
-const generateTimeSeriesData = () => {
+// Simulated time-series data for charts (deterministic seed)
+const generateTimeSeriesData = (seed = 42) => {
   const data = [];
   const now = Date.now();
+  const rng = mulberry32(seed);
   for (let i = 23; i >= 0; i--) {
     data.push({
       time: new Date(now - i * 3600000).toLocaleTimeString("en-US", {
         hour: "2-digit",
         hour12: false,
       }),
-      requests: Math.floor(Math.random() * 50) + 10,
-      latency: Math.floor(Math.random() * 100) + 20,
+      requests: Math.floor(rng() * 50) + 10,
+      latency: Math.floor(rng() * 100) + 20,
     });
   }
   return data;
@@ -104,16 +117,17 @@ const itemVariants = {
   },
 };
 
-interface StatCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  sublabel?: string;
-  color: "green" | "blue" | "amber" | "purple" | "red" | "cyan";
-  trend?: string;
-  sparklineData?: number[];
-  onClick?: () => void;
+interface ReadonlyStatCardProps {
+  readonly icon: React.ElementType;
+  readonly label: string;
+  readonly value: string | number;
+  readonly sublabel?: string;
+  readonly color: "green" | "blue" | "amber" | "purple" | "red" | "cyan";
+  readonly trend?: string;
+  readonly sparklineData?: number[];
+  readonly onClick?: () => void;
 }
+type StatCardProps = Readonly<ReadonlyStatCardProps>
 
 function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineData, onClick }: StatCardProps) {
   const colorMap = {
@@ -200,7 +214,7 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineD
                 showArea
               />
               <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                {sparklineData[sparklineData.length - 1]}
+                {sparklineData.at(-1)}
               </span>
             </div>
           </div>
@@ -273,8 +287,8 @@ function DashboardSkeleton() {
 
       {/* Stat cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]">
+        {[...new Array(4)].map((_, i) => (
+          <div key={`skeleton-stat-${i}`} className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]">
             <div className="w-10 h-10 skeleton rounded-lg" />
             <div className="space-y-2">
               <div className="h-8 w-20 skeleton rounded" />
@@ -287,8 +301,8 @@ function DashboardSkeleton() {
 
       {/* Charts skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]">
+        {[...new Array(2)].map((_, i) => (
+          <div key={`skeleton-chart-${i}`} className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 skeleton rounded-lg" />
               <div className="space-y-1.5">
@@ -494,8 +508,8 @@ export default function Dashboard() {
                   labelStyle={{ color: "var(--text-tertiary)" }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {studyDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {studyDistributionData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>
