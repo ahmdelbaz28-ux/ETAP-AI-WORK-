@@ -1,3 +1,9 @@
+# SECURITY AUDIT 2026-07-25 — Fix S-22: Boundary consistency.
+# Changed all curve guard conditions from `Ip >= I` to `Ip > I`.
+# Previously, at exactly I == Ip, curves returned inf (never trips) but
+# relay.pickup_logic returned True (picks up). This inconsistency meant
+# a relay could pick up but never trip, causing an infinite wait state.
+# Now: at I == Ip, relay picks up AND curves return a valid trip time.
 class IEC60255Curves:
     """
     IEC 60255 inverse time curves for overcurrent relays.
@@ -9,7 +15,7 @@ class IEC60255Curves:
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
         """
-        if Ip >= I:
+        if Ip > I:
             return float("inf")
         return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
 
@@ -19,7 +25,7 @@ class IEC60255Curves:
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
-        if Ip >= I:
+        if Ip > I:
             return float("inf")
         return TMS * (13.5 / ((I / Ip) - 1))
 
@@ -29,7 +35,7 @@ class IEC60255Curves:
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
-        if Ip >= I:
+        if Ip > I:
             return float("inf")
         return TMS * (80 / ((I / Ip) ** 2 - 1))
 
@@ -39,6 +45,6 @@ class IEC60255Curves:
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
         """
-        if Ip >= I:
+        if Ip > I:
             return float("inf")
         return TMS * (120 / ((I / Ip) - 1))
