@@ -19,8 +19,8 @@
 const ORIGIN_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space";
 
 // Shared secret — must match CLOUDFLARE_ORIGIN_SECRET on the HF Space
-// Set this via `wrangler secret put ORIGIN_VERIFY_SECRET`
-const ORIGIN_VERIFY_SECRET = "REPLACE_WITH_YOUR_SECRET";
+// SECURITY: Do NOT hardcode here. Set via: wrangler secret put ORIGIN_VERIFY_SECRET
+const ORIGIN_VERIFY_SECRET = undefined; // Fallback only — use env.ORIGIN_VERIFY_SECRET
 
 // Rate limiting: max requests per window per IP
 const RATE_LIMIT_AUTH = 10;      // /api/v1/auth/* — 10 req/min
@@ -61,6 +61,12 @@ function checkRateLimit(clientIP, limit, windowSec) {
   let entries = rateLimitStore.get(clientIP) || [];
   entries = entries.filter(t => t > windowStart);
 
+  // Memory leak prevention: evict IPs with no recent activity
+  if (entries.length === 0) {
+    rateLimitStore.delete(clientIP);
+    return true;
+  }
+
   if (entries.length >= limit) {
     rateLimitStore.set(clientIP, entries);
     return false;
@@ -69,6 +75,23 @@ function checkRateLimit(clientIP, limit, windowSec) {
   entries.push(now);
   rateLimitStore.set(clientIP, entries);
   return true;
+}
+
+// Periodic cleanup of stale rate-limit entries (every 5 min)
+let lastCleanup = Date.now();
+function maybeCleanupRateLimitStore() {
+  const now = Date.now();
+  if (now - lastCleanup < 300_000) return; // 5 minutes
+  lastCleanup = now;
+  const cutoff = now - RATE_LIMIT_WINDOW * 1000;
+  for (const [ip, entries] of rateLimitStore) {
+    const filtered = entries.filter(t => t > cutoff);
+    if (filtered.length === 0) {
+      rateLimitStore.delete(ip);
+    } else {
+      rateLimitStore.set(ip, filtered);
+    }
+  }
 }
 
 // ─── Main Handler ────────────────────────────────────────────────────────────
@@ -113,6 +136,8 @@ export default {
     }
 
     // ── 4. Rate limiting ────────────────────────────────────────────────
+    maybeCleanupRateLimitStore();
+
     if (path.startsWith("/api/v1/auth/")) {
       if (!checkRateLimit(clientIP, RATE_LIMIT_AUTH, RATE_LIMIT_WINDOW)) {
         return new Response(JSON.stringify({

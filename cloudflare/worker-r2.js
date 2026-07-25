@@ -149,6 +149,10 @@ async function forwardToOrigin(request, env, url, path, rayID, clientIP, country
     const windowStart = now - windowSec * 1000;
     let entries = rateLimitStore.get(ip) || [];
     entries = entries.filter(t => t > windowStart);
+    if (entries.length === 0) {
+      rateLimitStore.delete(ip);
+      return true;
+    }
     if (entries.length >= limit) {
       rateLimitStore.set(ip, entries);
       return false;

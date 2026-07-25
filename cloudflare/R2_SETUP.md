@@ -37,7 +37,7 @@ R2 يتطلب تفعيل يدوي من لوحة تحكم Cloudflare (لا يمك
 
 أو عبر API (بعد التفعيل):
 ```bash
-curl -X POST "https://api.cloudflare.com/client/v4/accounts/8ea12977423cb0079cf4d227a0195bb1/r2/buckets" \
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets" \
   -H "Authorization: Bearer YOUR_CF_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"ahmedetap-storage","locationHint":"apac"}'
@@ -91,7 +91,7 @@ wrangler deploy -c wrangler-r2.toml
 
 | الاسم | القيمة |
 |------|--------|
-| `R2_ACCOUNT_ID` | `8ea12977423cb0079cf4d227a0195bb1` |
+| `R2_ACCOUNT_ID` | `$CF_ACCOUNT_ID` (من Cloudflare Dashboard) |
 | `R2_ACCESS_KEY_ID` | (الـ Access Key ID من الخطوة 3) |
 | `R2_SECRET_ACCESS_KEY` | (الـ Secret Access Key من الخطوة 3) |
 | `R2_BUCKET_NAME` | `ahmedetap-storage` |
@@ -102,7 +102,7 @@ wrangler deploy -c wrangler-r2.toml
 from huggingface_hub import HfApi
 api = HfApi(token='YOUR_HF_TOKEN')
 secrets = {
-    'R2_ACCOUNT_ID': '8ea12977423cb0079cf4d227a0195bb1',
+    'R2_ACCOUNT_ID': 'YOUR_CF_ACCOUNT_ID',
     'R2_ACCESS_KEY_ID': 'YOUR_ACCESS_KEY',
     'R2_SECRET_ACCESS_KEY': 'YOUR_SECRET_KEY',
     'R2_BUCKET_NAME': 'ahmedetap-storage',

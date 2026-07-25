@@ -1,7 +1,8 @@
 name = "ahmedetap-proxy"
 main = "worker-r2.js"
 compatibility_date = "2024-09-01"
-account_id = "8ea12977423cb0079cf4d227a0195bb1"
+# account_id — set via: wrangler whoami  (auto-detected at deploy time)
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
 
 # النطاق المجاني على Cloudflare Workers
 workers_dev = true
