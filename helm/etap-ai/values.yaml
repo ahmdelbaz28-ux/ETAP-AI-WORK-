@@ -81,7 +81,20 @@ api:
       ephemeral-storage: "512Mi"
   nodeSelector: {}
   tolerations: []
-  affinity: {}
+  # SECURITY AUDIT: Pod anti-affinity prevents co-scheduling on same node,
+  # ensuring PDB availability guarantee is meaningful.
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - api
+            topologyKey: kubernetes.io/hostname
   # PodDisruptionBudget — ensures minimum pod availability during voluntary disruptions
   pdb:
     enabled: true
