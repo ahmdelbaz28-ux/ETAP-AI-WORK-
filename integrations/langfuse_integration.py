@@ -121,7 +121,7 @@ class LangfuseTracker:
         self.secret_key = os.getenv("LANGFUSE_SECRET_KEY", "")
         self.base_url = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
         self.default_model = os.getenv("LANGFUSE_DEFAULT_MODEL", "gpt-4o")
-        self.timeout = float(os.getenv("LANGFUSE_TIMEOUT", "5.0"))
+        self.timeout = int(os.getenv("LANGFUSE_TIMEOUT", "5"))
         self.max_capture_chars = int(os.getenv("LANGFUSE_MAX_CAPTURE_CHARS", "4096"))
 
         # Explicit disable flag takes precedence
@@ -197,7 +197,7 @@ class LangfuseTracker:
         if client is None:
             return
         try:
-            obs = client.start_as_current_observation(
+            obs = client.start_observation(
                 name=name,
                 metadata={
                     "agent": agent or "unknown",
@@ -413,7 +413,7 @@ def track_llm_call(  # NOSONAR — S3776: cognitive complexity; scheduled for re
             @functools.wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 input_text = str(args[0]) if capture_input and args else None
-                obs = langfuse_tracker.get_context_manager(
+                obs_cm = langfuse_tracker.get_context_manager(
                     name=name,
                     metadata={
                         "agent": agent,
@@ -422,7 +422,7 @@ def track_llm_call(  # NOSONAR — S3776: cognitive complexity; scheduled for re
                     user_id=user_id,
                     session_id=session_id,
                 )
-                with obs:
+                with obs_cm as obs:
                     try:
                         result = await func(*args, **kwargs)
                         captured_input = _truncate_for_capture(
@@ -463,7 +463,7 @@ def track_llm_call(  # NOSONAR — S3776: cognitive complexity; scheduled for re
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             input_text = str(args[0]) if capture_input and args else None
-            obs = langfuse_tracker.get_context_manager(
+            obs_cm = langfuse_tracker.get_context_manager(
                 name=name,
                 metadata={
                     "agent": agent,
@@ -472,7 +472,7 @@ def track_llm_call(  # NOSONAR — S3776: cognitive complexity; scheduled for re
                 user_id=user_id,
                 session_id=session_id,
             )
-            with obs:
+            with obs_cm as obs:
                 try:
                     result = func(*args, **kwargs)
                     captured_input = _truncate_for_capture(
