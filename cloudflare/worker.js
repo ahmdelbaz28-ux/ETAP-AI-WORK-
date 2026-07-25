@@ -61,17 +61,12 @@ function checkRateLimit(clientIP, limit, windowSec) {
   let entries = rateLimitStore.get(clientIP) || [];
   entries = entries.filter(t => t > windowStart);
 
-  // Memory leak prevention: evict IPs with no recent activity
-  if (entries.length === 0) {
-    rateLimitStore.delete(clientIP);
-    return true;
-  }
-
   if (entries.length >= limit) {
     rateLimitStore.set(clientIP, entries);
     return false;
   }
 
+  // Record this request and store
   entries.push(now);
   rateLimitStore.set(clientIP, entries);
   return true;

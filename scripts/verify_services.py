@@ -199,7 +199,7 @@ def main() -> None:
         try:
             from neo4j import GraphDatabase
 
-            driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd))
+            driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=10)
             with driver.session() as session:
                 result = session.run("RETURN 1 AS ok").single()
                 if result and result["ok"] == 1:
