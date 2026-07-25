@@ -91,7 +91,8 @@ def _require_admin(request: Request) -> dict:
         except Exception as jwt_err:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid JWT token: {jwt_err}",
+                # SECURITY AUDIT 2026-07-26 — S-23: Do not leak JWT error details.
+                detail="Invalid or expired authentication token",
             ) from jwt_err
 
     # ─── Method 3: Dev mode (no auth) ────────────────────────────────────
@@ -137,6 +138,8 @@ async def get_recent(
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends
 
+    limit = max(1, min(limit, 500))  # SECURITY: bounded to prevent abuse
+
     return JSONResponse(
         content={
             "success": True,
@@ -152,6 +155,8 @@ async def get_by_day(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     from services.email_send_log import get_send_count_by_day
+
+    days = max(1, min(days, 365))  # SECURITY: bounded
 
     return JSONResponse(
         content={

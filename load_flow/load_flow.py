@@ -510,10 +510,14 @@ class LoadFlowSolver:
                 )
                 break
 
-        # Best-effort writeback even on non-convergence
-        P, Q = self._calculate_power(self.V)
-        for i, bid in enumerate(self.bus_ids):
-            bus = self.system.buses[bid]
-            bus.voltage = self.V[i]
-            bus.generation_power = complex(P[i] + bus.load_power.real, Q[i] + bus.load_power.imag)
+        # SECURITY AUDIT 2026-07-25 — Fix E-03: Do NOT write back voltages on non-convergence.
+        # Previously, non-converged voltages were silently written back, poisoning
+        # all downstream fault analysis and relay coordination studies.
+        # Now: only write back when converged=True. On non-convergence, log a
+        # warning and leave bus voltages unchanged (callers can check the return value).
+        logger.warning(
+            "Load flow did NOT converge after %d iterations (max_mismatch=%.4e). "
+            "Bus voltages left unchanged to prevent downstream calculation errors.",
+            iteration, max_mismatch,
+        )
         return False

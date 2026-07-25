@@ -187,7 +187,10 @@ class BaseAgent:
     @property
     def prompt_temperature(self) -> float:
         """Return the temperature from the prompt metadata, if available."""
-        return float(self._prompt_metadata.get("temperature", 0.2))
+        # SECURITY AUDIT 2026-07-25 — Fix S-18: Default temperature changed from 0.2 to 0.0.
+        # Safety-critical engineering calculations require deterministic outputs.
+        # Use higher temperature (0.1-0.3) ONLY for creative tasks, not engineering.
+        return float(self._prompt_metadata.get("temperature", 0.0))
 
     def get_agent_info(self) -> dict[str, Any]:
         """Return agent metadata including prompt-derived information.
@@ -1385,7 +1388,11 @@ class ChiefEngineeringOrchestrator:
             self.agents["code_guard"] = self._code_guard_agent
         except ImportError:
             self.logger = logging.getLogger("orchestrator")
-            self.logger.info("CodeGuardAgent not available — guard-skills review disabled")
+            self.logger.warning(
+                "CodeGuardAgent not available — safety code review is DISABLED. "
+                "This means generated code/scripts are not being validated. "
+                "Ensure code_guard_agent.py is importable for production."
+            )
 
         # ETAP Expert skill agent — 6-step workflow with Format A/B/C/D responses
         try:

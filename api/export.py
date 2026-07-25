@@ -40,6 +40,7 @@ from api.database import Base
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
+    get_api_key,
     pagination_params,
 )
 from api.rbac import require_permission
@@ -80,7 +81,7 @@ class ExportHistoryResponse(BaseModel):
     total: int
 
 
-router = APIRouter(prefix="/api/v1/export", tags=["Export"])
+router = APIRouter(prefix="/api/v1/export", tags=["Export"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 
 async def _get_project_studies(project_id: str, db: AsyncSession) -> list:

@@ -496,7 +496,7 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
             str(ve),
             extra={"trace_id": trace_id},
         )
-        raise HTTPException(status_code=400, detail=str(ve)) from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=400, detail="Invalid study request parameters") from ve
     except Exception as e:
         _increment_counter("failed")
         logger.exception(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
@@ -505,7 +505,7 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
             str(e),
             extra={"trace_id": trace_id},
         )
-        errors.append(str(e))
+        errors.append("Study execution failed")
         status = "failed"
         data = {}
 

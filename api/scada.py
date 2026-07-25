@@ -5,10 +5,12 @@ Handles all SCADA data model endpoints.
 Separated from main engineering service for better modularity.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1/scada", tags=["scada"])
+from api.dependencies import get_api_key
+
+router = APIRouter(prefix="/api/v1/scada", tags=["scada"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 
 @router.get("/live")
@@ -56,5 +58,5 @@ async def get_scada_live_data(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )

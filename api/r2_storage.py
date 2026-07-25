@@ -72,6 +72,46 @@ R2_PUBLIC_URL_PREFIX: str = os.getenv("R2_PUBLIC_URL_PREFIX", "")
 R2_ENABLED: bool = bool(R2_ACCOUNT_ID and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)
 
 
+# SECURITY AUDIT 2026-07-25 — Fix S-10: Path traversal validation for R2 keys.
+def _validate_key(key: str) -> str:
+    """Validate an R2 object key for path traversal attacks.
+
+    Rejects keys containing: '..' (directory traversal), absolute paths
+    (starting with '/'), null bytes, or other dangerous patterns.
+
+    Args:
+        key: The object key to validate.
+
+    Returns:
+        The normalized key if valid.
+
+    Raises:
+        ValueError: If the key contains traversal patterns.
+    """
+    if not key or not isinstance(key, str):
+        raise ValueError("R2 object key must be a non-empty string")
+
+    # Reject null bytes
+    if "\x00" in key:
+        raise ValueError("R2 object key contains null bytes")
+
+    # Reject directory traversal
+    if ".." in key:
+        raise ValueError("R2 object key contains directory traversal ('..')")
+
+    # Reject absolute paths
+    if key.startswith("/"):
+        raise ValueError("R2 object key must not start with '/'")
+
+    # Normalize and verify it doesn't escape after normalization
+    import posixpath
+    normalized = posixpath.normpath(key)
+    if normalized.startswith("..") or normalized != key.replace("//", "/").rstrip("/"):
+        raise ValueError("R2 object key normalizes to an unsafe path")
+
+    return normalized
+
+
 # ---------------------------------------------------------------------------
 # Lazy boto3 import (only when R2 is actually used)
 # ---------------------------------------------------------------------------
@@ -150,6 +190,8 @@ async def upload(
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
 
+    key = _validate_key(key)  # SECURITY S-10: path traversal validation
+
     client = _get_client()
     put_kwargs: dict[str, Any] = {
         "Bucket": R2_BUCKET_NAME,
@@ -175,6 +217,8 @@ async def download(key: str) -> bytes:
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
 
+    key = _validate_key(key)  # SECURITY S-10: path traversal validation
+
     client = _get_client()
     response = await asyncio.get_event_loop().run_in_executor(
         None,
@@ -189,6 +233,8 @@ async def delete(key: str) -> None:
     """Delete an object from R2."""
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
+
+    key = _validate_key(key)  # SECURITY S-10: path traversal validation
 
     client = _get_client()
     await asyncio.get_event_loop().run_in_executor(
@@ -209,6 +255,13 @@ async def list_objects(
     """
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
+
+    # SECURITY: Bound limit to prevent abuse
+    limit = max(1, min(limit, 1000))
+
+    # SECURITY (S-10): Validate prefix against path traversal
+    if prefix:
+        _validate_key(prefix)
 
     client = _get_client()
     response = await asyncio.get_event_loop().run_in_executor(
@@ -236,6 +289,10 @@ async def delete_many(keys: list[str]) -> int:
         raise RuntimeError("R2 is not configured")
     if not keys:
         return 0
+
+    # SECURITY (S-10): Validate all keys against path traversal
+    for key in keys:
+        _validate_key(key)
 
     client = _get_client()
     # R2 supports up to 1000 keys per delete_batch request
@@ -272,6 +329,9 @@ def presign(key: str, *, expires: int = 3600) -> str:
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
 
+    # SECURITY (S-10): Validate key against path traversal
+    _validate_key(key)
+
     client = _get_client()
     url = client.generate_presigned_url(
         "get_object",
@@ -286,6 +346,7 @@ def public_url(key: str) -> str:
 
     If R2_PUBLIC_URL_PREFIX is not set, returns a presigned URL instead.
     """
+    key = _validate_key(key)  # SECURITY S-10: path traversal validation
     if R2_PUBLIC_URL_PREFIX:
         return f"{R2_PUBLIC_URL_PREFIX.rstrip('/')}/{key.lstrip('/')}"
     return presign(key)

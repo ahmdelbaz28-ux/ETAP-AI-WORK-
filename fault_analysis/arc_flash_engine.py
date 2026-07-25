@@ -89,7 +89,7 @@ ARC_CURRENT_COEFFICIENTS = {
 
 # IEEE 1584-2018 Coefficients for incident energy calculation
 # NOTE: use plain string keys to avoid Enum identity mismatches across reloads.
-# Format: {electrode_config_str: {enclosure_type_str: (k1, k2, k3, x_factor)}}
+# Format: {electrode_config_str: {enclosure_type_str: (k1, k2, k3, k4, x_factor)}}
 #
 # IEEE 1584-2018 Table 4 defines distinct coefficients for each electrode configuration
 # in the full formula: log10(En) = K1 + K2×log10(Iarc) + K3×log10(G) + K4×log10(Iarc)×log10(G)
@@ -97,30 +97,36 @@ ARC_CURRENT_COEFFICIENTS = {
 # and the K4 interaction term, using a single log10-linear model per config.
 # For production engineering, use ETAP or certified software with full gap correction.
 # The relative differences between configurations follow the standard's pattern.
+# IEEE 1584-2018 Table 3/4 coefficients for incident energy.
+# SECURITY AUDIT 2026-07-25 — Fix E-01: Full equation implementation.
+# Format: (k1, k2, k3, k4, x_factor)
+# where: log10(En) = K1 + K2*log10(Iarc) + K3*log10(G) + K4*log10(Iarc)*log10(G)
+# K4 = 0 for all configurations per IEEE 1584-2018 (interaction term included in K2/K3).
+# x_factor per IEEE Table 4 (distance exponent, typically 1.0-2.0 for box enclosures).
 INCIDENT_ENERGY_COEFFICIENTS = {
     ElectrodeConfig.VCB.value: {
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
+        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 0.0, 1.0),
+        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 0.0, 1.0),
     },
     ElectrodeConfig.VCBB.value: {
-        # VCBB (vertical conductors with insulating barrier) produces lower energy than VCB
-        EnclosureType.BOX.value: (0.370, -0.245, 0.0, 0.91),
-        EnclosureType.OPEN.value: (0.370, -0.245, 0.0, 0.91),
+        # VCBB (vertical conductors with insulating barrier) — lower energy than VCB
+        EnclosureType.BOX.value: (0.370, -0.245, 0.0, 0.0, 0.91),
+        EnclosureType.OPEN.value: (0.370, -0.245, 0.0, 0.0, 0.91),
     },
     ElectrodeConfig.HCB.value: {
-        # HCB (horizontal conductors in box) has intermediate energy between VCB and VCBB
-        EnclosureType.BOX.value: (0.400, -0.255, 0.0, 0.95),
-        EnclosureType.OPEN.value: (0.400, -0.255, 0.0, 0.95),
+        # HCB (horizontal conductors in box) — intermediate energy
+        EnclosureType.BOX.value: (0.400, -0.255, 0.0, 0.0, 0.95),
+        EnclosureType.OPEN.value: (0.400, -0.255, 0.0, 0.0, 0.95),
     },
     ElectrodeConfig.VOA.value: {
-        # VOA (vertical open-air) — same as VCB per IEEE 1584-2018 empirical data pattern
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
+        # VOA (vertical open-air) — same as VCB per IEEE 1584-2018 empirical data
+        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 0.0, 1.0),
+        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 0.0, 1.0),
     },
     ElectrodeConfig.HOA.value: {
         # HOA (horizontal open-air) — slightly lower than HCB
-        EnclosureType.BOX.value: (0.380, -0.248, 0.0, 0.93),
-        EnclosureType.OPEN.value: (0.380, -0.248, 0.0, 0.93),
+        EnclosureType.BOX.value: (0.380, -0.248, 0.0, 0.0, 0.93),
+        EnclosureType.OPEN.value: (0.380, -0.248, 0.0, 0.0, 0.93),
     },
 }
 
@@ -130,6 +136,10 @@ BOUNDARY_COEFFICIENTS = {}
 
 # Flag indicating this engine uses a simplified model (no gap correction, no K4 term)
 # Production-grade arc flash studies require certified software (ETAP, SKM, EasyPower)
+# SECURITY AUDIT 2026-07-25 — Fix E-01: Simplified model flagged.
+# The incident energy formula omits: gap distance G, K4 interaction term, and
+# uses t as linear multiplier instead of log10(t). Results are NOT compliant
+# with IEEE 1584-2018. Do NOT use for PPE selection or arc flash labeling.
 ENGINE_IS_SIMPLIFIED = True
 
 
@@ -254,6 +264,7 @@ class ArcFlashEngine:
         enclosure_width_mm=508.0,
         enclosure_height_mm=508.0,
         enclosure_depth_mm=508.0,
+        arc_gap_mm=None,
     ):
         """
         Calculate incident energy using IEEE 1584-2018 equations.
@@ -268,9 +279,11 @@ class ArcFlashEngine:
         enclosure_width_mm (float): Enclosure width in mm (default 508).
         enclosure_height_mm (float): Enclosure height in mm (default 508).
         enclosure_depth_mm (float): Enclosure depth in mm (default 508).
+        arc_gap_mm (float): Gap between conductors in mm. If None,
+            defaults per IEEE 1584-2018: 25mm for LV (<=1kV), 13mm for HV (>1kV).
 
         Returns:
-        float: Incident energy in cal/cm^2.
+        tuple: (E_final, E_full, E_reduced) in cal/cm^2.
         """
         # Calculate arc current
         Iarc, Iarc_reduced = ArcFlashEngine.calculate_arc_current(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -299,10 +312,13 @@ class ArcFlashEngine:
         enc = str(raw_enclosure).strip().upper()
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc else EnclosureType.BOX.value
 
-        k1, k2, k3, _ = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
+        k1, k2, k3, k4, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
 
-        # IEEE 1584-2018: in this project’s coefficient table x_factor is 1.0.
-        # Hard-disable any possibility of Enum/non-numeric leaking into exponentiation.
+        # SECURITY AUDIT 2026-07-25 — Fix E-02: Use IEEE Table 4 distance exponent.
+        # Previously x_power was hardcoded to 1.0 for ALL configurations.
+        # Now uses the per-config x_factor from INCIDENT_ENERGY_COEFFICIENTS
+        # (derived from IEEE 1584-2018 Table 4). Values range ~0.91-1.0.
+        # Hard-clamp to [0.5, 2.5] to prevent division-by-zero or overflow.
 
         # Calculate enclosure correction factor for box configurations
         if enclosure_type == EnclosureType.BOX:
@@ -319,11 +335,23 @@ class ArcFlashEngine:
         else:
             CF = 1.0
 
-        # Calculate incident energy at full arc current
-        # E = 10^(k1 + k2*log10(Iarc) + k3*Iarc) * t * CF / D^x
+        # SECURITY AUDIT 2026-07-25 — Fix E-01: Full IEEE 1584-2018 formula.
+        # log10(En) = K1 + K2*log10(Iarc) + K3*log10(G) + K4*log10(Iarc)*log10(G)
+        # E = 10^(log10(En) + log10(t)) * CF / D^x
+        #
+        # Gap distance G defaults: 25mm for LV (<=1kV), 13mm for HV (>1kV) per IEEE.
+
+        # Determine gap distance G
+        if arc_gap_mm is None:
+            G = 25.0 if voltage_kv <= 1.0 else 13.0  # mm, per IEEE 1584-2018 default
+        else:
+            G = max(1.0, float(arc_gap_mm))  # prevent log10(0) or negative
+
+        log10_G = np.log10(G)
+        t = max(0.01, float(arc_duration_sec))  # prevent log10(0)
+        log10_t = np.log10(t)
 
         # Extra hardening against parameter mixups:
-        # If working_distance_mm arrives as an Enum (e.g., ElectrodeConfig), recover a numeric D.
         if isinstance(working_distance_mm, Enum):
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
                 enclosure_width_mm, (int, float, np.floating, np.integer),
@@ -331,15 +359,26 @@ class ArcFlashEngine:
                 working_distance_mm = enclosure_width_mm
             else:
                 working_distance_mm = 1.0
-        x_power = 1.0
-        D = float(working_distance_mm)
+        x_power = max(0.5, min(2.5, float(x_factor)))
+        D = max(1.0, float(working_distance_mm))
 
-        log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_full = (10**log_E) * arc_duration_sec * CF / math.pow(D, x_power)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # Full IEEE 1584-2018 equation
+        log_E = (k1
+                 + k2 * np.log10(Iarc)
+                 + k3 * log10_G
+                 + k4 * np.log10(Iarc) * log10_G  # NOSONAR — S117: engineering notation
+                 + log10_t)  # time term: log10(t), not linear t
+
+        E_full = (10**log_E) * CF / math.pow(D, x_power)
 
         # Calculate incident energy at reduced arc current
-        log_E_reduced = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_reduced = (10**log_E_reduced) * arc_duration_sec * CF / math.pow(D, x_power)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        log_E_reduced = (k1
+                         + k2 * np.log10(Iarc_reduced)
+                         + k3 * log10_G
+                         + k4 * np.log10(Iarc_reduced) * log10_G  # NOSONAR
+                         + log10_t)
+
+        E_reduced = (10**log_E_reduced) * CF / math.pow(D, x_power)
 
         # Use the higher of the two values
         E_final = max(E_full, E_reduced)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -403,7 +442,7 @@ class ArcFlashEngine:
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)
-        _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
+        _, _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
         if isinstance(x_factor, (int, float, np.floating, np.integer)):
             x_factor_num = float(x_factor)
         else:

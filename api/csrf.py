@@ -13,10 +13,9 @@ becomes vulnerable to CSRF.
 This module implements defense-in-depth:
   1. A signed CSRF token (HMAC-SHA256) that the frontend includes in the
      ``X-CSRF-Token`` header on all mutating requests (POST/PUT/PATCH/DELETE).
-  2. An opt-in ``X-CSRF-Token: bypass`` for API clients that don't use cookies.
-  3. ``SameSite=Strict`` cookie documentation so if cookies are ever introduced
+  2. ``SameSite=Strict`` cookie documentation so if cookies are ever introduced
      they default to Strict.
-  4. A ``/api/v1/csrf/token`` endpoint for the frontend to obtain fresh tokens.
+  3. A ``/api/v1/csrf/token`` endpoint for the frontend to obtain fresh tokens.
 
 Usage
 -----
@@ -52,7 +51,9 @@ logger = logging.getLogger("api.csrf")
 _CSRF_SALT_LENGTH = 32  # bytes of random salt per token
 _CSRF_TOKEN_TTL = 3600  # seconds (1 hour)
 _CSRF_HEADER = "x-csrf-token"
-_BYPASS_VALUE = "bypass"  # API clients can opt-out
+# _BYPASS_VALUE removed — see SECURITY AUDIT 2026-07-25.
+# The literal "bypass" string allowed any origin to bypass CSRF protection.
+# API-key-authenticated clients are handled by the X-API-Key check above.
 
 # Default secret — must be overridden in production via CSRF_SECRET env var
 _DEFAULT_SECRET = "change-me-csrf-secret-in-production"
@@ -66,13 +67,33 @@ def _get_secret() -> str:
 
     Falls back to ``SECRET_KEY`` then ``JWT_SECRET_KEY`` for environments that
     already have one configured, so deployments don't need yet another env var.
+
+    SECURITY AUDIT 2026-07-25 — Fix S-06: Production guard added.
+    In production/staging, if no secret is configured, raise RuntimeError
+    rather than silently using the default insecure secret.
     """
     secret = (
         os.environ.get("CSRF_SECRET")
         or os.environ.get("SECRET_KEY")
         or os.environ.get("JWT_SECRET_KEY")
-        or _DEFAULT_SECRET
     )
+
+    if not secret:
+        # Production guard: refuse to use default secret in production
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development"))
+        if env.lower() not in ("development", "dev", "test"):
+            raise RuntimeError(
+                "CSRF_SECRET (or SECRET_KEY/JWT_SECRET_KEY) must be set in "
+                f"environment '{env}'. Refusing to use insecure default secret."
+            )
+        # Dev/test: use default (logged as warning)
+        import logging as _csrf_log
+        _csrf_log.getLogger("api.csrf").warning(
+            "CSRF: Using default insecure secret in %s environment. "
+            "Set CSRF_SECRET for production.", env
+        )
+        return _DEFAULT_SECRET
+
     return secret
 
 
@@ -145,9 +166,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     Bypass mechanisms (in order):
       1. API key authentication (``X-API-Key`` header with known key) —
          assumed to be server-to-server, not browser-originated.
-      2. Explicit ``X-CSRF-Token: bypass`` header — for documented API clients
-         that do not use cookies.
-      3. Skipped entirely when ``AUTH_DISABLED=true`` in development.
+      2. Skipped entirely when ``AUTH_DISABLED=true`` in development.
     """
 
     def __init__(self, app: Any, *, tolerate_expired: bool = False) -> None:
@@ -181,8 +200,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
         # Validate CSRF token
         token = request.headers.get(_CSRF_HEADER, "")
-        if token == _BYPASS_VALUE:
-            return await call_next(request)
+        # SECURITY: CSRF bypass removed per audit finding S-01.
+        # All state-changing requests must present a valid signed CSRF token.
 
         status = validate_csrf_token(token, tolerate_expired=self._tolerate_expired)
         if status != "valid":
@@ -197,8 +216,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": (
                         f"CSRF token missing or invalid ({status}). "
-                        "Include a valid X-CSRF-Token header or use "
-                        "X-CSRF-Token: bypass for API-only clients. "
+                        "Include a valid X-CSRF-Token header. "
                         "Call GET /api/v1/csrf/token to obtain a fresh token."
                     ),
                 },

@@ -44,6 +44,7 @@ from api.dependencies import (
     CurrentUser,
     PaginationParams,
     get_current_user_from_header,
+    get_api_key,
     pagination_params,
 )
 from api.rbac import require_permission
@@ -119,7 +120,7 @@ class TemplateListResponse(BaseModel):
     page_size: int
 
 
-router = APIRouter(prefix="/api/v1/templates", tags=["Study Templates"])
+router = APIRouter(prefix="/api/v1/templates", tags=["Study Templates"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 
 async def _get_template(template_id: str, db: AsyncSession) -> StudyTemplate:
