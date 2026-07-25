@@ -54,6 +54,8 @@ import re
 from pathlib import Path
 from typing import Any, Optional
 
+from integrations import _vision_base
+
 logger = logging.getLogger(__name__)
 
 # ─── Optional deps ─────────────────────────────────────────────────────────
@@ -320,19 +322,12 @@ class OpenCVVisionClient:
 
     @staticmethod
     def _to_pil_image(image: Any):
-        """Coerce various image inputs into a PIL.Image.Image."""
-        try:
-            from PIL import Image
+        """Coerce various image inputs into a PIL.Image.Image.
 
-            if isinstance(image, Image.Image):
-                return image
-            if isinstance(image, (bytes, bytearray)):
-                return Image.open(io.BytesIO(image))
-            if isinstance(image, (str, Path)):
-                return Image.open(image)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to convert image: %s", exc)
-        return None
+        Delegates to integrations._vision_base.to_pil_image (shared helper,
+        avoids reimplementing the same coercion logic per vision backend).
+        """
+        return _vision_base.to_pil_image(image, True)  # PIL availability checked internally
 
     @staticmethod
     def _detect_ui_elements(img_array, gray) -> list[dict[str, Any]]:
