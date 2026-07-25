@@ -58,7 +58,7 @@ class Neo4jClient:
                 # Test connection
                 with self.driver.session() as session:
                     session.run("RETURN 1")
-                logger.info("✅ Neo4j initialized — URI: %s", self.uri)
+                logger.info("Neo4j initialized — URI: %s", self.uri)
             except Exception as e:
                 logger.exception("Neo4j connection failed: %s", e)
                 self.driver = None

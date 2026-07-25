@@ -12,6 +12,8 @@ from typing import Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["AIMemoryService", "DeterministicFallbackEmbeddings"]
+
 # Try importing LangChain + Qdrant + Neo4j components.
 try:
     from langchain_qdrant import QdrantVectorStore
@@ -29,7 +31,7 @@ except ImportError as err:
     class QdrantVectorStore:
         pass
 
-    qdrant_models = None
+    qdrant_models = None  # type: ignore[assignment]
 
 try:
     from langchain_core.embeddings import Embeddings
@@ -255,6 +257,10 @@ class AIMemoryService:
             if "large" in self.embedding_model:
                 dimension = 3072
 
+            if qdrant_models is None:
+                logger.error("qdrant_models is None — Qdrant SDK not fully installed.")
+                return False
+
             if not self._qdrant_client.collection_exists(collection_name=index_name):
                 logger.info("Creating Qdrant collection: %s", index_name)
                 self._qdrant_client.create_collection(
@@ -289,7 +295,13 @@ class AIMemoryService:
                 client=self._qdrant_client, collection_name=index_name, embedding=embeddings,
             )
             retriever = vector_db.as_retriever()
-            docs = retriever.get_relevant_documents(question)
+            # NOTE: get_relevant_documents is deprecated in LangChain >= 0.3;
+            # invoke() is the replacement. Keep get_relevant_documents for
+            # backward compat with older installed versions.
+            try:
+                docs = retriever.invoke(question)
+            except AttributeError:
+                docs = retriever.get_relevant_documents(question)
 
             if not docs:
                 return "No relevant vector memory found."
