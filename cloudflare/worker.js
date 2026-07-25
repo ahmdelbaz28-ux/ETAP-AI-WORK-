@@ -206,11 +206,14 @@ export default {
     // Preserve real client IP (Cloudflare already sets CF-Connecting-IP)
     // The origin middleware will use CF-Connecting-IP
 
+    // Regex for static asset file extensions (used for caching)
+    const staticAssetPattern = /\.(js|css|png|jpg|svg|woff2?)$/;
+
     try {
       const originResponse = await fetch(originRequest, {
         cf: {
           // Don't cache API responses — they're dynamic and user-specific
-          cacheEverything: path.startsWith("/assets/") || path.exec(/\.(js|css|png|jpg|svg|woff2?)$/),
+          cacheEverything: path.startsWith("/assets/") || staticAssetPattern.test(path),
           cacheTtl: path.startsWith("/assets/") ? 31536000 : 0,  // 1 year for static assets
         },
       });
@@ -236,7 +239,7 @@ export default {
       response.headers.set("CF-RAY", rayID);
 
       // Cache static assets for 1 year (immutable — Vite uses content-hashed filenames)
-      if (path.startsWith("/assets/") || path.exec(/\.(js|css|png|jpg|svg|woff2?)$/)) {
+      if (path.startsWith("/assets/") || staticAssetPattern.test(path)) {
         response.headers.set("Cache-Control", "public, max-age=31536000, immutable");
       }
 

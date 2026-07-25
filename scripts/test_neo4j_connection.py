@@ -88,7 +88,7 @@ def test_neo4j():
                 print(f"  {OK}[OK]{END}   Server: {version_result['name']}, Versions: {version_result['versions']}")
 
             # Check existing constraints and labels
-            labels_result = session.run("CALL db.labels() YIELD label RETURN label ORDER BY label").list()
+            labels_result = [r for r in session.run("CALL db.labels() YIELD label RETURN label ORDER BY label")]
             if labels_result:
                 labels = [r['label'] for r in labels_result]
                 print(f"  {OK}[OK]{END}   Existing labels: {labels}")

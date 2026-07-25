@@ -51,6 +51,9 @@ class Neo4jClient:
                 self.driver: Driver = GraphDatabase.driver(
                     self.uri,
                     auth=(self.username, self.password),
+                    connection_timeout=10,
+                    max_connection_lifetime=3600,
+                    max_connection_pool_size=50,
                 )
                 # Test connection
                 with self.driver.session() as session:
@@ -170,12 +173,18 @@ class Neo4jDB:
 
     def get_all_buses(self) -> list[dict[str, Any]]:
         """Get all buses from the power system graph."""
-        result = self.client.execute_query("MATCH (b:Bus) RETURN b")
+        result = self.client.execute_query(
+            "MATCH (b:Bus) RETURN b LIMIT $limit",
+            {"limit": 1000},
+        )
         return result.get("data", [])
 
     def get_all_lines(self) -> list[dict[str, Any]]:
         """Get all transmission lines from the graph."""
-        result = self.client.execute_query("MATCH (l:Line) RETURN l")
+        result = self.client.execute_query(
+            "MATCH (l:Line) RETURN l LIMIT $limit",
+            {"limit": 1000},
+        )
         return result.get("data", [])
 
     def get_topology(self) -> dict[str, Any]:
@@ -204,8 +213,7 @@ class Neo4jDB:
     ) -> dict[str, Any]:
         """Create a new transmission line."""
         query = """
-        MATCH (from:Bus {id: $from_bus})
-        MATCH (to:Bus {id: $to_bus})
+        MATCH (from:Bus {id: $from_bus}), (to:Bus {id: $to_bus})
         CREATE (from)-[r:LINE {id: $line_id, impedance: $impedance}]->(to)
         RETURN r
         """
@@ -220,10 +228,17 @@ class Neo4jDB:
         )
 
     def get_shortest_path(self, from_bus: str, to_bus: str) -> list[dict[str, Any]] | None:
-        """Find the shortest path between two buses."""
+        """Find the shortest path between two buses.
+
+        Returns None when from_bus == to_bus (same-node shortestPath
+        is not supported by Neo4j — raises a DatabaseError).
+        """
+        if from_bus == to_bus:
+            return [from_bus]
+
         query = """
         MATCH (from:Bus {id: $from_bus}), (to:Bus {id: $to_bus})
-        MATCH path = shortestPath((from)-[*]-(to))
+        MATCH path = shortestPath((from)-[*..15]-(to))
         RETURN [node IN nodes(path) | node.id] AS path
         """
         result = self.client.execute_query(
