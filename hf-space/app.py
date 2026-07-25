@@ -203,8 +203,8 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-csrf-token"],
 )
 
 # CSRF middleware — validates X-CSRF-Token on state-changing requests
@@ -580,10 +580,26 @@ async def etap_gui_execute(request: Request):
             content={"success": False, "error": "Field 'question' is required and must be a non-empty string."},
         )
 
-    max_steps = int(body.get("max_steps", 15))
+    max_steps = max(1, min(int(body.get("max_steps", 15)), 50))  # SECURITY: bounded to prevent resource exhaustion
     require_confirmation = bool(body.get("require_confirmation", True))
     audit_dir = body.get("audit_dir")
     start_url = body.get("start_url")
+
+    # SECURITY: SSRF prevention — validate start_url scheme and reject private IPs
+    if start_url:
+        from urllib.parse import urlparse
+        parsed = urlparse(start_url)
+        if parsed.scheme not in ("https", "http"):
+            return JSONResponse(status_code=400, content={"success": False, "error": "Invalid URL scheme"})
+        hostname = parsed.hostname or ""
+        # Reject private/reserved IP ranges per RFC 1918, RFC 5737, RFC 3927
+        import ipaddress
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                return JSONResponse(status_code=400, content={"success": False, "error": "Private/internal URLs are not allowed"})
+        except ValueError:
+            pass  # hostname is a domain, not an IP — proceed
 
     # ─── FAST PATH: smoke-test / dry-run detection ─────────────────────────
     # The real Browser CUA loop needs to launch Chromium, navigate, capture
