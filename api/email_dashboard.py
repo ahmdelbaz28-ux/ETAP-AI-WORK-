@@ -91,7 +91,8 @@ def _require_admin(request: Request) -> dict:
         except Exception as jwt_err:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid JWT token: {jwt_err}",
+                # SECURITY AUDIT 2026-07-26 — S-23: Do not leak JWT error details.
+                detail="Invalid or expired authentication token",
             ) from jwt_err
 
     # ─── Method 3: Dev mode (no auth) ────────────────────────────────────
