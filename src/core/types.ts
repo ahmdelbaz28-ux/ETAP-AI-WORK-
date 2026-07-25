@@ -1,18 +1,15 @@
-/**
+/*
  * Shared types for the worker.
- * Kept in core/ so every module can import without circular deps.
+ * Security additions: TRUSTED_ORIGINS, AUDIT_HMAC_SECRET, AUDIT_KV, IP_BLOCK_KV.
  */
 export interface Env {
-  // AI provider secrets (NVIDIA + OpenAI are used; see src/core/config.ts)
+  // AI provider secrets
   OPENAI_API_KEY?: string;
   OPENAI_BASE_URL?: string;
   OPENAI_MODEL?: string;
   NVIDIA_API_KEY?: string;
   NVIDIA_BASE_URL?: string;
   NVIDIA_MODEL?: string;
-
-  // Additional LLM providers (added 2026-07-07)
-  // All providers are OpenAI-compatible (chat/completions endpoint)
   RENDER_API_KEY?: string;
   RENDER_BASE_URL?: string;
   RENDER_MODEL?: string;
@@ -31,8 +28,6 @@ export interface Env {
   MODAL_API_KEY?: string;
   MODAL_BASE_URL?: string;
   MODAL_MODEL?: string;
-
-  // Additional LLM providers (added 2026-07-08)
   BYNARA_API_KEY?: string;
   BYNARA_BASE_URL?: string;
   BYNARA_MODEL?: string;
@@ -45,13 +40,19 @@ export interface Env {
   MASTRA_API_URL?: string;
   MASTRA_API_KEY?: string;
 
-  // Engineering Service (Python computation engine)
+  // Engineering Service
   ENGINEERING_SERVICE_URL?: string;
   ENGINEERING_SERVICE_API_KEY?: string;
   ENGINEERING_SERVICE_TIMEOUT_MS?: string;
 
   // Auth
   API_KEY_SECRET?: string;
+
+  // Security — Trusted Origins (comma-separated, overrides DEFAULT_TRUSTED_ORIGINS)
+  TRUSTED_ORIGINS?: string;
+
+  // Security — HMAC secret for audit log integrity (generate: openssl rand -base64 32)
+  AUDIT_HMAC_SECRET?: string;
 
   // Observability
   LANGWATCH_API_KEY?: string;
@@ -63,12 +64,13 @@ export interface Env {
   TASK_STORE_KV?: KVNamespace;
   METRICS_KV?: KVNamespace;
   API_KEYS_KV?: KVNamespace;
+  AUDIT_KV?: KVNamespace;      // Dedicated audit log KV (separation of concerns)
+  IP_BLOCK_KV?: KVNamespace;    // IP ban list
 
   // Queue binding
   STUDY_QUEUE?: Queue;
 }
 
-// Minimal Queue interface for local testability
 export interface Queue {
   send(message: unknown): Promise<void>;
   sendBatch(messages: unknown[]): Promise<void>;
@@ -79,12 +81,8 @@ export interface ExecutionContext {
   passThroughOnException(): void;
 }
 
-// Minimal KVNamespace interface for local testability
 export interface KVNamespace {
-  // NOSONAR — typescript:S6571: `unknown | null` is technically simplified
-  // to `unknown`, but kept for parity with the official @cloudflare/workers-types
-  // KVNamespace signature so callers can copy-paste between local + prod.
-  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;  // NOSONAR — S6571: parity with @cloudflare/workers-types KVNamespace
+  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;
   put(
     key: string,
     value: string | ArrayBuffer | ReadableStream,

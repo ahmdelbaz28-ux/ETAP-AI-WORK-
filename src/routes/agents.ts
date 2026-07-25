@@ -1,4 +1,4 @@
-/**
+/*
  * Agent listing + chat routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
@@ -11,70 +11,39 @@ import { bumpApiMetric, bumpPerKey, bumpPerRoute } from '../utils/metrics.js';
 import { getCachedResponse, cacheResponse } from '../core/idempotency.js';
 
 export async function handleListAgents(
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-  apiKeyId: string,
-  scope: string,
-  traceId: string
+  request: Request, env: Env, ctx: ExecutionContext,
+  apiKeyId: string, scope: string, traceId: string
 ): Promise<Response> {
-  const origin = request.headers.get('origin') || '*';
+  const origin = request.headers.get('origin') || '';
   bumpApiMetric('totalRequests');
   bumpPerKey(apiKeyId);
   bumpPerRoute('agents-list');
   recordAudit({
-    timestamp: new Date().toISOString(),
-    traceId,
+    timestamp: new Date().toISOString(), traceId,
     clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-    method: 'GET',
-    path: '/api/v1/agents',
-    statusCode: 200,
+    method: 'GET', path: '/api/v1/agents', statusCode: 200,
     userAgent: request.headers.get('user-agent') || 'unknown',
-    action: 'LIST_AGENTS',
-    authenticated: true,
-    rateLimited: false,
-    apiKeyId,
-    scope,
+    action: 'LIST_AGENTS', authenticated: true, rateLimited: false, apiKeyId, scope,
   });
-  ctx.waitUntil((async () => { /* flush handled by index */ })());
-  return jsonResponse(
-    200,
-    {
-      agents: Object.values(AGENT_REGISTRY),
-      traceId,
-    },
-    corsHeaders(origin)
-  );
+  return jsonResponse(200, { agents: Object.values(AGENT_REGISTRY), traceId }, corsHeaders(origin, env));
 }
 
-export async function handleChat(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-  apiKeyId: string,
-  scope: string,
-  agentId: string,
-  traceId: string
+export async function handleChat(
+  request: Request, env: Env, ctx: ExecutionContext,
+  apiKeyId: string, scope: string, agentId: string, traceId: string
 ): Promise<Response> {
-  const origin = request.headers.get('origin') || '*';
+  const origin = request.headers.get('origin') || '';
 
   if (!getAgent(agentId)) {
     recordAudit({
-      timestamp: new Date().toISOString(),
-      traceId,
+      timestamp: new Date().toISOString(), traceId,
       clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-      method: 'POST',
-      path: `/api/v1/agents/${agentId}/chat`,
-      statusCode: 404,
+      method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 404,
       userAgent: request.headers.get('user-agent') || 'unknown',
-      action: 'AGENT_CHAT_AGENT_NOT_FOUND',
-      authenticated: true,
-      rateLimited: false,
-      apiKeyId,
-      scope,
+      action: 'AGENT_CHAT_AGENT_NOT_FOUND', authenticated: true, rateLimited: false, apiKeyId, scope,
       details: { agentId },
     });
-    return errorResponse(404, `Agent "${agentId}" not found`, traceId, corsHeaders(origin));
+    return errorResponse(404, `Agent "${agentId}" not found`, traceId, corsHeaders(origin, env));
   }
 
   // Idempotency check
@@ -85,105 +54,63 @@ export async function handleChat(  // NOSONAR — S3776: cognitive complexity; s
     if (cached) {
       bumpApiMetric('idempotentReplays');
       recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
+        timestamp: new Date().toISOString(), traceId,
         clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method: 'POST',
-        path: `/api/v1/agents/${agentId}/chat`,
-        statusCode: cached.status,
+        method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: cached.status,
         userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'AGENT_CHAT_IDEMPOTENT_REPLAY',
-        authenticated: true,
-        rateLimited: false,
-        apiKeyId,
-        scope,
+        action: 'AGENT_CHAT_IDEMPOTENT_REPLAY', authenticated: true, rateLimited: false, apiKeyId, scope,
         details: { idempotencyKey },
       });
       return new Response(cached.body, {
         status: cached.status,
-        headers: {
-          'content-type': cached.contentType,
-          'X-Idempotent-Replay': 'true',
-          ...corsHeaders(origin),
-        },
+        headers: { 'content-type': cached.contentType, 'X-Idempotent-Replay': 'true', ...corsHeaders(origin, env) },
       });
     }
   }
 
-  // Try Mastra proxy first (if configured)
+  // Try Mastra proxy first
   if (env.MASTRA_API_URL) {
     try {
       let body: unknown;
-      try {
-        body = await request.clone().json();
-      } catch {
-        // continue
-      }
+      try { body = await request.clone().json(); } catch { /* continue */ }
       const messages = (body as { messages?: unknown[] })?.messages || [];
       const proxyRes = await fetch(`${env.MASTRA_API_URL}/api/agents/${agentId}/generate`, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          ...(env.MASTRA_API_KEY ? { 'x-api-key': env.MASTRA_API_KEY } : {}),
-        },
-        body: JSON.stringify({
-          messages,
-          threadId: (body as { threadId?: string })?.threadId,
-          resourceId: (body as { resourceId?: string })?.resourceId,
-        }),
+        headers: { 'content-type': 'application/json', ...(env.MASTRA_API_KEY ? { 'x-api-key': env.MASTRA_API_KEY } : {}) },
+        body: JSON.stringify({ messages, threadId: (body as { threadId?: string })?.threadId, resourceId: (body as { resourceId?: string })?.resourceId }),
       });
       if (proxyRes.ok) {
         const proxyJson = (await proxyRes.json()) as Record<string, unknown>;
-        const body = JSON.stringify({ ...proxyJson, traceId });
+        const respBody = JSON.stringify({ ...proxyJson, traceId });
         recordAudit({
-          timestamp: new Date().toISOString(),
-          traceId,
+          timestamp: new Date().toISOString(), traceId,
           clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-          method: 'POST',
-          path: `/api/v1/agents/${agentId}/chat`,
-          statusCode: 200,
+          method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 200,
           userAgent: request.headers.get('user-agent') || 'unknown',
-          action: 'AGENT_CHAT_PROXY',
-          authenticated: true,
-          rateLimited: false,
-          apiKeyId,
-          scope,
+          action: 'AGENT_CHAT_PROXY', authenticated: true, rateLimited: false, apiKeyId, scope,
           details: { agentId },
         });
-        if (idempotencyKey) {
-          ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, body, 'application/json; charset=utf-8'));
-        }
-        return new Response(body, {
-          status: 200,
-          headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(origin) },
-        });
+        if (idempotencyKey) ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, respBody, 'application/json; charset=utf-8'));
+        return new Response(respBody, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(origin, env) } });
       }
-    } catch {
-      // fall through
-    }
+    } catch { /* fall through */ }
   }
 
   // Direct AI fallback
   let parsed: { messages?: Array<{ role: string; content: string }> } = {};
-  try {
-    parsed = (await request.json()) as typeof parsed;
-  } catch {
-    return errorResponse(400, 'Invalid JSON body', traceId, corsHeaders(origin));
+  try { parsed = (await request.json()) as typeof parsed; } catch {
+    return errorResponse(400, 'Invalid JSON body', traceId, corsHeaders(origin, env));
   }
   const messages = parsed.messages || [];
   if (!Array.isArray(messages) || messages.length === 0) {
-    return errorResponse(400, 'messages array is required', traceId, corsHeaders(origin));
+    return errorResponse(400, 'messages array is required', traceId, corsHeaders(origin, env));
   }
-
   if (!hasAnyProviderConfigured(env)) {
-    return errorResponse(503, 'No AI provider is configured', traceId, corsHeaders(origin));
+    return errorResponse(503, 'No AI provider is configured', traceId, corsHeaders(origin, env));
   }
 
   const agent = getAgent(agentId)!;
-  // Load generic chat prompt from YAML with dynamic agent name/description interpolation
-  const genericPromptSuffix = `\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
-  const systemPrompt = `You are the ${agent.name}. ${agent.description}.${genericPromptSuffix}`;
-
+  const systemPrompt = `You are the ${agent.name}. ${agent.description}.\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
   const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
   const mappedMessages = messages.map((m) => ({
     role: (validRoles.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
@@ -194,57 +121,31 @@ export async function handleChat(  // NOSONAR — S3776: cognitive complexity; s
     const result = await generateWithFailover(env, systemPrompt, mappedMessages);
     bumpApiMetric('agentChats');
     const responseBody = JSON.stringify({
-      agentId,
-      text: result.text,
-      provider: result.provider,
-      model: result.model,
-      latencyMs: result.latencyMs,
-      promptTokens: result.promptTokens,
-      completionTokens: result.completionTokens,
-      finishReason: result.finishReason,
-      traceId,
+      agentId, text: result.text, provider: result.provider, model: result.model,
+      latencyMs: result.latencyMs, promptTokens: result.promptTokens,
+      completionTokens: result.completionTokens, finishReason: result.finishReason, traceId,
     });
     recordAudit({
-      timestamp: new Date().toISOString(),
-      traceId,
+      timestamp: new Date().toISOString(), traceId,
       clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-      method: 'POST',
-      path: `/api/v1/agents/${agentId}/chat`,
-      statusCode: 200,
+      method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 200,
       userAgent: request.headers.get('user-agent') || 'unknown',
-      action: 'AGENT_CHAT',
-      authenticated: true,
-      rateLimited: false,
-      apiKeyId,
-      scope,
-      latencyMs: result.latencyMs,
-      details: { agentId, provider: result.provider },
+      action: 'AGENT_CHAT', authenticated: true, rateLimited: false, apiKeyId, scope,
+      latencyMs: result.latencyMs, details: { agentId, provider: result.provider },
     });
-    if (idempotencyKey) {
-      ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, responseBody, 'application/json; charset=utf-8'));
-    }
-    return new Response(responseBody, {
-      status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(origin) },
-    });
+    if (idempotencyKey) ctx.waitUntil(cacheResponse(env, apiKeyId, route, idempotencyKey, 200, responseBody, 'application/json; charset=utf-8'));
+    return new Response(responseBody, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(origin, env) } });
   } catch (aiError) {
     bumpApiMetric('errors');
     const msg = aiError instanceof Error ? aiError.message : 'AI generation failed';
     recordAudit({
-      timestamp: new Date().toISOString(),
-      traceId,
+      timestamp: new Date().toISOString(), traceId,
       clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-      method: 'POST',
-      path: `/api/v1/agents/${agentId}/chat`,
-      statusCode: 502,
+      method: 'POST', path: `/api/v1/agents/${agentId}/chat`, statusCode: 502,
       userAgent: request.headers.get('user-agent') || 'unknown',
-      action: 'AGENT_CHAT_AI_ERROR',
-      authenticated: true,
-      rateLimited: false,
-      apiKeyId,
-      scope,
+      action: 'AGENT_CHAT_AI_ERROR', authenticated: true, rateLimited: false, apiKeyId, scope,
       details: { agentId, error: msg },
     });
-    return errorResponse(502, msg, traceId, corsHeaders(origin));
+    return errorResponse(502, msg, traceId, corsHeaders(origin, env));
   }
 }

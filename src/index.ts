@@ -1,23 +1,24 @@
-/**
- * AhmedETAP - Cloudflare Worker (Production Hardened)
+/*
+ * AhmedETAP - Cloudflare Worker (Security Hardened)
  * ===========================================================
- * Thin orchestrator. All real logic lives in src/core/ and src/routes/.
- *
- * Hardening summary:
- *   - Body size limit enforced before any work (HTTP 413)
- *   - Per-API-key + per-(key,agent) rate limiting
- *   - Scoped API keys with per-route authorization
- *   - Bounded AI provider failover (max 2 providers, 8s timeout)
- *   - Circuit breaker filters unhealthy providers
- *   - Idempotency-Key support for safe retries
- *   - Dynamic provider registration disabled (410 Gone)
- *   - Security headers on every response
- *   - No silent audit-log drops
+ * Security layers applied per Better Auth Security Best Practices:
+ *   1. Trusted Origin whitelist (CORS never reflects arbitrary origin)
+ *   2. CSRF validation on all state-changing methods
+ *   3. Per-IP rate limiting + auto-ban for brute-force defense
+ *   4. Timing-safe API key comparison
+ *   5. API key expiration enforcement
+ *   6. Safe keyId (SHA-256, no raw key bytes exposed)
+ *   7. Per-endpoint rate limits (studies tighter than chat)
+ *   8. Dedicated audit KV with HMAC integrity
+ *   9. 500 errors never leak internal details
+ *  10. Cache-Control: no-store on all responses
+ *   11. extractClientIp with header chain validation
+ *   12. IP ban mechanism (sustained abuse)
  */
 import type { Env, ExecutionContext } from './core/types.js';
-import { errorResponse, corsHeaders, checkBodySize } from './utils/response.js';
+import { errorResponse, corsHeaders, checkBodySize, validateCsrf, extractClientIp } from './utils/response.js';
 import { validateApiKey, scopePermitsRoute, type RouteCategory } from './core/auth.js';
-import { checkRateLimit } from './core/rateLimit.js';
+import { checkRateLimit, checkIpRateLimit, recordIpAuthFailure, isIpBanned } from './core/rateLimit.js';
 import { recordAudit, flushAuditLog } from './utils/audit.js';
 import { bumpApiMetric, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
@@ -35,208 +36,136 @@ export { CONFIG } from './core/config.js';
 export type { Env, ExecutionContext };
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
     const path = url.pathname;
-    const origin = request.headers.get('origin') || '*';
+    const origin = request.headers.get('origin') || '';
     const traceId = crypto.randomUUID();
-    const cors = corsHeaders(origin);
+    const clientIp = extractClientIp(request);
+    const cors = corsHeaders(origin, env);
 
-    // 1) CORS preflight
+    // 0) IP ban check (before anything else)
+    if (await isIpBanned(env, clientIp)) {
+      bumpApiMetric('rateLimited');
+      recordAudit({
+        timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 429,
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        action: 'IP_BANNED', authenticated: false, rateLimited: true,
+      });
+      ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
+      return errorResponse(429, 'Your IP has been temporarily blocked due to suspicious activity.', traceId, {
+        ...cors, 'Retry-After': String(900),
+      });
+    }
+
+    // 1) CORS preflight — only for trusted origins
     if (method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: cors });
     }
 
-    // 2) Public routes (no auth, no body size check)
-    if (path === '/' && method === 'GET') {
-      return handleRoot(request, env, ctx);
-    }
+    // 2) Public routes (no auth required)
+    if (path === '/' && method === 'GET') return handleRoot(request, env, ctx);
     if (path === '/health' && method === 'GET') {
-      // Lazily load persisted circuit breaker state (any public route triggers it)
-      if (!_circuitsLoaded) {
-        _circuitsLoaded = true;
-        ctx.waitUntil(loadCircuitBreakers(env));
-      }
+      if (!_circuitsLoaded) { _circuitsLoaded = true; ctx.waitUntil(loadCircuitBreakers(env)); }
       return handleHealth(request, env, ctx);
     }
     if (path === '/metrics' && method === 'GET') {
       if (!_metricsLoaded) {
-        _metricsLoaded = true;
-        ctx.waitUntil(loadMetrics(env));
-        if (!_circuitsLoaded) {
-          _circuitsLoaded = true;
-          ctx.waitUntil(loadCircuitBreakers(env));
-        }
+        _metricsLoaded = true; ctx.waitUntil(loadMetrics(env));
+        if (!_circuitsLoaded) { _circuitsLoaded = true; ctx.waitUntil(loadCircuitBreakers(env)); }
       }
       return handleMetrics(request, env, ctx);
     }
 
-    // 3) Authenticated routes — enforce body size first
+    // 3) Authenticated routes
     if (!path.startsWith('/api/v1')) {
       return errorResponse(404, `Not Found: ${method} ${path}`, traceId, cors);
     }
 
-    // 3a) Body size guard — all methods that can carry a body
+    // 3a) CSRF validation for state-changing methods
+    const csrfErr = validateCsrf(request, method, traceId, env);
+    if (csrfErr) {
+      bumpApiMetric('authFailures');
+      recordAudit({
+        timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 403,
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        action: 'CSRF_REJECTED', authenticated: false, rateLimited: false,
+        details: { origin: request.headers.get('origin'), referer: request.headers.get('referer'), secFetchSite: request.headers.get('sec-fetch-site') },
+      });
+      ctx.waitUntil(flushAuditLog(env));
+      return csrfErr;
+    }
+
+    // 3b) Body size guard
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       const sizeErr = await checkBodySize(request);
       if (sizeErr) {
         bumpApiMetric('bodySizeRejections');
-        recordAudit({
-          timestamp: new Date().toISOString(),
-          traceId,
-          clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-          method,
-          path,
-          statusCode: 413,
-          userAgent: request.headers.get('user-agent') || 'unknown',
-          action: 'BODY_SIZE_REJECTED',
-          authenticated: false,
-          rateLimited: false,
-        });
+        recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 413, userAgent: request.headers.get('user-agent') || 'unknown', action: 'BODY_SIZE_REJECTED', authenticated: false, rateLimited: false });
         ctx.waitUntil(flushAuditLog(env));
         return sizeErr;
       }
     }
 
-    // 3b) Authenticate
+    // 3c) Authenticate
     const apiKey = request.headers.get('x-api-key');
     const auth = await validateApiKey(env, apiKey);
     if (!auth.valid) {
       bumpApiMetric('authFailures');
-      recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method,
-        path,
-        statusCode: 401,
-        userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'AUTH_FAILURE',
-        authenticated: false,
-        rateLimited: false,
-      });
+      // Track IP auth failure for ban threshold
+      ctx.waitUntil(recordIpAuthFailure(env, clientIp));
+      // Per-IP rate limit on auth failures
+      const ipRl = await checkIpRateLimit(env, clientIp);
+      if (!ipRl.allowed) {
+        bumpApiMetric('rateLimited');
+        recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 429, userAgent: request.headers.get('user-agent') || 'unknown', action: ipRl.banned ? 'IP_BANNED' : 'RATE_LIMITED', authenticated: false, rateLimited: true });
+        ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
+        return errorResponse(429, 'Too many authentication attempts. Try again later.', traceId, { ...cors, 'Retry-After': String(ipRl.retryAfter || 60) });
+      }
+      recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 401, userAgent: request.headers.get('user-agent') || 'unknown', action: auth.auditAction, authenticated: false, rateLimited: false });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
       return errorResponse(401, auth.error, traceId, cors);
     }
 
-    // 3c) Per-route scope check
+    // 3d) Per-route scope check
     const category = categorize(path, method);
     if (!scopePermitsRoute(auth.scope, category)) {
-      recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method,
-        path,
-        statusCode: 403,
-        userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'SCOPE_DENIED',
-        authenticated: true,
-        rateLimited: false,
-        apiKeyId: auth.keyId,
-        scope: auth.scope,
-        details: { category },
-      });
+      recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 403, userAgent: request.headers.get('user-agent') || 'unknown', action: 'SCOPE_DENIED', authenticated: true, rateLimited: false, apiKeyId: auth.keyId, scope: auth.scope, details: { category } });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
       return errorResponse(403, `API key scope "${auth.scope}" is not permitted for this route`, traceId, cors);
     }
 
-    // 3d) Per-API-key rate limit (plus per-agent for chat)
+    // 3e) Per-API-key rate limit (plus per-agent for chat, plus per-endpoint)
     const agentIdMatch = path.match(/^\/api\/v1\/agents\/([^/]+)\/chat$/);
     const agentIdForLimit = agentIdMatch ? agentIdMatch[1] : undefined;
-    const rl = await checkRateLimit(env, auth.keyId, agentIdForLimit);
+    const rl = await checkRateLimit(env, auth.keyId, agentIdForLimit, method, path);
     if (!rl.allowed) {
       bumpApiMetric('rateLimited');
-      recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method,
-        path,
-        statusCode: 429,
-        userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'RATE_LIMITED',
-        authenticated: true,
-        rateLimited: true,
-        apiKeyId: auth.keyId,
-        scope: auth.scope,
-        details: rl.dimension ? { dimension: rl.dimension } : undefined,
-      });
+      recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 429, userAgent: request.headers.get('user-agent') || 'unknown', action: 'RATE_LIMITED', authenticated: true, rateLimited: true, apiKeyId: auth.keyId, scope: auth.scope, details: rl.dimension ? { dimension: rl.dimension } : undefined });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
-      return errorResponse(429, 'Rate limit exceeded. Try again later.', traceId, {
-        ...cors,
-        'Retry-After': String(rl.retryAfter || 60),
-      });
+      return errorResponse(429, 'Rate limit exceeded. Try again later.', traceId, { ...cors, 'Retry-After': String(rl.retryAfter || 60) });
     }
 
     // 4) Route dispatch
     try {
-      // Agents
-      if (path === '/api/v1/agents' && method === 'GET') {
-        return handleListAgents(request, env, ctx, auth.keyId, auth.scope, traceId);
-      }
-      if (agentIdMatch && method === 'POST') {
-        return handleChat(request, env, ctx, auth.keyId, auth.scope, agentIdMatch[1], traceId);
-      }
-
-      // Providers
-      if (path === '/api/v1/providers' && method === 'GET') {
-        return handleListProviders(request, env, ctx, auth.keyId, auth.scope, traceId);
-      }
-      if (path === '/api/v1/providers' && method === 'POST') {
-        return handleRegisterProvider(request, env, ctx, auth.keyId, auth.scope, traceId);
-      }
-
-      // Studies
-      if (path === '/api/v1/studies/run' && method === 'POST') {
-        return handleStudyRun(request, env, ctx, auth.keyId, auth.scope, traceId);
-      }
+      if (path === '/api/v1/agents' && method === 'GET') return handleListAgents(request, env, ctx, auth.keyId, auth.scope, traceId);
+      if (agentIdMatch && method === 'POST') return handleChat(request, env, ctx, auth.keyId, auth.scope, agentIdMatch[1], traceId);
+      if (path === '/api/v1/providers' && method === 'GET') return handleListProviders(request, env, ctx, auth.keyId, auth.scope, traceId);
+      if (path === '/api/v1/providers' && method === 'POST') return handleRegisterProvider(request, env, ctx, auth.keyId, auth.scope, traceId);
+      if (path === '/api/v1/studies/run' && method === 'POST') return handleStudyRun(request, env, ctx, auth.keyId, auth.scope, traceId);
       const studyStatusMatch = path.match(/^\/api\/v1\/studies\/status\/([^/]+)$/);
-      if (studyStatusMatch && method === 'GET') {
-        return handleStudyStatus(request, env, ctx, auth.keyId, auth.scope, traceId, studyStatusMatch[1]);
-      }
-
-      // Audit
-      if (path === '/api/v1/audit/logs' && method === 'GET') {
-        return handleAuditLogs(request, env, ctx, auth.keyId, auth.scope, traceId);
-      }
+      if (studyStatusMatch && method === 'GET') return handleStudyStatus(request, env, ctx, auth.keyId, auth.scope, traceId, studyStatusMatch[1]);
+      if (path === '/api/v1/audit/logs' && method === 'GET') return handleAuditLogs(request, env, ctx, auth.keyId, auth.scope, traceId);
 
       // 404
-      recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method,
-        path,
-        statusCode: 404,
-        userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'NOT_FOUND',
-        authenticated: true,
-        rateLimited: false,
-        apiKeyId: auth.keyId,
-        scope: auth.scope,
-      });
+      recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 404, userAgent: request.headers.get('user-agent') || 'unknown', action: 'NOT_FOUND', authenticated: true, rateLimited: false, apiKeyId: auth.keyId, scope: auth.scope });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
       return errorResponse(404, `Not Found: ${method} ${path}`, traceId, cors);
     } catch (err) {
       bumpApiMetric('errors');
       const msg = err instanceof Error ? err.message : 'Internal error';
-      recordAudit({
-        timestamp: new Date().toISOString(),
-        traceId,
-        clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
-        method,
-        path,
-        statusCode: 500,
-        userAgent: request.headers.get('user-agent') || 'unknown',
-        action: 'INTERNAL_ERROR',
-        authenticated: true,
-        rateLimited: false,
-        apiKeyId: auth.keyId,
-        scope: auth.scope,
-        details: { error: msg },
-      });
+      recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp, method, path, statusCode: 500, userAgent: request.headers.get('user-agent') || 'unknown', action: 'INTERNAL_ERROR', authenticated: true, rateLimited: false, apiKeyId: auth.keyId, scope: auth.scope, details: { error: msg } });
       ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
       return errorResponse(500, 'Internal server error', traceId, cors);
     }
