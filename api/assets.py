@@ -14,6 +14,13 @@ Endpoints (under ``/api/v1/assets``):
 * ``DELETE /{asset_id}``     — Delete an asset (returns 204 No Content)
 
 All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
+
+SECURITY AUDIT 2026-07-25 — Fix S-11: Authorization checks added.
+PUT and DELETE endpoints now verify that the authenticated user either:
+  1. Created the asset (created_by matches user_id), OR
+  2. Has admin role.
+This prevents BOLA/IDOR where any authenticated user could modify/delete
+assets belonging to other users.
 """
 
 from __future__ import annotations
@@ -261,13 +268,25 @@ async def create_asset(
 async def update_asset(
     asset_id: str,
     body: AssetUpdateRequest,
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Any:
-    """Update an existing asset. Only non-null fields are updated."""
+    """Update an existing asset. Only non-null fields are updated.
+
+    SECURITY (S-11): Requires user authentication. Only the asset creator
+    or an admin can update the asset.
+    """
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+
+    # SECURITY (S-11): Authorization check — owner or admin
+    if asset.created_by != user.user_id and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update this asset",
+        )
 
     update_data = body.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -289,6 +308,7 @@ async def update_asset(
 )
 async def delete_asset(
     asset_id: str,
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Response:
     """Permanently delete an asset.
@@ -297,10 +317,21 @@ async def delete_asset(
     `response_class=Response` to opt out of FastAPI's default response-model
     validation, which would otherwise reject the 204 + body combination
     (FastAPI 0.115+ enforces this at route registration time).
+
+    SECURITY (S-11): Requires user authentication. Only the asset creator
+    or an admin can delete the asset.
     """
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+
+    # SECURITY (S-11): Authorization check — owner or admin
+    if asset.created_by != user.user_id and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this asset",
+        )
+
     await db.delete(asset)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

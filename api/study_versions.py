@@ -43,6 +43,7 @@ from api.database import Base
 from api.dependencies import (
     CurrentUser,
     get_current_user_from_header,
+    get_api_key,
 )
 from api.rbac import require_permission
 
@@ -101,7 +102,7 @@ class CompareResponse(BaseModel):
     results_diff: Optional[dict[str, Any]] = None
 
 
-router = APIRouter(prefix="/api/v1/projects", tags=["Study Versions"])
+router = APIRouter(prefix="/api/v1/projects", tags=["Study Versions"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 
 
 async def _get_study_result(project_id: str, study_id: str, db: AsyncSession) -> Any:

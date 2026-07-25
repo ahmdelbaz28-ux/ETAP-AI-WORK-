@@ -382,8 +382,8 @@ def verify_api_key(
             # The downstream route's CurrentUser dependency will reject it
             pass
         except Exception:
-            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through
-            pass
+            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through to API key check
+            pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, expected_key):
@@ -661,10 +661,9 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "data": result,
             }
         except ImportError as ie:
-            logger.exception("etap_expert module not available")
-            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            logger.warning("etap_expert_import_failed missing=%s", str(ie))
             return {
-                "error": f"ETAP Expert agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "error": "ETAP Expert agent is not available on this deployment. Required dependencies are not installed.",
                 "status": "unavailable",
                 "study_type": "etap_expert",
                 "_status": 503,
@@ -681,7 +680,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                     "_status": 503,
                 }
             return {
-                "error": f"ETAP Expert agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "error": "ETAP Expert agent encountered an error. Please verify the server configuration and try again.",
                 "status": "failed",
                 "study_type": "etap_expert",
                 "_status": 500,
@@ -708,10 +707,9 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "data": result,
             }
         except ImportError as ie:
-            logger.exception("etap_gui module not available")
-            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            logger.warning("etap_gui_import_failed missing=%s", str(ie))
             return {
-                "error": f"ETAP GUI agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "error": "ETAP GUI agent is not available on this deployment. Required dependencies are not installed.",
                 "status": "unavailable",
                 "study_type": "etap_gui",
                 "_status": 503,
@@ -728,7 +726,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                     "_status": 503,
                 }
             return {
-                "error": f"ETAP GUI agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "error": "ETAP GUI agent encountered an error. Please verify the server configuration and try again.",
                 "status": "failed",
                 "study_type": "etap_gui",
                 "_status": 500,
@@ -787,7 +785,8 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
         except ImportError:
             engine_error = "Engine modules not available in HF Space deployment"
         except Exception as exc:
-            engine_error = str(exc)
+            logger.exception("load_flow_engine_failed error=%s", str(exc))
+            engine_error = "Load flow computation failed"
 
     # -- Build response -----------------------------------------------------
     # IMPORTANT: Studies that cannot be executed are NOT queued — there is no
@@ -835,7 +834,7 @@ def handle_etap_expert_chat(question: str) -> dict[str, Any]:
         return {"success": True, "data": result}
     except Exception as exc:
         logger.exception("etap_expert chat failed")
-        return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
+        return {"error": "ETAP Expert agent error", "_status": 500}
 
 
 def handle_etap_gui_chat(question: str) -> dict[str, Any]:
@@ -854,7 +853,7 @@ def handle_etap_gui_chat(question: str) -> dict[str, Any]:
         return {"success": True, "data": result}
     except Exception as exc:
         logger.exception("etap_gui chat failed")
-        return {"error": f"ETAP GUI agent error: {exc}", "_status": 500}
+        return {"error": "ETAP GUI agent error", "_status": 500}
 
 
 # ---------------------------------------------------------------------------
@@ -882,8 +881,7 @@ def handle_ml_capabilities() -> dict[str, Any]:
         else:
             hint = (
                 "ml.predictive failed to import. Install ML dependencies: "
-                "pip install numpy scipy pandas scikit-learn. "
-                f"Detail: {msg}"
+                "pip install numpy scipy pandas scikit-learn."
             )
         return {
             "success": False,
@@ -897,7 +895,7 @@ def handle_ml_capabilities() -> dict[str, Any]:
             "_status": 503,
         }
     except Exception as e:
-        return {"success": False, "errors": [str(e)], "_status": 500}
+        return {"success": False, "errors": ["Internal server error"], "_status": 500}
 
 
 def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
@@ -961,10 +959,10 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         }
     except (ValueError, TypeError, KeyError) as e:
         # Client-side input problem — return 400 Bad Request.
-        return {"success": False, "errors": [str(e)], "_status": 400}
+        return {"success": False, "errors": ["Internal server error"], "_status": 400}
     except Exception as e:
         # Genuine server-side failure (ImportError, ML backend crash, etc.).
-        return {"success": False, "errors": [str(e)], "_status": 500}
+        return {"success": False, "errors": ["Internal server error"], "_status": 500}
 
 
 def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
@@ -990,7 +988,7 @@ def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
 
         return {"success": True, "data": result}
     except Exception as e:
-        return {"success": False, "errors": [str(e)], "_status": 500}
+        return {"success": False, "errors": ["Internal server error"], "_status": 500}
 
 
 def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
@@ -1032,7 +1030,7 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
                 )
         return response
     except Exception as e:
-        return {"success": False, "errors": [str(e)], "_status": 500}
+        return {"success": False, "errors": ["Internal server error"], "_status": 500}
 
 
 def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]:
@@ -1057,4 +1055,4 @@ def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]
         }
     except Exception as e:
         logger.exception("Failed to run impact analysis")
-        return {"success": False, "errors": [str(e)], "_status": 500}
+        return {"success": False, "errors": ["Internal server error"], "_status": 500}

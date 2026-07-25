@@ -1,9 +1,15 @@
 """
 WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
+
+SECURITY AUDIT 2026-07-25 — Fix S-03: Added JWT authentication.
+Previously, any client could connect without authentication, exposing
+SCADA data to unauthorized parties. Now requires a valid JWT token
+passed as a query parameter: ws://host/ws/scada?token=<jwt_access_token>
 """
 
 import asyncio
+import hmac
 import json
 import logging
 from datetime import datetime, timezone
@@ -11,7 +17,7 @@ from typing import List
 
 UTC = timezone.utc  # noqa: UP017
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect, Query
 from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
@@ -193,17 +199,86 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-async def scada_websocket_endpoint(websocket: WebSocket) -> None:
-    """WebSocket endpoint for real-time SCADA data."""
+def _validate_ws_token(token: str) -> bool:
+    """Validate JWT token for WebSocket authentication (S-03).
+
+    Accepts:
+    1. Valid JWT access token (Bearer-style)
+    2. Engineering API service key (server-to-server)
+    3. Skip validation if AUTH_DISABLED=true in development
+    """
+    import os
+
+    # Skip in development if auth is disabled
+    if os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes"):
+        env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development"))
+        if env.lower() in ("development", "dev"):
+            return True
+
+    # Check API key (server-to-server) — constant-time comparison
+    api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key and hmac.compare_digest(token, api_key):
+        return True
+
+    # Check JWT token
+    try:
+        import jwt
+        jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+        if not jwt_secret:
+            logger.warning("WS auth: JWT_SECRET_KEY not configured")
+            return False
+        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
+        # Accept only access tokens
+        if payload.get("type") != "access":
+            logger.warning("WS auth: rejected non-access token (type=%s)", payload.get("type"))
+            return False
+        # SECURITY: Check token blacklist (revoked tokens)
+        jti = payload.get("jti")
+        if jti:
+            try:
+                from api.auth import _is_token_blacklisted
+                if _is_token_blacklisted(jti):
+                    logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
+                    return False
+            except (ImportError, AttributeError):
+                pass  # blacklist unavailable
+        return True
+    except jwt.ExpiredSignatureError:
+        logger.warning("WS auth: token expired")
+        return False
+    except jwt.InvalidTokenError as e:
+        logger.warning("WS auth: invalid token: %s", e)
+        return False
+
+
+async def scada_websocket_endpoint(
+    websocket: WebSocket,
+    token: str = Query(default="", description="JWT access token or API key for authentication"),
+) -> None:
+    """WebSocket endpoint for real-time SCADA data.
+
+    SECURITY (S-03): Requires authentication via query parameter:
+      ws://host/ws/scada?token=<jwt_access_token>
+    """
+    # SECURITY: Validate token before accepting connection
+    if not _validate_ws_token(token):
+        await websocket.close(code=4001, reason="Authentication required — provide valid token parameter")
+        logger.warning("WebSocket connection rejected: invalid or missing auth token")
+        return
+
     await scada_feed.connect(websocket)
     try:
-        # Keep the connection alive
         while True:
-            # We don't expect to receive messages from clients in this implementation
-            # Just keep the connection alive and send periodic updates
             data = await websocket.receive_text()
-            # Optionally handle client messages if needed
-            await scada_feed.send_personal_message(f"Ack: {data}", websocket)
+            # SECURITY (S-04): Sanitize input — do not echo raw user data back
+            # Only acknowledge receipt with a safe, structured response
+            try:
+                parsed = json.loads(data)
+                msg_type = parsed.get("type", "unknown") if isinstance(parsed, dict) else "unknown"
+                safe_ack = json.dumps({"ack": True, "type": msg_type})
+            except (json.JSONDecodeError, TypeError):
+                safe_ack = json.dumps({"ack": True, "type": "raw"})
+            await scada_feed.send_personal_message(safe_ack, websocket)
     except WebSocketDisconnect:
         scada_feed.disconnect(websocket)
     except Exception:

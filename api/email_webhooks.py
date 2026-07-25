@@ -486,6 +486,7 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
     summary="List recent inbound webhook events (debug)",
 )
 async def list_events(limit: int = 50) -> JSONResponse:
+    limit = max(1, min(limit, 500))  # SECURITY: bounded to prevent abuse
     return JSONResponse(
         content={
             "success": True,

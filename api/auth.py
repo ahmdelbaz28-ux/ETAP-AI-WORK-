@@ -321,7 +321,9 @@ class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: str = Field(default="engineer", pattern=r"^(admin|engineer|viewer)$")
+    # SECURITY AUDIT 2026-07-25 — Fix S-02: role field removed from registration.
+    # Previously allowed self-assigned "admin" role → privilege escalation.
+    # New users always get "viewer" role. Admin promotion via admin-only endpoint.
 
     @field_validator("password")
     @classmethod
@@ -601,7 +603,8 @@ async def register(
         username=body.username,
         email=body.email,
         password_hash=_hash_password(body.password),
-        role=body.role,
+        # SECURITY: Force "viewer" role for all new registrations (S-02)
+        role="viewer",
     )
     db.add(user)
     await db.flush()

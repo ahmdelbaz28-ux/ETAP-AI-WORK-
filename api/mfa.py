@@ -5,10 +5,24 @@ Handles all multi-factor authentication endpoints.
 Separated from main engineering service for better modularity.
 """
 
+import threading
+import time
+from collections import defaultdict
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
+
+# SECURITY AUDIT 2026-07-26 — S-24: Brute-force protection for TOTP verify.
+# Tracks failed attempts per user_id. After MAX_FAILED_ATTEMPTS within
+# LOCKOUT_WINDOW seconds, the endpoint rejects further attempts.
+# Uses threading.Lock for thread safety on shared state.
+_MAX_FAILED_ATTEMPTS = 5
+_LOCKOUT_WINDOW = 300  # seconds (5 minutes)
+_LOCKOUT_DURATION = 900  # seconds (15 minutes)
+_failed_attempts: dict[str, list[float]] = defaultdict(list)
+_lockouts: dict[str, float] = {}
+_mfa_lock = threading.Lock()
 
 
 @router.post("/totp/setup")
@@ -47,7 +61,7 @@ async def setup_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )
 
 
@@ -61,14 +75,44 @@ async def verify_totp(request: Request):
         code = body.get("code")
 
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="user_id is required")
         if not code:
-            raise HTTPException(status_code=400, detail="code is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="code is required")
+
+        # SECURITY AUDIT 2026-07-26 — S-24: Check lockout status.
+        now = time.time()
+        with _mfa_lock:
+            if user_id in _lockouts:
+                if now - _lockouts[user_id] < _LOCKOUT_DURATION:
+                    remaining = int(_LOCKOUT_DURATION - (now - _lockouts[user_id]))
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Account locked due to too many failed attempts. Try again in {remaining}s.",
+                    )
+                else:
+                    # Lockout expired — clear
+                    del _lockouts[user_id]
+                    _failed_attempts.pop(user_id, None)
 
         from security.mfa import TOTPProvider
 
         totp = TOTPProvider()
         is_valid = totp.verify_code(user_id, code)
+
+        if not is_valid:
+            # SECURITY: Track failed attempt (under lock)
+            with _mfa_lock:
+                _failed_attempts[user_id].append(now)
+                # Prune old attempts outside the window
+                _failed_attempts[user_id] = [
+                    t for t in _failed_attempts[user_id] if now - t < _LOCKOUT_WINDOW
+                ]
+                if len(_failed_attempts[user_id]) >= _MAX_FAILED_ATTEMPTS:
+                    _lockouts[user_id] = now
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Too many failed MFA attempts. Account temporarily locked.",
+                    )
 
         return JSONResponse(
             content={
@@ -87,5 +131,5 @@ async def verify_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )
