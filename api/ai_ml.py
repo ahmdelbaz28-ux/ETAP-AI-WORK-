@@ -14,14 +14,52 @@ Enhanced with:
 """
 
 import numpy as np
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 
+# SECURITY AUDIT 2026-07-25 — Fix S-07: Add authentication to all AI/ML endpoints.
+# Previously, these endpoints were accessible without any authentication, allowing
+# unauthenticated users to trigger resource-intensive ML training and inference.
 
-@router.get("/ml/capabilities")
-async def ml_capabilities():
+async def _get_api_key_or_user(request: Request):
+    """Shared auth dependency for AI/ML endpoints (S-07).
+
+    Accepts either:
+    1. Valid X-API-Key header (server-to-server)
+    2. Valid JWT Bearer token (user auth)
+    """
+    import os
+
+    # Check API key first
+    api_key = request.headers.get("x-api-key", "")
+    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key and expected_key and api_key == expected_key:
+        return True
+
+    # Check JWT Bearer token
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header.split(" ", 1)[1]
+        try:
+            import jwt
+            jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+            if jwt_secret:
+                jwt.decode(token, jwt_secret, algorithms=["HS256"])
+                return True
+        except Exception:
+            pass
+
+    # No valid auth
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Provide X-API-Key or Bearer token.",
+    )
+
+
+@router.get("/ml/capabilities", dependencies=[Depends(_get_api_key_or_user)])
+async def ml_capabilities(request: Request):
     """Discover available ML/AI capabilities and their status."""
     try:
         from ml.predictive import get_ml_capabilities
@@ -51,7 +89,7 @@ def _clean_nan(obj: Any) -> Any:
     return obj
 
 
-@router.post("/predict/load")
+@router.post("/predict/load", dependencies=[Depends(_get_api_key_or_user)])
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -108,7 +146,7 @@ async def predict_load(request: Request):
         )
 
 
-@router.post("/predict/fault")
+@router.post("/predict/fault", dependencies=[Depends(_get_api_key_or_user)])
 async def predict_fault(request: Request):
     """Predict fault type using XGBoost/RandomForest with optional SHAP explanation."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -161,7 +199,7 @@ async def predict_fault(request: Request):
         )
 
 
-@router.post("/predict/fault/train")
+@router.post("/predict/fault/train", dependencies=[Depends(_get_api_key_or_user)])
 async def train_fault_predictor(request: Request):
     """Train fault prediction model with XGBoost/RandomForest + Optuna + SHAP."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -207,7 +245,7 @@ async def train_fault_predictor(request: Request):
         )
 
 
-@router.post("/predict/anomaly")
+@router.post("/predict/anomaly", dependencies=[Depends(_get_api_key_or_user)])
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD multi-method detection."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -254,7 +292,7 @@ async def detect_anomalies(request: Request):
         )
 
 
-@router.post("/gnn/predict")
+@router.post("/gnn/predict", dependencies=[Depends(_get_api_key_or_user)])
 async def gnn_predict(request: Request):
     """Predict using Graph Neural Network on power grid data."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -311,7 +349,7 @@ async def gnn_predict(request: Request):
         )
 
 
-@router.post("/rag/query")
+@router.post("/rag/query", dependencies=[Depends(_get_api_key_or_user)])
 async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     trace_id = getattr(request.state, "trace_id", "unknown")

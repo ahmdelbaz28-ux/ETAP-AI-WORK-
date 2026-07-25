@@ -85,13 +85,17 @@ def get_api_key_auth(request: Request) -> Optional[dict]:
     alternative to JWT Bearer tokens.
 
     Returns:
-        {"user_id": "service", "role": "admin", "auth_method": "api_key"}
+        {"user_id": "service", "role": "service", "auth_method": "api_key"}
         if valid API key, None otherwise.
+
+    SECURITY AUDIT 2026-07-25 — Fix S-05: role changed from "admin" to "service".
+    Previously, the engineering API key granted full admin privileges.
+    Now it grants only "service" role. Admin actions require explicit admin JWT.
     """
     if is_test_mode(request):
         return {
             "user_id": "service",
-            "role": "admin",
+            "role": "service",  # SECURITY: was "admin", downgraded per audit S-05
             "auth_method": "api_key",
         }
     return None
