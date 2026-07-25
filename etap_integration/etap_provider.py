@@ -17,7 +17,7 @@ from typing import Any
 
 import requests
 
-from utils.circuit_breaker import get_circuit_breaker, CircuitBreakerOpenError
+from engine.resilience import CircuitBreaker, CircuitBreakerOpenError, get_circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +163,7 @@ class RemoteEtapProvider(IEtapProvider):
 
     Features:
     - Retry with exponential backoff
-    - Circuit breaker pattern (shared via utils.circuit_breaker)
+    - Circuit breaker pattern (shared via engine.resilience)
     - Configurable timeouts
     """
 
@@ -177,12 +177,12 @@ class RemoteEtapProvider(IEtapProvider):
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
             self.api_key = ""
-            self.circuit_breaker = get_circuit_breaker("etap_remote", threshold=5, reset_seconds=60)
+            self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker("etap_remote", failure_threshold=5, recovery_timeout=60.0)
             return
 
         self.worker_url = worker_url.rstrip("/")
         self.api_key = api_key
-        self.circuit_breaker = get_circuit_breaker("etap_remote", threshold=5, reset_seconds=60)
+        self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker("etap_remote", failure_threshold=5, recovery_timeout=60.0)
 
     def is_available(self) -> bool:
         if not self.use_etap:
@@ -205,15 +205,15 @@ class RemoteEtapProvider(IEtapProvider):
                 0.0,
             )
 
-        # Circuit breaker check — use shared CircuitBreaker
-        if self.circuit_breaker.is_open:
+        # Circuit breaker check — use shared CircuitBreaker from engine.resilience
+        if self.circuit_breaker.get_state() == "OPEN":
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
-                    f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._consecutive_failures} consecutive failures. "
-                    f"Retry after {int(self.circuit_breaker._circuit_open_until - time.time())}s.",
+                    f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._failure_count} consecutive failures. "
+                    f"Retry after {int(self.circuit_breaker._last_failure_time + self.circuit_breaker.recovery_timeout - time.time())}s.",
                 ],
                 0.0,
             )

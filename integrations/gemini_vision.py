@@ -33,7 +33,6 @@ import io
 import json
 import logging
 import os
-import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -163,29 +162,18 @@ class GeminiVisionClient:
 
         prompt = self._build_prompt(objective, context, pil_image.size)
 
-        last_error: Optional[str] = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self.model.generate_content(
-                    [prompt, pil_image],
-                    request_options={"timeout": self.timeout},
-                )
-                return self._parse_response(response)
-            except Exception as exc:  # noqa: BLE001 — Gemini raises various exception types
-                last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning(
-                    "Gemini Vision attempt %d/%d failed: %s",
-                    attempt,
-                    self.max_retries,
-                    last_error,
-                )
-                if attempt < self.max_retries:
-                    time.sleep(RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1)))
-
-        return {
-            "error": "api_error",
-            "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
-        }
+        # Delegate retry logic to shared _vision_base.retry_with_backoff
+        # (eliminates inline retry loop duplication with Anthropic/OpenAI backends)
+        return _vision_base.retry_with_backoff(
+            make_request=lambda: self.model.generate_content(
+                [prompt, pil_image],
+                request_options={"timeout": self.timeout},
+            ),
+            parse_response=self._parse_response,
+            max_retries=self.max_retries,
+            backoff_seconds=RETRY_BACKOFF_SECONDS,
+            provider_name="Gemini Vision",
+        )
 
     def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
