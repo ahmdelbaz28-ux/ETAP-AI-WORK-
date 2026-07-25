@@ -634,9 +634,23 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         user_id = payload.get("sub")
-        if not user_id:
-            await websocket.close(code=1008, reason="Invalid token")
+        token_type = payload.get("type")
+
+        # SECURITY AUDIT S-15: Reject non-access tokens (e.g. refresh tokens)
+        if not user_id or token_type != "access":
+            await websocket.close(code=1008, reason="Invalid or expired token")
             return
+
+        # SECURITY AUDIT S-09: Check token blacklist
+        jti = payload.get("jti")
+        if jti:
+            try:
+                from api.auth import _is_token_blacklisted
+                if await _is_token_blacklisted(jti):
+                    await websocket.close(code=1008, reason="Token has been revoked")
+                    return
+            except ImportError:
+                pass
     except Exception:
         await websocket.close(code=1008, reason="Invalid token")
         return
@@ -679,7 +693,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 # ============================================================================
 
 @app.get("/api/v1/scada/live", tags=["SCADA"])
-async def scada_live():
+async def scada_live(request: Request):
     """Return a snapshot of the latest SCADA telemetry.
 
     **WARNING**: This returns SIMULATED data unless a real Zenon/IEC 61850 feed is
@@ -687,7 +701,9 @@ async def scada_live():
     synthetic snapshot. The ``is_simulated`` flag allows the frontend to display a
     red banner indicating non-production data. A real Zenon-backed deployment would
     replace this with ``scada_etap_consumer.get_live_snapshot()`` and set is_simulated=false.
+    SECURITY AUDIT S-15: requires API key authentication.
     """
+    _require_api_key(request)
     return {
         "success": True,
         "is_simulated": True,
@@ -706,13 +722,15 @@ async def scada_live():
 
 
 @app.get("/api/v1/digital-twin/status", tags=["Digital Twin"])
-async def digital_twin_status():
+async def digital_twin_status(request: Request):
     """Return the digital-twin sync status.
 
     The digital twin is a logical mirror of the physical SCADA network.
     Without a real SCADA feed the twin is in `STANDBY` mode: schema loaded,
     no live measurements ingested.
+    SECURITY AUDIT S-15: requires API key authentication.
     """
+    _require_api_key(request)
     return {
         "success": True,
         "data": {
@@ -929,6 +947,7 @@ async def cua_audit_log(request: Request, limit: int = 50):
     Reads the safety_chain.jsonl file produced by agents/life_safety.py
     and returns the most recent entries.
     """
+    _require_api_key(request)
     import json
 
     from agents.life_safety import _CUA_AUDIT_DIR
