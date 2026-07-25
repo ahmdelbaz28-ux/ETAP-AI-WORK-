@@ -52,7 +52,9 @@ logger = logging.getLogger("api.csrf")
 _CSRF_SALT_LENGTH = 32  # bytes of random salt per token
 _CSRF_TOKEN_TTL = 3600  # seconds (1 hour)
 _CSRF_HEADER = "x-csrf-token"
-_BYPASS_VALUE = "bypass"  # API clients can opt-out
+# _BYPASS_VALUE removed — see SECURITY AUDIT 2026-07-25.
+# The literal "bypass" string allowed any origin to bypass CSRF protection.
+# API-key-authenticated clients are handled by the X-API-Key check above.
 
 # Default secret — must be overridden in production via CSRF_SECRET env var
 _DEFAULT_SECRET = "change-me-csrf-secret-in-production"
@@ -181,8 +183,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
         # Validate CSRF token
         token = request.headers.get(_CSRF_HEADER, "")
-        if token == _BYPASS_VALUE:
-            return await call_next(request)
+        # SECURITY: CSRF bypass removed per audit finding S-01.
+        # All state-changing requests must present a valid signed CSRF token.
 
         status = validate_csrf_token(token, tolerate_expired=self._tolerate_expired)
         if status != "valid":

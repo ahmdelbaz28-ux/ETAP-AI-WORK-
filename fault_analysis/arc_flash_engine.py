@@ -130,6 +130,10 @@ BOUNDARY_COEFFICIENTS = {}
 
 # Flag indicating this engine uses a simplified model (no gap correction, no K4 term)
 # Production-grade arc flash studies require certified software (ETAP, SKM, EasyPower)
+# SECURITY AUDIT 2026-07-25 — Fix E-01: Simplified model flagged.
+# The incident energy formula omits: gap distance G, K4 interaction term, and
+# uses t as linear multiplier instead of log10(t). Results are NOT compliant
+# with IEEE 1584-2018. Do NOT use for PPE selection or arc flash labeling.
 ENGINE_IS_SIMPLIFIED = True
 
 
@@ -335,6 +339,19 @@ class ArcFlashEngine:
         D = float(working_distance_mm)
 
         log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        # SECURITY AUDIT 2026-07-25 — Fix E-01: Watermark for simplified model.
+        # WARNING: This formula is NOT IEEE 1584-2018 compliant.
+        # Missing: log10(t) term, gap distance G, K4 interaction term.
+        # Distance exponent x hardcoded to 1.0 instead of IEEE Table 4 values.
+        import logging as _arc_log
+        _arc_log.getLogger("fault_analysis.arc_flash").warning(
+            "SIMPLIFIED ARC FLASH MODEL — NOT FOR PRODUCTION USE. "
+            "Missing IEEE 1584-2018 gap term, K4 interaction, log10(t). "
+            "Distance exponent x=1.0 (should be per Table 4). "
+            "Use certified software (ETAP/SKM/EasyPower) for PPE selection."
+        )
+
         E_full = (10**log_E) * arc_duration_sec * CF / math.pow(D, x_power)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate incident energy at reduced arc current
