@@ -174,6 +174,20 @@ async def get_current_user(
             detail="Invalid token payload",
         )
 
+    # SECURITY (S-09): Check token blacklist (revoked tokens).
+    # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
+    jti: Optional[str] = payload.get("jti")
+    if jti:
+        try:
+            from api.auth import _is_token_blacklisted
+            if await _is_token_blacklisted(jti):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                )
+        except ImportError:
+            pass  # blacklist unavailable, continue
+
     # Verify the user still exists and is active
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()

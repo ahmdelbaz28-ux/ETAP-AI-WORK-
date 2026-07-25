@@ -681,7 +681,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                     "_status": 503,
                 }
             return {
-                "error": f"ETAP Expert agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "error": "ETAP Expert agent encountered an error. Please verify the server configuration and try again.",
                 "status": "failed",
                 "study_type": "etap_expert",
                 "_status": 500,
@@ -728,7 +728,7 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                     "_status": 503,
                 }
             return {
-                "error": f"ETAP GUI agent encountered an error. Please verify the server configuration and try again. Details: {exc}",
+                "error": "ETAP GUI agent encountered an error. Please verify the server configuration and try again.",
                 "status": "failed",
                 "study_type": "etap_gui",
                 "_status": 500,
@@ -835,7 +835,7 @@ def handle_etap_expert_chat(question: str) -> dict[str, Any]:
         return {"success": True, "data": result}
     except Exception as exc:
         logger.exception("etap_expert chat failed")
-        return {"error": f"ETAP Expert agent error: {exc}", "_status": 500}
+        return {"error": "ETAP Expert agent error", "_status": 500}
 
 
 def handle_etap_gui_chat(question: str) -> dict[str, Any]:
@@ -854,7 +854,7 @@ def handle_etap_gui_chat(question: str) -> dict[str, Any]:
         return {"success": True, "data": result}
     except Exception as exc:
         logger.exception("etap_gui chat failed")
-        return {"error": f"ETAP GUI agent error: {exc}", "_status": 500}
+        return {"error": "ETAP GUI agent error", "_status": 500}
 
 
 # ---------------------------------------------------------------------------
@@ -882,8 +882,7 @@ def handle_ml_capabilities() -> dict[str, Any]:
         else:
             hint = (
                 "ml.predictive failed to import. Install ML dependencies: "
-                "pip install numpy scipy pandas scikit-learn. "
-                f"Detail: {msg}"
+                "pip install numpy scipy pandas scikit-learn."
             )
         return {
             "success": False,

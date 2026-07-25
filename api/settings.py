@@ -115,7 +115,7 @@ async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotat
         logger.exception("Failed to list API keys")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": "list_failed", "message": str(exc)},
+            content={"success": False, "error": "list_failed", "message": "Failed to list API keys"},
         )
 
 @router.get("/keys/{provider}")
@@ -173,12 +173,13 @@ async def save_key(
             },
         )
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        logger.warning("api_key_save_validation_failed provider=%s error=%s", provider, str(exc))
+        raise HTTPException(status_code=400, detail="Invalid API key configuration") from exc
     except Exception as exc:  # noqa: BLE001
         logger.exception("Failed to save API key")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": "save_failed", "message": str(exc)},
+            content={"success": False, "error": "save_failed", "message": "Failed to save API key"},
         )
 
 @router.delete("/keys/{provider}")
@@ -286,7 +287,7 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
         logger.exception("Key test failed")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": "test_failed", "message": str(exc)},
+            content={"success": False, "error": "test_failed", "message": "Failed to test API key"},
         )
 
 @router.get("/health")

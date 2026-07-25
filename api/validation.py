@@ -78,7 +78,8 @@ async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR — S3
             "trace_id": trace_id,
         }
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve)) from ve  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        logger.warning("system_validation_value_error error=%s", str(ve), extra={"trace_id": trace_id})
+        raise HTTPException(status_code=400, detail="Invalid input data for system validation") from ve
     except Exception as e:
         from logging import getLogger
 

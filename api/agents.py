@@ -636,8 +636,9 @@ async def etap_gui_siem_events(
             except json.JSONDecodeError:
                 continue
     except OSError as exc:
+        logger.exception("agent_events_read_failed")
         return JSONResponse(
-            content={"success": False, "error": "read_failed", "message": str(exc)},
+            content={"success": False, "error": "read_failed", "message": "Failed to read agent events"},
             status_code=500,
         )
 
