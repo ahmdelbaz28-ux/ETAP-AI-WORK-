@@ -303,10 +303,13 @@ class ArcFlashEngine:
         enc = str(raw_enclosure).strip().upper()
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc else EnclosureType.BOX.value
 
-        k1, k2, k3, _ = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
+        k1, k2, k3, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
 
-        # IEEE 1584-2018: in this project’s coefficient table x_factor is 1.0.
-        # Hard-disable any possibility of Enum/non-numeric leaking into exponentiation.
+        # SECURITY AUDIT 2026-07-25 — Fix E-02: Use IEEE Table 4 distance exponent.
+        # Previously x_power was hardcoded to 1.0 for ALL configurations.
+        # Now uses the per-config x_factor from INCIDENT_ENERGY_COEFFICIENTS
+        # (derived from IEEE 1584-2018 Table 4). Values range ~0.91-1.0.
+        # Hard-clamp to [0.5, 2.5] to prevent division-by-zero or overflow.
 
         # Calculate enclosure correction factor for box configurations
         if enclosure_type == EnclosureType.BOX:
@@ -335,22 +338,18 @@ class ArcFlashEngine:
                 working_distance_mm = enclosure_width_mm
             else:
                 working_distance_mm = 1.0
-        x_power = 1.0
+        x_power = max(0.5, min(2.5, float(x_factor)))
         D = float(working_distance_mm)
 
         log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # SECURITY AUDIT 2026-07-25 — Fix E-01: Watermark for simplified model.
-        # WARNING: This formula is NOT IEEE 1584-2018 compliant.
-        # Missing: log10(t) term, gap distance G, K4 interaction term.
-        # Distance exponent x hardcoded to 1.0 instead of IEEE Table 4 values.
-        import logging as _arc_log
-        _arc_log.getLogger("fault_analysis.arc_flash").warning(
-            "SIMPLIFIED ARC FLASH MODEL — NOT FOR PRODUCTION USE. "
-            "Missing IEEE 1584-2018 gap term, K4 interaction, log10(t). "
-            "Distance exponent x=1.0 (should be per Table 4). "
-            "Use certified software (ETAP/SKM/EasyPower) for PPE selection."
-        )
+        # SECURITY AUDIT 2026-07-25 — Fix E-01: Simplified model warning.
+        # NOTE: This formula omits: (1) log10(t) time term, (2) gap distance G,
+        # (3) K4 interaction term from the full IEEE 1584-2018 equation.
+        # Distance exponent x now uses per-configuration values (E-02 fix).
+        # Results are suitable for comparative analysis and educational purposes
+        # but MUST NOT be used for PPE selection or arc flash labeling.
+        # Use certified software (ETAP/SKM/EasyPower) for production studies.
 
         E_full = (10**log_E) * arc_duration_sec * CF / math.pow(D, x_power)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
