@@ -363,7 +363,7 @@ jobs:
         run: python scripts/security_scan.py
 
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.9.2  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
+        uses: aquasecurity/trivy-action@v0.36.0  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
         # Non-blocking: report vulnerabilities to GitHub Security tab but
         # don't fail the pipeline. Known CVEs in Python base images and
         # transitive JS dependencies (dev-only) are present on every push.
@@ -548,7 +548,7 @@ jobs:
           echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Trivy container vulnerability scan
-        uses: aquasecurity/trivy-action@0.9.2  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
+        uses: aquasecurity/trivy-action@v0.36.0  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
         with:
           image-ref: ghcr.io/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'sarif'
@@ -568,7 +568,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@0.9.2  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
+        uses: aquasecurity/trivy-action@v0.36.0  # SECURITY R7-C2: pinned to release tag (was @master — supply chain risk)
         with:
           image-ref: ghcr.io/${{ steps.sanitize.outputs.image_name }}:${{ steps.sanitize.outputs.image_tag }}
           format: 'cyclonedx'
