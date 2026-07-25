@@ -661,10 +661,9 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "data": result,
             }
         except ImportError as ie:
-            logger.exception("etap_expert module not available")
-            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            logger.warning("etap_expert_import_failed missing=%s", str(ie))
             return {
-                "error": f"ETAP Expert agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "error": "ETAP Expert agent is not available on this deployment. Required dependencies are not installed.",
                 "status": "unavailable",
                 "study_type": "etap_expert",
                 "_status": 503,
@@ -708,10 +707,9 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
                 "data": result,
             }
         except ImportError as ie:
-            logger.exception("etap_gui module not available")
-            missing_module = str(ie).split("'")[1] if "'" in str(ie) else str(ie)
+            logger.warning("etap_gui_import_failed missing=%s", str(ie))
             return {
-                "error": f"ETAP GUI agent is not available on this deployment. Missing dependency: {missing_module}. Install the 'agents' package on the backend server.",
+                "error": "ETAP GUI agent is not available on this deployment. Required dependencies are not installed.",
                 "status": "unavailable",
                 "study_type": "etap_gui",
                 "_status": 503,
@@ -787,7 +785,8 @@ def run_study_lightweight(  # NOSONAR — S3776: cognitive complexity; refactori
         except ImportError:
             engine_error = "Engine modules not available in HF Space deployment"
         except Exception as exc:
-            engine_error = str(exc)
+            logger.exception("load_flow_engine_failed error=%s", str(exc))
+            engine_error = "Load flow computation failed"
 
     # -- Build response -----------------------------------------------------
     # IMPORTANT: Studies that cannot be executed are NOT queued — there is no

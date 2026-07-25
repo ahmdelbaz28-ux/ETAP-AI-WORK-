@@ -9,6 +9,7 @@ passed as a query parameter: ws://host/ws/scada?token=<jwt_access_token>
 """
 
 import asyncio
+import hmac
 import json
 import logging
 from datetime import datetime, timezone
@@ -214,9 +215,9 @@ def _validate_ws_token(token: str) -> bool:
         if env.lower() in ("development", "dev"):
             return True
 
-    # Check API key (server-to-server)
+    # Check API key (server-to-server) — constant-time comparison
     api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if api_key and token == api_key:
+    if api_key and hmac.compare_digest(token, api_key):
         return True
 
     # Check JWT token
@@ -231,6 +232,16 @@ def _validate_ws_token(token: str) -> bool:
         if payload.get("type") != "access":
             logger.warning("WS auth: rejected non-access token (type=%s)", payload.get("type"))
             return False
+        # SECURITY: Check token blacklist (revoked tokens)
+        jti = payload.get("jti")
+        if jti:
+            try:
+                from api.auth import _is_token_blacklisted
+                if _is_token_blacklisted(jti):
+                    logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
+                    return False
+            except (ImportError, AttributeError):
+                pass  # blacklist unavailable
         return True
     except jwt.ExpiredSignatureError:
         logger.warning("WS auth: token expired")

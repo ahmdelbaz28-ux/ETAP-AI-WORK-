@@ -185,7 +185,7 @@ class IEC60909Engine:
         kappa = 1.02 + 0.98 * np.exp(-3.0 * rx)
         return min(kappa, 2.0)  # kappa max is 2.0
 
-    def _calculate_mu(self, Ik_initial_pu: float, t_min: float = 0.02) -> float:  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def _calculate_mu(self, Ik_initial_pu: float, t_min: float | None = None) -> float:  # NOSONAR — S117: physics/engineering notation
         """
         Calculate the factor mu for breaking current per IEC 60909.
 
@@ -193,11 +193,17 @@ class IEC60909Engine:
 
         Parameters:
         Ik_initial_pu (float): Initial symmetrical current in per-unit.
-        t_min (float): Minimum delay time in seconds (0.02 for 50Hz, 0.0167 for 60Hz).
+        t_min (float | None): Minimum delay time in seconds. If None,
+            derived from self.frequency_hz (one cycle: 1/freq).
 
         Returns:
         float: Factor mu.
         """
+        # SECURITY (S-IEC-1): Derive t_min from frequency if not provided.
+        # 50Hz → 0.02s, 60Hz → 0.01667s per IEC 60909.
+        if t_min is None:
+            t_min = 1.0 / self.frequency_hz
+
         # Simplified mu calculation
         # For t_min = 0.02s (50Hz): mu = 0.84 + 0.26 * exp(-0.26 * Ikg/IrG)
         # For t_min = 0.05s: mu = 0.71 + 0.51 * exp(-0.3 * Ikg/IrG)
@@ -253,7 +259,7 @@ class IEC60909Engine:
         c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
-        t_min: float = 0.02,
+        t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
         """
@@ -330,7 +336,7 @@ class IEC60909Engine:
         c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
-        t_min: float = 0.02,
+        t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
         """
@@ -411,7 +417,7 @@ class IEC60909Engine:
         c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
-        t_min: float = 0.02,
+        t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
         """
@@ -493,7 +499,7 @@ class IEC60909Engine:
         c_factor: Optional[float] = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
-        t_min: float = 0.02,
+        t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
         """
