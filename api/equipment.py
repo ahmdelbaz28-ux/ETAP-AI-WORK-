@@ -833,7 +833,8 @@ async def import_equipment(
                 db.add(equipment)
                 imported += 1
             except Exception as e:
-                errors.append(f"Row {row_num}: {str(e)}")
+                errors.append(f"Row {row_num}: import error")
+                logger.warning("equipment_import_row_failed row=%s error=%s", row_num, str(e))
 
     else:
         # Parse JSON
@@ -883,12 +884,13 @@ async def import_equipment(
                     db.add(equipment)
                     imported += 1
                 except Exception as e:
-                    errors.append(f"Error importing item {item.get('name', 'unknown')}: {str(e)}")
+                    errors.append(f"Error importing item {item.get('name', 'unknown')}: import error")
+                    logger.warning("equipment_import_item_failed name=%s error=%s", item.get('name'), str(e))
 
         except json.JSONDecodeError as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid JSON file: {str(e)}",
+                detail="Invalid JSON file: could not parse the uploaded file",
             ) from e
 
     await db.flush()
