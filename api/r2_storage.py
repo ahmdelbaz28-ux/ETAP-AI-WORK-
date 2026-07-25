@@ -256,6 +256,10 @@ async def list_objects(
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
 
+    # SECURITY (S-10): Validate prefix against path traversal
+    if prefix:
+        _validate_key(prefix)
+
     client = _get_client()
     response = await asyncio.get_event_loop().run_in_executor(
         None,
@@ -282,6 +286,10 @@ async def delete_many(keys: list[str]) -> int:
         raise RuntimeError("R2 is not configured")
     if not keys:
         return 0
+
+    # SECURITY (S-10): Validate all keys against path traversal
+    for key in keys:
+        _validate_key(key)
 
     client = _get_client()
     # R2 supports up to 1000 keys per delete_batch request
@@ -317,6 +325,9 @@ def presign(key: str, *, expires: int = 3600) -> str:
     """
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
+
+    # SECURITY (S-10): Validate key against path traversal
+    _validate_key(key)
 
     client = _get_client()
     url = client.generate_presigned_url(

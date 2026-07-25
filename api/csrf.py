@@ -13,10 +13,9 @@ becomes vulnerable to CSRF.
 This module implements defense-in-depth:
   1. A signed CSRF token (HMAC-SHA256) that the frontend includes in the
      ``X-CSRF-Token`` header on all mutating requests (POST/PUT/PATCH/DELETE).
-  2. An opt-in ``X-CSRF-Token: bypass`` for API clients that don't use cookies.
-  3. ``SameSite=Strict`` cookie documentation so if cookies are ever introduced
+  2. ``SameSite=Strict`` cookie documentation so if cookies are ever introduced
      they default to Strict.
-  4. A ``/api/v1/csrf/token`` endpoint for the frontend to obtain fresh tokens.
+  3. A ``/api/v1/csrf/token`` endpoint for the frontend to obtain fresh tokens.
 
 Usage
 -----
@@ -167,9 +166,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     Bypass mechanisms (in order):
       1. API key authentication (``X-API-Key`` header with known key) —
          assumed to be server-to-server, not browser-originated.
-      2. Explicit ``X-CSRF-Token: bypass`` header — for documented API clients
-         that do not use cookies.
-      3. Skipped entirely when ``AUTH_DISABLED=true`` in development.
+      2. Skipped entirely when ``AUTH_DISABLED=true`` in development.
     """
 
     def __init__(self, app: Any, *, tolerate_expired: bool = False) -> None:
@@ -219,8 +216,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": (
                         f"CSRF token missing or invalid ({status}). "
-                        "Include a valid X-CSRF-Token header or use "
-                        "X-CSRF-Token: bypass for API-only clients. "
+                        "Include a valid X-CSRF-Token header. "
                         "Call GET /api/v1/csrf/token to obtain a fresh token."
                     ),
                 },

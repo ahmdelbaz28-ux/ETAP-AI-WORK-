@@ -13,6 +13,7 @@ Enhanced with:
 - ML capabilities discovery
 """
 
+import hmac
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -32,10 +33,10 @@ async def _get_api_key_or_user(request: Request):
     """
     import os
 
-    # Check API key first
+    # Check API key first — use constant-time comparison to prevent timing attacks
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if api_key and expected_key and api_key == expected_key:
+    if api_key and expected_key and hmac.compare_digest(api_key, expected_key):
         return True
 
     # Check JWT Bearer token
@@ -46,7 +47,10 @@ async def _get_api_key_or_user(request: Request):
             import jwt
             jwt_secret = os.getenv("JWT_SECRET_KEY", "")
             if jwt_secret:
-                jwt.decode(token, jwt_secret, algorithms=["HS256"])
+                payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
+                # SECURITY: Reject non-access tokens (e.g. refresh tokens)
+                if payload.get("type") != "access":
+                    raise HTTPException(status_code=401, detail="Bearer token must be an access token")
                 return True
         except Exception:
             pass  # SECURITY: Intentional — JWT optional, API key is the fallback

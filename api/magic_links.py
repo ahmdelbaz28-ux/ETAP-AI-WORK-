@@ -386,7 +386,7 @@ async def verify_magic_link(
             content={
                 "success": False,
                 "error": "internal_error",
-                "message": str(exc),
+                "message": "Failed to verify magic link",
                 "trace_id": trace_id,
             },
         )

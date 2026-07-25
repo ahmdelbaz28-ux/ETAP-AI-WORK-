@@ -949,5 +949,5 @@ async def benchmark():
         },
     }
     if not numpy_ok:
-        result["data"]["numpy_error"] = str(numpy_err) if numpy_err is not None else None
+        result["data"]["numpy_error"] = "numpy unavailable" if numpy_err is not None else None
     return result

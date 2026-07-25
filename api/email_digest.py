@@ -207,9 +207,10 @@ async def generate_digest(
             "trace_id": trace_id,
         })
     except Exception as exc:
+        logger.exception("digest_send_failed")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": str(exc), "trace_id": trace_id},
+            content={"success": False, "error": "send_failed", "trace_id": trace_id},
         )
 
 
