@@ -160,6 +160,15 @@ class TestHelmPBDSecret(unittest.TestCase):
         src = self._read(self.pdb_path)
         self.assertIn(".Values.api.pdb.enabled", src)
 
+    def test_pdb_values_exist_in_values_yaml(self):
+        """values.yaml must define api.pdb.enabled and api.pdb.minAvailable."""
+        values_path = os.path.join(self.helm_dir, "..", "values.yaml")
+        values_path = os.path.normpath(values_path)
+        src = self._read(values_path)
+        self.assertIn("pdb:", src, "values.yaml must define api.pdb section")
+        self.assertIn("enabled:", src, "values.yaml must define api.pdb.enabled")
+        self.assertIn("minAvailable:", src, "values.yaml must define api.pdb.minAvailable")
+
     def test_secret_no_hardcoded_values(self):
         """Secret template must NOT hardcode any secret values."""
         src = self._read(self.secret_path)
@@ -188,5 +197,74 @@ class TestHelmPBDSecret(unittest.TestCase):
         self.assertIn("if .Values.env.ENGINEERING_SERVICE_API_KEY", src)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestS23AllAPIModulesComprehensive(unittest.TestCase):
+    """Comprehensive check: NO api/*.py file leaks str(e) in client responses."""
+
+    def setUp(self):
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.api_dir = os.path.join(base, "api")
+        # Files known to have exception handlers
+        self.api_files = [f for f in os.listdir(self.api_dir) if f.endswith(".py") and not f.startswith("_") and f != "__init__.py" and f != "security_audit.py"]
+
+    def _read(self, path):
+        with open(path, encoding="utf-8", errors="replace") as f:
+            return f.read()
+
+    def test_s23_no_str_e_in_any_json_response(self):
+        """No API file should leak str(e) inside JSONResponse content."""
+        for fname in self.api_files:
+            path = os.path.join(self.api_dir, fname)
+            src = self._read(path)
+            for lineno, line in enumerate(src.splitlines(), 1):
+                if "JSONResponse" in line and "errors" in line and "str(e)" in line:
+                    self.fail(f"{fname}:{lineno} leaks str(e) in JSONResponse: {line.strip()}")
+
+    def test_s23_no_str_e_in_http_exception_detail(self):
+        """No API file should leak str(e) in HTTPException detail."""
+        for fname in self.api_files:
+            path = os.path.join(self.api_dir, fname)
+            src = self._read(path)
+            for lineno, line in enumerate(src.splitlines(), 1):
+                if "HTTPException" in line and "detail=" in line and "str(e)" in line:
+                    self.fail(f"{fname}:{lineno} leaks str(e) in HTTPException: {line.strip()}")
+
+    def test_s23_no_str_e_in_errors_append(self):
+        """No API file should leak str(e) in errors.append (import handlers)."""
+        for fname in self.api_files:
+            path = os.path.join(self.api_dir, fname)
+            src = self._read(path)
+            for lineno, line in enumerate(src.splitlines(), 1):
+                if "errors.append" in line and "str(e)" in line:
+                    self.fail(f"{fname}:{lineno} leaks str(e) in errors.append: {line.strip()}")
+
+    def test_s23_errors_use_generic_message(self):
+        """API files that had str(e) should now use generic error messages."""
+        problem_files = ["ai_ml.py", "agents.py", "scada.py", "digital_twin.py", "mfa.py", "shared_handlers.py"]
+        for fname in problem_files:
+            path = os.path.join(self.api_dir, fname)
+            if not os.path.isfile(path):
+                continue
+            src = self._read(path)
+            self.assertIn(
+                "Internal server error",
+                src,
+                f"{fname} should contain generic 'Internal server error' message",
+            )
+
+
+class TestACPRuntimeLockfileCVE(unittest.TestCase):
+    """Verify acp_runtime/pylock.toml also received CVE bumps."""
+
+    def setUp(self):
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.lock_path = os.path.join(base, "acp_runtime", "pylock.toml")
+
+    def _read(self):
+        with open(self.lock_path, encoding="utf-8", errors="replace") as f:
+            return f.read()
+
+    def test_acp_websockets_bumped(self):
+        """websockets should be bumped from 12.0 to 13.1."""
+        src = self._read()
+        self.assertIn("websockets = \"13.1\"", src, "acp_runtime pylock.toml websockets not bumped")
+        self.assertNotIn("websockets = \"12.0\"", src, "acp_runtime pylock.toml still has old websockets")

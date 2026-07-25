@@ -381,7 +381,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         }
     except Exception as e:
         logger.exception("Error submitting async study: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=500, detail="Internal server error") from e  # SECURITY AUDIT S-23
 
 
 @app.get("/api/v1/studies/task_status/{task_id}")
@@ -413,7 +413,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
         return response
     except Exception as e:
         logger.exception("Error getting task status: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=500, detail="Internal server error") from e  # SECURITY AUDIT S-23
 
 
 @app.websocket("/ws/scada/live")
@@ -747,7 +747,7 @@ async def audit_verify(request: Request):
     except Exception as e:
         return JSONResponse(
             status_code=200,
-            content={"valid": False, "error": f"Failed to verify audit chain: {str(e)}"},
+            content={"valid": False, "error": "Failed to verify audit chain"},
         )
 
 

@@ -505,7 +505,7 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
             str(e),
             extra={"trace_id": trace_id},
         )
-        errors.append(str(e))
+        errors.append("Study execution failed")
         status = "failed"
         data = {}
 
