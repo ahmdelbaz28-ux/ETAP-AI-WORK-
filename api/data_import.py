@@ -572,7 +572,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         else:
             raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
     except ValueError as e:
-        errors.append(str(e))
+        errors.append(f"Parse error in format '{fmt.id}'")
         return ImportResult(
             success=False,
             format=fmt.id,

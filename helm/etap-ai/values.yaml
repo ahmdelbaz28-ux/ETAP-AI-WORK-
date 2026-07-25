@@ -82,6 +82,10 @@ api:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # PodDisruptionBudget — ensures minimum pod availability during voluntary disruptions
+  pdb:
+    enabled: true
+    minAvailable: 1
 
 # Celery Worker Configuration
 worker:

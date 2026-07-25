@@ -47,7 +47,7 @@ async def setup_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )
 
 
@@ -87,5 +87,5 @@ async def verify_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )

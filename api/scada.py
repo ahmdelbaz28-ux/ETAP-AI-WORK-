@@ -56,5 +56,5 @@ async def get_scada_live_data(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
         )
