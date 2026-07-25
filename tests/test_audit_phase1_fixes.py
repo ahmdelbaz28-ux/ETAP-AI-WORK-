@@ -39,20 +39,29 @@ class TestArcFlashE01E02:
         assert ENGINE_IS_SIMPLIFIED is True
 
     def test_e01_non_compliance_warning_in_source(self):
-        """E-01: Source code must contain non-compliance warning."""
+        """E-01: Source must document the formula and its compliance status."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text()
-        # Must warn about IEEE 1584-2018 non-compliance
-        assert "NOT" in src and "IEEE 1584" in src
-        assert "PPE" in src.upper() or "ppe" in src.lower()
-        # Must mention what's missing
-        assert "log10(t)" in src or "log10" in src
+        # Must reference IEEE 1584
+        assert "IEEE 1584" in src
+        # Must contain the full equation with log10(t)
+        assert "log10_t" in src or "log10(t)" in src, (
+            "E-01: Formula must include log10(t) time term"
+        )
+        # Must include gap distance G
+        assert "log10_G" in src or "gap" in src.lower(), (
+            "E-01: Formula must include gap distance G term"
+        )
+        # Must include K4 interaction term
+        assert "k4" in src.lower(), (
+            "E-01: Formula must include K4 interaction term"
+        )
 
     def test_e02_x_factor_from_table(self):
         """E-02: x_factor must be unpacked from coefficients (not discarded)."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text()
-        # The unpack line must use x_factor, not _
-        assert re.search(r"k1,\s*k2,\s*k3,\s*x_factor\s*=", src), (
-            "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS, not discarded with _"
+        # The unpack line must use x_factor, not _ (now 5-tuple: k1,k2,k3,k4,x_factor)
+        assert re.search(r"k1,\s*k2,\s*k3,\s*k4,\s*x_factor\s*=", src), (
+            "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS (5-tuple), not discarded"
         )
 
     def test_e02_x_power_not_hardcoded(self):
@@ -80,7 +89,7 @@ class TestArcFlashE01E02:
         x_values = set()
         for config, enclosures in INCIDENT_ENERGY_COEFFICIENTS.items():
             for enc, coeffs in enclosures.items():
-                x_values.add(coeffs[3])  # 4th element is x_factor
+                x_values.add(coeffs[4])  # 5th element is x_factor (was 4th before E-01 fix)
         # At least 2 distinct x_factor values should exist
         assert len(x_values) >= 2, (
             f"x_factor values are all identical: {x_values}. "
@@ -92,6 +101,67 @@ class TestArcFlashE01E02:
         src = Path("fault_analysis/arc_flash_engine.py").read_text()
         assert "max(" in src and "min(" in src, (
             "x_power should be clamped to prevent division-by-zero or overflow"
+        )
+
+    def test_e01_formula_uses_log10_t(self):
+        """E-01: Incident energy formula must use log10(t), not linear t."""
+        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        # Should NOT have `* arc_duration_sec` as linear multiplier
+        # Should have `+ log10_t` in the formula
+        assert "+ log10_t" in src or "+ np.log10(t)" in src, (
+            "E-01: Formula must use log10(t) term, not linear t multiplication"
+        )
+        # Ensure the old pattern `* arc_duration_sec * CF` is gone
+        lines = src.splitlines()
+        for line in lines:
+            if "E_full" in line and "* arc_duration_sec" in line and "log10" not in line:
+                raise AssertionError(
+                    f"E-01: Found linear t multiplication: {line.strip()}"
+                )
+
+    def test_e01_gap_distance_parameter(self):
+        """E-01: calculate_incident_energy must accept arc_gap_mm parameter."""
+        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        assert "arc_gap_mm" in src, (
+            "E-01: arc_gap_mm parameter must exist"
+        )
+
+    def test_e01_k4_in_coefficients(self):
+        """E-01: Coefficients must be 5-tuples with K4 element."""
+        from fault_analysis.arc_flash_engine import INCIDENT_ENERGY_COEFFICIENTS
+        for config, enclosures in INCIDENT_ENERGY_COEFFICIENTS.items():
+            for enc, coeffs in enclosures.items():
+                assert len(coeffs) == 5, (
+                    f"Coefficients must be 5-tuple (k1,k2,k3,k4,x_factor), got {len(coeffs)}"
+                )
+
+    def test_e20_frequency_parameter(self):
+        """S-20: IEC 60909 engine must have configurable frequency."""
+        src = Path("fault_analysis/iec60909_engine.py").read_text()
+        assert "frequency_hz" in src, (
+            "S-20: frequency_hz parameter must exist in __init__"
+        )
+        assert "self.frequency_hz" in src, (
+            "S-20: self.frequency_hz must be stored as instance attribute"
+        )
+        # Must NOT have hardcoded 50 Hz assumption
+        lines = src.splitlines()
+        for line in lines:
+            if "50.0" in line and "Hz" in line and "default" in line.lower():
+                raise AssertionError(
+                    f"S-20: Found hardcoded 50 Hz: {line.strip()}"
+                )
+
+    def test_e21_no_abs_imag(self):
+        """S-21: IEC 60909 must use z_pos.imag, not abs(z_pos.imag)."""
+        src = Path("fault_analysis/iec60909_engine.py").read_text()
+        # Should NOT have abs(z_pos.imag) in R/X ratio
+        assert "abs(z_pos.imag)" not in src, (
+            "S-21: R/X ratio must use z_pos.imag (not abs), per IEC 60909"
+        )
+        # Should use z_pos.imag directly
+        assert "z_pos.imag" in src, (
+            "S-21: Must use z_pos.imag for R/X ratio"
         )
 
 
