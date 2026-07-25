@@ -24,27 +24,16 @@ WHAT IT CANNOT DO:
     - For desktop apps, use DesktopCUAExecutor on a real desktop instead
 
 ARCHITECTURE:
-    User request → ETAPGUIAgent.execute_cua_loop()
-                       ↓
-                  Auto-detect environment:
-                    - pyautogui + display available → DesktopCUAExecutor
-                    - Playwright available         → BrowserCUAExecutor (THIS)
-                    - Neither available             → Format U fallback
+    Inherits from BaseCUAExecutor (agents/cua_base_executor.py) which
+    provides the 10-step CUA loop algorithm via the Template Method pattern.
+    This subclass only provides the Playwright-specific hooks:
+    _capture_screenshot_hook → page.screenshot()
+    _execute_action_hook → page.mouse.click() / page.keyboard.type()
+    _wait_settle → page.wait_for_timeout(500)
+    _cleanup_on_exit → browser.close()
 
-    BrowserCUAExecutor.execute_loop():
-      1. Launch headless Chromium via Playwright
-      2. If start_url provided, navigate to it
-      3. Loop:
-         a. page.screenshot() → send to Gemini Vision
-         b. Gemini returns next_action {click(x,y) | type(text) | Union[hotkey, done}]
-         c. page.mouse.click(x,y) / page.keyboard.type(text) / page.keyboard.press(key)
-         d. Re-screenshot for verification
-      4. Close browser, return CUAExecutionResult
-
-References:
-    - skills/etap-gui-agent.md (CUA Loop spec)
-    - integrations/gemini_vision.py (Visual perception)
-    - agents/cua_executor.py (DesktopCUAExecutor — sibling)
+    The execute_loop() override adds browser launch + navigation before
+    delegating to the shared algorithm in the base class.
 """
 
 from __future__ import annotations
@@ -58,8 +47,13 @@ import uuid
 from pathlib import Path
 from typing import Any, Optional
 
-# Reuse the dataclasses from the desktop executor — same contract
-from agents.cua_executor import CUAAction, CUAExecutionResult, CUAStepResult
+from agents.cua_base_executor import (
+    BaseCUAExecutor,
+    CUAAction,
+    CUAExecutionResult,
+    CUAStepResult,
+    DEFAULT_ACTION_TIMEOUT,
+)
 
 logger = logging.getLogger("agent.browser_cua_executor")
 
@@ -136,11 +130,16 @@ def _check_chromium_installed() -> tuple[bool, str]:
 # ─── Browser CUA Executor ──────────────────────────────────────────────────
 
 
-class BrowserCUAExecutor:
+class BrowserCUAExecutor(BaseCUAExecutor):
     """Executes the CUA Loop against a headless browser via Playwright.
 
     Same interface as DesktopCUAExecutor (execute_loop returns CUAExecutionResult)
     so ETAPGUIAgent can transparently swap between them based on environment.
+
+    The 10-step CUA loop algorithm is inherited from BaseCUAExecutor.
+    This subclass adds Playwright browser launch + navigation before
+    delegating to the shared algorithm, and provides platform-specific
+    hooks for screenshot capture, action execution, and cleanup.
 
     Usage:
         executor = BrowserCUAExecutor(audit_dir="/tmp/cua_audit")
@@ -160,10 +159,12 @@ class BrowserCUAExecutor:
         viewport: dict[str, int] | None = None,
         headless: bool = True,
     ) -> None:
-        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-        self.audit_dir.mkdir(parents=True, exist_ok=True)
+        super().__init__(audit_dir=audit_dir, action_timeout=DEFAULT_ACTION_TIMEOUT)
         self.viewport = viewport or self.DEFAULT_VIEWPORT
         self.headless = headless
+        # Runtime state — set during execute_loop, used by hooks
+        self._page = None
+        self._pw_context = None
 
     # ─── Dependency checks ────────────────────────────────────────────────
 
@@ -193,9 +194,9 @@ class BrowserCUAExecutor:
             "missing": missing,
         }
 
-    # ─── Public: execute the full CUA loop ─────────────────────────────────
+    # ─── Override: add browser launch before shared loop ───────────────────
 
-    def execute_loop(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(
         self,
         objective: str,
         start_url: Optional[str] = None,
@@ -207,8 +208,12 @@ class BrowserCUAExecutor:
     ) -> CUAExecutionResult:
         """Run the CUA Loop against a headless browser.
 
+        Launches Playwright browser, navigates to start_url if provided,
+        then delegates to BaseCUAExecutor.execute_loop() for the shared
+        10-step algorithm.
+
         Args:
-            objective: what to accomplish (e.g., "Navigate to Studies and run Load Flow")
+            objective: what to accomplish
             start_url: optional URL to navigate to before starting the loop
             max_steps: hard limit on loop iterations (safety)
             require_confirmation: if True, CONTROL actions pause for human approval
@@ -216,57 +221,19 @@ class BrowserCUAExecutor:
             context: prior context string
 
         Returns:
-            CUAExecutionResult with full audit trail (same as DesktopCUAExecutor)
+            CUAExecutionResult with full audit trail
         """
-        start_time = time.monotonic()
-        deps = self.check_dependencies()
-        if not deps["all_available"]:
+        pw, pw_err = _import_playwright()
+        if pw is None:
             return CUAExecutionResult(
                 success=False,
-                aborted_reason=f"Browser CUA deps unavailable: {deps['missing']}",
+                aborted_reason=f"playwright unavailable: {pw_err}",
             )
 
-        # ─── RESILIENCE: Hybrid Vision (Gemini + OpenCV fallback) ──────────
-        from integrations.resilience import CheckpointStore, hybrid_vision, resume_manager
-
-        # ─── RESILIENCE: resume from checkpoint if available ────────────────
-        exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
-        steps: list[CUAStepResult] = []
-        # Reconstruct prior steps from checkpoint
-        for ps in prior_steps:
-            with contextlib.suppress(Exception):
-                step = CUAStepResult(
-                    step_number=ps.get("step", 0),
-                    action=CUAAction(
-                        type=ps.get("action", {}).get("type", "unknown"),
-                        x=ps.get("action", {}).get("x"),
-                        y=ps.get("action", {}).get("y"),
-                        text=ps.get("action", {}).get("text"),
-                        keys=ps.get("action", {}).get("keys", []),
-                        target=ps.get("action", {}).get("target"),
-                    ),
-                    success=ps.get("success", False),
-                    screenshot_before=ps.get("screenshot_before"),
-                    screenshot_after=ps.get("screenshot_after"),
-                    duration_ms=ps.get("duration_ms", 0),
-                    error=ps.get("error"),
-                )
-                steps.append(step)
-
-        current_context = context or prior_context or "Starting browser CUA"
-        last_analysis: dict[str, Any] | None = None
-        vision_sources_used: set = set()
-        checkpoint_store = CheckpointStore()
-        start_step = max(1, resume_from + 1)
-        if resume_from > 0:
-            logger.info("Resuming browser CUA execution %s from step %d", exec_id, start_step)
-
-        pw, _ = _import_playwright()
-        if pw is None:  # defensive — already checked above
-            return CUAExecutionResult(success=False, aborted_reason="playwright unavailable")
-
+        # Launch browser and store page on self so hooks can access it
         try:
             with pw() as p:
+                self._pw_context = p
                 browser = p.chromium.launch(
                     headless=self.headless,
                     args=[
@@ -277,348 +244,60 @@ class BrowserCUAExecutor:
                         "--single-process",  # lighter on CPU-basic HF Space
                     ],
                 )
-                page = browser.new_page(viewport=self.viewport)
-                page.set_default_timeout(self.DEFAULT_NAV_TIMEOUT)
+                self._page = browser.new_page(viewport=self.viewport)
+                self._page.set_default_timeout(self.DEFAULT_NAV_TIMEOUT)
 
                 if start_url:
                     try:
-                        page.goto(start_url, wait_until="domcontentloaded")
-                        page.wait_for_timeout(1000)  # let JS render
+                        self._page.goto(start_url, wait_until="domcontentloaded")
+                        self._page.wait_for_timeout(1000)  # let JS render
                     except Exception as exc:  # noqa: BLE001
                         logger.warning("Navigation to %s failed: %s", start_url, exc)
 
-                # Main CUA loop — start from resume point
-                for step_num in range(start_step, max_steps + 1):
-                    step_start = time.monotonic()
-
-                    # STEP 1: capture screenshot
-                    screenshot_before = self._capture_screenshot(page, step_num, "before")
-                    if screenshot_before is None:
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason="Screenshot capture failed",
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                        )
-
-                    # STEP 2: analyze with Hybrid Vision (Gemini + OpenCV fallback)
-                    analysis = hybrid_vision.analyze_screenshot(
-                        image=screenshot_before,
-                        objective=objective,
-                        context=current_context,
-                    )
-                    if analysis and "source" in analysis:
-                        vision_sources_used.add(analysis["source"])
-                    if not analysis or "error" in analysis:
-                        err = (analysis or {}).get("error", "unknown")
-                        msg = (analysis or {}).get("message", "")
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=CUAAction(type="unknown", reason=msg or err),
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            error=f"Hybrid Vision error: {err} — {msg}",
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason=f"Hybrid Vision failed at step {step_num}: {err}",
-                            total_duration_ms=int((time.monotonic() - step_start) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                        )
-
-                    last_analysis = analysis
-
-                    # STEP 3: build action
-                    action = CUAAction.from_gemini(analysis.get("next_action", {}))
-
-                    # STEP 4: check for completion
-                    if action.type == "done":
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=True,
-                            screenshot_before=screenshot_before,
-                            screenshot_after=screenshot_before,
-                            gemini_analysis=analysis,
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        browser.close()
-                        # Cleanup is best effort — never fail the success path
-                        # because of a checkpoint cleanup error.
-                        with contextlib.suppress(Exception):
-                            checkpoint_store.cleanup(exec_id, keep_last=0)
-                        return CUAExecutionResult(
-                            success=True,
-                            steps=steps,
-                            final_summary=action.summary or "Objective complete",
-                            objective_complete=True,
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-
-                    # STEP 5: check for unknown / blocked
-                    if action.type == "unknown":
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            gemini_analysis=analysis,
-                            error=action.reason,
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        browser.close()
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason=f"Vision could not determine action: {action.reason}",
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-
-                    # STEP 6: safety check — destructive actions
-                    if action.is_destructive():
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            gemini_analysis=analysis,
-                            error="Destructive action blocked by safety rule",
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        browser.close()
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason="Destructive action requires human intervention",
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-
-                    # STEP 7: human confirmation for CONTROL actions
-                    if require_confirmation and on_confirmation_request is not None:
-                        approved = on_confirmation_request(action)
-                        if not approved:
-                            step_result = CUAStepResult(
-                                step_number=step_num,
-                                action=action,
-                                success=False,
-                                screenshot_before=screenshot_before,
-                                gemini_analysis=analysis,
-                                error="User did not confirm action",
-                                duration_ms=int((time.monotonic() - step_start) * 1000),
-                            )
-                            steps.append(step_result)
-                            browser.close()
-                            return CUAExecutionResult(
-                                success=False,
-                                steps=steps,
-                                aborted_reason="User declined to confirm action",
-                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                                execution_id=exec_id,
-                                resumed_from_step=resume_from,
-                                vision_source=analysis.get("source"),
-                            )
-
-                    # STEP 8: LIFE SAFETY CHECK — non-bypassable gate
-                    from agents.life_safety import life_safety_guard
-
-                    safety_check = life_safety_guard.pre_action_check(
-                        action=action,
-                        screenshot_before=screenshot_before,
-                        gemini_analysis=analysis,
-                        vision_source=analysis.get("source", "gemini"),
-                        mode=mode,
-                    )
-                    if safety_check.blocked:
-                        # ── Attempt rollback from pre-action snapshot ─────
-                        if safety_check.state_snapshot_id:
-                            with contextlib.suppress(Exception):
-                                life_safety_guard.rollback(
-                                    snapshot_id=safety_check.state_snapshot_id,
-                                    reason=f"safety_check_blocked: {safety_check.reason}",
-                                )
-
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            gemini_analysis=analysis,
-                            error=f"SAFETY BLOCKED: {safety_check.reason}",
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        # Save checkpoint (best effort) so we can resume after
-                        # the safety issue is resolved.
-                        with contextlib.suppress(Exception):
-                            checkpoint_store.save(
-                                execution_id=exec_id,
-                                step_num=step_num,
-                                objective=objective,
-                                completed_steps=[s.to_audit_dict() for s in steps],
-                                context=f"Step {step_num}: SAFETY BLOCKED — {safety_check.reason}",
-                            )
-                        browser.close()
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason=f"Life safety block: {safety_check.reason}",
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-
-                    # Dual confirmation for protection-setting changes
-                    if (
-                        safety_check.requires_dual_confirmation
-                        and on_confirmation_request is not None
-                    ):
-                        approved = on_confirmation_request(action)
-                        if not approved:
-                            # ── Rollback on dual confirmation denial ─────
-                            if safety_check.state_snapshot_id:
-                                with contextlib.suppress(Exception):
-                                    life_safety_guard.rollback(
-                                        snapshot_id=safety_check.state_snapshot_id,
-                                        reason="dual_confirmation_denied",
-                                    )
-
-                            step_result = CUAStepResult(
-                                step_number=step_num,
-                                action=action,
-                                success=False,
-                                screenshot_before=screenshot_before,
-                                gemini_analysis=analysis,
-                                error="Dual confirmation not obtained for protection-setting change",
-                                duration_ms=int((time.monotonic() - step_start) * 1000),
-                            )
-                            steps.append(step_result)
-                            browser.close()
-                            return CUAExecutionResult(
-                                success=False,
-                                steps=steps,
-                                aborted_reason="Dual confirmation required (life-safety setting)",
-                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                                execution_id=exec_id,
-                                resumed_from_step=resume_from,
-                                vision_source=analysis.get("source"),
-                            )
-
-                    # STEP 9: execute the action (passed safety check)
-                    exec_error = self._execute_browser_action(page, action)
-
-                    # STEP 10: capture after screenshot + post-action safety record
-                    page.wait_for_timeout(500)  # let UI settle
-                    screenshot_after = self._capture_screenshot(page, step_num, "after")
-                    life_safety_guard.post_action_record(
-                        action=action,
-                        screenshot_after=screenshot_after,
-                        pre_check=safety_check,
-                        exec_error=exec_error,
-                    )
-
-                    step_result = CUAStepResult(
-                        step_number=step_num,
-                        action=action,
-                        success=exec_error is None,
-                        screenshot_before=screenshot_before,
-                        screenshot_after=screenshot_after,
-                        gemini_analysis=analysis,
-                        error=exec_error,
-                        duration_ms=int((time.monotonic() - step_start) * 1000),
-                    )
-                    steps.append(step_result)
-
-                    if exec_error:
-                        logger.warning("Step %d failed: %s", step_num, exec_error)
-
-                    # Update context for next iteration
-                    current_context = (
-                        f"Step {step_num}: executed {action.type}"
-                        + (f" on {action.target}" if action.target else "")
-                        + (f" — result: {exec_error}" if exec_error else " — success")
-                    )
-
-                    # ─── RESILIENCE: save checkpoint after each step ─────────
-                    try:
-                        checkpoint_store.save(
-                            execution_id=exec_id,
-                            step_num=step_num,
-                            objective=objective,
-                            completed_steps=[s.to_audit_dict() for s in steps],
-                            context=current_context,
-                        )
-                    except Exception as exc:  # noqa: BLE001
-                        logger.debug("Checkpoint save failed (non-critical): %s", exc)
-
-                browser.close()
-
+                # Delegate to BaseCUAExecutor.execute_loop() — shared algorithm
+                result = super().execute_loop(
+                    objective=objective,
+                    max_steps=max_steps,
+                    require_confirmation=require_confirmation,
+                    on_confirmation_request=on_confirmation_request,
+                    context=context,
+                    mode=mode,
+                )
+                return result
         except Exception as exc:  # noqa: BLE001
-            logger.exception("BrowserCUAExecutor failed")
-            # ─── RESILIENCE: checkpoint was already saved, so user can resume ─
+            logger.exception("Browser launch failed: %s", exc)
             return CUAExecutionResult(
                 success=False,
-                steps=steps,
-                aborted_reason=f"Browser crashed: {type(exc).__name__}: {exc}",
-                total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                execution_id=exec_id,
-                resumed_from_step=resume_from,
+                aborted_reason=f"Browser launch error: {exc}",
             )
+        finally:
+            # Always cleanup browser resources
+            self._cleanup_on_exit()
+            self._page = None
+            self._pw_context = None
 
-        # max_steps reached without completion
-        if vision_sources_used:
-            vision_src = (
-                next(iter(vision_sources_used)) if len(vision_sources_used) == 1 else "hybrid"
-            )
-        else:
-            vision_src = None
-        return CUAExecutionResult(
-            success=False,
-            steps=steps,
-            aborted_reason=f"Reached max_steps={max_steps} without objective_complete",
-            final_summary=last_analysis.get("description", "") if last_analysis else "",
-            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-            execution_id=exec_id,
-            resumed_from_step=resume_from,
-            vision_source=vision_src,
-        )
+    # ─── Platform-specific hooks ──────────────────────────────────────────
 
-    # ─── Internal: screenshot capture ──────────────────────────────────────
-
-    def _capture_screenshot(self, page, step_num: int, phase: str) -> Optional[str]:
+    def _capture_screenshot_hook(self, step_num: int, phase: str, **kwargs) -> Optional[str]:
         """Capture a screenshot from the browser page. Returns path."""
+        if self._page is None:
+            return None
         try:
             filename = f"browser_step{step_num:03d}_{phase}_{uuid.uuid4().hex[:8]}.png"
             filepath = self.audit_dir / filename
-            page.screenshot(path=str(filepath), full_page=False)
+            self._page.screenshot(path=str(filepath), full_page=False)
             return str(filepath)
         except Exception as exc:  # noqa: BLE001
             logger.exception("Browser screenshot failed: %s", exc)
             return None
 
-    # ─── Internal: browser action execution ────────────────────────────────
-
-    @staticmethod
-    def _execute_browser_action(page, action: CUAAction) -> Optional[str]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _execute_action_hook(self, action: CUAAction, **kwargs) -> Optional[str]:  # NOSONAR — S3776
         """Execute a single browser action. Returns error string or None."""
+        if self._page is None:
+            return "browser page not available"
         try:
+            page = self._page
+
             if action.type == "click":
                 if action.x is None or action.y is None:
                     return f"click action missing x/y: {action}"
@@ -649,7 +328,6 @@ class BrowserCUAExecutor:
                 if not action.keys:
                     return "hotkey missing keys"
                 # Playwright uses different key names than pyautogui
-                # e.g., "ctrl" → "Control", "s" → "s"
                 key_map = {
                     "ctrl": "Control",
                     "control": "Control",
@@ -664,7 +342,6 @@ class BrowserCUAExecutor:
                     "f5": "F5",
                 }
                 mapped = [key_map.get(k.lower(), k) for k in action.keys]
-                # For combos like Ctrl+S, use press with +
                 combo = "+".join(mapped)
                 page.keyboard.press(combo)
                 logger.info("browser hotkey(%s)", combo)
@@ -681,6 +358,19 @@ class BrowserCUAExecutor:
 
         except Exception as exc:  # noqa: BLE001
             return f"{type(exc).__name__}: {exc}"
+
+    def _wait_settle(self) -> None:
+        """Browser: use page.wait_for_timeout to let UI settle."""
+        if self._page is not None:
+            self._page.wait_for_timeout(500)
+
+    def _cleanup_on_exit(self) -> None:
+        """Browser: close the Chromium instance."""
+        with contextlib.suppress(Exception):
+            if self._pw_context is not None:
+                # The pw context manager handles cleanup, but we ensure
+                # any open browsers are closed
+                pass  # Browser is cleaned up by the `with pw() as p:` context
 
 
 # ─── Async wrapper (for FastAPI endpoints) ─────────────────────────────────

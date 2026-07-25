@@ -1,0 +1,639 @@
+"""
+agents/cua_base_executor.py — Base CUA Executor (Template Method pattern)
+
+Extracts the shared CUA loop algorithm from DesktopCUAExecutor and
+BrowserCUAExecutor into a single abstract base class.  The 10-step loop
+(objective → screenshot → visual analysis → action decision → safety
+checks → execution → verification → repeat/exit) is identical across both
+executors; only the platform-specific hooks differ:
+
+    _capture_screenshot_hook  → pyautogui.screenshot() vs page.screenshot()
+    _execute_action_hook      → pyautogui.click/type/hotkey vs page.mouse/keyboard
+    _wait_settle              → time.sleep(0.5) vs page.wait_for_timeout(500)
+    _cleanup_on_exit          → no-op vs browser.close()
+
+Data classes (CUAAction, CUAStepResult, CUAExecutionResult, ActionType)
+are centralized here so both executors import from a single canonical
+source instead of the previous chain:
+    browser_cua_executor → cua_executor → (dataclasses)
+
+Usage:
+    class DesktopCUAExecutor(BaseCUAExecutor):
+        def _capture_screenshot_hook(self, step_num, phase, **kwargs): ...
+        def _execute_action_hook(self, action, **kwargs): ...
+        def _wait_settle(self): ...
+        def _cleanup_on_exit(self): ...
+        def check_dependencies(self): ...
+"""
+
+from __future__ import annotations
+
+import abc
+import contextlib
+import logging
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any, Literal, Optional
+
+logger = logging.getLogger("agent.cua_base_executor")
+
+# ─── Shared constants ────────────────────────────────────────────────────────
+
+DEFAULT_MAX_STEPS = 15
+DEFAULT_ACTION_TIMEOUT = 60  # seconds per action
+
+# ─── Data classes (centralized) ─────────────────────────────────────────────
+
+ActionType = Literal[
+    "click", "double_click", "right_click", "type", "hotkey", "wait", "done", "unknown",
+]
+
+
+@dataclass
+class CUAAction:
+    """A single action decided by Gemini Vision and executed by the CUA."""
+
+    type: ActionType
+    x: Optional[int] = None
+    y: Optional[int] = None
+    text: Optional[str] = None
+    keys: list[str] = field(default_factory=list)
+    target: Optional[str] = None
+    seconds: Optional[float] = None
+    summary: Optional[str] = None
+    reason: Optional[str] = None
+
+    @classmethod
+    def from_gemini(cls, action_dict: dict[str, Any]) -> CUAAction:
+        """Build a CUAAction from Gemini's next_action JSON."""
+        action_type = action_dict.get("type", "unknown")
+        # Map Gemini's "click" to our ActionType
+        if action_type == "click":
+            return cls(
+                type="click",
+                x=action_dict.get("x"),
+                y=action_dict.get("y"),
+                target=action_dict.get("target"),
+            )
+        if action_type == "type":
+            return cls(
+                type="type",
+                text=action_dict.get("text"),
+                x=action_dict.get("x"),
+                y=action_dict.get("y"),
+            )
+        if action_type == "hotkey":
+            return cls(
+                type="hotkey",
+                keys=action_dict.get("keys", []),
+            )
+        if action_type == "wait":
+            return cls(
+                type="wait",
+                seconds=action_dict.get("seconds", 1.0),
+            )
+        if action_type == "done":
+            return cls(
+                type="done",
+                summary=action_dict.get("summary", "Objective complete"),
+            )
+        return cls(
+            type="unknown",
+            reason=action_dict.get("reason", "No reason provided"),
+        )
+
+    def is_destructive(self) -> bool:
+        """Return True if this action might be destructive (requires human)."""
+        if self.type == "unknown":
+            return True
+        # Hotkeys like Alt+F4, Delete, Ctrl+D are destructive
+        destructive_keys = {"delete", "f4", "backspace"}
+        return bool(self.type == "hotkey" and any(k.lower() in destructive_keys for k in self.keys))
+
+
+@dataclass
+class CUAStepResult:
+    """Result of executing one CUA loop iteration."""
+
+    step_number: int
+    action: CUAAction
+    success: bool
+    screenshot_before: Optional[str] = None  # path
+    screenshot_after: Optional[str] = None  # path
+    gemini_analysis: dict[str, Any] | None = None
+    duration_ms: int = 0
+    error: Optional[str] = None
+
+    def to_audit_dict(self) -> dict[str, Any]:
+        return {
+            "step": self.step_number,
+            "action": {
+                "type": self.action.type,
+                "x": self.action.x,
+                "y": self.action.y,
+                "text": self.action.text,
+                "keys": self.action.keys,
+                "target": self.action.target,
+            },
+            "success": self.success,
+            "screenshot_before": self.screenshot_before,
+            "screenshot_after": self.screenshot_after,
+            "duration_ms": self.duration_ms,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "error": self.error,
+        }
+
+
+@dataclass
+class CUAExecutionResult:
+    """Top-level result returned by CUAExecutor.execute_loop()."""
+
+    success: bool
+    steps: list[CUAStepResult] = field(default_factory=list)
+    final_summary: str = ""
+    objective_complete: bool = False
+    aborted_reason: Optional[str] = None
+    total_duration_ms: int = 0
+    execution_id: Optional[str] = None
+    resumed_from_step: int = 0
+    vision_source: Optional[str] = None  # "gemini" | "opencv" | "hybrid"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "success": self.success,
+            "objective_complete": self.objective_complete,
+            "steps_executed": len(self.steps),
+            "steps": [s.to_audit_dict() for s in self.steps],
+            "final_summary": self.final_summary,
+            "aborted_reason": self.aborted_reason,
+            "total_duration_ms": self.total_duration_ms,
+            "execution_id": self.execution_id,
+            "resumed_from_step": self.resumed_from_step,
+            "vision_source": self.vision_source,
+        }
+
+
+# ─── Base CUA Executor (Template Method) ───────────────────────────────────
+
+
+class BaseCUAExecutor(abc.ABC):
+    """Abstract base class for Computer Use Agent executors.
+
+    Implements the Template Method pattern: the shared 10-step CUA loop
+    is defined once in execute_loop(), and platform-specific behaviour
+    is injected via four abstract hook methods.
+
+    Lifecycle:
+        executor = SubclassCUAExecutor(audit_dir="/tmp/cua_audit")
+        result = executor.execute_loop(
+            objective="Open ETAP and run Load Flow",
+            max_steps=15,
+            require_confirmation=True,
+            on_confirmation_request=callback,
+        )
+    """
+
+    # Safety limits (per skills/etap-gui-agent.md)
+    DEFAULT_MAX_STEPS = DEFAULT_MAX_STEPS
+    DEFAULT_ACTION_TIMEOUT = DEFAULT_ACTION_TIMEOUT
+    DESTRUCTIVE_KEYWORDS = {"delete", "format", "override", "reset", "purge", "wipe"}
+
+    def __init__(
+        self,
+        audit_dir: Optional[str] = None,
+        action_timeout: int = DEFAULT_ACTION_TIMEOUT,
+    ) -> None:
+        self.action_timeout = action_timeout
+        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+        self.audit_dir.mkdir(parents=True, exist_ok=True)
+
+    # ─── Abstract hooks (platform-specific) ────────────────────────────────
+
+    @abc.abstractmethod
+    def check_dependencies(self) -> dict[str, Any]:
+        """Check all deps required for CUA execution.
+
+        Returns dict with at least 'all_available' (bool) and 'missing' (list[str]).
+        Each subclass implements its own dependency checks (pyautogui for desktop,
+        playwright for browser, etc.).
+        """
+
+    @abc.abstractmethod
+    def _capture_screenshot_hook(self, step_num: int, phase: str, **kwargs) -> Optional[str]:
+        """Capture a screenshot and save it to the audit dir. Returns path.
+
+        Platform-specific:
+            Desktop: uses pyautogui.screenshot()
+            Browser: uses page.screenshot() (page passed via kwargs or stored on self)
+        """
+
+    @abc.abstractmethod
+    def _execute_action_hook(self, action: CUAAction, **kwargs) -> Optional[str]:
+        """Execute a single action. Returns error string or None.
+
+        Platform-specific:
+            Desktop: uses pyautogui.click / typewrite / hotkey
+            Browser: uses page.mouse.click / page.keyboard.type / page.keyboard.press
+        """
+
+    @abc.abstractmethod
+    def _wait_settle(self) -> None:
+        """Wait for the UI to settle after an action.
+
+        Platform-specific:
+            Desktop: time.sleep(0.5)
+            Browser: page.wait_for_timeout(500)
+        """
+
+    @abc.abstractmethod
+    def _cleanup_on_exit(self) -> None:
+        """Cleanup platform-specific resources on exit.
+
+        Desktop: no-op (nothing to close)
+        Browser: closes the Chromium browser instance
+        """
+
+    # ─── Public: execute the full CUA loop ─────────────────────────────────
+
+    def execute_loop(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        self,
+        objective: str,
+        max_steps: int = DEFAULT_MAX_STEPS,
+        require_confirmation: bool = True,
+        on_confirmation_request=None,
+        context: Optional[str] = None,
+        mode: str = "control",
+    ) -> CUAExecutionResult:
+        """Run the CUA loop until objective is complete or max_steps reached.
+
+        Args:
+            objective: what to accomplish (e.g., "Open ETAP and run Load Flow")
+            max_steps: hard limit on loop iterations (safety)
+            require_confirmation: if True, CONTROL actions pause for human approval
+            on_confirmation_request: callable(action: CUAAction) -> bool
+                                     If returns False, the loop aborts.
+            context: prior context (e.g., "User just opened ETAP manually")
+            mode: execution mode ("control" or "observe")
+
+        Returns:
+            CUAExecutionResult with full audit trail
+        """
+        try:
+            start_time = time.monotonic()
+            deps = self.check_dependencies()
+            if not deps["all_available"]:
+                return CUAExecutionResult(
+                    success=False,
+                    aborted_reason=f"Dependencies unavailable: {deps['missing']}",
+                )
+
+            # ─── RESILIENCE: use Hybrid Vision (Gemini + OpenCV fallback) ───────
+            from integrations.resilience import CheckpointStore, hybrid_vision, resume_manager
+
+            # ─── RESILIENCE: resume from checkpoint if available ────────────────
+            exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
+            steps: list[CUAStepResult] = []
+            # Reconstruct prior step results from checkpoint (simplified — audit-only)
+            for ps in prior_steps:
+                with contextlib.suppress(Exception):  # skip malformed prior steps
+                    step = CUAStepResult(
+                        step_number=ps.get("step", 0),
+                        action=CUAAction(
+                            type=ps.get("action", {}).get("type", "unknown"),
+                            x=ps.get("action", {}).get("x"),
+                            y=ps.get("action", {}).get("y"),
+                            text=ps.get("action", {}).get("text"),
+                            keys=ps.get("action", {}).get("keys", []),
+                            target=ps.get("action", {}).get("target"),
+                        ),
+                        success=ps.get("success", False),
+                        screenshot_before=ps.get("screenshot_before"),
+                        screenshot_after=ps.get("screenshot_after"),
+                        duration_ms=ps.get("duration_ms", 0),
+                        error=ps.get("error"),
+                    )
+                    steps.append(step)
+
+            current_context = context or prior_context or "Starting fresh"
+            last_analysis: dict[str, Any] | None = None
+            vision_sources_used: set = set()
+            checkpoint_store = CheckpointStore()
+
+            # If resuming, start from the next step
+            start_step = max(1, resume_from + 1)
+            if resume_from > 0:
+                logger.info("Resuming CUA execution %s from step %d", exec_id, start_step)
+
+            for step_num in range(start_step, max_steps + 1):
+                step_start = time.monotonic()
+
+                # STEP 1: capture screenshot
+                screenshot_before = self._capture_screenshot_hook(step_num, "before")
+                if screenshot_before is None:
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason="Screenshot capture failed",
+                    )
+
+                # STEP 2: analyze with Hybrid Vision (Gemini first, OpenCV fallback)
+                analysis = hybrid_vision.analyze_screenshot(
+                    image=screenshot_before,
+                    objective=objective,
+                    context=current_context,
+                )
+                if analysis and "source" in analysis:
+                    vision_sources_used.add(analysis["source"])
+                if not analysis or "error" in analysis:
+                    err = (analysis or {}).get("error", "unknown")
+                    msg = (analysis or {}).get("message", "")
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=CUAAction(type="unknown", reason=msg or err),
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        error=f"Hybrid Vision error: {err} — {msg}",
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=f"Hybrid Vision failed at step {step_num}: {err}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                    )
+
+                last_analysis = analysis
+
+                # STEP 3: build action
+                action = CUAAction.from_gemini(analysis.get("next_action", {}))
+
+                # STEP 4: check for completion
+                if action.type == "done":
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=True,
+                        screenshot_before=screenshot_before,
+                        screenshot_after=screenshot_before,  # no action taken
+                        gemini_analysis=analysis,
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    # Clean up checkpoints on success — best effort, never fail
+                    # the CUA execution because of a checkpoint cleanup error.
+                    with contextlib.suppress(Exception):
+                        checkpoint_store.cleanup(exec_id, keep_last=0)
+                    return CUAExecutionResult(
+                        success=True,
+                        steps=steps,
+                        final_summary=action.summary or "Objective complete",
+                        objective_complete=True,
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                # STEP 5: check for unknown / blocked
+                if action.type == "unknown":
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        error=action.reason,
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=f"Vision could not determine action: {action.reason}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                # STEP 6: safety check — destructive actions
+                if action.is_destructive():
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        error="Destructive action blocked by safety rule",
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason="Destructive action requires human intervention",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                # STEP 7: human confirmation for CONTROL actions
+                if require_confirmation and on_confirmation_request is not None:
+                    approved = on_confirmation_request(action)
+                    if not approved:
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="User did not confirm action",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="User declined to confirm action",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                # STEP 8: LIFE SAFETY CHECK — non-bypassable gate before execution
+                from agents.life_safety import life_safety_guard
+
+                safety_check = life_safety_guard.pre_action_check(
+                    action=action,
+                    screenshot_before=screenshot_before,
+                    gemini_analysis=analysis,
+                    vision_source=analysis.get("source", "gemini"),
+                    mode=mode,
+                )
+                if safety_check.blocked:
+                    # ── Attempt rollback from pre-action snapshot ────────────
+                    # The safety guard already captured a state snapshot in
+                    # pre_action_check(). We call rollback() to log a tamper-
+                    # evident audit entry and return operator instructions.
+                    # Best-effort: never fail the execution because of a rollback
+                    # error.
+                    if safety_check.state_snapshot_id:
+                        with contextlib.suppress(Exception):
+                            life_safety_guard.rollback(
+                                snapshot_id=safety_check.state_snapshot_id,
+                                reason=f"safety_check_blocked: {safety_check.reason}",
+                            )
+
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        error=f"SAFETY BLOCKED: {safety_check.reason}",
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    # Save checkpoint so we can resume after the safety issue is
+                    # resolved — best effort, never fail the CUA execution because
+                    # of a checkpoint save error.
+                    with contextlib.suppress(Exception):
+                        checkpoint_store.save(
+                            execution_id=exec_id,
+                            step_num=step_num,
+                            objective=objective,
+                            completed_steps=[s.to_audit_dict() for s in steps],
+                            context=f"Step {step_num}: SAFETY BLOCKED — {safety_check.reason}",
+                        )
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=f"Life safety block: {safety_check.reason}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                # If dual confirmation is required, the on_confirmation_request
+                # callback must implement it (two humans). The safety guard flags
+                # it; the caller enforces it.
+                if safety_check.requires_dual_confirmation and on_confirmation_request is not None:
+                    # The callback should ask TWO humans; we just pass the flag
+                    approved = on_confirmation_request(action)
+                    if not approved:
+                        # ── Rollback on dual confirmation denial ─────────────
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason="dual_confirmation_denied",
+                                )
+
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="Dual confirmation not obtained for protection-setting change",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="Dual confirmation required (life-safety setting)",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                # STEP 9: execute the action (passed safety check)
+                exec_error = self._execute_action_hook(action)
+
+                # STEP 10: capture after screenshot + post-action safety record
+                self._wait_settle()  # let UI settle
+                screenshot_after = self._capture_screenshot_hook(step_num, "after")
+                life_safety_guard.post_action_record(
+                    action=action,
+                    screenshot_after=screenshot_after,
+                    pre_check=safety_check,
+                    exec_error=exec_error,
+                )
+
+                step_result = CUAStepResult(
+                    step_number=step_num,
+                    action=action,
+                    success=exec_error is None,
+                    screenshot_before=screenshot_before,
+                    screenshot_after=screenshot_after,
+                    gemini_analysis=analysis,
+                    error=exec_error,
+                    duration_ms=int((time.monotonic() - step_start) * 1000),
+                )
+                steps.append(step_result)
+
+                if exec_error:
+                    logger.warning("Step %d failed: %s", step_num, exec_error)
+                    # Continue — Gemini may recover in next iteration
+
+                # Update context for next iteration
+                current_context = (
+                    f"Step {step_num}: executed {action.type}"
+                    + (f" on {action.target}" if action.target else "")
+                    + (f" — result: {exec_error}" if exec_error else " — success")
+                )
+
+                # ─── RESILIENCE: save checkpoint after each step ─────────────────
+                try:
+                    checkpoint_store.save(
+                        execution_id=exec_id,
+                        step_num=step_num,
+                        objective=objective,
+                        completed_steps=[s.to_audit_dict() for s in steps],
+                        context=current_context,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.debug("Checkpoint save failed (non-critical): %s", exc)
+
+            # max_steps reached without completion
+            # Determine which vision source was used (for transparency)
+            if vision_sources_used:
+                if len(vision_sources_used) == 1:
+                    vision_src = next(iter(vision_sources_used))
+                else:
+                    vision_src = "hybrid"
+            else:
+                vision_src = None
+
+            return CUAExecutionResult(
+                success=False,
+                steps=steps,
+                aborted_reason=f"Reached max_steps={max_steps} without objective_complete",
+                final_summary=last_analysis.get("description", "") if last_analysis else "",
+                total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                execution_id=exec_id,
+                resumed_from_step=resume_from,
+                vision_source=vision_src,
+            )
+        finally:
+            self._cleanup_on_exit()
+
+
+__all__ = [
+    "ActionType",
+    "BaseCUAExecutor",
+    "CUAAction",
+    "CUAExecutionResult",
+    "CUAStepResult",
+]
