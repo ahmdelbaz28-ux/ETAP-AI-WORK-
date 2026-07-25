@@ -440,8 +440,19 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     Used by the CUA Loop to request two-human approval before executing
     life-safety-critical actions (protection setting changes, breaker ops).
 
+    SECURITY: API key required — same pattern as /ws/scada/live.
     See: api/cua_confirmation_ws.py for the protocol.
     """
+    # SECURITY AUDIT S-15: API key authentication required for life-safety endpoint
+    try:
+        api_key = websocket.headers.get("x-api-key")
+        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
+            await websocket.close(code=1008, reason="Invalid or missing API key")
+            return
+    except Exception:
+        await websocket.close(code=1008, reason="Authentication error")
+        return
+
     from api.cua_confirmation_ws import cua_confirmation_ws
 
     await cua_confirmation_ws(websocket)
@@ -521,6 +532,30 @@ else:
         allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model", "x-csrf-token"],
         expose_headers=["x-trace-id"],
     )
+
+
+# ---------------------------------------------------------------------------
+# Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def _security_headers_middleware(request: Request, call_next):
+    """Add security headers to every response.
+
+    Even when behind a reverse proxy (nginx/Akamai) that sets these headers,
+    the application-level headers provide defense-in-depth.
+    """
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-XSS-Protection", "0")  # Deprecated; CSP is the correct control
+    # HSTS — only set when explicitly configured (avoid breakage in development)
+    _hsts_env = os.environ.get("HSTS_MAX_AGE", "")
+    if _hsts_env:
+        response.headers["Strict-Transport-Security"] = (
+            f"max-age={_hsts_env}; includeSubDomains"
+        )
+    return response
 
 
 # Global exception handler to prevent raw exception exposure
@@ -763,12 +798,14 @@ async def audit_verify(request: Request):
 
 
 @app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"])
-async def cua_kill_switch_status():
+async def cua_kill_switch_status(request: Request):
     """Return the current CUA kill switch status.
     
     Reads the kill switch file (written by agents/life_safety.py) and returns
     the active state, activation timestamp, and reason.
+    SECURITY AUDIT S-15: admin endpoints require auth.
     """
+    _require_api_key(request)
     from agents.life_safety import KILL_SWITCH_PATH, is_kill_switch_active
 
     active = is_kill_switch_active()
@@ -791,10 +828,12 @@ async def cua_kill_switch_status():
 
 @app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"])
 async def cua_kill_switch_activate(request: Request):
-    """🚨 Activate the CUA kill switch — blocks all CUA agent actions.
+    """Activate the CUA kill switch — blocks all CUA agent actions.
     
     Once activated, the CUA Loop will abort on the next action check.
+    SECURITY AUDIT S-15: admin endpoints require auth.
     """
+    _require_api_key(request)
     from agents.life_safety import activate_kill_switch
 
     try:
@@ -814,8 +853,11 @@ async def cua_kill_switch_activate(request: Request):
 
 
 @app.post("/admin/cua/kill-switch/deactivate", tags=["CUA", "Admin"])
-async def cua_kill_switch_deactivate():
-    """Deactivate the CUA kill switch — resumes CUA agent actions."""
+async def cua_kill_switch_deactivate(request: Request):
+    """Deactivate the CUA kill switch — resumes CUA agent actions.
+    SECURITY AUDIT S-15: admin endpoints require auth.
+    """
+    _require_api_key(request)
     from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
 
     was_active = deactivate_kill_switch()
@@ -832,8 +874,9 @@ class CUARollbackRequest(BaseModel):
 
 
 @app.post("/admin/cua/rollback", tags=["CUA", "Admin"])
-async def cua_rollback(body: CUARollbackRequest):
+async def cua_rollback(request: Request, body: CUARollbackRequest):
     """Execute a CUA rollback using a previously captured state snapshot.
+    SECURITY AUDIT S-15: admin endpoints require auth.
 
     The rollback loads the pre-action snapshot (captured by
     :meth:`LifeSafetyGuard._capture_state_snapshot`), logs a tamper-evident
@@ -860,19 +903,28 @@ async def cua_rollback(body: CUARollbackRequest):
     Returns:
         dict with ``success``, ``message``, and ``snapshot`` keys.
     """
+    _require_api_key(request)
     from agents.life_safety import life_safety_guard
 
-    result = life_safety_guard.rollback(
-        snapshot_id=body.snapshot_id,
-        reason=body.reason,
-    )
-    status_code = 200 if result.get("success") else 404
-    return JSONResponse(content=result, status_code=status_code)
+    try:
+        result = life_safety_guard.rollback(
+            snapshot_id=body.snapshot_id,
+            reason=body.reason,
+        )
+        status_code = 200 if result.get("success") else 404
+        return JSONResponse(content=result, status_code=status_code)
+    except Exception as exc:
+        logger.exception("CUA rollback failed", extra={"snapshot_id": body.snapshot_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "Rollback operation failed"},
+        )
 
 
 @app.get("/admin/cua/audit-log", tags=["CUA", "Admin"])
-async def cua_audit_log(limit: int = 50):
+async def cua_audit_log(request: Request, limit: int = 50):
     """Return the last N entries from the CUA tamper-evident audit log.
+    SECURITY AUDIT S-15: admin endpoints require auth.
     
     Reads the safety_chain.jsonl file produced by agents/life_safety.py
     and returns the most recent entries.
@@ -906,12 +958,12 @@ async def cua_audit_log(limit: int = 50):
 
 
 @app.get("/api/v1/benchmark", tags=["Benchmark"])
-async def benchmark():
+async def benchmark(request: Request):
     """Run a lightweight in-process benchmark and return timing metrics.
-
-    Runs a small NumPy matrix multiply + a JSON serialization round-trip
-    and reports the elapsed time. Does NOT require ETAP or GPU.
+    SECURITY AUDIT S-15: benchmark requires auth (resource consumption + info disclosure).
     """
+    _require_api_key(request)
+
     import json as _json
     import time as _time
 
