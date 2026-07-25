@@ -382,8 +382,8 @@ def verify_api_key(
             # The downstream route's CurrentUser dependency will reject it
             pass
         except Exception:
-            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through
-            pass
+            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through to API key check
+            pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, expected_key):

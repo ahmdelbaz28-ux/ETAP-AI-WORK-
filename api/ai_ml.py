@@ -49,7 +49,7 @@ async def _get_api_key_or_user(request: Request):
                 jwt.decode(token, jwt_secret, algorithms=["HS256"])
                 return True
         except Exception:
-            pass
+            pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 
     # No valid auth
     raise HTTPException(
