@@ -5,10 +5,21 @@ Handles all multi-factor authentication endpoints.
 Separated from main engineering service for better modularity.
 """
 
+import time
+from collections import defaultdict
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
+
+# SECURITY AUDIT 2026-07-26 — S-24: Brute-force protection for TOTP verify.
+# Tracks failed attempts per user_id. After MAX_FAILED_ATTEMPTS within
+# LOCKOUT_WINDOW seconds, the endpoint rejects further attempts.
+_MAX_FAILED_ATTEMPTS = 5
+_LOCKOUT_WINDOW = 300  # seconds (5 minutes)
+_LOCKOUT_DURATION = 900  # seconds (15 minutes)
+_failed_attempts: dict[str, list[float]] = defaultdict(list)
+_lockouts: dict[str, float] = {}
 
 
 @router.post("/totp/setup")
@@ -61,14 +72,42 @@ async def verify_totp(request: Request):
         code = body.get("code")
 
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="user_id is required")
         if not code:
-            raise HTTPException(status_code=400, detail="code is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="code is required")
+
+        # SECURITY AUDIT 2026-07-26 — S-24: Check lockout status.
+        now = time.time()
+        if user_id in _lockouts:
+            if now - _lockouts[user_id] < _LOCKOUT_DURATION:
+                remaining = int(_LOCKOUT_DURATION - (now - _lockouts[user_id]))
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Account locked due to too many failed attempts. Try again in {remaining}s.",
+                )
+            else:
+                # Lockout expired — clear
+                del _lockouts[user_id]
+                _failed_attempts.pop(user_id, None)
 
         from security.mfa import TOTPProvider
 
         totp = TOTPProvider()
         is_valid = totp.verify_code(user_id, code)
+
+        if not is_valid:
+            # SECURITY: Track failed attempt
+            _failed_attempts[user_id].append(now)
+            # Prune old attempts outside the window
+            _failed_attempts[user_id] = [
+                t for t in _failed_attempts[user_id] if now - t < _LOCKOUT_WINDOW
+            ]
+            if len(_failed_attempts[user_id]) >= _MAX_FAILED_ATTEMPTS:
+                _lockouts[user_id] = now
+                raise HTTPException(
+                    status_code=429,
+                    detail="Too many failed MFA attempts. Account temporarily locked.",
+                )
 
         return JSONResponse(
             content={
