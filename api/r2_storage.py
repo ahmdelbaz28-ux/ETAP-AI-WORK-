@@ -256,6 +256,9 @@ async def list_objects(
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
 
+    # SECURITY: Bound limit to prevent abuse
+    limit = max(1, min(limit, 1000))
+
     # SECURITY (S-10): Validate prefix against path traversal
     if prefix:
         _validate_key(prefix)

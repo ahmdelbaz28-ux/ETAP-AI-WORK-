@@ -138,6 +138,8 @@ async def get_recent(
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends
 
+    limit = max(1, min(limit, 500))  # SECURITY: bounded to prevent abuse
+
     return JSONResponse(
         content={
             "success": True,
@@ -153,6 +155,8 @@ async def get_by_day(
     _: dict = Depends(_require_admin),
 ) -> JSONResponse:
     from services.email_send_log import get_send_count_by_day
+
+    days = max(1, min(days, 365))  # SECURITY: bounded
 
     return JSONResponse(
         content={
