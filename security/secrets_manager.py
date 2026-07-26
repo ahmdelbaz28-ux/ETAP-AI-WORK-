@@ -48,7 +48,14 @@ REQUIRED_SECRETS = [
 
 
 def _ensure_dir(path: Path) -> Path:
-    path.mkdir(parents=True, exist_ok=True)
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        # Fallback to /tmp on restricted environments (HF Spaces, CI, containers)
+        fallback = Path("/tmp/etap-secrets")
+        fallback.mkdir(parents=True, exist_ok=True)
+        logger.warning("Cannot write to %s, falling back to %s", path, fallback)
+        return fallback
     return path
 
 
