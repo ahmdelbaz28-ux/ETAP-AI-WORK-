@@ -105,6 +105,11 @@ asyncpg>=0.29,<0.32
 fastapi>=0.115.4,<0.116.0
 uvicorn~=0.25.0
 
+# aiofiles — required by api/routes.py for streaming file uploads and async
+# static-asset responses. Was previously pulled in transitively by a different
+# package; declared explicitly to fail loudly if missing.
+aiofiles>=24.1.0,<25.0.0
+
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
