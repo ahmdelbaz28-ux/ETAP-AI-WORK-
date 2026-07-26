@@ -157,7 +157,7 @@ class APIKeyStore:
 
     def __init__(
         self, db_path: str = str(_DATA_DIR / "api_keys.db")
-    ) -> None:  # NOSONAR: S5443 — db_path defaults to per-user _DATA_DIR; if caller-supplied, parent dir is hardened to 0o700 below
+    ) -> None:  # NOSONAR S5443 — db_path defaults to per-user _DATA_DIR; if caller-supplied, parent dir is hardened to 0o700 below
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden parent directory to owner-only (0o700) so other users on the

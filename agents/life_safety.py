@@ -196,7 +196,7 @@ except PermissionError:
     # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
     _fallback = Path(
         "/tmp/cua_audit"
-    )  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+    )  # NOSONAR /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
     _fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
     # Harden immediately at the point of /tmp use so other users on the host
     # cannot read kill-switch state or audit logs. mkdir's `mode` arg is
@@ -271,7 +271,7 @@ def activate_kill_switch(reason: str = "manual") -> None:
     _write_secure_file(KILL_SWITCH_PATH, payload)
     logger.critical(
         "🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason
-    )  # NOSONAR: logging injection; user input is sanitized upstream
+    )  # NOSONAR logging injection; user input is sanitized upstream
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency
@@ -479,7 +479,7 @@ class LifeSafetyGuard:
 
     # Mandatory cooldown between control actions (seconds)
     CONTROL_COOLDOWN_SECONDS = 2.0
-    # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # OpenCV accuracy is too low for control — read-only mode only
     DEGRADED_VISION_SOURCES = {"opencv"}
 
@@ -506,7 +506,7 @@ class LifeSafetyGuard:
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
-    def pre_action_check(  # NOSONAR: cognitive complexity; refactoring sprint
+    def pre_action_check(  # NOSONAR cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
         screenshot_before: Optional[str],
@@ -818,7 +818,7 @@ class LifeSafetyGuard:
         self,
         screenshot_path: str,
         action,
-        gemini_analysis: dict[str, Any] | None,  # NOSONAR: unused param kept for API compatibility
+        gemini_analysis: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> Optional[str]:
         """Draw a red crosshair on the screenshot at the click location.
 

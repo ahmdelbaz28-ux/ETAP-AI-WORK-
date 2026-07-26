@@ -134,7 +134,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     msg = struct.pack(">Q", counter)
     h = hmac.new(
         secret_bytes, msg, _sha1_for_otp
-    ).digest()  # NOSONAR: SHA-1 is RFC-mandated for TOTP interoperability; usedforsecurity=False set via _sha1_for_otp
+    ).digest()  # NOSONAR SHA-1 is RFC-mandated for TOTP interoperability; usedforsecurity=False set via _sha1_for_otp
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF

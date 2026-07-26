@@ -146,7 +146,7 @@ class CheckpointStore:
 
     def __init__(
         self, directory: str = str(_CHECKPOINT_DIR)
-    ) -> None:  # NOSONAR: S5443 — directory defaults to per-user _CHECKPOINT_DIR; if caller-supplied, hardened to 0o700 below
+    ) -> None:  # NOSONAR S5443 — directory defaults to per-user _CHECKPOINT_DIR; if caller-supplied, hardened to 0o700 below
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden to owner-only (0o700) so other users on the host cannot
@@ -384,7 +384,7 @@ class ResumeManager:
 
     def __init__(
         self, checkpoint_dir: str = str(_CHECKPOINT_DIR)
-    ) -> None:  # NOSONAR: S5443 — checkpoint_dir defaults to per-user _CHECKPOINT_DIR; if caller-supplied, CheckpointStore hardens to 0o700
+    ) -> None:  # NOSONAR S5443 — checkpoint_dir defaults to per-user _CHECKPOINT_DIR; if caller-supplied, CheckpointStore hardens to 0o700
         self.store = CheckpointStore(directory=checkpoint_dir)
 
     def start_execution(self, objective: str) -> str:
@@ -439,7 +439,7 @@ class ResumeManager:
         prior_steps = latest_data.get("completed_steps", [])
         context = latest_data.get("context", "")
 
-        logger.info(  # NOSONAR: logging injection; user input is sanitized upstream
+        logger.info(  # NOSONAR logging injection; user input is sanitized upstream
             "Resuming execution %s from step %d (%d prior steps completed)",
             exec_id,
             resume_from,

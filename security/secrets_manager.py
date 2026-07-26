@@ -39,7 +39,7 @@ SECRETS_DIR = Path(
 AUDIT_DIR = Path(__file__).parent / "audit"
 ENCRYPTION_KEY_FILE = (
     SECRETS_DIR / ".encryption_key"
-)  # NOSONAR: intentional repetition (audit constant)
+)  # NOSONAR intentional repetition (audit constant)
 REQUIRED_SECRETS = [
     "JWT_SECRET_KEY",
     "ENCRYPTION_KEY",
@@ -68,7 +68,7 @@ def _ensure_dir(path: Path) -> Path:
         # /tmp is world-writable, our subdirectory is owner-only.
         fallback = Path(
             "/tmp/etap-secrets"
-        )  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+        )  # NOSONAR /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
         fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
         try:
             os.chmod(fallback, 0o700)
@@ -175,7 +175,7 @@ class VaultSecretsManager:
         raw = f"{self.mount_path}__{path}__{key}"
         return re.sub(
             r"[^a-zA-Z0-9_-]", "_", raw
-        )  # NOSONAR: intentional repetition (audit constant)
+        )  # NOSONAR intentional repetition (audit constant)
 
     def get_secret(self, path: str, key: str) -> Optional[str]:
         """Retrieve a secret from Vault or local fallback."""
@@ -484,7 +484,7 @@ class KeyAccessAuditor:
                 success=success,
             )
 
-    def get_access_logs(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def get_access_logs(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         key_name: Optional[str] = None,
         user_id: Optional[str] = None,
@@ -614,7 +614,7 @@ class EnvironmentValidator:
         self, file_patterns: list[str] | None = None
     ) -> list[
         dict
-    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
@@ -664,7 +664,7 @@ class EnvironmentValidator:
             "# Copy this file to .env and fill in your actual values",
             "# cp .env.example .env",
             "",
-            "# ==========================================",  # NOSONAR: intentional repetition (audit constant)
+            "# ==========================================",  # NOSONAR intentional repetition (audit constant)
             "# Required Secrets (must be configured)",
             "# ==========================================",
         ]

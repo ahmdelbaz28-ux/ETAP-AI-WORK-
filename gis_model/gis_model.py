@@ -139,19 +139,19 @@ class PolylineGeometry:
         """Get a point along the polyline at a given fraction (0.0 to 1.0)."""
         if not self.coordinates:
             return GeoCoordinate(0, 0)
-        # Clamp out-of-range fractions to the polyline endpoints. Using
-        # `elif` makes the conditional nature explicit to static analyzers
-        # (SonarCloud pythonbugs:S2583 previously raised a false positive
-        # when these were two separate `if` statements). At this branch,
-        # fraction is in (0, +inf) — the elif catches [1, +inf).
-        if fraction <= 0:
+        # Clamp out-of-range fractions to the polyline endpoints. The
+        # min/max approach avoids branching, which previously triggered
+        # pythonbugs:S2583 false positives on the `if fraction <= 0`
+        # condition (SonarCloud's value analysis inferred the branch was
+        # always taken, which is wrong in general). Using min/max makes
+        # the clamping explicit and side-effect-free.
+        clamped = max(0.0, min(1.0, fraction))
+        if clamped == 0.0:
             return self.coordinates[0]
-        elif (
-            fraction >= 1
-        ):  # NOSONAR: clamps upper bound; fraction > 0 here, branch catches [1, +inf)
+        if clamped == 1.0:
             return self.coordinates[-1]
         total = self.total_length_meters()
-        target = fraction * total
+        target = clamped * total
         accumulated = 0.0
         for i in range(len(self.coordinates) - 1):
             seg_len = self.coordinates[i].distance_to(self.coordinates[i + 1])
@@ -361,7 +361,7 @@ class GISDatabase:
                 if not self.spatial_index[key]:
                     del self.spatial_index[key]
 
-    def find_nearby_assets(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def find_nearby_assets(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         coord: GeoCoordinate,
         radius_meters: float,

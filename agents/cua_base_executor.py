@@ -220,7 +220,7 @@ class BaseCUAExecutor(abc.ABC):
         _default_audit_dir = str(Path.home() / ".etap" / "cua_audit")
         self.audit_dir = (
             Path(audit_dir) if audit_dir else Path(_default_audit_dir)
-        )  # NOSONAR: S5443 — audit_dir is permission-hardened to 0o700 below (mkdir mode + chmod)
+        )  # NOSONAR S5443 — audit_dir is permission-hardened to 0o700 below (mkdir mode + chmod)
         self.audit_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden audit_dir to owner-only (0o700) so other users on the host
         # cannot read CUA screenshots / action logs. mkdir's `mode` arg is
@@ -279,7 +279,7 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         max_steps: int = DEFAULT_MAX_STEPS,

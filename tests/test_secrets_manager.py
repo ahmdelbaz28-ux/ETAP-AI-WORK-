@@ -65,6 +65,7 @@ class TestGetCipher:
 
     def test_with_provided_key(self):
         from cryptography.fernet import Fernet
+
         pre_key = Fernet.generate_key()
         cipher, key = _get_cipher(pre_key)
         assert key == pre_key
@@ -95,6 +96,7 @@ class TestLocalSecretsManager:
 
     def test_init_with_provided_key(self, tmp_secrets_dir: Path):
         from cryptography.fernet import Fernet
+
         key = Fernet.generate_key()
         mgr = LocalSecretsManager(encryption_key=key)
         assert mgr._key == key
@@ -169,6 +171,7 @@ class TestKeyAccessAuditor:
         if auditor._log_handler:
             auditor._log_handler.flush()
         import logging as _logging
+
         # Also flush the root file handlers if any
         for h in _logging.getLogger("key_access_audit").handlers:
             h.flush()
@@ -344,6 +347,7 @@ class TestGetSecretsManager:
     def teardown_method(self) -> None:
         """Reset singleton between tests."""
         import security.secrets_manager as sm
+
         sm._secrets_manager_instance = None
 
     @patch("security.secrets_manager.LocalSecretsManager")
@@ -360,6 +364,7 @@ class TestGetSecretsManager:
 
     def test_singleton_returns_same_instance(self):
         import security.secrets_manager as sm
+
         sm._secrets_manager_instance = None
         with patch("security.secrets_manager.LocalSecretsManager") as mock_lsm:
             mock_instance = mock_lsm.return_value
@@ -375,6 +380,7 @@ class TestGetSecretsManager:
 _hvac_available = False
 try:
     import hvac  # noqa: F401
+
     _hvac_available = True
 except ImportError:
     pass
@@ -388,6 +394,7 @@ pytestmark_vault = pytest.mark.skipif(
 class TestVaultSecretsManager:
     """Tests for VaultSecretsManager. The suite-level skipif above skips
     all tests in this class if ``hvac`` is not installed."""
+
     pytestmark = pytestmark_vault
 
     @pytest.fixture(autouse=True)
