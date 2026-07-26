@@ -32,17 +32,30 @@ router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 # Previously, these endpoints were accessible without any authentication, allowing
 # unauthenticated users to trigger resource-intensive ML training and inference.
 
-async def _get_api_key_or_user(request: Request) -> None:  # NOSONAR(S7503): async for FastAPI dependency consistency; jwt.decode is CPU-bound, not I/O
+class AuthPrincipal:
+    """Lightweight authentication result returned by the auth dependency.
+
+    Provides the authenticated identity and auth method so callers can
+    make authorization decisions (e.g. audit logging, rate-limit tiers).
+    Replaces the previous ``None`` return that triggered SonarCloud S3516
+    ("invariant return" — all reachable paths returned the same value).
+    """
+
+    __slots__ = ("auth_type", "identity")
+
+    def __init__(self, auth_type: str, identity: str) -> None:
+        self.auth_type = auth_type  # "api_key" or "jwt"
+        self.identity = identity    # key fingerprint or user_id
+
+
+async def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     """Shared auth dependency for AI/ML endpoints (S-07).
 
     Accepts either:
     1. Valid X-API-Key header (server-to-server)
     2. Valid JWT Bearer token (user auth)
 
-    Returns None on success; raises HTTPException(401) on auth failure.
-    Used as `Depends(_get_api_key_or_user)` — only the exception matters,
-    the return value is intentionally None (S3516: previously returned True
-    on all paths which triggered the "invariant return" blocker).
+    Returns an AuthPrincipal on success; raises HTTPException(401) on failure.
     """
     import os
 
@@ -50,7 +63,9 @@ async def _get_api_key_or_user(request: Request) -> None:  # NOSONAR(S7503): asy
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
     if api_key and expected_key and hmac.compare_digest(api_key, expected_key):
-        return
+        # Return fingerprint (first 8 chars) so callers know which auth method
+        # was used — not the full key (security: never echo the secret back).
+        return AuthPrincipal(auth_type="api_key", identity=api_key[:8] + "…")
 
     # Check JWT Bearer token
     auth_header = request.headers.get("authorization", "")
@@ -64,7 +79,7 @@ async def _get_api_key_or_user(request: Request) -> None:  # NOSONAR(S7503): asy
                 # SECURITY: Reject non-access tokens (e.g. refresh tokens)
                 if payload.get("type") != "access":
                     raise HTTPException(status_code=401, detail="Bearer token must be an access token")
-                return
+                return AuthPrincipal(auth_type="jwt", identity=payload.get("sub", "unknown"))
         except HTTPException:
             raise
         except Exception:
