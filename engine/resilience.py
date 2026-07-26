@@ -516,7 +516,47 @@ class CircuitBreaker:
         if elapsed >= self.recovery_timeout:
             self._transition_to(CircuitBreakerState.HALF_OPEN)
 
+    def record_success(self) -> None:
+        """Public convenience method: reset the circuit breaker on success.
+
+        Equivalent to calling ``reset()`` — transitions the breaker to CLOSED
+        and clears the failure counter.  Used by callers that track success/
+        failure externally rather than via ``call()``.
+        """
+        self.reset()
+
+    def record_failure(self) -> None:
+        """Public convenience method: record a failure without using ``call()``.
+
+        Increments failure counters and transitions to OPEN if the threshold
+        is exceeded.  Used by callers that manage their own retry logic
+        externally (e.g. ``etap_provider.py``).
+        """
+        with self._lock:
+            self._failed_calls += 1
+            self._failure_count += 1
+            self._last_failure_time = time.monotonic()
+            if self._failure_count >= self.failure_threshold:
+                if self._state != CircuitBreakerState.OPEN:
+                    self._transition_to(CircuitBreakerState.OPEN)
+
+    def remaining_recovery_time(self) -> float:
+        """Return seconds until the circuit transitions from OPEN to HALF_OPEN.
+
+        Returns 0.0 if the circuit is not OPEN or if no failure has been
+        recorded yet.  Uses ``time.monotonic()`` internally to avoid
+        wall-clock drift issues.
+        """
+        if self._state != CircuitBreakerState.OPEN:
+            return 0.0
+        if self._last_failure_time is None:
+            return 0.0
+        elapsed = time.monotonic() - self._last_failure_time
+        remaining = self.recovery_timeout - elapsed
+        return max(0.0, remaining)
+
     def _record_failure(self) -> None:
+        """Internal failure recording — used by ``call()`` and ``async_call()``."""
         with self._lock:
             self._failed_calls += 1
             self._failure_count += 1

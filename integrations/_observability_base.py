@@ -6,7 +6,6 @@ to eliminate code duplication (both modules had near-identical _NoOpContext clas
 
 This module provides:
   - NoOpContext — silent context manager used when the observability SDK is disabled
-  - NoOpSpan — silent span used when SDK is disabled
   - Common health_check pattern for observability trackers
 
 Both LangfuseTracker and LangWatchTracker can import from this shared base,

@@ -26,8 +26,6 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Optional
 
-UTC = UTC
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (

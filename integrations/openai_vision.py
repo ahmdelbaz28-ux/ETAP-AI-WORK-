@@ -290,8 +290,6 @@ class OpenAIVisionClient:
 
         Uses httpx if available, otherwise falls back to urllib.
         """
-        # Inject the actual image data URL (we used PLACEHOLDER in _build_user_content)
-        # This is done here to avoid logging the huge base64 string
         if HTTPX_AVAILABLE:
             return self._make_request_httpx(url, headers, payload)
         return self._make_request_urllib(url, headers, payload)
@@ -300,8 +298,6 @@ class OpenAIVisionClient:
         self, url: str, headers: dict[str, str], payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Make request using httpx."""
-        # Re-encode image (the PLACEHOLDER needs to be replaced with actual data)
-        # We re-build the payload here with the real image
         import httpx
 
         with httpx.Client(timeout=self.timeout) as client:

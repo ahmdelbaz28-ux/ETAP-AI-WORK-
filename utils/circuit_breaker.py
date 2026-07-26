@@ -16,6 +16,7 @@ for any remaining external imports while eliminating the duplicate class.
 from __future__ import annotations
 
 import logging
+import time
 import warnings
 from typing import Any
 
@@ -86,35 +87,13 @@ class CircuitBreaker(_CanonicalCircuitBreaker):
 
     @property
     def _circuit_open_until(self) -> float:
-        """Compat alias: calculate open-unil timestamp from engine CB internals."""
+        """Compat alias: calculate open-until timestamp from engine CB internals."""
         if self._last_failure_time is not None:
             return self._last_failure_time + self.recovery_timeout
         return 0.0
 
-    def record_success(self) -> None:
-        """Compat alias: reset circuit breaker on success."""
-        self.reset()
-
-    def record_failure(self) -> None:
-        """Compat alias: record a failure via the canonical call mechanism."""
-        # The canonical CB tracks failures internally via call(); this method
-        # exists for backward-compat callers that manage failure tracking
-        # externally (like etap_provider.py did before migration).
-        with self._lock:
-            self._failure_count += 1
-            self._failed_calls += 1
-            self._last_failure_time = __import__("time").time()
-            if self._failure_count >= self.failure_threshold:
-                self._state = CircuitBreakerState.OPEN
-                self._state_changes += 1
-                logger.warning(
-                    "Circuit breaker '%s' OPEN after %d consecutive failures. "
-                    "Will retry after %.0f seconds.",
-                    self.name,
-                    self._failure_count,
-                    self.recovery_timeout,
-                )
-
+    # record_success() and record_failure() are now on the canonical class
+    # (engine.resilience.CircuitBreaker), so no overrides needed here.
 
 
 def get_circuit_breaker(
@@ -124,17 +103,22 @@ def get_circuit_breaker(
 ) -> CircuitBreaker:
     """Get or create a named circuit breaker (compat wrapper).
 
-    Looks up an existing circuit breaker by name, or creates a new one
-    using engine.resilience.CircuitBreaker with the mapped params.
+    Looks up an existing circuit breaker by name, or creates a new compat
+    ``CircuitBreaker`` instance (which inherits from the canonical one
+    and adds param-name aliases).
     """
     existing = _canonical_get_circuit_breaker(name)
     if existing is not None:
+        # Return the existing CB — it already has record_success/record_failure
+        # from the canonical class, plus any compat methods if it was originally
+        # created via this wrapper.
         return existing
-    # Create a new canonical CB (auto-registers itself)
-    return _CanonicalCircuitBreaker(
+    # Create a compat CircuitBreaker (subclass) so callers get the old
+    # param aliases (threshold, reset_seconds, is_open, state).
+    return CircuitBreaker(
         name=name,
-        failure_threshold=threshold,
-        recovery_timeout=float(reset_seconds),
+        threshold=threshold,
+        reset_seconds=reset_seconds,
     )
 
 

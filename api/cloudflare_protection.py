@@ -31,7 +31,6 @@ True-Client-IP           — Real client IP (alternative to CF-Connecting-IP)
 """
 from __future__ import annotations
 
-import hmac
 import logging
 import os
 from typing import Any

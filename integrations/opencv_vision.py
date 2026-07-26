@@ -48,10 +48,8 @@ References:
 
 from __future__ import annotations
 
-import io
 import logging
 import re
-from pathlib import Path
 from typing import Any, Optional
 
 from integrations import _vision_base

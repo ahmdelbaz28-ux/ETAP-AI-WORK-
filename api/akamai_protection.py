@@ -29,7 +29,6 @@ True-Client-IP              — Real client IP (Akamai replaces X-Forwarded-For)
 """
 from __future__ import annotations
 
-import hmac
 import logging
 import os
 from typing import Any, Optional

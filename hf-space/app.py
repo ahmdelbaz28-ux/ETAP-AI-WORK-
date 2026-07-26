@@ -27,6 +27,8 @@ import time
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Optional
 
+from api._messages import ISO_8601_UTC_FMT
+
 if TYPE_CHECKING:
     # Forward-only import for type hints; runtime import happens inside
     # the function body to avoid module-load cycle on HF Space cold start.
@@ -80,13 +82,13 @@ logging.basicConfig(
 logger = logging.getLogger("etap-ai")
 
 # ─── Shared format constants ────────────────────────────────────────────────
-# Centralised to avoid string-literal duplication (SonarCloud python:S1192).
-_ISO_8601_UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
+# ISO_8601_UTC_FMT is now imported from api._messages (centralised S1192 fix).
+# This eliminates the last duplicate of "%Y-%m-%dT%H:%M:%SZ" in the codebase.
 
 
 def _utc_now_iso() -> str:
     """Return current UTC time as an ISO-8601 'Z' timestamp."""
-    return time.strftime(_ISO_8601_UTC_FMT, time.gmtime())
+    return time.strftime(ISO_8601_UTC_FMT, time.gmtime())
 
 
 # -- Lifespan -----------------------------------------------------------------

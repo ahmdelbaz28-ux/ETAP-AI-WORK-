@@ -15,10 +15,13 @@ Enhanced with:
 
 import hmac
 import logging
+import math
+from typing import Any
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
+from api._messages import MSG_INTERNAL_ERROR
 
 logger = logging.getLogger(__name__)
 
@@ -78,11 +81,6 @@ async def ml_capabilities(request: Request):
         # SECURITY AUDIT 2026-07-26 — S-23: Do not leak internal error details to clients.
         logger.exception("ml_capabilities_failed")
         return JSONResponse(status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR]})
-
-
-import math
-from typing import Any
-from api._messages import MSG_INTERNAL_ERROR
 
 
 def _clean_nan(obj: Any) -> Any:

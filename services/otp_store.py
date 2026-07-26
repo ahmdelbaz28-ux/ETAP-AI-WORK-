@@ -41,15 +41,6 @@ OTP_ISSUE_COOLDOWN_AFTER_FAILS = int(os.getenv("OTP_ISSUE_COOLDOWN_AFTER_FAILS",
 # Redis client (optional)
 # ---------------------------------------------------------------------------
 
-try:
-    import redis.asyncio as redis_async  # type: ignore
-
-    _REDIS_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    redis_async = None
-    _REDIS_AVAILABLE = False
-
-
 def _get_redis():
     """Return shared async redis client or None.
 

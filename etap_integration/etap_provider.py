@@ -17,7 +17,7 @@ from typing import Any
 
 import requests
 
-from engine.resilience import CircuitBreaker, CircuitBreakerOpenError, get_circuit_breaker
+from engine.resilience import CircuitBreaker, CircuitBreakerOpenError, CircuitBreakerState, get_circuit_breaker
 
 
 logger = logging.getLogger(__name__)
@@ -207,14 +207,14 @@ class RemoteEtapProvider(IEtapProvider):
             )
 
         # Circuit breaker check — use shared CircuitBreaker from engine.resilience
-        if self.circuit_breaker.get_state() == "OPEN":
+        if self.circuit_breaker.get_state() == CircuitBreakerState.OPEN:
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
                     f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._failure_count} consecutive failures. "
-                    f"Retry after {int(self.circuit_breaker._last_failure_time + self.circuit_breaker.recovery_timeout - time.time())}s.",
+                    f"Retry after {int(self.circuit_breaker.remaining_recovery_time())}s.",
                 ],
                 0.0,
             )

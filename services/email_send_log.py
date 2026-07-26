@@ -37,13 +37,6 @@ _buffer: deque = deque(maxlen=_BUFFER_MAX)
 _lock = asyncio.Lock()
 
 # Optional Redis client for persistence
-try:
-    import redis.asyncio as redis_async  # type: ignore
-
-    _REDIS_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    redis_async = None
-    _REDIS_AVAILABLE = False
 
 
 def _get_redis():
