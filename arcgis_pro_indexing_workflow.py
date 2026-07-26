@@ -194,7 +194,9 @@ class ArcGISProIndexingWorkflow:
         for i, item in enumerate(transformed_data):
             # SHA-256 used as a deterministic document ID for Elasticsearch —
             # not a security primitive (no password, no signature).
-            doc_id = hashlib.sha256(item["url"].encode()).hexdigest()
+            # usedforsecurity=False is the Python 3.9+ hint that tells static
+            # analyzers (SonarCloud S4790) the hash is not used for security.
+            doc_id = hashlib.sha256(item["url"].encode(), usedforsecurity=False).hexdigest()
 
             try:
                 if self.elastic_client is None:

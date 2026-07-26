@@ -211,8 +211,8 @@ class BaseCUAExecutor(abc.ABC):
         # writable directories). The life_safety module defines the canonical
         # constant with 0o700 permissions; here we use the same default.
         _default_audit_dir = str(Path.home() / ".etap" / "cua_audit")
-        self.audit_dir = Path(audit_dir) if audit_dir else Path(_default_audit_dir)
-        self.audit_dir.mkdir(parents=True, exist_ok=True)
+        self.audit_dir = Path(audit_dir) if audit_dir else Path(_default_audit_dir)  # NOSONAR: S5443 — audit_dir is permission-hardened to 0o700 below (mkdir mode + chmod)
+        self.audit_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden audit_dir to owner-only (0o700) so other users on the host
         # cannot read CUA screenshots / action logs. mkdir's `mode` arg is
         # masked by umask, so we chmod explicitly to guarantee the bits.

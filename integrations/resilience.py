@@ -144,9 +144,9 @@ class CheckpointStore:
     mid-write never leaves a corrupted checkpoint.
     """
 
-    def __init__(self, directory: str = str(_CHECKPOINT_DIR)) -> None:
+    def __init__(self, directory: str = str(_CHECKPOINT_DIR)) -> None:  # NOSONAR: S5443 — directory defaults to per-user _CHECKPOINT_DIR; if caller-supplied, hardened to 0o700 below
         self.directory = Path(directory)
-        self.directory.mkdir(parents=True, exist_ok=True)
+        self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden to owner-only (0o700) so other users on the host cannot
         # read or tamper with CUA checkpoint state. mkdir's `mode` arg is
         # masked by umask, so we chmod explicitly to guarantee the bits.
@@ -378,7 +378,7 @@ class ResumeManager:
         exec_id, resume_from, prior_steps = rm2.resume_or_start(objective="Open ETAP")
     """
 
-    def __init__(self, checkpoint_dir: str = str(_CHECKPOINT_DIR)) -> None:
+    def __init__(self, checkpoint_dir: str = str(_CHECKPOINT_DIR)) -> None:  # NOSONAR: S5443 — checkpoint_dir defaults to per-user _CHECKPOINT_DIR; if caller-supplied, CheckpointStore hardens to 0o700
         self.store = CheckpointStore(directory=checkpoint_dir)
 
     def start_execution(self, objective: str) -> str:
