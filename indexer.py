@@ -175,7 +175,7 @@ def file_hash(path: Path) -> str:
         return "error"
 
 
-def extract_python_metadata(path: Path) -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def extract_python_metadata(path: Path) -> dict:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Extract classes, functions, imports, and docstring from a Python file."""
     try:
         content = path.read_text(encoding="utf-8", errors="ignore")
@@ -253,7 +253,7 @@ def extract_api_routes(path: Path) -> list:
     return routes
 
 
-def scan_python_modules() -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def scan_python_modules() -> dict:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan all Python source directories and build module index."""
     modules = {}
     for dir_name in PYTHON_DIRS:
@@ -512,7 +512,7 @@ def scan_context_registry() -> dict:
     return {"mappings": mappings, "total": len(mappings)}
 
 
-def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def scan_env_variables() -> dict:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan the .env.example file and Python source for environment variable usage."""
     env_vars = {}
 
@@ -525,7 +525,7 @@ def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; sc
             if not line or line.startswith("#"):
                 # Capture section headers (lines of # === Text ===)
                 if line.startswith("# ===") and "===" in line[5:]:
-                    section_match = re.search(r"#\s*=+\s*([^=]+?)\s*=", line)  # NOSONAR(python:S8786): single-line input bounded by env.example format — no super-linear backtracking reachable
+                    section_match = re.search(r"#\s*=+\s*([^=]+?)\s*=", line)  # NOSONAR(S8786): single-line input bounded by env.example format — no super-linear backtracking reachable
                     if section_match:
                         current_section = section_match.group(1).strip()
                 continue
@@ -582,7 +582,7 @@ def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; sc
     }
 
 
-def scan_scripts() -> dict:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def scan_scripts() -> dict:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan the scripts directory for shell/python/JS scripts."""
     scripts = {}
     scripts_path = PROJECT_ROOT / SCRIPTS_DIR
@@ -605,7 +605,7 @@ def scan_scripts() -> dict:  # NOSONAR — S3776: cognitive complexity; schedule
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
-                    m = re.search(r"^#\s*(.+)$", content, re.MULTILINE)  # NOSONAR(python:S8786): `.+` matches a single line — bounded by line length, no nested quantifier
+                    m = re.search(r"^#\s*(.+)$", content, re.MULTILINE)  # NOSONAR(S8786): `.+` matches a single line — bounded by line length, no nested quantifier
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:
@@ -831,7 +831,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
     }
 
 
-def generate_markdown(index: dict) -> str:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def generate_markdown(index: dict) -> str:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Generate a rich human-readable Markdown index."""
     now = index["meta"]["generated_at"]
     stats = index["stats"]

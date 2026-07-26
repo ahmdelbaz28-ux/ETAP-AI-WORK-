@@ -206,7 +206,7 @@ class BaseCUAExecutor(abc.ABC):
         action_timeout: int = DEFAULT_ACTION_TIMEOUT,
     ) -> None:
         self.action_timeout = action_timeout
-        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
         self.audit_dir.mkdir(parents=True, exist_ok=True)
 
     # ─── Abstract hooks (platform-specific) ────────────────────────────────
@@ -257,7 +257,7 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         max_steps: int = DEFAULT_MAX_STEPS,

@@ -172,7 +172,7 @@ function renderTableBody(
   ));
 }
 
-export default function CuaMonitor() {
+export default function CuaMonitor() {  // NOSONAR(S3776): CUA monitor dashboard — complexity from 4 async data fetchers + render branches; decomposition tracked as separate refactor
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";

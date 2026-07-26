@@ -32,7 +32,7 @@ class MotorParameters:
     efficiency: float = 0.90  # Motor efficiency
     starting_pf: float = 0.20  # Starting power factor
     lr_current_multiplier: float = 6.0  # Locked rotor current / full load current
-    inertia_constant_H: float = 0.5  # Inertia constant (seconds)  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    inertia_constant_H: float = 0.5  # Inertia constant (seconds)  # NOSONAR(S116): standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     x_d_prime: float = 0.20  # Transient reactance (per-unit)
     x_d_double_prime: float = 0.15  # Subtransient reactance (per-unit)
     r_stator: float = 0.01  # Stator resistance (per-unit)
@@ -117,7 +117,7 @@ class MotorModel:
         """
         # I_start = V / X_d" (approximately)
         V = 1.0  # per-unit
-        I_start = V / self.x_d_double_prime_sys  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_start = V / self.x_d_double_prime_sys  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return I_start * self.mva_ratio
 
     def locked_rotor_current_pu(self) -> complex:
@@ -132,8 +132,8 @@ class MotorModel:
         """
         p = self.params
         # Locked rotor impedance (simplified)
-        Z_lr = complex(p.r_stator, p.x_d_double_prime)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_lr = 1.0 / Z_lr if abs(Z_lr) > 0 else complex(0, 0)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_lr = complex(p.r_stator, p.x_d_double_prime)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_lr = 1.0 / Z_lr if abs(Z_lr) > 0 else complex(0, 0)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return I_lr * self.mva_ratio
 
     def running_current_pu(self) -> complex:
@@ -146,7 +146,7 @@ class MotorModel:
         p = self.params
         # Running impedance
         pf_angle = np.arccos(p.power_factor)
-        I_running = self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_running = self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return I_running
 
     def acceleration_time(
@@ -174,12 +174,12 @@ class MotorModel:
 
         # Average motor torque during acceleration (simplified)
         # Typically 1.0-1.5 pu of rated torque
-        T_motor_avg = 1.2 * voltage_fraction**2  # Torque proportional to V^2  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_motor_avg = 1.2 * voltage_fraction**2  # Torque proportional to V^2  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Average load torque (typically 0.3 for fans, 0.1 for pumps)
-        T_load_avg = load_torque_fraction  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_load_avg = load_torque_fraction  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        delta_T = T_motor_avg - T_load_avg  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        delta_T = T_motor_avg - T_load_avg  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if delta_T <= 0:
             return float("inf")  # Motor cannot accelerate
 
@@ -203,14 +203,14 @@ class MotorModel:
         p = self.params
         pf_angle = np.arccos(p.starting_pf)
         # x_d_double_prime_sys is already on system base; no further conversion needed
-        Z_motor = self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_motor = self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage divider
-        V_source = 1.0  # per-unit  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Z_total = source_impedance + Z_motor  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_motor = V_source * Z_motor / Z_total if abs(Z_total) > 0 else V_source  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_source = 1.0  # per-unit  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_total = source_impedance + Z_motor  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_motor = V_source * Z_motor / Z_total if abs(Z_total) > 0 else V_source  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        V_motor_mag = abs(V_motor)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_motor_mag = abs(V_motor)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         dip_percent = (1.0 - V_motor_mag) * 100.0
 
         return dip_percent, V_motor_mag
@@ -234,26 +234,26 @@ class MotorModel:
         p = self.params
 
         # Initial subtransient current
-        I_double_prime = 1.0 / complex(p.r_stator, p.x_d_double_prime)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_double_prime = 1.0 / complex(p.r_stator, p.x_d_double_prime)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Transient current
-        I_prime = 1.0 / complex(p.r_stator, p.x_d_prime)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_prime = 1.0 / complex(p.r_stator, p.x_d_prime)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Time constants (simplified)
-        T_double_prime = p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)  # subtransient  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_prime = p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)  # transient  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_double_prime = p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)  # subtransient  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_prime = p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)  # transient  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # DC offset decay
-        T_dc = p.x_d_double_prime / (2 * np.pi * 60 * p.r_stator)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_dc = p.x_d_double_prime / (2 * np.pi * 60 * p.r_stator)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Current at time t
         if t <= 0:
-            I_motor = I_double_prime * self.mva_ratio  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_motor = I_double_prime * self.mva_ratio  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
-            I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + I_prime * np.exp(  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + I_prime * np.exp(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 -t / T_prime,
             )
-            I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
             # Always return complex for API consistency (t<=0 returns complex)
             I_motor = complex(np.sqrt(abs(I_ac) ** 2 + I_dc**2) * self.mva_ratio, 0)
@@ -283,16 +283,16 @@ class MotorModel:
         X2 = p.x_d_double_prime * 0.5  # approximate
         omega_s = 2 * np.pi * 60  # synchronous speed
 
-        R2_s = R2 / slip  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Z_total = complex(R1 + R2_s, X1 + X2)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R2_s = R2 / slip  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_total = complex(R1 + R2_s, X1 + X2)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I = V / Z_total
         T = (abs(I) ** 2 * R2_s) / omega_s
 
         # Normalize to rated torque
-        R2_rated = R2 / p.slip_rated  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Z_rated = complex(R1 + R2_rated, X1 + X2)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_rated = V / Z_rated  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_rated = (abs(I_rated) ** 2 * R2_rated) / omega_s  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R2_rated = R2 / p.slip_rated  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_rated = complex(R1 + R2_rated, X1 + X2)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_rated = V / Z_rated  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_rated = (abs(I_rated) ** 2 * R2_rated) / omega_s  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         if T_rated > 0:
             return T / T_rated

@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def create_test_system() -> Any:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+async def create_test_system() -> Any:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
     """
     Create a minimal test system for agent testing.
     This creates a simple power system with minimal components to allow

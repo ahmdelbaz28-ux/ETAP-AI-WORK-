@@ -674,7 +674,7 @@ class MultiLevelRecovery:
             raise ValueError(f"Invalid recovery level: {level}. Use 1, 2, or 3.")
         self._strategies[level].append((fn, condition_fn))
 
-    def recover(self, error: BaseException, context: Optional[Any] = None) -> RecoveryResult:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def recover(self, error: BaseException, context: Optional[Any] = None) -> RecoveryResult:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute recovery strategies from level 1 upward.
 
         Returns as soon as a level produces a result considered successful

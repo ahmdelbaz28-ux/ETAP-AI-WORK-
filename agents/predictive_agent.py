@@ -140,8 +140,8 @@ class PredictiveAgent(BaseAgent):
 
         # Holt-Winters iteration
         for t in range(season_length, n):
-            L_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            T_new = beta * (L_new - L) + (1 - beta) * T  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            L_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            T_new = beta * (L_new - L) + (1 - beta) * T  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             S[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S[t % season_length]
             L = L_new
             T = T_new
@@ -154,11 +154,11 @@ class PredictiveAgent(BaseAgent):
 
         # Calculate in-sample error for confidence bounds
         fitted = []
-        L_f = np.mean(y[:season_length])  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_f = (  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        L_f = np.mean(y[:season_length])  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_f = (  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
         ) / season_length
-        S_f = y[:season_length] - L_f  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        S_f = y[:season_length] - L_f  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         for t in range(season_length, n):
             f_val = L_f + T_f + S_f[t % season_length]
             fitted.append(f_val)
@@ -480,7 +480,7 @@ class PredictiveAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-    async def execute(self, task: EngineeringTask) -> AgentResult:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def execute(self, task: EngineeringTask) -> AgentResult:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Execute predictive analytics task.
 
@@ -509,7 +509,7 @@ class PredictiveAgent(BaseAgent):
                     # task parameters.
                     hours = 168  # 1 week
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR(S6711): numpy.random.Generator migration; API change required
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -583,7 +583,7 @@ class PredictiveAgent(BaseAgent):
                 if not hist_load:
                     hours = 168
                     hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()  # NOSONAR(S6711): numpy.random.Generator migration; API change required
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")

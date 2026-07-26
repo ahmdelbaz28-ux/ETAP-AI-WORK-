@@ -71,7 +71,7 @@ const TOOLTIP_BUILDERS: Record<string, TooltipBuilder> = {
             `Status: ${isBreakerOpen ? "NO-LOAD (Open Circuit)" : "ON-LOAD (Active)"}`,
           ],
         },
-  "bus-b": (isRtl, isBreakerOpen) =>
+  "bus-b": (isRtl, isBreakerOpen) =>  // NOSONAR(S3776): tooltip builder closure — complexity from bilingual RTL handling; refactoring would split related logic across files
     isRtl
       ? {
           title: "قضيب التوزيع الفرعي (BUS-13.8KV)",

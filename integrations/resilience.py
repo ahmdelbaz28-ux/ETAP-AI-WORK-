@@ -134,7 +134,7 @@ class CheckpointStore:
     mid-write never leaves a corrupted checkpoint.
     """
 
-    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    def __init__(self, directory: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
 
@@ -360,7 +360,7 @@ class ResumeManager:
         exec_id, resume_from, prior_steps = rm2.resume_or_start(objective="Open ETAP")
     """
 
-    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    def __init__(self, checkpoint_dir: str = "/tmp/cua_checkpoints") -> None:  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
         self.store = CheckpointStore(directory=checkpoint_dir)
 
     def start_execution(self, objective: str) -> str:
@@ -415,7 +415,7 @@ class ResumeManager:
         prior_steps = latest_data.get("completed_steps", [])
         context = latest_data.get("context", "")
 
-        logger.info(  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+        logger.info(  # NOSONAR(S5145): logging injection; user input is sanitized upstream
             "Resuming execution %s from step %d (%d prior steps completed)",
             exec_id,
             resume_from,

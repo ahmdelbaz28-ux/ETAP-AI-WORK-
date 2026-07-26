@@ -86,7 +86,7 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             self.disconnect(client)
 
-    async def _generate_scada_data(self) -> dict:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    async def _generate_scada_data(self) -> dict:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
         """Generate mock SCADA data for demonstration purposes.
 
         **SIMULATED DATA**: This generates synthetic data for UI/UX demos only.
@@ -159,14 +159,14 @@ class SCADALiveFeed:
         }
 
         # Randomly add alarms occasionally
-        if random.random() < 0.1:  # 10% chance of alarm  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+        if random.random() < 0.1:  # 10% chance of alarm  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
             scada_data["alarms"].append(
                 {
-                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
-                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
-                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
+                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
+                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
                 },
             )
 

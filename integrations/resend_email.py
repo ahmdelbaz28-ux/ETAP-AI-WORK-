@@ -135,7 +135,7 @@ async def _http_post_json(
     headers: dict[str, str],
     payload: dict[str, Any],
     timeout: float,
-) -> tuple[int, dict[str, Any]]:  # NOSONAR(python:S7483): timeout is forwarded to both httpx (AsyncClient) and the urllib fallback running in asyncio.to_thread — asyncio.timeout cannot cancel the threaded sync I/O
+) -> tuple[int, dict[str, Any]]:  # NOSONAR(S7483): timeout is forwarded to both httpx (AsyncClient) and the urllib fallback running in asyncio.to_thread — asyncio.timeout cannot cancel the threaded sync I/O
     """POST JSON and return (status_code, json_body)."""
     if _HAS_HTTPX:
         async with httpx.AsyncClient(# NOSONAR

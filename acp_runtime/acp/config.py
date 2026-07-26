@@ -72,7 +72,7 @@ def load_config(path: str) -> dict[str, Any]:
     # inside the current working directory, the system temp dir (for tests),
     # or the user's home directory (for shared config files like ~/.acp/config.yaml).
     import tempfile
-    _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR — S5443: tempdir is the system default; we explicitly allow it for test fixtures
+    _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR(S5443): tempdir is the system default; we explicitly allow it for test fixtures
     allowed_roots = [Path.cwd().resolve(), _tmp_root, Path.home().resolve()]
     if not any(_is_within(p, root) for root in allowed_roots):
         raise SystemExit(
@@ -107,7 +107,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
     return parsed
 
 
-def merge_config(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def merge_config(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     args: Any,
     config: dict[str, Any] | None,
     env_prefix: str = "ACP_",

@@ -194,7 +194,7 @@ class ArcGISProIndexingWorkflow:
         for i, item in enumerate(transformed_data):
             # MD5 used as a deterministic document ID for Elasticsearch —
             # not a security primitive (no password, no signature).
-            doc_id = hashlib.md5(item["url"].encode()).hexdigest()  # nosec B324 — non-security doc ID  # NOSONAR — S4790: MD5 is intentional for deterministic doc IDs, not security
+            doc_id = hashlib.md5(item["url"].encode()).hexdigest()  # nosec B324 — non-security doc ID  # NOSONAR(S4790): MD5 is intentional for deterministic doc IDs, not security
 
             try:
                 if self.elastic_client is None:

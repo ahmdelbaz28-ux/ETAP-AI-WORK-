@@ -58,14 +58,14 @@ class RenewableAgent(BaseAgent):
     # Solar PV analysis
     # ------------------------------------------------------------------
 
-    def analyze_solar_pv(  # NOSONAR(python:S107): 14 params are IEEE 1547 / IEC 61724 PV system inputs (physically-distinct — splitting into a config dataclass would force callers to construct a Pydantic model for ad-hoc CLI usage, harming DX)
+    def analyze_solar_pv(  # NOSONAR(S107): 14 params are IEEE 1547 / IEC 61724 PV system inputs (physically-distinct — splitting into a config dataclass would force callers to construct a Pydantic model for ad-hoc CLI usage, harming DX)
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
         irradiance_kw_m2: Optional[np.ndarray] = None,
-        temperature_C: Optional[np.ndarray] = None,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        noct_C: float = 45.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        temp_coeff_power_pctK: float = -0.40,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        temperature_C: Optional[np.ndarray] = None,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        noct_C: float = 45.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        temp_coeff_power_pctK: float = -0.40,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         soiling_loss_pct: float = 2.0,
         mismatch_loss_pct: float = 2.0,
         wiring_loss_pct: float = 1.0,
@@ -141,21 +141,21 @@ class RenewableAgent(BaseAgent):
         else:
             temperature_C = np.asarray(temperature_C, dtype=float)
 
-        G_stc = 1.0  # kW/m² (STC)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_stc = 25.0  # °C  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        G_stc = 1.0  # kW/m² (STC)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_stc = 25.0  # °C  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Cell temperature per NOCT method (IEEE 1547 / IEC 61215)
         # T_cell = T_amb + (NOCT - 20) × G / 800
-        T_cell = temperature_C + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_cell = temperature_C + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # DC power output (kW)
         gamma = temp_coeff_power_pctK / 100.0  # Convert %/°C to per-unit/°C
-        P_dc = dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (T_cell - T_stc))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_dc = dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (T_cell - T_stc))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         P_dc = np.maximum(P_dc, 0.0)
 
         # Inverter clipping
-        P_ac_pre_loss = P_dc * (inverter_efficiency_pct / 100.0)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_ac_clipped = np.minimum(P_ac_pre_loss, ac_capacity_kw)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_ac_pre_loss = P_dc * (inverter_efficiency_pct / 100.0)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_ac_clipped = np.minimum(P_ac_pre_loss, ac_capacity_kw)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         clipping_loss_kw = P_ac_pre_loss - P_ac_clipped
 
         # System losses
@@ -166,7 +166,7 @@ class RenewableAgent(BaseAgent):
             * (availability_pct / 100.0)
         )
 
-        P_ac_final = P_ac_clipped * loss_factor  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_ac_final = P_ac_clipped * loss_factor  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Annual energy
         annual_energy_kwh = float(np.sum(P_ac_final))
@@ -258,7 +258,7 @@ class RenewableAgent(BaseAgent):
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(hours)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        cloud_factor = 0.7 + 0.3 * np.random.random(hours)  # NOSONAR(S6711): numpy.random.Generator migration; API change required
         poa = poa * cloud_factor
 
         return np.clip(poa, 0.0, 1.2)
@@ -360,7 +360,7 @@ class RenewableAgent(BaseAgent):
         weibull_pdf = weibull_pdf / (np.sum(weibull_pdf) * dv)
 
         # Annual energy production (AEP)
-        P_avg = np.sum(P * weibull_pdf) * dv  # Average power in kW  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_avg = np.sum(P * weibull_pdf) * dv  # Average power in kW  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         hours_per_year = 8760.0
         aep_gross = P_avg * hours_per_year
 
@@ -379,7 +379,7 @@ class RenewableAgent(BaseAgent):
         mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
 
         # Theoretical max power (Betz limit)
-        P_betz = 0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_betz = 0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return {
             "rated_power_kw": rated_power_kw,
@@ -419,9 +419,9 @@ class RenewableAgent(BaseAgent):
         self,
         der_capacity_kw: float,
         feeder_capacity_kva: float,
-        point_of_interconnection_voltage_V: float,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        point_of_interconnection_voltage_V: float,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         voltage_regulation_pct: float,
-        frequency_response_Hz: float,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        frequency_response_Hz: float,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         has_ride_through: bool = True,
         has_anti_islanding: bool = True,
         power_factor_range: tuple[float, float] = (0.9, 1.0),
@@ -478,7 +478,7 @@ class RenewableAgent(BaseAgent):
             "Within limits"
             if penetration <= 15.0
             else (
-                "Simplified interconnection if ≤15%"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+                "Simplified interconnection if ≤15%"  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
                 if penetration <= 100.0
                 else "Exceeds feeder capacity"
             )
@@ -651,24 +651,24 @@ class RenewableAgent(BaseAgent):
         # 1. Voltage-limited hosting capacity
         voltage_rise_budget = (max_voltage_pu - 1.0) * 100.0  # % above nominal
         if max_voltage_rise_pct_per_kw > 0:
-            HC_voltage = voltage_rise_budget / max_voltage_rise_pct_per_kw  # kW  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            HC_voltage = voltage_rise_budget / max_voltage_rise_pct_per_kw  # kW  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
             HC_voltage = float("inf")
 
         # 2. Thermal-limited hosting capacity
         thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct
-        HC_thermal = feeder_head_kva * (thermal_headroom_pct / 100.0)  # kVA  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        HC_thermal_kw = HC_thermal * pf_der  # Convert to kW at DER PF  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        HC_thermal = feeder_head_kva * (thermal_headroom_pct / 100.0)  # kVA  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        HC_thermal_kw = HC_thermal * pf_der  # Convert to kW at DER PF  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # 3. Reverse power constraint
         if reverse_power_allowed:
-            HC_reverse = float("inf")  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            HC_reverse = float("inf")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
             # DER can't exceed current load (no reverse flow)
             HC_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
 
         # 4. Protection coordination margin (conservative 80% of thermal)
-        HC_protection = HC_thermal_kw * 0.80  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        HC_protection = HC_thermal_kw * 0.80  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Overall hosting capacity = minimum of all constraints
         constraints = {
@@ -678,10 +678,10 @@ class RenewableAgent(BaseAgent):
             "protection_limit_kw": float(HC_protection),
         }
 
-        HC_overall = min(HC_voltage, HC_thermal_kw, HC_reverse, HC_protection)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        HC_overall = min(HC_voltage, HC_thermal_kw, HC_reverse, HC_protection)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         limiting_constraint = min(constraints, key=lambda k: constraints[k])
 
-        penetration_at_HC = (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        penetration_at_HC = (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return {
             "hosting_capacity_kw": float(HC_overall),

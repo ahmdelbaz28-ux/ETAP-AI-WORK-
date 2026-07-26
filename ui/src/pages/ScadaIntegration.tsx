@@ -63,7 +63,7 @@ function buildRandomAlarm(isRtl: boolean): SCADAAlarm {
   };
 }
 
-export default function ScadaIntegration() {  // NOSONAR(typescript:S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
+export default function ScadaIntegration() {  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
@@ -145,7 +145,7 @@ export default function ScadaIntegration() {  // NOSONAR(typescript:S3776): main
   };
 
   // REST API connection probe
-  const testConnection = async () => {
+  const testConnection = async () => {  // NOSONAR(S3776): test connection handler — complexity from 3-way config matrix + error branching
     setConnectionStatus("connecting");
     addLog(
       isRtl

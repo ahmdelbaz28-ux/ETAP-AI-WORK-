@@ -203,7 +203,7 @@ class ValidationGateway:
         return results
 
     def validate_pre_mutation(
-        self, event_type: str, gis_db=None, system=None, scada_db=None, adms_engine=None,  # NOSONAR — S1172: unused param kept for API compatibility
+        self, event_type: str, gis_db=None, system=None, scada_db=None, adms_engine=None,  # NOSONAR(S1172): unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """
         Validate pre-conditions before a state mutation.
@@ -425,7 +425,7 @@ class ValidationGateway:
     # ADMS LAYER VALIDATIONS (Operational Truth)
     # ============================================================
 
-    def _validate_adms_layer(self, scada_db, adms_engine) -> list[ValidationResult]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _validate_adms_layer(self, scada_db, adms_engine) -> list[ValidationResult]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Validate ADMS operational truth."""
         results = []
 
@@ -483,8 +483,8 @@ class ValidationGateway:
     # CROSS-LAYER SYNCHRONIZATION VALIDATIONS
     # ============================================================
 
-    def _validate_cross_layer_sync(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, gis_db, system, scada_db, adms_engine,  # NOSONAR — S1172: unused param kept for API compatibility
+    def _validate_cross_layer_sync(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        self, gis_db, system, scada_db, adms_engine,  # NOSONAR(S1172): unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """Validate cross-layer synchronization (Three Truths Principle)."""
         results = []

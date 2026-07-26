@@ -105,7 +105,7 @@ const CAIRO_TEMPLATE = {
   ] as Load[],
 };
 
-export default function GridEditor() {  // NOSONAR(typescript:S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
+export default function GridEditor() {  // NOSONAR(S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";

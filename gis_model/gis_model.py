@@ -139,7 +139,7 @@ class PolylineGeometry:
             return GeoCoordinate(0, 0)
         if fraction <= 0:
             return self.coordinates[0]
-        if fraction >= 1:  # NOSONAR — pythonbugs:S2583: not always true; fraction is in (0, +inf) at this point, this branch catches [1, +inf)
+        if fraction >= 1:  # NOSONAR(pythonbugs):S2583: not always true; fraction is in (0, +inf) at this point, this branch catches [1, +inf)
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = fraction * total
@@ -352,7 +352,7 @@ class GISDatabase:
                 if not self.spatial_index[key]:
                     del self.spatial_index[key]
 
-    def find_nearby_assets(  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def find_nearby_assets(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, coord: GeoCoordinate, radius_meters: float,
     ) -> list[tuple[GISAsset, float]]:
         """

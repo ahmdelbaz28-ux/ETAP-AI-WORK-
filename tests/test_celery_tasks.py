@@ -57,7 +57,7 @@ from worker.tasks import (
 )
 
 # =============================================================================
-# Fixtures  # NOSONAR — python:S125: section separator comment
+# Fixtures  # NOSONAR(python):S125: section separator comment
 # =============================================================================
 
 
@@ -267,7 +267,7 @@ class TestTaskStatusTracking:
 
         # In eager mode with task_eager_propagates=True, the exception
         # is re-raised.  We catch it and inspect the stored result.
-        with pytest.raises(RuntimeError, match="Engine crashed"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError, match="Engine crashed"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -319,7 +319,7 @@ class TestTaskStatusTracking:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("boom")
 
-        with pytest.raises(RuntimeError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -435,7 +435,7 @@ class TestTaskResultRetrieval:
         data = _sample_study_data()
         data["trace_id"] = "custom-trace-999"
 
-        async_result = execute_engineering_study_task.apply_async(args=(data,))  # NOSONAR — S1481: unused local kept for clarity/debugging
+        async_result = execute_engineering_study_task.apply_async(args=(data,))  # NOSONAR(S1481): unused local kept for clarity/debugging
 
         # The mock returns _fake_study_result; we verify the trace_id was
         # extracted from study_data and passed to execute_study_logic.
@@ -472,7 +472,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Solver diverged")
 
-        with pytest.raises(RuntimeError, match="Solver diverged"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError, match="Solver diverged"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -484,7 +484,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = ValueError("Invalid study_type: unknown")
 
-        with pytest.raises(ValueError, match="Invalid study_type"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ValueError, match="Invalid study_type"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -496,7 +496,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Engine crashed")
 
-        with pytest.raises(RuntimeError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -523,7 +523,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("timeout")
 
-        with pytest.raises(RuntimeError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -580,7 +580,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = KeyError("missing_key")
 
-        with pytest.raises(KeyError, match="missing_key"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(KeyError, match="missing_key"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -695,7 +695,7 @@ class TestTaskRetry:
         # The execute_engineering_study_task does not have autoretry_for
         # configured, so it will raise.  We demonstrate the pattern and
         # verify the retry decorator *can* be applied.
-        with pytest.raises(ConnectionError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ConnectionError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -745,7 +745,7 @@ class TestTaskRetry:
         mock_exec.side_effect = _side_effect
 
         # Since the task doesn't have autoretry_for, it raises on first failure
-        with pytest.raises(ConnectionError):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ConnectionError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -942,7 +942,7 @@ class TestTaskIntegration:
         mock_exec.side_effect = ValueError("Invalid parameter: tolerance")
 
         # 1. Submit — exception propagates in eager mode
-        with pytest.raises(ValueError, match="Invalid parameter"):  # NOSONAR — S5778: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ValueError, match="Invalid parameter"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )

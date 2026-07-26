@@ -18,7 +18,7 @@ USER root
 
 # ── System packages + Node.js 22 LTS ─────────────────────────────────────────
 # Packages are sorted alphanumerically per group (S7018).
-# NOSONAR(docker:S8482) — NodeSource GPG key is verified before the setup
+# NOSONAR(S8482) — NodeSource GPG key is verified before the setup
 # script is executed, mitigating the risk of executing unverified artifacts.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gnupg \
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
   && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
     > /etc/apt/sources.list.d/nodesource.list \
-  && apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(docker:S7018): grouped by purpose, sorted within each group
+  && apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(S7018): grouped by purpose, sorted within each group
     # Python toolchain
     python3-dev python3-pip python3.12 python3.12-venv \
     # Node.js 22 LTS
@@ -68,7 +68,7 @@ USER devenv
 
 # ── Pre-install isolated-vm so Node sandbox is immediately usable ────────────
 # isolated-vm@7 requires Node 22+ and build-essential — both present above.
-# NOSONAR(docker:S6505): lifecycle scripts are intentionally allowed for native addon rebuild.
+# NOSONAR(S6505): lifecycle scripts are intentionally allowed for native addon rebuild.
 RUN npm install -g --ignore-scripts isolated-vm@7.0.0 2>&1 | tail -5 || \
     echo "isolated-vm will be installed at postCreate via postCreateCommand"
 
@@ -77,4 +77,4 @@ RUN npm install -g --ignore-scripts isolated-vm@7.0.0 2>&1 | tail -5 || \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    NODE_ENV=development  # NOSONAR(docker:S4507): devcontainer-only image; NODE_ENV=development is intentional and never deployed to production
+    NODE_ENV=development  # NOSONAR(S4507): devcontainer-only image; NODE_ENV=development is intentional and never deployed to production

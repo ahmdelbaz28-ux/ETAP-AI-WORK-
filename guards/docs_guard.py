@@ -382,7 +382,7 @@ class DocsGuard(BaseGuard):
     # ------------------------------------------------------------------
     # D-10: Navigation tells the truth
     # ------------------------------------------------------------------
-    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: check markdown links for common broken patterns."""
         violations: list[GuardViolation] = []
         # Check for relative links to files that likely don't exist
@@ -398,7 +398,7 @@ class DocsGuard(BaseGuard):
                 # Anchor link — check if a matching heading exists
                 anchor = link_target[1:].lower()
                 # Look for markdown headings that match this anchor.
-                heading_pattern = r"^#+\s+.*$"  # NOSONAR(python:S8786): `.*` matches a single line — bounded by markdown line length, no nested quantifier
+                heading_pattern = r"^#+\s+.*$"  # NOSONAR(S8786): `.*` matches a single line — bounded by markdown line length, no nested quantifier
                 headings = [
                     re.sub(r"^#+\s+", "", m.group().lower()).strip()
                     for m in re.finditer(heading_pattern, source, re.MULTILINE)
@@ -425,7 +425,7 @@ class DocsGuard(BaseGuard):
                             evidence=f"[{link_text}](#{link_target[1:]})",
                         ),
                     )
-            elif link_target.endswith(".md", ".py"):  # NOSONAR — python:S8513: false positive — already tuple form
+            elif link_target.endswith(".md", ".py"):  # NOSONAR(python):S8513: false positive — already tuple form
                 # Relative file link — check if it looks like a placeholder
                 if "TODO" in link_target or "PLACEHOLDER" in link_target:
                     violations.append(

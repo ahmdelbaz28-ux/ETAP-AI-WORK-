@@ -42,8 +42,8 @@ class SparseMatrixManager:
 
     def to_dense(self, mat: Any) -> np.ndarray:
         return mat.toarray() if issparse(mat) else np.asarray(mat)
-  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def build_sparse_ybus(self, system: System, seq: str = "1") -> csr_matrix:  # NOSONAR — S3776: cognitive complexity; refactoring sprint
+  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def build_sparse_ybus(self, system: System, seq: str = "1") -> csr_matrix:  # NOSONAR(S3776): cognitive complexity; refactoring sprint
         bids = sorted(system.buses.keys())
         n = len(bids)
         bi = {b: i for i, b in enumerate(bids)}
@@ -83,15 +83,15 @@ class SparseMatrixManager:
                 if zl and zl != 0j and abs(zl) < 1e8:
                     rows.append(i), cols.append(i), data.append(1.0 / zl)
         return coo_matrix((data, (rows, cols)), shape=(n, n), dtype=complex).tocsr()
-  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    def sparse_lu_solve(self, A: Any, b: np.ndarray) -> np.ndarray:  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def sparse_lu_solve(self, A: Any, b: np.ndarray) -> np.ndarray:  # NOSONAR(S117): physics notation (I/V/P/Q); snake_case harms readability
         if not issparse(A):
             A = csr_matrix(A)
         if A.shape[0] <= self.size_threshold:
             return np.linalg.solve(A.toarray(), b)
         return splu(A).solve(b)
-  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    def sparse_factored_solve(self, A_factor: Any, b: np.ndarray) -> np.ndarray:  # NOSONAR — S117: physics notation (I/V/P/Q); snake_case harms readability
+  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def sparse_factored_solve(self, A_factor: Any, b: np.ndarray) -> np.ndarray:  # NOSONAR(S117): physics notation (I/V/P/Q); snake_case harms readability
         return A_factor.solve(b)
 
     def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> dict[str, Any]:
@@ -171,12 +171,12 @@ class MemoryOptimizedSystem:
         self.lines = []
         self.transformers = []
         self.generators = []
-        self.loads = []  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.loads = []  # NOSONAR(S116): standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_seq = {}  # NOSONAR
         self._inc_gen_z = False
         self._use_arr = False
-        self._ids = self._vmag = self._vang = None  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self._pL = self._qL = self._pG = self._qG = None  # NOSONAR(python:S116): IEEE/IEC standard notation (P/Q active/reactive power at Load/Generator)
+        self._ids = self._vmag = self._vang = None  # NOSONAR(S116): standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self._pL = self._qL = self._pG = self._qG = None  # NOSONAR(S116): IEEE/IEC standard notation (P/Q active/reactive power at Load/Generator)
         self._kv = self._bt = self._qmin = self._qmax = self._vms = None
         self._buses = None
         self._sm = SparseMatrixManager()
@@ -232,16 +232,16 @@ class MemoryOptimizedSystem:
             ("_vms", "vms"),
         ]:
             setattr(self, attr, a[f])
-        # NOSONAR — python:S7504: list() is intentional — creates a snapshot
+        # NOSONAR(python):S7504: list() is intentional — creates a snapshot
         # so we can safely mutate self.Ybus_seq inside the loop if needed.
-        for k in list(self.Ybus_seq.keys()):  # NOSONAR — S7504: intentional snapshot for safe mutation
+        for k in list(self.Ybus_seq.keys()):  # NOSONAR(S7504): intentional snapshot for safe mutation
             yb = self.Ybus_seq[k]
             if isinstance(yb, np.ndarray) and yb.shape[0] >= self.THRESH:
                 self.Ybus_seq[k] = self._sm.to_sparse(yb)
         return self
 
     def _b_idx(self, bid: int) -> int:
-        idx = np.where(self._ids == bid)[0]  # NOSONAR — S6729: np.where with single arg; kept for readability
+        idx = np.where(self._ids == bid)[0]  # NOSONAR(S6729): np.where with single arg; kept for readability
         if len(idx) == 0:
             raise KeyError(f"Bus {bid} not found")
         return int(idx[0])
@@ -285,8 +285,8 @@ class MemoryOptimizedSystem:
         if seq not in self.Ybus_seq:
             self.Ybus_seq[seq] = self._sm.build_sparse_ybus(self.to_system(), seq)
         return self.Ybus_seq[seq]
-  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def to_system(self) -> System:  # NOSONAR — S3776: cognitive complexity; refactoring sprint
+  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def to_system(self) -> System:  # NOSONAR(S3776): cognitive complexity; refactoring sprint
         s = System(base_mva=self.base_mva)
         if self._use_arr:
             for i in range(self.bus_count):
@@ -709,10 +709,10 @@ class LargeSystemAdapter:
             )
         else:
             r.update(solver="dense", initial_voltages=self.optimized_system.get_all_bus_voltages())
-        r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+        r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
         return r
-  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def run_fault_analysis_optimized(  # NOSONAR — S3776: cognitive complexity; refactoring sprint
+  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def run_fault_analysis_optimized(  # NOSONAR(S3776): cognitive complexity; refactoring sprint
         self, params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         p = params or {}
@@ -760,8 +760,8 @@ class LargeSystemAdapter:
                 "need_memory_monitoring": True,
             }
             recs = [
-                "Use SparseMatrixManager for all matrix operations.",  # NOSONAR — S1192: intentional repetition (audit constant)
-                "Use MemoryOptimizedSystem array storage.",  # NOSONAR — S1192: string duplication; extract constant (tech debt)
+                "Use SparseMatrixManager for all matrix operations.",  # NOSONAR(S1192): intentional repetition (audit constant)
+                "Use MemoryOptimizedSystem array storage.",  # NOSONAR(S1192): string duplication; extract constant (tech debt)
                 "Use BatchProcessor for fault analysis.",
                 "Use DataCompressor for caching as float32/complex64.",
                 "Consider iterative solvers (GMRES, BiCGSTAB).",

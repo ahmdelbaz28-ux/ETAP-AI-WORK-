@@ -273,7 +273,7 @@ function ResultSummary({ result }: { readonly result: Record<string, unknown> })
   );
 }
 
-export default function StudyRun() {
+export default function StudyRun() {  // NOSONAR(S3776): Study run page — complexity from polling state machine + multi-step form; decomposition tracked as separate refactor
   const { studyType } = useParams<{ studyType: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();

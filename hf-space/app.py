@@ -531,7 +531,7 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     return result
 
 
-@app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"])
+@app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"], responses={504: {"description": "CUA Loop timed out"}})
 async def etap_gui_execute(request: Request):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
@@ -1023,7 +1023,7 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR — S7493: sync file I/O in async function; compatibility with sync lib
+        with open(log_path, encoding="utf-8") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()
@@ -1493,7 +1493,7 @@ _UI_DIST = Path(__file__).parent / "ui-dist"
 _UI_INDEX = _UI_DIST / "index.html"
 
 
-@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False, responses={404: {"description": "Path not found"}})
 async def ui_catch_all(full_path: str):
     """Serve static UI files with SPA fallback to index.html."""
     # Skip API paths — they should have been handled by routes above

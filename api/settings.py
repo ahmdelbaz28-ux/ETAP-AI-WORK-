@@ -100,7 +100,7 @@ class ActivateKeyRequest(BaseModel):
 # ─── Endpoints ─────────────────────────────────────────────────────────────
 
 @router.get("/keys")
-async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """List all stored API keys (masked — never returns plaintext)."""
     try:
         keys = api_key_store.get_all_keys()
@@ -119,11 +119,11 @@ async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotat
         )
 
 @router.get("/keys/{provider}")
-async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get a single API key (masked — never returns plaintext)."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
@@ -149,7 +149,7 @@ async def save_key(
     """Save or update an API key (encrypted with AES-256)."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
@@ -183,11 +183,11 @@ async def save_key(
         )
 
 @router.delete("/keys/{provider}")
-async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Delete an API key permanently."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
@@ -211,7 +211,7 @@ async def activate_key(
     """Enable or disable a key without deleting it."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
@@ -225,7 +225,7 @@ async def activate_key(
     )
 
 @router.post("/keys/{provider}/test")
-async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSONResponse:  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Test an API key by making a minimal API call.
 
     For OpenAI: lists models
@@ -234,7 +234,7 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
     """
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
-        raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Unsupported provider '{provider}'. Must be one of: {APIKeyStore.SUPPORTED_PROVIDERS}",
         )
@@ -291,7 +291,7 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
         )
 
 @router.get("/health")
-async def settings_health(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def settings_health(_: ApiKeyDep) -> JSONResponse:  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get the API key storage health status."""
     return JSONResponse(content={"success": True, "data": api_key_store.health_check()})
 

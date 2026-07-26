@@ -137,7 +137,7 @@ class CodeIndexer:
         # root: the current working directory, the system temp dir (for tests),
         # or the user's home directory.
         import tempfile
-        _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR — S5443: tempdir is the system default; we explicitly allow it for test fixtures
+        _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR(S5443): tempdir is the system default; we explicitly allow it for test fixtures
         candidate = Path(output_dir).expanduser().resolve()
         allowed_roots = [
             Path.cwd().resolve(),
@@ -163,7 +163,7 @@ class CodeIndexer:
     def hash_code(self, code: str) -> str:
         return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
-    def index_repo(self, repo_path: str):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def index_repo(self, repo_path: str):  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         repo_dir = Path(repo_path)
         total_chunks = 0
 

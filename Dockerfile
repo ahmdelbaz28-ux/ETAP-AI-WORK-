@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis).
-# NOSONAR(docker:S8544): requirements.hf.txt is audited and pins versions in-repo.
+# NOSONAR(S8544): requirements.hf.txt is audited and pins versions in-repo.
 # NOTE: pre-commit hooks are NOT installed in the Docker image.
 # `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
 # repository. The HF Space Docker build context excludes .git/ (see
