@@ -265,11 +265,18 @@ jobs:
             *) { echo "❌ SCADA endpoint failed (HTTP $SCADA_STATUS)"; exit 1; } ;;
           esac
 
-          # 4. Study types endpoint returns list
+          # 4. Study types endpoint — accepts 200 (authenticated) OR 401/403 (auth required)
+          #    Same pattern as SCADA check #3: the /api/v1/studies/types endpoint was
+          #    secured in the security audit. An unauthenticated probe gets 401, which
+          #    confirms the endpoint is up and enforcing security.
           TYPES_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/api/v1/studies/types" 2>/dev/null || echo "000")
           echo "   GET /api/v1/studies/types → HTTP $TYPES_STATUS"
-          [ "$TYPES_STATUS" = "200" ] || { echo "❌ Study types endpoint failed"; exit 1; }
+          case "$TYPES_STATUS" in
+            200) echo "   (authenticated — study types list available)" ;;
+            401|403) echo "   (auth required — endpoint is up and enforcing security)" ;;
+            *) { echo "❌ Study types endpoint failed (HTTP $TYPES_STATUS)"; exit 1; } ;;
+          esac
 
           echo ""
           echo "✅ All smoke tests passed against HF Space production URL"
