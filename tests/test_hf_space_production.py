@@ -8,6 +8,17 @@ correct Format A/B/C/D signatures in PRODUCTION — not just locally.
 Skipped automatically when:
   - HF_SPACE_PRODUCTION_TESTS != 'true' (default: skip in CI, run on demand)
   - Network unavailable
+
+NOTE on authentication: several endpoints (/api/v1/studies/types, /api/v1/agents,
+/api/v1/studies/run, /api/v1/agents/etap-expert/chat) were secured during the
+security audit and now require an API key via X-API-Key header. The E2E test
+runs unauthenticated from the GitHub Actions runner. When a secured endpoint
+returns HTTP 401/403, individual tests treat it as "endpoint is up and enforcing
+security" and skip the body assertions (rather than failing). The /health
+endpoint (test #1) remains the authoritative health probe.
+
+To run the full assertion suite locally, set HF_SPACE_API_KEY in your env
+and the tests will include it in the X-API-Key header for all requests.
 """
 
 from __future__ import annotations
@@ -22,6 +33,11 @@ import pytest
 PRODUCTION_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space"
 SKIP_REASON = f"Set HF_SPACE_PRODUCTION_TESTS=true to run production tests against {PRODUCTION_URL}"
 
+# Optional API key — when set, requests will include X-API-Key header so the
+# full assertion suite runs against secured endpoints. When unset (as in the
+# GitHub Actions E2E job), secured endpoints return 401 and tests skip.
+_API_KEY = os.environ.get("HF_SPACE_API_KEY", "")
+
 
 def _skip_if_not_enabled():
     if os.environ.get("HF_SPACE_PRODUCTION_TESTS") != "true":
@@ -31,6 +47,28 @@ def _skip_if_not_enabled():
 _skip_if_not_enabled()
 
 
+def _auth_headers() -> dict:
+    """Return request headers, including X-API-Key if HF_SPACE_API_KEY is set."""
+    headers = {"Content-Type": "application/json"}
+    if _API_KEY:
+        headers["X-API-Key"] = _API_KEY
+    return headers
+
+
+def _skip_if_secured(d: dict) -> None:
+    """Skip the current test when the endpoint returned 401/403 (secured).
+
+    Secured endpoints correctly reject unauthenticated probes. When the E2E
+    test runs without HF_SPACE_API_KEY, those endpoints return 401/403, which
+    confirms they are up and enforcing security. The test skips rather than
+    failing — the /health endpoint (test #1) is the authoritative health probe.
+    """
+    if d.get("_http_error") in (401, 403):
+        pytest.skip(
+            f"Endpoint returned HTTP {d['_http_error']} (secured — set HF_SPACE_API_KEY to run full assertions)"
+        )
+
+
 def _post(path: str, payload: dict, timeout: int = 30) -> dict:
     """POST JSON to the production HF Space and return parsed response."""
     url = PRODUCTION_URL + path
@@ -38,7 +76,7 @@ def _post(path: str, payload: dict, timeout: int = 30) -> dict:
     req = urllib.request.Request(
         url,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=_auth_headers(),
         method="POST",
     )
     try:
@@ -53,14 +91,9 @@ def _post(path: str, payload: dict, timeout: int = 30) -> dict:
 
 def _get(path: str, timeout: int = 15) -> dict:
     url = PRODUCTION_URL + path
-    # Some GET endpoints (e.g. /api/v1/studies/types, /api/v1/agents) were
-    # secured during the security audit and now require an API key. Without
-    # one, they correctly return HTTP 401. The E2E test runs unauthenticated
-    # from the GitHub Actions runner, so 401 is expected for these endpoints
-    # — it confirms they are up and enforcing security. We surface 401 as a
-    # structured result so individual tests can decide whether 401 is OK.
+    req = urllib.request.Request(url, headers=_auth_headers(), method="GET")
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         return {"_http_error": e.code, "_body": e.read().decode("utf-8", errors="ignore")}
@@ -106,9 +139,7 @@ def test_production_study_types_include_etap_expert():
     (test #1) remains the authoritative health probe.
     """
     d = _get("/api/v1/studies/types")
-    if d.get("_http_error") in (401, 403):
-        # Endpoint is up and enforcing security — acceptable.
-        return
+    _skip_if_secured(d)
     assert "_error" not in d, f"Request failed: {d}"
     types = d.get("study_types", [])
     assert "etap_expert" in types, f"etap_expert missing from production study types: {types}"
@@ -123,9 +154,7 @@ def test_production_agents_include_etap_expert_agent():
     acceptable result.
     """
     d = _get("/api/v1/agents")
-    if d.get("_http_error") in (401, 403):
-        # Endpoint is up and enforcing security — acceptable.
-        return
+    _skip_if_secured(d)
     assert "_error" not in d, f"Request failed: {d}"
     ids = [a["id"] for a in d.get("agents", [])]
     assert "etap-expert-agent" in ids, f"etap-expert-agent missing from production agents: {ids}"
@@ -146,6 +175,7 @@ def test_production_format_a_complete_request():
             "use_etap": False,
         },
     )
+    _skip_if_secured(d)
     assert "_http_error" not in d, f"HTTP error: {d}"
     assert "_error" not in d, f"Request error: {d}"
     assert d.get("success") is True, f"Expected success=True, got: {d}"
@@ -171,6 +201,7 @@ def test_production_format_b_incomplete_request():
             "use_etap": False,
         },
     )
+    _skip_if_secured(d)
     inner = d.get("data", {})
     assert inner.get("format") == "B"
     assert inner.get("response", "").startswith("⚠️ REQUEST ANALYSIS: INCOMPLETE")
@@ -186,6 +217,7 @@ def test_production_format_c_wrong_request():
             "use_etap": False,
         },
     )
+    _skip_if_secured(d)
     inner = d.get("data", {})
     assert inner.get("format") == "C"
     assert inner.get("response", "").startswith("❌ REQUEST ANALYSIS: INCORRECT APPROACH")
@@ -201,6 +233,7 @@ def test_production_format_d_adms_request():
             "use_etap": False,
         },
     )
+    _skip_if_secured(d)
     inner = d.get("data", {})
     assert inner.get("format") == "D"
     assert inner.get("response", "").startswith("🔷 ADMS REQUEST ANALYSIS")
@@ -217,6 +250,7 @@ def test_production_chat_endpoint():
         "/api/v1/agents/etap-expert/chat",
         {"question": "What cable size for 200A load, 300ft, 480V?"},
     )
+    _skip_if_secured(d)
     assert d.get("success") is True
     inner = d.get("data", {})
     assert inner.get("format") == "A"
@@ -229,6 +263,7 @@ def test_production_chat_endpoint_rejects_empty_question():
         "/api/v1/agents/etap-expert/chat",
         {"question": ""},
     )
+    _skip_if_secured(d)
     # Should be HTTP 400 or error response
     assert d.get("_http_error") == 400 or "error" in d, f"Expected 400 or error, got: {d}"
 
@@ -241,6 +276,7 @@ def test_production_chat_endpoint_rejects_empty_question():
 def test_production_old_study_types_still_listed():
     """All 13 original study types must still be listed (etap_expert is the 14th)."""
     d = _get("/api/v1/studies/types")
+    _skip_if_secured(d)
     types = d.get("study_types", [])
     expected_old = [
         "load_flow",
@@ -267,6 +303,7 @@ def test_production_unknown_study_type_rejected():
         "/api/v1/studies/run",
         {"study_type": "nonexistent_study", "parameters": {}, "use_etap": False},
     )
+    _skip_if_secured(d)
     assert d.get("_http_error") == 400 or "error" in d or "Unknown" in str(d), (
         f"Expected 400 or error for unknown study type, got: {d}"
     )
