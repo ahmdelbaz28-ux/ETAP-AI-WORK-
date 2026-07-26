@@ -361,7 +361,11 @@ jobs:
         run: bandit --ini .bandit -r api services core integrations agents engine load_flow fault_analysis coordination relays network_solver utils ai_context_engine ml -ll -ii --format txt
 
       - name: Safety dependency check
-        run: safety check -r requirements.txt --full-report
+        # safety 3.2.7 + typer 0.27.0 incompatibility: typer.rich_utils was
+        # removed in typer 0.12+. Pin typer to <0.12 to make safety work.
+        run: |
+          pip install --only-binary :all: 'typer<0.12'
+          safety check -r requirements.txt --full-report
 
       - name: Custom security scan
         run: python scripts/security_scan.py
