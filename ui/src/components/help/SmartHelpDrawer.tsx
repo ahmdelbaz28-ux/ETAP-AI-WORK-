@@ -346,11 +346,7 @@ interface BookIndexViewProps {
   readonly expandedNodes: Set<string>;
   readonly toggleNode: (label: string) => void;
   readonly openTopic: (id: string) => void;
-<<<<<<< HEAD
-  readonly categories: readonly { readonly id: HelpCategory; readonly label: { readonly en: string; readonly ar: string } }[];
-=======
   readonly categories: readonly { readonly id: HelpCategory | "all"; readonly label: { readonly en: string; readonly ar: string } }[];
->>>>>>> origin/fix/sync-smoke-test-study-types-auth
   readonly selectedCategory: HelpCategory | "all";
   readonly setSelectedCategory: (c: HelpCategory | "all") => void;
   readonly searchRef: React.RefObject<HTMLInputElement | null>;
@@ -446,11 +442,7 @@ interface BookListViewProps {
   readonly searchRef: React.RefObject<HTMLInputElement | null>;
   readonly searchQuery: string;
   readonly setSearchQuery: (q: string) => void;
-<<<<<<< HEAD
-  readonly categories: readonly { readonly id: HelpCategory; readonly label: { readonly en: string; readonly ar: string } }[];
-=======
   readonly categories: readonly { readonly id: HelpCategory | "all"; readonly label: { readonly en: string; readonly ar: string } }[];
->>>>>>> origin/fix/sync-smoke-test-study-types-auth
   readonly selectedCategory: HelpCategory | "all";
   readonly setSelectedCategory: (c: HelpCategory | "all") => void;
   readonly filteredTopics: readonly HelpTopic[];
