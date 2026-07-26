@@ -391,7 +391,7 @@ def verify_api_key(
             # Invalid/expired JWT — fall through to API key check
             # The downstream route's CurrentUser dependency will reject it
             pass
-        except Exception:
+        except (jwt.PyJWTError, ImportError, KeyError):
             # Any other error (e.g., missing JWT_SECRET_KEY) — fall through to API key check
             pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 
