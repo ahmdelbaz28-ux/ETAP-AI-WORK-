@@ -23,6 +23,8 @@ import { cn } from "../utils/helpers";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 
 // Lucide icon lookup map for study categories
+// Cog and Flame are augmented via src/lucide-react-augment.d.ts
+// to bridge the v0.468 barrel-export + verbatimModuleSyntax gap.
 const studyIconMap: Record<string, React.ElementType> = {
   Zap,
   AlertTriangle,

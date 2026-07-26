@@ -1174,8 +1174,8 @@ a:focus-visible {
 .card-interactive:hover {
   transform: translateY(-3px) scale(1.01);
   box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.3),
-    0 0 0 1px var(--accent-primary)/10;
-  border-color: var(--accent-primary)/20;
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 .card-interactive:focus-visible {
@@ -1280,8 +1280,8 @@ a:focus-visible {
   background: linear-gradient(
     90deg,
     transparent 5%,
-    var(--accent-primary)/20 30%,
-    var(--accent-primary)/5 70%,
+    color-mix(in srgb, var(--accent-primary) 20%, transparent) 30%,
+    color-mix(in srgb, var(--accent-primary) 5%, transparent) 70%,
     transparent 95%
   );
   pointer-events: none;
@@ -1395,16 +1395,10 @@ a:focus-visible {
 }
 
 /* ─── Reduced Motion ───────────────────────────────────────────── */
+/* Only suppress decorative animations; keep functional transitions
+   (hover color changes, focus rings, dropdown reveals) intact. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
+  /* Decorative keyframe animations → single-frame fallback */
   .animate-aurora,
   .animate-shimmer,
   .animate-shine,
@@ -1413,10 +1407,18 @@ a:focus-visible {
   .animate-float,
   .animate-spin-slow,
   .animate-breathe,
-  .animate-ring-pulse {
+  .animate-ring-pulse,
+  .page-transition-enter,
+  .dropdown-enhanced,
+  .toast-enter,
+  .card-interactive,
+  .stat-card-enhanced::after,
+  .hover-ripple::after,
+  .hover-ripple:hover::after {
     animation: none !important;
   }
 
+  /* Disable hover lift transforms but keep color transitions */
   .card-hover-lift:hover {
     transform: none;
   }
@@ -1424,18 +1426,21 @@ a:focus-visible {
   .card-interactive:hover {
     transform: none;
   }
+
+  .stat-card-enhanced:hover {
+    transform: none;
+  }
 }
 
-/* ─── Dark Mode Scrollbar Enhancement ──────────────────────────── */
-:root {
-  scrollbar-color: var(--color-surface-600) transparent;
-}
-
-.light {
-  scrollbar-color: var(--color-surface-400) transparent;
-}
+/* ─── Dark/Light Mode Scrollbar Enhancement ─────────────────────── */
+/* Merged into existing :root / .light declarations above; these
+   rules repeat for clarity since they live far from line 148. */
+:root { scrollbar-color: var(--color-surface-600) transparent; }
+.light { scrollbar-color: var(--color-surface-400) transparent; }
 
 /* ─── Glass Card Backdrop Enhancement ──────────────────────────── */
+/* NOTE: .glass-premium and .glass-elevated already exist at line ~769.
+   This .glass class is a simpler variant for login form and generic use. */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-backdrop);
@@ -1521,6 +1526,12 @@ a:focus-visible {
   opacity: 0;
   transform: scale(0);
   pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Trigger ripple animation on hover */
+.hover-ripple:hover::after {
+  animation: hoverRipple 0.6s ease-out;
 }
 
 /* ─── Tooltip Enhancement ──────────────────────────────────────── */
