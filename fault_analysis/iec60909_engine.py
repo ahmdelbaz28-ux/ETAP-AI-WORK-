@@ -88,6 +88,7 @@ class IEC60909Engine:
         base_kv: float = 115.0,
         generators: list[Any] | None = None,
         r_override: dict[int, float] | None = None,
+        frequency_hz: float = 50.0,
     ) -> None:
         """
         Initialize the IEC 60909 engine.

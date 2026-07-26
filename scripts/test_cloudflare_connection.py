@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import sys
-import json
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -55,7 +54,7 @@ def test_cloudflare_api():
     headers = {"Authorization": f"Bearer {cf_api_key}", "Content-Type": "application/json"}
 
     # Test 1: Token verification
-    print(f"\n  --- Test 1: Token Verification ---")
+    print("\n  --- Test 1: Token Verification ---")
     try:
         r = httpx.get("https://api.cloudflare.com/client/v4/user/tokens/verify", headers=headers, timeout=10)
         if r.status_code == 200:
@@ -78,7 +77,7 @@ def test_cloudflare_api():
 
     # Test 2: Account access
     if cf_account_id:
-        print(f"\n  --- Test 2: Account Access ---")
+        print("\n  --- Test 2: Account Access ---")
         try:
             r = httpx.get(
                 f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}",
@@ -101,7 +100,7 @@ def test_cloudflare_api():
         print(f"\n  {WARN}[WARN]{END}  CLOUDFLARE_ACCOUNT_ID not set")
 
     # Test 3: Workers list
-    print(f"\n  --- Test 3: Workers List ---")
+    print("\n  --- Test 3: Workers List ---")
     if cf_account_id:
         try:
             r = httpx.get(
@@ -125,7 +124,7 @@ def test_cloudflare_api():
         print(f"  {WARN}[WARN]{END}  Skipped (no account ID)")
 
     # Test 4: R2 buckets
-    print(f"\n  --- Test 4: R2 Buckets ---")
+    print("\n  --- Test 4: R2 Buckets ---")
     r2_account = os.environ.get("R2_ACCOUNT_ID", "") or cf_account_id
     if r2_account:
         try:
@@ -211,9 +210,9 @@ def test_cloudflare_origin_secret():
 
     # Test the integration module
     try:
-        from api.cloudflare_protection import is_cloudflare_enabled, get_cloudflare_metadata
+        from api.cloudflare_protection import is_cloudflare_enabled
         enabled = is_cloudflare_enabled()
-        print(f"\n  Integration module:")
+        print("\n  Integration module:")
         print(f"    is_cloudflare_enabled(): {enabled}")
         print(f"  {OK}[OK]{END}   Module imported successfully")
     except ImportError:
@@ -248,9 +247,9 @@ def test_r2_storage():
 
     # Test the integration module
     try:
-        from api.r2_storage import is_r2_enabled, R2_ENDPOINT_URL
+        from api.r2_storage import R2_ENDPOINT_URL, is_r2_enabled
         enabled = is_r2_enabled()
-        print(f"\n  Integration module:")
+        print("\n  Integration module:")
         print(f"    is_r2_enabled(): {enabled}")
         print(f"    R2_ENDPOINT_URL:  {R2_ENDPOINT_URL or '(empty)'}")
         print(f"  {OK}[OK]{END}   Module imported successfully")

@@ -14,9 +14,13 @@ Enhanced with:
 """
 
 import hmac
+import logging
+
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 
@@ -70,7 +74,7 @@ async def ml_capabilities(request: Request):
 
         caps = get_ml_capabilities()
         return JSONResponse(content={"success": True, "data": caps})
-    except Exception as e:
+    except Exception:
         # SECURITY AUDIT 2026-07-26 — S-23: Do not leak internal error details to clients.
         logger.exception("ml_capabilities_failed")
         return JSONResponse(status_code=500, content={"success": False, "errors": ["Internal server error"]})

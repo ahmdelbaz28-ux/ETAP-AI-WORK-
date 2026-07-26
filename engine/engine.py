@@ -264,7 +264,7 @@ class PowerSystemEngine:
                 "is_simulated": True,
                 "error": (
                     "Both upstream and downstream relay configurations are required. "
-                    "Received: upstream=%s, downstream=%s" % ("present" if up_conf else "missing",
+                    "Received: upstream={}, downstream={}".format("present" if up_conf else "missing",
                                                               "present" if down_conf else "missing")
                 ),
                 "results": [],

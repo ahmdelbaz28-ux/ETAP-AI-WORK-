@@ -111,7 +111,7 @@ async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR — S8410: Annotat
                 "providers": list(keys.keys()),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         logger.exception("Failed to list API keys")
         return JSONResponse(
             status_code=500,
@@ -175,7 +175,7 @@ async def save_key(
     except ValueError as exc:
         logger.warning("api_key_save_validation_failed provider=%s error=%s", provider, str(exc))
         raise HTTPException(status_code=400, detail="Invalid API key configuration") from exc
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         logger.exception("Failed to save API key")
         return JSONResponse(
             status_code=500,
@@ -283,7 +283,7 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
             result = {"success": False, "message": f"Unknown provider: {provider}"}
 
         return JSONResponse(content={"success": True, "data": result})
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         logger.exception("Key test failed")
         return JSONResponse(
             status_code=500,

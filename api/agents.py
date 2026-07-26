@@ -6,6 +6,7 @@ Separated from main engineering service for better modularity.
 """
 
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from typing import Any, List, Optional
@@ -15,6 +16,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api.dependencies import get_api_key
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -635,7 +638,7 @@ async def etap_gui_siem_events(
                 events.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    except OSError as exc:
+    except OSError:
         logger.exception("agent_events_read_failed")
         return JSONResponse(
             content={"success": False, "error": "read_failed", "message": "Failed to read agent events"},

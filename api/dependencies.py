@@ -316,11 +316,11 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
                 except ImportError:
                     pass  # blacklist unavailable, continue
             return ""
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as err:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Bearer token has expired",
-            )
+            ) from err
         except jwt.InvalidTokenError:
             # Invalid JWT — fall through to API key validation
             pass

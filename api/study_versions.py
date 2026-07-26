@@ -42,8 +42,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from api.database import Base
 from api.dependencies import (
     CurrentUser,
-    get_current_user_from_header,
     get_api_key,
+    get_current_user_from_header,
 )
 from api.rbac import require_permission
 

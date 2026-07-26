@@ -19,18 +19,18 @@ Each test:
 from __future__ import annotations
 
 import math
-import sys
 import os
+import sys
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
-from engine.engine import PowerSystemEngine
-from core_model.system import System
+
 from core_model.bus import Bus
 from core_model.line import Line
-
+from core_model.system import System
+from engine.engine import PowerSystemEngine
 
 # ─── IEEE 4-Bus Test System (radial distribution) ──────────────────────────
 # Reference: IEEE Radial Distribution Test Feeders, 1992.
@@ -111,10 +111,10 @@ def build_system(config: dict):
     system = System()
     base_mva = config.get("base_mva", 100)
     system.base_mva = base_mva
-    
+
     # Create a bus lookup for line construction
     bus_objects = {}
-    
+
     for bus_config in config.get("buses", []):
         bus = Bus(
             bus_id=bus_config["bus_id"],
@@ -131,10 +131,10 @@ def build_system(config: dict):
         gen_p = bus_config.get("active_power", 0)
         if gen_p:
             bus.generation_power = complex(gen_p / base_mva, 0)
-        
+
         system.add_bus(bus)
         bus_objects[bus_config["bus_id"]] = bus
-    
+
     for line_config in config.get("lines", []):
         from_bus = bus_objects.get(line_config["from_bus_id"])
         to_bus = bus_objects.get(line_config["to_bus_id"])
@@ -147,7 +147,7 @@ def build_system(config: dict):
             z1=complex(line_config.get("r1", 0), line_config.get("x1", 0)),
         )
         system.add_line(line)
-    
+
     return system
 
 
@@ -157,22 +157,22 @@ def build_system(config: dict):
 
 class TestIEEE4Bus:
     """IEEE 4-bus radial distribution system."""
-    
+
     @pytest.fixture
     def engine(self):
         system = build_system(IEEE_4BUS_SYSTEM)
         return PowerSystemEngine(system)
-    
+
     def test_load_flow_converges(self, engine):
         result = engine.run_load_flow()
         assert result.get("converged"), f"Load flow did not converge: {result.get('error', '')}"
-    
+
     def test_slack_voltage_maintained(self, engine):
         result = engine.run_load_flow()
         bv = result.get("bus_voltages", {})
         slack_v = abs(bv.get(1, 0j))
         assert abs(slack_v - 1.05) < 0.01, f"Slack bus voltage {slack_v} != 1.05"
-    
+
     def test_voltage_drop_along_feeder(self, engine):
         """Voltage should decrease along the radial feeder."""
         result = engine.run_load_flow()
@@ -184,7 +184,7 @@ class TestIEEE4Bus:
         assert v1 >= v2 >= v3 >= v4, (
             f"Voltage should decrease along feeder: {v1:.4f} >= {v2:.4f} >= {v3:.4f} >= {v4:.4f}"
         )
-    
+
     def test_line_flows_conserved(self, engine):
         """Power flow into lines should balance (check total load matches slack injection)."""
         result = engine.run_load_flow()
@@ -193,10 +193,10 @@ class TestIEEE4Bus:
         bv = result.get("bus_voltages", {})
         slack_v = abs(bv.get(1, 0j))
         assert slack_v > 0, "Slack bus voltage should be positive"
-    
+
     def test_short_circuit_currents(self, engine):
         """Short circuit currents should be positive and reasonable.
-        
+
         Note: FaultAnalyzer has a known limitation — the Ybus is singular
         because it includes the slack bus without a reference. The pseudo-inverse
         fallback produces near-zero Zbus diagonal elements. This test is
@@ -217,16 +217,16 @@ class TestIEEE4Bus:
 
 class TestIEEE14Bus:
     """IEEE 14-bus transmission system (simplified)."""
-    
+
     @pytest.fixture
     def engine(self):
         system = build_system(IEEE_14BUS_SYSTEM)
         return PowerSystemEngine(system)
-    
+
     def test_load_flow_converges(self, engine):
         result = engine.run_load_flow()
         assert result.get("converged"), f"Load flow did not converge: {result.get('error', '')}"
-    
+
     def test_bus_5_voltage_reference(self, engine):
         """Bus 5 voltage should be approximately 1.02 pu per IEEE reference."""
         result = engine.run_load_flow()
@@ -237,16 +237,16 @@ class TestIEEE14Bus:
 
 class TestIEEE30Bus:
     """IEEE 30-bus test system (reduced)."""
-    
+
     @pytest.fixture
     def engine(self):
         system = build_system(IEEE_30BUS_SYSTEM)
         return PowerSystemEngine(system)
-    
+
     def test_load_flow_converges(self, engine):
         result = engine.run_load_flow()
         assert result.get("converged"), f"Load flow did not converge: {result.get('error', '')}"
-    
+
     def test_all_buses_within_range(self, engine):
         """All bus voltages should be within 0.90-1.10 pu."""
         result = engine.run_load_flow()
@@ -254,7 +254,7 @@ class TestIEEE30Bus:
         for bus_id, v_complex in bv.items():
             v = abs(v_complex)
             assert 0.90 <= v <= 1.10, f"Bus {bus_id} voltage {v:.4f} outside range [0.90, 1.10]"
-    
+
     def test_generator_buses_maintain_voltage(self, engine):
         """PV buses should maintain their setpoint voltages."""
         result = engine.run_load_flow()
@@ -269,7 +269,7 @@ class TestIEEE30Bus:
 
 class TestArcFlashIEEE1584:
     """Arc flash tests against IEEE 1584-2018 reference values."""
-    
+
     def test_ieee_1584_table_2_reference(self):
         """Validate arc flash engine produces incident energy within expected order of magnitude."""
         from fault_analysis.arc_flash_engine import (
@@ -300,40 +300,40 @@ class TestArcFlashIEEE1584:
 
 class TestProtectionCoordination:
     """Protection coordination tests against IEC 60255 reference."""
-    
+
     def test_coordinated_relays_pass(self):
         """Properly coordinated relays should pass."""
         from coordination.coordination import CoordinationEngine
         from relays.relay import OvercurrentRelay
-        
+
         ce = CoordinationEngine()
         up = OvercurrentRelay(relay_id=1, name="Up", TMS=0.3, Ip=1.0)
         down = OvercurrentRelay(relay_id=2, name="Down", TMS=0.15, Ip=1.0)
-        
+
         # Fault currents in per-unit (5-20 pu on relay Ip=1.0 base)
         faults = [5, 8, 12, 20]
         results = ce.check_coordination_range(up, down, faults)
-        
+
         # All should be coordinated
         assert all(r["coordinated"] for r in results), (
             "Coordinated relays should pass: {}".format(
                 [(r["fault_current"], r["margin"]) for r in results]
             )
         )
-    
+
     def test_uncoordinated_relays_fail(self):
         """Improperly coordinated relays should fail."""
         from coordination.coordination import CoordinationEngine
         from relays.relay import OvercurrentRelay
-        
+
         ce = CoordinationEngine()
         # Downstream relay has HIGHER TMS than upstream — coordination fails
         up = OvercurrentRelay(relay_id=1, name="Up", TMS=0.1, Ip=1.0)
         down = OvercurrentRelay(relay_id=2, name="Down", TMS=0.5, Ip=1.0)
-        
+
         faults = [5, 8, 12, 20]
         results = ce.check_coordination_range(up, down, faults)
-        
+
         # At least some should NOT be coordinated
         assert not all(r["coordinated"] for r in results), (
             "Reverse-coordinated relays should fail"

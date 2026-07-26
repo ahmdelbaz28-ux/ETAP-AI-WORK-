@@ -6,9 +6,9 @@ Tests Langfuse connectivity with provided credentials.
 
 from __future__ import annotations
 
+import base64
 import os
 import sys
-import base64
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -55,7 +55,7 @@ def test_langfuse():
         return False
 
     # Test 1: Health endpoint
-    print(f"\n  --- Test 1: Health Endpoint ---")
+    print("\n  --- Test 1: Health Endpoint ---")
     b64 = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
     headers = {"Authorization": f"Basic {b64}"}
 
@@ -71,7 +71,7 @@ def test_langfuse():
         return False
 
     # Test 2: Prompts v2 API
-    print(f"\n  --- Test 2: Prompts API (v2) ---")
+    print("\n  --- Test 2: Prompts API (v2) ---")
     try:
         r = httpx.get(
             f"{base_url}/api/public/v2/prompts",
@@ -99,7 +99,7 @@ def test_langfuse():
         print(f"  {FAIL}[FAIL]{END}  Prompts v2 failed: {e}")
 
     # Test 3: Traces API
-    print(f"\n  --- Test 3: Traces API ---")
+    print("\n  --- Test 3: Traces API ---")
     try:
         r = httpx.get(
             f"{base_url}/api/public/traces",
@@ -122,7 +122,7 @@ def test_langfuse():
         print(f"  {FAIL}[FAIL]{END}  Traces failed: {e}")
 
     # Test 4: SDK Client init
-    print(f"\n  --- Test 4: Langfuse SDK Client Init ---")
+    print("\n  --- Test 4: Langfuse SDK Client Init ---")
     try:
         from langfuse import Langfuse
         client = Langfuse(
@@ -152,11 +152,11 @@ def test_langfuse():
         return False
 
     # Test 5: Project integration module
-    print(f"\n  --- Test 5: Project Integration Module ---")
+    print("\n  --- Test 5: Project Integration Module ---")
     try:
         from integrations.langfuse_integration import langfuse_tracker
         health = langfuse_tracker.health_check()
-        print(f"  Health check:")
+        print("  Health check:")
         for k, v in health.items():
             status = f"{OK}{v}{END}" if v else f"{WARN}{v}{END}"
             print(f"    {k}: {status}")
@@ -179,7 +179,7 @@ def test_langfuse_llm():
     try:
         from integrations.langfuse_llm import health_check
         health = health_check()
-        print(f"  LLM Health:")
+        print("  LLM Health:")
         for k, v in health.items():
             print(f"    {k}: {v}")
     except Exception as e:

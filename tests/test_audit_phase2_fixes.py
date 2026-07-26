@@ -18,7 +18,6 @@ import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-
 # ---------------------------------------------------------------------------
 # S-06: CSRF Production Guard
 # ---------------------------------------------------------------------------
@@ -101,6 +100,7 @@ class TestRateLimiterS08:
     def test_s08_concurrent_safety(self):
         """S-08: Concurrent calls should not corrupt state."""
         import threading
+
         from api._rate_limit import RateLimiter
         limiter = RateLimiter(max_requests=100, window_seconds=60)
         errors = []
@@ -450,7 +450,7 @@ class TestRelayBoundaryS22:
         # At I == Ip: (I/Ip) == 1.0, so (1.0^0.02 - 1) = 0 → division by zero!
         # With strict >: we avoid this case (I must be > Ip for finite time)
         # With >= in curves: (I/Ip)^0.02 - 1 at I==Ip would be 0 (undefined)
-        # Now with >: at I==Ip, curves don't compute (guard returns inf), 
+        # Now with >: at I==Ip, curves don't compute (guard returns inf),
         # and relay picks up. This is still technically inconsistent,
         # but the new strict > makes it safer (I > Ip for trip calculation).
         pass  # Verified by structural checks above

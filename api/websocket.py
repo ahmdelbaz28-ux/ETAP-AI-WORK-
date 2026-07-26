@@ -17,7 +17,7 @@ from typing import List
 
 UTC = timezone.utc  # noqa: UP017
 
-from fastapi import WebSocket, WebSocketDisconnect, Query
+from fastapi import Query, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)

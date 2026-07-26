@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.dependencies import get_api_key
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
+from api.pe_stamp import requires_stamp
 from api.risk_scoring import compute_risk
 from core.metrics import count_executions, track_skill_operation
 
@@ -341,13 +342,6 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         if pf_result is not None:
             raise HTTPException(status_code=400, detail=pf_result["error"])
 
-    # --- PE stamp check (Item 5) ---
-    if requires_stamp(payload.study_type) and not payload.pe_stamp:
-        warnings.append(
-            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
-            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
-        )
-
     from core.bootstrap import _add_execution_time, _increment_counter
 
     _increment_counter("request")
@@ -367,6 +361,13 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
     errors: list[str] = []
     data: dict[str, Any] = {}
     provider_name = "native"
+
+    # --- PE stamp check (Item 5) ---
+    if requires_stamp(payload.study_type) and not payload.pe_stamp:
+        warnings.append(
+            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
+            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
+        )
     cache_hit = False
 
     try:
