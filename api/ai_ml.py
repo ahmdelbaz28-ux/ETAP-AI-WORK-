@@ -11,9 +11,13 @@ Enhanced with:
 - GNN power grid analysis
 - MLflow model tracking
 - ML capabilities discovery
+
+AUTH CONSOLIDATION 2026-07-26: Inline ``_get_api_key_or_user`` replaced with
+``Depends(get_api_key)`` from ``api.dependencies`` — the canonical deep module
+interface. Previously, this file had its own inline JWT decode + blacklist check
+which duplicated the logic in dependencies.py. Now all auth flows through one seam.
 """
 
-import hmac
 import logging
 import math
 from typing import Any
@@ -22,64 +26,13 @@ import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from api._messages import MSG_INTERNAL_ERROR
+from api.dependencies import get_api_key
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 
-# SECURITY AUDIT 2026-07-25 — Fix S-07: Add authentication to all AI/ML endpoints.
-# Previously, these endpoints were accessible without any authentication, allowing
-# unauthenticated users to trigger resource-intensive ML training and inference.
-
-async def _get_api_key_or_user(request: Request):
-    """Shared auth dependency for AI/ML endpoints (S-07).
-
-    Accepts either:
-    1. Valid X-API-Key header (server-to-server)
-    2. Valid JWT Bearer token (user auth)
-    """
-    import os
-
-    # Check API key first — use constant-time comparison to prevent timing attacks
-    api_key = request.headers.get("x-api-key", "")
-    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if api_key and expected_key and hmac.compare_digest(api_key, expected_key):
-        return True
-
-    # Check JWT Bearer token
-    auth_header = request.headers.get("authorization", "")
-    if auth_header.lower().startswith("bearer "):
-        token = auth_header.split(" ", 1)[1]
-        try:
-            import jwt
-            from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
-            jwt_secret = JWT_SECRET_KEY
-            if jwt_secret:
-                payload = jwt.decode(token, jwt_secret, algorithms=[JWT_ALGORITHM])
-                # SECURITY: Reject non-access tokens (e.g. refresh tokens)
-                if payload.get("type") != "access":
-                    raise HTTPException(status_code=401, detail="Bearer token must be an access token")
-                # SECURITY: Check token blacklist (revoked tokens)
-                jti = payload.get("jti")
-                if jti:
-                    try:
-                        from api.auth import _is_token_blacklisted
-                        if await _is_token_blacklisted(jti):
-                            raise HTTPException(status_code=401, detail="Token has been revoked")
-                    except ImportError:
-                        pass  # blacklist unavailable
-                return True
-        except Exception:
-            pass  # SECURITY: Intentional — JWT optional, API key is the fallback
-
-    # No valid auth
-    raise HTTPException(
-        status_code=401,
-        detail="Authentication required. Provide X-API-Key or Bearer token.",
-    )
-
-
-@router.get("/ml/capabilities", dependencies=[Depends(_get_api_key_or_user)])
+@router.get("/ml/capabilities", dependencies=[Depends(get_api_key)])
 async def ml_capabilities(request: Request):
     """Discover available ML/AI capabilities and their status."""
     try:
@@ -108,7 +61,7 @@ def _clean_nan(obj: Any) -> Any:
     return obj
 
 
-@router.post("/predict/load", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/predict/load", dependencies=[Depends(get_api_key)])
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -165,7 +118,7 @@ async def predict_load(request: Request):
         )
 
 
-@router.post("/predict/fault", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/predict/fault", dependencies=[Depends(get_api_key)])
 async def predict_fault(request: Request):
     """Predict fault type using XGBoost/RandomForest with optional SHAP explanation."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -218,7 +171,7 @@ async def predict_fault(request: Request):
         )
 
 
-@router.post("/predict/fault/train", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/predict/fault/train", dependencies=[Depends(get_api_key)])
 async def train_fault_predictor(request: Request):
     """Train fault prediction model with XGBoost/RandomForest + Optuna + SHAP."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -264,7 +217,7 @@ async def train_fault_predictor(request: Request):
         )
 
 
-@router.post("/predict/anomaly", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/predict/anomaly", dependencies=[Depends(get_api_key)])
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD multi-method detection."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -311,7 +264,7 @@ async def detect_anomalies(request: Request):
         )
 
 
-@router.post("/gnn/predict", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/gnn/predict", dependencies=[Depends(get_api_key)])
 async def gnn_predict(request: Request):
     """Predict using Graph Neural Network on power grid data."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -368,7 +321,7 @@ async def gnn_predict(request: Request):
         )
 
 
-@router.post("/rag/query", dependencies=[Depends(_get_api_key_or_user)])
+@router.post("/rag/query", dependencies=[Depends(get_api_key)])
 async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     trace_id = getattr(request.state, "trace_id", "unknown")

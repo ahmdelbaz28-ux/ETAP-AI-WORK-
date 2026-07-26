@@ -153,41 +153,20 @@ async def get_current_user(
 
     token = _extract_bearer_token(authorization)
 
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-    except jwt.ExpiredSignatureError as err:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-        ) from err
-    except jwt.InvalidTokenError as err:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        ) from err
+    # Delegate JWT validation to the canonical helper (deep module interface).
+    # This replaces the inline jwt.decode + type check + blacklist check that
+    # was duplicated across 5+ files. All JWT validation now flows through
+    # _validate_jwt_access_token — one seam, one implementation.
+    payload = await _validate_jwt_access_token(token)
 
     user_id: Optional[str] = payload.get("sub")
-    token_type: Optional[str] = payload.get("type")
 
-    if user_id is None or token_type != "access":
+    # Validate that the payload contains a user ID
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
-
-    # SECURITY (S-09): Check token blacklist (revoked tokens).
-    # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
-    jti: Optional[str] = payload.get("jti")
-    if jti:
-        try:
-            from api.auth import _is_token_blacklisted
-            if await _is_token_blacklisted(jti):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token has been revoked",
-                )
-        except ImportError:
-            pass  # blacklist unavailable, continue
 
     # Verify the user still exists and is active
     result = await db.execute(select(User).where(User.id == user_id))
@@ -287,43 +266,18 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
         return ""
 
     # JWT bypass: if a VALID Bearer token is present, skip the API key check.
-    # SECURITY AUDIT 2026-07-25 — Fix S-09: Now checks token type, expiry, and blacklist.
-    # Previously only validated JWT signature — now also verifies:
-    # 1. Token type must be 'access' (not 'refresh')
-    # 2. Token is not expired
-    # 3. Token JTI is not in the blacklist (revoked via logout)
+    # SECURITY AUDIT 2026-07-26 — Now delegates to canonical _validate_jwt_access_token
+    # instead of inline jwt.decode + type check + blacklist check.
+    # Previously duplicated validation logic was scattered across 5+ files.
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
         token = _extract_bearer_token(auth_header)
         try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            # Reject refresh tokens used as access tokens
-            if payload.get("type") != "access":
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Bearer token must be an access token, not a refresh token",
-                )
-            # SECURITY (S-09): Check token blacklist (revoked tokens).
-            # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
-            jti = payload.get("jti")
-            if jti:
-                try:
-                    from api.auth import _is_token_blacklisted
-                    if await _is_token_blacklisted(jti):
-                        raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Token has been revoked",
-                        )
-                except ImportError:
-                    pass  # blacklist unavailable, continue
+            # Delegate to the canonical JWT validator (deep module interface)
+            await _validate_jwt_access_token(token)
             return ""
-        except jwt.ExpiredSignatureError as err:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Bearer token has expired",
-            ) from err
-        except jwt.InvalidTokenError:
-            # Invalid JWT — fall through to API key validation
+        except HTTPException:
+            # Invalid/expired/revoked JWT — fall through to API key validation
             pass
 
     if not x_api_key:
@@ -342,8 +296,61 @@ async def get_api_key(  # NOSONAR — S7503: async function uses sync I/O for co
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Internal helpers — canonical JWT validation (deep module interface)
 # ---------------------------------------------------------------------------
+
+
+async def _validate_jwt_access_token(token: str) -> dict:
+    """Validate a JWT access token and return its payload.
+
+    This is the **single source of truth** for JWT validation in the
+    entire codebase. Every module that needs to verify a JWT access token
+    should call this function instead of doing inline ``jwt.decode``.
+
+    Checks performed:
+    1. JWT signature (using canonical ``JWT_SECRET_KEY``)
+    2. Token expiry (``jwt.ExpiredSignatureError``)
+    3. Token type must be ``"access"`` (rejects refresh / reset tokens)
+    4. Token blacklist via ``_is_token_blacklisted`` (revoked tokens)
+
+    Raises:
+        HTTPException(401): On any validation failure.
+    """
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        ) from err
+    except jwt.InvalidTokenError as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        ) from err
+
+    # Reject non-access tokens (refresh, reset-password, etc.)
+    token_type: Optional[str] = payload.get("type")
+    if token_type != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bearer token must be an access token, not a refresh token",
+        )
+
+    # Check token blacklist (revoked tokens via logout)
+    jti: Optional[str] = payload.get("jti")
+    if jti:
+        try:
+            from api.auth import _is_token_blacklisted
+            if await _is_token_blacklisted(jti):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                )
+        except ImportError:
+            pass  # blacklist unavailable, continue
+
+    return payload
 
 
 def _extract_bearer_token(authorization: str) -> str:
@@ -359,3 +366,59 @@ def _extract_bearer_token(authorization: str) -> str:
             detail="Invalid Authorization header format. Expected: Bearer <token>",
         )
     return parts[1]
+
+
+# ---------------------------------------------------------------------------
+# WebSocket token validation (deep module interface)
+# ---------------------------------------------------------------------------
+
+
+async def validate_ws_token(token: str) -> bool:
+    """Validate JWT token or API key for WebSocket authentication.
+
+    This is the **canonical** WebSocket auth function — all WebSocket
+    endpoints should use this instead of implementing their own inline
+    validation.
+
+    Accepts:
+    1. Valid JWT access token — with type check + blacklist check
+    2. Engineering API service key (server-to-server)
+    3. Skip validation if AUTH_DISABLED=true in development
+
+    Returns ``True`` on success, ``False`` on failure (no HTTPException —
+    WebSocket close codes are handled by the caller).
+    """
+    # Skip in development if auth is disabled
+    if os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes"):
+        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development"))
+        if _env.lower() in ("development", "dev"):
+            return True
+
+    # Check API key (server-to-server) — constant-time comparison
+    if API_KEY and hmac.compare_digest(token, API_KEY):
+        return True
+
+    # Check JWT token — reuse canonical validation logic
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        # Accept only access tokens
+        if payload.get("type") != "access":
+            logger.warning("WS auth: rejected non-access token (type=%s)", payload.get("type"))
+            return False
+        # Check token blacklist (revoked tokens)
+        jti = payload.get("jti")
+        if jti:
+            try:
+                from api.auth import _is_token_blacklisted
+                if await _is_token_blacklisted(jti):
+                    logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
+                    return False
+            except (ImportError, AttributeError):
+                pass  # blacklist unavailable
+        return True
+    except jwt.ExpiredSignatureError:
+        logger.warning("WS auth: token expired")
+        return False
+    except jwt.InvalidTokenError as exc:
+        logger.warning("WS auth: invalid token: %s", exc)
+        return False

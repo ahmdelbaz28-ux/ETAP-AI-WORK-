@@ -124,12 +124,25 @@ if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
         sys.exit(1)
 
 
-def _require_api_key(request: Request) -> None:
-    """Validate API key when configured."""
+async def _require_api_key(request: Request) -> None:
+    """Validate API key when configured.
+
+    AUTH CONSOLIDATION 2026-07-26: Now supports JWT bypass (same pattern as
+    ``dependencies.get_api_key``). Previously, this only checked X-API-Key,
+    meaning JWT-authenticated users were blocked from 10+ endpoints.
+
+    Accepts either:
+    1. X-API-Key header (server-to-server)
+    2. Valid JWT Bearer access token (with type + blacklist check)
+
+    The JWT bypass delegates to ``dependencies._validate_jwt_access_token``
+    for signature, expiry, type, and blacklist validation. This eliminates
+    the previous gap where revoked tokens could still access these endpoints.
+    """
     if not _API_KEY_CONFIGURED:
         if _AUTH_DISABLED:
             return
-        _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        _ENV = os.environ.get("ENVIRONMENT", os.getenv("ENV", "development")).lower()
         if _ENV in ("production", "prod", "staging"):
             raise HTTPException(  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
                 status_code=401,
@@ -137,6 +150,20 @@ def _require_api_key(request: Request) -> None:
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
         return
+
+    # JWT bypass: if a VALID Bearer access token is present, skip the API key check.
+    # This allows JWT-authenticated frontend users to access these endpoints.
+    auth_header = request.headers.get("authorization") or ""
+    if auth_header.lower().startswith("bearer "):
+        try:
+            from api.dependencies import _validate_jwt_access_token, _extract_bearer_token
+            token = _extract_bearer_token(auth_header)
+            await _validate_jwt_access_token(token)
+            # JWT is valid and is an access token — skip API key check
+            return
+        except HTTPException:
+            # Invalid/expired/revoked JWT — fall through to API key check
+            pass
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
@@ -354,7 +381,7 @@ def get_celery_components() -> tuple[Optional[Any], Optional[Any], Optional[Any]
 @app.post("/api/v1/studies/run_async")
 async def run_study_async(study_request: StudyRequest, request: Request) -> dict[str, Any]:
     """Execute an engineering study asynchronously using Celery."""
-    _require_api_key(request)  # Add authentication check
+    await _require_api_key(request)  # Add authentication check
 
     _, execute_engineering_study_task, _ = get_celery_components()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -388,7 +415,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
 @app.get("/api/v1/studies/task_status/{task_id}")
 async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
-    _require_api_key(request)  # Add authentication check
+    await _require_api_key(request)  # Add authentication check
 
     CeleryAsyncResult, _, celery_app = get_celery_components()  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -419,18 +446,19 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
 @app.websocket("/ws/scada/live")
 async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
-    """WebSocket endpoint for real-time SCADA data streaming."""
-    # Perform API key authentication for WebSocket connection
-    try:
-        # Extract API key from headers
-        api_key = websocket.headers.get("x-api-key")
-        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
-            return
-    except Exception:
-        await websocket.close(code=1008, reason="Authentication error")
-        return
+    """WebSocket endpoint for real-time SCADA data streaming.
 
+    AUTH CONSOLIDATION 2026-07-26: Removed redundant API-key-only gate.
+    Previously, this handler checked ONLY the API key header before delegating
+    to ``scada_websocket_endpoint``, which then checked the JWT token in query
+    params. This meant JWT-authenticated users were blocked at the gate before
+    they could even reach the JWT validation.
+
+    Now delegates directly to ``scada_websocket_endpoint`` which handles auth
+    via ``dependencies.validate_ws_token`` — accepting JWT OR API key.
+    """
+    # Delegate to the canonical WebSocket handler which does its own auth
+    # via dependencies.validate_ws_token (JWT + API key + blacklist check)
     await scada_websocket_endpoint(websocket)
 
 
@@ -441,17 +469,27 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     Used by the CUA Loop to request two-human approval before executing
     life-safety-critical actions (protection setting changes, breaker ops).
 
-    SECURITY: API key required — same pattern as /ws/scada/live.
+    AUTH CONSOLIDATION 2026-07-26: Now accepts JWT OR API key (via
+    ``dependencies.validate_ws_token``). Previously only accepted API key,
+    blocking JWT-authenticated operators from life-safety confirmation.
+
+    SECURITY: Authentication required for life-safety endpoint.
     See: api/cua_confirmation_ws.py for the protocol.
     """
-    # SECURITY AUDIT S-15: API key authentication required for life-safety endpoint
-    try:
-        api_key = websocket.headers.get("x-api-key")
-        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
-            return
-    except Exception:
-        await websocket.close(code=1008, reason="Authentication error")
+    # AUTH CONSOLIDATION: Use canonical validate_ws_token for both JWT + API key
+    from api.dependencies import validate_ws_token
+
+    # Try token from query params first (JWT), then API key from headers
+    token = websocket.query_params.get("token", "")
+    api_key = websocket.headers.get("x-api-key", "")
+
+    # Validate using canonical function (JWT + API key + blacklist)
+    if token and await validate_ws_token(token):
+        pass  # Authenticated via JWT
+    elif api_key and await validate_ws_token(api_key):
+        pass  # Authenticated via API key
+    else:
+        await websocket.close(code=1008, reason="Authentication required — provide token query param or X-API-Key header")
         return
 
     from api.cua_confirmation_ws import cua_confirmation_ws
@@ -704,7 +742,7 @@ async def scada_live(request: Request):
     replace this with ``scada_etap_consumer.get_live_snapshot()`` and set is_simulated=false.
     SECURITY AUDIT S-15: requires API key authentication.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     return {
         "success": True,
         "is_simulated": True,
@@ -731,7 +769,7 @@ async def digital_twin_status(request: Request):
     no live measurements ingested.
     SECURITY AUDIT S-15: requires API key authentication.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     return {
         "success": True,
         "data": {
@@ -757,7 +795,7 @@ async def audit_verify(request: Request):
     and verifies the SHA-256 hash chain (each entry's hash must match
     SHA256(prev_entry + data)). Protected by admin API key.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     import hashlib
     import json
     import os
@@ -824,7 +862,7 @@ async def cua_kill_switch_status(request: Request):
     the active state, activation timestamp, and reason.
     SECURITY AUDIT S-15: admin endpoints require auth.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     from agents.life_safety import KILL_SWITCH_PATH, is_kill_switch_active
 
     active = is_kill_switch_active()
@@ -852,7 +890,7 @@ async def cua_kill_switch_activate(request: Request):
     Once activated, the CUA Loop will abort on the next action check.
     SECURITY AUDIT S-15: admin endpoints require auth.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     from agents.life_safety import activate_kill_switch
 
     try:
@@ -876,7 +914,7 @@ async def cua_kill_switch_deactivate(request: Request):
     """Deactivate the CUA kill switch — resumes CUA agent actions.
     SECURITY AUDIT S-15: admin endpoints require auth.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     from agents.life_safety import deactivate_kill_switch, is_kill_switch_active
 
     was_active = deactivate_kill_switch()
@@ -922,7 +960,7 @@ async def cua_rollback(request: Request, body: CUARollbackRequest):
     Returns:
         dict with ``success``, ``message``, and ``snapshot`` keys.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     from agents.life_safety import life_safety_guard
 
     try:
@@ -948,7 +986,7 @@ async def cua_audit_log(request: Request, limit: int = 50):
     Reads the safety_chain.jsonl file produced by agents/life_safety.py
     and returns the most recent entries.
     """
-    _require_api_key(request)
+    await _require_api_key(request)
     import json
 
     from agents.life_safety import _CUA_AUDIT_DIR
@@ -982,7 +1020,7 @@ async def benchmark(request: Request):
     """Run a lightweight in-process benchmark and return timing metrics.
     SECURITY AUDIT S-15: benchmark requires auth (resource consumption + info disclosure).
     """
-    _require_api_key(request)
+    await _require_api_key(request)
 
     import json as _json
     import time as _time

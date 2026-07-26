@@ -2,14 +2,19 @@
 WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
 
-SECURITY AUDIT 2026-07-25 — Fix S-03: Added JWT authentication.
+SECURITY AUDIT 2026-07-26 — Fix S-03: JWT authentication now delegates to the
+canonical ``api.dependencies.validate_ws_token`` instead of inline validation.
 Previously, any client could connect without authentication, exposing
 SCADA data to unauthorized parties. Now requires a valid JWT token
 passed as a query parameter: ws://host/ws/scada?token=<jwt_access_token>
+
+AUTH CONSOLIDATION: The inline ``_validate_ws_token`` function was a duplicate
+of ``dependencies.validate_ws_token`` — it read JWT_SECRET_KEY from os.getenv
+instead of using the canonical source (which generates a random dev key).
+This caused all WebSocket JWT connections to fail in development.
 """
 
 import asyncio
-import hmac
 import json
 import logging
 from datetime import datetime, timezone
@@ -17,6 +22,7 @@ from typing import List
 
 UTC = timezone.utc  # noqa: UP017
 
+from api.dependencies import validate_ws_token
 from fastapi import Query, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
@@ -199,58 +205,6 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-async def _validate_ws_token(token: str) -> bool:
-    """Validate JWT token for WebSocket authentication (S-03).
-
-    Accepts:
-    1. Valid JWT access token (Bearer-style)
-    2. Engineering API service key (server-to-server)
-    3. Skip validation if AUTH_DISABLED=true in development
-    """
-    import os
-
-    # Skip in development if auth is disabled
-    if os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes"):
-        env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development"))
-        if env.lower() in ("development", "dev"):
-            return True
-
-    # Check API key (server-to-server) — constant-time comparison
-    api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if api_key and hmac.compare_digest(token, api_key):
-        return True
-
-    # Check JWT token
-    try:
-        import jwt
-        jwt_secret = os.getenv("JWT_SECRET_KEY", "")
-        if not jwt_secret:
-            logger.warning("WS auth: JWT_SECRET_KEY not configured")
-            return False
-        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-        # Accept only access tokens
-        if payload.get("type") != "access":
-            logger.warning("WS auth: rejected non-access token (type=%s)", payload.get("type"))
-            return False
-        # SECURITY: Check token blacklist (revoked tokens)
-        jti = payload.get("jti")
-        if jti:
-            try:
-                from api.auth import _is_token_blacklisted
-                if await _is_token_blacklisted(jti):
-                    logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
-                    return False
-            except (ImportError, AttributeError):
-                pass  # blacklist unavailable
-        return True
-    except jwt.ExpiredSignatureError:
-        logger.warning("WS auth: token expired")
-        return False
-    except jwt.InvalidTokenError as e:
-        logger.warning("WS auth: invalid token: %s", e)
-        return False
-
-
 async def scada_websocket_endpoint(
     websocket: WebSocket,
     token: str = Query(default="", description="JWT access token or API key for authentication"),
@@ -260,8 +214,8 @@ async def scada_websocket_endpoint(
     SECURITY (S-03): Requires authentication via query parameter:
       ws://host/ws/scada?token=<jwt_access_token>
     """
-    # SECURITY: Validate token before accepting connection
-    if not await _validate_ws_token(token):
+    # SECURITY: Validate token using canonical dependency function (deep module interface)
+    if not await validate_ws_token(token):
         await websocket.close(code=4001, reason="Authentication required — provide valid token parameter")
         logger.warning("WebSocket connection rejected: invalid or missing auth token")
         return
