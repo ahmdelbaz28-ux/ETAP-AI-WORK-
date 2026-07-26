@@ -29,24 +29,50 @@ from typing import Optional
 from fastapi import Request
 
 
+def _is_production_env() -> bool:
+    """Return True when running in a production-like environment.
+
+    Test-mode behaviours (returning OTP codes in responses, auto-verifying
+    placeholder codes, accepting X-API-Key as admin) MUST be disabled in
+    production regardless of what env vars are set, because a leaked
+    ENGINEERING_SERVICE_API_KEY would otherwise grant full admin access
+    on the email dashboard / OTP / magic-link flows.
+    """
+    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+    return env in ("production", "prod", "staging")
+
+
 def is_test_mode(request: Request) -> bool:
     """Check if the request is from automation/CI (X-API-Key matches service key).
 
-    When true:
+    When true (AND not in production):
     - OTP send: skip rate limiting, return the code in the response
     - OTP verify: auto-verify placeholder codes (999999)
     - Magic link request: skip rate limiting, return the token in the response
     - Magic link verify: auto-verify placeholder tokens
     - Dashboard: accept API key as alternative to JWT
 
-    Returns True only if:
-    1. X-API-Key header is present AND
-    2. ENGINEERING_SERVICE_API_KEY env var is set AND
-    3. They match exactly
+    SECURITY: ALWAYS returns False in production/staging environments.
+    A leaked ENGINEERING_SERVICE_API_KEY must NEVER grant admin access,
+    bypass rate limits, or expose OTP/magic-link tokens in responses.
+
+    Returns True only if ALL of the following are true:
+    1. Current environment is development (NOT production/staging), AND
+    2. X-API-Key header is present AND
+    3. ENGINEERING_SERVICE_API_KEY env var is set AND
+    4. They match exactly (timing-safe comparison)
     """
+    if _is_production_env():
+        return False
+
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    return bool(api_key and expected_key and api_key == expected_key)
+    if not api_key or not expected_key:
+        return False
+    # Timing-safe comparison to prevent timing attacks on key enumeration.
+    import hmac
+
+    return hmac.compare_digest(api_key, expected_key)
 
 
 def normalize_template_var(value: str, default: str = "") -> str:

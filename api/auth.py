@@ -588,7 +588,14 @@ async def register(
 
     Returns the created user on success, or 409 if the username/email is
     already taken.
+
+    SECURITY: Email comparison is case-insensitive (User@Example.com and
+    user@example.com are treated as the same email) to prevent account
+    duplication and login confusion. Emails are stored lowercased.
     """
+    # Normalise email to lowercase to ensure case-insensitive uniqueness.
+    normalised_email = body.email.strip().lower()
+
     # Check username uniqueness
     existing = await db.execute(select(User).where(User.username == body.username))
     if existing.scalar_one_or_none() is not None:
@@ -597,8 +604,10 @@ async def register(
             detail="Username already registered",
         )
 
-    # Check email uniqueness
-    existing = await db.execute(select(User).where(User.email == body.email))
+    # Check email uniqueness (case-insensitive)
+    existing = await db.execute(
+        select(User).where(func.lower(User.email) == normalised_email)
+    )
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -608,7 +617,7 @@ async def register(
     user = User(
         id=str(uuid.uuid4()),
         username=body.username,
-        email=body.email,
+        email=normalised_email,
         password_hash=_hash_password(body.password),
         # SECURITY: Force "viewer" role for all new registrations (S-02)
         role="viewer",
@@ -864,16 +873,21 @@ async def update_me(
         )
 
     if body.email is not None:
-        # Check email uniqueness
+        # Normalise to lowercase for case-insensitive uniqueness check
+        new_email = body.email.strip().lower()
+        # Check email uniqueness (case-insensitive)
         existing = await db.execute(
-            select(User).where(User.email == body.email, User.id != user.user_id),
+            select(User).where(
+                func.lower(User.email) == new_email,
+                User.id != user.user_id,
+            ),
         )
         if existing.scalar_one_or_none() is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already in use",
             )
-        db_user.email = body.email
+        db_user.email = new_email
 
     if body.mfa_enabled is not None:
         db_user.mfa_enabled = body.mfa_enabled
@@ -996,8 +1010,14 @@ async def forgot_password(
 
     Always returns a success message to prevent email-enumeration attacks,
     even if the email does not exist.
+
+    SECURITY: Email lookup is case-insensitive to match the registration
+    flow (emails are stored lowercased).
     """
-    result = await db.execute(select(User).where(User.email == body.email))
+    normalised_email = body.email.strip().lower()
+    result = await db.execute(
+        select(User).where(func.lower(User.email) == normalised_email)
+    )
     user = result.scalar_one_or_none()
 
     if user is not None and user.is_active:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
 import uuid
 from typing import Any, Dict, Mapping, Optional
@@ -368,6 +369,24 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         if pf_result is not None:
             raise HTTPException(status_code=400, detail=pf_result["error"])
 
+    # Initialise result containers BEFORE any branch that may append to them.
+    # Previous code called `warnings.append(...)` below before this assignment,
+    # which raised NameError at runtime whenever a PE-stamp-required study
+    # type (arc_flash, protection_coordination, etc.) was submitted without
+    # a pe_stamp field — i.e. the default happy path for most callers.
+    warnings: list[str] = []
+    errors: list[str] = []
+    data: dict[str, Any] = {}
+    provider_name = "native"
+    cache_hit = False
+
+    # --- PE stamp check (Item 5) ---
+    if requires_stamp(payload.study_type) and not payload.pe_stamp:
+        warnings.append(
+            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
+            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
+        )
+
     from core.bootstrap import _add_execution_time, _increment_counter
 
     _increment_counter("request")
@@ -383,25 +402,12 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         extra={"trace_id": trace_id},
     )
 
-    warnings: list[str] = []
-    errors: list[str] = []
-    data: dict[str, Any] = {}
-    provider_name = "native"
-
-    # --- PE stamp check (Item 5) ---
-    if requires_stamp(payload.study_type) and not payload.pe_stamp:
-        warnings.append(
-            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
-            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
-        )
-    cache_hit = False
-
     try:
         # Initialize study cache if needed
         study_cache = None
         try:
             study_cache = StudyCache(
-                redis_url="redis://localhost:6379",
+                redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
                 ttl=3600,
             )
         except Exception:

@@ -133,13 +133,18 @@ def _build_sqlite_engine(url: str):
 
 
 # Whether we have permanently fallen back to SQLite during this process.
-# Mutated by init_db() if the primary engine cannot reach its database.
-# DISABLED by default to prevent silent data loss on HF Space (/tmp wiped on restart).
-# Set ALLOW_SQLITE_FALLBACK=true to enable (NOT RECOMMENDED for production).
+# SECURITY (2026-07-21): The /tmp fallback path is REMOVED. Silently writing
+# user data to /tmp/etap_platform_fallback.db caused permanent data loss on
+# HF Space (which wipes /tmp on every restart) and silent data divergence
+# across replicas. If Postgres is unreachable, init_db() now raises so the
+# health check fails loudly and the deployment can be debugged, instead of
+# accepting writes that disappear.
 _FELL_BACK_TO_SQLITE: bool = False
-_ALLOW_SQLITE_FALLBACK = os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true"
+_ALLOW_SQLITE_FALLBACK = False  # Hard-disabled. Setting ALLOW_SQLITE_FALLBACK=true in env has NO effect.
 
-_FALLBACK_SQLITE_URL = "sqlite+aiosqlite:////tmp/data/etap_platform_fallback.db"
+# Kept for backward-compat with code that imports the symbol; init_db() no
+# longer uses it. Removing it entirely would break downstream imports.
+_FALLBACK_SQLITE_URL = "sqlite+aiosqlite:////tmp/data/etap_platform_fallback.db"  # NOSONAR — S5443: legacy constant, no longer used at runtime
 
 
 if _IS_POSTGRES:
@@ -262,12 +267,12 @@ async def init_db() -> None:
     ``Base.metadata`` is aware of every mapped table before
     ``create_all`` is called.
 
-    If the primary engine targets PostgreSQL but the database is
-    unreachable (e.g. Supabase project paused, network partition, wrong
-    credentials), this function automatically falls back to a local
-    SQLite file under ``/tmp/data/etap_platform_fallback.db`` so the
-    platform stays operational in a degraded mode. A loud warning is
-    logged so operators know to fix the Postgres connection.
+    SECURITY (2026-07-21): The silent SQLite fallback to /tmp has been
+    REMOVED. If the primary database (PostgreSQL in production, SQLite in
+    dev) is unreachable, this function raises so the failure is visible
+    in logs and health checks — instead of silently writing to a /tmp
+    file that gets wiped on container restart (which previously caused
+    permanent data loss on HF Space).
 
     Example::
 
@@ -296,28 +301,14 @@ async def init_db() -> None:
         logger.info("Database tables created/verified successfully")
         return
     except Exception as exc:
-        if not _IS_POSTGRES:
-            # SQLite has no fallback — re-raise so callers know.
-            raise
+        # No silent fallback. Re-raise so the failure is visible in the
+        # startup log and the /healthz endpoint reports unhealthy.
         logger.exception(
-            "Primary PostgreSQL database unreachable: %s. "
-            "Falling back to local SQLite at %s. The platform will run "
-            "in DEGRADED MODE: data will NOT persist across container "
-            "restarts. Fix DATABASE_URL (e.g. resume the Supabase project) "
-            "and restart the Space to restore production-grade storage.",
+            "Database init FAILED for %s: %s. "
+            "No silent fallback is available — fix DATABASE_URL and restart. "
+            "Previous versions silently fell back to /tmp SQLite, which caused "
+            "permanent data loss on container restarts.",
+            DATABASE_URL,
             exc,
-            _FALLBACK_SQLITE_URL,
         )
-
-    # Fall back to SQLite — make sure /tmp/data exists, then rebind.
-    _fallback_dir = os.path.dirname(_FALLBACK_SQLITE_URL.replace("sqlite+aiosqlite:///", ""))
-    if _fallback_dir:
-        os.makedirs(_fallback_dir, exist_ok=True)
-    fallback_engine = _build_sqlite_engine(_FALLBACK_SQLITE_URL)
-    _rebind_session(fallback_engine)
-    async with fallback_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.warning(
-        "Fallback SQLite engine bound. Subsequent DB operations will use %s",
-        _FALLBACK_SQLITE_URL,
-    )
+        raise
