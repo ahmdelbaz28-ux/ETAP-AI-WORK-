@@ -52,12 +52,22 @@ async def _get_api_key_or_user(request: Request):
         token = auth_header.split(" ", 1)[1]
         try:
             import jwt
-            jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+            from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+            jwt_secret = JWT_SECRET_KEY
             if jwt_secret:
-                payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
+                payload = jwt.decode(token, jwt_secret, algorithms=[JWT_ALGORITHM])
                 # SECURITY: Reject non-access tokens (e.g. refresh tokens)
                 if payload.get("type") != "access":
                     raise HTTPException(status_code=401, detail="Bearer token must be an access token")
+                # SECURITY: Check token blacklist (revoked tokens)
+                jti = payload.get("jti")
+                if jti:
+                    try:
+                        from api.auth import _is_token_blacklisted
+                        if await _is_token_blacklisted(jti):
+                            raise HTTPException(status_code=401, detail="Token has been revoked")
+                    except ImportError:
+                        pass  # blacklist unavailable
                 return True
         except Exception:
             pass  # SECURITY: Intentional — JWT optional, API key is the fallback

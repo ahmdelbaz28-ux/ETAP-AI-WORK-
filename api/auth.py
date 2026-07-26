@@ -485,6 +485,7 @@ def _create_access_token(user_id: str, role: str) -> str:
         "sub": user_id,
         "role": role,
         "type": "access",
+        "jti": str(uuid.uuid4()),  # SECURITY: unique ID for token revocation
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }
@@ -560,7 +561,8 @@ def _record_failed_attempt(username: str) -> None:
     so this function only records for the in-memory fallback path.
     """
     now = time.monotonic()
-    _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
+    with _LOGIN_ATTEMPTS_LOCK:
+        _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
 
 
 # ---------------------------------------------------------------------------

@@ -48,7 +48,7 @@ _ADMIN_ROLES = {
 # ---------------------------------------------------------------------------
 
 
-def _require_admin(request: Request) -> dict:
+async def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict.
 
     Accepts either:
@@ -61,22 +61,46 @@ def _require_admin(request: Request) -> dict:
 
     api_key_auth = get_api_key_auth(request)
     if api_key_auth:
+        # SECURITY: API key auth still needs role check — "service" role is allowed for dashboard
+        if api_key_auth.get("role") not in _ADMIN_ROLES | {"service"}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin or service role required for dashboard access",
+            )
         return api_key_auth
 
     # ─── Method 2: JWT Bearer token ──────────────────────────────────────
     auth_header = request.headers.get("authorization", "")
-    if auth_header.startswith("Bearer "):
+    if auth_header.lower().startswith("bearer "):
         try:
             import jwt as pyjwt
 
             from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
-            token = auth_header[7:]
+            token = auth_header.split(" ", 1)[1]
             payload = pyjwt.decode(
                 token,
                 JWT_SECRET_KEY,
                 algorithms=[JWT_ALGORITHM],
             )
+            # SECURITY: Reject non-access tokens
+            if payload.get("type") != "access":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Access token required",
+                )
+            # SECURITY: Check token blacklist (revoked tokens)
+            jti = payload.get("jti")
+            if jti:
+                try:
+                    from api.auth import _is_token_blacklisted
+                    if await _is_token_blacklisted(jti):
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Token has been revoked",
+                        )
+                except ImportError:
+                    pass
             user_id = payload.get("sub") or payload.get("user_id")
             user_role = payload.get("role", "")
 

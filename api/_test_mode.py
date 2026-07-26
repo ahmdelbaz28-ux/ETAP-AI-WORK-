@@ -46,7 +46,8 @@ def is_test_mode(request: Request) -> bool:
     """
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    return bool(api_key and expected_key and api_key == expected_key)
+    import hmac
+    return bool(api_key and expected_key and hmac.compare_digest(api_key, expected_key))
 
 
 def normalize_template_var(value: str, default: str = "") -> str:

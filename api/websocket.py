@@ -199,7 +199,7 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-def _validate_ws_token(token: str) -> bool:
+async def _validate_ws_token(token: str) -> bool:
     """Validate JWT token for WebSocket authentication (S-03).
 
     Accepts:
@@ -237,7 +237,7 @@ def _validate_ws_token(token: str) -> bool:
         if jti:
             try:
                 from api.auth import _is_token_blacklisted
-                if _is_token_blacklisted(jti):
+                if await _is_token_blacklisted(jti):
                     logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
                     return False
             except (ImportError, AttributeError):
@@ -261,7 +261,7 @@ async def scada_websocket_endpoint(
       ws://host/ws/scada?token=<jwt_access_token>
     """
     # SECURITY: Validate token before accepting connection
-    if not _validate_ws_token(token):
+    if not await _validate_ws_token(token):
         await websocket.close(code=4001, reason="Authentication required — provide valid token parameter")
         logger.warning("WebSocket connection rejected: invalid or missing auth token")
         return

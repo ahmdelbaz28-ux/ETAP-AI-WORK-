@@ -9,9 +9,10 @@ import threading
 import time
 from collections import defaultdict
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from api._messages import MSG_INTERNAL_ERROR
+from api.dependencies import CurrentUser, get_current_user_from_header, require_role
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
 
@@ -27,8 +28,8 @@ _lockouts: dict[str, float] = {}
 _mfa_lock = threading.Lock()
 
 
-@router.post("/totp/setup")
-async def setup_totp(request: Request):
+@router.post("/totp/setup", dependencies=[Depends(require_role("admin", "super_admin"))])
+async def setup_totp(request: Request, user: CurrentUser = Depends(get_current_user_from_header)):
     """Set up TOTP-based MFA for a user."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
@@ -36,6 +37,10 @@ async def setup_totp(request: Request):
         user_id = body.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint
+
+        # SECURITY: Only admin or the user themselves can set up MFA
+        if user.role not in ("admin", "super_admin") and str(user.user_id) != str(user_id):
+            raise HTTPException(status_code=403, detail="Cannot set up MFA for another user")
 
         from security.mfa import TOTPProvider
 
@@ -89,7 +94,7 @@ async def verify_totp(request: Request):
                     remaining = int(_LOCKOUT_DURATION - (now - _lockouts[user_id]))
                     raise HTTPException(
                         status_code=429,
-                        detail=f"Account locked due to too many failed attempts. Try again in {remaining}s.",
+                        detail="Too many failed MFA attempts. Please try again later.",
                     )
                 else:
                     # Lockout expired — clear
