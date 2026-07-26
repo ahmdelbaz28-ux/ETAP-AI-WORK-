@@ -174,19 +174,19 @@ jobs:
           else
             echo "  ✅ PASS — CLOVIE_API_KEY correctly removed from types.ts"
           fi
-          # 3j — providers.ts must have 'case nvidia'
-          if grep -q "case 'nvidia'" src/core/providers.ts; then
-            echo "  ✅ PASS — 'case nvidia' in providers.ts"
+          # 3j — providers.ts must have nvidia provider config
+          if grep -q "nvidia:" src/core/providers.ts && grep -q "NVIDIA_API_KEY" src/core/providers.ts; then
+            echo "  ✅ PASS — nvidia provider config in providers.ts"
           else
-            echo "  ❌ FAIL — 'case nvidia' missing in providers.ts"
+            echo "  ❌ FAIL — nvidia provider config missing in providers.ts"
             exit 1
           fi
-          # 3k — providers.ts must NOT have 'case clovie'
-          if grep -q "case 'clovie'" src/core/providers.ts; then
-            echo "  ❌ FAIL — 'case clovie' should have been removed"
+          # 3k — providers.ts must NOT have clovie provider config
+          if grep -q "clovie:" src/core/providers.ts || grep -q "CLOVIE_API_KEY" src/core/providers.ts; then
+            echo "  ❌ FAIL — clovie provider config should have been removed"
             exit 1
           else
-            echo "  ✅ PASS — 'case clovie' correctly removed"
+            echo "  ✅ PASS — clovie provider config correctly removed"
           fi
           echo ""
 
