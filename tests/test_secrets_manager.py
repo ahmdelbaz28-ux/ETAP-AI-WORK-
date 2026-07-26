@@ -141,8 +141,13 @@ class TestLocalSecretsManager:
         mgr = LocalSecretsManager()
         # service names with special characters should be sanitised
         svc_file = mgr._service_file("my/test@service!")
-        # The safe name replaces non-alnum chars with _
-        assert "/" not in str(svc_file)
+        # The safe name replaces non-alnum chars with _; the sanitisation
+        # applies to the FILENAME (svc_file.name), not the full path
+        # (svc_file includes the SECRETS_DIR prefix which on POSIX is
+        # always like /tmp/.../ and contains slashes by design).
+        assert "/" not in svc_file.name
+        assert "\\" not in svc_file.name
+        assert svc_file.name == "my_test_service_.enc"
         assert svc_file.suffix == ".enc"
 
 
