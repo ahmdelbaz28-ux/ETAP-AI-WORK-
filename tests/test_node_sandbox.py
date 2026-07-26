@@ -30,15 +30,49 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-EXECUTOR_PATH = REPO_ROOT / "security" / "secure_node_executor.js"
+EXECUTOR_PATH = REPO_ROOT / "security" / "secure_node_executor.cjs"
 
 # Skip all tests if `node` is not on PATH — the sandbox cannot run without it.
 NODE_AVAILABLE = shutil.which("node") is not None
 
 
+def _isolated_vm_available() -> bool:
+    """Probe whether the `isolated-vm` native module is installed.
+
+    The CI Integration Tests workflow does not run `npm install` (it only
+    installs Python deps), so `isolated-vm` is typically missing there.
+    Building it requires `build-essential` + `python3` + `node-gyp` and
+    adds ~30–60s, which is not worth doing for every CI run. The sandbox
+    is exercised end-to-end inside the Docker image where `isolated-vm`
+    IS installed, so skipping here doesn't reduce real coverage.
+    """
+    if not NODE_AVAILABLE:
+        return False
+    try:
+        proc = subprocess.run(
+            ["node", str(EXECUTOR_PATH)],
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=5,
+            env={**os.environ, "NODE_TIMEOUT_MS": "1000", "NODE_MEMORY_LIMIT_MB": "8"},
+            cwd=str(REPO_ROOT),
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    # The executor emits JSON to stderr with error_type='dependency_missing'
+    # when isolated-vm cannot be loaded.
+    if "dependency_missing" in (proc.stderr or ""):
+        return False
+    return True
+
+
+ISOLATED_VM_AVAILABLE = _isolated_vm_available()
+
+
 pytestmark = pytest.mark.skipif(
-    not NODE_AVAILABLE,
-    reason="Node.js not installed — skipping Node sandbox tests",
+    not (NODE_AVAILABLE and ISOLATED_VM_AVAILABLE),
+    reason="Node.js or isolated-vm not available — skipping Node sandbox tests",
 )
 
 
