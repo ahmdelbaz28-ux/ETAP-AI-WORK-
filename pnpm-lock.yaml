@@ -67,8 +67,8 @@ importers:
         specifier: 7.0.5
         version: 7.0.5
       '@vitest/coverage-v8':
-        specifier: ^3.2.4
-        version: 3.2.7(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.10.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0))
+        specifier: 3.2.6
+        version: 3.2.6(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.10.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0))
       commander:
         specifier: 12.1.0
         version: 12.1.0
@@ -79,10 +79,10 @@ importers:
         specifier: 4.23.0
         version: 4.23.0
       typescript:
-        specifier: ^5.7.2
+        specifier: 5.7.2
         version: 5.7.2
       vitest:
-        specifier: ^3.2.4
+        specifier: 3.2.6
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.10.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0)
       zod-to-json-schema:
         specifier: 3.24.5
@@ -3105,11 +3105,11 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0
 
-  '@vitest/coverage-v8@3.2.7':
-    resolution: {integrity: sha512-NEGWJS2XNu2PfRLQwOO3CTKj1tTETxNBdk454vDxVBhxJYhPaA/eS0nAI0c+1El1P7a60z8+i+ZrQoGESweGKg==}
+  '@vitest/coverage-v8@3.2.6':
+    resolution: {integrity: sha512-LsAdmUapA0qSN306d8+zOyawM0hFm2m2Hg9IwVNIKBm+qJV8cijiq2c+gxKZcB1HCfIWAy+0qEZDCUQA58A1cw==}
     peerDependencies:
-      '@vitest/browser': 3.2.7
-      vitest: 3.2.7
+      vitest: 3.2.6
+      '@vitest/browser': 3.2.6
     peerDependenciesMeta:
       '@vitest/browser':
         optional: true
@@ -10381,7 +10381,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@3.2.7(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.10.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0))':
+  '@vitest/coverage-v8@3.2.6(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.10.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.0)(yaml@2.9.0))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
