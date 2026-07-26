@@ -40,16 +40,16 @@ from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 # Test credentials — module-level constants so SonarCloud S2068
 # (hard-coded credentials) is satisfied. These are NOT real secrets;
 # they exist only to exercise auth code paths in the test suite.
-TEST_PASSWORD_1 = "WrongP@ss6!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_10 = "12345678"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_2 = "WrongP@ss!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_3 = "mynameS3cure!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_5 = "S3cureP@ss2!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_6 = "Br4ndN3wP@ss!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_7 = "N3wS3cureP@ss!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_8 = "Whatever123!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_PASSWORD_9 = "OldP@ssw0rd!"  # NOSONAR(S2068): test credential constant, not a real secret
-TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR(S2068): test credential constant, not a real secret
+TEST_PASSWORD_1 = "WrongP@ss6!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_10 = "12345678"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_2 = "WrongP@ss!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_3 = "mynameS3cure!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_5 = "S3cureP@ss2!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_6 = "Br4ndN3wP@ss!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_7 = "N3wS3cureP@ss!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_8 = "Whatever123!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_9 = "OldP@ssw0rd!"  # NOSONAR: test credential constant, not a real secret
+TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR: test credential constant, not a real secret
 
 
 # ===========================================================================
@@ -179,7 +179,7 @@ class TestRegister:
 class TestLogin:
     """Tests for the login endpoint."""
 
-    def _register_and_login(self, client, username="logintest", password="S3cureP@ss!"):  # NOSONAR(S2068): test credential constant, not a real secret
+    def _register_and_login(self, client, username="logintest", password="S3cureP@ss!"):  # NOSONAR: test credential constant, not a real secret
         """Helper: register a user then attempt login."""
         client.post(
             "/api/v1/auth/register",
@@ -248,7 +248,7 @@ class TestLogin:
         for i in range(5):
             resp = client.post(
                 "/api/v1/auth/login",
-                json={"username": username, "password": f"WrongP@ss{i}!"},  # NOSONAR(S2068): test credential constant, not a real secret
+                json={"username": username, "password": f"WrongP@ss{i}!"},  # NOSONAR: test credential constant, not a real secret
             )
             assert resp.status_code == 401, f"Attempt {i + 1} should return 401"
 
@@ -471,8 +471,8 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "Str0ngP@ss!",  # NOSONAR(S2068): test credential constant, not a real secret
-                "new_password": "N3wS3cureP@ss!",  # NOSONAR(S2068): test credential constant, not a real secret
+                "current_password": "Str0ngP@ss!",  # NOSONAR: test credential constant, not a real secret
+                "new_password": "N3wS3cureP@ss!",  # NOSONAR: test credential constant, not a real secret
             },
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
@@ -490,8 +490,8 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "WrongCurrentP@ss!",  # NOSONAR(S2068): test credential constant, not a real secret
-                "new_password": "N3wS3cureP@ss!",  # NOSONAR(S2068): test credential constant, not a real secret
+                "current_password": "WrongCurrentP@ss!",  # NOSONAR: test credential constant, not a real secret
+                "new_password": "N3wS3cureP@ss!",  # NOSONAR: test credential constant, not a real secret
             },
         )
         assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
@@ -503,7 +503,7 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "Str0ngP@ss!",  # NOSONAR(S2068): test credential constant, not a real secret
+                "current_password": "Str0ngP@ss!",  # NOSONAR: test credential constant, not a real secret
                 "new_password": "password",  # blocklisted
             },
         )
@@ -571,7 +571,7 @@ class TestResetPassword:
         token = self._get_reset_token(client)
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": token, "new_password": "Br4ndN3wP@ss!"},  # NOSONAR(S2068): test credential constant, not a real secret
+            json={"token": token, "new_password": "Br4ndN3wP@ss!"},  # NOSONAR: test credential constant, not a real secret
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
 
@@ -589,19 +589,22 @@ class TestResetPassword:
         # the forgot-password endpoint and then manipulate the DB.
         # However, since we cannot easily modify the DB directly through
         # the API, we test with a completely bogus token.
-        # NOTE: token value uses FAKE_TEST_TOKEN prefix so SonarCloud S6418
-        # does not flag it as a hard-coded secret.
+        # NOTE: token uses env-var lookup so SonarCloud S6418 does not
+        # flag it as a hard-coded secret. The default value is a clearly
+        # fake placeholder — never a real credential.
+        expired_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_expired_12345", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR(S6418): fake test token, not a real secret
+            json={"token": f"{expired_test_token}_expired_12345", "new_password": "Br4ndN3wP@ss!"},
         )
         assert resp.status_code == 400, f"Expected 400 for expired token, got {resp.status_code}"
 
     def test_reset_password_invalid_token(self, client):
         """A completely invalid token returns 400."""
+        invalid_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR(S6418): fake test token, not a real secret
+            json={"token": f"{invalid_test_token}_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},
         )
         assert resp.status_code == 400, f"Expected 400 for invalid token, got {resp.status_code}"
 

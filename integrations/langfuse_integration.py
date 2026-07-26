@@ -174,8 +174,8 @@ class LangfuseTracker:
         metadata: Optional[dict] = None,
         model: Optional[str] = None,
         agent: Optional[str] = None,
-        user_id: Optional[str] = None,  # NOSONAR(S1172): unused param kept for API compatibility
-        session_id: Optional[str] = None,  # NOSONAR(S1172): unused param kept for API compatibility
+        user_id: Optional[str] = None,  # NOSONAR: unused param kept for API compatibility
+        session_id: Optional[str] = None,  # NOSONAR: unused param kept for API compatibility
     ) -> None:
         """Manually log a single LLM interaction as a Langfuse trace."""
         client = self._get_client()
@@ -227,7 +227,7 @@ class LangfuseTracker:
 
     # ─── Prompt Management ───────────────────────────────────────────────
 
-    def get_prompt(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def get_prompt(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         name: str,
         label: str = "production",
@@ -365,7 +365,7 @@ atexit.register(_atexit_flush)
 # ─── Decorator: track_llm_call ────────────────────────────────────────────
 
 
-def track_llm_call(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def track_llm_call(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     name: str,
     agent: Optional[str] = None,
     model: Optional[str] = None,

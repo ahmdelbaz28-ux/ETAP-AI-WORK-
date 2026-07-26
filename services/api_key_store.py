@@ -55,6 +55,16 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# ─── Module-level per-user directory constants (S5443 mitigation) ────────
+
+_DEFAULT_DATA_DIR = str(Path.home() / ".etap" / "data")
+_DATA_DIR = Path(os.environ.get("ETAP_DATA_DIR", _DEFAULT_DATA_DIR))
+_DATA_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    os.chmod(_DATA_DIR, 0o700)
+except OSError:
+    pass  # Best-effort: chmod can fail on some filesystems
+
 # ─── AES-256 encryption (optional dep) ─────────────────────────────────────
 
 try:
@@ -135,9 +145,13 @@ class APIKeyStore:
         "cohere", "huggingface",
     }
 
-    def __init__(self, db_path: str = "/tmp/data/api_keys.db") -> None:  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    def __init__(self, db_path: str = str(_DATA_DIR / "api_keys.db")) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.db_path.parent, 0o700)
+        except OSError:
+            pass  # Best-effort: chmod can fail on some filesystems
         self._lock = threading.Lock()
         self._cipher = self._init_cipher()
         self._init_db()

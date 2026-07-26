@@ -8,6 +8,13 @@ from typing import Optional, Union
 
 import pytest
 
+# Module-level temp dir for test fixtures (S5443 mitigation)
+_TEST_REPORT_DIR = tempfile.mkdtemp(prefix="test_reporting_")
+
+# Cleanup on module unload
+import atexit
+atexit.register(lambda: __import__('shutil').rmtree(_TEST_REPORT_DIR, ignore_errors=True))
+
 from reporting.advanced_reports import (
     ChartGenerator,
     PDFReportGenerator,
@@ -37,11 +44,11 @@ class TestReportSection:
             order=2,
             include_charts=True,
             include_tables=True,
-            data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            data={"chart_path": os.path.join(_TEST_REPORT_DIR, "chart.png"), "table_data": [["a", "b"]]},
         )
         assert s.include_charts is True
         assert s.include_tables is True
-        assert s.data["chart_path"] == "/tmp/chart.png"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        assert s.data["chart_path"] == os.path.join(_TEST_REPORT_DIR, "chart.png")
 
     def test_ordering(self):
         s1 = ReportSection(title="B", content="", order=2)
@@ -311,5 +318,5 @@ class TestReportGenerationAgent:
 
     def test_empty_sections_when_no_match(self):
         agent = ReportGenerationAgent()
-        sections = agent._compile_sections({}, "/tmp")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        sections = agent._compile_sections({}, _TEST_REPORT_DIR)
         assert len(sections) >= 2  # executive summary + system description

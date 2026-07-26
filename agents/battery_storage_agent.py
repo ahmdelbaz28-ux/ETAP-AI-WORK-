@@ -116,8 +116,8 @@ class BatteryStorageAgent(BaseAgent):
 
         # Power capacity: maximum load above target
         load_above_target = np.maximum(load_profile_kw - target_peak_kw, 0.0)
-        P_required = float(np.max(load_above_target))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_bess = min(P_required, max_power_kw)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_required = float(np.max(load_above_target))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_bess = min(P_required, max_power_kw)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Energy capacity: total energy above target per day
         # Average daily energy to shift
@@ -125,28 +125,28 @@ class BatteryStorageAgent(BaseAgent):
         energy_above_target = float(np.sum(load_above_target)) / n_days if n_days > 0 else 0.0
 
         # Account for efficiency: need more stored energy to deliver required energy
-        E_deliverable = (  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_deliverable = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             energy_above_target / round_trip_efficiency
             if round_trip_efficiency > 0
             else energy_above_target
         )
 
         # Also consider duration-based sizing
-        E_duration = P_bess * discharge_duration_hours  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_duration = P_bess * discharge_duration_hours  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Take the larger of the two energy requirements
-        E_required = max(E_deliverable, E_duration)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_required = max(E_deliverable, E_duration)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Apply SOC limits and reserve
         soc_range = usable_soc_range[1] - usable_soc_range[0]
-        E_total = (  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_total = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
             if soc_range > 0
             else E_required
         )
 
         # Energy rating at nominal conditions (accounting for DoD)
-        E_nominal = E_total / dod_max if dod_max > 0 else E_total  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_nominal = E_total / dod_max if dod_max > 0 else E_total  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Peak shaving result simulation
         shaved_profile = np.maximum(load_profile_kw - P_bess, target_peak_kw)
@@ -184,7 +184,7 @@ class BatteryStorageAgent(BaseAgent):
     # Dispatch optimization
     # ------------------------------------------------------------------
 
-    def optimize_dispatch(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def optimize_dispatch(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         load_profile_kw: np.ndarray,
         energy_prices: np.ndarray,
@@ -242,8 +242,8 @@ class BatteryStorageAgent(BaseAgent):
         # Initialize
         soc = np.zeros(n_periods + 1)
         soc[0] = initial_soc
-        P_charge = np.zeros(n_periods)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_discharge = np.zeros(n_periods)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_charge = np.zeros(n_periods)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_discharge = np.zeros(n_periods)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         soc_history = np.zeros(n_periods)
 
         sqrt_efficiency = np.sqrt(round_trip_efficiency)
@@ -321,7 +321,7 @@ class BatteryStorageAgent(BaseAgent):
         elif strategy == "frequency_regulation":
             # Simulate AGC-like signal using random walk
             np.random.seed(42)
-            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)  # NOSONAR: numpy.random.Generator migration; API change required
             agc_signal = np.clip(agc_signal, -1.0, 1.0)  # Normalized
 
             for t in range(n_periods):
@@ -563,7 +563,7 @@ class BatteryStorageAgent(BaseAgent):
         battery_chemistry: str = "LFP",
         nominal_cycles: float = 6000.0,
         nominal_dod: float = 0.80,
-        temperature_C: float = 25.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        temperature_C: float = 25.0,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         c_rate: float = 0.25,
         calendar_life_years: float = 15.0,
     ) -> dict[str, Any]:
@@ -631,10 +631,10 @@ class BatteryStorageAgent(BaseAgent):
             cycle_histogram[dod_range] = int(count)
 
         # Temperature derating (Arrhenius)
-        R_gas = 8.314e-3  # kJ/(mol·K)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_ref = 25.0 + 273.15  # K  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_op = temperature_C + 273.15  # K  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ea = params["Ea_kJmol"]  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R_gas = 8.314e-3  # kJ/(mol·K)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_ref = 25.0 + 273.15  # K  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_op = temperature_C + 273.15  # K  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ea = params["Ea_kJmol"]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         temp_factor = np.exp(Ea / R_gas * (1.0 / T_ref - 1.0 / T_op))
         # Higher temperature → faster degradation → temp_factor < 1 means reduced life
@@ -901,7 +901,7 @@ class BatteryStorageAgent(BaseAgent):
 
         # Add noise
         np.random.seed(42)
-        load += np.random.normal(0, 20, hours)  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+        load += np.random.normal(0, 20, hours)  # NOSONAR: numpy.random.Generator migration; API change required
         return np.maximum(load, 50.0)
 
     @staticmethod

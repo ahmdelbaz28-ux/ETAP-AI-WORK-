@@ -8,7 +8,7 @@ import { resolveContext } from "../../help/contextRegistry";
 const INTERACTIVE_SELECTOR =
   '[data-help-context], button, a, select, input, textarea, .card, [role="button"], h1, h2, h3, h4, li, label';
 
-const OVERLAY_SELECTOR = ".fixed.z-\\[100\\], .magic-inspector-overlay, .magic-inspector-banner";
+const OVERLAY_SELECTOR = String.raw`.fixed.z-\[100\], .magic-inspector-overlay, .magic-inspector-banner`;
 
 // Bilingual text-content → contextId heuristics (order matters: more specific first).
 const TEXT_CONTEXT_RULES: ReadonlyArray<{ readonly contextId: string; readonly keywords: readonly string[] }> = [

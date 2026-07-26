@@ -27,6 +27,7 @@ it reports "no fix needed" and exits cleanly.
 from __future__ import annotations
 
 import ast
+import os
 import re
 import sys
 from pathlib import Path
@@ -54,6 +55,17 @@ def fix_file(path: Path) -> bool:
     # satisfied. `path` is maintainer-controlled (TARGET_FILE constant),
     # never user input — we resolve defensively anyway.
     safe_path = path.resolve()
+
+    # Path traversal mitigation (SonarCloud S2083): verify the resolved
+    # path stays within the expected script directory. `TARGET_FILE` is
+    # derived from `__file__` (maintainer-controlled, not user input),
+    # but we validate defensively to ensure no symlink-based traversal.
+    _resolved_script_dir = os.path.realpath(Path(__file__).resolve().parent)
+    _resolved_safe_path = os.path.realpath(safe_path)
+    if not _resolved_safe_path.startswith(_resolved_script_dir):
+        print(f"SKIP: {safe_path} resolves outside script directory — path traversal detected")
+        return False
+
     if not safe_path.exists():
         print(f"SKIP: {safe_path} does not exist")
         return False
@@ -71,9 +83,8 @@ def fix_file(path: Path) -> bool:
             return False
         return False
 
-    # safe_path is Path.resolve() of TARGET_FILE (maintainer-controlled).
-    # NOSONAR(S2083): path is not user-controlled.
-    safe_path.write_text(fixed, encoding="utf-8")  # NOSONAR  # S2083
+    # safe_path is realpath-validated within the script directory.
+    safe_path.write_text(fixed, encoding="utf-8")
     print(f"FIXED: {safe_path.name}")
 
     # Verify the fix
@@ -81,7 +92,7 @@ def fix_file(path: Path) -> bool:
         ast.parse(fixed)
     except SyntaxError as exc:
         # Roll back so we never leave a broken file on disk.
-        safe_path.write_text(original, encoding="utf-8")  # NOSONAR  # S2083
+        safe_path.write_text(original, encoding="utf-8")
         print(f"REVERTED: {safe_path.name} - fix introduced a SyntaxError: {exc}")
         return False
 

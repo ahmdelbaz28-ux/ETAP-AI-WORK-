@@ -29,7 +29,7 @@ def on_test_start(environment, **kwargs):
     runner_type = (
         "master"
         if isinstance(environment.runner, MasterRunner)
-        else "worker"  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
+        else "worker"  # NOSONAR: nested conditional; extract to named variable (tech debt)
         if isinstance(environment.runner, WorkerRunner)
         else "standalone"
     )
@@ -162,7 +162,7 @@ class AuthenticatedUser(HttpUser):
     def on_start(self):
         """Authenticate on user start."""
         self.token = None
-        self.auth_headers = {"Content-Type": "application/json"}  # NOSONAR(S1192): intentional repetition (audit constant)
+        self.auth_headers = {"Content-Type": "application/json"}  # NOSONAR: intentional repetition (audit constant)
         self._authenticate()
 
     def _authenticate(self):
@@ -170,7 +170,7 @@ class AuthenticatedUser(HttpUser):
         # Try login first
         try:
             login_resp = self.client.post(
-                "/api/v1/auth/login",  # NOSONAR(S1192): intentional repetition (audit constant)
+                "/api/v1/auth/login",  # NOSONAR: intentional repetition (audit constant)
                 json={
                     "username": self._TEST_USERNAME,
                     "password": self._TEST_PASSWORD,
@@ -293,7 +293,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Execute a load flow study with a realistic power system model."""
         # start_time reserved for future latency reporting
         self.client.post(
-            "/api/v1/studies/run",  # NOSONAR(S1192): intentional repetition (audit constant)
+            "/api/v1/studies/run",  # NOSONAR: intentional repetition (audit constant)
             json={
                 "study_type": "load_flow",
                 "system": SAMPLE_SYSTEM,
@@ -349,7 +349,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP Expert AI assistant."""
         import random
 
-        question = random.choice(AI_QUESTIONS)  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
+        question = random.choice(AI_QUESTIONS)  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
             json={
@@ -364,7 +364,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP GUI Agent."""
         import random
 
-        question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
+        question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

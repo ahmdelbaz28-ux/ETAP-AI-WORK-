@@ -416,7 +416,7 @@ class CoverageAnalyzer:
     # Step 1: File discovery
     # ------------------------------------------------------------------
 
-    async def _discover_files(self) -> None:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def _discover_files(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Walk the project tree and classify files as source or test."""
         source_files: list[str] = []
         test_files: list[str] = []
@@ -470,7 +470,7 @@ class CoverageAnalyzer:
     # Step 2: Test name indexing
     # ------------------------------------------------------------------
 
-    async def _index_test_names(self) -> None:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def _index_test_names(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Parse all test files and collect test function/method names."""
         test_names: set[str] = set()
         test_normalized: set[str] = set()
@@ -479,7 +479,7 @@ class CoverageAnalyzer:
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed (SyntaxError) or have other
                 # issues (Exception) — coverage report is best-effort.
-                with open(test_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+                with open(test_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                     source = fh.read()
                 tree = ast.parse(source, filename=test_file)
 
@@ -496,7 +496,7 @@ class CoverageAnalyzer:
     # Step 3: Function extraction
     # ------------------------------------------------------------------
 
-    async def _extract_all_functions(self) -> list[FunctionInfo]:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def _extract_all_functions(self) -> list[FunctionInfo]:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Parse all source files and extract function/method definitions."""
         all_functions: list[FunctionInfo] = []
 
@@ -510,7 +510,7 @@ class CoverageAnalyzer:
 
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed — function extraction is best-effort.
-                with open(src_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+                with open(src_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                     source = fh.read()
                 tree = ast.parse(source, filename=src_file)
 
@@ -524,7 +524,7 @@ class CoverageAnalyzer:
     # Step 4: Test matching
     # ------------------------------------------------------------------
 
-    def _match_functions_to_tests(self, functions: list[FunctionInfo]) -> None:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _match_functions_to_tests(self, functions: list[FunctionInfo]) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Cross-reference each function against the test-name index."""
         for func in functions:
             patterns = _generate_test_patterns(func)
@@ -685,7 +685,7 @@ class CoverageAnalyzer:
             suggestions=suggestions,
         )
 
-    def _identify_critical_gaps(self, modules: list[ModuleCoverage]) -> list[dict[str, Any]]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _identify_critical_gaps(self, modules: list[ModuleCoverage]) -> list[dict[str, Any]]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Identify modules/functions on the known low-coverage watch list."""
         gaps: list[dict[str, Any]] = []
 
@@ -768,7 +768,7 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> None:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def _main() -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """CLI entrypoint for running the coverage analyzer."""
     import argparse
 
@@ -802,7 +802,7 @@ async def _main() -> None:  # NOSONAR(S3776): cognitive complexity; scheduled fo
     # try/finally + manual out.close() pattern.
     with contextlib.ExitStack() as stack:
         out = sys.stdout if args.output == "-" else stack.enter_context(
-            open(args.output, "w", encoding="utf-8")  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+            open(args.output, "w", encoding="utf-8")  # NOSONAR: sync file I/O in async function; compatibility with sync lib
         )
 
         report_dict = report.to_dict()

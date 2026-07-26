@@ -69,7 +69,7 @@ _records: dict[str, _MagicLinkRecord] = {}
 _issue_log: dict[str, list[float]] = {}
 
 
-async def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:  # NOSONAR(S7503): async for magic-link API consistency (I/O-backed store contract)
+def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
     """Issue a magic link. Returns (success, raw_token, retry_after_seconds)."""
     # Rate limit
     now = time.time()
@@ -101,7 +101,7 @@ async def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:  
     return True, raw_token, 0
 
 
-async def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:  # NOSONAR(S7503): async for magic-link API consistency (I/O-backed store contract)
+def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:
     """Verify a magic link token. Returns (success, record, error)."""
     if not raw_token or len(raw_token) < 32:
         return False, None, "invalid_token"
@@ -184,7 +184,7 @@ async def request_magic_link(
     test_mode = is_test_mode(request)
 
     # Issue link (always returns 200 to prevent enumeration)
-    success, raw_token, retry_after = await _issue(body.email, user_id)
+    success, raw_token, retry_after = _issue(body.email, user_id)
 
     if not success and not test_mode:
         return JSONResponse(
@@ -311,7 +311,7 @@ async def verify_magic_link(
             },
         )
 
-    success, rec, error = await _verify(body.token)
+    success, rec, error = _verify(body.token)
     if not success:
         # Return 200 with success=False for test automation compatibility
         return JSONResponse(

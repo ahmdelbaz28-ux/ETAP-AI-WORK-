@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 # Resolve to absolute, normalized path. `__file__` is the script location
@@ -55,6 +56,18 @@ DIGITAL_TWIN_AVAILABLE = Gauge(
 
 
 def main() -> None:
+    # Path traversal mitigation (SonarCloud S2083): verify the resolved
+    # path stays within the expected script directory. METRICS_FILE is
+    # derived from `__file__` (maintainer-controlled, not user input),
+    # but we validate defensively to ensure no symlink-based traversal.
+    _resolved_script_dir = os.path.realpath(Path(__file__).resolve().parent)
+    _resolved_metrics_file = os.path.realpath(METRICS_FILE)
+    if not _resolved_metrics_file.startswith(_resolved_script_dir):
+        raise RuntimeError(
+            "METRICS_FILE resolves outside script directory — "
+            "path traversal detected. Aborting to prevent unsafe file write."
+        )
+
     content = METRICS_FILE.read_text(encoding="utf-8").splitlines()
     # Find the logger line index
     logger_idx = next(
@@ -67,9 +80,8 @@ def main() -> None:
     insert_pos = logger_idx + 1
     # Ensure a blank line before block for readability
     new_content = content[:insert_pos] + ["", BLOCK] + content[insert_pos:]
-    # METRICS_FILE is derived from __file__ (script location), never user input.
-    # NOSONAR(S2083): path is maintainer-controlled, not user-controlled.
-    METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")  # NOSONAR  # S2083
+    # Path validated via realpath check above — safe to write.
+    METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")
     result = {"modified": True, "lines_added": 30}
     print(json.dumps(result))
 

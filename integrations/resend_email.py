@@ -135,11 +135,10 @@ async def _http_post_json(
     headers: dict[str, str],
     payload: dict[str, Any],
     timeout: float,
-) -> tuple[int, dict[str, Any]]:  # NOSONAR(S7483): timeout is forwarded to both httpx (AsyncClient) and the urllib fallback running in asyncio.to_thread — asyncio.timeout cannot cancel the threaded sync I/O
+) -> tuple[int, dict[str, Any]]:
     """POST JSON and return (status_code, json_body)."""
     if _HAS_HTTPX:
-        async with httpx.AsyncClient(# NOSONAR
-timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(url, headers=headers, json=payload)
             try:
                 body = resp.json()
@@ -147,7 +146,6 @@ timeout=timeout) as client:
                 body = {"_raw": resp.text}
             return resp.status_code, body
     # Fallback: use urllib in a thread (asyncio.to_thread)
-    import socket
     import urllib.error
     import urllib.request
 
@@ -155,14 +153,9 @@ timeout=timeout) as client:
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
         try:
-            old_timeout = socket.getdefaulttimeout()
-            socket.setdefaulttimeout(timeout)
-            try:
-                with urllib.request.urlopen(req) as r:
-                    body = json.loads(r.read().decode("utf-8"))
-                    return r.status, body
-            finally:
-                socket.setdefaulttimeout(old_timeout)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                body = json.loads(r.read().decode("utf-8"))
+                return r.status, body
         except urllib.error.HTTPError as e:
             try:
                 body = json.loads(e.read().decode("utf-8"))

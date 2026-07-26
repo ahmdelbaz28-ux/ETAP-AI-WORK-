@@ -41,15 +41,15 @@ class NoOpContext:
 
     def end(self, *args: Any, **kwargs: Any) -> None:
         """No-op end call."""
-        # NOSONAR(S1186): intentional no-op (protocol stub / test fixture)
+        # NOSONAR: intentional no-op (protocol stub / test fixture)
 
     def send(self, *args: Any, **kwargs: Any) -> None:
         """No-op send call."""
-        # NOSONAR(S1186): intentional no-op (protocol stub / test fixture)
+        # NOSONAR: intentional no-op (protocol stub / test fixture)
 
     def record_exception(self, exc: Any) -> None:
         """No-op exception recording."""
-        # NOSONAR(S1186): intentional no-op (protocol stub / test fixture)
+        # NOSONAR: intentional no-op (protocol stub / test fixture)
 
 
 def build_health_check(

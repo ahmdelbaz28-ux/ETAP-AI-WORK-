@@ -172,6 +172,55 @@ function renderTableBody(
   ));
 }
 
+// --- Kill Switch Panel sub-component (extracted from CuaMonitor to reduce
+// its cognitive complexity — all kill-switch conditional rendering now lives
+// here, removing ~8 ternaries/conditions from the main component). ---
+function KillSwitchPanel({
+  killSwitch,
+  isRtl,
+  onActivate,
+  onDeactivate,
+}: {
+  killSwitch: KillSwitchStatus;
+  isRtl: boolean;
+  onActivate: () => void;
+  onDeactivate: () => void;
+}) {
+  const borderColor = killSwitch.active ? "border-red-500" : "border-green-500/50";
+  const iconEl = killSwitch.active
+    ? <AlertTriangle className="w-8 h-8 text-red-500 animate-pulse" />
+    : <ShieldOff className="w-8 h-8 text-green-500" />;
+  const statusBadge = killSwitch.active
+    ? <Badge variant="danger" size="sm" className="animate-pulse">{isRtl ? "نشط — جميع الإجراءات محظورة" : "ACTIVE — All actions BLOCKED"}</Badge>
+    : <Badge variant="success" size="sm">{isRtl ? "غير نشط — الإجراءات مسموحة" : "Inactive — Actions allowed"}</Badge>;
+  const actionButton = !killSwitch.active
+    ? <Button variant="danger" icon={Power} onClick={onActivate}>{isRtl ? "تفعيل الطوارئ" : "Kill All"}</Button>
+    : <Button variant="secondary" icon={Power} onClick={onDeactivate}>{isRtl ? "إلغاء الطوارئ" : "Resume All"}</Button>;
+
+  return (
+    <Card padding="md" className={`border-2 ${borderColor}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {iconEl}
+          <div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              {isRtl ? "مفتاح الإيقاف الطارئ" : "Emergency Kill Switch"}
+            </h3>
+            <span className="text-sm">{statusBadge}</span>
+            {killSwitch.activated_at && (
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                {isRtl ? "تم التفعيل في:" : "Activated at:"} {killSwitch.activated_at}
+                {killSwitch.reason && ` — ${isRtl ? "السبب:" : "reason:"} ${killSwitch.reason}`}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">{actionButton}</div>
+      </div>
+    </Card>
+  );
+}
+
 export default function CuaMonitor() {  // NOSONAR(S3776): CUA monitor dashboard — complexity from 4 async data fetchers + render branches; decomposition tracked as separate refactor
   const { i18n } = useTranslation();
   const { notify } = useNotify();
@@ -235,51 +284,12 @@ export default function CuaMonitor() {  // NOSONAR(S3776): CUA monitor dashboard
       </div>
 
       {/* Kill Switch Panel */}
-      <Card padding="md" className={`border-2 ${killSwitch.active ? "border-red-500" : "border-green-500/50"}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {killSwitch.active ? (
-              <AlertTriangle className="w-8 h-8 text-red-500 animate-pulse" />
-            ) : (
-              <ShieldOff className="w-8 h-8 text-green-500" />
-            )}
-            <div>
-              <h3 className="text-lg font-bold text-[var(--text-primary)]">
-                {isRtl ? "مفتاح الإيقاف الطارئ" : "Emergency Kill Switch"}
-              </h3>
-              <span className="text-sm">
-                {killSwitch.active ? (
-                  <Badge variant="danger" size="sm" className="animate-pulse">
-                    {isRtl ? "نشط — جميع الإجراءات محظورة" : "ACTIVE — All actions BLOCKED"}
-                  </Badge>
-                ) : (
-                  <Badge variant="success" size="sm">
-                    {isRtl ? "غير نشط — الإجراءات مسموحة" : "Inactive — Actions allowed"}
-                  </Badge>
-                )}
-              </span>
-              {killSwitch.activated_at && (
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  {isRtl ? "تم التفعيل في:" : "Activated at:"} {killSwitch.activated_at}
-                  {killSwitch.reason && ` — ${isRtl ? "السبب:" : "reason:"} ${killSwitch.reason}`}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            {!killSwitch.active ? (
-              <Button variant="danger" icon={Power} onClick={() => activateKill(notify, () => fetchKillSwitch(setKillSwitch))}>
-                {isRtl ? "تفعيل الطوارئ" : "Kill All"}
-              </Button>
-            ) : (
-              <Button variant="secondary" icon={Power} onClick={() => deactivateKill(notify, () => fetchKillSwitch(setKillSwitch))}>
-                {isRtl ? "إلغاء الطوارئ" : "Resume All"}
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <KillSwitchPanel
+        killSwitch={killSwitch}
+        isRtl={isRtl}
+        onActivate={() => activateKill(notify, () => fetchKillSwitch(setKillSwitch))}
+        onDeactivate={() => deactivateKill(notify, () => fetchKillSwitch(setKillSwitch))}
+      />
 
       {/* Action Log */}
       <Card padding="md">

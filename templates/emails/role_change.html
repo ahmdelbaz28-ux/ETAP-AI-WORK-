@@ -12,9 +12,11 @@
     Your {{ brand_name }} role has been updated to {{ new_role }}.
   </div>
 
+  <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
     <tr>
-      <td align="center">
+      <td style="text-align:center;">
+        <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:560px;">
           <tr>
             <td style="background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);padding:24px 32px;text-align:center;">
@@ -32,9 +34,11 @@
                 accessible features may have changed.
               </p>
 
+              <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;margin:0 0 24px;">
                 <tr>
                   <td style="padding:16px 20px;">
+                    <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="padding:6px 0;color:#6b7280;font-size:13px;width:140px;">New role</td>
@@ -66,9 +70,9 @@
           </tr>
           <tr>
             <td style="background-color:#f9fafb;padding:24px 32px;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5;">
+              <p style="margin:0;color:#475569;font-size:11px;line-height:1.5;">
                 © {{ current_year }} {{ brand_name }}. All rights reserved.<br>
-                <a href="{{ app_url }}" style="color:#9ca3af;text-decoration:none;">{{ app_url }}</a>
+                <a href="{{ app_url }}" style="color:#475569;text-decoration:none;">{{ app_url }}</a>
               </p>
             </td>
           </tr>

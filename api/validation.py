@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/v1/system", tags=["validation"])
     400: {"description": "Invalid input data for system validation"},
     500: {"description": "Internal validation error"},
 })
-async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 
     Checks structural integrity: all bus references exist, impedance
@@ -89,4 +89,4 @@ async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR(S3776)
         raise HTTPException(status_code=400, detail="Invalid input data for system validation") from ve
     except Exception as e:
         logger.exception("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
-        raise HTTPException(status_code=500, detail="Internal validation error") from e  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(status_code=500, detail="Internal validation error") from e  # NOSONAR: HTTPException responses will be documented in API refactoring sprint

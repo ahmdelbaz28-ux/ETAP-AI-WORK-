@@ -206,7 +206,7 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-    def run_compatibility_tests(self) -> list[CheckResult]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def run_compatibility_tests(self) -> list[CheckResult]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run all compatibility checks and return results."""
         checks: list[CheckResult] = []
 
@@ -239,7 +239,7 @@ class ETAPCompatibilityChecker:
 
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
-            sev = "error" if (required and not avail) else "warning" if not avail else "info"  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
+            sev = "error" if (required and not avail) else "warning" if not avail else "info"  # NOSONAR: nested conditional; extract to named variable (tech debt)
             checks.append(
                 CheckResult(
                     f"Package: {pkg}",

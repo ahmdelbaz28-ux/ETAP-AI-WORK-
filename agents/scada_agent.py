@@ -342,7 +342,7 @@ class SCADAAgent(BaseAgent):
         np.random.seed(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
-            noise = np.random.normal(0, 0.005)  # 0.5% noise  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+            noise = np.random.normal(0, 0.005)  # 0.5% noise  # NOSONAR: numpy.random.Generator migration; API change required
             new_value = m.value * (1.0 + noise)
             result_measurements.append(
                 SCADAMeasurement(
@@ -368,7 +368,7 @@ class SCADAAgent(BaseAgent):
     # Bus data mapping
     # ------------------------------------------------------------------
 
-    def map_to_bus_data(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def map_to_bus_data(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         measurements: list[dict[str, Any]],
         bus_mapping: dict[str, dict[str, str]],
@@ -445,8 +445,8 @@ class SCADAAgent(BaseAgent):
                 bus_entry["angle_deg"] = 0.0
 
             # Load power
-            P_load = 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Q_load = 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            P_load = 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Q_load = 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             p_load_tag = tag_map.get("P_load_tag")
             q_load_tag = tag_map.get("Q_load_tag")
             if p_load_tag and p_load_tag in meas_by_tag:
@@ -461,8 +461,8 @@ class SCADAAgent(BaseAgent):
             )
 
             # Generation power
-            P_gen = 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Q_gen = 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            P_gen = 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Q_gen = 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             p_gen_tag = tag_map.get("P_gen_tag")
             q_gen_tag = tag_map.get("Q_gen_tag")
             if p_gen_tag and p_gen_tag in meas_by_tag:
@@ -520,7 +520,7 @@ class SCADAAgent(BaseAgent):
     # Real-time data processing
     # ------------------------------------------------------------------
 
-    def process_realtime_data(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def process_realtime_data(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         measurements: list[dict[str, Any]],
         validation_rules: dict[str, dict[str, Any]] | None = None,
@@ -721,7 +721,7 @@ class SCADAAgent(BaseAgent):
         # Bus measurements (3 buses)
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
-            v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+            v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))  # NOSONAR: numpy.random.Generator migration; API change required
 
             measurements.append(
                 SCADAMeasurement(
@@ -736,7 +736,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
-                    value=500 + np.random.normal(0, 10),  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+                    value=500 + np.random.normal(0, 10),  # NOSONAR: numpy.random.Generator migration; API change required
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
@@ -746,7 +746,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
-                    value=5.0 + np.random.normal(0, 0.1),  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+                    value=5.0 + np.random.normal(0, 0.1),  # NOSONAR: numpy.random.Generator migration; API change required
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
@@ -756,7 +756,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
-                    value=1.0 + np.random.normal(0, 0.05),  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+                    value=1.0 + np.random.normal(0, 0.05),  # NOSONAR: numpy.random.Generator migration; API change required
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
@@ -766,7 +766,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
-                    value=0.95 + np.random.normal(0, 0.01),  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+                    value=0.95 + np.random.normal(0, 0.01),  # NOSONAR: numpy.random.Generator migration; API change required
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
@@ -778,7 +778,7 @@ class SCADAAgent(BaseAgent):
         measurements.append(
             SCADAMeasurement(
                 tag="FREQ_HZ",
-                value=60.0 + np.random.normal(0, 0.01),  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+                value=60.0 + np.random.normal(0, 0.01),  # NOSONAR: numpy.random.Generator migration; API change required
                 timestamp=timestamp,
                 quality="good",
                 iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",
@@ -791,7 +791,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"{bk_id}_STATUS",
-                    value=1.0,  # breaker state: 1 means closed, 0 means open  # NOSONAR(python):S125: inline doc comment
+                    value=1.0,  # breaker state: 1 means closed, 0 means open  # NOSONAR: inline doc comment
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",

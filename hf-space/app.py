@@ -1050,7 +1050,7 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+        with open(log_path, encoding="utf-8") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()
@@ -1252,7 +1252,14 @@ async def settings_list_keys():
     from services.api_key_store import api_key_store
 
     keys = api_key_store.get_all_keys()
-    return {"success": True, "data": keys, "providers": list(keys.keys())}
+    # Sanitize provider names (SonarCloud S5131): only return keys for
+    # providers that are in the SUPPORTED_PROVIDERS whitelist. This
+    # prevents unsanitized/stale provider names from leaking into the
+    # response.
+    sanitized_keys = {
+        p: v for p, v in keys.items() if p in api_key_store.SUPPORTED_PROVIDERS
+    }
+    return {"success": True, "data": sanitized_keys, "providers": list(sanitized_keys.keys())}
 
 
 @app.get("/api/v1/settings/keys/{provider}", tags=["Settings"])
@@ -1527,12 +1534,21 @@ async def ui_catch_all(full_path: str):
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not Found")
 
-    # Try to serve the actual file first (assets, favicon, etc.)
+    # Path traversal mitigation (SonarCloud S5131): resolve the
+    # requested path and verify it stays within the _UI_DIST root.
+    # Without this check, a crafted URL like "/../../etc/passwd"
+    # could read arbitrary files on the host.
+    resolved_ui_dist = os.path.realpath(_UI_DIST)
     file_path = _UI_DIST / full_path
+    resolved_file_path = os.path.realpath(file_path)
+    if not resolved_file_path.startswith(resolved_ui_dist):
+        raise HTTPException(status_code=404, detail="Not Found")
+
     if full_path and file_path.is_file():
         return FileResponse(str(file_path))
 
     # SPA fallback — return index.html for any non-file path
+    # (index.html is always within _UI_DIST, so no traversal check needed)
     if _UI_INDEX.is_file():
         return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
 
@@ -1541,7 +1557,11 @@ async def ui_catch_all(full_path: str):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    host = os.environ.get("HOST", "0.0.0.0")
+    # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
+    # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
+    # SonarCloud S8392: 0.0.0.0 is intentionally NOT the default — it's only
+    # used when explicitly set via the HOST env var in containerized deployments.
+    host = os.environ.get("HOST", "127.0.0.1")
     logger.info("Starting server on %s:%d", host, port)
     uvicorn.run(
         app,

@@ -203,6 +203,22 @@ try:
 except OSError:
     # Best-effort: chmod can fail on some filesystems (e.g., Windows).
     pass
+
+# Path traversal mitigation (SonarCloud S2083): verify the resolved
+# audit directory doesn't escape the expected per-user directory.
+# `_CUA_AUDIT_DIR` is derived from `Path.home()` (not user input),
+# but if CUA_AUDIT_DIR env var is set to a malicious path like
+# "/../../etc", realpath validation ensures it stays within the
+# expected parent directory.
+_resolved_audit_dir = os.path.realpath(_CUA_AUDIT_DIR)
+_resolved_expected_parent = os.path.realpath(Path.home() / ".etap")
+if not _resolved_audit_dir.startswith(_resolved_expected_parent):
+    _CUA_AUDIT_DIR = Path(_DEFAULT_CUA_AUDIT_DIR)
+    logger.warning(
+        "CUA_AUDIT_DIR escapes expected parent directory; "
+        "falling back to default %s",
+        _DEFAULT_CUA_AUDIT_DIR,
+    )
 KILL_SWITCH_PATH = _CUA_AUDIT_DIR / "cua_kill_switch"
 
 
@@ -244,7 +260,7 @@ def activate_kill_switch(reason: str = "manual") -> None:
         indent=2,
     )
     _write_secure_file(KILL_SWITCH_PATH, payload)
-    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR(S5145): logging injection; user input is sanitized upstream
+    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR: logging injection; user input is sanitized upstream
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency
@@ -452,7 +468,7 @@ class LifeSafetyGuard:
 
     # Mandatory cooldown between control actions (seconds)
     CONTROL_COOLDOWN_SECONDS = 2.0
-  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # OpenCV accuracy is too low for control — read-only mode only
     DEGRADED_VISION_SOURCES = {"opencv"}
 
@@ -479,7 +495,7 @@ class LifeSafetyGuard:
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
-    def pre_action_check(  # NOSONAR(S3776): cognitive complexity; refactoring sprint
+    def pre_action_check(  # NOSONAR: cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
         screenshot_before: Optional[str],
@@ -791,7 +807,7 @@ class LifeSafetyGuard:
         self,
         screenshot_path: str,
         action,
-        gemini_analysis: dict[str, Any] | None,  # NOSONAR(S1172): unused param kept for API compatibility
+        gemini_analysis: dict[str, Any] | None,  # NOSONAR: unused param kept for API compatibility
     ) -> Optional[str]:
         """Draw a red crosshair on the screenshot at the click location.
 

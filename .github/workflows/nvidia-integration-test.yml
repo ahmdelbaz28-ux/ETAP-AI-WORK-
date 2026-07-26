@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --quiet --only-binary :all: httpx
+          pip install --quiet --only-binary :all: httpx==0.28.1  # NOSONAR: single pinned package for NVIDIA API testing
           echo "✅ httpx installed"
           python3 -c "import httpx; print(f'httpx version: {httpx.__version__}')"
 

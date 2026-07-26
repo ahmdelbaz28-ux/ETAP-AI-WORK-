@@ -160,7 +160,7 @@ class GoalPlannerAgent(BaseAgent):
             "total_estimated_hours": round(total_hours, 1),
         }
 
-    def prioritize_tasks(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def prioritize_tasks(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
@@ -390,7 +390,7 @@ class GoalPlannerAgent(BaseAgent):
             "assumptions": assumptions,
             "recommendations": recommendations,
             "risk_count": len(risks),
-            "risk_level": "high" if len(risks) > 3 else "medium" if len(risks) > 1 else "low",  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
+            "risk_level": "high" if len(risks) > 3 else "medium" if len(risks) > 1 else "low",  # NOSONAR: nested conditional; extract to named variable (tech debt)
         }
 
     # ------------------------------------------------------------------

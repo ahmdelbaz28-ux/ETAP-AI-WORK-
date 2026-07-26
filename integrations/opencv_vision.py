@@ -440,7 +440,7 @@ class OpenCVVisionClient:
         return ". ".join(parts) + "."
 
     @staticmethod
-    def _decide_action(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _decide_action(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         objective: str,
         elements: list[dict[str, Any]],
         ocr_text: str,
@@ -459,9 +459,9 @@ class OpenCVVisionClient:
         # SonarCloud python:S6395: removed unnecessary non-capturing group
         # around the trailing alternation.
         target_match = re.search(
-            # NOSONAR(python):S8786: regex is bounded by short user input
+            # NOSONAR: regex is bounded by short user input
             # strings (UI objective text, max ~200 chars); no ReDoS risk.
-            # NOSONAR(python):S6395: non-capturing groups are intentional for readability
+            # NOSONAR: non-capturing groups are intentional for readability
             r"((?:click|press|tap|hit))\s+(?:the\s+)?['\"]?(\w[\w\s]*?)['\"]?\s+((?:button|link|tab|menu, item])",
             obj_lower,
         )

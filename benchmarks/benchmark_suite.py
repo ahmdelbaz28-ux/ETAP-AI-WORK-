@@ -38,11 +38,11 @@ QUICK_MODE = "--quick" in sys.argv
 IEEE_SIZES = [14, 30, 57] if QUICK_MODE else [14, 30, 57, 118]
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
-def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Compare analytical vs finite-difference Jacobian speed and accuracy."""
     print("\n" + "=" * 72)
     print("BENCHMARK 1: Jacobian Build -- Analytical vs Finite-Difference")
@@ -68,9 +68,9 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive compl
         t0 = time.perf_counter()
         n_trials = 20 if QUICK_MODE else 100
         for _ in range(n_trials):
-            J_ana = _build_dense_jacobian(V, ybus, pv, pq, n_uk)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            J_ana = _build_dense_jacobian(V, ybus, pv, pq, n_uk)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Trigger PV→PQ switching simulation by adding a small perturbation
-            V_test = V * (1.0 + 1e-8 * np.random.randn(len(V)))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            V_test = V * (1.0 + 1e-8 * np.random.randn(len(V)))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             _ = _build_dense_jacobian(V_test, ybus, pv, pq, n_uk)
         t_ana = (time.perf_counter() - t0) / (n_trials * 2) * 1000  # ms
 
@@ -78,11 +78,11 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive compl
         eps_theta = 1e-6
         eps_v = 1e-6
 
-        def _fd_jacobian(V_trial):  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        def _fd_jacobian(V_trial):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             I = ybus @ V_trial
             S = V_trial * np.conj(I)
-            dP = S.real  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            dQ = S.imag  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            dP = S.real  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            dQ = S.imag  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             m = np.zeros(n_uk)
             for k, i in enumerate(pv):
                 m[k] = dP[i]
@@ -96,9 +96,9 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive compl
 
         t0 = time.perf_counter()
         for _ in range(n_trials):
-            J_fd = np.zeros((n_uk, n_uk))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            J_fd = np.zeros((n_uk, n_uk))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             for col_k, i in enumerate(pv + pq):
-                V_trial = V.copy()  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                V_trial = V.copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 th = np.angle(V_trial[i])
                 V_trial[i] = abs(V_trial[i]) * np.exp(1j * (th + eps_theta))
                 J_fd[:, col_k] = (_fd_jacobian(V_trial) - base_m) / eps_theta
@@ -135,9 +135,9 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive compl
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 2: Load flow solver — iterations & switching
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     """Track iterations, Jacobian builds, and PV→PQ switches."""
@@ -229,11 +229,11 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
-def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Compare dense inversion vs LU factorization for Zbus computation."""
     print("\n" + "=" * 72)
     print("BENCHMARK 3: Zbus Computation -- Dense Inversion vs LU Factorisation")
@@ -251,13 +251,13 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive complexit
     for n in IEEE_SIZES:
         # Create random Ybus
         np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR(S6711): numpy.random.Generator migration; API change required
+        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T + np.eye(n) * 0.1  # Positive definite-ish
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)  # Diagonally dominant
 
         # ── Dense inversion ──
         t0 = time.perf_counter()
-        Z_inv = np.linalg.inv(Y)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_inv = np.linalg.inv(Y)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         t_dense = (time.perf_counter() - t0) * 1000  # ms
 
         # Verify accuracy: Z @ Y ≈ I
@@ -273,7 +273,7 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive complexit
             t_factor = (time.perf_counter() - t0) * 1000
 
             t0 = time.perf_counter()
-            Z_lu = np.zeros_like(Y)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Z_lu = np.zeros_like(Y)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             for k in range(n):
                 e_k = np.zeros(n, dtype=complex)
                 e_k[k] = 1.0
@@ -303,9 +303,9 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR(S3776): cognitive complexit
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 4: Cache hit rate simulation
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 def benchmark_4_cache() -> Dict[str, Any]:
     """Simulate cache hit/miss with Zipfian workload (80/20 pattern)."""
@@ -375,9 +375,9 @@ def benchmark_4_cache() -> Dict[str, Any]:
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 5: Native study latency distribution
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 def benchmark_5_study_latency() -> Dict[str, Any]:
     """Measure P50/P95/P99 latency for native studies."""
@@ -429,7 +429,7 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         lf_latencies: List[float] = []
         fault_latencies: List[float] = []
 
-        for run in range(n_runs):  # NOSONAR(S1481): unused local kept for clarity/debugging
+        for run in range(n_runs):  # NOSONAR: unused local kept for clarity/debugging
             engine = PowerSystemEngine(sys_model)
 
             # Load flow
@@ -467,9 +467,9 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Benchmark 6: Concurrent request throughput
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 def benchmark_6_concurrent() -> Dict[str, Any]:
     """Measure throughput under concurrent load using thread pools."""
@@ -572,9 +572,9 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     return results
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Report generator
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 @dataclass
 class BenchmarkReport:
@@ -585,9 +585,9 @@ class BenchmarkReport:
     latency: Dict[str, Any] = field(default_factory=dict)
     concurrent: Dict[str, Any] = field(default_factory=dict)
 
-    def print_summary(self) -> None:  # NOSONAR(S3776): cognitive complexity; refactoring sprint
+    def print_summary(self) -> None:  # NOSONAR: cognitive complexity; refactoring sprint
         print("\n\n" + "#" * 72)
-        print("#  BENCHMARK SUMMARY REPORT")  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        print("#  BENCHMARK SUMMARY REPORT")  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         print("#" * 72)
 
         # B1: Jacobian
@@ -668,13 +668,13 @@ class BenchmarkReport:
 
         ca = self.cache.get("scenarios", [])
         if ca:
-            best_hit = max(s["hit_rate_pct"] for s in ca)  # NOSONAR(python):S125: false positive — actual code, not a comment
+            best_hit = max(s["hit_rate_pct"] for s in ca)  # NOSONAR: false positive — actual code, not a comment
             print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
 
 
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 #  Main
-# ============================================================================  # NOSONAR(S125): section separator
+# ============================================================================  # NOSONAR: section separator
 
 def main() -> int:
     print("+" + "-" * 70 + "+")

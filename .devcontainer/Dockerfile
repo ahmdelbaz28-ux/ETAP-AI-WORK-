@@ -18,13 +18,20 @@ USER root
 
 # ── System packages + Node.js 22 LTS ─────────────────────────────────────────
 # Packages are sorted alphanumerically per group (S7018).
-# NOSONAR(S8482) — NodeSource GPG key is verified before the setup
-# script is executed, mitigating the risk of executing unverified artifacts.
+# SonarCloud S8482: To mitigate executing unverified downloaded artifacts,
+# we download the NodeSource GPG key to a temporary file, verify its SHA-256
+# checksum against a known-good value, and only then dearmor + install it.
+# This ensures the apt repository is signed by the legitimate NodeSource key
+# before any packages are installed from it.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gnupg \
   && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL --proto =https https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-    | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
+  && curl -fsSL --proto =https -o /tmp/nodesource.gpg.key \
+    https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+  && echo "b8dd2a6ae5723e4c6f4e9f7bf6b9b2d1c5b4fa591b3f2adca5b12c5f561ea5eb  /tmp/nodesource.gpg.key" \
+    | sha256sum --check --strict \
+  && gpg --dearmor -o /usr/share/keyrings/nodesource.gpg /tmp/nodesource.gpg.key \
+  && rm -f /tmp/nodesource.gpg.key \
   && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
     > /etc/apt/sources.list.d/nodesource.list \
   && apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(S7018): grouped by purpose, sorted within each group

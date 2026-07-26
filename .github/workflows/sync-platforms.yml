@@ -415,7 +415,7 @@ jobs:
           # LOCAL test suite, but those imports are NOT needed by the HF Space
           # production E2E test (which only uses urllib + pytest). We pass
           # --noconftest to pytest below to skip conftest.py loading.
-          pip install --only-binary :all: pytest==8.3.5
+          pip install --only-binary :all: pytest==8.3.5  # NOSONAR: single pinned package for E2E test runner
 
       - name: ⏳ Wait for HF Space to become healthy (up to 6 min)
         env:

@@ -30,6 +30,94 @@ interface TooltipContent {
 
 type TooltipBuilder = (isRtl: boolean, isBreakerOpen: boolean) => TooltipContent;
 
+// --- Module-scope breaker-state color helpers (extracted to replace inline
+// ternaries in the SVG and reduce LoginBackground's cognitive complexity). ---
+const ACTIVE_BUS_COLOR = "#00d4ff";
+const INACTIVE_BUS_COLOR = "#334155";
+const ACTIVE_STROKE = "#3b82f6";
+const INACTIVE_STROKE = "#1e293b";
+const FEEDER_ACTIVE = "#fbbf24";
+const FEEDER_INACTIVE_FILL = "#1e293b";
+const FEEDER_INACTIVE_STROKE = "#334155";
+const TRIP_COLOR = "#ef4444";
+const CLOSE_COLOR = "#22c55e";
+
+function busLvColor(open: boolean): string {
+  return open ? INACTIVE_BUS_COLOR : ACTIVE_BUS_COLOR;
+}
+function busLvOpacity(open: boolean): string {
+  return open ? "0.3" : "0.75";
+}
+function branchStroke(open: boolean): string {
+  return open ? INACTIVE_STROKE : ACTIVE_STROKE;
+}
+function feederFill(open: boolean): string {
+  return open ? FEEDER_INACTIVE_FILL : FEEDER_ACTIVE;
+}
+function feederStroke(open: boolean): string {
+  return open ? FEEDER_INACTIVE_STROKE : FEEDER_ACTIVE;
+}
+function breakerFill(open: boolean): string {
+  return open ? TRIP_COLOR : CLOSE_COLOR;
+}
+function breakerLedFill(open: boolean): string {
+  return open ? TRIP_COLOR : CLOSE_COLOR;
+}
+function breakerLedBg(open: boolean): string {
+  return open ? TRIP_COLOR : INACTIVE_STROKE;
+}
+function breakerLedPing(open: boolean): string {
+  return open ? "animate-ping" : "";
+}
+
+// --- Sub-component: Animated flow path (conditional rendering extracted
+// to reduce LoginBackground's cognitive complexity). ---
+function AnimatedFlowPath({ d, color, dash, dur }: { d: string; color: string; dash: string; dur: string }) {
+  return (
+    <path
+      d={d}
+      stroke={color}
+      strokeWidth="1.5"
+      strokeDasharray={dash}
+      strokeDashoffset="0"
+      style={{ animation: `gridFlow ${dur} linear infinite` }}
+    />
+  );
+}
+
+// --- Sub-component: Dynamic electron particles (conditional rendering
+// extracted to reduce LoginBackground's cognitive complexity). ---
+function ElectronParticles() {
+  const particlePath = "M800,90 L800,180 L400,180 L400,450 L600,450 L600,554";
+  return (
+    <>
+      <circle r="3.5" fill={ACTIVE_BUS_COLOR} opacity="0.8">
+        <animateMotion dur="7s" repeatCount="indefinite" path={particlePath} />
+      </circle>
+      <circle r="2.5" fill={CLOSE_COLOR} opacity="0.8">
+        <animateMotion dur="7s" begin="2.3s" repeatCount="indefinite" path={particlePath} />
+      </circle>
+      <circle r="2.5" fill={FEEDER_ACTIVE} opacity="0.8">
+        <animateMotion dur="7s" begin="4.6s" repeatCount="indefinite" path={particlePath} />
+      </circle>
+    </>
+  );
+}
+
+// --- Sub-component: LV Bus pulse (conditional rendering extracted). ---
+function LvBusPulse() {
+  return (
+    <path
+      d="M250,450 L1190,450"
+      stroke={ACTIVE_BUS_COLOR}
+      strokeWidth="1"
+      strokeLinecap="round"
+      className="animate-pulse"
+      opacity="0.7"
+    />
+  );
+}
+
 const TOOLTIP_BUILDERS: Record<string, TooltipBuilder> = {
   "bus-a": (isRtl, _isBreakerOpen) =>
     isRtl
@@ -265,8 +353,8 @@ export function LoginBackground({
             <stop offset="0%" stopColor="#1e293b" stopOpacity="0.2" />
             <stop
               offset="50%"
-              stopColor={isBreakerOpen ? "#334155" : "#00d4ff"}
-              stopOpacity={isBreakerOpen ? "0.3" : "0.75"}
+              stopColor={busLvColor(isBreakerOpen)}
+              stopOpacity={busLvOpacity(isBreakerOpen)}
             />
             <stop offset="100%" stopColor="#1e293b" stopOpacity="0.2" />
           </linearGradient>
@@ -384,7 +472,7 @@ export function LoginBackground({
             cy="300"
             r="16"
             fill="none"
-            stroke={isBreakerOpen ? "#334155" : "#3b82f6"}
+            stroke={branchStroke(isBreakerOpen)}
             strokeWidth="2.5"
             className="transition-colors duration-500"
           />
@@ -393,20 +481,11 @@ export function LoginBackground({
         {/* Transformer secondary line to Breaker */}
         <path
           d="M400,316 L400,355"
-          stroke={isBreakerOpen ? "#1e293b" : "#3b82f6"}
+          stroke={branchStroke(isBreakerOpen)}
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && (
-          <path
-            d="M400,316 L400,355"
-            stroke="#00d4ff"
-            strokeWidth="1.5"
-            strokeDasharray="8 12"
-            strokeDashoffset="0"
-            style={{ animation: "gridFlow 10s linear infinite" }}
-          />
-        )}
+        {!isBreakerOpen && <AnimatedFlowPath d="M400,316 L400,355" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />}
 
         {/* --- INTERACTIVE CIRCUIT BREAKER (CB-101) --- */}
         <g
@@ -425,7 +504,7 @@ export function LoginBackground({
             height="30"
             rx="4"
             fill="#070b14"
-            stroke={isBreakerOpen ? "#ef4444" : "#22c55e"}
+            stroke={breakerFill(isBreakerOpen)}
             strokeWidth="2"
             className="transition-colors duration-300 group-hover/cb:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
           />
@@ -460,15 +539,15 @@ export function LoginBackground({
             cx="400"
             cy="348"
             r="3.5"
-            fill={isBreakerOpen ? "#ef4444" : "#1e293b"}
-            className={isBreakerOpen ? "animate-ping" : ""}
+            fill={breakerLedBg(isBreakerOpen)}
+            className={breakerLedPing(isBreakerOpen)}
             style={{ transformOrigin: "400px 348px" }}
           />
           <circle
             cx="400"
             cy="348"
             r="3"
-            fill={isBreakerOpen ? "#ef4444" : "#22c55e"}
+            fill={breakerLedFill(isBreakerOpen)}
             stroke="#070b14"
             strokeWidth="0.5"
           />
@@ -477,20 +556,11 @@ export function LoginBackground({
         {/* Line from Breaker to LV Bus */}
         <path
           d="M400,385 L400,450"
-          stroke={isBreakerOpen ? "#1e293b" : "#3b82f6"}
+          stroke={branchStroke(isBreakerOpen)}
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && (
-          <path
-            d="M400,385 L400,450"
-            stroke="#00d4ff"
-            strokeWidth="1.5"
-            strokeDasharray="8 12"
-            strokeDashoffset="0"
-            style={{ animation: "gridFlow 10s linear infinite" }}
-          />
-        )}
+        {!isBreakerOpen && <AnimatedFlowPath d="M400,385 L400,450" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />}
 
         {/* --- LOW VOLTAGE DISTRIBUTION LEVEL (13.8 kV) --- */}
         {/* LV Bus Bar */}
@@ -501,16 +571,7 @@ export function LoginBackground({
           strokeLinecap="round"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && (
-          <path
-            d="M250,450 L1190,450"
-            stroke="#00d4ff"
-            strokeWidth="1"
-            strokeLinecap="round"
-            className="animate-pulse"
-            opacity="0.7"
-          />
-        )}
+        {!isBreakerOpen && <LvBusPulse />}
         {/* Hover zone for Bus B */}
         <line
           x1="250"
@@ -527,20 +588,11 @@ export function LoginBackground({
         {/* --- FEEDER / LOAD BRANCH --- */}
         <path
           d="M600,450 L600,560"
-          stroke={isBreakerOpen ? "#1e293b" : "#3b82f6"}
+          stroke={branchStroke(isBreakerOpen)}
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && (
-          <path
-            d="M600,450 L600,560"
-            stroke="#fbbf24"
-            strokeWidth="1.5"
-            strokeDasharray="8 10"
-            strokeDashoffset="0"
-            style={{ animation: "gridFlow 8s linear infinite" }}
-          />
-        )}
+        {!isBreakerOpen && <AnimatedFlowPath d="M600,450 L600,560" color={FEEDER_ACTIVE} dash="8 10" dur="8s" />}
         {/* Load Arrow Symbol */}
         <g
           className="cursor-pointer group/feeder"
@@ -549,8 +601,8 @@ export function LoginBackground({
         >
           <polygon
             points="600,572 590,554 610,554"
-            fill={isBreakerOpen ? "#1e293b" : "#fbbf24"}
-            stroke={isBreakerOpen ? "#334155" : "#fbbf24"}
+            fill={feederFill(isBreakerOpen)}
+            stroke={feederStroke(isBreakerOpen)}
             strokeWidth="1.5"
             className="transition-colors duration-500"
           />
@@ -558,33 +610,7 @@ export function LoginBackground({
         </g>
 
         {/* Dynamic Electron Particles Motion */}
-        {!isBreakerOpen && (
-          <>
-            <circle r="3.5" fill="#00d4ff" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
-            <circle r="2.5" fill="#22c55e" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                begin="2.3s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
-            <circle r="2.5" fill="#fbbf24" opacity="0.8">
-              <animateMotion
-                dur="7s"
-                begin="4.6s"
-                repeatCount="indefinite"
-                path="M800,90 L800,180 L400,180 L400,450 L600,450 L600,554"
-              />
-            </circle>
-          </>
-        )}
+        {!isBreakerOpen && <ElectronParticles />}
 
         {/* Styles for continuous flow */}
         <style>{`

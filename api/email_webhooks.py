@@ -122,7 +122,7 @@ def _verify_resend_signature(
     if not signature_header or not secret:
         return False
 
-    parts = dict(p.split("=", 1) for p in signature_header.split(",") if "=" in p)  # NOSONAR(S7500): dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
+    parts = dict(p.split("=", 1) for p in signature_header.split(",") if "=" in p)  # NOSONAR: dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
     msg_id = parts.get("svix-id", "")
     timestamp = parts.get("svix-timestamp", "")
     signatures = [v for k, v in parts.items() if k.startswith("svix-signature")]
@@ -231,7 +231,7 @@ async def resend_webhook(
     if message_id:
         try:
             # We don't have a message_id index — store as an event log
-            await _record_event(message_id, event_type, data)
+            _record_event(message_id, event_type, data)
         except Exception as exc:
             logger.exception("event_log_failed msg=%s err=%s", message_id, exc)
 
@@ -258,7 +258,7 @@ _events: list[dict[str, Any]] = []
 _EVENTS_MAX = 1000
 
 
-async def _record_event(message_id: str, event_type: str, data: dict) -> None:  # NOSONAR(S7503): async for consistency with webhook event-recording API (called as await _record_event)
+def _record_event(message_id: str, event_type: str, data: dict) -> None:
     _events.append(
         {
             "id": str(uuid.uuid4()),
@@ -364,7 +364,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
     status_code=status.HTTP_201_CREATED,
     summary="Register an outbound webhook endpoint",
 )
-async def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
+def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
     """Register a new webhook endpoint to receive forwarded email events."""
     ep_id = str(uuid.uuid4())
     ep = WebhookEndpoint(
@@ -395,7 +395,7 @@ async def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
     "/endpoints",
     summary="List registered outbound webhook endpoints",
 )
-async def list_endpoints() -> JSONResponse:
+def list_endpoints() -> JSONResponse:
     return JSONResponse(
         content={
             "success": True,
@@ -421,7 +421,7 @@ async def list_endpoints() -> JSONResponse:
     "/endpoints/{endpoint_id}",
     summary="Delete a webhook endpoint",
 )
-async def delete_endpoint(endpoint_id: str) -> JSONResponse:
+def delete_endpoint(endpoint_id: str) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent)."""
     if endpoint_id and endpoint_id in _endpoints:
         del _endpoints[endpoint_id]
@@ -485,7 +485,7 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
     "/events",
     summary="List recent inbound webhook events (debug)",
 )
-async def list_events(limit: int = 50) -> JSONResponse:
+def list_events(limit: int = 50) -> JSONResponse:
     limit = max(1, min(limit, 500))  # SECURITY: bounded to prevent abuse
     return JSONResponse(
         content={

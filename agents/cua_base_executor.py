@@ -31,6 +31,7 @@ from __future__ import annotations
 import abc
 import contextlib
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -186,7 +187,7 @@ class BaseCUAExecutor(abc.ABC):
     is injected via four abstract hook methods.
 
     Lifecycle:
-        executor = SubclassCUAExecutor(audit_dir="/tmp/cua_audit")
+        executor = SubclassCUAExecutor(audit_dir="~/.etap/cua_audit")
         result = executor.execute_loop(
             objective="Open ETAP and run Load Flow",
             max_steps=15,
@@ -206,8 +207,16 @@ class BaseCUAExecutor(abc.ABC):
         action_timeout: int = DEFAULT_ACTION_TIMEOUT,
     ) -> None:
         self.action_timeout = action_timeout
-        self.audit_dir = Path(audit_dir) if audit_dir else Path("/tmp/cua_audit")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        # Per-user default audit dir (~/.etap/cua_audit) avoids S5443 (publicly
+        # writable directories). The life_safety module defines the canonical
+        # constant with 0o700 permissions; here we use the same default.
+        _default_audit_dir = str(Path.home() / ".etap" / "cua_audit")
+        self.audit_dir = Path(audit_dir) if audit_dir else Path(_default_audit_dir)
         self.audit_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.audit_dir, 0o700)
+        except OSError:
+            pass  # Best-effort: chmod can fail on some filesystems
 
     # ─── Abstract hooks (platform-specific) ────────────────────────────────
 
@@ -257,7 +266,7 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         max_steps: int = DEFAULT_MAX_STEPS,

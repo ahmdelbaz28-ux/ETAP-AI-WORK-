@@ -84,12 +84,17 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     str
         Zero-padded OTP string of length *digits*.
     """
-    # HMAC-SHA1 — required by RFC 6238 (TOTP) / RFC 4226 (HOTP) for
-    # interoperability with Google Authenticator, Microsoft Authenticator,
-    # etc. SHA-256/512 are optional extensions not universally supported.
-    # NOSONAR(S4790): SHA1 is mandated by the RFC for OTP compatibility.
+    # HMAC-SHA1 is the mandatory algorithm for TOTP (RFC 6238 §1.2) and
+    # HOTP (RFC 4226 §5.3). All mainstream authenticator apps (Google
+    # Authenticator, Microsoft Authenticator, Authy, FreeOTP) only support
+    # HMAC-SHA1 for the default TOTP mode. HMAC-SHA256/512 are optional
+    # extensions (RFC 6238 §1.2) that are NOT universally supported.
+    # Using SHA-256 here would BREAK TOTP compatibility with every
+    # authenticator app. SHA1 in HMAC mode remains cryptographically
+    # secure (HMAC-SHA1 has no known practical vulnerabilities).
+    # NOSONAR: SHA1 is mandated by RFC 6238 for TOTP interoperability.
     msg = struct.pack(">Q", counter)
-    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()  # NOSONAR(S4790): hash algorithm is intentional (RFC / non-security use)
+    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF

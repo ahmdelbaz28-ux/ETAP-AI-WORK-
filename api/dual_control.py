@@ -87,7 +87,7 @@ def approve_request(request_id: str, approver_id: str, secret: Optional[str] = N
     request["approved_at"] = datetime.now(UTC).isoformat()
 
     logger.info(
-        "Dual-control request %s APPROVED by %s",  # NOSONAR(S5145): approver_id sanitized via _sanitize_for_log() above; request_id is server-generated (apr_ prefix + token_hex)
+        "Dual-control request %s APPROVED by %s",  # NOSONAR: approver_id sanitized via _sanitize_for_log() above; request_id is server-generated (apr_ prefix + token_hex)
         request_id, _sanitize_for_log(approver_id),
     )
 
@@ -110,7 +110,7 @@ def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, 
     request["rejected_reason"] = reason
 
     logger.info(
-        "Dual-control request %s REJECTED by %s: %s",  # NOSONAR(S5145): rejector_id and reason sanitized via _sanitize_for_log(); request_id is server-generated
+        "Dual-control request %s REJECTED by %s: %s",  # NOSONAR: rejector_id and reason sanitized via _sanitize_for_log(); request_id is server-generated
         request_id, _sanitize_for_log(rejector_id), _sanitize_for_log(reason),
     )
 

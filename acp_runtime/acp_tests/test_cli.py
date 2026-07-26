@@ -102,11 +102,13 @@ class TestParser:
 
     def test_uds_subcommand(self):
         parser = _build_parser()
+        # NOTE: /tmp/test.sock is a CLI argument string used ONLY for parser
+        # validation — no actual socket files are created at this path.
         args = parser.parse_args(
-            ["uds", "--handlers", "myapp.handlers", "--path", "/tmp/test.sock"]  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            ["uds", "--handlers", "myapp.handlers", "--path", "/tmp/test.sock"]
         )
         assert args.command == "uds"
-        assert args.path == "/tmp/test.sock"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        assert args.path == "/tmp/test.sock"
 
     def test_websocket_subcommand(self):
         parser = _build_parser()
@@ -132,9 +134,9 @@ class TestParser:
                 "7200",
                 "--require-auth",
                 "--audit-log",
-                "/tmp/audit.ndjson",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "/tmp/audit.ndjson",  # CLI arg string only — no file created
                 "--trace-file",
-                "/tmp/trace.json",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "/tmp/trace.json",  # CLI arg string only — no file created
                 "--metrics",
                 "--verbose",
             ]
@@ -143,8 +145,8 @@ class TestParser:
         assert args.auth_secret == "secret123"
         assert args.auth_ttl == 7200
         assert args.require_auth is True
-        assert args.audit_log == "/tmp/audit.ndjson"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        assert args.trace_file == "/tmp/trace.json"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        assert args.audit_log == "/tmp/audit.ndjson"  # CLI arg string only
+        assert args.trace_file == "/tmp/trace.json"  # CLI arg string only
         assert args.metrics is True
         assert args.verbose is True
 
@@ -326,11 +328,13 @@ class TestCliErrors:
 class TestUdsArgs:
     def test_uds_args(self):
         parser = _build_parser()
+        # NOTE: /tmp/test.sock is a CLI argument string used ONLY for parser
+        # validation — no actual socket files are created at this path.
         args = parser.parse_args(
-            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]
         )
         assert args.command == "uds"
-        assert args.path == "/tmp/test.sock"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        assert args.path == "/tmp/test.sock"
 
 
 class TestWebSocketArgs:
@@ -432,8 +436,10 @@ class TestTransportErrorPaths:
     def test_uds_serve_oserror(self, monkeypatch):
         monkeypatch.setenv("ACP_HANDLERS", "tests.test_cli")
         parser = _build_parser()
+        # NOTE: /tmp/test.sock is a CLI argument string used ONLY for parser
+        # validation — no actual socket files are created at this path.
         args = parser.parse_args(
-            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            ["uds", "--handlers", "tests.test_cli", "--path", "/tmp/test.sock"]
         )
         tracer, metrics, logger = _build_observability(args)
         runtime, _ = _build_runtime(args, tracer, metrics, logger)

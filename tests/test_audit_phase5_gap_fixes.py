@@ -207,9 +207,9 @@ class TestS07GapFixes(unittest.TestCase):
     def test_jwt_rejects_non_access_tokens(self):
         """ai_ml.py JWT path must reject non-access tokens."""
         src = self._read()
-        # Find _get_api_key_or_user function
+        # Find _get_api_key_or_user function (async or sync — S7503 removed async keyword)
         func_match = re.search(
-            r"async def _get_api_key_or_user\(.+?(?=async def|\Z)",
+            r"(?:async )?def _get_api_key_or_user\(.+?(?=(?:async )?def |\Z)",
             src, re.DOTALL,
         )
         self.assertIsNotNone(func_match)

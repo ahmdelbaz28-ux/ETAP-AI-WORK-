@@ -3,6 +3,12 @@ Integration tests for Autodesk connectors — Revit and AutoCAD.
 
 All external HTTP calls to the C# plugin endpoints are mocked via
 ``unittest.mock`` so no running Revit/AutoCAD instance is required.
+
+NOTE on /tmp paths: All "/tmp/..." path strings in these tests are mock
+HTTP API payloads — they are values passed to mocked HTTP POST calls
+or stored in mock object attributes. No actual files are created at
+these paths. They are NOT real filesystem operations and pose no
+security risk (SonarCloud S5443 is not applicable here).
 """
 
 from __future__ import annotations
@@ -216,11 +222,11 @@ class TestRevitPluginClientInit:
     def test_custom_initialization(self):
         """RevitPluginClient should accept custom URL, timeout, and API key."""
         client = RevitPluginClient(
-            base_url="http://revit-host:9999",  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+            base_url="http://revit-host:9999",  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             timeout=60,
             api_key="secret-key",
         )
-        assert client.base_url == "http://revit-host:9999"  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+        assert client.base_url == "http://revit-host:9999"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 60
         assert client.session.headers["X-API-Key"] == "secret-key"
 
@@ -273,7 +279,7 @@ class TestRevitPluginClientCalls:
         with patch.object(
             client.session, "post", return_value=_mock_response({"ok": True})
         ) as mock_post:
-            result = client._call("/model/open", {"file_path": "/tmp/test.rvt"})  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            result = client._call("/model/open", {"file_path": "/tmp/test.rvt"})
             mock_post.assert_called_once()
             call_url = mock_post.call_args[0][0]
             assert call_url == "http://localhost:4830/api/model/open"
@@ -285,9 +291,9 @@ class TestRevitPluginClientCalls:
         with patch.object(
             client.session, "post", return_value=_mock_response({"success": True})
         ) as mock_post:
-            result = client.open_model("/tmp/project.rvt")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            result = client.open_model("/tmp/project.rvt")
             payload = mock_post.call_args[1]["json"]
-            assert payload["file_path"] == "/tmp/project.rvt"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            assert payload["file_path"] == "/tmp/project.rvt"
             assert result["success"] is True
 
     def test_create_element(self):
@@ -338,9 +344,9 @@ class TestRevitConnector:
             "post",
             return_value=_mock_response({"success": True}),
         ):
-            result = conn.open_model("/tmp/test.rvt")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            result = conn.open_model("/tmp/test.rvt")
             assert result["success"] is True
-            assert conn._current_model_path == "/tmp/test.rvt"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            assert conn._current_model_path == "/tmp/test.rvt"
 
     def test_open_model_does_not_track_on_failure(self):
         """RevitConnector.open_model does not update path on failure."""
@@ -350,7 +356,7 @@ class TestRevitConnector:
             "post",
             return_value=_mock_response({"success": False}),
         ):
-            assert conn._current_model_path is None  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            assert conn._current_model_path is None
 
     def test_create_level_logs_operation(self):
         """create_level should log the operation on success."""
@@ -498,11 +504,11 @@ class TestAutoCADPluginClientInit:
     def test_custom_initialization(self):
         """AutoCADPluginClient should accept custom URL, timeout, and API key."""
         client = AutoCADPluginClient(
-            base_url="http://acad-host:8080",  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+            base_url="http://acad-host:8080",  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             timeout=120,
             api_key="test-key",
         )
-        assert client.base_url == "http://acad-host:8080"  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+        assert client.base_url == "http://acad-host:8080"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 120
         assert client.session.headers["X-API-Key"] == "test-key"
 
@@ -551,11 +557,10 @@ class TestAutoCADPluginClientCommands:
             "post",
             return_value=_mock_response({"success": True}),
         ) as mock_post:
-            client.open_drawing("/tmp/test.dwg")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-            payload = mock_post.call_args[1]["json"]  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            client.open_drawing("/tmp/test.dwg")
+            payload = mock_post.call_args[1]["json"]
             assert payload["command"] == "open_drawing"
-            assert payload["params"]["file_path"] == "/tmp/test.dwg"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            assert payload["params"]["file_path"] == "/tmp/test.dwg"
     def test_create_layer_sends_layer_properties(self):
         """create_layer should include name, color, linetype, lineweight."""
         client = AutoCADPluginClient()
@@ -618,16 +623,15 @@ class TestAutoCADConnector:
             "post",
             return_value=_mock_response({"success": True}),
         ):
-            result = conn.open_drawing("/tmp/test.dwg")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-            assert result["success"] is True  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            result = conn.open_drawing("/tmp/test.dwg")
+            assert result["success"] is True
             assert conn._current_drawing is not None
-            assert conn._current_drawing.file_path == "/tmp/test.dwg"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            assert conn._current_drawing.file_path == "/tmp/test.dwg"
     def test_close_drawing_clears_context(self):
         """AutoCADConnector.close_drawing should set _current_drawing to None."""
         conn = self._make_connector()
-        conn._current_drawing = AutoCADDrawingContext("/tmp/test.dwg")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        result = conn.close_drawing()  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        conn._current_drawing = AutoCADDrawingContext("/tmp/test.dwg")
+        result = conn.close_drawing()
         assert result["success"] is True
         assert conn._current_drawing is None
 
@@ -762,10 +766,9 @@ class TestAutoCADConnector:
     def test_get_statistics_with_drawing(self):
         """get_statistics should report current_drawing path when available."""
         conn = self._make_connector()
-        conn._current_drawing = AutoCADDrawingContext("/tmp/proj.dwg")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        stats = conn.get_statistics()  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        assert stats["current_drawing"] == "/tmp/proj.dwg"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        conn._current_drawing = AutoCADDrawingContext("/tmp/proj.dwg")
+        stats = conn.get_statistics()
+        assert stats["current_drawing"] == "/tmp/proj.dwg"
 
 # ===========================================================================
 # 8. Data Model Validation — shared/models.py
@@ -857,8 +860,7 @@ class TestConnectionFailures:
             side_effect=requests.exceptions.ConnectionError("refused"),
         ):
             with pytest.raises(requests.exceptions.ConnectionError):
-                client.send_command("open_drawing", {"file_path": "/tmp/x.dwg"})  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                client.send_command("open_drawing", {"file_path": "/tmp/x.dwg"})
     def test_autocad_server_error(self):
         """AutoCADPluginClient should raise on 500."""
         import requests
@@ -881,8 +883,8 @@ class TestConnectionFailures:
             side_effect=Exception("unexpected failure"),
         ):
             with pytest.raises(Exception, match="unexpected failure"):
-                conn.open_model("/tmp/crash.rvt")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-            # Should still have a valid connector state  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                conn.open_model("/tmp/crash.rvt")
+            # Should still have a valid connector state
             assert conn._current_model_path is None
 
 
@@ -999,9 +1001,9 @@ class TestTypeHints:
 
     def test_drawing_context_tracks_state(self):
         """AutoCADDrawingContext should track layers, blocks, entities."""
-        ctx = AutoCADDrawingContext("/tmp/test.dwg")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        assert ctx.file_path == "/tmp/test.dwg"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        assert ctx.layers == {}  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        ctx = AutoCADDrawingContext("/tmp/test.dwg")
+        assert ctx.file_path == "/tmp/test.dwg"
+        assert ctx.layers == {}
         assert ctx.blocks == {}
         assert ctx.entities == []
         assert ctx.modified is False
@@ -1015,8 +1017,8 @@ class TestTypeHints:
             "post",
             return_value=_mock_response({"success": True}),
         ):
-            conn.open_model("/tmp/test.rvt")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
-        log = conn.get_operation_log()  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            conn.open_model("/tmp/test.rvt")
+        log = conn.get_operation_log()
         # open_model logs only when success, so let's force a log entry
         conn._log_operation("test_op", "test_target", True, {"key": "val"})
         log = conn.get_operation_log()

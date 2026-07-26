@@ -230,7 +230,7 @@ class ETAPExpertChatRequest(BaseModel):
 async def etap_expert_chat(
     request: Request,
     payload: ETAPExpertChatRequest,
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP Expert skill agent.
 
@@ -291,7 +291,7 @@ class ETAPGUIChatRequest(BaseModel):
 async def etap_gui_chat(
     request: Request,
     payload: ETAPGUIChatRequest,
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP GUI Agent (Computer Use Agent).
 
@@ -369,7 +369,7 @@ class ETAPGUIExecuteRequest(BaseModel):
 async def etap_gui_execute(
     request: Request,
     payload: ETAPGUIExecuteRequest,
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
@@ -434,7 +434,7 @@ async def etap_gui_execute(
 
 @router.get("/etap-gui/health")
 async def etap_gui_health(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Health check for the ETAP GUI Agent CUA execution capabilities.
 
@@ -480,7 +480,7 @@ def _get_life_safety_status() -> dict:
 async def etap_gui_activate_kill_switch(
     request: Request,
     reason: str = "manual_api_call",
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """🚨 EMERGENCY STOP — Activate the CUA kill switch.
 
@@ -514,7 +514,7 @@ async def etap_gui_activate_kill_switch(
 
 @router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
 async def etap_gui_deactivate_kill_switch(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Deactivate the CUA kill switch.
 
@@ -539,7 +539,7 @@ async def etap_gui_deactivate_kill_switch(
 
 @router.get("/etap-gui/safety/health", tags=["Agents", "Safety"])
 async def etap_gui_safety_health(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the life safety system status.
 
@@ -556,7 +556,7 @@ async def etap_gui_safety_health(
 
 @router.get("/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
 async def etap_gui_safety_audit_verify(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Verify the integrity of the tamper-evident audit log.
 
@@ -588,7 +588,7 @@ async def etap_gui_safety_audit_verify(
 
 @router.get("/etap-gui/siem/health", tags=["Agents", "Safety"])
 async def etap_gui_siem_health(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the SIEM Syslog forwarder status.
 
@@ -602,7 +602,7 @@ async def etap_gui_siem_health(
 @router.get("/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(
     limit: int = 50,
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Read recent SIEM events from the logging-only JSONL file.
 
@@ -634,7 +634,7 @@ async def etap_gui_siem_events(
     limit = min(max(limit, 1), 200)
     events: list = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+        with open(log_path, encoding="utf-8") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         # Take the last N lines
         for line in lines[-limit:]:

@@ -42,8 +42,10 @@ describe("i18n translations", () => {
   });
 
   it("has the same top-level keys in both locales", () => {
-    const enKeys = Object.keys(enData).sort();
-    const arKeys = Object.keys(arData).sort();
+    // SonarCloud S2871: use localeCompare for reliable string sorting
+    const collator = new Intl.Collator();
+    const enKeys = Object.keys(enData).sort((a, b) => collator.compare(a, b));
+    const arKeys = Object.keys(arData).sort((a, b) => collator.compare(a, b));
     expect(arKeys).toEqual(enKeys);
   });
 

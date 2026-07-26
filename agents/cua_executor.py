@@ -76,7 +76,7 @@ class CUAExecutor(BaseCUAExecutor):
     """Executes the Computer Use Agent loop on the local desktop.
 
     Lifecycle:
-        executor = CUAExecutor(audit_dir="/tmp/cua_audit")
+        executor = CUAExecutor(audit_dir="~/.etap/cua_audit")
         result = executor.execute_loop(
             objective="Open ETAP and run Load Flow",
             max_steps=15,

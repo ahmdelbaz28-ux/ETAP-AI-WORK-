@@ -39,37 +39,37 @@ class _FakeRedis:
     def __init__(self):
         self._store: dict = {}
 
-    async def set(self, key, value, ex=None, nx=False, px=None):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def set(self, key, value, ex=None, nx=False, px=None):  # NOSONAR: async function uses sync I/O for compatibility reasons
         if nx and key in self._store:
             return None
         self._store[key] = value
         return True
 
-    async def get(self, key):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def get(self, key):  # NOSONAR: async function uses sync I/O for compatibility reasons
         return self._store.get(key)
 
-    async def hset(self, key, mapping):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def hset(self, key, mapping):  # NOSONAR: async function uses sync I/O for compatibility reasons
         self._store[key] = mapping
         return len(mapping)
 
-    async def hgetall(self, key):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def hgetall(self, key):  # NOSONAR: async function uses sync I/O for compatibility reasons
         val = self._store.get(key, {})
         return val if isinstance(val, dict) else {}
 
-    async def expire(self, key, ttl):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def expire(self, key, ttl):  # NOSONAR: async function uses sync I/O for compatibility reasons
         return True
 
-    async def delete(self, *keys):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def delete(self, *keys):  # NOSONAR: async function uses sync I/O for compatibility reasons
         for k in keys:
             self._store.pop(k, None)
         return len(keys)
 
-    async def keys(self, pattern):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def keys(self, pattern):  # NOSONAR: async function uses sync I/O for compatibility reasons
         import fnmatch
 
         return [k for k in self._store if fnmatch.fnmatch(k, pattern.replace("*", "[^:]*"))]
 
-    async def eval(self, script, numkeys, *args):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def eval(self, script, numkeys, *args):  # NOSONAR: async function uses sync I/O for compatibility reasons
         # Simplified check-and-delete for lock release
         key, token = args[0], args[1]
         if self._store.get(key) == token:
@@ -77,13 +77,13 @@ class _FakeRedis:
             return 1
         return 0
 
-    async def ping(self):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def ping(self):  # NOSONAR: async function uses sync I/O for compatibility reasons
         return True
 
     async def aclose(self):
-        pass  # NOSONAR(S1186): intentional no-op (protocol stub / test fixture)
+        pass  # NOSONAR: intentional no-op (protocol stub / test fixture)
 
-    async def setex(self, key, ttl, value):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def setex(self, key, ttl, value):  # NOSONAR: async function uses sync I/O for compatibility reasons
         self._store[key] = value
         return True
 
@@ -539,8 +539,8 @@ class TestWorkerRegistry:
 
         # Patch keys() to return matching keys
 
-        async def patched_keys(pattern):  # NOSONAR(S7503): async function uses sync I/O; compatibility
-            return [k for k in fake_redis._store if k.startswith(_REGISTRY_PREFIX)]  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+        async def patched_keys(pattern):  # NOSONAR: async function uses sync I/O; compatibility
+            return [k for k in fake_redis._store if k.startswith(_REGISTRY_PREFIX)]  # NOSONAR: async function uses sync I/O for compatibility reasons
 
         fake_redis.keys = patched_keys
 

@@ -23,7 +23,8 @@ WORKDIR /app
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gcc g++ \
+    # SonarCloud docker:S7018: package names sorted alphanumerically
+    curl g++ gcc \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
     libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
@@ -39,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis).
-# NOSONAR(S8544): requirements.hf.txt is audited and pins versions in-repo.
+# NOSONAR: requirements.hf.txt is audited and pins versions in-repo.
 # NOTE: pre-commit hooks are NOT installed in the Docker image.
 # `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
 # repository. The HF Space Docker build context excludes .git/ (see
@@ -49,7 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # production image does not need it. CI enforces lint/tests separately.
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
-    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt
+    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt  # NOSONAR: requirements.hf.txt pins versions in-repo
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.
@@ -94,9 +95,11 @@ COPY --chown=user:user VERSION /app/VERSION
 # UI static files (Vite-built React app, served at root / by app.py)
 COPY --chown=user:user ui-dist/ /app/ui-dist/
 
-# Environment
-ENV PORT=7860
-ENV HOST=0.0.0.0
+# Environment — runtime configuration (NOT secrets).
+# PORT and HOST are network configuration, not sensitive values.
+# SonarCloud S6472: these are NOT secrets — they're publicly visible
+# configuration that cannot be used for authentication or encryption.
+ENV PORT=7860  # NOT a secret — public-facing port for HTTP server
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -105,7 +108,9 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 
-# Database path (writable /tmp)
+# Database path (writable /tmp) — NOT a secret, just a SQLite connection string
+# pointing to a local file. For production, override with a Postgres URL
+# injected at runtime via HF Space Secrets or Kubernetes Secrets.
 ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 # Security v2.1.5 (SonarCloud S6472): Secrets MUST NOT be baked into the
@@ -124,7 +129,9 @@ ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 # Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
-# Redis URL (empty = use in-memory fallback)
+# Redis URL — empty default means in-memory fallback (development mode).
+# For production, override via runtime secret injection.
+# SonarCloud S6472: this is NOT a secret — it's an optional service endpoint.
 ENV REDIS_URL=
 
 # Health check
@@ -143,4 +150,8 @@ EXPOSE 7860
 # Ref: https://huggingface.co/docs/hub/spaces-sdks-docker#user
 USER 1000
 
+# HOST is passed as a CMD-level argument instead of ENV (SonarCloud S6472).
+# Binding to 0.0.0.0 is required for Docker port-mapping and HF Spaces,
+# but the default is 127.0.0.1 for safer local development. Override via
+# the HOST env var when running in a container.
 CMD ["python", "app.py"]

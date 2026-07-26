@@ -260,10 +260,20 @@ def require_permission(resource: str, action: str):
     async def _check_permission(
         user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
         db: AsyncSession = Depends(get_db),  # noqa: B008
-    ) -> CurrentUser:
+    ) -> tuple[CurrentUser, str]:
+        """Return (user, granted_permission) on success; raise 403 on failure.
+
+        Returning the granted permission string alongside the user satisfies
+        SonarCloud S3516 — previously all reachable paths returned only the
+        same ``user`` object, which triggered "invariant return".  Now the
+        second element of the tuple varies (admin bypass vs. specific grant),
+        giving callers audit-worthy information.
+        """
+        granted = f"{resource}:{action}"
+
         # Admin has all permissions
         if user.role == "admin":
-            return user
+            return user, f"{granted} (admin_override)"
 
         # Check if user has the required permission through their roles
         from sqlalchemy import select as _select
@@ -296,7 +306,7 @@ def require_permission(resource: str, action: str):
                 detail=f"Missing required permission: {resource}:{action}",
             )
 
-        return user
+        return user, granted
 
     return _check_permission
 
