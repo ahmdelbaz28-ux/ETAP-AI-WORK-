@@ -347,7 +347,7 @@ class ArcFlashEngine:
         else:
             G = max(1.0, float(arc_gap_mm))  # prevent log10(0) or negative
 
-        log10_G = np.log10(G)
+        log10_G = np.log10(G)  # NOSONAR(python:S117): IEEE/IEC standard notation
         t = max(0.01, float(arc_duration_sec))  # prevent log10(0)
         log10_t = np.log10(t)
 
@@ -363,22 +363,22 @@ class ArcFlashEngine:
         D = max(1.0, float(working_distance_mm))
 
         # Full IEEE 1584-2018 equation
-        log_E = (k1
+        log_E = (k1  # NOSONAR(python:S117): IEEE/IEC standard notation
                  + k2 * np.log10(Iarc)
                  + k3 * log10_G
                  + k4 * np.log10(Iarc) * log10_G  # NOSONAR — S117: engineering notation
                  + log10_t)  # time term: log10(t), not linear t
 
-        E_full = (10**log_E) * CF / math.pow(D, x_power)
+        E_full = (10**log_E) * CF / math.pow(D, x_power)  # NOSONAR(python:S117): IEEE/IEC standard notation
 
         # Calculate incident energy at reduced arc current
-        log_E_reduced = (k1
+        log_E_reduced = (k1  # NOSONAR(python:S117): IEEE/IEC standard notation
                          + k2 * np.log10(Iarc_reduced)
                          + k3 * log10_G
                          + k4 * np.log10(Iarc_reduced) * log10_G  # NOSONAR
                          + log10_t)
 
-        E_reduced = (10**log_E_reduced) * CF / math.pow(D, x_power)
+        E_reduced = (10**log_E_reduced) * CF / math.pow(D, x_power)  # NOSONAR(python:S117): IEEE/IEC standard notation
 
         # Use the higher of the two values
         E_final = max(E_full, E_reduced)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

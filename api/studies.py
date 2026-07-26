@@ -267,25 +267,24 @@ def _run_native_study(  # NOSONAR — S3776: cognitive complexity; scheduled for
         raise ValueError(f"Unsupported native study type: {study_type}")
 
 
-def pre_flight_check(system: dict) -> Optional[dict]:
-    """Validate system configuration before running a study.
-    Returns None if OK, or an error dict if validation fails."""
+def _pre_flight_basic(system: dict) -> Optional[dict]:
+    """Check basic structural requirements. Returns error dict or None."""
     if not system:
         return {"error": "System configuration is required"}
-
     buses = system.get("buses", [])
     lines = system.get("lines", [])
     base_mva = system.get("base_mva", 0)
-
     if not buses:
         return {"error": "System must have at least one bus"}
     if not lines:
         return {"error": "System must have at least one line"}
     if base_mva <= 0:
         return {"error": "base_mva must be > 0"}
+    return None
 
-    bus_ids = {b.get("bus_id") for b in buses if b.get("bus_id") is not None}
 
+def _pre_flight_lines(lines: list, bus_ids: set) -> Optional[dict]:
+    """Check line impedance and bus references. Returns error dict or None."""
     for line in lines:
         if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
             return {"error": f"Line {line.get('line_id')} has zero/negative impedance"}
@@ -293,8 +292,11 @@ def pre_flight_check(system: dict) -> Optional[dict]:
             return {"error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"}
         if line.get("to_bus_id") not in bus_ids:
             return {"error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"}
+    return None
 
-    # Check for isolated buses (buses not connected to any line)
+
+def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> Optional[dict]:
+    """Check for isolated buses (no line connections). Returns error dict or None."""
     connected_buses = set()
     for line in lines:
         connected_buses.add(line.get("from_bus_id"))
@@ -302,17 +304,41 @@ def pre_flight_check(system: dict) -> Optional[dict]:
     isolated = bus_ids - connected_buses
     if isolated and len(bus_ids) > 1:
         return {"error": f"Isolated buses with no connections: {isolated}"}
+    return None
 
-    # Check voltage bounds
+
+def _pre_flight_voltage_bounds(buses: list) -> Optional[dict]:
+    """Check bus voltage magnitudes are in a realistic range. Returns error dict or None."""
     for bus in buses:
         v = bus.get("voltage_magnitude")
         if v is not None and (v < 0.01 or v > 1.5):
             return {"error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"}
-
     return None
 
 
-@router.post("/run", response_model=StudyResult)
+def pre_flight_check(system: dict) -> Optional[dict]:
+    """Validate system configuration before running a study.
+    Returns None if OK, or an error dict if validation fails."""
+    err = _pre_flight_basic(system)
+    if err is not None:
+        return err
+
+    buses = system.get("buses", [])
+    lines = system.get("lines", [])
+    bus_ids = {b.get("bus_id") for b in buses if b.get("bus_id") is not None}
+
+    err = _pre_flight_lines(lines, bus_ids)
+    if err is not None:
+        return err
+
+    err = _pre_flight_isolated_buses(bus_ids, lines)
+    if err is not None:
+        return err
+
+    return _pre_flight_voltage_bounds(buses)
+
+
+@router.post("/run", response_model=StudyResult, responses={400: {"description": "Invalid study request parameters"}})
 @count_executions(skill_name="study")
 @track_skill_operation("study")
 async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_api_key)):  # NOSONAR — S8410: Annotated[T, Depends(...)] migration will be done in API refactoring sprint

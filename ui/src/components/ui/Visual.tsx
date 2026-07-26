@@ -149,7 +149,7 @@ export function PremiumEmptyState({
         <button
           onClick={action.onClick}
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-[var(--accent-primary)] text-black rounded-lg hover:opacity-90 transition-all"
-        >
+         type="button">
           {action.icon && <action.icon className="w-4 h-4" />}
           {action.label}
         </button>
@@ -276,7 +276,7 @@ export function Sparkline({
   const lastX = (data.length - 1) * xStep;
   const areaPath = `${points} L${lastX},${height + 2} L${firstX},${height + 2} Z`;
 
-  const trend = data[data.length - 1] >= data[0];
+  const trend = data.at(-1)! >= data[0];
   const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
   const lineColor = color || trendColor;
 
@@ -311,7 +311,7 @@ export function Sparkline({
       {/* End dot */}
       <circle
         cx={(data.length - 1) * xStep}
-        cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2}
+        cy={height - ((data.at(-1)! - min) / range) * (height - 4) - 2}
         r={2.5}
         fill={lineColor}
         stroke="var(--bg-card, #1a2340)"

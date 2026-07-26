@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -101,7 +101,7 @@ function MarkdownCode({
         <button
           onClick={() => handleCopy(messageId + children, String(children))}
           className="hover:text-white transition-colors flex items-center gap-1.5"
-        >
+         type="button">
           {copiedId === messageId + children ? (
             <Check className="w-3.5 h-3.5 text-green-400" />
           ) : (
@@ -125,6 +125,29 @@ function MarkdownCode({
       {children}
     </code>
   );
+}
+
+// Factory that builds a ReactMarkdown `code` component bound to the per-message
+// copy context. Defining the factory at module scope (rather than nesting the
+// component inside AIAssistant) avoids the S6478 "nested React component"
+// anti-pattern and the resulting remounts on every parent render.
+interface CodeRendererCtx {
+  readonly handleCopy: (id: string, content: string) => void;
+  readonly copiedId: string | null;
+  readonly messageId: string;
+}
+
+function createCodeRenderer(ctx: CodeRendererCtx) {
+  return function CodeRenderer(props: MarkdownCodeProps) {
+    return (
+      <MarkdownCode
+        {...props}
+        handleCopy={ctx.handleCopy}
+        copiedId={ctx.copiedId}
+        messageId={ctx.messageId}
+      />
+    );
+  };
 }
 
 export default function AIAssistant() {
@@ -397,7 +420,7 @@ export default function AIAssistant() {
             <button
               onClick={() => setMessages([])}
               className="px-3 py-1.5 flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-            >
+             type="button">
               <RotateCcw className="w-3.5 h-3.5" />
               Reset Chat
             </button>
@@ -428,7 +451,7 @@ export default function AIAssistant() {
                   <button
                     onClick={() => navigate("/settings")}
                     className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors shadow-md shadow-amber-600/20"
-                  >
+                   type="button">
                     <Key className="w-3.5 h-3.5" />
                     Connect API Key
                   </button>
@@ -465,7 +488,7 @@ export default function AIAssistant() {
                     key={q}
                     onClick={() => setInput(q)}
                     className="p-4 text-left text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 hover:border-[#d97706] dark:hover:border-[#d97706] hover:shadow-md rounded-xl transition-all"
-                  >
+                   type="button">
                     {q}
                   </button>
                 ))}
@@ -475,7 +498,7 @@ export default function AIAssistant() {
               <button
                 onClick={() => navigate("/settings")}
                 className="mt-6 inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
-              >
+               type="button">
                 <SettingsIcon className="w-3.5 h-3.5" />
                 Manage API keys in Settings
               </button>
@@ -506,16 +529,11 @@ export default function AIAssistant() {
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              code(props: any) {
-                                return (
-                                  <MarkdownCode
-                                    {...props}
-                                    handleCopy={handleCopy}
-                                    copiedId={copiedId}
-                                    messageId={m.id}
-                                  />
-                                );
-                              },
+                              code: createCodeRenderer({
+                                handleCopy,
+                                copiedId,
+                                messageId: m.id,
+                              }),
                             }}
                           >
                             {m.content}
@@ -536,7 +554,7 @@ export default function AIAssistant() {
                           <button
                             onClick={() => handleCopy(m.id, m.content)}
                             className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex items-center gap-1.5 text-xs font-medium"
-                          >
+                           type="button">
                             {copiedId === m.id ? (
                               <Check className="w-3.5 h-3.5 text-green-500" />
                             ) : (

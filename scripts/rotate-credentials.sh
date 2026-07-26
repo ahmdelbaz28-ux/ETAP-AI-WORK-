@@ -13,6 +13,9 @@
 # =============================================================================
 set -euo pipefail
 
+# Reusable separator line (SonarCloud shelldre:S1192 — extract repeated literal)
+SEP="================================================================"
+
 MODE="${1:-auto}"
 
 open_url() {
@@ -38,10 +41,10 @@ open_url() {
   sleep 0.5
 }
 
-echo "================================================================"
+echo "$SEP"
 echo " Opening credential rotation pages for the 2026-07-08 incident"
 echo " Mode: $MODE"
-echo "================================================================"
+echo "$SEP"
 echo
 echo "[1/7] GitHub PAT"
 open_url "https://github.com/settings/tokens"
@@ -72,7 +75,7 @@ echo "[7/7] Smithery API keys"
 open_url "https://smithery.ai/console/api-keys"
 
 echo
-echo "================================================================"
+echo "$SEP"
 echo " Next steps:"
 echo "   1. Generate a fresh token/key on each service"
 echo "   2. Revoke the OLD token/key on each service"
@@ -81,4 +84,4 @@ echo "      https://vercel.com/ahmdelbaz28-ux/etap-ai-work/settings/environment-
 echo "   4. Re-deploy the Vercel project to pick up the new values"
 echo "   5. (If backend uses the keys) Update HF Space secrets at:"
 echo "      https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform/settings"
-echo "================================================================"
+echo "$SEP"

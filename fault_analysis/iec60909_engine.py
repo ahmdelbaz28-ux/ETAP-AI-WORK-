@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -577,7 +577,7 @@ class IEC60909Engine:
         )
 
     def calculate(
-        self, fault_type: Union[str, FaultType], bus_index: int, **kwargs: Any
+        self, fault_type: str | FaultType, bus_index: int, **kwargs: Any
     ) -> ShortCircuitResult:
         """
         Calculate short-circuit current for a given fault type.

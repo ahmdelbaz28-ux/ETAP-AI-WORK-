@@ -7,9 +7,9 @@
  * Clean, high-contrast, schematic vector overlay representing generation, distribution, and grounding.
  */
 interface BrandLogoProps {
-  size?: number;
-  withWordmark?: boolean;
-  className?: string;
+  readonly size?: number;
+  readonly withWordmark?: boolean;
+  readonly className?: string;
 }
 
 export function BrandLogo({ size = 44, withWordmark = false, className = "" }: BrandLogoProps) {

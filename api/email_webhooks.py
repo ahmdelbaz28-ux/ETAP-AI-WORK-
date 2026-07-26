@@ -40,7 +40,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Header, Request, status
 from fastapi.responses import JSONResponse
@@ -122,7 +122,7 @@ def _verify_resend_signature(
     if not signature_header or not secret:
         return False
 
-    parts = dict(p.split("=", 1) for p in signature_header.split(",") if "=" in p)
+    parts = {k: v for k, v in (p.split("=", 1) for p in signature_header.split(",") if "=" in p)}
     msg_id = parts.get("svix-id", "")
     timestamp = parts.get("svix-timestamp", "")
     signatures = [v for k, v in parts.items() if k.startswith("svix-signature")]
@@ -168,10 +168,10 @@ def _verify_resend_signature(
 )
 async def resend_webhook(
     request: Request,
-    svix_signature: Optional[str] = Header(None, alias="svix-signature"),
-    svix_id: Optional[str] = Header(None, alias="svix-id"),  # noqa: S1172 — FastAPI header binding
-    svix_timestamp: Optional[str] = Header(None, alias="svix-timestamp"),  # noqa: S1172 — FastAPI header binding
-    webhook_secret: Optional[str] = Header(None, alias="webhook-secret"),
+    svix_signature: Annotated[Optional[str], Header(None, alias="svix-signature")] = None,
+    svix_id: Annotated[Optional[str], Header(None, alias="svix-id")] = None,  # noqa: S1172 — FastAPI header binding
+    svix_timestamp: Annotated[Optional[str], Header(None, alias="svix-timestamp")] = None,  # noqa: S1172 — FastAPI header binding
+    webhook_secret: Annotated[Optional[str], Header(None, alias="webhook-secret")] = None,
 ) -> JSONResponse:
     """Receive a delivery event from Resend.
 
@@ -258,7 +258,7 @@ _events: list[dict[str, Any]] = []
 _EVENTS_MAX = 1000
 
 
-async def _record_event(message_id: str, event_type: str, data: dict) -> None:
+async def _record_event(message_id: str, event_type: str, data: dict) -> None:  # NOSONAR(python:S7503): async for consistency with webhook event-recording API (called as await _record_event)
     _events.append(
         {
             "id": str(uuid.uuid4()),

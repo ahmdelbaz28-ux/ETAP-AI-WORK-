@@ -3,18 +3,17 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "../../utils/helpers";
 
 interface EngineeringWorkspaceProps {
-  leftPanel?: ReactNode;
-  centerPanel: ReactNode;
-  rightPanel?: ReactNode;
-  leftTitle?: string;
-  rightTitle?: string;
-  defaultLeftWidth?: number;
-  defaultRightWidth?: number;
-  minPanelWidth?: number;
+  readonly leftPanel?: ReactNode;
+  readonly centerPanel: ReactNode;
+  readonly rightPanel?: ReactNode;
+  readonly leftTitle?: string;
+  readonly rightTitle?: string;
+  readonly defaultLeftWidth?: number;
+  readonly defaultRightWidth?: number;
+  readonly minPanelWidth?: number;
 }
 
 export function EngineeringWorkspace({
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   leftPanel,
   centerPanel,
   rightPanel,
@@ -94,7 +93,7 @@ export function EngineeringWorkspace({
                   onClick={() => setLeftCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
-                >
+                 type="button">
                   <PanelLeftClose className="w-4 h-4 rotate-180" />
                 </button>
               </div>
@@ -108,7 +107,7 @@ export function EngineeringWorkspace({
                     onClick={() => setLeftCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
-                  >
+                   type="button">
                     <PanelLeftClose className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -164,7 +163,7 @@ export function EngineeringWorkspace({
                   onClick={() => setRightCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
-                >
+                 type="button">
                   <PanelRightClose className="w-4 h-4 rotate-180" />
                 </button>
               </div>
@@ -178,7 +177,7 @@ export function EngineeringWorkspace({
                     onClick={() => setRightCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
-                  >
+                   type="button">
                     <PanelRightClose className="w-3.5 h-3.5" />
                   </button>
                 </div>

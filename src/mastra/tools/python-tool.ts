@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { spawnPythonSecure } from './_spawn-helpers';
+import { spawnSecure } from './_spawn-helpers';
 
 const PYTHON_TIMEOUT_MS = 30000; // 30 second timeout
 const MAX_OUTPUT_LENGTH = 10000; // Maximum output length in characters
@@ -18,8 +18,8 @@ export const run_python = createTool({
       // Spawn a Python helper that runs the user code under a security
       // policy (sandboxed subprocess with no network access). All hardening
       // (PATH override, no .pyc, stdin-only input, hard timeout) lives in
-      // `spawnPythonSecure` — see `_spawn-helpers.ts` for the rationale.
-      const child = spawnPythonSecure(secureExecutorPath, {
+      // `spawnSecure` — see `_spawn-helpers.ts` for the rationale.
+      const child = spawnSecure('python', secureExecutorPath, {
         timeoutMs: PYTHON_TIMEOUT_MS,
       });
 

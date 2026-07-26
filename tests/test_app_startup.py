@@ -58,16 +58,12 @@ def test_etap_adapter_imports():
             pass
 
 
-def test_environment_variables():
+def test_environment_variables(monkeypatch):
     """Test that environment variables are handled correctly."""
     # Test default values
     assert os.environ.get("USE_ETAP", "false").lower() in ["true", "false"]
     assert os.environ.get("PRIVACY_MODE", "false").lower() in ["true", "false"]
 
     # Test setting values
-    os.environ["TEST_VAR"] = "test_value"
+    monkeypatch.setenv("TEST_VAR", "test_value")
     assert os.environ["TEST_VAR"] == "test_value"
-
-    # Clean up
-    if "TEST_VAR" in os.environ:
-        del os.environ["TEST_VAR"]

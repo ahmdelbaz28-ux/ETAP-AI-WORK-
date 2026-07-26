@@ -178,17 +178,12 @@ export function OnboardingTour() {
   const isLast = currentStep === steps.length - 1;
 
   return (
-    // NOSONAR — typescript:S6819: <dialog> element requires showModal()/close()
-    // APIs and has cross-browser quirks; we use role="dialog" + aria-modal
-    // intentionally for compatibility with our framer-motion overlay system.
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      role="dialog" // NOSONAR — S6819: framer-motion requires div, not <dialog>
-      aria-modal="true"
+    <dialog
+      open
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 m-0 max-w-none max-h-none w-screen h-screen bg-transparent border-0 p-0"
       aria-labelledby="onboarding-title"
     >
       {/* Backdrop */}
-      {/* NOSONAR — typescript:S6819: rendered as <button> instead of div+role="button" for native a11y */}
       <button
         type="button"
         className="absolute inset-0 bg-black/80 backdrop-blur-md cursor-default border-0 p-0"
@@ -249,7 +244,7 @@ export function OnboardingTour() {
             onClick={handleSkip}
             aria-label="Close tour"
             className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
-          >
+           type="button">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -307,7 +302,7 @@ export function OnboardingTour() {
           <button
             onClick={handleSkip}
             className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors px-2 py-1.5 -ml-2"
-          >
+           type="button">
             Skip tour
           </button>
 
@@ -316,7 +311,7 @@ export function OnboardingTour() {
               <button
                 onClick={handlePrev}
                 className="flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-              >
+               type="button">
                 <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} />
                 Back
               </button>
@@ -330,7 +325,7 @@ export function OnboardingTour() {
                   ? "bg-green-600 hover:bg-green-500 text-white shadow-green-900/30"
                   : "bg-[var(--accent-primary)] hover:brightness-110 text-black shadow-cyan-900/30",
               )}
-            >
+             type="button">
               {isLast ? "Get Started" : "Next"}
               {isLast ? (
                 <CheckCircle className="w-4 h-4" strokeWidth={2.5} />
@@ -354,6 +349,6 @@ export function OnboardingTour() {
           to continue
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

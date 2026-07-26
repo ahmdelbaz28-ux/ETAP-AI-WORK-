@@ -1,20 +1,153 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import { AnimatePresence, motion } from "framer-motion";
 import { Globe, Shield } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 interface LoginBackgroundProps {
-  isRtl: boolean;
-  onLanguageToggle: () => void;
-  isBreakerOpen: boolean;
-  setIsBreakerOpen: (val: boolean) => void;
-  onTerminalLog: (msg: string) => void;
+  readonly isRtl: boolean;
+  readonly onLanguageToggle: () => void;
+  readonly isBreakerOpen: boolean;
+  readonly setIsBreakerOpen: (val: boolean) => void;
+  readonly onTerminalLog: (msg: string) => void;
 }
 
 interface Coords {
   x: number;
   y: number;
 }
+
+// --- Module-scope tooltip catalog (extracted from the inline getTooltipContent
+// switch to keep S3776 cognitive complexity below the threshold). ---
+// Each builder takes the runtime breaker state and returns the localized
+// {title, details} for the matching hovered component. With the giant switch
+// and its 6 bilingual ternaries lifted out, getTooltipContent becomes a flat
+// lookup that picks the right builder and calls it.
+
+interface TooltipContent {
+  readonly title: string;
+  readonly details: readonly string[];
+}
+
+type TooltipBuilder = (isRtl: boolean, isBreakerOpen: boolean) => TooltipContent;
+
+const TOOLTIP_BUILDERS: Record<string, TooltipBuilder> = {
+  "bus-a": (isRtl, _isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "قضيب التوزيع الرئيسي (BUS-115KV)",
+          details: [
+            "الجهد الاسمي: 115.0 ك.ف (1.002 pu)",
+            "التردد: 50.01 هرتز",
+            "زاوية الطور: 0.0°",
+            "الحالة: نشط ومستقر",
+          ],
+        }
+      : {
+          title: "Main Grid Bus (BUS-115KV)",
+          details: [
+            "Nominal Voltage: 115.0 kV (1.002 pu)",
+            "Frequency: 50.01 Hz",
+            "Phase Angle: 0.0°",
+            "Status: ACTIVE & STABLE",
+          ],
+        },
+  transformer: (isRtl, isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "محول خفض الجهد الرئيسي (TR-101)",
+          details: [
+            "القدرة الاسمية: 45 م.ف.أ",
+            "نسبة الجهد: 115 / 13.8 ك.ف",
+            "مجموعة التوصيل: Dyn11",
+            `الحالة: ${isBreakerOpen ? "دون حمل (مفتوح)" : "نشط تحت الحمل"}`,
+          ],
+        }
+      : {
+          title: "Main Step-down XFRMR (TR-101)",
+          details: [
+            "Nominal Rating: 45 MVA",
+            "Voltage Ratio: 115 / 13.8 kV",
+            "Vector Group: Dyn11",
+            `Status: ${isBreakerOpen ? "NO-LOAD (Open Circuit)" : "ON-LOAD (Active)"}`,
+          ],
+        },
+  "bus-b": (isRtl, isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "قضيب التوزيع الفرعي (BUS-13.8KV)",
+          details: [
+            `الجهد الحالي: ${isBreakerOpen ? "0.00" : "13.82"} ك.ف (${isBreakerOpen ? "0.000" : "1.001"} pu)`,
+            `التردد: ${isBreakerOpen ? "0.0" : "50.0"} هرتز`,
+            `الحمل الكلي: ${isBreakerOpen ? "0.0" : "12.5"} م.و`,
+            `الحالة: ${isBreakerOpen ? "خارج الخدمة (غير مغذى)" : "نشط ومغذي للمصنع"}`,
+          ],
+        }
+      : {
+          title: "Distribution Bus (BUS-13.8KV)",
+          details: [
+            `Voltage: ${isBreakerOpen ? "0.00" : "13.82"} kV (${isBreakerOpen ? "0.000" : "1.001"} pu)`,
+            `Frequency: ${isBreakerOpen ? "0.0" : "50.0"} Hz`,
+            `Total Load: ${isBreakerOpen ? "0.0" : "12.5"} MW`,
+            `Status: ${isBreakerOpen ? "DE-ENERGIZED (Isolated)" : "ENERGIZED (On Line)"}`,
+          ],
+        },
+  generator: (isRtl, _isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "مولد الطوارئ والشبكة (GEN-A)",
+          details: [
+            "القدرة الاسمية: 50 م.و",
+            "الحمل الحالي: 32.4 م.و",
+            "معامل القدرة: 0.85",
+            "الحالة: جاري العمل (Swing Mode)",
+          ],
+        }
+      : {
+          title: "Swing Generator (GEN-A)",
+          details: [
+            "Nominal Rating: 50 MW",
+            "Active Output: 32.4 MW",
+            "Power Factor: 0.85 Lagging",
+            "Status: RUNNING (Swing Mode)",
+          ],
+        },
+  breaker: (isRtl, isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "قاطع الحماية الرئيسي (CB-101)",
+          details: [
+            "النوع: قاطع مفرغ من الهواء (Vacuum CB)",
+            `الحالة الحالية: ${isBreakerOpen ? "مفتوح (TRIP)" : "مغلق (CLOSED)"}`,
+            "الإجراء: اضغط على القاطع لتغيير الحالة للنمذجة",
+          ],
+        }
+      : {
+          title: "Main Circuit Breaker (CB-101)",
+          details: [
+            "Type: Vacuum Circuit Breaker",
+            `Current State: ${isBreakerOpen ? "OPEN (Tripped)" : "CLOSED (Normal)"}`,
+            "Action: CLICK to toggle simulation state",
+          ],
+        },
+  feeder: (isRtl, isBreakerOpen) =>
+    isRtl
+      ? {
+          title: "مغذي المصنع الرئيسي (LOAD-F1)",
+          details: [
+            `حمل الطلب: ${isBreakerOpen ? "0.0" : "12.5"} م.و`,
+            `التيار الفعلي: ${isBreakerOpen ? "0" : "522"} أمبير`,
+            `الحالة: ${isBreakerOpen ? "مقطوع" : "متصل"}`,
+          ],
+        }
+      : {
+          title: "Industrial Feeder (LOAD-F1)",
+          details: [
+            `Active Demand: ${isBreakerOpen ? "0.0" : "12.5"} MW`,
+            `Current: ${isBreakerOpen ? "0" : "522"} A`,
+            `Status: ${isBreakerOpen ? "DISCONNECTED" : "CONNECTED"}`,
+          ],
+        },
+};
 
 export function LoginBackground({
   isRtl,
@@ -62,130 +195,13 @@ export function LoginBackground({
     }
   }, [isBreakerOpen, setIsBreakerOpen, onTerminalLog]);
 
-  // Get active status telemetry details
-  const getTooltipContent = () => {
+  // Get active status telemetry details — flat lookup against the module-scope
+  // TOOLTIP_BUILDERS catalog. Returns null when no component is hovered or an
+  // unknown component id appears.
+  const getTooltipContent = (): TooltipContent | null => {
     if (!hoveredComponent) return null;
-
-    switch (hoveredComponent) {
-      case "bus-a":
-        return isRtl
-          ? {
-              title: "قضيب التوزيع الرئيسي (BUS-115KV)",
-              details: [
-                "الجهد الاسمي: 115.0 ك.ف (1.002 pu)",
-                "التردد: 50.01 هرتز",
-                "زاوية الطور: 0.0°",
-                "الحالة: نشط ومستقر",
-              ],
-            }
-          : {
-              title: "Main Grid Bus (BUS-115KV)",
-              details: [
-                "Nominal Voltage: 115.0 kV (1.002 pu)",
-                "Frequency: 50.01 Hz",
-                "Phase Angle: 0.0°",
-                "Status: ACTIVE & STABLE",
-              ],
-            };
-      case "transformer":
-        return isRtl
-          ? {
-              title: "محول خفض الجهد الرئيسي (TR-101)",
-              details: [
-                "القدرة الاسمية: 45 م.ف.أ",
-                "نسبة الجهد: 115 / 13.8 ك.ف",
-                "مجموعة التوصيل: Dyn11",
-                `الحالة: ${isBreakerOpen ? "دون حمل (مفتوح)" : "نشط تحت الحمل"}`,
-              ],
-            }
-          : {
-              title: "Main Step-down XFRMR (TR-101)",
-              details: [
-                "Nominal Rating: 45 MVA",
-                "Voltage Ratio: 115 / 13.8 kV",
-                "Vector Group: Dyn11",
-                `Status: ${isBreakerOpen ? "NO-LOAD (Open Circuit)" : "ON-LOAD (Active)"}`,
-              ],
-            };
-      case "bus-b":
-        return isRtl
-          ? {
-              title: "قضيب التوزيع الفرعي (BUS-13.8KV)",
-              details: [
-                `الجهد الحالي: ${isBreakerOpen ? "0.00" : "13.82"} ك.ف (${isBreakerOpen ? "0.000" : "1.001"} pu)`,
-                `التردد: ${isBreakerOpen ? "0.0" : "50.0"} هرتز`,
-                `الحمل الكلي: ${isBreakerOpen ? "0.0" : "12.5"} م.و`,
-                `الحالة: ${isBreakerOpen ? "خارج الخدمة (غير مغذى)" : "نشط ومغذي للمصنع"}`,
-              ],
-            }
-          : {
-              title: "Distribution Bus (BUS-13.8KV)",
-              details: [
-                `Voltage: ${isBreakerOpen ? "0.00" : "13.82"} kV (${isBreakerOpen ? "0.000" : "1.001"} pu)`,
-                `Frequency: ${isBreakerOpen ? "0.0" : "50.0"} Hz`,
-                `Total Load: ${isBreakerOpen ? "0.0" : "12.5"} MW`,
-                `Status: ${isBreakerOpen ? "DE-ENERGIZED (Isolated)" : "ENERGIZED (On Line)"}`,
-              ],
-            };
-      case "generator":
-        return isRtl
-          ? {
-              title: "مولد الطوارئ والشبكة (GEN-A)",
-              details: [
-                "القدرة الاسمية: 50 م.و",
-                "الحمل الحالي: 32.4 م.و",
-                "معامل القدرة: 0.85",
-                "الحالة: جاري العمل (Swing Mode)",
-              ],
-            }
-          : {
-              title: "Swing Generator (GEN-A)",
-              details: [
-                "Nominal Rating: 50 MW",
-                "Active Output: 32.4 MW",
-                "Power Factor: 0.85 Lagging",
-                "Status: RUNNING (Swing Mode)",
-              ],
-            };
-      case "breaker":
-        return isRtl
-          ? {
-              title: "قاطع الحماية الرئيسي (CB-101)",
-              details: [
-                "النوع: قاطع مفرغ من الهواء (Vacuum CB)",
-                `الحالة الحالية: ${isBreakerOpen ? "مفتوح (TRIP)" : "مغلق (CLOSED)"}`,
-                "الإجراء: اضغط على القاطع لتغيير الحالة للنمذجة",
-              ],
-            }
-          : {
-              title: "Main Circuit Breaker (CB-101)",
-              details: [
-                "Type: Vacuum Circuit Breaker",
-                `Current State: ${isBreakerOpen ? "OPEN (Tripped)" : "CLOSED (Normal)"}`,
-                "Action: CLICK to toggle simulation state",
-              ],
-            };
-      case "feeder":
-        return isRtl
-          ? {
-              title: "مغذي المصنع الرئيسي (LOAD-F1)",
-              details: [
-                `حمل الطلب: ${isBreakerOpen ? "0.0" : "12.5"} م.و`,
-                `التيار الفعلي: ${isBreakerOpen ? "0" : "522"} أمبير`,
-                `الحالة: ${isBreakerOpen ? "مقطوع" : "متصل"}`,
-              ],
-            }
-          : {
-              title: "Industrial Feeder (LOAD-F1)",
-              details: [
-                `Active Demand: ${isBreakerOpen ? "0.0" : "12.5"} MW`,
-                `Current: ${isBreakerOpen ? "0" : "522"} A`,
-                `Status: ${isBreakerOpen ? "DISCONNECTED" : "CONNECTED"}`,
-              ],
-            };
-      default:
-        return null;
-    }
+    const builder = TOOLTIP_BUILDERS[hoveredComponent];
+    return builder ? builder(isRtl, isBreakerOpen) : null;
   };
 
   const tooltipData = getTooltipContent();
@@ -606,8 +622,8 @@ export function LoginBackground({
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
             </div>
             <ul className="space-y-1 text-slate-300">
-              {tooltipData.details.map((d, index) => (
-                <li key={index} className="flex items-center gap-1.5">
+              {tooltipData.details.map((d) => (
+                <li key={d} className="flex items-center gap-1.5">
                   <span className="text-blue-500">›</span>
                   <span>{d}</span>
                 </li>

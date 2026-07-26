@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, '/home/z/my-project/etap-local-clone')
 
 # Set required env
-os.environ['RESEND_API_KEY'] = 're_FpxUQQs1_CCnu4BKfuAsyyvH6V8PSAXSB'
+os.environ['RESEND_API_KEY'] = os.environ.get('RESEND_API_KEY', 're_TEST_KEY_PLACEHOLDER_NOT_REAL')  # SonarCloud: use env var or placeholder; never commit live API keys
 os.environ['RESEND_FROM_EMAIL'] = 'onboarding@resend.dev'
 os.environ['RESEND_FROM_NAME'] = 'AhmedETAP'
 os.environ['EMAIL_APP_URL'] = 'https://etap-ai-work.vercel.app'
@@ -138,7 +138,7 @@ async def test_3_email_send_log():
 async def test_4_dashboard():
     """Test dashboard JSON endpoints (dev mode)."""
     print("\n=== TEST 4: Dashboard endpoints ===")
-    os.environ['EMAIL_DASHBOARD_DEV_OPEN'] = 'true'
+    from unittest.mock import patch
 
     from types import SimpleNamespace
 
@@ -152,32 +152,33 @@ async def test_4_dashboard():
         state=SimpleNamespace(trace_id="test-trace"),
     )
 
-    # Get stats
-    resp = await get_stats(mock_request, window_hours=24)
-    assert resp.status_code == 200
-    body = json.loads(resp.body)
-    assert body["success"]
-    print(f"  ✅ get_stats OK (total={body['stats']['total']})")
+    with patch.dict(os.environ, {'EMAIL_DASHBOARD_DEV_OPEN': 'true'}):
+        # Get stats
+        resp = await get_stats(mock_request, window_hours=24)
+        assert resp.status_code == 200
+        body = json.loads(resp.body)
+        assert body["success"]
+        print(f"  ✅ get_stats OK (total={body['stats']['total']})")
 
-    # Get recent
-    resp = await get_recent(mock_request, limit=10)
-    body = json.loads(resp.body)
-    assert body["success"]
-    print(f"  ✅ get_recent OK (count={len(body['records'])})")
+        # Get recent
+        resp = await get_recent(mock_request, limit=10)
+        body = json.loads(resp.body)
+        assert body["success"]
+        print(f"  ✅ get_recent OK (count={len(body['records'])})")
 
-    # Get by-day
-    resp = await get_by_day(mock_request, days=7)
-    body = json.loads(resp.body)
-    assert body["success"]
-    print(f"  ✅ get_by_day OK (days={len(body['days'])})")
+        # Get by-day
+        resp = await get_by_day(mock_request, days=7)
+        body = json.loads(resp.body)
+        assert body["success"]
+        print(f"  ✅ get_by_day OK (days={len(body['days'])})")
 
-    # Get config
-    resp = await get_config(mock_request)
-    body = json.loads(resp.body)
-    assert body["success"]
-    assert body["config"]["RESEND_FROM_NAME"] == "AhmedETAP"
-    assert body["config"]["RESEND_API_KEY_SET"] == "yes"
-    print(f"  ✅ get_config OK (RESEND_API_KEY_SET={body['config']['RESEND_API_KEY_SET']})")
+        # Get config
+        resp = await get_config(mock_request)
+        body = json.loads(resp.body)
+        assert body["success"]
+        assert body["config"]["RESEND_FROM_NAME"] == "AhmedETAP"
+        assert body["config"]["RESEND_API_KEY_SET"] == "yes"
+        print(f"  ✅ get_config OK (RESEND_API_KEY_SET={body['config']['RESEND_API_KEY_SET']})")
 
 
 async def test_5_webhooks():

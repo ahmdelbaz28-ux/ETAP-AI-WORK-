@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import {
   Activity,
   Database,
@@ -31,7 +31,39 @@ interface SCADAAlarm {
   location: string;
 }
 
-export default function ScadaIntegration() {
+// --- Module-scope simulation helpers (extracted to reduce function nesting) ---
+
+const simRand = (): number => crypto.getRandomValues(new Uint32Array(1))[0] / 0x100000000;
+const simRandInt = (max: number): number => Math.floor(simRand() * max);
+
+const ALARM_TAGS = ["Transformer T1", "Breaker CB-04", "Bus Bar 2", "Feeder Line L-08"];
+const ALARM_SEVERITIES: ("WARNING" | "CRITICAL")[] = ["WARNING", "CRITICAL"];
+const ALARM_DESCRIPTIONS = [
+  "Overcurrent detected in substation",
+  "High oil temperature warning",
+  "Voltage transient fluctuation",
+  "Communication delay with RTU",
+];
+
+function applyTelemetryFluctuation(p: TelemetryPoint): TelemetryPoint {
+  let fluctuation: number;
+  if (p.tag.endsWith(".V")) fluctuation = (simRand() - 0.5) * 0.02;
+  else if (p.tag.endsWith(".F")) fluctuation = (simRand() - 0.5) * 0.05;
+  else fluctuation = (simRand() - 0.5) * 5;
+  return { ...p, value: Number.parseFloat((p.value + fluctuation).toFixed(2)) };
+}
+
+function buildRandomAlarm(isRtl: boolean): SCADAAlarm {
+  return {
+    alarm_id: `ALM-${simRandInt(9000) + 1000}`,
+    timestamp: new Date().toLocaleTimeString(),
+    severity: ALARM_SEVERITIES[simRandInt(ALARM_SEVERITIES.length)],
+    description: `${ALARM_DESCRIPTIONS[simRandInt(ALARM_DESCRIPTIONS.length)]} on ${ALARM_TAGS[simRandInt(ALARM_TAGS.length)]}`,
+    location: isRtl ? "محطة القاهرة الشمالية" : "Cairo North Substation",
+  };
+}
+
+export default function ScadaIntegration() {  // NOSONAR(typescript:S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
@@ -205,51 +237,7 @@ export default function ScadaIntegration() {
         addLog(isRtl ? "اتصال WebSocket نشط الآن." : "WebSocket connection established.");
       };
 
-      socketRef.current.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          // Respect the backend's is_simulated flag — when the backend tells us
-          // the data is simulated (e.g. HF Space synthetic feed), we show a
-          // red banner warning operators that this is NOT live production data.
-          if (parsed.is_simulated === true) {
-            setIsSimulation(true);
-            setConnectionStatus("simulated");
-          } else if (parsed.is_simulated === false) {
-            setIsSimulation(false);
-          }
-          if (parsed.measurements) {
-            // Map structured measurements back to points format
-            const mappedPoints: TelemetryPoint[] = [];
-            if (parsed.measurements.bus_voltages) {
-              parsed.measurements.bus_voltages.forEach((b: any) => {
-                mappedPoints.push({
-                  tag: `${b.bus_id}.V`,
-                  value: b.voltage_kV,
-                  unit: "kV",
-                  quality: "GOOD",
-                });
-              });
-            }
-            if (parsed.measurements.generator_outputs) {
-              parsed.measurements.generator_outputs.forEach((g: any) => {
-                mappedPoints.push({
-                  tag: `${g.gen_id}.P`,
-                  value: g.mw,
-                  unit: "MW",
-                  quality: "GOOD",
-                });
-              });
-            }
-            setTelemetryPoints((prev) => (mappedPoints.length > 0 ? mappedPoints : prev));
-          }
-          if (parsed.alarms && parsed.alarms.length > 0) {
-            setAlarms((prev) => [...parsed.alarms, ...prev].slice(0, 30));
-          }
-        } catch (e) {
-          console.error("Error parsing WS message:", e);
-        }
-      };
-
+      socketRef.current.onmessage = (event) => handleWsMessage(event.data);
       socketRef.current.onerror = () => {
         addLog(
           isRtl
@@ -263,6 +251,7 @@ export default function ScadaIntegration() {
         addLog(isRtl ? "تم إغلاق اتصال WebSocket." : "WebSocket connection closed.");
       };
     } catch (err) {
+      console.error("WebSocket init failed:", err);
       addLog(
         isRtl
           ? "تعذر تشغيل WebSocket. جاري تفعيل الاقتراع الدؤوب..."
@@ -270,6 +259,61 @@ export default function ScadaIntegration() {
       );
       startPolling();
     }
+  };
+
+  // Apply a parsed WS message to telemetry/alarm/simulation state. Extracted
+  // to its own helper so startRealSync stays a flat WebSocket-setup sequence.
+  const handleWsMessage = (raw: string) => {
+    let parsed: any;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      console.error("Error parsing WS message:", e);
+      return;
+    }
+    // Respect the backend's is_simulated flag — when the backend tells us
+    // the data is simulated (e.g. HF Space synthetic feed), we show a
+    // red banner warning operators that this is NOT live production data.
+    if (parsed.is_simulated === true) {
+      setIsSimulation(true);
+      setConnectionStatus("simulated");
+    } else if (parsed.is_simulated === false) {
+      setIsSimulation(false);
+    }
+    if (parsed.measurements) {
+      const mappedPoints = mapMeasurementsToTelemetry(parsed.measurements);
+      setTelemetryPoints((prev) => (mappedPoints.length > 0 ? mappedPoints : prev));
+    }
+    if (parsed.alarms && parsed.alarms.length > 0) {
+      setAlarms((prev) => [...parsed.alarms, ...prev].slice(0, 30));
+    }
+  };
+
+  // Map structured `measurements` payload (bus_voltages, generator_outputs)
+  // into the flat TelemetryPoint[] shape the table consumes.
+  const mapMeasurementsToTelemetry = (measurements: any): TelemetryPoint[] => {
+    const out: TelemetryPoint[] = [];
+    if (measurements.bus_voltages) {
+      measurements.bus_voltages.forEach((b: any) => {
+        out.push({
+          tag: `${b.bus_id}.V`,
+          value: b.voltage_kV,
+          unit: "kV",
+          quality: "GOOD",
+        });
+      });
+    }
+    if (measurements.generator_outputs) {
+      measurements.generator_outputs.forEach((g: any) => {
+        out.push({
+          tag: `${g.gen_id}.P`,
+          value: g.mw,
+          unit: "MW",
+          quality: "GOOD",
+        });
+      });
+    }
+    return out;
   };
 
   const startPolling = () => {
@@ -300,6 +344,7 @@ export default function ScadaIntegration() {
           setConnectionStatus("disconnected");
         }
       } catch (err) {
+        console.error("SCADA HTTP polling failed:", err);
         setConnectionStatus("disconnected");
       }
     }, syncInterval * 1000);
@@ -314,44 +359,18 @@ export default function ScadaIntegration() {
 
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-    // Extract telemetry update to reduce function nesting (SonarCloud S2004)
+    // Telemetry + alarm update — defined at component scope (not nested in
+    // startSimulation) so the .map callback inside setTelemetryPoints does
+    // not exceed SonarCloud's S2004 nesting threshold.
     const updateTelemetry = () => {
-      const simRand = () => crypto.getRandomValues(new Uint32Array(1))[0] / 0x100000000;
-      const simRandInt = (max: number) => Math.floor(simRand() * max);
-
-      // Fluctuating values randomly
-      setTelemetryPoints((prev) =>
-        prev.map((p) => {
-          let fluctuation = 0;
-          if (p.tag.endsWith(".V")) fluctuation = (simRand() - 0.5) * 0.02;
-          else if (p.tag.endsWith(".F")) fluctuation = (simRand() - 0.5) * 0.05;
-          else fluctuation = (simRand() - 0.5) * 5;
-          return { ...p, value: Number.parseFloat((p.value + fluctuation).toFixed(2)) };
-        }),
-      );
+      setTelemetryPoints((prev) => prev.map(applyTelemetryFluctuation));
 
       // Randomly trigger alarms
-      if (simRand() < 0.15) generateRandomAlarm(simRandInt);
-    };
-
-    const generateRandomAlarm = (simRandInt: (max: number) => number) => {
-      const alarmTags = ["Transformer T1", "Breaker CB-04", "Bus Bar 2", "Feeder Line L-08"];
-      const severities: ("WARNING" | "CRITICAL")[] = ["WARNING", "CRITICAL"];
-      const descriptions = [
-        "Overcurrent detected in substation",
-        "High oil temperature warning",
-        "Voltage transient fluctuation",
-        "Communication delay with RTU",
-      ];
-      const newAlarm: SCADAAlarm = {
-        alarm_id: `ALM-${simRandInt(9000) + 1000}`,
-        timestamp: new Date().toLocaleTimeString(),
-        severity: severities[simRandInt(severities.length)],
-        description: `${descriptions[simRandInt(descriptions.length)]} on ${alarmTags[simRandInt(alarmTags.length)]}`,
-        location: isRtl ? "محطة القاهرة الشمالية" : "Cairo North Substation",
-      };
-      setAlarms((prev) => [newAlarm, ...prev].slice(0, 30));
-      addLog(`⚠️ ALARM: ${newAlarm.description} (${newAlarm.severity})`);
+      if (simRand() < 0.15) {
+        const newAlarm = buildRandomAlarm(isRtl);
+        setAlarms((prev) => [newAlarm, ...prev].slice(0, 30));
+        addLog(`⚠️ ALARM: ${newAlarm.description} (${newAlarm.severity})`);
+      }
     };
 
     pollIntervalRef.current = setInterval(updateTelemetry, 1500);
@@ -665,7 +684,7 @@ export default function ScadaIntegration() {
                 <button
                   className="text-[10px] text-blue-400 hover:underline"
                   onClick={() => setLogs([])}
-                >
+                 type="button">
                   {isRtl ? "تفريغ" : "Clear"}
                 </button>
               </div>

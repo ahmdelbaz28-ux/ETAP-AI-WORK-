@@ -201,7 +201,7 @@ def _generate_excel(project_name: str, studies: list) -> bytes:
     return buffer.getvalue()
 
 
-@router.post("/{project_id}/pdf")
+@router.post("/{project_id}/pdf", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_pdf(
     project_id: str, db,
     user: CurrentUser = Depends(require_permission("export", "create")),
@@ -232,7 +232,7 @@ async def export_pdf(
     )
 
 
-@router.post("/{project_id}/excel")
+@router.post("/{project_id}/excel", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_excel(
     project_id: str, db,
     user: CurrentUser = Depends(require_permission("export", "create")),

@@ -34,6 +34,22 @@ def score_load_flow(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": violations,
     }
 
+def _score_fault_current(bus_id: str, fault_type: str, ka: float, max_risk: str) -> tuple[str, list[str]]:
+    """Score a single fault current against 40/50 kA thresholds.
+
+    Returns the (possibly upgraded) max_risk and a list of new violations.
+    """
+    new_violations: list[str] = []
+    if ka > 50:
+        new_violations.append(f"Bus {bus_id} {fault_type}: {ka:.1f} kA - EXCEEDS 50 kA rating")
+        return "critical", new_violations
+    if ka > 40:
+        if max_risk in ("low", "medium"):
+            max_risk = "high"
+        new_violations.append(f"Bus {bus_id} {fault_type}: {ka:.1f} kA - EXCEEDS 40 kA")
+    return max_risk, new_violations
+
+
 def score_short_circuit(result: dict[str, Any]) -> dict[str, Any]:
     """Score a short circuit study result."""
     faults = result.get("fault_currents", {})
@@ -42,14 +58,10 @@ def score_short_circuit(result: dict[str, Any]) -> dict[str, Any]:
 
     for bus_id, currents in faults.items():
         for fault_type, ka in currents.items():
-            if isinstance(ka, (int, float)):
-                if ka > 50:
-                    max_risk = "critical"
-                    violations.append(f"Bus {bus_id} {fault_type}: {ka:.1f} kA - EXCEEDS 50 kA rating")
-                elif ka > 40:
-                    if max_risk in ("low", "medium"):
-                        max_risk = "high"
-                    violations.append(f"Bus {bus_id} {fault_type}: {ka:.1f} kA - EXCEEDS 40 kA")
+            if not isinstance(ka, (int, float)):
+                continue
+            max_risk, new_v = _score_fault_current(bus_id, fault_type, ka, max_risk)
+            violations.extend(new_v)
 
     return {
         "risk_score": max_risk,

@@ -13,6 +13,20 @@ from typing import Any, Optional
 
 logger = logging.getLogger("api.dual_control")
 
+
+def _sanitize_for_log(value: str) -> str:
+    """Strip control chars / newlines from user-controlled strings before logging.
+
+    SonarCloud pythonsecurity:S5145 — prevents log-injection attacks where an
+    attacker puts newlines in their user_id to forge fake log entries.
+    """
+    if not isinstance(value, str):
+        value = str(value)
+    # Replace newlines, carriage returns, and other control chars with safe placeholders.
+    # Keep printable ASCII + common Unicode; collapse whitespace to single spaces.
+    import re
+    return re.sub(r"[\r\n\t\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "_", value)
+
 # In-memory store for pending approvals
 # In production this should use Redis, but for HF Space we use memory
 _pending_approvals: dict[str, dict[str, Any]] = {}
@@ -46,7 +60,7 @@ def create_approval_request(
     _pending_approvals[request_id] = request
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
-        request_id, action.get("type", "unknown"), operator_id, AUTO_REJECT_SECONDS,
+        request_id, action.get("type", "unknown"), _sanitize_for_log(operator_id), AUTO_REJECT_SECONDS,
     )
 
     return request
@@ -72,7 +86,10 @@ def approve_request(request_id: str, approver_id: str, secret: Optional[str] = N
     request["approved_by"] = approver_id
     request["approved_at"] = datetime.now(UTC).isoformat()
 
-    logger.info("Dual-control request %s APPROVED by %s", request_id, approver_id)
+    logger.info(
+        "Dual-control request %s APPROVED by %s",
+        request_id, _sanitize_for_log(approver_id),
+    )
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
@@ -92,7 +109,10 @@ def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, 
     request["rejected_by"] = rejector_id
     request["rejected_reason"] = reason
 
-    logger.info("Dual-control request %s REJECTED by %s: %s", request_id, rejector_id, reason)
+    logger.info(
+        "Dual-control request %s REJECTED by %s: %s",
+        request_id, _sanitize_for_log(rejector_id), _sanitize_for_log(reason),
+    )
 
     _notify_clients(request_id, request)
 

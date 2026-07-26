@@ -81,23 +81,16 @@ class TestPromptLoader:
         assert isinstance(prompt, str)
         assert len(prompt) > 0, "Fallback prompt should not be empty"
 
-    def test_missing_prompts_dir_graceful(self):
+    def test_missing_prompts_dir_graceful(self, monkeypatch):
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
-        original_dir = os.environ.get("ETAP_PROMPTS_DIR", "")
-        try:
-            os.environ["ETAP_PROMPTS_DIR"] = "/nonexistent/directory"
-            clear_prompt_cache()
-            prompt = get_system_prompt("load_flow_agent")
-            assert isinstance(prompt, str)
-            assert len(prompt) > 0
-        finally:
-            if original_dir:
-                os.environ["ETAP_PROMPTS_DIR"] = original_dir
-            else:
-                os.environ.pop("ETAP_PROMPTS_DIR", None)
-            clear_prompt_cache()
+        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
+        clear_prompt_cache()
+        prompt = get_system_prompt("load_flow_agent")
+        assert isinstance(prompt, str)
+        assert len(prompt) > 0
+        clear_prompt_cache()
 
     def test_prompt_caching(self):
         """Second call to same handle should return cached result."""
@@ -227,27 +220,20 @@ class TestAgentPromptIntegration:
             assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
             assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
 
-    def test_agent_graceful_prompt_failure(self):
+    def test_agent_graceful_prompt_failure(self, monkeypatch):
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
 
-        original_dir = os.environ.get("ETAP_PROMPTS_DIR", "")
-        try:
-            os.environ["ETAP_PROMPTS_DIR"] = "/nonexistent/directory"
-            from agents.prompt_loader import clear_prompt_cache
+        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
+        from agents.prompt_loader import clear_prompt_cache
 
-            clear_prompt_cache()
-            agent = LoadFlowAgent()
-            # Agent should still have a system_prompt property (fallback)
-            assert len(agent.system_prompt) > 0
-            # Agent should still be functional
-            assert agent.agent_name == "LoadFlowAgent"
-        finally:
-            if original_dir:
-                os.environ["ETAP_PROMPTS_DIR"] = original_dir
-            else:
-                os.environ.pop("ETAP_PROMPTS_DIR", None)
-            clear_prompt_cache()
+        clear_prompt_cache()
+        agent = LoadFlowAgent()
+        # Agent should still have a system_prompt property (fallback)
+        assert len(agent.system_prompt) > 0
+        # Agent should still be functional
+        assert agent.agent_name == "LoadFlowAgent"
+        clear_prompt_cache()
 
     def test_explicit_prompt_handle_overrides_derived(self):
         """Explicit prompt_handle in subclass should override derived one."""

@@ -14,7 +14,7 @@ import type { Env } from '../core/types.js';
 export type Json = Record<string, unknown>;
 
 function resolveTrustedOrigins(env?: Env): Set<string> {
-  const origins = new Set<string>([...CONFIG.DEFAULT_TRUSTED_ORIGINS]);
+  const origins = new Set<string>(CONFIG.DEFAULT_TRUSTED_ORIGINS);
   if (env?.TRUSTED_ORIGINS) {
     for (const o of env.TRUSTED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)) {
       origins.add(o);
@@ -23,11 +23,22 @@ function resolveTrustedOrigins(env?: Env): Set<string> {
   return origins;
 }
 
+// SonarCloud typescript:S7780: avoid backslash escapes inside string / template
+// literals by using a non-escaped constant for the regex-escape backslash.
+// (String.raw could not be used to produce a single trailing backslash.)
+const REGEX_ESCAPE_BACKSLASH = String.fromCharCode(92); // ASCII 92 = '\\'
+const REGEX_SPECIAL_CHARS = /[.+?^${}()|[\]\\]/g;
+
 function isOriginTrusted(origin: string, trusted: Set<string>): boolean {
   if (trusted.has(origin)) return true;
   for (const pattern of trusted) {
     if (pattern.includes('*')) {
-      const regex = new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+      // Escape regex special chars (prefix each with a backslash), then turn
+      // the glob `*` into the regex `.*` wildcard.
+      const escaped = pattern
+        .replace(REGEX_SPECIAL_CHARS, (ch) => REGEX_ESCAPE_BACKSLASH + ch)
+        .replaceAll('*', '.*');
+      const regex = new RegExp('^' + escaped + '$');
       if (regex.test(origin)) return true;
     }
   }

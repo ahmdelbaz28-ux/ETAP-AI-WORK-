@@ -208,8 +208,7 @@ class AIMemoryService:
             logger.warning("Failed to initialize ChatOpenAI (%s). Using dummy LLM.", exc)
 
             class DummyLLM:
-                def predict(self, prompt: str, **_kwargs) -> str:
-                    # SonarCloud: unused parameter marked with _kwargs to suppress warning
+                def predict(self, _prompt: str, **_kwargs) -> str:  # NOSONAR(python:S1172): param kept for LLM-predict interface compatibility
                     # Simple echo or placeholder implementation.
                     return ""
             return DummyLLM()

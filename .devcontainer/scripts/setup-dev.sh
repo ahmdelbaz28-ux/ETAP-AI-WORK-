@@ -4,7 +4,7 @@ set -euo pipefail
 echo "=== AhmedETAP Platform — Devcontainer Setup ==="
 
 # ── Virtual environment ─────────────────────────────────────────────────────
-if [ ! -d ".venv312" ]; then
+if [[ ! -d ".venv312" ]]; then
     echo "[1/4] Creating Python 3.12 virtual environment..."
     python -m venv .venv312
 else

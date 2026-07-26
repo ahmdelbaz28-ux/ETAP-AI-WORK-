@@ -19,8 +19,7 @@ const CATEGORY_CONFIG: Record<
 };
 
 // Keyboard key component — renders a styled key cap
-function KeyCap({ children }: { children: React.ReactNode }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function KeyCap({ children }: { readonly children: React.ReactNode }) {
   return (
     <kbd
       className={cn(

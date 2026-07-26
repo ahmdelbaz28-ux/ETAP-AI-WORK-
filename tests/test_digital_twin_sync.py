@@ -235,37 +235,28 @@ def test_etap_sync_engine_importable() -> None:
     assert stats["total_operations"] == 0
 
 
-def test_etap_sync_mock_import() -> None:
+def test_etap_sync_mock_import(monkeypatch) -> None:
     """Verify mock ETAP import creates a valid model."""
-    import os
-
     # MockEtapProvider.is_available() returns False unless USE_ETAP=true.
     # The conftest's autouse fixture sets USE_ETAP=false for the whole suite
     # (so the live API server doesn't try to connect to a real ETAP instance),
     # so we re-enable it just for this test.
-    previous = os.environ.get("USE_ETAP")
-    os.environ["USE_ETAP"] = "true"
-    try:
-        from core_model.system import System
-        from digital_twin.digital_twin_core import DigitalTwinState
-        from etap_integration.etap_provider import MockEtapProvider
-        from etap_integration.sync_engine import ETAPSyncEngine
+    monkeypatch.setenv("USE_ETAP", "true")
+    from core_model.system import System
+    from digital_twin.digital_twin_core import DigitalTwinState
+    from etap_integration.etap_provider import MockEtapProvider
+    from etap_integration.sync_engine import ETAPSyncEngine
 
-        dt_state = DigitalTwinState()
-        system = System(base_mva=100.0)
-        dt_state.bind_electrical(system)
+    dt_state = DigitalTwinState()
+    system = System(base_mva=100.0)
+    dt_state.bind_electrical(system)
 
-        provider = MockEtapProvider()
-        engine = ETAPSyncEngine(etap_provider=provider, dt_state=dt_state)
+    provider = MockEtapProvider()
+    engine = ETAPSyncEngine(etap_provider=provider, dt_state=dt_state)
 
-        result = engine.import_from_etap("mock_project.edb")
-        assert result["success"]
-        assert result["object_counts"]["buses"] > 0
-    finally:
-        if previous is None:
-            os.environ.pop("USE_ETAP", None)
-        else:
-            os.environ["USE_ETAP"] = previous
+    result = engine.import_from_etap("mock_project.edb")
+    assert result["success"]
+    assert result["object_counts"]["buses"] > 0
 
 
 def test_etap_sync_export() -> None:

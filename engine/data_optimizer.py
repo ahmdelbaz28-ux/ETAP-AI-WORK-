@@ -13,7 +13,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 from collections.abc import Callable
-from typing import Any, Optional, Union
+from typing import Any
 
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
@@ -165,7 +165,7 @@ class MemoryOptimizedSystem:
     )
     THRESH = 100
 
-    def __init__(self, original: Optional[System] = None):
+    def __init__(self, original: System | None = None):
         self.base_mva = 100.0
         self.bus_count = 0
         self.lines = []
@@ -176,7 +176,7 @@ class MemoryOptimizedSystem:
         self._inc_gen_z = False
         self._use_arr = False
         self._ids = self._vmag = self._vang = None  # NOSONAR — S116: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self._pL = self._qL = self._pG = self._qG = None
+        self._pL = self._qL = self._pG = self._qG = None  # NOSONAR(python:S116): IEEE/IEC standard notation (P/Q active/reactive power at Load/Generator)
         self._kv = self._bt = self._qmin = self._qmax = self._vms = None
         self._buses = None
         self._sm = SparseMatrixManager()
@@ -380,7 +380,7 @@ class BatchProcessor:
             "total_time": 0.0,
         }
 
-    def process_buses(self, buses: Union[dict, list], fn: Callable) -> list[Any]:
+    def process_buses(self, buses: dict | list, fn: Callable) -> list[Any]:
         return self._batch_process(
             list(buses.items()) if isinstance(buses, dict) else list(buses), fn
         )
@@ -388,7 +388,7 @@ class BatchProcessor:
     def process_lines(self, lines: list, fn: Callable) -> list[Any]:
         return self._batch_process(list(lines), fn)
 
-    def process_faults(self, buses: Union[dict, list], ftypes: list[str], fn: Callable) -> list[Any]:
+    def process_faults(self, buses: dict | list, ftypes: list[str], fn: Callable) -> list[Any]:
         items = list(buses.items()) if isinstance(buses, dict) else list(buses)
         return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
 
@@ -469,7 +469,7 @@ class DataCompressor:
                 restored[k] = v.copy() if isinstance(v, np.ndarray) else v
         return restored
 
-    def compress_system_state(self, system: Union[System, MemoryOptimizedSystem]) -> dict[str, Any]:
+    def compress_system_state(self, system: System | MemoryOptimizedSystem) -> dict[str, Any]:
         s = system.to_system() if isinstance(system, MemoryOptimizedSystem) else system
         bids = sorted(s.buses.keys())
         vmag = np.array([s.buses[b].voltage_magnitude for b in bids], dtype=np.float32)
@@ -678,7 +678,7 @@ class PerformanceProfiler:
 class LargeSystemAdapter:
     """Adapts calculation engines for large power system models."""
 
-    def __init__(self, system: Union[System, MemoryOptimizedSystem,], memory_limit_mb: int = 1024):
+    def __init__(self, system: System | MemoryOptimizedSystem, memory_limit_mb: int = 1024):
         self.memory_limit_mb = memory_limit_mb
         self.optimized_system = (
             MemoryOptimizedSystem(system) if isinstance(system, System) else system

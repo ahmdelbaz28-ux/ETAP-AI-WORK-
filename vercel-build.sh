@@ -25,12 +25,15 @@
 # =============================================================================
 set -euo pipefail
 
-echo "================================================================"
+# Reusable separator line (SonarCloud shelldre:S1192 — extract repeated literal)
+SEP="================================================================"
+
+echo "$SEP"
 echo " vercel-build.sh — Vite UI build wrapper"
 echo " repo root: $(pwd)"
 echo " node:      $(node --version 2>/dev/null || echo 'NOT FOUND')"
 echo " npm:       $(npm --version 2>/dev/null || echo 'NOT FOUND')"
-echo "================================================================"
+echo "$SEP"
 
 # -----------------------------------------------------------------------------
 # Pre-flight check 1: mkdocs.yml MUST NOT be at repo root
@@ -116,9 +119,9 @@ fi
 echo "✓ ui/dist/index.html present"
 
 echo ""
-echo "================================================================"
+echo "$SEP"
 echo " BUILD SUCCEEDED"
 echo " output: $(pwd)/ui/dist/"
-echo "================================================================"
+echo "$SEP"
 ls -la ui/dist/ | head -15
 exit 0

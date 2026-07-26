@@ -29,8 +29,8 @@ h1{font-size:1.9rem;font-weight:600;margin-bottom:1.4rem;letter-spacing:.5px;}
 .login-form{display:flex;flex-direction:column;gap:.9rem;}
 .login-form input{padding:.7rem 1rem;border:none;border-radius:6px;background:#111720;color:#fff;font-size:1rem;}
 .login-form input::placeholder{color:#777;}
-.login-form button{padding:.75rem;border:none;border-radius:6px;background:#1e90ff;color:#fff;font-weight:600;cursor:pointer;transition:background .2s;}
-.login-form button:hover{background:#3aa0ff;}
+.login-form button{padding:.75rem;border:none;border-radius:6px;background:#0066cc;color:#fff;font-weight:600;cursor:pointer;transition:background .2s;}  /* SonarCloud css:S7924: darkened from #1e90ff to #0066cc for WCAG AA contrast (5.78:1) */
+.login-form button:hover{background:#0052a3;}  /* S7924: hover darkened to #0052a3 (~7:1 contrast) */
 
 /* ==== Hand / Arm ==== */
 .hand-touch{margin-top:2rem;position:relative;height:200px;}

@@ -69,7 +69,7 @@ _records: dict[str, _MagicLinkRecord] = {}
 _issue_log: dict[str, list[float]] = {}
 
 
-async def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
+async def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:  # NOSONAR(python:S7503): async for magic-link API consistency (I/O-backed store contract)
     """Issue a magic link. Returns (success, raw_token, retry_after_seconds)."""
     # Rate limit
     now = time.time()
@@ -101,7 +101,7 @@ async def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
     return True, raw_token, 0
 
 
-async def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:
+async def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:  # NOSONAR(python:S7503): async for magic-link API consistency (I/O-backed store contract)
     """Verify a magic link token. Returns (success, record, error)."""
     if not raw_token or len(raw_token) < 32:
         return False, None, "invalid_token"

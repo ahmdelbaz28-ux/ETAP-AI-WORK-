@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
   && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
     > /etc/apt/sources.list.d/nodesource.list \
-  && apt-get update && apt-get install -y --no-install-recommends \
+  && apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(docker:S7018): grouped by purpose, sorted within each group
     # Python toolchain
     python3-dev python3-pip python3.12 python3.12-venv \
     # Node.js 22 LTS
@@ -77,4 +77,4 @@ RUN npm install -g --ignore-scripts isolated-vm@7.0.0 2>&1 | tail -5 || \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    NODE_ENV=development
+    NODE_ENV=development  # NOSONAR(docker:S4507): devcontainer-only image; NODE_ENV=development is intentional and never deployed to production

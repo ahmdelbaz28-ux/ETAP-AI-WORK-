@@ -209,7 +209,7 @@ export function Sidebar() {
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors",
             sidebarCollapsed && "justify-center px-0",
           )}
-        >
+         type="button">
           {theme === "dark" ? (
             <Sun className="w-[18px] h-[18px] shrink-0" />
           ) : (
@@ -227,7 +227,7 @@ export function Sidebar() {
             sidebarCollapsed && "justify-center px-0",
           )}
           title={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-        >
+         type="button">
           {sidebarCollapsed ? (
             <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? "rotate-180" : ""}`} />
           ) : (

@@ -82,7 +82,7 @@ export interface ExecutionContext {
 }
 
 export interface KVNamespace {
-  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown | null>;
+  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown>;
   put(
     key: string,
     value: string | ArrayBuffer | ReadableStream,

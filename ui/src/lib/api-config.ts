@@ -195,7 +195,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     ["deriveKey"]
   );
 
-  const saltBytes = new Uint8Array(salt.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+  const saltBytes = new Uint8Array(salt.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16)));
   
   return crypto.subtle.deriveKey(
     {
@@ -269,7 +269,7 @@ export async function encryptSecret(value: string): Promise<string> {
     combined.set(encryptedArray, iv.length);
     
     // Return as base64
-    return btoa(String.fromCharCode(...combined));
+    return btoa(String.fromCodePoint(...combined));
   } catch (error) {
     console.error("Failed to encrypt secret:", error);
     // Fallback: return original value (will be stored in plaintext but logged)
@@ -288,7 +288,7 @@ export async function decryptSecret(encryptedValue: string): Promise<string> {
     
     // Decode from base64
     const combined = new Uint8Array(
-      atob(encryptedValue).split("").map(c => c.charCodeAt(0))
+      atob(encryptedValue).split("").map(c => c.codePointAt(0)!)
     );
     
     // Extract IV (first 12 bytes) and ciphertext
@@ -314,7 +314,11 @@ export async function decryptSecret(encryptedValue: string): Promise<string> {
 /**
  * Synchronous fallback for backward compatibility with existing stored values.
  * This handles the old XOR-obfuscated values during migration.
- * @deprecated Use encryptSecret/decryptSecret instead
+ *
+ * This function is intentionally kept as the synchronous fallback path because
+ * encryptSecret/decryptSecret are async (Web Crypto API) and some callers need
+ * a synchronous result (e.g. request header construction in api.ts). The async
+ * path is always preferred when available; this is only the migration fallback.
  */
 function deobfuscateLegacy(value: string): string {
   if (!value) return "";

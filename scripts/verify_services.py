@@ -54,12 +54,8 @@ def info(msg: str) -> None:
     print(f"  {R.INFO}[INFO]{R.END} {msg}")
 
 
-def main() -> None:
-    print("=" * 60)
-    print(f"{R.BOLD}SERVICE VERIFICATION REPORT{R.END}")
-    print("=" * 60)
-
-    # ─── 1. Smithery ──────────────────────────────────────────────────────────
+def _check_smithery() -> None:
+    """Verify Smithery server connectivity."""
     print(f"\n{R.BOLD}--- Smithery ---{R.END}")
     s_api_key = os.environ.get("SMITHERY_API_KEY", "")
     s_headers = {"Authorization": f"Bearer {s_api_key}", "User-Agent": "AhmedETAP/1.0.0"}
@@ -79,7 +75,9 @@ def main() -> None:
     except Exception as e:
         fail(f"Connection failed: {e}")
 
-    # ─── 2. LangWatch ─────────────────────────────────────────────────────────
+
+def _check_langwatch() -> None:
+    """Verify LangWatch prompts API."""
     print(f"\n{R.BOLD}--- LangWatch ---{R.END}")
     l_api_key = os.environ.get("LANGWATCH_API_KEY", "")
     l_headers = {"Authorization": f"Bearer {l_api_key}", "Content-Type": "application/json"}
@@ -98,127 +96,138 @@ def main() -> None:
     except Exception as e:
         fail(f"Connection failed: {e}")
 
-    # ─── 3. Langfuse (NEW) ────────────────────────────────────────────────────
+
+def _check_langfuse() -> None:
+    """Verify Langfuse v2 API."""
     print(f"\n{R.BOLD}--- Langfuse ---{R.END}")
     lf_public = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
     lf_secret = os.environ.get("LANGFUSE_SECRET_KEY", "")
     lf_base = os.environ.get("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
 
-    if lf_public and lf_secret:
-        b64 = base64.b64encode(f"{lf_public}:{lf_secret}".encode()).decode()
-        lf_headers = {"Authorization": f"Basic {b64}"}
-
-        try:
-            r = httpx.get(f"{lf_base}/api/public/health", headers=lf_headers, timeout=10)
-            if r.status_code == 200:
-                ok("Health endpoint: 200")
-            else:
-                fail(f"Health: HTTP {r.status_code}")
-        except Exception as e:
-            fail(f"Health failed: {e}")
-
-        try:
-            r = httpx.get(
-                f"{lf_base}/api/public/v2/prompts",
-                headers=lf_headers,
-                params={"page": 1, "limit": 100},
-                timeout=15,
-            )
-            if r.status_code == 200:
-                prompts = r.json().get("data", [])
-                ok(f"Prompts (v2 API): {len(prompts)} prompts")
-                production = [p for p in prompts if "production" in (p.get("labels") or [])]
-                ok(f"  - Production-labeled: {len(production)}")
-                for p in prompts[:5]:
-                    info(f"  - {p.get('name')} ({p.get('labels', [])})")
-                if len(prompts) > 5:
-                    info(f"  ... and {len(prompts) - 5} more")
-            else:
-                fail(f"Prompts v2: HTTP {r.status_code}")
-        except Exception as e:
-            fail(f"Prompts v2 failed: {e}")
-    else:
+    if not (lf_public and lf_secret):
         warn("LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY not set")
+        return
 
-    # ─── 4. Supabase (NEW) ────────────────────────────────────────────────────
+    b64 = base64.b64encode(f"{lf_public}:{lf_secret}".encode()).decode()
+    lf_headers = {"Authorization": f"Basic {b64}"}
+
+    try:
+        r = httpx.get(f"{lf_base}/api/public/health", headers=lf_headers, timeout=10)
+        if r.status_code == 200:
+            ok("Health endpoint: 200")
+        else:
+            fail(f"Health: HTTP {r.status_code}")
+    except Exception as e:
+        fail(f"Health failed: {e}")
+
+    try:
+        r = httpx.get(
+            f"{lf_base}/api/public/v2/prompts",
+            headers=lf_headers,
+            params={"page": 1, "limit": 100},
+            timeout=15,
+        )
+        if r.status_code == 200:
+            prompts = r.json().get("data", [])
+            ok(f"Prompts (v2 API): {len(prompts)} prompts")
+            production = [p for p in prompts if "production" in (p.get("labels") or [])]
+            ok(f"  - Production-labeled: {len(production)}")
+            for p in prompts[:5]:
+                info(f"  - {p.get('name')} ({p.get('labels', [])})")
+            if len(prompts) > 5:
+                info(f"  ... and {len(prompts) - 5} more")
+        else:
+            fail(f"Prompts v2: HTTP {r.status_code}")
+    except Exception as e:
+        fail(f"Prompts v2 failed: {e}")
+
+
+def _check_supabase() -> None:
+    """Verify Supabase REST endpoints and tables."""
     print(f"\n{R.BOLD}--- Supabase ---{R.END}")
     sb_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
     sb_service = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
-    if sb_url and sb_service:
-        sb_headers = {"apikey": sb_service, "Authorization": f"Bearer {sb_service}"}
-
-        # Health check on REST root
-        try:
-            r = httpx.get(f"{sb_url}/rest/v1/", headers=sb_headers, timeout=10)
-            if r.status_code in (200, 404):
-                ok(f"REST endpoint: {r.status_code} (404 on root is normal)")
-            else:
-                fail(f"REST root: HTTP {r.status_code}")
-        except Exception as e:
-            fail(f"REST failed: {e}")
-
-        # Check users table
-        try:
-            r = httpx.get(f"{sb_url}/rest/v1/users?select=*&limit=10", headers=sb_headers, timeout=10)
-            if r.status_code == 200:
-                users = r.json()
-                ok(f"users table: {len(users)} row(s)")
-                admins = [u for u in users if u.get("role") == "admin"]
-                if admins:
-                    ok(f"  - admin user(s): {len(admins)}")
-                else:
-                    warn("  - no admin user found (run scripts/etap_fix_supabase_init.py)")
-            else:
-                fail(f"users table: HTTP {r.status_code}")
-        except Exception as e:
-            fail(f"users table query failed: {e}")
-
-        # Check projects table
-        try:
-            r = httpx.get(
-                f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10,
-            )
-            if r.status_code == 200:
-                projects = r.json()
-                ok(f"projects table: {len(projects)} row(s)")
-            else:
-                fail(f"projects table: HTTP {r.status_code}")
-        except Exception as e:
-            fail(f"projects table query failed: {e}")
-    else:
+    if not (sb_url and sb_service):
         fail("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set")
+        return
 
-    # ─── 5. Neo4j (NEW) ───────────────────────────────────────────────────────
+    sb_headers = {"apikey": sb_service, "Authorization": f"Bearer {sb_service}"}
+
+    # Health check on REST root
+    try:
+        r = httpx.get(f"{sb_url}/rest/v1/", headers=sb_headers, timeout=10)
+        if r.status_code in (200, 404):
+            ok(f"REST endpoint: {r.status_code} (404 on root is normal)")
+        else:
+            fail(f"REST root: HTTP {r.status_code}")
+    except Exception as e:
+        fail(f"REST failed: {e}")
+
+    # Check users table
+    try:
+        r = httpx.get(f"{sb_url}/rest/v1/users?select=*&limit=10", headers=sb_headers, timeout=10)
+        if r.status_code == 200:
+            users = r.json()
+            ok(f"users table: {len(users)} row(s)")
+            admins = [u for u in users if u.get("role") == "admin"]
+            if admins:
+                ok(f"  - admin user(s): {len(admins)}")
+            else:
+                warn("  - no admin user found (run scripts/etap_fix_supabase_init.py)")
+        else:
+            fail(f"users table: HTTP {r.status_code}")
+    except Exception as e:
+        fail(f"users table query failed: {e}")
+
+    # Check projects table
+    try:
+        r = httpx.get(
+            f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10,
+        )
+        if r.status_code == 200:
+            projects = r.json()
+            ok(f"projects table: {len(projects)} row(s)")
+        else:
+            fail(f"projects table: HTTP {r.status_code}")
+    except Exception as e:
+        fail(f"projects table query failed: {e}")
+
+
+def _check_neo4j() -> None:
+    """Verify Neo4j connectivity."""
     print(f"\n{R.BOLD}--- Neo4j ---{R.END}")
     neo4j_uri = os.environ.get("NEO4J_URI", "")
     neo4j_user = os.environ.get("NEO4J_USER", "neo4j")
     neo4j_pwd = os.environ.get("NEO4J_PASSWORD", "")
 
-    if neo4j_uri and neo4j_pwd:
-        try:
-            from neo4j import GraphDatabase
-
-            driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=10)
-            with driver.session() as session:
-                result = session.run("RETURN 1 AS ok").single()
-                if result and result["ok"] == 1:
-                    ok(f"Neo4j query OK (uri: {neo4j_uri[:50]}...)")
-                else:
-                    fail("Neo4j query returned unexpected result")
-            driver.close()
-        except ImportError:
-            warn("neo4j package not installed — skipping")
-        except Exception as e:
-            err = str(e)
-            if "DNS" in err or "Name or service not known" in err:
-                fail(f"DNS resolution failed — URI is incorrect: {neo4j_uri[:60]}")
-            else:
-                fail(f"Connection failed: {err[:200]}")
-    else:
+    if not (neo4j_uri and neo4j_pwd):
         warn("NEO4J_URI / NEO4J_PASSWORD not set (optional)")
+        return
 
-    # ─── 6. HuggingFace Space ─────────────────────────────────────────────────
+    try:
+        from neo4j import GraphDatabase
+
+        driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=10)
+        with driver.session() as session:
+            result = session.run("RETURN 1 AS ok").single()
+            if result and result["ok"] == 1:
+                ok(f"Neo4j query OK (uri: {neo4j_uri[:50]}...)")
+            else:
+                fail("Neo4j query returned unexpected result")
+        driver.close()
+    except ImportError:
+        warn("neo4j package not installed — skipping")
+    except Exception as e:
+        err = str(e)
+        if "DNS" in err or "Name or service not known" in err:
+            fail(f"DNS resolution failed — URI is incorrect: {neo4j_uri[:60]}")
+        else:
+            fail(f"Connection failed: {err[:200]}")
+
+
+def _check_hf_space() -> None:
+    """Verify HuggingFace Space reachability."""
     print(f"\n{R.BOLD}--- HuggingFace Space ---{R.END}")
     hf_token = os.environ.get("HF_TOKEN", "")
 
@@ -278,7 +287,9 @@ def main() -> None:
     except Exception as e:
         fail(f"/api/v1/agents failed: {e}")
 
-    # ─── 7. GitHub Repo ───────────────────────────────────────────────────────
+
+def _check_github_repo() -> None:
+    """Verify GitHub repo access and CI runs."""
     print(f"\n{R.BOLD}--- GitHub Repo ---{R.END}")
     gh_token = os.environ.get("GITHUB_TOKEN", "")
     gh_headers = (
@@ -321,7 +332,9 @@ def main() -> None:
     except Exception as e:
         warn(f"Actions API failed: {e}")
 
-    # ─── 8. Vercel ────────────────────────────────────────────────────────────
+
+def _check_vercel() -> None:
+    """Verify Vercel live site reachability."""
     print(f"\n{R.BOLD}--- Vercel ---{R.END}")
     try:
         r = httpx.get("https://etap-ai-work.vercel.app/", timeout=10, follow_redirects=True)
@@ -332,6 +345,24 @@ def main() -> None:
             fail(f"HTTP {r.status_code}")
     except Exception as e:
         fail(f"Connection failed: {e}")
+
+
+def main() -> None:
+    print("=" * 60)
+    print(f"{R.BOLD}SERVICE VERIFICATION REPORT{R.END}")
+    print("=" * 60)
+
+    for checker in (
+        _check_smithery,
+        _check_langwatch,
+        _check_langfuse,
+        _check_supabase,
+        _check_neo4j,
+        _check_hf_space,
+        _check_github_repo,
+        _check_vercel,
+    ):
+        checker()
 
     # ─── Summary ──────────────────────────────────────────────────────────────
     print("\n" + "=" * 60)

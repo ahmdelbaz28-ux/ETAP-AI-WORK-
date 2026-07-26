@@ -1,10 +1,12 @@
-// NOSONAR — admin dashboard with complex UI patterns
+// Admin dashboard with complex UI patterns
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Activity, AlertTriangle, Power, Shield, ShieldOff } from "lucide-react";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "info" | "brand" | "neutral";
 
 interface CUAActionLog {
   entry_id: number;
@@ -24,6 +26,152 @@ interface KillSwitchStatus {
   reason: string | null;
 }
 
+// --- Module-scope helpers (extracted to keep CuaMonitor's cognitive complexity low) ---
+
+function authHeader(): Record<string, string> {
+  const token = localStorage.getItem("authToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function getEntryColor(entry: CUAActionLog): string {
+  if (entry.blocked) return "text-red-400 border-red-500/30";
+  if (entry.entry_type === "pre_action") return "text-yellow-400 border-yellow-500/30";
+  if (entry.entry_type === "rollback") return "text-orange-400 border-orange-500/30";
+  if (entry.entry_type === "post_action") return "text-green-400 border-green-500/30";
+  return "text-blue-400 border-blue-500/30";
+}
+
+function getEntryVariant(entryType: string): BadgeVariant {
+  if (entryType === "pre_action") return "warning";
+  if (entryType === "post_action") return "success";
+  if (entryType === "rollback") return "danger";
+  return "default";
+}
+
+async function fetchKillSwitch(
+  setKillSwitch: (s: KillSwitchStatus) => void,
+): Promise<void> {
+  try {
+    const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch`, {
+      headers: authHeader(),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      setKillSwitch(data);
+    }
+  } catch {
+    // silent — best-effort status poll
+  }
+}
+
+async function fetchAuditLog(
+  setLogs: (logs: CUAActionLog[]) => void,
+  setLoading: (b: boolean) => void,
+): Promise<void> {
+  try {
+    const resp = await fetch(`${API_BASE_URL}/admin/cua/audit-log?limit=50`, {
+      headers: authHeader(),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      setLogs(data.entries || []);
+    }
+  } catch {
+    // silent — best-effort log poll
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function activateKill(
+  notify: (type: "success" | "error" | "info" | "warning", message: string) => void,
+  onDone: () => void,
+): Promise<void> {
+  try {
+    const token = localStorage.getItem("authToken");
+    const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch/activate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason: "manual_from_dashboard" }),
+    });
+    if (resp.ok) {
+      notify("success", "Kill switch activated");
+      onDone();
+    } else {
+      notify("error", "Failed to activate kill switch");
+    }
+  } catch {
+    notify("error", "Network error activating kill switch");
+  }
+}
+
+async function deactivateKill(
+  notify: (type: "success" | "error" | "info" | "warning", message: string) => void,
+  onDone: () => void,
+): Promise<void> {
+  try {
+    const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch/deactivate`, {
+      method: "POST",
+      headers: authHeader(),
+    });
+    if (resp.ok) {
+      notify("success", "Kill switch deactivated");
+      onDone();
+    } else {
+      notify("error", "Failed to deactivate kill switch");
+    }
+  } catch {
+    notify("error", "Network error deactivating kill switch");
+  }
+}
+
+function renderTableBody(
+  loading: boolean,
+  logs: CUAActionLog[],
+  isRtl: boolean,
+) {
+  if (loading) {
+    return (
+      <tr>
+        <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">Loading...</td>
+      </tr>
+    );
+  }
+  if (logs.length === 0) {
+    return (
+      <tr>
+        <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">
+          {isRtl ? "لا توجد إجراءات مسجلة" : "No actions recorded"}
+        </td>
+      </tr>
+    );
+  }
+  return logs.map((entry) => (
+    <tr
+      key={entry.entry_id}
+      className={`border-l-2 ${getEntryColor(entry)} hover:bg-[var(--bg-elevated)] transition-colors`}
+    >
+      <td className="py-2 px-2 font-mono">{entry.entry_id}</td>
+      <td className="py-2 px-2">
+        <Badge variant={getEntryVariant(entry.entry_type)} size="sm">
+          {entry.entry_type}
+        </Badge>
+      </td>
+      <td className="py-2 px-2 font-mono text-[10px]">{entry.timestamp}</td>
+      <td className="py-2 px-2 font-mono text-[10px] max-w-[200px] truncate">
+        {entry.action}
+      </td>
+      <td className="py-2 px-2">{entry.safety_level || "-"}</td>
+      <td className="py-2 px-2 font-mono text-[9px] text-[var(--text-muted)]">
+        {entry.hash?.slice(0, 12)}...
+      </td>
+    </tr>
+  ));
+}
+
 export default function CuaMonitor() {
   const { i18n } = useTranslation();
   const { notify } = useNotify();
@@ -37,101 +185,21 @@ export default function CuaMonitor() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchKillSwitch = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setKillSwitch(data);
-      }
-    } catch {
-      // silent
-    }
-  };
-
-  const fetchAuditLog = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const resp = await fetch(`${API_BASE_URL}/admin/cua/audit-log?limit=50`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setLogs(data.entries || []);
-      }
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const activateKill = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch/activate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reason: "manual_from_dashboard" }),
-      });
-      if (resp.ok) {
-        notify("success", "Kill switch activated");
-        fetchKillSwitch();
-      } else {
-        notify("error", "Failed to activate kill switch");
-      }
-    } catch {
-      notify("error", "Network error activating kill switch");
-    }
-  };
-
-  const deactivateKill = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch/deactivate`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (resp.ok) {
-        notify("success", "Kill switch deactivated");
-        fetchKillSwitch();
-      } else {
-        notify("error", "Failed to deactivate kill switch");
-      }
-    } catch {
-      notify("error", "Network error deactivating kill switch");
-    }
-  };
-
   useEffect(() => {
-    fetchKillSwitch();
-    fetchAuditLog();
+    const refresh = () => {
+      fetchKillSwitch(setKillSwitch);
+      fetchAuditLog(setLogs, setLoading);
+    };
+    refresh();
 
     if (autoRefresh) {
-      intervalRef.current = setInterval(() => {
-        fetchKillSwitch();
-        fetchAuditLog();
-      }, 5000);
+      intervalRef.current = setInterval(refresh, 5000);
     }
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [autoRefresh]);
-
-  const getEntryColor = (entry: CUAActionLog) => {
-    if (entry.blocked) return "text-red-400 border-red-500/30";
-    if (entry.entry_type === "pre_action") return "text-yellow-400 border-yellow-500/30";
-    if (entry.entry_type === "rollback") return "text-orange-400 border-orange-500/30";
-    if (entry.entry_type === "post_action") return "text-green-400 border-green-500/30";
-    return "text-blue-400 border-blue-500/30";
-  };
 
   return (
     <div className="space-y-6">
@@ -201,11 +269,11 @@ export default function CuaMonitor() {
 
           <div className="flex gap-2">
             {!killSwitch.active ? (
-              <Button variant="danger" icon={Power} onClick={activateKill}>
+              <Button variant="danger" icon={Power} onClick={() => activateKill(notify, () => fetchKillSwitch(setKillSwitch))}>
                 {isRtl ? "تفعيل الطوارئ" : "Kill All"}
               </Button>
             ) : (
-              <Button variant="secondary" icon={Power} onClick={deactivateKill}>
+              <Button variant="secondary" icon={Power} onClick={() => deactivateKill(notify, () => fetchKillSwitch(setKillSwitch))}>
                 {isRtl ? "إلغاء الطوارئ" : "Resume All"}
               </Button>
             )}
@@ -240,39 +308,7 @@ export default function CuaMonitor() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-primary)]">
-              {loading ? (
-                <tr><td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">Loading...</td></tr>
-              ) : logs.length === 0 ? (
-                <tr><td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">
-                  {isRtl ? "لا توجد إجراءات مسجلة" : "No actions recorded"}
-                </td></tr>
-              ) : (
-                logs.map((entry) => (
-                  <tr key={entry.entry_id} className={`border-l-2 ${getEntryColor(entry)} hover:bg-[var(--bg-elevated)] transition-colors`}>
-                    <td className="py-2 px-2 font-mono">{entry.entry_id}</td>
-                    <td className="py-2 px-2">
-                      <Badge
-                        variant={
-                          entry.entry_type === "pre_action" ? "warning" :
-                          entry.entry_type === "post_action" ? "success" :
-                          entry.entry_type === "rollback" ? "danger" : "default"
-                        }
-                        size="sm"
-                      >
-                        {entry.entry_type}
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-2 font-mono text-[10px]">{entry.timestamp}</td>
-                    <td className="py-2 px-2 font-mono text-[10px] max-w-[200px] truncate">
-                      {entry.action}
-                    </td>
-                    <td className="py-2 px-2">{entry.safety_level || "-"}</td>
-                    <td className="py-2 px-2 font-mono text-[9px] text-[var(--text-muted)]">
-                      {entry.hash?.slice(0, 12)}...
-                    </td>
-                  </tr>
-                ))
-              )}
+              {renderTableBody(loading, logs, isRtl)}
             </tbody>
           </table>
         </div>
