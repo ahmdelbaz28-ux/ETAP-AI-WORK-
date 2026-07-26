@@ -571,7 +571,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
             buses, branches, metadata, warnings = _parse_cim_xml(content)
         else:
             raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
-    except ValueError as e:
+    except ValueError:
         errors.append(f"Parse error in format '{fmt.id}'")
         return ImportResult(
             success=False,

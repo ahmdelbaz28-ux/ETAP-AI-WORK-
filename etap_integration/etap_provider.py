@@ -17,7 +17,7 @@ from typing import Any
 
 import requests
 
-from utils.circuit_breaker import get_circuit_breaker, CircuitBreakerOpenError
+from utils.circuit_breaker import get_circuit_breaker
 
 logger = logging.getLogger(__name__)
 

@@ -7,9 +7,13 @@ Separated from main engineering service for better modularity.
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 
 from api.studies import SystemSpec, _build_system_from_spec
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/system", tags=["validation"])
 
@@ -81,8 +85,5 @@ async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR — S3
         logger.warning("system_validation_value_error error=%s", str(ve), extra={"trace_id": trace_id})
         raise HTTPException(status_code=400, detail="Invalid input data for system validation") from ve
     except Exception as e:
-        from logging import getLogger
-
-        logger = getLogger("engineering_service")
         logger.exception("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
         raise HTTPException(status_code=500, detail="Internal validation error") from e  # NOSONAR — S8415: HTTPException responses will be documented in API refactoring sprint

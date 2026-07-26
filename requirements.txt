@@ -88,6 +88,10 @@ PyJWT>=2.12.0,<3
 # and <3 to satisfy langfuse/openai/anthropic. Pinning to ~=2.5.0 caused
 # ResolutionImpossible at install time.
 pydantic>=2.11.7,<3
+# pydantic-core: the Rust-backed core of pydantic. Usually installed as a
+# transitive dependency, but CI's `--no-deps` fallback path skips transitive
+# deps, so we declare it explicitly to avoid ModuleNotFoundError.
+pydantic-core>=2.20.0,<3
 email-validator>=2.1.0,<3
 
 # Database ORM (async PostgreSQL + SQLite support)
@@ -160,6 +164,10 @@ tenacity>=8.2,<9.2
 
 # API & Database dependencies
 alembic~=1.13.0
+# Mako: required by alembic for migration templates. Usually installed as a
+# transitive dependency, but CI's `--no-deps` fallback path skips transitive
+# deps, so we declare it explicitly to avoid ModuleNotFoundError.
+mako~=1.3.0
 
 # Python multipart for FastAPI file uploads
 python-multipart~=0.0.6

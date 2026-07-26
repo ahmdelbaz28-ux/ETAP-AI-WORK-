@@ -751,7 +751,7 @@ async def digital_twin_status(request: Request):
 @app.get("/api/v1/audit/verify", tags=["Audit"])
 async def audit_verify(request: Request):
     """Verify the safety audit chain file integrity.
-    
+
     Reads the safety audit chain file (~/.cache/cua/safety_chain.jsonl)
     and verifies the SHA-256 hash chain (each entry's hash must match
     SHA256(prev_entry + data)). Protected by admin API key.
@@ -769,7 +769,7 @@ async def audit_verify(request: Request):
         )
 
     try:
-        with open(audit_path, "r") as f:
+        with open(audit_path) as f:
             lines = [line.strip() for line in f if line.strip()]
 
         entries = []
@@ -797,7 +797,7 @@ async def audit_verify(request: Request):
             "first_entry_hash": entries[0].get("hash", "") if entries else None,
             "last_entry_hash": entries[-1].get("hash", "") if entries else None,
         }
-    except Exception as e:
+    except Exception:
         return JSONResponse(
             status_code=200,
             content={"valid": False, "error": "Failed to verify audit chain"},
@@ -808,7 +808,7 @@ async def audit_verify(request: Request):
 # These endpoints are consumed by the CUA Monitor dashboard at /admin/cua-monitor.
 # They delegate to the life_safety module for kill switch management, rollback
 # operations, and audit log access.
-# 
+#
 # IMPORTANT — Life-Safety Context:
 # The kill switch is a software-only emergency stop. It CANNOT physically
 # disconnect relays or de-energize switchgear. Operators must verify the
@@ -818,7 +818,7 @@ async def audit_verify(request: Request):
 @app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"])
 async def cua_kill_switch_status(request: Request):
     """Return the current CUA kill switch status.
-    
+
     Reads the kill switch file (written by agents/life_safety.py) and returns
     the active state, activation timestamp, and reason.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -847,7 +847,7 @@ async def cua_kill_switch_status(request: Request):
 @app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"])
 async def cua_kill_switch_activate(request: Request):
     """Activate the CUA kill switch — blocks all CUA agent actions.
-    
+
     Once activated, the CUA Loop will abort on the next action check.
     SECURITY AUDIT S-15: admin endpoints require auth.
     """
@@ -931,7 +931,7 @@ async def cua_rollback(request: Request, body: CUARollbackRequest):
         )
         status_code = 200 if result.get("success") else 404
         return JSONResponse(content=result, status_code=status_code)
-    except Exception as exc:
+    except Exception:
         logger.exception("CUA rollback failed", extra={"snapshot_id": body.snapshot_id})
         return JSONResponse(
             status_code=500,
@@ -943,7 +943,7 @@ async def cua_rollback(request: Request, body: CUARollbackRequest):
 async def cua_audit_log(request: Request, limit: int = 50):
     """Return the last N entries from the CUA tamper-evident audit log.
     SECURITY AUDIT S-15: admin endpoints require auth.
-    
+
     Reads the safety_chain.jsonl file produced by agents/life_safety.py
     and returns the most recent entries.
     """

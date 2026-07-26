@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional
+from typing import Any
 
 logger = logging.getLogger("utils.circuit_breaker")
 
@@ -71,7 +71,7 @@ class CircuitBreaker:
                 self.name, self._consecutive_failures, self.reset_seconds,
             )
 
-    def __enter__(self) -> "CircuitBreaker":
+    def __enter__(self) -> CircuitBreaker:
         if self.is_open:
             remaining = int(self._circuit_open_until - time.time())
             raise CircuitBreakerOpenError(

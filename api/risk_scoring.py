@@ -4,7 +4,8 @@ Evaluates study outputs against engineering thresholds and assigns
 a risk level: low | medium | high | critical.
 """
 from __future__ import annotations
-from typing import Any, Optional
+
+from typing import Any
 
 RISK_LEVELS = ("low", "medium", "high", "critical")
 

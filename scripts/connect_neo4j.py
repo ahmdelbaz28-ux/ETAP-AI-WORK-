@@ -52,14 +52,14 @@ def main() -> int:
     if password:
         print(f"  Password: ***{password[-4:]}")
     else:
-        print(f"  Password: (empty)")
+        print("  Password: (empty)")
 
     if not password:
         print(f"\n  {WARN}[WARN]{END} NEO4J_PASSWORD not set — connection will likely fail")
         return 1
 
     # ── 2. Create Driver with Connection Pooling ──────────────────────────
-    print(f"\n  --- Creating Driver ---")
+    print("\n  --- Creating Driver ---")
     from neo4j import GraphDatabase
 
     try:
@@ -76,7 +76,7 @@ def main() -> int:
         return 1
 
     # ── 3. Verify Connection ────────────────────────────────────────────
-    print(f"\n  --- Verify Connection ---")
+    print("\n  --- Verify Connection ---")
     try:
         with driver.session() as session:
             result = session.run("RETURN 1 AS ok").single()
@@ -99,7 +99,7 @@ def main() -> int:
         return 1
 
     # ── 4. Server Info ───────────────────────────────────────────────────
-    print(f"\n  --- Server Info ---")
+    print("\n  --- Server Info ---")
     try:
         with driver.session() as session:
             comp = session.run(
@@ -114,7 +114,7 @@ def main() -> int:
         print(f"  {WARN}[WARN]{END}  Server info: {e}")
 
     # ── 5. Database State ────────────────────────────────────────────────
-    print(f"\n  --- Database State ---")
+    print("\n  --- Database State ---")
     try:
         with driver.session() as session:
             labels = [r["label"] for r in session.run(
@@ -130,7 +130,7 @@ def main() -> int:
         print(f"  {WARN}[WARN]{END}  DB state: {e}")
 
     # ── 6. Benchmark ─────────────────────────────────────────────────────
-    print(f"\n  --- Query Latency Benchmark (5 rounds) ---")
+    print("\n  --- Query Latency Benchmark (5 rounds) ---")
     latencies = []
     for i in range(5):
         t0 = time.perf_counter()
@@ -149,12 +149,12 @@ def main() -> int:
     print(f"  {OK}Average{END}: {status}")
 
     # ── 7. Integration Module Test ───────────────────────────────────────
-    print(f"\n  --- Integration Module Test ---")
+    print("\n  --- Integration Module Test ---")
     try:
         os.environ["NEO4J_URI"] = uri
         os.environ["NEO4J_PASSWORD"] = password
 
-        from integrations.neo4j_integration import neo4j_client, Neo4jDB
+        from integrations.neo4j_integration import Neo4jDB, neo4j_client
 
         health = neo4j_client.health_check()
         for k, v in health.items():
@@ -185,7 +185,7 @@ def main() -> int:
     print(f"\n  {OK}[OK]{END}   Driver closed cleanly")
 
     print(f"\n{BOLD}{'=' * 60}")
-    print(f"  NEO4J CONNECTION — VERIFIED")
+    print("  NEO4J CONNECTION — VERIFIED")
     print(f"{'=' * 60}{END}\n")
     return 0
 

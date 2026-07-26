@@ -43,8 +43,8 @@ from api.database import Base
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
-    get_current_user_from_header,
     get_api_key,
+    get_current_user_from_header,
     pagination_params,
 )
 from api.rbac import require_permission

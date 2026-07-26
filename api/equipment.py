@@ -29,6 +29,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import logging
 import uuid
 from datetime import UTC, datetime
 from typing import Any, Dict, Optional
@@ -62,6 +63,8 @@ from api.dependencies import (
     pagination_params,
 )
 from api.rbac import require_permission
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM models

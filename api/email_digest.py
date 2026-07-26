@@ -207,7 +207,7 @@ async def generate_digest(
             "by_flow": ctx["by_flow"],
             "trace_id": trace_id,
         })
-    except Exception as exc:
+    except Exception:
         logger.exception("digest_send_failed")
         return JSONResponse(
             status_code=500,
