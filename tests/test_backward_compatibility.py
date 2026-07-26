@@ -14,16 +14,23 @@ import pytest
 
 
 def test_all_old_agents_still_registered():
-    """All 8 core agents that existed before etap_expert must still be there."""
+    """All 8 core agents that existed before etap_expert must still be there.
+
+    Note: the orchestrator registers agents under canonical snake_case keys
+    (``harmonic_analysis``, ``optimal_power_flow``, ``protection_coordination``)
+    per CONTEXT.md. The short aliases ``harmonic`` / ``opf`` / ``protection``
+    are accepted by ``get_study_type_mapping()`` but NOT as registry keys.
+    This test asserts the canonical keys.
+    """
     from agents.orchestrator import ChiefEngineeringOrchestrator
 
     orch = ChiefEngineeringOrchestrator()
     expected_old_agents = {
         "load_flow",
         "short_circuit",
-        "harmonic",
-        "opf",
-        "protection",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "protection_coordination",
         "etap_execution",
         "validation",
         "report",
@@ -50,9 +57,9 @@ def test_old_agents_keep_correct_class_names():
     orch = ChiefEngineeringOrchestrator()
     assert isinstance(orch.agents["load_flow"], LoadFlowAgent)
     assert isinstance(orch.agents["short_circuit"], ShortCircuitAgent)
-    assert isinstance(orch.agents["harmonic"], HarmonicAnalysisAgent)
-    assert isinstance(orch.agents["opf"], OptimalPowerFlowAgent)
-    assert isinstance(orch.agents["protection"], ProtectionCoordinationAgent)
+    assert isinstance(orch.agents["harmonic_analysis"], HarmonicAnalysisAgent)
+    assert isinstance(orch.agents["optimal_power_flow"], OptimalPowerFlowAgent)
+    assert isinstance(orch.agents["protection_coordination"], ProtectionCoordinationAgent)
     assert isinstance(orch.agents["etap_execution"], ETAPExecutionAgent)
     assert isinstance(orch.agents["validation"], ValidationAgent)
     assert isinstance(orch.agents["report"], ReportGenerationAgent)
@@ -128,13 +135,13 @@ def test_etap_expert_does_not_interfere_with_orchestrator_get_agents_info():
     orch = ChiefEngineeringOrchestrator()
     info = orch.get_agents_info()
     assert "agents" in info
-    # All old agents must still appear
+    # All old agents must still appear (canonical snake_case keys)
     for old_agent in [
         "load_flow",
         "short_circuit",
-        "harmonic",
-        "opf",
-        "protection",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "protection_coordination",
         "etap_execution",
         "validation",
         "report",

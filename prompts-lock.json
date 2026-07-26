@@ -143,6 +143,12 @@
       "versionId": "local",
       "materialized": "prompts/code_guard_agent.prompt.yaml"
     },
+    "ahmed_etap_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/ahmed_etap_agent.prompt.yaml",
+      "_note": "Prompt for the AhmedETAP orchestration skill agent (skills/ahmed-etap/SKILL.md)."
+    },
     "fallback_agent": {
       "version": 0,
       "versionId": "local",

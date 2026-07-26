@@ -202,6 +202,25 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
     study_type: str, system: Optional[Any], parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
+    # ---- Canonicalise study type aliases ----
+    # Per REFERENCE.md §"Canonical Study Types", the AhmedETAP skill accepts
+    # aliases like `fault` → `short_circuit`, `coordination` →
+    # `protection_coordination`, `harmonic` → `harmonic_analysis`,
+    # `stability` → `transient_stability`, `opf` → `optimal_power_flow`.
+    # The native study runner MUST accept the same aliases so that callers
+    # using the API directly get the same behaviour as callers going through
+    # the skill.  This was a pre-existing bug — `study_type="fault"` returned
+    # HTTP 400 "Unsupported native study type: fault" even though the skill
+    # accepted it.  Fixed 2026-07-26.
+    _NATIVE_ALIASES = {
+        "fault": "short_circuit",
+        "coordination": "protection_coordination",
+        "harmonic": "harmonic_analysis",
+        "stability": "transient_stability",
+        "opf": "optimal_power_flow",
+    }
+    study_type = _NATIVE_ALIASES.get(study_type, study_type)
+
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
@@ -226,6 +245,74 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
         if not question:
             raise ValueError("'question' field is required for study_type='etap_gui'")
         return agent.answer(question)
+
+    # AhmedETAP Orchestration Skill — routes a study through the disciplined
+    # pipeline (SharedContext → Lead Agent → MathGuard → Peer Review) per
+    # skills/ahmed-etap/SKILL.md.  Expects a workflow spec in ``parameters``:
+    #   study_type, project, parameters, claim_value, claim_unit, quantity_kind,
+    #   budget_tokens, lead_agent (optional), recompute_fn (optional, callable)
+    #
+    # NOTE: ``_run_native_study`` is a synchronous function. The skill agent's
+    # ``execute`` method is async, so we drive it via ``asyncio.run``. This is
+    # safe because ``_run_native_study`` is itself called from an async context
+    # (``run_study`` in this file) — but we create a fresh event loop here to
+    # avoid nested-loop issues.
+    if study_type in ("ahmed_etap_orchestration", "ahmed_etap"):
+        import asyncio as _asyncio
+
+        from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+        from agents.orchestrator import (
+            EngineeringTask as _ET,
+            StudyType as _ST,
+            get_orchestrator,
+        )
+
+        agent = AhmedETAPSkillAgent(orchestrator=get_orchestrator())
+
+        inner_study = str(parameters.get("study_type", "load_flow"))
+        try:
+            st_enum = _ST(inner_study)
+        except ValueError:
+            st_enum = _ST.LOAD_FLOW
+
+        skill_task = _ET(
+            task_id=f"ahmed_etap_skill_{int(time.time())}",
+            description=f"Skill-orchestrated {inner_study}",
+            study_types=[st_enum],
+            parameters=parameters,
+        )
+
+        # Drive the async execute() from this sync function. We use
+        # asyncio.run only if there is no running loop; if we are already
+        # inside an async caller, the caller should use the async endpoint
+        # (/api/v1/agents/ahmed-etap/orchestrate) instead.
+        try:
+            loop = _asyncio.get_running_loop()
+            # Already inside an event loop — create a task and block on it.
+            import concurrent.futures as _cf
+
+            with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+                result = pool.submit(
+                    lambda: _asyncio.run(agent.execute(skill_task)),
+                ).result()
+        except RuntimeError:
+            # No running loop — safe to use asyncio.run directly.
+            result = _asyncio.run(agent.execute(skill_task))
+
+        return {
+            "verdict": result.data.get("verdict"),
+            "study_type": result.data.get("study_type"),
+            "lead_agent": result.data.get("lead_agent"),
+            "peer_reviewer": result.data.get("peer_reviewer"),
+            "math_guard": result.data.get("math_guard"),
+            "peer_review": result.data.get("peer_review"),
+            "shared_context": result.data.get("shared_context"),
+            "response": result.data.get("response"),
+            "iterations": result.data.get("iterations"),
+            "elapsed_seconds": result.data.get("elapsed_seconds"),
+            "validation_status": result.validation_status,
+            "validation_errors": result.validation_errors,
+        }
 
     from engine.engine import PowerSystemEngine
 
@@ -356,7 +443,13 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
         )
 
     # --- System required check (Item 11) ---
-    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "arc_flash", "protection_coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid", "renewable_integration", "battery_storage", "scada"}
+    # NOTE: arc_flash is intentionally NOT in this set — it computes from
+    # explicit parameters (voltage_kv, bolted_fault_current_ka, etc.) and
+    # does NOT require a power-system model.  Previously arc_flash was
+    # listed here, which caused test_arc_flash (and any caller that sent
+    # arc_flash parameters without a system) to get HTTP 400.  Fixed
+    # 2026-07-26.
+    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "protection_coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid", "renewable_integration", "battery_storage", "scada"}
     if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
         raise HTTPException(
             status_code=400,

@@ -289,6 +289,7 @@ class TestPromptHandleMapping:
             "digital_twin_agent": "DigitalTwinAgent (future DT)",
             "predictive_agent": "PredictiveAgent (future ML)",
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
+            "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
         }
 
         prompts = list_available_prompts()

@@ -61,6 +61,10 @@ class StudyType(Enum):
     RENEWABLE_INTEGRATION = "renewable_integration"
     BATTERY_STORAGE = "battery_storage"
     SCADA = "scada"
+    # Added 2026-07-26: referenced by PEER_REVIEW_MATRIX (scada <-> digital_twin)
+    # but was missing from the enum, causing StudyType("digital_twin") to fail
+    # and fall back to LOAD_FLOW in the AhmedETAP skill pipeline.
+    DIGITAL_TWIN = "digital_twin"
     ETAP_EXPERT = "etap_expert"
     ETAP_GUI = "etap_gui"
 
@@ -1379,6 +1383,45 @@ class ChiefEngineeringOrchestrator:
             "report": ReportGenerationAgent(),
         }
 
+        # ---- Standalone specialist agents (per AGENTS.md §"Python Agents") ----
+        # These MUST be registered so the AhmedETAP skill's peer-review matrix
+        # (which references arc_flash, motor_starting, transient_stability,
+        # cable_sizing, earth_grid, renewable_integration, battery_storage,
+        # scada, digital_twin) can actually find a Lead Agent for each study
+        # type.  Without this registration, the skill's `_default_lead_for()`
+        # silently falls back to "load_flow" for every study it doesn't know,
+        # which is incorrect and dangerous for life-safety calculations.
+        # Each registration is wrapped in try/except so a missing optional
+        # dependency does not break orchestrator initialisation.
+        for _agent_key, _module_name, _cls_name in (
+            ("arc_flash",             "agents.arc_flash_agent",       "ArcFlashAgent"),
+            ("motor_starting",        "agents.motor_starting_agent",  "MotorStartingAgent"),
+            ("transient_stability",   "agents.stability_agent",       "StabilityAgent"),
+            ("cable_sizing",          "agents.cable_sizing_agent",    "CableSizingAgent"),
+            ("earth_grid",            "agents.earth_grid_agent",      "EarthGridAgent"),
+            ("renewable_integration", "agents.renewable_agent",       "RenewableAgent"),
+            ("battery_storage",       "agents.battery_storage_agent", "BatteryStorageAgent"),
+            ("scada",                 "agents.scada_agent",           "SCADAAgent"),
+            ("digital_twin",          "agents.digital_twin_agent",    "DigitalTwinAgent"),
+            ("anomaly",               "agents.anomaly_agent",         "AnomalyAgent"),
+            ("predictive",            "agents.predictive_agent",      "PredictiveAgent"),
+            ("weather",               "agents.weather_agent",         "WeatherAgent"),
+            ("goal_planner",          "agents.goal_planner_agent",    "GoalPlannerAgent"),
+        ):
+            try:
+                _mod = __import__(_module_name, fromlist=[_cls_name])
+                _cls = getattr(_mod, _cls_name)
+                self.agents[_agent_key] = _cls()
+            except Exception as _exc:
+                # Don't crash orchestrator init — log and continue.
+                # The agent's slot will simply be absent from self.agents,
+                # which downstream code already handles via .get().
+                _logger = logging.getLogger("orchestrator")
+                _logger.warning(
+                    "Could not register agent '%s' from %s.%s: %s",
+                    _agent_key, _module_name, _cls_name, _exc,
+                )
+
         # Guard-skills agent for automatic code quality review
         self._code_guard_agent = None
         try:
@@ -1414,6 +1457,23 @@ class ChiefEngineeringOrchestrator:
         except Exception as exc:
             self._etap_gui_agent = None
             self.logger.warning("ETAPGUIAgent not available — skill disabled: %s", exc)
+
+        # AhmedETAP Orchestration Skill — enforces shared context, token
+        # budget, MathGuard, and mandatory peer review per the skill spec
+        # at skills/ahmed-etap/SKILL.md.  Additive — does not replace any
+        # existing agent, but routes workflows through the disciplined
+        # pipeline when study_type="ahmed_etap_orchestration".
+        try:
+            from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+
+            self._ahmed_etap_skill_agent = AhmedETAPSkillAgent(orchestrator=self)
+            self.agents["ahmed_etap"] = self._ahmed_etap_skill_agent
+        except Exception as exc:
+            self._ahmed_etap_skill_agent = None
+            self.logger.warning(
+                "AhmedETAPSkillAgent not available — orchestration skill disabled: %s",
+                exc,
+            )
 
         self.task_queue: list[EngineeringTask] = []
         self.completed_tasks: dict[str, EngineeringTask] = {}
@@ -1687,6 +1747,30 @@ class ChiefEngineeringOrchestrator:
             "etap_execution": "etap_execution",
             "etap_expert": "etap_expert",
             "etap_gui": "etap_gui",
+            # ---- Standalone study types (per AGENTS.md §"Python Agents") ----
+            # These MUST be present so the AhmedETAP skill can resolve a Lead
+            # Agent for every entry in its peer-review matrix.  Previously
+            # missing, which caused the skill to silently fall back to
+            # `load_flow` for arc_flash, motor_starting, transient_stability,
+            # cable_sizing, earth_grid, renewable_integration, battery_storage,
+            # scada, and digital_twin studies — incorrect and unsafe.
+            "arc_flash": "arc_flash",
+            "motor_starting": "motor_starting",
+            "transient_stability": "transient_stability",
+            "cable_sizing": "cable_sizing",
+            "earth_grid": "earth_grid",
+            "renewable_integration": "renewable_integration",
+            "battery_storage": "battery_storage",
+            "scada": "scada",
+            "digital_twin": "digital_twin",
+            # Auxiliary agents
+            "anomaly": "anomaly",
+            "predictive": "predictive",
+            "weather": "weather",
+            "goal_planner": "goal_planner",
+            # Skill entry points
+            "ahmed_etap": "ahmed_etap",
+            "ahmed_etap_orchestration": "ahmed_etap",
             "validation": "validation",
             "report": "report",
         }

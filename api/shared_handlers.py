@@ -100,6 +100,7 @@ STUDY_TYPES: list[str] = [
     "scada",
     "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
     "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
+    "ahmed_etap_orchestration",  # AhmedETAP skill — SharedContext + MathGuard + PeerReview pipeline
 ]
 
 # ---------------------------------------------------------------------------

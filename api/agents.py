@@ -662,3 +662,189 @@ async def etap_gui_siem_events(
             },
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# AhmedETAP Orchestration Skill — /api/v1/agents/ahmed-etap/*
+# ---------------------------------------------------------------------------
+
+class AhmedETAPOrchestrateRequest(BaseModel):
+    """Request body for the AhmedETAP skill orchestration endpoint.
+
+    The skill wraps any of the 24 underlying agents and enforces:
+      - SharedContext (single source of truth)
+      - Token budget with compression at 70 %
+      - Deterministic MathGuard on every numerical claim
+      - Mandatory Peer Review per REFERENCE.md matrix
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    study_type: str = Field(
+        ...,
+        description="Canonical study type (load_flow, short_circuit, arc_flash, ...). "
+                    "Aliases are normalised: fault→short_circuit, coordination→protection_coordination.",
+    )
+    project_name: str = Field(
+        default="default", description="Project reference name (for SharedContext.project).",
+    )
+    base_mva: float = Field(default=100.0, description="Per-unit base MVA for the project.")
+    base_kv: float = Field(default=115.0, description="Per-unit base kV for the project.")
+    parameters: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Study-specific parameters passed to the Lead Agent.",
+    )
+    claim_value: float = Field(
+        ...,
+        description="The numerical value the Lead Agent claims as the answer. "
+                    "MathGuard recomputes this and compares within 0.01 % tolerance.",
+    )
+    claim_unit: str = Field(
+        default="pu",
+        description="Unit string the Lead Agent claims (kV, A, MVA, pu, ...).",
+    )
+    quantity_kind: str = Field(
+        default="voltage",
+        description="Quantity kind for units check (voltage, current, power, energy, ...).",
+    )
+    expected_unit: Optional[str] = Field(
+        default=None,
+        description="If set, MathGuard requires the agent's unit to match exactly.",
+    )
+    budget_tokens: int = Field(
+        default=8000,
+        description="Token budget for the workflow. Compression triggers at 70 %.",
+    )
+    lead_agent: Optional[str] = Field(
+        default=None,
+        description="Override the default Lead Agent (e.g. 'load_flow'). "
+                    "If omitted, derived from study_type.",
+    )
+
+
+@router.post("/ahmed-etap/orchestrate")
+async def ahmed_etap_orchestrate(
+    request: Request,
+    payload: AhmedETAPOrchestrateRequest,
+    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
+    """Run a study through the AhmedETAP orchestration skill pipeline.
+
+    Pipeline (per skills/ahmed-etap/SKILL.md):
+        Parse → canonical StudyType
+        → load SharedContext with project + standards
+        → route to Lead Agent (run computation)
+        → MathGuard (deterministic Python recompute, 0.01 % tolerance)
+        → Peer Review (per REFERENCE.md matrix)
+        → ship | loop back (max 2 retries)
+
+    Returns the full :class:`OrchestrationResult` including:
+      - ``verdict``: approved / blocked_math_guard / blocked_peer_review / ...
+      - ``math_guard``: { passed, reason, claim_value, recomputed_value, units_ok }
+      - ``peer_review``: { passed, reviewer, notes }
+      - ``shared_context``: snapshot of the shared context (budget, tasks, errors)
+      - ``response``: the Lead Agent's result dict (only present if approved)
+      - ``iterations``: number of iterations (1 = first try, 3 = exhausted)
+      - ``elapsed_seconds``: wall-clock time
+
+    Knowledge base: skills/ahmed-etap/SKILL.md
+    Reference:      skills/ahmed-etap/REFERENCE.md
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+        from agents.orchestrator import (
+            EngineeringTask as _ET,
+            StudyType as _ST,
+            get_orchestrator,
+        )
+
+        # Resolve the canonical StudyType enum for the inner task
+        from agents.ahmed_etap_orchestrator import canonicalize_study_type
+        canonical = canonicalize_study_type(payload.study_type)
+        try:
+            st_enum = _ST(canonical)
+        except ValueError:
+            st_enum = _ST.LOAD_FLOW
+
+        # Build the workflow parameters expected by AhmedETAPSkillAgent.execute
+        workflow_params: dict[str, Any] = {
+            "study_type": payload.study_type,
+            "project": {
+                "name": payload.project_name,
+                "base_mva": payload.base_mva,
+                "base_kv": payload.base_kv,
+            },
+            "parameters": payload.parameters,
+            "claim_value": payload.claim_value,
+            "claim_unit": payload.claim_unit,
+            "quantity_kind": payload.quantity_kind,
+            "expected_unit": payload.expected_unit,
+            "budget_tokens": payload.budget_tokens,
+        }
+        if payload.lead_agent:
+            workflow_params["lead_agent"] = payload.lead_agent
+
+        skill_task = _ET(
+            task_id=f"ahmed_etap_api_{int(datetime.now(UTC).timestamp())}",
+            description=f"Skill-orchestrated {payload.study_type}",
+            study_types=[st_enum],
+            parameters=workflow_params,
+        )
+
+        agent = AhmedETAPSkillAgent(orchestrator=get_orchestrator())
+        result = await agent.execute(skill_task)
+
+        return JSONResponse(
+            content={
+                "success": result.validation_status,
+                "data": result.data,
+                "trace_id": trace_id,
+            },
+            status_code=200 if result.validation_status else 422,
+        )
+    except Exception as e:
+        from logging import getLogger
+
+        getLogger("engineering_service").exception(
+            "ahmed_etap_orchestrate_failed error=%s", str(e), extra={"trace_id": trace_id},
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+        )
+
+
+@router.get("/ahmed-etap/info")
+async def ahmed_etap_info(
+    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
+    """Return metadata about the AhmedETAP orchestration skill.
+
+    Reports which principles are enforced, the peer-review matrix, the
+    canonical study types, and the token budget defaults — i.e. everything
+    a client needs to construct a valid ``/ahmed-etap/orchestrate`` call.
+    """
+    from agents.ahmed_etap_orchestrator import (
+        PEER_REVIEW_MATRIX,
+        AhmedETAPOrchestrator,
+        AhmedETAPSkillAgent,
+        TokenBudget,
+        load_skill_text,
+    )
+
+    agent = AhmedETAPSkillAgent()
+    return JSONResponse(
+        content={
+            "success": True,
+            "data": {
+                **agent.get_agent_info(),
+                "skill_text_chars": len(load_skill_text()),
+                "peer_review_matrix": PEER_REVIEW_MATRIX,
+                "token_budget_defaults": TokenBudget.DEFAULTS,
+                "max_retries": AhmedETAPOrchestrator.MAX_RETRIES,
+                "math_guard_tolerance_pct": 0.01,
+            },
+        },
+    )
+
