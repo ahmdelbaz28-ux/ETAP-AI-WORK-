@@ -133,6 +133,14 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
 
 EXPOSE 7860
 
-USER user
+# HF Spaces recommended pattern: use the numeric UID (1000) instead of the
+# symbolic name ('user'). Numeric UIDs do NOT require /etc/passwd lookup at
+# runtime, which avoids the RUNTIME_ERROR:
+#   "The Dockerfile's USER directive references a user that is not present
+#    in the image's /etc/passwd."
+# The 'useradd -m -u 1000 user' layer above creates the user with UID 1000;
+# we reference that UID directly here.
+# Ref: https://huggingface.co/docs/hub/spaces-sdks-docker#user
+USER 1000
 
 CMD ["python", "app.py"]
