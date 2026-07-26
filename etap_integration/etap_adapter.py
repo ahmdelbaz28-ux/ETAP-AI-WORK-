@@ -181,4 +181,4 @@ def get_etap_adapter() -> ETAPAdapter:
 # Backward compatibility with existing code
 def get_etap_provider():
     """Legacy function for backward compatibility."""
-    return get_etap_adapter
+    return get_etap_adapter()  # FIX: return instance, not function reference
