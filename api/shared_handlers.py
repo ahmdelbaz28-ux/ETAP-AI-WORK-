@@ -27,7 +27,7 @@ from datetime import UTC, datetime
 from typing import Any, Optional
 
 from fastapi import HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from api._messages import MSG_INTERNAL_ERROR, MSG_INVALID_INPUT
 
@@ -274,14 +274,18 @@ class SharedStudyRequest(BaseModel):
 class SharedETAPExpertChatRequest(BaseModel):
     """Request body for ETAP Expert chat."""
 
-    question: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    question: str = Field(alias="message", min_length=1, description="The question to ask")
     context: dict[str, Any] = {}
 
 
 class SharedETAPGUIChatRequest(BaseModel):
     """Request body for ETAP GUI Agent chat."""
 
-    question: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    question: str = Field(alias="message", min_length=1, description="The question to ask")
     context: dict[str, Any] = {}
 
 
@@ -296,7 +300,9 @@ class SharedContextRetrieveRequest(BaseModel):
 class SharedImpactAnalysisRequest(BaseModel):
     """Request body for AI Context Engine impact endpoint."""
 
-    component: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    component: str = Field(alias="component_id", description="Component name or ID to analyze")
     max_depth: int = 2
 
 
@@ -913,7 +919,7 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
 
         from ml.predictive import LoadForecaster  # type: ignore
 
-        historical = body.get("historical_data", [])
+        historical = body.get("historical_data") or body.get("data", [])
         # Accept both `horizon_hours` (canonical) and `horizon` (alias used
         # by the Newman/Postman smoke-test collection and several SDK clients).
         # If both are present, `horizon_hours` wins.
@@ -923,7 +929,7 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         method = body.get("method", "auto")
 
         if not historical:
-            return {"error": "historical_data is required", "_status": 400}
+            return {"error": "historical_data (or data) is required", "_status": 400}
 
         # Validate types before passing to ML backend so we control the
         # status code (the ML backend raises ValueError on bad input, but
@@ -977,12 +983,12 @@ def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
 
         from ml.predictive import AnomalyDetector  # type: ignore
 
-        data = body.get("data", [])
+        data = body.get("data") or body.get("values") or body.get("historical_data", [])
         method = body.get("method", "iforest")
         contamination = body.get("contamination", 0.05)
 
         if not data:
-            return {"error": "data is required", "_status": 400}
+            return {"error": "data (or values) is required", "_status": 400}
 
         ad = AnomalyDetector(contamination=contamination, method=method)
         X = np.array(data, dtype=float)

@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(S7
     && rm -rf /var/lib/apt/lists/* \
     # Create non-root user (UID 1000 as required by HF Spaces)
     && useradd -m -u 1000 user \
-    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit /home/user \
     && chown -R user:user /app /tmp
 
 # Python dependencies
@@ -76,6 +76,8 @@ ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
+ENV HOME=/home/user
+ENV CUA_AUDIT_DIR=/tmp/cua_audit
 
 # Database path — default to SQLite in /tmp (writable on HF Spaces).
 # IMPORTANT: this is only a fallback. If the HF Space has a DATABASE_URL secret

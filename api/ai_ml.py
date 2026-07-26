@@ -112,12 +112,12 @@ async def predict_load(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        historical = body.get("historical_data", [])
+        historical = body.get("historical_data") or body.get("data", [])
         horizon = body.get("horizon_hours", 24)
         method = body.get("method", "auto")  # auto, prophet, lstm, linear
 
         if not historical:
-            raise HTTPException(status_code=400, detail="historical_data is required")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="historical_data (or data) is required")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
         if not isinstance(historical, list):
             raise HTTPException(status_code=400, detail="historical_data must be an array")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
         if len(historical) > 10000:
@@ -268,12 +268,12 @@ async def detect_anomalies(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        data = body.get("data", [])
+        data = body.get("data") or body.get("values") or body.get("historical_data", [])
         method = body.get("method", "iforest")  # iforest, pyod_iforest, pyod_knn, pyod_autoencoder
         contamination = body.get("contamination", 0.05)
 
         if not data:
-            raise HTTPException(status_code=400, detail="data array is required")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(status_code=400, detail="data (or values) is required")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
         if not isinstance(data, list):
             raise HTTPException(status_code=400, detail="data must be an array")  # NOSONAR(S8415): HTTPException responses will be documented in API refactoring sprint
         if len(data) > 10000:

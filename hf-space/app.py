@@ -181,7 +181,9 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     # Don't leak internal details in production, but DO return JSON.
     # The frontend's existing error parsing expects { detail: string }.
     safe_message = "Internal server error"
-    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+    if isinstance(exc, PermissionError):
+        safe_message = "File permission error — the service cannot write to a required directory. Check HOME and CUA_AUDIT_DIR env vars."
+    elif isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
         safe_message = "Database connection timed out. The service is degraded — please retry in a moment."
     elif isinstance(exc, OSError):
         safe_message = "Network or database connection error. Please retry."
@@ -582,11 +584,11 @@ async def etap_gui_execute(request: Request):
             },
         )
 
-    question = body.get("question")
+    question = body.get("question") or body.get("message")
     if not isinstance(question, str) or not question.strip():
         return JSONResponse(
             status_code=400,
-            content={"success": False, "error": "Field 'question' is required and must be a non-empty string."},
+            content={"success": False, "error": "Field 'question' (or alias 'message') is required and must be a non-empty string."},
         )
 
     max_steps = max(1, min(int(body.get("max_steps", 15)), 50))  # SECURITY: bounded to prevent resource exhaustion

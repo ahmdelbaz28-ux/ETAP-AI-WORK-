@@ -33,7 +33,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
 
-SECRETS_DIR = Path.home() / ".etap-platform" / "secrets"
+SECRETS_DIR = Path(os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets")))
 AUDIT_DIR = Path(__file__).parent / "audit"
 ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"  # NOSONAR(S1192): intentional repetition (audit constant)
 REQUIRED_SECRETS = [

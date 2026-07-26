@@ -188,7 +188,16 @@ DUAL_CONFIRMATION_PATTERNS: tuple[str, ...] = (
 # is created with 0o700 permissions.
 _DEFAULT_CUA_AUDIT_DIR = str(Path.home() / ".etap" / "cua_audit")
 _CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", _DEFAULT_CUA_AUDIT_DIR))
-_CUA_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    _CUA_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+except PermissionError:
+    # Fallback to /tmp on restricted environments (HF Spaces, CI) where
+    # HOME may point to a non-writable directory (e.g. /root when running
+    # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
+    _fallback = Path("/tmp/cua_audit")
+    _fallback.mkdir(parents=True, exist_ok=True)
+    _CUA_AUDIT_DIR = _fallback
+    logger.warning("HOME directory not writable, falling back to %s", _fallback)
 try:
     os.chmod(_CUA_AUDIT_DIR, 0o700)
 except OSError:

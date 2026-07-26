@@ -13,7 +13,7 @@ from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from api._messages import MSG_INTERNAL_ERROR
 from api.dependencies import get_api_key
@@ -214,8 +214,10 @@ async def get_agents_info(request: Request):
 class ETAPExpertChatRequest(BaseModel):
     """Request body for the ETAP Expert chat endpoint."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     question: str = Field(
-        ...,
+        alias="message",
         min_length=1,
         max_length=4000,
         description="The ETAP-related question to ask the expert agent",
@@ -273,8 +275,10 @@ async def etap_expert_chat(
 class ETAPGUIChatRequest(BaseModel):
     """Request body for the ETAP GUI Agent chat endpoint."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     question: str = Field(
-        ...,
+        alias="message",
         min_length=1,
         max_length=4000,
         description="The GUI automation question to ask the agent",
@@ -329,8 +333,10 @@ async def etap_gui_chat(
 class ETAPGUIExecuteRequest(BaseModel):
     """Request body for the ETAP GUI Agent REAL CUA execution endpoint."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     question: str = Field(
-        ...,
+        alias="message",
         min_length=1,
         max_length=4000,
         description="The objective to accomplish (e.g., 'Open ETAP and run Load Flow')",
