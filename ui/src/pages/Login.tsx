@@ -391,7 +391,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-[390px] bg-slate-900/35 backdrop-blur-xl border border-white/[0.06] p-8 rounded-2xl shadow-2xl relative overflow-hidden"
+          className="w-full max-w-[390px] login-form-enhanced p-8 relative overflow-hidden"
         >
           {/* Mobile Header (Hidden on Desktop) — now with a richer brand story */}
           <div className="lg:hidden space-y-6 mb-8">
@@ -530,7 +530,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
                   dir="ltr"
                   className={`w-full ${
                     isRtl ? "pr-9 pl-3" : "pl-9 pr-3"
-                  } py-2.5 bg-slate-950/50 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+                  } py-2.5 login-input-enhanced text-xs text-white placeholder:text-slate-600/70 focus:outline-none transition-all`}
                 />
               </div>
             </div>
@@ -557,7 +557,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
                   dir="ltr"
                   className={`w-full ${
                     isRtl ? "pr-9 pl-10" : "pl-9 pr-10"
-                  } py-2.5 bg-slate-950/50 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+                  } py-2.5 login-input-enhanced text-xs text-white placeholder:text-slate-600/70 focus:outline-none transition-all`}
                 />
                 <button
                   type="button"

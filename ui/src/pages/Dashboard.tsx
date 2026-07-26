@@ -164,9 +164,9 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineD
       variants={itemVariants}
       onClick={onClick}
       className={cn(
-        "stat-accent-line bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden",
+        "stat-card-enhanced stat-accent-line bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden",
         "transition-all duration-200 group relative card-shimmer-hover",
-        onClick && "cursor-pointer hover:border-[var(--border-secondary)] hover:shadow-[var(--shadow-md)]",
+        onClick && "cursor-pointer hover:border-[var(--accent-primary)]/20 hover:shadow-[var(--shadow-lg)] hover:transform hover:-translate-y-1",
       )}
     >
       {/* Subtle top accent glow */}

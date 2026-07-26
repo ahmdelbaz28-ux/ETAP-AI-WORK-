@@ -200,7 +200,7 @@ export function Navbar() {
   // (ToolButton moved to module scope to avoid re-creating on each render)
 
   return (
-    <header className="flex items-center justify-between px-3 sm:px-4 py-2 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]/50 shrink-0 z-[var(--z-navbar)] relative">
+    <header className="navbar-glow flex items-center justify-between px-3 sm:px-4 py-2 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border-primary)]/50 shrink-0 z-[var(--z-navbar)] relative">
       {/* ─── Left: Hamburger (mobile only) + Brand + Search ────────── */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
         {/* Hamburger menu — mobile only */}
@@ -363,7 +363,7 @@ export function Navbar() {
 
           {showNotifications && (
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
-              className="absolute right-0 top-full mt-2 w-96 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
+              className="dropdown-enhanced absolute right-0 top-full mt-2 w-96 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -495,7 +495,7 @@ export function Navbar() {
           {/* User dropdown menu */}
           {showUserMenu && (
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
-              className="absolute right-0 top-full mt-2 w-64 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
+              className="dropdown-enhanced absolute right-0 top-full mt-2 w-64 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
             >
               {/* User header */}

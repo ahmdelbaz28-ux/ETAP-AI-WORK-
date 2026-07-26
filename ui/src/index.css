@@ -1136,3 +1136,420 @@ iframe[src*="vercel.com"] {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18), 0 0 24px rgba(0, 212, 255, 0.18);
   background: color-mix(in srgb, var(--bg-input, #0f1525) 95%, transparent);
 }
+
+/* ============================================================
+   AhmedETAP — Frontend Design Improvements v2.2
+   Enhanced accessibility, micro-interactions, visual polish
+   ============================================================ */
+
+/* ─── Global Focus Ring System ────────────────────────────────── */
+/* Consistent focus-visible ring across all interactive elements.
+   Uses accent-primary with a bg-primary gap for contrast. */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Remove default browser focus outline (we use :focus-visible instead) */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button focus ring — tighter offset for compact elements */
+button:focus-visible,
+a:focus-visible {
+  outline-offset: 1px;
+}
+
+/* ─── Card Interactive Enhancement ────────────────────────────── */
+.card-interactive {
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.3),
+    0 0 0 1px var(--accent-primary)/10;
+  border-color: var(--accent-primary)/20;
+}
+
+.card-interactive:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px var(--accent-primary),
+    0 8px 16px -4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Stat Card Micro-Animation ───────────────────────────────── */
+/* Hover state accent glow for dashboard stat cards */
+.stat-card-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease;
+}
+
+.stat-card-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--glow-primary);
+}
+
+.stat-card-enhanced::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-primary),
+    var(--accent-secondary),
+    transparent
+  );
+  transform: scaleX(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: left;
+}
+
+.stat-card-enhanced:hover::after {
+  transform: scaleX(1);
+}
+
+/* ─── Sidebar Section Divider ─────────────────────────────────── */
+/* Enhanced visual separation between sidebar groups */
+.sidebar-section-divider {
+  position: relative;
+  margin: 8px 12px;
+  padding-top: 12px;
+}
+
+.sidebar-section-divider::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border-primary),
+    var(--border-secondary),
+    var(--border-primary),
+    transparent
+  );
+}
+
+.sidebar-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-section-divider:hover .sidebar-section-label {
+  opacity: 1;
+}
+
+/* ─── Navbar Enhancement ──────────────────────────────────────── */
+/* Subtle bottom gradient glow on navbar */
+.navbar-glow {
+  position: relative;
+}
+
+.navbar-glow::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 5%,
+    var(--accent-primary)/20 30%,
+    var(--accent-primary)/5 70%,
+    transparent 95%
+  );
+  pointer-events: none;
+}
+
+/* ─── Badge Hover Micro-Interaction ───────────────────────────── */
+.badge-hover-pulse {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.badge-hover-pulse:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+}
+
+/* ─── Dropdown Menu Polish ─────────────────────────────────────── */
+.dropdown-enhanced {
+  animation: dropdownEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Skeleton Loading Enhancement ────────────────────────────── */
+.skeleton-variant {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 0%,
+    var(--border-primary) 40%,
+    var(--bg-hover) 60%,
+    var(--bg-elevated) 100%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ─── Responsive Breakpoint Helpers ────────────────────────────── */
+@media (max-width: 640px) {
+  .hide-xs { display: none !important; }
+  /* Smaller padding on mobile for main content */
+  .mobile-p-compact { padding: 12px !important; }
+  /* Full-width cards on mobile */
+  .mobile-grid-full { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 1024px) {
+  .hide-lg-down { display: none !important; }
+}
+
+@media (min-width: 1025px) {
+  .hide-lg-up { display: none !important; }
+}
+
+/* ─── Smooth Page Transition ───────────────────────────────────── */
+.page-transition-enter {
+  animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Toast Notification Enhancement ──────────────────────────── */
+.toast-enter {
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Accessibility: High Contrast Mode ────────────────────────── */
+@media (forced-colors: active) {
+  .card-interactive:hover {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .btn-press:active {
+    outline: 2px solid Highlight;
+  }
+
+  /* Ensure focus rings are visible in high contrast mode */
+  *:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-aurora,
+  .animate-shimmer,
+  .animate-shine,
+  .animate-pulse-glow,
+  .animate-glow-border,
+  .animate-float,
+  .animate-spin-slow,
+  .animate-breathe,
+  .animate-ring-pulse {
+    animation: none !important;
+  }
+
+  .card-hover-lift:hover {
+    transform: none;
+  }
+
+  .card-interactive:hover {
+    transform: none;
+  }
+}
+
+/* ─── Dark Mode Scrollbar Enhancement ──────────────────────────── */
+:root {
+  scrollbar-color: var(--color-surface-600) transparent;
+}
+
+.light {
+  scrollbar-color: var(--color-surface-400) transparent;
+}
+
+/* ─── Glass Card Backdrop Enhancement ──────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── Login Form Enhancement ───────────────────────────────────── */
+.login-form-enhanced {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-xl);
+  border-radius: 16px;
+}
+
+.login-input-enhanced {
+  background: color-mix(in srgb, var(--bg-input) 90%, transparent);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  transition: border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.login-input-enhanced:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px var(--accent-glow);
+  background: color-mix(in srgb, var(--bg-input) 95%, transparent);
+}
+
+.login-input-enhanced::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ─── Dashboard Grid Enhancement ───────────────────────────────── */
+.dashboard-grid-enhanced {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid-enhanced {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-grid-enhanced {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* ─── Hover Ripple Effect ──────────────────────────────────────── */
+@keyframes hoverRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.hover-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-ripple::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  opacity: 0;
+  transform: scale(0);
+  pointer-events: none;
+}
+
+/* ─── Tooltip Enhancement ──────────────────────────────────────── */
+.tooltip-enhanced {
+  position: relative;
+}
+
+.tooltip-enhanced::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px) scale(0.95);
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: var(--z-tooltip);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.tooltip-enhanced:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
