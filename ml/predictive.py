@@ -301,10 +301,10 @@ class LoadForecaster:
         normalized = (data - self._fallback_mean) / self._fallback_std
 
         X, y = self._create_sequences(normalized)
-        X_flat = X.reshape(X.shape[0], X.shape[1])  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        X_flat = X.reshape(X.shape[0], X.shape[1])  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        XtX = X_flat.T @ X_flat  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Xty = X_flat.T @ y  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        XtX = X_flat.T @ X_flat  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Xty = X_flat.T @ y  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         try:
             self._fallback_weights = np.linalg.solve(XtX, Xty)
         except np.linalg.LinAlgError:
@@ -328,7 +328,7 @@ class LoadForecaster:
         for i in range(len(data) - w):
             X.append(data[i : i + w])
             y.append(data[i + w])
-        X_arr = np.array(X)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        X_arr = np.array(X)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         y_arr = np.array(y)
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
             X_arr = X_arr.reshape(X_arr.shape[0], X_arr.shape[1], 1)
@@ -341,7 +341,7 @@ class LoadForecaster:
     def predict(self, horizon_hours: int = 24) -> np.ndarray:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")  # NOSONAR — S1192: intentional repetition (audit constant)
+            raise RuntimeError("Model has not been trained yet. Call train() first.")  # NOSONAR(S1192): intentional repetition (audit constant)
 
         if self._is_prophet:
             return self._predict_prophet(horizon_hours)
@@ -361,7 +361,7 @@ class LoadForecaster:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * np.random.rand(self._window_size)  # NOSONAR — S6711: numpy.random.Generator migration; API change required
+        ) * np.random.rand(self._window_size)  # NOSONAR(S6711): numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
         predictions: list[float] = []
         for _ in range(horizon_hours):
@@ -493,7 +493,7 @@ class FaultPredictor:
         self._explainer: Any = None
         self._last_training_features: Optional[np.ndarray] = None
 
-    def train(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def train(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Train fault classifier on fault features.
 
         Parameters
@@ -686,7 +686,7 @@ class FaultPredictor:
         }
         return results
 
-    def explain(self, features: np.ndarray) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def explain(self, features: np.ndarray) -> dict[str, Any]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Provide SHAP-based explanation for a prediction.
 
         Parameters
@@ -1362,7 +1362,7 @@ def get_ml_capabilities() -> dict[str, Any]:
             ],
             "best_available": "lstm"
             if _HAS_TENSORFLOW
-            else ("prophet" if _HAS_PROPHET else "linear"),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+            else ("prophet" if _HAS_PROPHET else "linear"),  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
         },
         "fault_prediction_methods": {
             "available": [
@@ -1371,7 +1371,7 @@ def get_ml_capabilities() -> dict[str, Any]:
             ],
             "best_available": "xgboost"
             if _HAS_XGBOOST
-            else ("random_forest" if _HAS_SKLEARN else "none"),  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+            else ("random_forest" if _HAS_SKLEARN else "none"),  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector._build_available_methods(),

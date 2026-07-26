@@ -193,7 +193,7 @@ def test_cua_executor_check_dependencies_returns_dict():
     """check_dependencies() must return a dict with all keys, never crash."""
     from agents.cua_executor import CUAExecutor
 
-    executor = CUAExecutor(audit_dir="/tmp/test_cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    executor = CUAExecutor(audit_dir="/tmp/test_cua_audit")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
     deps = executor.check_dependencies()
 
     assert isinstance(deps, dict)
@@ -211,7 +211,7 @@ def test_cua_executor_falls_back_when_deps_missing():
     This is the CRITICAL safety guarantee — the executor NEVER crashes."""
     from agents.cua_executor import CUAExecutor
 
-    executor = CUAExecutor(audit_dir="/tmp/test_cua_audit")  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    executor = CUAExecutor(audit_dir="/tmp/test_cua_audit")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
     deps = executor.check_dependencies()
 
     result = executor.execute_loop(
@@ -311,7 +311,7 @@ def test_etap_gui_agent_execute_cua_loop_returns_dict():
         question="Open ETAP and run Load Flow",
         max_steps=2,
         require_confirmation=False,
-        audit_dir="/tmp/test_cua_audit",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+        audit_dir="/tmp/test_cua_audit",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
     )
 
     assert isinstance(result, dict)
@@ -394,8 +394,8 @@ def test_cua_step_result_to_audit_dict_has_required_keys():
         step_number=1,
         action=CUAAction(type="click", x=100, y=200, target="Run button"),
         success=True,
-        screenshot_before="/tmp/before.png",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-        screenshot_after="/tmp/after.png",  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+        screenshot_before="/tmp/before.png",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        screenshot_after="/tmp/after.png",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
         duration_ms=250,
     )
 
@@ -406,8 +406,8 @@ def test_cua_step_result_to_audit_dict_has_required_keys():
     assert audit["action"]["y"] == 200
     assert audit["action"]["target"] == "Run button"
     assert audit["success"] is True
-    assert audit["screenshot_before"] == "/tmp/before.png"  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
-    assert audit["screenshot_after"] == "/tmp/after.png"  # NOSONAR — S5443: /tmp use is intentional & permission-hardened
+    assert audit["screenshot_before"] == "/tmp/before.png"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    assert audit["screenshot_after"] == "/tmp/after.png"  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
     assert audit["duration_ms"] == 250
     assert "timestamp" in audit
 

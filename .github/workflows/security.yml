@@ -199,8 +199,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --only-binary :all: --upgrade pip==25.0.1
-          # NOSONAR(githubactions:S8544): requirements.txt is audited separately and pins versions in-repo.
-          pip install --only-binary :all: -r requirements.txt || pip install --only-binary :all: -r requirements.txt  # NOSONAR(githubactions:S8541): binary-first with source fallback for unwheeled packages
+          # NOSONAR(S8544): requirements.txt is audited separately and pins versions in-repo.
+          pip install --only-binary :all: -r requirements.txt  # S8544: requirements.txt is audited and pins versions in-repo
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1 || pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1
 
       - name: Start service for runtime checks

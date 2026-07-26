@@ -80,7 +80,7 @@ class LoadBalancer:
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
             elif self._strategy == LoadBalancingStrategy.RANDOM:
-                return random.choice(list(healthy.keys()))  # NOSONAR — S2245: PRNG used for non-crypto purposes (test/load sim)
+                return random.choice(list(healthy.keys()))  # NOSONAR(S2245): PRNG used for non-crypto purposes (test/load sim)
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = random.uniform(0, total)
@@ -90,7 +90,7 @@ class LoadBalancer:
                     if r <= cumulative:
                         return wid
                 return list(healthy.keys())[-1]
-            return next(iter(healthy.keys()))  # NOSONAR — python:S8519: false positive — already uses next(iter(...))
+            return next(iter(healthy.keys()))  # NOSONAR(python):S8519: false positive — already uses next(iter(...))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -374,7 +374,7 @@ class ClusterManager:
                 "total_load": total_load,
                 "total_capacity": total_capacity,
                 "utilization": total_load / max(total_capacity, 1e-9),
-                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
             }
 
 
@@ -444,7 +444,7 @@ class HorizontalScaler:
         reason = (
             f"Utilization {avg_util:.1%} exceeds {self.scale_up_threshold:.0%}"
             if action == "scale_up"
-            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
             if action == "scale_down"
             else f"Utilization {avg_util:.1%} within normal range"
         )

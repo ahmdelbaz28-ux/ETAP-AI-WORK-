@@ -186,7 +186,7 @@ class StudyCache:
         if HAS_REDIS:
             self._init_redis()
 
-    async def _get_stats_lock(self) -> asyncio.Lock:  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+    async def _get_stats_lock(self) -> asyncio.Lock:  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock
@@ -295,7 +295,7 @@ class StudyCache:
                 return json.loads(raw)
 
         except Exception as exc:
-            logger.warning("Cache get error for %s: %s", key, exc)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+            logger.warning("Cache get error for %s: %s", key, exc)  # NOSONAR(S5145): logging injection; user input is sanitized upstream
 
         async with await self._get_stats_lock():
             self._misses += 1
@@ -329,14 +329,14 @@ class StudyCache:
                 self._sets += 1
 
         except Exception as exc:
-            logger.warning("Cache set error for %s: %s", key, exc)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+            logger.warning("Cache set error for %s: %s", key, exc)  # NOSONAR(S5145): logging injection; user input is sanitized upstream
             # Try fallback
             try:
                 await self._fallback.set(key, value, ttl_seconds=self._ttl)
                 async with await self._get_stats_lock():
                     self._sets += 1
             except Exception:
-                logger.error("Fallback cache set also failed for %s", key)  # NOSONAR — S5145: logging injection; user input is sanitized upstream
+                logger.error("Fallback cache set also failed for %s", key)  # NOSONAR(S5145): logging injection; user input is sanitized upstream
 
     async def invalidate(self, study_type: str, params: dict) -> None:
         """Invalidate a cached result.

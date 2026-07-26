@@ -73,7 +73,7 @@ def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     return default
 
 
-def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Deterministic CIM-like mapping for validation traceability.
 
@@ -148,9 +148,9 @@ def map_adms_to_cim(assets: list[ADMSAsset]) -> CIMModel:  # NOSONAR — S3776: 
             "line"
             if a.asset_type == ADMSAssetType.LINE
             else (
-                "feeder"  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+                "feeder"  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
                 if a.asset_type == ADMSAssetType.FEEDER
-                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
             )
         )
 

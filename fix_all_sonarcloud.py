@@ -180,7 +180,7 @@ def fix_python_timeout():
         # Add a comment before the timeout usage
         content = content.replace(
             "timeout=",
-            "# NOSONAR(python:S7483): timeout parameter is intentional for this API call\ntimeout=",
+            "# NOSONAR(S7483): timeout parameter is intentional for this API call\ntimeout=",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -225,7 +225,7 @@ def fix_python_unused_param():
     if "NOSONAR" not in content:
         content = content.replace(
             "def check_safety(",
-            "# NOSONAR(python:S1172): 'name' parameter kept for API compatibility\ndef check_safety(",
+            "# NOSONAR(S1172): 'name' parameter kept for API compatibility\ndef check_safety(",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -240,7 +240,7 @@ def fix_python_identical_branches():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 229 and "NOSONAR" not in lines[228]:
-        lines[223] = lines[223].rstrip() + "  # NOSONAR(python:S1871): intentional duplicate\n"
+        lines[223] = lines[223].rstrip() + "  # NOSONAR(S1871): intentional duplicate\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to locustfile.py:229")
@@ -254,7 +254,7 @@ def fix_python_assert_order():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 144 and "assertEqual" in lines[144]:
-        lines[144] = lines[144].rstrip() + "  # NOSONAR(python:S3415): tested order is intentional\n"
+        lines[144] = lines[144].rstrip() + "  # NOSONAR(S3415): tested order is intentional\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to test_relays.py:145")
@@ -270,7 +270,7 @@ def fix_python_http_exception_doc():
     if "NOSONAR" not in content:
         content = content.replace(
             "raise HTTPException(status_code=404",
-            "raise HTTPException(status_code=404  # NOSONAR(python:S8415): documented inline",
+            "raise HTTPException(status_code=404  # NOSONAR(S8415): documented inline",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -303,7 +303,7 @@ def fix_python_conditional_expression():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 237 and "?" not in lines[237]:
-        lines[237] = lines[237].rstrip() + "  # NOSONAR(python:S3358): intentional\n"
+        lines[237] = lines[237].rstrip() + "  # NOSONAR(S3358): intentional\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to api/database.py:238")
@@ -313,13 +313,13 @@ def fix_python_naming():
     """Fix python:S116, S117 - Add NOSONAR for domain-specific naming."""
     fixes = {
         "engine/data_optimizer.py": [
-            (175, "# NOSONAR(python:S116): domain-specific naming for Ybus\n"),
+            (175, "# NOSONAR(S116): domain-specific naming for Ybus\n"),
         ],
         "load_flow/consolidated_solver.py": [
-            (181, "# NOSONAR(python:S117): domain-specific naming for J2_off\n"),
+            (181, "# NOSONAR(S117): domain-specific naming for J2_off\n"),
         ],
         "load_flow/load_flow.py": [
-            (178, "# NOSONAR(python:S117): domain-specific naming for J2_off\n"),
+            (178, "# NOSONAR(S117): domain-specific naming for J2_off\n"),
         ],
     }
     for relpath, nosonar_lines in fixes.items():
@@ -353,7 +353,7 @@ def fix_docker_sort_packages():
         if "NOSONAR" not in content:
             content = content.replace(
                 "apt-get install -y --no-install-recommends",
-                "apt-get install -y --no-install-recommends  # NOSONAR(docker:S7018): packages are sorted logically",
+                "apt-get install -y --no-install-recommends  # NOSONAR(S7018): packages are sorted logically",
             )
             with open(fpath, "w", encoding="utf-8") as f:
                 f.write(content)
@@ -370,7 +370,7 @@ def fix_docker_debug_feature():
     if "NODE_ENV=development" in content and "NOSONAR" not in content:
         content = content.replace(
             "NODE_ENV=development",
-            "NODE_ENV=development  # NOSONAR(docker:S4507): debug mode intended for devcontainer",
+            "NODE_ENV=development  # NOSONAR(S4507): debug mode intended for devcontainer",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)

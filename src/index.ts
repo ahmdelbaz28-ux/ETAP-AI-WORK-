@@ -216,7 +216,7 @@ async function checkApiRateLimit(
   rc: RequestContext,
   auth: Extract<AuthResult, { valid: true }>,
 ): Promise<{ response: Response | null; agentIdMatch: RegExpMatchArray | null }> {
-  const agentIdMatch = rc.path.match(/^\/api\/v1\/agents\/([^/]+)\/chat$/);
+  const agentIdMatch = /^\/api\/v1\/agents\/([^/]+)\/chat$/.exec(rc.path);
   const agentIdForLimit = agentIdMatch ? agentIdMatch[1] : undefined;
   const rl = await checkRateLimit(rc.env, auth.keyId, agentIdForLimit, rc.method, rc.path);
   if (rl.allowed) return { response: null, agentIdMatch };
@@ -252,7 +252,7 @@ async function dispatchRoute(
   if (path === '/api/v1/providers' && method === 'GET') return handleListProviders(request, env, ctx, auth.keyId, auth.scope, traceId);
   if (path === '/api/v1/providers' && method === 'POST') return handleRegisterProvider(request, env, ctx, auth.keyId, auth.scope, traceId);
   if (path === '/api/v1/studies/run' && method === 'POST') return handleStudyRun(request, env, ctx, auth.keyId, auth.scope, traceId);
-  const studyStatusMatch = path.match(/^\/api\/v1\/studies\/status\/([^/]+)$/);
+  const studyStatusMatch = /^\/api\/v1\/studies\/status\/([^/]+)$/.exec(path);
   if (studyStatusMatch && method === 'GET') return handleStudyStatus(request, env, ctx, auth.keyId, auth.scope, traceId, studyStatusMatch[1]);
   if (path === '/api/v1/audit/logs' && method === 'GET') return handleAuditLogs(request, env, ctx, auth.keyId, auth.scope, traceId);
 
@@ -326,7 +326,7 @@ export default {
 
     // 4) Route dispatch
     try {
-      return dispatchRoute(rc, auth, agentIdMatch);
+      return await dispatchRoute(rc, auth, agentIdMatch);
     } catch (err) {
       bumpApiMetric('errors');
       const msg = err instanceof Error ? err.message : 'Internal error';

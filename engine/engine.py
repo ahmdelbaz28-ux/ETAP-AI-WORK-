@@ -55,7 +55,7 @@ class PowerSystemEngine:
         self.load_flow_solver = (
             load_flow_solver
             if load_flow_solver is not None
-            else (LoadFlowSolver(system) if system is not None else None)  # NOSONAR — S3358: nested conditional; extract to named variable (tech debt)
+            else (LoadFlowSolver(system) if system is not None else None)  # NOSONAR(S3358): nested conditional; extract to named variable (tech debt)
         )
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
@@ -101,9 +101,9 @@ class PowerSystemEngine:
             raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
-        Ybus_pos = self.system.get_ybus(seq="1")  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = self.system.get_ybus(seq="2")  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = self.system.get_ybus(seq="0")  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = self.system.get_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = self.system.get_ybus(seq="2")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = self.system.get_ybus(seq="0")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
         # Get bus index

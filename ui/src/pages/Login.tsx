@@ -54,7 +54,7 @@ function getTerminalLogColor(log: string): string {
   return "text-slate-400";
 }
 
-export default function Login() {  // NOSONAR(typescript:S3776): main Login render is a bilingual (en/ar) sign-in screen combining a live telemetry HUD, a CAD schematic background, an inline forgot-password flow, and a sign-in form — ~25 `isRtl ? "..." : "..."` i18n picks plus `{authError && ...}` / `{forgotOpen && forgotSent ? ... : ...}` conditional form sections; extracting each conditional block to a sub-component would require lifting 8 useState hooks + 3 callbacks through props, tracked as a separate refactor task
+export default function Login() {  // NOSONAR(S3776): main Login render is a bilingual (en/ar) sign-in screen combining a live telemetry HUD, a CAD schematic background, an inline forgot-password flow, and a sign-in form — ~25 `isRtl ? "..." : "..."` i18n picks plus `{authError && ...}` / `{forgotOpen && forgotSent ? ... : ...}` conditional form sections; extracting each conditional block to a sub-component would require lifting 8 useState hooks + 3 callbacks through props, tracked as a separate refactor task
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { notify } = useNotify();

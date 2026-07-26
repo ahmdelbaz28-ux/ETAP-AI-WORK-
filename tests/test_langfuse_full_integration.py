@@ -432,7 +432,7 @@ class TestLangfuseMiddleware:
         from starlette.responses import PlainTextResponse
         from starlette.routing import Route
 
-        async def homepage(request):  # NOSONAR — S7503: async function uses sync I/O for compatibility reasons
+        async def homepage(request):  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
             return PlainTextResponse("hello")
 
         app = Starlette(routes=[Route("/", homepage)])

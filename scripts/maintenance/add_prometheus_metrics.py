@@ -68,8 +68,8 @@ def main() -> None:
     # Ensure a blank line before block for readability
     new_content = content[:insert_pos] + ["", BLOCK] + content[insert_pos:]
     # METRICS_FILE is derived from __file__ (script location), never user input.
-    # NOSONAR — S2083: path is maintainer-controlled, not user-controlled.
-    METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")  # NOSONAR — S2083
+    # NOSONAR(S2083): path is maintainer-controlled, not user-controlled.
+    METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")  # NOSONAR  # S2083
     result = {"modified": True, "lines_added": 30}
     print(json.dumps(result))
 

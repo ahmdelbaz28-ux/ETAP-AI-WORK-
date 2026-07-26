@@ -155,9 +155,9 @@ class CableSizingAgent(BaseAgent):
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         installation_method: str = "in_air",
-        ambient_temp_C: float = 30.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ambient_temp_C: float = 30.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         n_circuits: int = 1,
-        soil_resistivity_KmW: float = 1.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        soil_resistivity_KmW: float = 1.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> dict[str, Any]:
         """
         Calculate cable ampacity with derating factors per IEC 60364-5-52.
@@ -199,7 +199,7 @@ class CableSizingAgent(BaseAgent):
                 "ampacity_A": 0.0,
             }
 
-        I_base = base_table[cross_section_mm2]  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_base = base_table[cross_section_mm2]  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Max conductor temperature
         max_temp = 90.0 if insulation.upper() == "XLPE" else 70.0
@@ -207,14 +207,14 @@ class CableSizingAgent(BaseAgent):
         # 1) Temperature correction factor (Table B.52.14 simplified)
         #    Ca = [(max_temp - ambient) / (max_temp - 30)]^0.5
         if ambient_temp_C >= max_temp:
-            Ca = 0.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ca = 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
             Ca = np.sqrt((max_temp - ambient_temp_C) / (max_temp - 30.0))
 
         # 2) Grouping correction factor (Table B.52.17 simplified)
         #    Approximate: Cg = 1 / sqrt(n) for n circuits touching
         if n_circuits <= 1:
-            Cg = 1.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Cg = 1.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         elif n_circuits <= 4:
             Cg = 0.80
         elif n_circuits <= 6:
@@ -227,7 +227,7 @@ class CableSizingAgent(BaseAgent):
         # 3) Soil thermal resistivity factor (for direct burial)
         if installation_method == "direct_buried":
             # Table B.52.15 simplified
-            Cs_lookup = {  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Cs_lookup = {  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 0.5: 1.28,
                 0.7: 1.15,
                 1.0: 1.00,
@@ -239,7 +239,7 @@ class CableSizingAgent(BaseAgent):
             # Interpolate
             rho_values = np.array(sorted(Cs_lookup.keys()))
             cs_values = np.array([Cs_lookup[r] for r in rho_values])
-            Cs = float(np.interp(soil_resistivity_KmW, rho_values, cs_values))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Cs = float(np.interp(soil_resistivity_KmW, rho_values, cs_values))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             # Installation method base factor (buried rating ≈ 0.85 of in-air)
             method_factor = 0.85
@@ -250,7 +250,7 @@ class CableSizingAgent(BaseAgent):
             Cs = 1.0
             method_factor = 1.0
 
-        I_derated = I_base * method_factor * Ca * Cg * Cs  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_derated = I_base * method_factor * Ca * Cg * Cs  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return {
             "cross_section_mm2": cross_section_mm2,
@@ -274,14 +274,14 @@ class CableSizingAgent(BaseAgent):
 
     def calculate_voltage_drop(
         self,
-        load_current_A: float,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        load_current_A: float,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         cable_length_m: float,
         cross_section_mm2: float,
         conductor_material: str = "Cu",
-        system_voltage_V: float = 400.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        system_voltage_V: float = 400.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         power_factor: float = 0.85,
         n_phases: int = 3,
-        frequency_Hz: float = 50.0,  # NOSONAR — S117, S1172: physics notation + unused param kept for API compat (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        frequency_Hz: float = 50.0,  # NOSONAR(S117, S1172): physics notation + unused param kept for API compat (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> dict[str, Any]:
         """
         Calculate voltage drop per IEC 60364-5-52 Annex G.
@@ -329,19 +329,19 @@ class CableSizingAgent(BaseAgent):
 
         # Adjust resistance to operating temperature (≈ 80 °C for XLPE)
         alpha = 0.00393 if conductor_material == "Cu" else 0.00403  # temperature coefficient
-        T_op = 80.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        R_op = R20 * (1.0 + alpha * (T_op - 20.0))  # Ω/km  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_op = 80.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R_op = R20 * (1.0 + alpha * (T_op - 20.0))  # Ω/km  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Reactance approximation (per IEC 60364-5-52 Annex G)
         # X ≈ 0.08 Ω/km for cables up to 300 mm² (conservative)
         X = 0.08  # Ω/km
 
-        L_km = cable_length_m / 1000.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        L_km = cable_length_m / 1000.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         sin_phi = np.sqrt(1.0 - power_factor**2)
 
         if n_phases == 3:
-            delta_V = np.sqrt(3) * load_current_A * L_km * (R_op * power_factor + X * sin_phi)  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            reference_V = system_voltage_V  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            delta_V = np.sqrt(3) * load_current_A * L_km * (R_op * power_factor + X * sin_phi)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            reference_V = system_voltage_V  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         elif n_phases == 1:
             delta_V = 2.0 * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
             reference_V = (
@@ -352,10 +352,10 @@ class CableSizingAgent(BaseAgent):
             delta_V = 2.0 * load_current_A * L_km * R_op
             reference_V = system_voltage_V
 
-        delta_V_percent = (delta_V / reference_V) * 100.0 if reference_V > 0 else 0.0  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        delta_V_percent = (delta_V / reference_V) * 100.0 if reference_V > 0 else 0.0  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage at load end
-        V_load = reference_V - delta_V  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_load = reference_V - delta_V  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return {
             "voltage_drop_V": float(delta_V),
@@ -381,7 +381,7 @@ class CableSizingAgent(BaseAgent):
         cross_section_mm2: float,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
-        fault_current_kA: float = 25.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        fault_current_kA: float = 25.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         fault_duration_s: float = 1.0,
     ) -> dict[str, Any]:
         """
@@ -433,17 +433,17 @@ class CableSizingAgent(BaseAgent):
             theta_f = 160.0
 
         S = cross_section_mm2
-        I_fault = fault_current_kA * 1000.0  # Convert to A  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_fault = fault_current_kA * 1000.0  # Convert to A  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         t = fault_duration_s
 
         # Permissible short-circuit energy (I²t)
-        I2t_permissible = K**2 * S**2 * np.log((theta_f + beta) / (theta_i + beta))  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I2t_permissible = K**2 * S**2 * np.log((theta_f + beta) / (theta_i + beta))  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Actual short-circuit energy
-        I2t_actual = I_fault**2 * t  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I2t_actual = I_fault**2 * t  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Permissible short-circuit current for the given duration
-        I_permissible = np.sqrt(I2t_permissible / t) if t > 0 else float("inf")  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_permissible = np.sqrt(I2t_permissible / t) if t > 0 else float("inf")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         adequate = I2t_actual <= I2t_permissible
 
@@ -470,16 +470,16 @@ class CableSizingAgent(BaseAgent):
 
     def recommend_cable(
         self,
-        load_current_A: float,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        load_current_A: float,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         cable_length_m: float,
-        system_voltage_V: float = 400.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        system_voltage_V: float = 400.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         power_factor: float = 0.85,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         installation_method: str = "in_air",
-        ambient_temp_C: float = 40.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ambient_temp_C: float = 40.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         n_circuits: int = 1,
-        fault_current_kA: float = 25.0,  # NOSONAR — S117: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        fault_current_kA: float = 25.0,  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         fault_duration_s: float = 1.0,
         max_vdrop_percent: float = 5.0,
         n_phases: int = 3,

@@ -80,7 +80,7 @@ EXCLUDED_PATHS = {
 ALLOWLIST_MARKERS = ("# pragma: allowlist secret", "# security: intentional", "# nosec")
 
 
-def scan_file(filepath):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def scan_file(filepath):  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     issues = []
     try:
         with open(filepath, encoding="utf-8", errors="ignore") as f:
@@ -101,7 +101,7 @@ def scan_file(filepath):  # NOSONAR — S3776: cognitive complexity; scheduled f
     return issues
 
 
-def main():  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def main():  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     all_issues = []
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]

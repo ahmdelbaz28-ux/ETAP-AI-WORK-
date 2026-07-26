@@ -85,7 +85,7 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Validate a single YAML prompt file.
 
@@ -175,11 +175,11 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR �
         issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
 
     return len(
-        [i for i in issues if i.startswith("CRITICAL:", "ERROR:")],  # NOSONAR — python:S8513: false positive — already tuple form
+        [i for i in issues if i.startswith("CRITICAL:", "ERROR:")],  # NOSONAR(python):S8513: false positive — already tuple form
     ) == 0, issues
 
 
-def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate all YAML prompt files in the prompts directory."""
     yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
     if not yaml_files:
@@ -203,7 +203,7 @@ def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR — S3776: co
             print(f"  ✗ {filepath.name}")
             for issue in issues:
                 prefix = "    "
-                if issue.startswith("CRITICAL:", "ERROR:"):  # NOSONAR — python:S8513: false positive — already tuple form
+                if issue.startswith("CRITICAL:", "ERROR:"):  # NOSONAR(python):S8513: false positive — already tuple form
                     total_errors += 1
                     print(f"{prefix}❌ {issue}")
                 elif issue.startswith("WARNING:"):

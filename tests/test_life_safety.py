@@ -334,7 +334,7 @@ def test_audit_log_detects_tampering():
         first_entry = json.loads(lines[0])
         first_entry["data"]["action"]["target"] = "TAMPERED_TARGET"
         lines[0] = json.dumps(first_entry)
-        Path(log_path).write_text("\n".join(lines) + "\n")  # nosec B108 — test fixture path  # NOSONAR — S2083: path derived from tempfile fixture, not user input
+        Path(log_path).write_text("\n".join(lines) + "\n")  # nosec B108 — test fixture path  # NOSONAR(S2083): path derived from tempfile fixture, not user input
 
         # Verify tampering detected
         is_valid, broken = guard.audit_log.verify_chain()

@@ -122,7 +122,7 @@ def _verify_resend_signature(
     if not signature_header or not secret:
         return False
 
-    parts = {k: v for k, v in (p.split("=", 1) for p in signature_header.split(",") if "=" in p)}
+    parts = dict(p.split("=", 1) for p in signature_header.split(",") if "=" in p)  # NOSONAR(S7500): dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
     msg_id = parts.get("svix-id", "")
     timestamp = parts.get("svix-timestamp", "")
     signatures = [v for k, v in parts.items() if k.startswith("svix-signature")]
@@ -258,7 +258,7 @@ _events: list[dict[str, Any]] = []
 _EVENTS_MAX = 1000
 
 
-async def _record_event(message_id: str, event_type: str, data: dict) -> None:  # NOSONAR(python:S7503): async for consistency with webhook event-recording API (called as await _record_event)
+async def _record_event(message_id: str, event_type: str, data: dict) -> None:  # NOSONAR(S7503): async for consistency with webhook event-recording API (called as await _record_event)
     _events.append(
         {
             "id": str(uuid.uuid4()),
