@@ -104,6 +104,9 @@ asyncpg>=0.29,<0.32
 # See: https://github.com/fastapi/fastapi/releases/tag/0.115.0
 fastapi>=0.115.4,<0.116.0
 uvicorn~=0.25.0
+# aiofiles — required by api/routes.py (streaming file responses + UploadFile).
+# Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
+aiofiles>=24.1.0,<25.0.0
 
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
