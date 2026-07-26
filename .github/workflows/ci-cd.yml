@@ -246,9 +246,9 @@ jobs:
           # --only-binary :all: speeds up CI but packages without binary wheels
           # (e.g. langdetect has no cp312 wheel) would fail the whole job.
           # Try binary-only first; fall back to source build if needed.
-          # NOSONAR(S8544): requirements.txt is audited separately and pins versions in-repo.
-          pip install --only-binary :all: -r requirements.txt || pip install --only-binary :all: -r requirements.txt  # NOSONAR(S8541): binary-first with source fallback for unwheeled packages
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
+          # S8544: requirements.txt is audited separately and pins versions in-repo.
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # S8541: binary-first with source fallback for unwheeled packages (e.g. langdetect)
+          pip install --only-binary :all: pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist || pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist  # S8541: binary-first with fallback
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
@@ -332,7 +332,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7'
+        run: 'pip install --only-binary :all: bandit safety || pip install bandit safety'  # S8541: binary-first with fallback (safety==3.2.7 + typer rich_utils compat)
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
