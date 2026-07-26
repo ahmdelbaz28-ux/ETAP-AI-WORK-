@@ -15,8 +15,8 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from api.dependencies import get_api_key
 from api._messages import MSG_INTERNAL_ERROR
+from api.dependencies import get_api_key
 
 logger = logging.getLogger(__name__)
 

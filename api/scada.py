@@ -8,8 +8,8 @@ Separated from main engineering service for better modularity.
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
-from api.dependencies import get_api_key
 from api._messages import MSG_INTERNAL_ERROR
+from api.dependencies import get_api_key
 
 router = APIRouter(prefix="/api/v1/scada", tags=["scada"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
 

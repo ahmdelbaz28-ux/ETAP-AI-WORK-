@@ -63,6 +63,7 @@ import ssl
 import threading
 from datetime import UTC
 from typing import Any, Optional
+
 from api._messages import ISO_8601_UTC_FMT
 
 logger = logging.getLogger(__name__)

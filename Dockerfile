@@ -43,8 +43,13 @@ COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.hf.txt
 
-# Install pre-commit hooks
-RUN pip install --no-cache-dir pre-commit && pre-commit install
+# NOTE: pre-commit hooks are NOT installed in the Docker image.
+# `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
+# repository. The HF Space Docker build context excludes .git/ (see
+# .dockerignore), so `pre-commit install` fails with "fatal: not a git
+# repository" → Docker build exits 1 → HF Space enters BUILD_ERROR state.
+# Pre-commit is a developer-side tool (runs locally before commit); the
+# production image does not need it. CI enforces lint/tests separately.
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.

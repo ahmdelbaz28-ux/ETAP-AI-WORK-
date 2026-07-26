@@ -42,17 +42,15 @@ import asyncio
 import contextlib
 import logging
 import os
-import time
 import uuid
 from pathlib import Path
 from typing import Any, Optional
 
 from agents.cua_base_executor import (
+    DEFAULT_ACTION_TIMEOUT,
     BaseCUAExecutor,
     CUAAction,
     CUAExecutionResult,
-    CUAStepResult,
-    DEFAULT_ACTION_TIMEOUT,
 )
 
 logger = logging.getLogger("agent.browser_cua_executor")

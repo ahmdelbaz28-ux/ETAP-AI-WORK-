@@ -22,8 +22,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.database import get_db
 from api._messages import MSG_USER_NOT_FOUND
+from api.database import get_db
 
 logger = logging.getLogger(__name__)
 

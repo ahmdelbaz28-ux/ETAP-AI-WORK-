@@ -32,7 +32,6 @@ import abc
 import contextlib
 import logging
 import time
-import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path

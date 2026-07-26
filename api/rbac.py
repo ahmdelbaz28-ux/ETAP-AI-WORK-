@@ -42,6 +42,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from api._messages import MSG_USER_NOT_FOUND
 from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
@@ -49,7 +50,6 @@ from api.dependencies import (
     get_current_user_from_header,
     pagination_params,
 )
-from api._messages import MSG_USER_NOT_FOUND
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM models

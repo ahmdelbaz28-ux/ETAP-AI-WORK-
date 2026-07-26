@@ -17,7 +17,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-from integrations._observability_base import NoOpContext as _NoOpContext, build_health_check
+from integrations._observability_base import NoOpContext as _NoOpContext
+from integrations._observability_base import build_health_check
 
 # ─── LangWatch SDK (optional dependency) ─────────────────────────────────────
 try:
