@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
+import tempfile
 import logging
 import os
 from pathlib import Path
@@ -150,6 +151,7 @@ class CodeIndexer:
             Path.cwd().resolve(),
             _indexer_root,
             Path.home().resolve(),
+            Path(tempfile.gettempdir()).resolve(),
         ]
         if not any(_is_within(candidate, root) for root in allowed_roots):
             raise ValueError(
