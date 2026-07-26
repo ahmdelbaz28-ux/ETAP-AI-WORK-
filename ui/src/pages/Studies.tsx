@@ -1,5 +1,17 @@
 import { motion } from "framer-motion";
-import { Beaker, BookOpen, Play } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Beaker,
+  BookOpen,
+  Cog,
+  Flame,
+  Play,
+  RefreshCw,
+  Shield,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +21,19 @@ import { studyCategories } from "../lib/studyCategories";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+
+// Lucide icon lookup map for study categories
+const studyIconMap: Record<string, React.ElementType> = {
+  Zap,
+  AlertTriangle,
+  Flame,
+  BarChart3,
+  Shield,
+  Cog,
+  TrendingUp,
+  RefreshCw,
+};
+
 const categoryColors: Record<string, string> = {
   load_flow: "from-blue-500 to-blue-700",
   short_circuit: "from-amber-500 to-orange-600",
@@ -18,6 +43,17 @@ const categoryColors: Record<string, string> = {
   motor_starting: "from-green-500 to-emerald-700",
   optimal_power_flow: "from-indigo-500 to-indigo-700",
   transient_stability: "from-rose-500 to-pink-700",
+};
+
+const categoryIconBgColors: Record<string, string> = {
+  load_flow: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+  short_circuit: "bg-amber-500/10 border-amber-500/20 text-amber-400",
+  arc_flash: "bg-red-500/10 border-red-500/20 text-red-400",
+  harmonic_analysis: "bg-purple-500/10 border-purple-500/20 text-purple-400",
+  protection_coordination: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
+  motor_starting: "bg-green-500/10 border-green-500/20 text-green-400",
+  optimal_power_flow: "bg-indigo-500/10 border-indigo-500/20 text-indigo-400",
+  transient_stability: "bg-rose-500/10 border-rose-500/20 text-rose-400",
 };
 
 export default function Studies() {
@@ -51,6 +87,9 @@ export default function Studies() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {studyCategories.map((s, index) => {
           const isDisabled = disabledStudies.has(s.id);
+          const LucideIcon = studyIconMap[s.lucideIcon] || Zap;
+          const iconBgColor = categoryIconBgColors[s.id] || "bg-brand-500/10 border-brand-500/20 text-brand-400";
+
           return (
             <motion.div
               key={s.id}
@@ -80,7 +119,10 @@ export default function Studies() {
 
                 <div className="relative">
                   <div className="flex items-start justify-between">
-                    <span className="text-3xl">{s.icon}</span>
+                    {/* Professional Lucide icon container with themed background */}
+                    <div className={cn("p-2.5 rounded-xl border", iconBgColor)}>
+                      <LucideIcon className="w-5 h-5 shrink-0" />
+                    </div>
                     <div className="flex items-center gap-1.5">
                       {isDisabled && (
                         <Badge variant="warning" size="sm">

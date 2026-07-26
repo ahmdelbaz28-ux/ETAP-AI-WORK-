@@ -29,7 +29,7 @@ export function Layout() {
           <Navbar />
           <main className="flex-1 overflow-y-auto relative">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--accent-primary)]/1 pointer-events-none" />
-            <div className="relative p-6 max-w-[1400px] mx-auto w-full">
+            <div className="relative p-6 max-w-[1400px] mx-auto w-full page-transition-enter mobile-p-compact">
               <Breadcrumbs path={location.pathname} />
               <Outlet />
             </div>

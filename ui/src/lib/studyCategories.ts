@@ -14,6 +14,7 @@ export interface StudyCategory {
   id: string;
   name: string;
   icon: string;
+  lucideIcon: string;
   description: string;
   standard?: string;
   params: StudyParam[];
@@ -24,6 +25,7 @@ export const studyCategories: StudyCategory[] = [
     id: "load_flow",
     name: "Load Flow Analysis",
     icon: "⚡",
+    lucideIcon: "Zap",
     description:
       "Newton-Raphson power flow solver with voltage regulation and power loss analysis.",
     standard: "IEEE",
@@ -38,6 +40,7 @@ export const studyCategories: StudyCategory[] = [
     id: "short_circuit",
     name: "Short Circuit Analysis",
     icon: "⚠️",
+    lucideIcon: "AlertTriangle",
     description: "IEC 60909 compliant fault current analysis for all fault types.",
     standard: "IEC 60909",
     params: [
@@ -50,6 +53,7 @@ export const studyCategories: StudyCategory[] = [
     id: "arc_flash",
     name: "Arc Flash Analysis",
     icon: "🔥",
+    lucideIcon: "Flame",
     description: "IEEE 1584-2018 incident energy and PPE category calculation.",
     standard: "IEEE 1584-2018",
     params: [
@@ -64,6 +68,7 @@ export const studyCategories: StudyCategory[] = [
     id: "harmonic_analysis",
     name: "Harmonic Analysis",
     icon: "📊",
+    lucideIcon: "BarChart3",
     description: "THD/TDD compliance analysis per IEEE 519-2022 standards.",
     standard: "IEEE 519-2022",
     params: [
@@ -76,6 +81,7 @@ export const studyCategories: StudyCategory[] = [
     id: "protection_coordination",
     name: "Protection Coordination",
     icon: "🛡️",
+    lucideIcon: "Shield",
     description: "IEC 60255 relay curve coordination and selectivity analysis.",
     standard: "IEC 60255",
     params: [
@@ -88,6 +94,7 @@ export const studyCategories: StudyCategory[] = [
     id: "motor_starting",
     name: "Motor Starting Analysis",
     icon: "⚙️",
+    lucideIcon: "Cog",
     description: "Motor starting voltage drop and torque analysis.",
     standard: "IEEE",
     params: [
@@ -110,6 +117,7 @@ export const studyCategories: StudyCategory[] = [
     id: "optimal_power_flow",
     name: "Optimal Power Flow",
     icon: "📈",
+    lucideIcon: "TrendingUp",
     description: "AC/DC optimal power flow with economic dispatch.",
     params: [
       { name: "objective", type: "select", default: "min_cost", label: "Objective Function" },
@@ -121,6 +129,7 @@ export const studyCategories: StudyCategory[] = [
     id: "transient_stability",
     name: "Transient Stability",
     icon: "🔄",
+    lucideIcon: "RefreshCw",
     description: "Time-domain simulation of power system dynamic response.",
     params: [
       { name: "simulation_time_s", type: "number", default: 5, label: "Simulation Time (s)" },

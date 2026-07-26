@@ -217,9 +217,9 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
             if (!items?.length) return null;
             const SectionIcon = sectionIcons[section];
             return (
-              <div key={section} className="pt-4">
+              <div key={section} className="sidebar-section-divider">
                 {!sidebarCollapsed && (
-                  <div className="flex items-center gap-1.5 px-3 mb-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                  <div className="sidebar-section-label">
                     {SectionIcon && <SectionIcon className="w-3 h-3" />}
                     {t(sectionLabels[section])}
                   </div>
