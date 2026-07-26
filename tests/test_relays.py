@@ -142,7 +142,7 @@ class TestOvercurrentRelay:
 
     def test_tms_property(self):
         r = OvercurrentRelay(relay_id=1, TMS=0.75)
-        assert r.TMS == pytest.approx(0.75)
+        assert pytest.approx(0.75) == r.TMS
 
     def test_ip_property(self):
         r = OvercurrentRelay(relay_id=1, Ip=0.8)

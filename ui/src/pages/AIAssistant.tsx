@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -72,12 +72,8 @@ function _safeRandomSuffix(): string {
 }
 let _safeRandomSuffixCounter = 0;
 
-interface MarkdownCodeProps {
-  node?: unknown;
+interface MarkdownCodeProps extends React.HTMLAttributes<HTMLElement>, ExtraProps {
   inline?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-  [key: string]: unknown;
 }
 
 function MarkdownCode({

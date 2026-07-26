@@ -138,9 +138,8 @@ async def test_3_email_send_log():
 async def test_4_dashboard():
     """Test dashboard JSON endpoints (dev mode)."""
     print("\n=== TEST 4: Dashboard endpoints ===")
-    from unittest.mock import patch
-
     from types import SimpleNamespace
+    from unittest.mock import patch
 
     from fastapi import Request
 

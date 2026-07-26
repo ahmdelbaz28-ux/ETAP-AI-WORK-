@@ -137,7 +137,7 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
     errors?: string[];
     warnings?: string[];
   } | null>(null);
-  const [simulationResults, setSimulationResults] = useState<unknown>(null);
+  const [simulationResults, setSimulationResults] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Refs for tracking SVG mouse position

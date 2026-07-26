@@ -14,7 +14,6 @@ import uuid
 from typing import Any, Optional
 
 import aiofiles
-
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
