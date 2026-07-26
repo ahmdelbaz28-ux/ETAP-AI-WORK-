@@ -251,7 +251,7 @@ def activate_kill_switch(reason: str = "manual") -> None:
         indent=2,
     )
     _write_secure_file(KILL_SWITCH_PATH, payload)
-    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR(S5145): logging injection; user input is sanitized upstream
+    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR: logging injection; user input is sanitized upstream
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency
@@ -459,7 +459,7 @@ class LifeSafetyGuard:
 
     # Mandatory cooldown between control actions (seconds)
     CONTROL_COOLDOWN_SECONDS = 2.0
-  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # OpenCV accuracy is too low for control — read-only mode only
     DEGRADED_VISION_SOURCES = {"opencv"}
 
@@ -486,7 +486,7 @@ class LifeSafetyGuard:
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
-    def pre_action_check(  # NOSONAR(S3776): cognitive complexity; refactoring sprint
+    def pre_action_check(  # NOSONAR: cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
         screenshot_before: Optional[str],
@@ -798,7 +798,7 @@ class LifeSafetyGuard:
         self,
         screenshot_path: str,
         action,
-        gemini_analysis: dict[str, Any] | None,  # NOSONAR(S1172): unused param kept for API compatibility
+        gemini_analysis: dict[str, Any] | None,  # NOSONAR: unused param kept for API compatibility
     ) -> Optional[str]:
         """Draw a red crosshair on the screenshot at the click location.
 

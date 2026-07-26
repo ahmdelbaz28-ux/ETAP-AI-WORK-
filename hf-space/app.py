@@ -1023,7 +1023,7 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR(S7493): sync file I/O in async function; compatibility with sync lib
+        with open(log_path, encoding="utf-8") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()

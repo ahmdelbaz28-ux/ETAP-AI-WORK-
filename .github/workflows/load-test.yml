@@ -87,8 +87,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt pins versions in-repo
 
       # ── Start the engineering service ──────────────────────────────────────
       - name: Start engineering service in background
@@ -260,9 +260,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install locust==${{ env.LOCUST_VERSION }}
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt pins versions in-repo
+          pip install --only-binary :all: locust==2.29.1
 
       # ── Start the engineering service ──────────────────────────────────────
       - name: Start engineering service in background

@@ -32,7 +32,7 @@ import anyio
 __all__ = ["start_http_server"]
 
 
-async def _handle_client(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def _handle_client(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics",
 ) -> None:
     """Parse a minimal HTTP request and dispatch to the health handler."""
@@ -65,14 +65,14 @@ async def _handle_client(  # NOSONAR(S3776): cognitive complexity; scheduled for
                 b"HTTP/1.1 405 Method Not Allowed\r\n"
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
-                + b"Connection: close\r\n\r\n"  # NOSONAR(S1192): intentional repetition (audit constant)
+                + b"Connection: close\r\n\r\n"  # NOSONAR: intentional repetition (audit constant)
                 + body
             )
         elif path == "/health":
             result = await health_handler.health()
             body = json.dumps(result).encode()
             response = (
-                b"HTTP/1.1 200 OK\r\n"  # NOSONAR(S1192): intentional repetition (audit constant)
+                b"HTTP/1.1 200 OK\r\n"  # NOSONAR: intentional repetition (audit constant)
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
                 + b"Connection: close\r\n\r\n"
@@ -139,7 +139,7 @@ async def _handle_client(  # NOSONAR(S3776): cognitive complexity; scheduled for
             )
 
         await client.send(response)
-    except (anyio.EndOfStream, OSError):  # NOSONAR(python):S5713: ConnectionError/BrokenPipe/ConnectionReset are subclasses of OSError; kept minimal
+    except (anyio.EndOfStream, OSError):  # NOSONAR: ConnectionError/BrokenPipe/ConnectionReset are subclasses of OSError; kept minimal
         # Expected when a client disconnects abruptly.
         pass
     except Exception:

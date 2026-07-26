@@ -163,7 +163,7 @@ class TopologyProcessor:
             bus1, bus2 = self.switches[switch_id]
             self.add_connection(bus1, bus2, switch_id)
 
-    def find_connected_components(self) -> list[set[str]]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def find_connected_components(self) -> list[set[str]]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
@@ -377,7 +377,7 @@ class ADMSControlEngine:
         # Find path from target feeder to section
         path = self.topology.find_path(
             to_root,
-            next(iter(self.topology.section_buses.get(section_id, set())))  # NOSONAR(python):S8519: false positive — already uses next(iter(...))
+            next(iter(self.topology.section_buses.get(section_id, set())))  # NOSONAR: false positive — already uses next(iter(...))
             if section_id in self.topology.section_buses
             else to_root,
         )
@@ -448,7 +448,7 @@ class ADMSControlEngine:
             actions, description=f"Fault isolation for section {fault_section}",
         )
 
-    def plan_restoration(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def plan_restoration(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self, fault_section: str, de_energized_sections: list[str] = None,
     ) -> Optional[SwitchingSequence]:
         """
@@ -500,7 +500,7 @@ class ADMSControlEngine:
             actions, description=f"Service restoration for sections: {restored}",
         )
 
-    def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Execute full FLISR sequence:
         1. Detect fault section

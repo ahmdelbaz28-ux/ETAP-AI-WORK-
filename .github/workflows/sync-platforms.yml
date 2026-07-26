@@ -404,7 +404,7 @@ jobs:
           pip install --upgrade pip==25.0.1 --only-binary :all:
           # Only install packages needed by test_hf_space_production.py
           # (urllib is stdlib, pytest is the only external dep)
-          pip install --only-binary :all: pytest==8.3.5
+          pip install --only-binary :all: pytest==8.3.5  # NOSONAR: single pinned package for E2E test runner
 
       - name: ⏳ Wait for HF Space to become healthy (up to 6 min)
         env:

@@ -122,7 +122,7 @@ class TestArcGISProvider:
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             list(provider.extract_features("layer-1"))
 
     def test_export_geojson_raises_on_failure(self):
@@ -335,7 +335,7 @@ class TestQGISProvider:
         from gis_integration.providers.qgis_provider import QGISProvider
 
         provider = QGISProvider()
-        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(GISDataExtractionError, match="not loaded"):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             list(provider.extract_features("layer-1"))
 
     def test_get_crs_returns_default(self):
@@ -809,7 +809,7 @@ class TestGISUtils:
 
     def test_validate_geometry_not_dict(self):
         """Non-dict input should fail validation."""
-        ok, _ = validate_geometry_dict("not a dict")  # NOSONAR(S5655): intentional wrong-type arg to verify validation rejects it
+        ok, _ = validate_geometry_dict("not a dict")  # NOSONAR: intentional wrong-type arg to verify validation rejects it
         assert ok is False
 
     def test_safe_parse_geojson_from_string(self):
@@ -1057,7 +1057,7 @@ class TestProviderErrorHandling:
                     "gis_integration.providers.arcgis_provider.validate_geometry_dict"
                 ) as mock_val:
                     mock_val.return_value = (False, "unsupported geometry type: InvalidType")
-                    with pytest.raises(GISDataExtractionError, match="Invalid geometry"):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+                    with pytest.raises(GISDataExtractionError, match="Invalid geometry"):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
                         list(provider.extract_features("bad_layer"))
 
     def test_qgis_export_geojson_failure(self):

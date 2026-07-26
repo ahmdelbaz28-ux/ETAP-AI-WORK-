@@ -63,6 +63,74 @@ function buildRandomAlarm(isRtl: boolean): SCADAAlarm {
   };
 }
 
+// --- Module-scope async helpers (extracted from ScadaIntegration to reduce
+// its cognitive complexity — each takes setter callbacks so the component
+// stays stateful while the logic lives outside). ---
+type NotifyFn = (type: "success" | "error" | "info" | "warning", message: string) => void;
+type AddLogFn = (msg: string) => void;
+
+async function testScadaConnection(
+  apiKey: string,
+  isRtl: boolean,
+  notify: NotifyFn,
+  addLog: AddLogFn,
+  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,
+  setLatency: (n: number | null) => void,
+  setTelemetryPoints: (pts: TelemetryPoint[]) => void,
+): Promise<void> {
+  setConnectionStatus("connecting");
+  addLog(
+    isRtl
+      ? "جاري فحص الاتصال مع خادم Zenon SCADA..."
+      : "Testing connection to Zenon SCADA server...",
+  );
+  const startTime = performance.now();
+
+  try {
+    const token = localStorage.getItem("authToken");
+    const response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(apiKey ? { "x-api-key": apiKey } : {}),
+      },
+    });
+
+    const endTime = performance.now();
+    setLatency(Math.round(endTime - startTime));
+
+    if (response.ok) {
+      const body = await response.json();
+      if (body.success && body.data?.points) {
+        setTelemetryPoints(body.data.points);
+      }
+      setConnectionStatus("connected");
+      notify(
+        "success",
+        isRtl ? "تم الاتصال بنجاح مع نظام الإسكادا!" : "SCADA connection verified successfully!",
+      );
+      addLog(
+        isRtl
+          ? `تم الاتصال. زمن الاستجابة: ${Math.round(endTime - startTime)} ملي ثانية.`
+          : `Connected. Latency: ${Math.round(endTime - startTime)} ms.`,
+      );
+    } else {
+      throw new Error(`HTTP Error ${response.status}`);
+    }
+  } catch (err: any) {
+    setConnectionStatus("disconnected");
+    setLatency(null);
+    notify(
+      "error",
+      isRtl
+        ? "فشل الاتصال بنظام الإسكادا. تأكد من تشغيل خادم زينون."
+        : "Connection failed. Ensure Zenon service is running.",
+    );
+    addLog(isRtl ? `خطأ في الاتصال: ${err.message}` : `Connection error: ${err.message}`);
+  }
+}
+
 export default function ScadaIntegration() {  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
@@ -144,60 +212,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
     }
   };
 
-  // REST API connection probe
-  const testConnection = async () => {  // NOSONAR(S3776): test connection handler — complexity from 3-way config matrix + error branching
-    setConnectionStatus("connecting");
-    addLog(
-      isRtl
-        ? "جاري فحص الاتصال مع خادم Zenon SCADA..."
-        : "Testing connection to Zenon SCADA server...",
-    );
-    const startTime = performance.now();
-
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(apiKey ? { "x-api-key": apiKey } : {}),
-        },
-      });
-
-      const endTime = performance.now();
-      setLatency(Math.round(endTime - startTime));
-
-      if (response.ok) {
-        const body = await response.json();
-        if (body.success && body.data?.points) {
-          setTelemetryPoints(body.data.points);
-        }
-        setConnectionStatus("connected");
-        notify(
-          "success",
-          isRtl ? "تم الاتصال بنجاح مع نظام الإسكادا!" : "SCADA connection verified successfully!",
-        );
-        addLog(
-          isRtl
-            ? `تم الاتصال. زمن الاستجابة: ${Math.round(endTime - startTime)} ملي ثانية.`
-            : `Connected. Latency: ${Math.round(endTime - startTime)} ms.`,
-        );
-      } else {
-        throw new Error(`HTTP Error ${response.status}`);
-      }
-    } catch (err: any) {
-      setConnectionStatus("disconnected");
-      setLatency(null);
-      notify(
-        "error",
-        isRtl
-          ? "فشل الاتصال بنظام الإسكادا. تأكد من تشغيل خادم زينون."
-          : "Connection failed. Ensure Zenon service is running.",
-      );
-      addLog(isRtl ? `خطأ في الاتصال: ${err.message}` : `Connection error: ${err.message}`);
-    }
-  };
+  // REST API connection probe (delegated to module-scope helper)
+  const testConnection = () =>
+    testScadaConnection(apiKey, isRtl, notify, addLog, setConnectionStatus, setLatency, setTelemetryPoints);
 
   // Start / Stop Live Telemetry sync
   const toggleLiveSync = () => {

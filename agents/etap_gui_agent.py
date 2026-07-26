@@ -348,7 +348,7 @@ def _format_a_analyze(question: str, app: str) -> str:
             "",
             "**REQUIRES:** Human confirmation to proceed with screen capture.",
             "",
-            "**REFERENCES:**",  # NOSONAR(S1192): intentional repetition (audit constant)
+            "**REFERENCES:**",  # NOSONAR: intentional repetition (audit constant)
             "  - skills/etap-gui-agent.md (knowledge base)",
             "  - Safety rule: read-only by default",
         ],

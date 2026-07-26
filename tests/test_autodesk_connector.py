@@ -222,11 +222,11 @@ class TestRevitPluginClientInit:
     def test_custom_initialization(self):
         """RevitPluginClient should accept custom URL, timeout, and API key."""
         client = RevitPluginClient(
-            base_url="http://revit-host:9999",  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+            base_url="http://revit-host:9999",  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             timeout=60,
             api_key="secret-key",
         )
-        assert client.base_url == "http://revit-host:9999"  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+        assert client.base_url == "http://revit-host:9999"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 60
         assert client.session.headers["X-API-Key"] == "secret-key"
 
@@ -504,11 +504,11 @@ class TestAutoCADPluginClientInit:
     def test_custom_initialization(self):
         """AutoCADPluginClient should accept custom URL, timeout, and API key."""
         client = AutoCADPluginClient(
-            base_url="http://acad-host:8080",  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+            base_url="http://acad-host:8080",  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             timeout=120,
             api_key="test-key",
         )
-        assert client.base_url == "http://acad-host:8080"  # NOSONAR(S5332): clear-text http:// for internal service; TLS terminated at ingress
+        assert client.base_url == "http://acad-host:8080"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 120
         assert client.session.headers["X-API-Key"] == "test-key"
 

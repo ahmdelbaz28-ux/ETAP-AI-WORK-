@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_file_structure(filepath: str) -> list[str]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def check_agent_file_structure(filepath: str) -> list[str]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Check an agent file for structural issues."""
     issues = []
 
@@ -73,7 +73,7 @@ def check_agent_file_structure(filepath: str) -> list[str]:  # NOSONAR(S3776): c
         return issues
 
 
-def fix_prompt_handles():  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def fix_prompt_handles():  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Check and fix prompt handles to match available prompt files."""
     print("Checking agent prompt handles...")
 

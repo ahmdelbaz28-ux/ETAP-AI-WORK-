@@ -32,7 +32,7 @@ except Exception:  # pragma: no cover
 
     class _PromStub:
         def __init__(self, *args, **kwargs):
-            pass  # NOSONAR(S1186): intentional no-op (protocol stub / test fixture)
+            pass  # NOSONAR: intentional no-op (protocol stub / test fixture)
 
         def labels(self, *args, **kwargs):
             return self
@@ -76,7 +76,7 @@ except Exception:  # numpy is normally present, but be defensive
     np: _Any = None  # type: ignore
 
 
-def _to_jsonable(obj: Any) -> Any:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _to_jsonable(obj: Any) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     if obj is None or isinstance(obj, (str, bool)):

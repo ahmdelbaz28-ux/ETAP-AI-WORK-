@@ -161,7 +161,7 @@ class TestETAPSchemaValidation:
     def test_non_dict_params_rejected(self):
         """Test that non-dict params are rejected."""
         with pytest.raises(ValueError, match="must be a dict"):
-            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, "not_a_dict")  # NOSONAR(S5655): intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, "not_a_dict")  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
     def test_invalid_study_type_rejected(self):
         """Test that non-ETAPStudyType is rejected."""
@@ -313,7 +313,7 @@ class TestWorkerRBAC:
         token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
-        first_perm = next(iter(STUDY_TYPE_TO_PERMISSION.values()))  # NOSONAR(python):S8519: replaced list(...)[0] with next(iter(...))
+        first_perm = next(iter(STUDY_TYPE_TO_PERMISSION.values()))  # NOSONAR: replaced list(...)[0] with next(iter(...))
         assert authz.check_permission(token, first_perm)
 
         # After logout, permissions should be denied
@@ -400,7 +400,7 @@ class TestLoadFlow:
 
     def test_ybus_symmetry(self, simple_2bus_system):
         """Test that Ybus matrix is symmetric."""
-        Ybus = simple_2bus_system.build_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = simple_2bus_system.build_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Ybus for passive networks is symmetric (Y == Y^T), not Hermitian
         assert np.allclose(Ybus, Ybus.T), "Ybus should be symmetric"
 
@@ -443,9 +443,9 @@ class TestShortCircuit:
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
@@ -476,7 +476,7 @@ class TestShortCircuit:
         """Test IEC 60909 three-phase fault calculation."""
         # Simple system
         _n = 2
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -500,7 +500,7 @@ class TestArcFlash:
         """Test arc current calculation per IEEE 1584."""
         engine = ArcFlashEngine()
 
-        Iarc, Iarc_reduced = engine.calculate_arc_current(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc, Iarc_reduced = engine.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
         )
 
@@ -668,14 +668,14 @@ class TestHarmonicAnalysis:
 
         # Create non-singular Ybus (add shunt admittance to make invertible)
         # A pure 2-bus line matrix is singular; adding shunt makes it invertible
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10.1, -50.5), complex(-10, 50)], [complex(-10, 50), complex(10.1, -50.5)]]
         )
 
         engine.set_system_data(Ybus, ["bus1", "bus2"])
 
         # Calculate harmonic impedance at 5th harmonic
-        Ybus_5th = engine.calculate_harmonic_impedance(5)  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_5th = engine.calculate_harmonic_impedance(5)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Impedance should scale with harmonic order
         assert Ybus_5th.shape == Ybus.shape, "Ybus shape should be preserved"
@@ -756,7 +756,7 @@ class TestOptimalPowerFlow:
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
         # Simple 2-bus system
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -782,7 +782,7 @@ class TestOptimalPowerFlow:
         """Test that OPF minimizes cost."""
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -833,7 +833,7 @@ class TestSecurityFramework:
         from security.security_framework import AuthenticationManager, UserRole
 
         auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
-        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)  # NOSONAR(S1192): intentional repetition (audit constant)
+        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)  # NOSONAR: intentional repetition (audit constant)
 
         assert user is not None, "User should be created"
         assert user.username == "testuser"
@@ -994,9 +994,9 @@ class TestIntegration:
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
@@ -1026,7 +1026,7 @@ class TestSecretsManager:
         mgr = VaultSecretsManager(use_mock_if_unavailable=True)
         # When Vault is unavailable, falls back to LocalSecretsManager
         assert mgr._fallback_store._cipher is not None
-        ok = mgr.set_secret("test/path", "test_key", "secret_value")  # NOSONAR(S1192): intentional repetition (audit constant)
+        ok = mgr.set_secret("test/path", "test_key", "secret_value")  # NOSONAR: intentional repetition (audit constant)
         assert ok
         val = mgr.get_secret("test/path", "test_key")
         assert val == "secret_value"
@@ -1298,7 +1298,7 @@ class TestNumericalSafety:
         cleaned = guard.validate_matrix(mat, expected_shape=(2, 2))
         assert not np.any(np.isnan(cleaned))
         assert not np.any(np.isinf(cleaned))
-        with pytest.raises(ValueError):  # NOSONAR(S5778): multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ValueError):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             guard.validate_matrix(np.eye(3), expected_shape=(2, 2))
         cn = guard.condition_number(np.eye(3))
         assert np.isfinite(cn)
@@ -1537,7 +1537,7 @@ class TestLoadFlowExpansion:
         system.add_generator(gen)
         load = Load(load_id=1, bus=bus2, load_power=complex(0.4, 0.15))
         system.add_load(load)
-        Ybus = system.build_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = system.build_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Off-diagonal should reflect tap ratio and phase shift
         assert Ybus[0, 1] != Ybus[1, 0], "Tap-changing transformer should break Ybus symmetry"
         solver = LoadFlowSolver(system)
@@ -1610,9 +1610,9 @@ class TestShortCircuitExpansion:
             )
             system.add_line(line)
         system.build_sequence_networks(for_fault=True)
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_fault_at_different_buses(self, multi_bus_fault_system):
@@ -1622,7 +1622,7 @@ class TestShortCircuitExpansion:
 
     def test_iec60909_fault_types_all(self):
         _n = 2
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
@@ -1640,7 +1640,7 @@ class TestShortCircuitExpansion:
 
     def test_fault_current_symmetry(self):
         _n = 2
-        Ybus = np.array(  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
@@ -1682,7 +1682,7 @@ class TestETAPAutomation:
         assert "<script>" not in sanitized
         assert sanitized == "alert('xss')nullbyte"
         with pytest.raises(ValueError):
-            ETAPAutomation._sanitize_string_input(123, max_length=100)  # NOSONAR(S5655): intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._sanitize_string_input(123, max_length=100)  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
     def test_input_validation_engineering_ranges(self):
         validated = ETAPAutomation._validate_input(13.8, "numeric", min_val=0.1, max_val=1200.0)
@@ -1708,7 +1708,7 @@ class TestETAPAutomation:
                 max_entries=2,
             )
         with pytest.raises(TypeError):
-            ETAPAutomation._check_result_size("not_a_dict")  # NOSONAR(S5655): intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._check_result_size("not_a_dict")  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
 
 # ============================================================================

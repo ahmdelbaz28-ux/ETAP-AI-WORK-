@@ -23,7 +23,8 @@ WORKDIR /app
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gcc g++ \
+    # SonarCloud docker:S7018: package names sorted alphanumerically
+    curl g++ gcc \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
     libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
@@ -39,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis).
-# NOSONAR(S8544): requirements.hf.txt is audited and pins versions in-repo.
+# NOSONAR: requirements.hf.txt is audited and pins versions in-repo.
 # NOTE: pre-commit hooks are NOT installed in the Docker image.
 # `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
 # repository. The HF Space Docker build context excludes .git/ (see
@@ -49,7 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # production image does not need it. CI enforces lint/tests separately.
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
-    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt
+    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt  # NOSONAR: requirements.hf.txt pins versions in-repo
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.

@@ -247,7 +247,7 @@ def require_role(*roles: str):
     Returns a dependency callable suitable for ``Depends()``.
     """
 
-    async def _check_role(  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def _check_role(  # NOSONAR: async function uses sync I/O for compatibility reasons
         user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     ) -> CurrentUser:
         if user.role not in roles:
@@ -265,7 +265,7 @@ def require_role(*roles: str):
 # ---------------------------------------------------------------------------
 
 
-async def get_api_key(  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+async def get_api_key(  # NOSONAR: async function uses sync I/O for compatibility reasons
     request: Request,
     x_api_key: str = Header(default="", alias="X-API-Key"),
 ) -> str:

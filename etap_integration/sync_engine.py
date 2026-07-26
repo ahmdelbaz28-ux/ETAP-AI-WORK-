@@ -240,7 +240,7 @@ class ETAPSyncEngine:
 
         # Set bus 1 as slack
         if system.buses:
-            first = next(iter(system.buses.values()))  # NOSONAR(python):S8519: false positive — already uses next(iter(...))
+            first = next(iter(system.buses.values()))  # NOSONAR: false positive — already uses next(iter(...))
             first.bus_type = "slack"
 
         # Rebuild Ybus
@@ -258,7 +258,7 @@ class ETAPSyncEngine:
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(self, project_path: Optional[str] = None) -> dict[str, Any]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def export_to_etap(self, project_path: Optional[str] = None) -> dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Export the AhmedETAP model to an ETAP project.
 
         Parameters

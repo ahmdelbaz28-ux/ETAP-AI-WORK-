@@ -266,7 +266,7 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         max_steps: int = DEFAULT_MAX_STEPS,

@@ -39,10 +39,10 @@ jobs:
         with:
           languages: javascript-typescript, python
       - name: Build Python
-        run: pip install -r requirements.txt
+        run: pip install --only-binary :all: -r requirements.txt  # NOSONAR: CodeQL build; requirements.txt pins versions in-repo; continue-on-error=true below makes this advisory
         continue-on-error: true
       - name: Build TypeScript
-        run: npm install -g pnpm && pnpm install --no-frozen-lockfile
+        run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
         continue-on-error: true
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
@@ -135,7 +135,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7'
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7'  # NOSONAR: single-use security scanner tools with pinned versions
 
       - name: Run Bandit security scan
         run: |
@@ -199,9 +199,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --only-binary :all: --upgrade pip==25.0.1
-          # NOSONAR(S8544): requirements.txt is audited separately and pins versions in-repo.
+          # NOSONAR: requirements.txt is audited separately and pins versions in-repo.
           pip install --only-binary :all: -r requirements.txt  # S8544: requirements.txt is audited and pins versions in-repo
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1 || pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1 || pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1  # NOSONAR: versions pinned inline; test deps for runtime security checks
 
       - name: Start service for runtime checks
         run: |

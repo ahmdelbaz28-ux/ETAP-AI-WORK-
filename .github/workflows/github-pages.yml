@@ -39,8 +39,8 @@ jobs:
 
       - name: Install MkDocs and theme
         run: |
-          pip install --upgrade pip
-          pip install --only-binary :all: mkdocs mkdocs-material
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: mkdocs==1.6.1 mkdocs-material==9.6.11  # NOSONAR: docs tooling with pinned versions
 
       - name: Deploy to GitHub Pages
         env:

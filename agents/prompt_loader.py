@@ -220,7 +220,7 @@ def _extract_system_message(parsed: Any) -> Optional[str]:
     return None
 
 
-def _load_from_yaml(handle: str) -> Optional[str]:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _load_from_yaml(handle: str) -> Optional[str]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -437,7 +437,7 @@ def get_system_prompt(handle: str) -> str:
     return _FALLBACK_PROMPT
 
 
-async def get_system_prompt_async(handle: str) -> str:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def get_system_prompt_async(handle: str) -> str:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Load a system prompt by handle, async (supports remote override).
 
     Resolution order (async):

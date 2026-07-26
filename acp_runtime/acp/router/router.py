@@ -165,7 +165,7 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    async def _handle_request(self, req: JsonRpcRequest) -> dict:  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def _handle_request(self, req: JsonRpcRequest) -> dict:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
         caller_id = ""
@@ -311,7 +311,7 @@ class Router:
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-    async def _finish_observability(  # NOSONAR(S7503): async function uses sync I/O for compatibility reasons
+    async def _finish_observability(  # NOSONAR: async function uses sync I/O for compatibility reasons
         self,
         span_ctx: Optional[Any],
         t0: float,

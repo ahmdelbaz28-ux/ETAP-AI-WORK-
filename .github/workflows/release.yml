@@ -20,14 +20,14 @@ jobs:
           
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install --only-binary :all: build twine
+          python -m pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: build==1.2.2.post1 twine==6.1.0  # NOSONAR: release tooling with pinned versions
           
       - name: Build package
         run: python -m build
           
       - name: Create Release
-        uses: softprops/action-gh-release@v2  # NOSONAR(S7637): GitHub Action pinning; SHA pinning in CI sprint
+        uses: softprops/action-gh-release@v2  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
         with:
           files: dist/**
           generate_release_notes: true

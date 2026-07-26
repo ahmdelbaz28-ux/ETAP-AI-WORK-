@@ -12,12 +12,15 @@
     {{ notification_title }} — {{ notification_message }}
   </div>
 
+  <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
     <tr>
-      <td align="center">
+      <td style="text-align:center;">
+        <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:560px;">
           <tr>
             <td style="background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);padding:24px 32px;">
+              <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
@@ -25,7 +28,7 @@
                     <h1 style="margin:0;color:#1f2937;font-size:20px;font-weight:700;letter-spacing:0.5px;">{{ brand_name }}</h1>
                     <p style="margin:4px 0 0;color:#1f2937;font-size:12px;font-weight:500;">{{ brand_tagline }}</p>
                   </td>
-                  <td align="right">
+                  <td style="text-align:right;">
                     <span style="display:inline-block;background-color:rgba(31,41,55,0.2);color:#1f2937;font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;">
                       {{ priority }}
                     </span>
@@ -44,9 +47,10 @@
                 {{ notification_message }}
               </p>
 
+              <!-- NOSONAR: email client compatibility - table layout required for Outlook/Gmail rendering, role="presentation" marks layout not data table, width/cellpadding/cellspacing required for Outlook -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
                 <tr>
-                  <td align="center">
+                  <td style="text-align:center;">
                     <a href="{{ action_url }}" target="_blank" rel="noopener"
                        style="display:inline-block;background:linear-gradient(135deg,#facc15 0%,#ef4444 100%);color:#1f2937;font-size:15px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:6px;">
                       {{ action_label }}
@@ -64,9 +68,9 @@
           </tr>
           <tr>
             <td style="background-color:#f9fafb;padding:24px 32px;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5;">
+              <p style="margin:0;color:#475569;font-size:11px;line-height:1.5;">
                 © {{ current_year }} {{ brand_name }}. All rights reserved.<br>
-                <a href="{{ app_url }}" style="color:#9ca3af;text-decoration:none;">{{ app_url }}</a>
+                <a href="{{ app_url }}" style="color:#475569;text-decoration:none;">{{ app_url }}</a>
               </p>
             </td>
           </tr>

@@ -13,6 +13,15 @@ vi.stubGlobal("fetch", mockFetch);
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
+// Convert a thrown unknown value to an Error instance.
+// Extracted to avoid nested ternary (S3358) and Object default
+// stringification (S6551) in the catch block.
+function toError(e: unknown): Error {
+  if (e instanceof Error) return e;
+  if (typeof e === "object" && e !== null) return new Error(JSON.stringify(e));
+  return new Error(String(e));
+}
+
 function mockResponse({
   ok,
   status = 200,
@@ -287,7 +296,7 @@ describe("useAuth", () => {
         await result.current.refreshToken();
         refreshError = undefined;
       } catch (e: unknown) {
-        refreshError = e instanceof Error ? e : new Error(e instanceof Object ? JSON.stringify(e) : String(e));
+        refreshError = toError(e);
       }
     });
 

@@ -26,7 +26,7 @@ function resolveTrustedOrigins(env?: Env): Set<string> {
 // SonarCloud typescript:S7780: avoid backslash escapes inside string / template
 // literals by using a non-escaped constant for the regex-escape backslash.
 // (String.raw could not be used to produce a single trailing backslash.)
-const REGEX_ESCAPE_BACKSLASH = String.fromCharCode(92); // ASCII 92 = '\\'
+const REGEX_ESCAPE_BACKSLASH = String.fromCodePoint(92); // ASCII 92 = '\\'
 const REGEX_SPECIAL_CHARS = /[.+?^${}()|[\]\\]/g;
 
 function isOriginTrusted(origin: string, trusted: Set<string>): boolean {

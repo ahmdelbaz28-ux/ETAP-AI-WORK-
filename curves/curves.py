@@ -16,7 +16,7 @@ class IEC60255Curves:
     """
 
     @staticmethod
-    def standard_inverse(TMS, I, Ip):  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def standard_inverse(TMS, I, Ip):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
@@ -27,7 +27,7 @@ class IEC60255Curves:
         return TMS * (0.14 / (M ** 0.02 - 1))
 
     @staticmethod
-    def very_inverse(TMS, I, Ip):  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def very_inverse(TMS, I, Ip):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
@@ -38,7 +38,7 @@ class IEC60255Curves:
         return TMS * (13.5 / (M - 1))
 
     @staticmethod
-    def extremely_inverse(TMS, I, Ip):  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def extremely_inverse(TMS, I, Ip):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
@@ -49,7 +49,7 @@ class IEC60255Curves:
         return TMS * (80 / (M ** 2 - 1))
 
     @staticmethod
-    def long_inverse(TMS, I, Ip):  # NOSONAR(S117): physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def long_inverse(TMS, I, Ip):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))

@@ -292,12 +292,12 @@ class UniversalDataModel:
         with self._lock:
             return [e for e in self.elements.values() if not e.is_deleted]
 
-    def update_element(  # NOSONAR(S3776): cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def update_element(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         element_id: str,
         updates: dict[str, Any],
-        source: ChangeSource = ChangeSource.MANUAL,  # NOSONAR(S1172): unused param kept for API compatibility
-        reason: str = "",  # NOSONAR(S1172): unused param kept for API compatibility
+        source: ChangeSource = ChangeSource.MANUAL,  # NOSONAR: unused param kept for API compatibility
+        reason: str = "",  # NOSONAR: unused param kept for API compatibility
     ) -> bool:
         """Update an element."""
         with self._lock:

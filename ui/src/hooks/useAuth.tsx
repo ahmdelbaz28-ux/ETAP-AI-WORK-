@@ -33,9 +33,24 @@ interface AuthContextType {
  * suitable for display in the UI. If the body is not JSON, it includes
  * the HTTP status code so the user has at least *some* context.
  */
+
+// Extract message from a Pydantic validation-error detail array.
+// Lifted out of parseJsonErrorMessage to keep its cognitive complexity ≤ 15.
+function extractArrayDetailMessage(detail: unknown[]): string | null {
+  if (detail.length === 0) return null;
+  const first = detail[0];
+  if (!first || typeof first !== "object") return null;
+  if (typeof (first as { msg?: unknown }).msg !== "string") return null;
+  const msg = (first as { msg: string }).msg;
+  const loc = Array.isArray((first as { loc?: unknown }).loc)
+    ? (first as { loc: unknown[] }).loc.join(".")
+    : "";
+  return loc ? `${msg} (field: ${loc})` : msg;
+}
+
 // Try to extract a human-readable error message from a JSON response body.
 // Returns null if the body is not JSON or no recognized message field is found.
-function parseJsonErrorMessage(text: string): string | null {  // NOSONAR(S3776): JSON error message parser — 4 nested try/catch branches are intrinsic to the parsing logic
+function parseJsonErrorMessage(text: string): string | null {
   let data: unknown;
   try {
     data = JSON.parse(text);
@@ -45,16 +60,9 @@ function parseJsonErrorMessage(text: string): string | null {  // NOSONAR(S3776)
   if (typeof data !== "object" || data === null) return null;
   const obj = data as Record<string, unknown>;
 
-  // Pydantic validation errors come as an array.
-  if (Array.isArray(obj.detail) && obj.detail.length > 0) {
-    const first = obj.detail[0];
-    if (first && typeof first === "object" && typeof (first as { msg?: unknown }).msg === "string") {
-      const msg = (first as { msg: string }).msg;
-      const loc = Array.isArray((first as { loc?: unknown }).loc)
-        ? (first as { loc: unknown[] }).loc.join(".")
-        : "";
-      return loc ? `${msg} (field: ${loc})` : msg;
-    }
+  if (Array.isArray(obj.detail)) {
+    const arrMsg = extractArrayDetailMessage(obj.detail as unknown[]);
+    if (arrMsg) return arrMsg;
   }
   if (typeof obj.detail === "string" && obj.detail.length > 0) return obj.detail;
   if (typeof obj.message === "string" && obj.message.length > 0) return obj.message;
@@ -77,6 +85,25 @@ async function extractErrorMessage(response: Response, fallback: string): Promis
     return `${trimmed} (HTTP ${status})`;
   }
   return `${fallback} (HTTP ${status})`;
+}
+
+// Fetch user profile from /me endpoint after login. Falls back to a minimal
+// user object derived from the login email if /me is unavailable.
+// Extracted from `login` to reduce its cognitive complexity.
+async function fetchUserProfile(token: string, email: string, setUser: (user: User) => void): Promise<void> {
+  try {
+    const meResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (meResponse.ok) {
+      const userData = await meResponse.json();
+      setUser(userData);
+    } else {
+      setUser({ id: "", email, name: email, role: "engineer" });
+    }
+  } catch {
+    setUser({ id: "", email, name: email, role: "engineer" });
+  }
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -152,20 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("refreshToken", data.refresh_token);
 
     // Fetch the user profile from /me (TokenResponse does not include user)
-    try {
-      const meResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
-        headers: { Authorization: `Bearer ${data.access_token}` },
-      });
-      if (meResponse.ok) {
-        const userData = await meResponse.json();
-        setUser(userData);
-      } else {
-        // If /me fails, construct a minimal user from the username we sent
-        setUser({ id: "", email: email, name: email, role: "engineer" });
-      }
-    } catch {
-      setUser({ id: "", email: email, name: email, role: "engineer" });
-    }
+    await fetchUserProfile(data.access_token, email, setUser);
   };
 
   const logout = () => {

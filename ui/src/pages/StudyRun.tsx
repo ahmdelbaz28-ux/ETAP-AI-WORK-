@@ -43,6 +43,48 @@ function getStudyStatusMessage(
   return `${t("studyRun.failed")}: ${status}`;
 }
 
+// Select options for study parameters (extracted from StudyRun to reduce
+// its cognitive complexity — the chain of conditional option groups now
+// lives in a flat lookup map instead of 6 nested conditions).
+const STUDY_SELECT_OPTIONS: Record<string, ReadonlyArray<{ readonly value: string; readonly label: string }>> = {
+  method: [
+    { value: "newton-raphson", label: "Newton-Raphson" },
+    { value: "gauss-seidel", label: "Gauss-Seidel" },
+    { value: "fast-decoupled", label: "Fast Decoupled" },
+  ],
+  standard: [
+    { value: "iec60909", label: "IEC 60909" },
+    { value: "ieee1584", label: "IEEE 1584" },
+  ],
+  fault_type: [
+    { value: "three_phase", label: "Three-Phase" },
+    { value: "line_to_ground", label: "Line-to-Ground" },
+    { value: "line_to_line", label: "Line-to-Line" },
+    { value: "double_line_to_ground", label: "Double Line-to-Ground" },
+  ],
+  starting_method: [
+    { value: "across_the_line", label: "Across-the-Line" },
+    { value: "star_delta", label: "Star-Delta" },
+    { value: "vsd", label: "VSD" },
+  ],
+  objective: [
+    { value: "min_cost", label: "Minimize Cost" },
+    { value: "min_loss", label: "Minimize Loss" },
+    { value: "max_load", label: "Maximize Load" },
+  ],
+};
+
+function renderSelectOptions(paramName: string, defaultValue: unknown): React.ReactNode {
+  const options = STUDY_SELECT_OPTIONS[paramName];
+  if (options) {
+    return options.map((o) => (
+      <option key={o.value} value={o.value}>{o.label}</option>
+    ));
+  }
+  // Fallback for unknown select params: show the default value as the only option
+  return <option value={String(defaultValue)}>{String(defaultValue)}</option>;
+}
+
 // One-line diagram SVG component for study results visualization
 function OneLineDiagram() {
   return (
@@ -382,48 +424,7 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
                       defaultValue={p.default}
                       className="w-full px-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 outline-none transition-colors"
                     >
-                      {p.name === "method" && (
-                        <>
-                          <option value="newton-raphson">Newton-Raphson</option>
-                          <option value="gauss-seidel">Gauss-Seidel</option>
-                          <option value="fast-decoupled">Fast Decoupled</option>
-                        </>
-                      )}
-                      {p.name === "standard" && (
-                        <>
-                          <option value="iec60909">IEC 60909</option>
-                          <option value="ieee1584">IEEE 1584</option>
-                        </>
-                      )}
-                      {p.name === "fault_type" && (
-                        <>
-                          <option value="three_phase">Three-Phase</option>
-                          <option value="line_to_ground">Line-to-Ground</option>
-                          <option value="line_to_line">Line-to-Line</option>
-                          <option value="double_line_to_ground">Double Line-to-Ground</option>
-                        </>
-                      )}
-                      {p.name === "starting_method" && (
-                        <>
-                          <option value="across_the_line">Across-the-Line</option>
-                          <option value="star_delta">Star-Delta</option>
-                          <option value="vsd">VSD</option>
-                        </>
-                      )}
-                      {p.name === "objective" && (
-                        <>
-                          <option value="min_cost">Minimize Cost</option>
-                          <option value="min_loss">Minimize Loss</option>
-                          <option value="max_load">Maximize Load</option>
-                        </>
-                      )}
-                      {p.name !== "method" &&
-                        p.name !== "standard" &&
-                        p.name !== "fault_type" &&
-                        p.name !== "starting_method" &&
-                        p.name !== "objective" && (
-                          <option value={String(p.default)}>{String(p.default)}</option>
-                        )}
+                      {renderSelectOptions(p.name, p.default)}
                     </select>
                   ) : (
                     <input

@@ -111,8 +111,12 @@ def _validate_character_set(command: str) -> bool:
     This prevents injection of null bytes, control characters, and other
     special characters that could be used for obfuscation or bypass.
     """
-    # Allow: alphanumeric, spaces, common punctuation, and pipeline chars
-    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\-=\[\]{}|\\\'\"`~<>/?]+$')
+    # Allow: alphanumeric, spaces, common punctuation, and pipeline chars.
+    # NOTE: The literal dash '-' is placed at the END of the character class
+    # to avoid SonarCloud S5996 (impossible range inside regex character class).
+    # When '-' appears between two characters inside [], it creates a range
+    # (e.g. '=-' would mean range from '=' to '-'), which is unintended here.
+    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\=\[\]{}|\\\'"`~<>/?\-]+$')
     if not allowed.match(command):
         logger.warning("Blocked command with disallowed characters")
         return False

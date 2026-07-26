@@ -92,7 +92,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     # Using SHA-256 here would BREAK TOTP compatibility with every
     # authenticator app. SHA1 in HMAC mode remains cryptographically
     # secure (HMAC-SHA1 has no known practical vulnerabilities).
-    # NOSONAR(S4790): SHA1 is mandated by RFC 6238 for TOTP interoperability.
+    # NOSONAR: SHA1 is mandated by RFC 6238 for TOTP interoperability.
     msg = struct.pack(">Q", counter)
     h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
     # Dynamic truncation
