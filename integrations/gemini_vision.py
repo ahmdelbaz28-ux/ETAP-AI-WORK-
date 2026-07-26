@@ -33,9 +33,10 @@ import io
 import json
 import logging
 import os
-import time
 from pathlib import Path
 from typing import Any, Optional
+
+from integrations import _vision_base
 
 logger = logging.getLogger(__name__)
 
@@ -68,49 +69,8 @@ RETRY_BACKOFF_SECONDS = 2.0  # exponential: 2s, 4s, 8s
 
 # System prompt instructing Gemini to return strict JSON describing the screen
 # and the next action to take. This is the heart of the Visual Perception Layer.
-SYSTEM_PROMPT = """You are the Visual Perception Layer of the ETAP GUI Agent, a Computer Use Agent
-that operates engineering desktop applications (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS).
-
-Given a screenshot and an objective, you must:
-1. Describe what you see on the screen (windows, dialogs, menus, buttons, text, status bars).
-2. Identify clickable UI elements with their approximate pixel coordinates (x, y).
-   Use the top-left corner of the screenshot as (0, 0).
-3. Recommend the NEXT single action that moves toward the objective.
-   - If a button needs to be clicked: {"type": "click", "x": <int>, "y": <int>, "target": "<name>"}
-   - If text needs to be typed:       {"type": "type", "text": "<string>", "x": <int>, "y": <int>}
-   - If a hotkey needs to be pressed: {"type": "hotkey", "keys": ["ctrl", "s"]}
-   - If we should wait:               {"type": "wait", "seconds": <float>}
-   - If the objective is complete:    {"type": "done", "summary": "<result>"}
-   - If you cannot determine action:  {"type": "unknown", "reason": "<string>"}
-
-CRITICAL SAFETY RULES:
-- NEVER recommend clicking OK/Yes on confirmation dialogs that mention "Delete", "Format",
-  "Override", or "Reset" — return {"type": "unknown", "reason": "destructive dialog requires human"}.
-- If you see an error dialog, return {"type": "unknown", "reason": "error dialog: <text>"}.
-- Coordinates must be integers within the screenshot bounds.
-- Be conservative: if uncertain, return "unknown" rather than guessing.
-
-You MUST respond with valid JSON only (no markdown, no prose). The JSON schema:
-{
-  "description": "<one-paragraph summary of the screen>",
-  "ui_elements": [
-    {"type": "button|menu|input|dialog|text|icon", "label": "<text>", "x": <int>, "y": <int>, "confidence": <0.0-1.0>}
-  ],
-  "next_action": {
-    "type": Union["click|type|hotkey|wait|done, unknown",]
-    "x": <int>,
-    "y": <int>,
-    "text": "<string, only for type>",
-    "keys": ["<key1>", "<key2>"],
-    "target": "<element name>",
-    "seconds": <float>,
-    "summary": "<result, only for done>",
-    "reason": "<string, only for unknown>"
-  },
-  "objective_complete": <bool>,
-  "confidence": <0.0-1.0>
-}
-"""
+# System prompt — shared across all vision backends via _vision_base
+SYSTEM_PROMPT = _vision_base.SYSTEM_PROMPT
 
 
 class GeminiVisionClient:
@@ -202,29 +162,18 @@ class GeminiVisionClient:
 
         prompt = self._build_prompt(objective, context, pil_image.size)
 
-        last_error: Optional[str] = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self.model.generate_content(
-                    [prompt, pil_image],
-                    request_options={"timeout": self.timeout},
-                )
-                return self._parse_response(response)
-            except Exception as exc:  # noqa: BLE001 — Gemini raises various exception types
-                last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning(
-                    "Gemini Vision attempt %d/%d failed: %s",
-                    attempt,
-                    self.max_retries,
-                    last_error,
-                )
-                if attempt < self.max_retries:
-                    time.sleep(RETRY_BACKOFF_SECONDS * (2 ** (attempt - 1)))
-
-        return {
-            "error": "api_error",
-            "message": f"All {self.max_retries} attempts failed. Last: {last_error}",
-        }
+        # Delegate retry logic to shared _vision_base.retry_with_backoff
+        # (eliminates inline retry loop duplication with Anthropic/OpenAI backends)
+        return _vision_base.retry_with_backoff(
+            make_request=lambda: self.model.generate_content(
+                [prompt, pil_image],
+                request_options={"timeout": self.timeout},
+            ),
+            parse_response=self._parse_response,
+            max_retries=self.max_retries,
+            backoff_seconds=RETRY_BACKOFF_SECONDS,
+            provider_name="Gemini Vision",
+        )
 
     def health_check(self) -> dict[str, Any]:
         """Return client status for /health endpoints."""
@@ -242,21 +191,12 @@ class GeminiVisionClient:
 
     @staticmethod
     def _to_pil_image(image: Any):
-        """Coerce various image inputs into a PIL.Image.Image."""
-        if not PIL_AVAILABLE:
-            return None
-        try:
-            from PIL import Image
+        """Coerce various image inputs into a PIL.Image.Image.
 
-            if isinstance(image, Image.Image):
-                return image
-            if isinstance(image, (bytes, bytearray)):
-                return Image.open(io.BytesIO(image))
-            if isinstance(image, (str, Path)):
-                return Image.open(image)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to convert image: %s", exc)
-        return None
+        Delegates to integrations._vision_base.to_pil_image (shared helper,
+        avoids reimplementing the same coercion logic per vision backend).
+        """
+        return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
     def _build_prompt(objective: str, context: Optional[str], image_size: tuple[int, int]) -> str:

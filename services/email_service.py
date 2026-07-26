@@ -537,101 +537,130 @@ async def send_critical_alert(
 # ---------------------------------------------------------------------------
 
 
-def _fallback_otp_html(code: str, purpose: str, ttl: int) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>
-<p>Your verification code is:</p>
-<h1 style="font-size:36px;letter-spacing:8px;color:#1e40af;">{code}</h1>
-<p>Purpose: {purpose}</p>
-<p>This code expires in {ttl} minutes.</p>
-<p style="color:#6b7280;font-size:12px;margin-top:32px;">If you did not request this, ignore this email.</p>
+def _fallback_html_shell(body_html: str, border_style: str = "") -> str:
+    """Wrap body HTML in a standard email fallback shell.
+
+    All 11 fallback HTML generators share the same outer HTML structure:
+    ``<!doctype html><html><body style="font-family:Arial,sans-serif;
+    max-width:560px;margin:0 auto;padding:24px;">`` — this helper
+    eliminates that repeated boilerplate.
+
+    Parameters
+    ----------
+    body_html : str
+        The inner HTML content (headers, paragraphs, links, etc.)
+    border_style : str
+        Optional extra CSS for the body element (e.g. ``border-left:4px
+        solid #dc2626;`` for critical alerts).
+    """
+    style = "font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;"
+    if border_style:
+        style += border_style
+    return f"""<!doctype html><html><body style="{style}">
+{body_html}
 </body></html>"""
+
+
+def _fallback_otp_html(code: str, purpose: str, ttl: int) -> str:
+    body = (
+        f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
+        f'<p>Your verification code is:</p>\n'
+        f'<h1 style="font-size:36px;letter-spacing:8px;color:#1e40af;">{code}</h1>\n'
+        f'<p>Purpose: {purpose}</p>\n'
+        f'<p>This code expires in {ttl} minutes.</p>\n'
+        f'<p style="color:#6b7280;font-size:12px;margin-top:32px;">If you did not request this, ignore this email.</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_reset_html(link: str, ttl: int) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>
-<p>Reset your password by clicking the button below:</p>
-<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Reset Password</a></p>
-<p style="color:#6b7280;font-size:12px;">Or copy this link: {link}</p>
-<p>This link expires in {ttl} minutes.</p>
-</body></html>"""
+    body = (
+        f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
+        f'<p>Reset your password by clicking the button below:</p>\n'
+        f'<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Reset Password</a></p>\n'
+        f'<p style="color:#6b7280;font-size:12px;">Or copy this link: {link}</p>\n'
+        f'<p>This link expires in {ttl} minutes.</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_welcome_html(name: str) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#1e40af;">Welcome to {_BRAND_NAME}!</h2>
-<p>Hi {name},</p>
-<p>Your account has been created. Visit {_APP_URL}/login to get started.</p>
-</body></html>"""
+    body = (
+        f'<h2 style="color:#1e40af;">Welcome to {_BRAND_NAME}!</h2>\n'
+        f'<p>Hi {name},</p>\n'
+        f'<p>Your account has been created. Visit {_APP_URL}/login to get started.</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_verify_html(link: str) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>
-<p>Verify your email address:</p>
-<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Verify Email</a></p>
-</body></html>"""
+    body = (
+        f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
+        f'<p>Verify your email address:</p>\n'
+        f'<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Verify Email</a></p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_login_alert_html(ip: str, ua: str, ts: datetime) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#dc2626;">New Login to {_BRAND_NAME}</h2>
-<p>Time: {ts.strftime(_TIMESTAMP_FMT)}</p>
-<p>IP: {ip}</p>
-<p>Device: {ua[:200]}</p>
-<p>If this was not you, change your password immediately.</p>
-</body></html>"""
+    body = (
+        f'<h2 style="color:#dc2626;">New Login to {_BRAND_NAME}</h2>\n'
+        f'<p>Time: {ts.strftime(_TIMESTAMP_FMT)}</p>\n'
+        f'<p>IP: {ip}</p>\n'
+        f'<p>Device: {ua[:200]}</p>\n'
+        f'<p>If this was not you, change your password immediately.</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_lockout_html(unlock_at: datetime) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:#dc2626;">Account Locked</h2>
-<p>Your {_BRAND_NAME} account has been temporarily locked due to multiple failed login attempts.</p>
-<p>It will automatically unlock at: <strong>{unlock_at.strftime(_TIMESTAMP_FMT)}</strong></p>
-</body></html>"""
+    body = (
+        f'<h2 style="color:#dc2626;">Account Locked</h2>\n'
+        f'<p>Your {_BRAND_NAME} account has been temporarily locked due to multiple failed login attempts.</p>\n'
+        f'<p>It will automatically unlock at: <strong>{unlock_at.strftime(_TIMESTAMP_FMT)}</strong></p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_notification_html(title: str, message: str) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h3>{title}</h3>
-<p>{message}</p>
-</body></html>"""
+    body = f'<h3>{title}</h3>\n<p>{message}</p>'
+    return _fallback_html_shell(body)
 
 
 def _fallback_study_html(name: str, url: str, completed: bool, err: str = "") -> str:
     status = "Completed" if completed else "Failed"
     color = "#16a34a" if completed else "#dc2626"
-    body = f'<p><a href="{url}">View results</a></p>' if completed else f'<p>Error: {err[:200]}</p>'
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2 style="color:{color};">Study {status}: {name}</h2>
-{body}
-</body></html>"""
+    link_html = f'<p><a href="{url}">View results</a></p>' if completed else f'<p>Error: {err[:200]}</p>'
+    body = f'<h2 style="color:{color};">Study {status}: {name}</h2>\n{link_html}'
+    return _fallback_html_shell(body)
 
 
 def _fallback_role_html(role: str, by: str) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2>Role Updated</h2>
-<p>Your role has been updated to: <strong>{role}</strong></p>
-<p>Changed by: {by}</p>
-</body></html>"""
+    body = (
+        f'<h2>Role Updated</h2>\n'
+        f'<p>Your role has been updated to: <strong>{role}</strong></p>\n'
+        f'<p>Changed by: {by}</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_pwd_change_html(ip: Optional[str]) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
-<h2>Password Changed</h2>
-<p>Your {_BRAND_NAME} password was changed.</p>
-<p>IP: {ip or 'unknown'}</p>
-<p>If this was not you, contact support immediately.</p>
-</body></html>"""
+    body = (
+        f'<h2>Password Changed</h2>\n'
+        f'<p>Your {_BRAND_NAME} password was changed.</p>\n'
+        f'<p>IP: {ip or "unknown"}</p>\n'
+        f'<p>If this was not you, contact support immediately.</p>'
+    )
+    return _fallback_html_shell(body)
 
 
 def _fallback_critical_html(title: str, body: str) -> str:
-    return f"""<!doctype html><html><body style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;border-left:4px solid #dc2626;">
-<h2 style="color:#dc2626;">CRITICAL ALERT</h2>
-<h3>{title}</h3>
-<p>{body}</p>
-</body></html>"""
+    inner = (
+        f'<h2 style="color:#dc2626;">CRITICAL ALERT</h2>\n'
+        f'<h3>{title}</h3>\n'
+        f'<p>{body}</p>'
+    )
+    return _fallback_html_shell(inner, border_style="border-left:4px solid #dc2626;")
 
 
 __all__ = [

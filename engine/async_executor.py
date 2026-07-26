@@ -531,43 +531,8 @@ class _TimeoutContext:
         return time.monotonic() > self._deadline
 
 
-class _RetryContext:
-    def __init__(self, max_retries: int, delay: float) -> None:
-        self._max_retries = max_retries
-        self._delay = delay
-        self._attempt = 0
-
-    def __enter__(self) -> _RetryContext:
-        return self
-
-    def __exit__(self, exc_type: Any, exc_val: Any, _exc_tb: Any) -> Optional[bool]:
-        if exc_type is None:
-            return None
-        self._attempt += 1
-        if self._attempt < self._max_retries:
-            logger.warning(
-                "Retry attempt %d/%d after error: %s",
-                self._attempt,
-                self._max_retries,
-                exc_val,
-            )
-            time.sleep(self._delay)
-            return True
-        if _error_handler_available:
-            get_error_handler().handle_error(
-                component="async_context",
-                message=f"Retry exhausted after {self._max_retries} attempts: {exc_val}",
-                severity=ErrorSeverity.ERROR,
-            )
-        return False
-
-
 def async_timeout(seconds: float) -> _TimeoutContext:
     return _TimeoutContext(seconds)
-
-
-def async_retry(max_retries: int, delay: float) -> _RetryContext:
-    return _RetryContext(max_retries, delay)
 
 
 class _WorkflowStep:

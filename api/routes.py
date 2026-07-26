@@ -55,14 +55,15 @@ from services.study_service import (
     StudyRequest,
 )
 
+from api._messages import MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE, ISO_8601_UTC_FMT
+
 # ─── Shared format constants ────────────────────────────────────────────────
-# Centralised to avoid string-literal duplication (SonarCloud python:S1192).
-_ISO_8601_UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
+# Imported from api._messages (SonarCloud python:S1192 — consolidated).
 
 
 def _utc_now_iso() -> str:
     """Return the current UTC time as an ISO-8601 'Z' timestamp."""
-    return time.strftime(_ISO_8601_UTC_FMT, time.gmtime())
+    return time.strftime(ISO_8601_UTC_FMT, time.gmtime())
 
 
 # Create FastAPI app instance
@@ -381,7 +382,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         }
     except Exception as e:
         logger.exception("Error submitting async study: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error") from e  # SECURITY AUDIT S-23
+        raise HTTPException(status_code=500, detail=MSG_INTERNAL_ERROR) from e  # SECURITY AUDIT S-23
 
 
 @app.get("/api/v1/studies/task_status/{task_id}")
@@ -413,7 +414,7 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
         return response
     except Exception as e:
         logger.exception("Error getting task status: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error") from e  # SECURITY AUDIT S-23
+        raise HTTPException(status_code=500, detail=MSG_INTERNAL_ERROR) from e  # SECURITY AUDIT S-23
 
 
 @app.websocket("/ws/scada/live")
@@ -583,7 +584,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     return JSONResponse(
         status_code=500,
         content={
-            "error": "Internal server error",
+            "error": MSG_INTERNAL_ERROR,
             "message": "An unexpected error occurred. Please contact support if the issue persists.",
             "trace_id": getattr(request.state, "trace_id", "unknown"),
         },
@@ -664,7 +665,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None or not user.is_active:
-            await websocket.close(code=1008, reason="User not found or inactive")
+            await websocket.close(code=1008, reason=MSG_USER_NOT_FOUND_OR_INACTIVE)
             return
 
         from api.dependencies import CurrentUser

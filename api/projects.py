@@ -258,6 +258,7 @@ from api.dependencies import (  # noqa: E402
     get_api_key,
     pagination_params,
 )
+from api._messages import MSG_PROJECT_NOT_FOUND, MSG_PROJECT_DELETED, MSG_PROJECT_ALREADY_DELETED
 
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ApiKeyDep = Annotated[str, Depends(get_api_key)]
@@ -353,9 +354,9 @@ async def get_project(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Project has been deleted")
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
     return ProjectResponse.model_validate(project)
 
 
@@ -374,7 +375,7 @@ async def update_project(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     if body.name is not None:
         project.name = body.name
@@ -403,9 +404,9 @@ async def delete_project(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Project is already deleted")
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_ALREADY_DELETED)
     project.status = ProjectStatus.DELETED.value
     project.updated_at = datetime.now(UTC)
     db.add(project)
@@ -434,9 +435,9 @@ async def run_project_study(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Project has been deleted")
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
 
     study = StudyResult(
         id=str(uuid.uuid4()),
@@ -467,7 +468,7 @@ async def list_project_studies(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     count_query = select(func.count()).select_from(StudyResult).where(StudyResult.project_id == project_id)
     count_result = await db.execute(count_query)

@@ -32,11 +32,13 @@ def env_int(key: str, default: int) -> int:
 
 
 def env_bool(key: str, default: bool) -> bool:
-    """Read a boolean from an environment variable, or return the default."""
-    val = os.environ.get(key)
-    if val is None:
-        return default
-    return val.lower() in ("1", "true", "yes", "on")
+    """Read a boolean from an environment variable, or return the default.
+
+    Delegates to ``core.utils.env_truthy`` to eliminate duplication with
+    ``integrations.langfuse_integration._env_truthy``.
+    """
+    from core.utils import env_truthy
+    return env_truthy(key, default)
 
 
 def _is_within(path: Path, root: Path) -> bool:

@@ -44,6 +44,7 @@ from api.dependencies import (
     pagination_params,
 )
 from api.rbac import require_permission
+from api._messages import MSG_PROJECT_NOT_FOUND
 
 
 class ExportHistory(Base):
@@ -210,7 +211,7 @@ async def export_pdf(
     project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
+        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
 
     studies = await _get_project_studies(project_id, db)
     pdf_bytes = _generate_pdf(project.name, studies)
@@ -241,7 +242,7 @@ async def export_excel(
     project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
     if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
+        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
 
     studies = await _get_project_studies(project_id, db)
     excel_bytes = _generate_excel(project.name, studies)

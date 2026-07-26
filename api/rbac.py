@@ -51,6 +51,7 @@ from api.dependencies import (
     get_current_user_from_header,
     pagination_params,
 )
+from api._messages import MSG_USER_NOT_FOUND
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM models
@@ -638,7 +639,7 @@ async def get_user_roles(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     # Get user's role assignments
@@ -678,7 +679,7 @@ async def assign_user_roles(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     # Verify all roles exist
@@ -726,7 +727,7 @@ async def remove_user_role(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     # Verify role exists
