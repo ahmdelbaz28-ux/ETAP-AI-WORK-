@@ -575,9 +575,9 @@ class EnvironmentValidator:
             logger.info("All required secrets are configured")
         return missing
 
-    def check_file_permissions(
+    def check_file_permissions(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require splitting POSIX/Windows branches into separate methods (scheduled for follow-up)
         self,
-    ) -> bool:  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require splitting POSIX/Windows branches into separate methods (scheduled for follow-up)
+    ) -> bool:
         """Verify that the secrets file has restrictive permissions (0o600)."""
         env_path = self.env_path
         if not env_path.exists():
@@ -627,11 +627,9 @@ class EnvironmentValidator:
             logger.exception("Cannot check .env permissions: %s", exc)
             return False
 
-    def check_for_hardcoded_secrets(
+    def check_for_hardcoded_secrets(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require extracting pattern-matching and file-walking helpers (scheduled for follow-up)
         self, file_patterns: list[str] | None = None
-    ) -> list[
-        dict
-    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> list[dict]:
         """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
