@@ -34,7 +34,7 @@ jobs:
         run: "pip install --only-binary :all: ruff mypy"
 
       - name: Install pre-commit hooks
-        run: pip install --only-binary :all: pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push  # S8541/S8544: --only-binary prevents setup.py execution
+        run: "pip install --only-binary :all: pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push  # S8541/S8544: --only-binary prevents setup.py execution"
 
       - name: Ruff lint
         # On push to main/develop: check ALL files for complete coverage.
