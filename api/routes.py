@@ -200,7 +200,7 @@ def _get_rate_limit_redis() -> Optional[Any]:
 async def _check_rate_limit(client_id: str) -> bool:
     """Return True if allowed; False if rate limit exceeded."""
     r = _get_rate_limit_redis()
-    now = time.time()
+    now = time.monotonic()
 
     if r is None:
         with _rate_limit_fallback_lock:
