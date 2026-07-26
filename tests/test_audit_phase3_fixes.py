@@ -46,12 +46,12 @@ class TestErrorInfoLeakS23(unittest.TestCase):
             )
 
     def test_s23_ai_ml_uses_generic_error_message(self):
-        """Error responses use generic 'Internal server error' message."""
+        """Error responses use generic 'Internal server error' message (via MSG_INTERNAL_ERROR constant)."""
         src = self._read(self.ai_ml_path)
-        self.assertIn(
-            '"Internal server error"',
-            src,
-            "ai_ml.py should use generic error message in responses",
+        # Accept either the literal string or the imported constant
+        self.assertTrue(
+            '"Internal server error"' in src or "MSG_INTERNAL_ERROR" in src,
+            "ai_ml.py should use generic error message in responses (literal string or MSG_INTERNAL_ERROR constant)",
         )
 
     def test_s23_ai_ml_still_logs_errors(self):
@@ -245,10 +245,9 @@ class TestS23AllAPIModulesComprehensive(unittest.TestCase):
             if not os.path.isfile(path):
                 continue
             src = self._read(path)
-            self.assertIn(
-                "Internal server error",
-                src,
-                f"{fname} should contain generic 'Internal server error' message",
+            self.assertTrue(
+                "Internal server error" in src or "MSG_INTERNAL_ERROR" in src,
+                f"{fname} should contain generic 'Internal server error' message (literal string or MSG_INTERNAL_ERROR constant)",
             )
 
 

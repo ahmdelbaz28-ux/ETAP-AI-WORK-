@@ -135,13 +135,20 @@ class TestCurvesSingularity(unittest.TestCase):
     def test_standard_inverse_uses_epsilon(self):
         """standard_inverse must use epsilon nudge."""
         src = self._read()
-        self.assertIn("M = I / Ip if I != Ip else _IEC_CURVE_EPSILON", src)
+        # Accept both operand orderings (I != Ip or Ip != I)
+        self.assertTrue(
+            "M = I / Ip if I != Ip else _IEC_CURVE_EPSILON" in src
+            or "M = I / Ip if Ip != I else _IEC_CURVE_EPSILON" in src,
+            "standard_inverse must use epsilon nudge pattern",
+        )
 
     def test_no_raw_division(self):
         """No curve should use raw I/Ip without epsilon check."""
         src = self._read()
-        # All 4 curves should use M variable with epsilon
-        m_count = src.count("M = I / Ip if I != Ip else _IEC_CURVE_EPSILON")
+        # All 4 curves should use M variable with epsilon (order of operands may vary)
+        pattern_a = "M = I / Ip if I != Ip else _IEC_CURVE_EPSILON"
+        pattern_b = "M = I / Ip if Ip != I else _IEC_CURVE_EPSILON"
+        m_count = src.count(pattern_a) + src.count(pattern_b)
         self.assertEqual(m_count, 4, "All 4 curves must use epsilon nudge")
 
     def test_curve_returns_finite_at_boundary(self):

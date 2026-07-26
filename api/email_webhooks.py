@@ -168,10 +168,10 @@ def _verify_resend_signature(
 )
 async def resend_webhook(
     request: Request,
-    svix_signature: Annotated[Optional[str], Header(None, alias="svix-signature")] = None,
-    svix_id: Annotated[Optional[str], Header(None, alias="svix-id")] = None,  # noqa: S1172 — FastAPI header binding
-    svix_timestamp: Annotated[Optional[str], Header(None, alias="svix-timestamp")] = None,  # noqa: S1172 — FastAPI header binding
-    webhook_secret: Annotated[Optional[str], Header(None, alias="webhook-secret")] = None,
+    svix_signature: Annotated[Optional[str], Header(alias="svix-signature")] = None,
+    svix_id: Annotated[Optional[str], Header(alias="svix-id")] = None,  # noqa: S1172 — FastAPI header binding
+    svix_timestamp: Annotated[Optional[str], Header(alias="svix-timestamp")] = None,  # noqa: S1172 — FastAPI header binding
+    webhook_secret: Annotated[Optional[str], Header(alias="webhook-secret")] = None,
 ) -> JSONResponse:
     """Receive a delivery event from Resend.
 

@@ -54,10 +54,16 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     Accepts either:
     1. Valid X-API-Key header (server-to-server)
     2. Valid JWT Bearer token (user auth)
+    3. Auth disabled mode (ENGINEERING_SERVICE_AUTH_DISABLED=true — dev/tests only)
 
     Returns an AuthPrincipal on success; raises HTTPException(401) on failure.
     """
     import os
+
+    # Allow bypass in development/test mode (ENGINEERING_SERVICE_AUTH_DISABLED)
+    _auth_disabled = os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes")
+    if _auth_disabled:
+        return AuthPrincipal(auth_type="dev_bypass", identity="anonymous")
 
     # Check API key first — use constant-time comparison to prevent timing attacks
     api_key = request.headers.get("x-api-key", "")

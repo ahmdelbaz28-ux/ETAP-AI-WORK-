@@ -57,27 +57,27 @@ async def test_2_magic_link():
     user_id = "user-123"
 
     # Issue
-    success, token, retry = await _issue(email, user_id)
+    success, token, retry = _issue(email, user_id)
     assert success, f"Issue failed (retry={retry})"
     assert len(token) >= 32
     print(f"  ✅ Issued magic link token (len={len(token)})")
 
     # Verify
-    v_success, rec, err = await _verify(token)
+    v_success, rec, err = _verify(token)
     assert v_success, f"Verify failed: {err}"
     assert rec.email == email
     assert rec.user_id == user_id
     print(f"  ✅ Verified magic link for {rec.email}")
 
     # Re-verify should fail (one-shot)
-    v2_success, _, v2_err = await _verify(token)
+    v2_success, _, v2_err = _verify(token)
     assert not v2_success
     print(f"  ✅ Re-verify correctly rejected ({v2_err})")
 
     # Rate limit
     for _ in range(3):
-        await _issue(email, user_id)
-    s4, _, r4 = await _issue(email, user_id)
+        _issue(email, user_id)
+    s4, _, r4 = _issue(email, user_id)
     assert not s4, "Should have been rate-limited"
     print(f"  ✅ Rate limit kicked in (retry after {r4}s)")
 
