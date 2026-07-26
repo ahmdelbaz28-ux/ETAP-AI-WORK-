@@ -75,7 +75,13 @@ def _ensure_dir(path: Path) -> Path:
         except OSError:
             # Best-effort on filesystems that don't support chmod (Windows, etc.)
             pass
-        logger.warning("Cannot write to %s, falling back to %s", path, fallback)
+        # Log only that the fallback occurred, not the actual paths.
+        # CodeQL py/clear-text-logging-sensitive-data flags `path` and
+        # `fallback` because they derive from env vars containing the
+        # word "SECRET" (ETAP_SECRETS_DIR). The paths themselves are
+        # directory paths, not secret values, but we avoid logging them
+        # to keep the audit trail free of any path-leakage surface.
+        logger.warning("Primary secrets dir not writable; fell back to /tmp fallback")
         return fallback
     return path
 
@@ -324,7 +330,13 @@ class LocalSecretsManager:
         # Cross-platform: os.chmod with Unix permission bits is ineffective on Windows.
         if os.name != "nt":
             os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
-        logger.info("Generated new encryption key at %s", ENCRYPTION_KEY_FILE)
+        # Log only that the key was generated, not the file path.
+        # CodeQL py/clear-text-logging-sensitive-data flags
+        # ENCRYPTION_KEY_FILE because its name matches the `*_KEY` secret
+        # pattern. The variable is a pathlib.Path (a file path), not the
+        # key bytes themselves, but we avoid logging it to keep the audit
+        # trail free of any path-leakage surface.
+        logger.info("Generated new encryption key")
         return key
 
     def _service_file(self, service_name: str) -> Path:

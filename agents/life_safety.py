@@ -752,6 +752,19 @@ class LifeSafetyGuard:
         Returns:
             dict with ``success``, ``message``, and ``snapshot`` keys.
         """
+        # Sanitize snapshot_id: only allow hex chars (matches the
+        # `_capture_state_snapshot` output of `hashlib.sha256(...).hexdigest()[:16]`).
+        # This prevents path-injection (CodeQL py/path-injection) where a
+        # caller-supplied snapshot_id containing '/' or '..' could escape the
+        # snapshots directory.
+        import re as _re
+        if not _re.fullmatch(r"[a-f0-9]+", snapshot_id):
+            logger.warning("Rejected rollback with malformed snapshot_id: %r", snapshot_id)
+            return {
+                "success": False,
+                "message": "Invalid snapshot_id format. Expected hex characters only.",
+                "snapshot": None,
+            }
         snap_dir = self.audit_dir / "snapshots"
         snap_path = snap_dir / f"snapshot_{snapshot_id}.json"
 
