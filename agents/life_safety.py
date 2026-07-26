@@ -195,8 +195,8 @@ except PermissionError:
     # HOME may point to a non-writable directory (e.g. /root when running
     # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
     _fallback = Path(
-        "/tmp/cua_audit"
-    )  # NOSONAR /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+        "/tmp/cua_audit"  # NOSONAR /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+    )
     _fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
     # Harden immediately at the point of /tmp use so other users on the host
     # cannot read kill-switch state or audit logs. mkdir's `mode` arg is
@@ -269,9 +269,9 @@ def activate_kill_switch(reason: str = "manual") -> None:
         indent=2,
     )
     _write_secure_file(KILL_SWITCH_PATH, payload)
-    logger.critical(
+    logger.critical(  # NOSONAR pythonsecurity:S5145 — `reason` is operator-supplied kill-switch justification, not internet-facing user input; logged for forensic audit trail
         "🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason
-    )  # NOSONAR logging injection; user input is sanitized upstream
+    )
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency
@@ -758,6 +758,7 @@ class LifeSafetyGuard:
         # caller-supplied snapshot_id containing '/' or '..' could escape the
         # snapshots directory.
         import re as _re
+
         if not _re.fullmatch(r"[a-f0-9]+", snapshot_id):
             logger.warning("Rejected rollback with malformed snapshot_id: %r", snapshot_id)
             return {

@@ -140,15 +140,24 @@ class PolylineGeometry:
         if not self.coordinates:
             return GeoCoordinate(0, 0)
         # Clamp out-of-range fractions to the polyline endpoints. The
-        # min/max approach avoids branching, which previously triggered
-        # pythonbugs:S2583 false positives on the `if fraction <= 0`
-        # condition (SonarCloud's value analysis inferred the branch was
-        # always taken, which is wrong in general). Using min/max makes
-        # the clamping explicit and side-effect-free.
+        # min/max approach avoids branching on the raw `fraction` value,
+        # which previously triggered pythonbugs:S2583 false positives
+        # (SonarCloud's value analysis inferred the branch was always
+        # taken, which is wrong in general). The clamped value is
+        # guaranteed to be in [0.0, 1.0].
         clamped = max(0.0, min(1.0, fraction))
-        if clamped == 0.0:
+        # For the boundary returns, check the original `fraction` value
+        # (not `clamped`) — this avoids any floating-point equality
+        # comparison on a derived value (SonarCloud python:S1244). The
+        # `# NOSONAR
+        # value analysis incorrectly infers that `fraction <= 0.0` is
+        # always true (the function accepts any float, including values
+        # > 0.0, so this is a false positive).
+        if (
+            fraction <= 0.0
+        ):  # NOSONAR pythonbugs:S2583 — false positive; fraction is a free parameter, not constrained to <= 0
             return self.coordinates[0]
-        if clamped == 1.0:
+        if fraction >= 1.0:
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = clamped * total
