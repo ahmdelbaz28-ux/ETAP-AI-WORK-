@@ -62,10 +62,165 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import time
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
+
+
+# ─── Prompt-cache statistics (P0 token-economy fix) ──────────────────────
+#
+# OpenAI gpt-4o* and Anthropic Claude 3.5+ both support prompt caching:
+# repeated calls that share a long system-prompt prefix get the cached
+# portion billed at a steep discount (OpenAI ~50%, Anthropic ~90%).
+#
+# Until now, the codebase never tracked cached tokens, so we could not
+# measure whether prompt caching actually fires in production. This
+# module-level tracker captures per-call usage so any consumer can
+# compute the real savings ratio.
+#
+# Thread-safe: a single shared instance is exposed as PROMPT_CACHE_STATS.
+
+
+class PromptCacheStats:
+    """Accumulates prompt-cache hits across all safe_* LLM calls.
+
+    Captures, per call:
+      - input_tokens (billable, after cache discount)
+      - cached_tokens (the portion served from cache)
+      - output_tokens
+      - provider ('openai' | 'anthropic')
+      - agent name (from metadata)
+      - model
+
+    Exposes ``snapshot()`` for tests and dashboards, and ``reset()``
+    for clean baselines in unit tests.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._calls: list[dict[str, Any]] = []
+
+    def record(
+        self,
+        *,
+        provider: str,
+        model: str,
+        agent: str,
+        input_tokens: int,
+        cached_tokens: int,
+        output_tokens: int,
+    ) -> None:
+        """Record one LLM call's token-usage breakdown."""
+        with self._lock:
+            self._calls.append(
+                {
+                    "provider": provider,
+                    "model": model,
+                    "agent": agent,
+                    "input_tokens": int(input_tokens),
+                    "cached_tokens": int(cached_tokens),
+                    "output_tokens": int(output_tokens),
+                    "billed_input_tokens": int(input_tokens) - int(cached_tokens),
+                }
+            )
+
+    def snapshot(self) -> dict[str, Any]:
+        """Return an immutable summary of all recorded calls."""
+        with self._lock:
+            calls = list(self._calls)
+        total_input = sum(c["input_tokens"] for c in calls)
+        total_cached = sum(c["cached_tokens"] for c in calls)
+        total_output = sum(c["output_tokens"] for c in calls)
+        total_billed = sum(c["billed_input_tokens"] for c in calls)
+        cache_hit_ratio = (total_cached / total_input) if total_input > 0 else 0.0
+        return {
+            "call_count": len(calls),
+            "total_input_tokens": total_input,
+            "total_cached_tokens": total_cached,
+            "total_output_tokens": total_output,
+            "total_billed_input_tokens": total_billed,
+            "cache_hit_ratio": round(cache_hit_ratio, 4),
+            "calls": calls,
+        }
+
+    def reset(self) -> None:
+        """Clear all recorded calls. Intended for unit tests only."""
+        with self._lock:
+            self._calls.clear()
+
+
+PROMPT_CACHE_STATS = PromptCacheStats()
+
+
+def _extract_openai_cached_tokens(usage: Any) -> int:
+    """Pull ``prompt_tokens_details.cached_tokens`` out of an OpenAI response.
+
+    Returns 0 if the field is absent (older models / non-OpenAI compatible
+    endpoints never populate it).
+    """
+    if usage is None:
+        return 0
+    try:
+        details = getattr(usage, "prompt_tokens_details", None)
+        if details is None:
+            return 0
+        return int(getattr(details, "cached_tokens", 0) or 0)
+    except (AttributeError, TypeError, ValueError):
+        return 0
+
+
+def _extract_anthropic_cached_tokens(usage: Any) -> int:
+    """Pull ``cache_read_input_tokens`` out of an Anthropic response."""
+    if usage is None:
+        return 0
+    try:
+        return int(getattr(usage, "cache_read_input_tokens", 0) or 0)
+    except (AttributeError, TypeError, ValueError):
+        return 0
+
+
+def _inject_anthropic_cache_control(messages: list[dict]) -> list[dict]:
+    """Tag the last system block with ``cache_control: ephemeral``.
+
+    Anthropic charges ~10% of normal input cost for cached prefixes.
+    Adding ``cache_control`` to the final system message tells the API
+    to cache everything up to that point. Safe no-op if there is no
+    system message or if the caller already set cache_control.
+
+    The returned list is a shallow copy so the caller's messages are
+    never mutated.
+    """
+    if not messages:
+        return messages
+    out = list(messages)
+    last_sys_idx = None
+    for idx in range(len(out) - 1, -1, -1):
+        msg = out[idx]
+        if isinstance(msg, dict) and msg.get("role") == "system":
+            last_sys_idx = idx
+            break
+    if last_sys_idx is None:
+        return out
+    msg = dict(out[last_sys_idx])  # shallow copy
+    # If the content is a plain string, convert to a single block so we
+    # can attach cache_control. Anthropic accepts either form.
+    content = msg.get("content")
+    if isinstance(content, str):
+        msg["content"] = [
+            {"type": "text", "text": content, "cache_control": {"type": "ephemeral"}}
+        ]
+    elif isinstance(content, list) and content:
+        # Tag only the last block; cache_control is a hint that says
+        # "cache everything up to and including this block".
+        blocks = [dict(b) if isinstance(b, dict) else b for b in content]
+        last_block = blocks[-1]
+        if isinstance(last_block, dict) and "cache_control" not in last_block:
+            last_block["cache_control"] = {"type": "ephemeral"}
+        msg["content"] = blocks
+    out[last_sys_idx] = msg
+    return out
 
 # ─── Safety guardrails (config) ───────────────────────────────────────────
 
@@ -290,12 +445,28 @@ def safe_openai_chat(
     try:
         response = openai.chat.completions.create(**call_kwargs)
         elapsed = time.monotonic() - start
+        # Capture cache stats for token-economy monitoring.
+        usage = getattr(response, "usage", None)
+        cached_tokens = _extract_openai_cached_tokens(usage)
+        prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+        completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+        PROMPT_CACHE_STATS.record(
+            provider="openai",
+            model=model,
+            agent=(metadata or {}).get("agent", "unknown"),
+            input_tokens=prompt_tokens,
+            cached_tokens=cached_tokens,
+            output_tokens=completion_tokens,
+        )
         logger.debug(
-            "OpenAI call: model=%s, agent=%s, latency=%.2fs, usage=%s",
+            "OpenAI call: model=%s, agent=%s, latency=%.2fs, "
+            "tokens=in:%d/cached:%d/out:%d",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
-            getattr(response, "usage", None),
+            prompt_tokens,
+            cached_tokens,
+            completion_tokens,
         )
         return response
     except Exception as exc:
@@ -333,7 +504,9 @@ def safe_anthropic_message(
 
     call_kwargs = dict(kwargs)
     call_kwargs["model"] = model
-    call_kwargs["messages"] = messages
+    # Inject Anthropic cache_control on the last system message so the
+    # long system-prompt prefix is billed at ~10% on subsequent calls.
+    call_kwargs["messages"] = _inject_anthropic_cache_control(messages)
     call_kwargs["max_tokens"] = max_tokens
 
     lf_kwargs: dict[str, Any] = {}
@@ -352,11 +525,27 @@ def safe_anthropic_message(
     try:
         response = anthropic.messages.create(**call_kwargs)
         elapsed = time.monotonic() - start
+        usage = getattr(response, "usage", None)
+        cached_tokens = _extract_anthropic_cached_tokens(usage)
+        input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+        output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+        PROMPT_CACHE_STATS.record(
+            provider="anthropic",
+            model=model,
+            agent=(metadata or {}).get("agent", "unknown"),
+            input_tokens=input_tokens,
+            cached_tokens=cached_tokens,
+            output_tokens=output_tokens,
+        )
         logger.debug(
-            "Anthropic call: model=%s, agent=%s, latency=%.2fs",
+            "Anthropic call: model=%s, agent=%s, latency=%.2fs, "
+            "tokens=in:%d/cached:%d/out:%d",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
+            input_tokens,
+            cached_tokens,
+            output_tokens,
         )
         return response
     except Exception as exc:
@@ -425,4 +614,9 @@ __all__ = [
     "estimate_cost_usd",
     "health_check",
     "SafetyValidationError",
+    "PROMPT_CACHE_STATS",
+    "PromptCacheStats",
+    "_inject_anthropic_cache_control",
+    "_extract_openai_cached_tokens",
+    "_extract_anthropic_cached_tokens",
 ]
