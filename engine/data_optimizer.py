@@ -719,7 +719,7 @@ class LargeSystemAdapter:
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)
         sm = self.sparse_manager
-        Y1, Y2, Y0 = [sm.build_sparse_ybus(sys_o, s) for s in ("1", "2", "0")]
+        Y1, Y2, Y0 = (sm.build_sparse_ybus(sys_o, s) for s in ("1", "2", "0"))
         r = {"Ybus_pos": Y1, "Ybus_neg": Y2, "Ybus_zero": Y0}
         if self._large:
             r["Zbus_pos"] = sm.sparse_lu_solve(Y1, np.eye(self._n, dtype=complex))

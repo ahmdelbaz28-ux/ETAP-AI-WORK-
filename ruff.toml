@@ -49,14 +49,16 @@ ignore = [
     "UP007",  # Use X | Y for unions (requires Python 3.10+; we sometimes prefer Optional[] for clarity)
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
     "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
+    "UP038",  # Use X | Y in isinstance — legacy isinstance(x, (A, B)) pattern; not worth migrating repo-wide
     "UP045",  # Non-PEP604 annotation Optional (gradual migration)
+    "UP047",  # Use type parameters (Python 3.12+ generic syntax; not yet adopted repo-wide)
     "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)
     "N803",   # Invalid argument name (electrical engineering: V, I, R, X, etc.)
     "N815",   # Mixed-case variable in class scope (electrical engineering convention)
     "N818",   # Error suffix on exception name (domain-specific naming)
     "N811",   # Constant imported as non-constant (standard patterns in imports)
     "N801",   # Invalid class name (some legacy patterns)
-    "UP047",  # Use type parameters (Python 3.12+ generic syntax; not yet adopted repo-wide)
+    "N802",   # Function name should be lowercase (do_POST/do_GET are BaseHTTPRequestHandler convention)
     "B007",   # Loop control variable not used (acceptable when iterating for side-effects)
     # QUALITY v2.1.1: BLE001 (blind except Exception) is intentionally allowed
     # for service-layer error containment. The codebase has 455 occurrences, most
