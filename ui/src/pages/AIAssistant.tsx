@@ -138,7 +138,10 @@ interface CodeRendererCtx {
 }
 
 function createCodeRenderer(ctx: CodeRendererCtx) {
-  return function CodeRenderer(props: MarkdownCodeProps) {
+  // Use React.FC with explicit props type to satisfy react-markdown v10's
+  // stricter ComponentType signature (requires ExtraProps compatibility).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CodeRenderer: React.FC<any> = (props: MarkdownCodeProps) => {
     return (
       <MarkdownCode
         {...props}
@@ -148,6 +151,7 @@ function createCodeRenderer(ctx: CodeRendererCtx) {
       />
     );
   };
+  return CodeRenderer;
 }
 
 export default function AIAssistant() {
