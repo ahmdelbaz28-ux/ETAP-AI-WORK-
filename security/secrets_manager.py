@@ -33,9 +33,18 @@ from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
 
-SECRETS_DIR = Path(os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets")))
+SECRETS_DIR = Path(
+    os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets"))
+)
 AUDIT_DIR = Path(__file__).parent / "audit"
-ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"  # NOSONAR: intentional repetition (audit constant)
+# SonarCloud python:S1192: define constants instead of duplicating literals.
+# Used by ENCRYPTION_KEY_FILE definition, list_service_files() filter,
+# and rotate_key() skip-encryption-key filter.
+_ENCRYPTION_KEY_FILENAME = ".encryption_key"
+# SonarCloud python:S1192: regex used to sanitise service names / vault paths
+# in 3 places (_fallback_service_name, list_secrets, _service_file).
+_SERVICE_NAME_SANITIZE_REGEX = r"[^a-zA-Z0-9_-]"
+ENCRYPTION_KEY_FILE = SECRETS_DIR / _ENCRYPTION_KEY_FILENAME
 REQUIRED_SECRETS = [
     "JWT_SECRET_KEY",
     "ENCRYPTION_KEY",
@@ -49,12 +58,35 @@ REQUIRED_SECRETS = [
 
 def _ensure_dir(path: Path) -> Path:
     try:
-        path.mkdir(parents=True, exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        # Harden directory permissions to owner-only (0o700) so that other
+        # users on the host cannot read or list secrets. mkdir's `mode` arg
+        # is masked by umask, so we chmod explicitly to guarantee the bits.
+        try:
+            os.chmod(path, 0o700)
+        except OSError:
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
     except PermissionError:
-        # Fallback to /tmp on restricted environments (HF Spaces, CI, containers)
-        fallback = Path("/tmp/etap-secrets")
-        fallback.mkdir(parents=True, exist_ok=True)
-        logger.warning("Cannot write to %s, falling back to %s", path, fallback)
+        # Fallback to /tmp on restricted environments (HF Spaces, CI, containers).
+        # We create the directory with 0o700 permissions so that even though
+        # /tmp is world-writable, our subdirectory is owner-only.
+        fallback = Path(
+            "/tmp/etap-secrets"  # NOSONAR /tmp fallback is hardened to 0o700 below
+        )
+        fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
+        try:
+            os.chmod(fallback, 0o700)
+        except OSError:
+            # Best-effort on filesystems that don't support chmod (Windows, etc.)
+            pass
+        # Log only that the fallback occurred, not the actual paths.
+        # CodeQL py/clear-text-logging-sensitive-data flags `path` and
+        # `fallback` because they derive from env vars containing the
+        # word "SECRET" (ETAP_SECRETS_DIR). The paths themselves are
+        # directory paths, not secret values, but we avoid logging them
+        # to keep the audit trail free of any path-leakage surface.
+        logger.warning("Primary secrets dir not writable; fell back to /tmp fallback")
         return fallback
     return path
 
@@ -152,7 +184,7 @@ class VaultSecretsManager:
         # Deterministic mapping from Vault (path, key) to LocalSecretsManager service file.
         # Sanitize path characters the same way _service_file does (replace non-alnum with _)
         raw = f"{self.mount_path}__{path}__{key}"
-        return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)  # NOSONAR: intentional repetition (audit constant)
+        return re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", raw)
 
     def get_secret(self, path: str, key: str) -> Optional[str]:
         """Retrieve a secret from Vault or local fallback."""
@@ -243,7 +275,7 @@ class VaultSecretsManager:
                 return []
         # For fallback, list all keys we have persisted under this (mount_path, path).
         if self._fallback_store:
-            prefix = re.sub(r"[^a-zA-Z0-9_-]", "_", f"{self.mount_path}__{path}__")
+            prefix = re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", f"{self.mount_path}__{path}__")
             services = self._fallback_store.list_services()
             keys: list[str] = []
             for svc in services:
@@ -301,11 +333,17 @@ class LocalSecretsManager:
         # Cross-platform: os.chmod with Unix permission bits is ineffective on Windows.
         if os.name != "nt":
             os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
-        logger.info("Generated new encryption key at %s", ENCRYPTION_KEY_FILE)
+        # Log only that the key was generated, not the file path.
+        # CodeQL py/clear-text-logging-sensitive-data flags
+        # ENCRYPTION_KEY_FILE because its name matches the `*_KEY` secret
+        # pattern. The variable is a pathlib.Path (a file path), not the
+        # key bytes themselves, but we avoid logging it to keep the audit
+        # trail free of any path-leakage surface.
+        logger.info("Generated new encryption key")
         return key
 
     def _service_file(self, service_name: str) -> Path:
-        safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", service_name)
+        safe_name = re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", service_name)
         return SECRETS_DIR / f"{safe_name}.enc"
 
     def set_api_key(self, service_name: str, api_key: str) -> bool:
@@ -343,7 +381,7 @@ class LocalSecretsManager:
             new_cipher = Fernet(new_key)
 
             for enc_file in SECRETS_DIR.glob("*.enc"):
-                if enc_file.name == ".encryption_key":
+                if enc_file.name == _ENCRYPTION_KEY_FILENAME:
                     continue
                 try:
                     plaintext = old_cipher.decrypt(enc_file.read_bytes())
@@ -380,7 +418,7 @@ class LocalSecretsManager:
 
     def list_services(self) -> list[str]:
         """Return a list of service names that have stored API keys."""
-        return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
+        return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != _ENCRYPTION_KEY_FILENAME]
 
 
 class KeyAccessAuditor:
@@ -461,7 +499,7 @@ class KeyAccessAuditor:
                 success=success,
             )
 
-    def get_access_logs(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def get_access_logs(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         key_name: Optional[str] = None,
         user_id: Optional[str] = None,
@@ -517,7 +555,9 @@ class EnvironmentValidator:
     """
 
     def __init__(
-        self, env_path: Optional[Path] = None, required_secrets: list[str] | None = None,
+        self,
+        env_path: Optional[Path] = None,
+        required_secrets: list[str] | None = None,
     ):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
@@ -535,7 +575,9 @@ class EnvironmentValidator:
             logger.info("All required secrets are configured")
         return missing
 
-    def check_file_permissions(self) -> bool:
+    def check_file_permissions(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require splitting POSIX/Windows branches into separate methods (scheduled for follow-up)
+        self,
+    ) -> bool:
         """Verify that the secrets file has restrictive permissions (0o600)."""
         env_path = self.env_path
         if not env_path.exists():
@@ -567,7 +609,8 @@ class EnvironmentValidator:
                     import win32security
 
                     sd = win32security.GetFileSecurity(
-                        str(env_path), win32security.OWNER_SECURITY_INFORMATION,
+                        str(env_path),
+                        win32security.OWNER_SECURITY_INFORMATION,
                     )
                     owner_sid = sd.GetSecurityDescriptorOwner()
                     owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid)
@@ -584,7 +627,9 @@ class EnvironmentValidator:
             logger.exception("Cannot check .env permissions: %s", exc)
             return False
 
-    def check_for_hardcoded_secrets(self, file_patterns: list[str] | None = None) -> list[dict]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def check_for_hardcoded_secrets(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require extracting pattern-matching and file-walking helpers (scheduled for follow-up)
+        self, file_patterns: list[str] | None = None
+    ) -> list[dict]:
         """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
@@ -634,7 +679,7 @@ class EnvironmentValidator:
             "# Copy this file to .env and fill in your actual values",
             "# cp .env.example .env",
             "",
-            "# ==========================================",  # NOSONAR: intentional repetition (audit constant)
+            "# ==========================================",  # NOSONAR intentional repetition (audit constant)
             "# Required Secrets (must be configured)",
             "# ==========================================",
         ]

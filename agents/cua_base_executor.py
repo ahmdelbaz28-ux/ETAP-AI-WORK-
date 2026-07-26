@@ -48,7 +48,14 @@ DEFAULT_ACTION_TIMEOUT = 60  # seconds per action
 # ─── Data classes (centralized) ─────────────────────────────────────────────
 
 ActionType = Literal[
-    "click", "double_click", "right_click", "type", "hotkey", "wait", "done", "unknown",
+    "click",
+    "double_click",
+    "right_click",
+    "type",
+    "hotkey",
+    "wait",
+    "done",
+    "unknown",
 ]
 
 
@@ -211,12 +218,18 @@ class BaseCUAExecutor(abc.ABC):
         # writable directories). The life_safety module defines the canonical
         # constant with 0o700 permissions; here we use the same default.
         _default_audit_dir = str(Path.home() / ".etap" / "cua_audit")
-        self.audit_dir = Path(audit_dir) if audit_dir else Path(_default_audit_dir)
-        self.audit_dir.mkdir(parents=True, exist_ok=True)
+        self.audit_dir = (
+            Path(audit_dir) if audit_dir else Path(_default_audit_dir)
+        )  # NOSONAR S5443 — audit_dir is permission-hardened to 0o700 below (mkdir mode + chmod)
+        self.audit_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        # Harden audit_dir to owner-only (0o700) so other users on the host
+        # cannot read CUA screenshots / action logs. mkdir's `mode` arg is
+        # masked by umask, so we chmod explicitly to guarantee the bits.
         try:
             os.chmod(self.audit_dir, 0o700)
         except OSError:
-            pass  # Best-effort: chmod can fail on some filesystems
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
 
     # ─── Abstract hooks (platform-specific) ────────────────────────────────
 
@@ -266,7 +279,7 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
-    def execute_loop(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_loop(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
         max_steps: int = DEFAULT_MAX_STEPS,
@@ -302,7 +315,9 @@ class BaseCUAExecutor(abc.ABC):
             from integrations.resilience import CheckpointStore, hybrid_vision, resume_manager
 
             # ─── RESILIENCE: resume from checkpoint if available ────────────────
-            exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(objective)
+            exec_id, resume_from, prior_steps, prior_context = resume_manager.resume_or_start(
+                objective
+            )
             steps: list[CUAStepResult] = []
             # Reconstruct prior step results from checkpoint (simplified — audit-only)
             for ps in prior_steps:

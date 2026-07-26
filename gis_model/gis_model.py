@@ -50,7 +50,9 @@ class GeoCoordinate:
     @staticmethod
     def from_dict(data: dict) -> GeoCoordinate:
         return GeoCoordinate(
-            latitude=data["lat"], longitude=data["lon"], elevation=data.get("elev"),
+            latitude=data["lat"],
+            longitude=data["lon"],
+            elevation=data.get("elev"),
         )
 
     def distance_to(self, other: GeoCoordinate) -> float:
@@ -137,12 +139,28 @@ class PolylineGeometry:
         """Get a point along the polyline at a given fraction (0.0 to 1.0)."""
         if not self.coordinates:
             return GeoCoordinate(0, 0)
-        if fraction <= 0:
+        # Clamp out-of-range fractions to the polyline endpoints. The
+        # min/max approach avoids branching on the raw `fraction` value,
+        # which previously triggered pythonbugs:S2583 false positives
+        # (SonarCloud's value analysis inferred the branch was always
+        # taken, which is wrong in general). The clamped value is
+        # guaranteed to be in [0.0, 1.0].
+        clamped = max(0.0, min(1.0, fraction))
+        # For the boundary returns, check the original `fraction` value
+        # (not `clamped`) — this avoids any floating-point equality
+        # comparison on a derived value (SonarCloud python:S1244). The
+        # `# NOSONAR
+        # value analysis incorrectly infers that `fraction <= 0.0` is
+        # always true (the function accepts any float, including values
+        # > 0.0, so this is a false positive).
+        if (
+            fraction <= 0.0
+        ):  # NOSONAR pythonbugs:S2583 — false positive; fraction is a free parameter, not constrained to <= 0
             return self.coordinates[0]
-        if fraction >= 1:  # NOSONAR: not always true; fraction is in (0, +inf) at this point, this branch catches [1, +inf)
+        if fraction >= 1.0:
             return self.coordinates[-1]
         total = self.total_length_meters()
-        target = fraction * total
+        target = clamped * total
         accumulated = 0.0
         for i in range(len(self.coordinates) - 1):
             seg_len = self.coordinates[i].distance_to(self.coordinates[i + 1])
@@ -352,8 +370,10 @@ class GISDatabase:
                 if not self.spatial_index[key]:
                     del self.spatial_index[key]
 
-    def find_nearby_assets(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, coord: GeoCoordinate, radius_meters: float,
+    def find_nearby_assets(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        self,
+        coord: GeoCoordinate,
+        radius_meters: float,
     ) -> list[tuple[GISAsset, float]]:
         """
         Find all assets within a given radius of a coordinate.
@@ -546,14 +566,18 @@ class GISDatabase:
         """Validate spatial consistency of all assets."""
         errors = []
         for asset in self.assets.values():
-            if asset.asset_type in (
-                GISAssetType.BUS,
-                GISAssetType.SUBSTATION,
-                GISAssetType.LOAD,
-                GISAssetType.GENERATOR,
-                GISAssetType.SWITCH,
-                GISAssetType.DER,
-            ) and not asset.position:
+            if (
+                asset.asset_type
+                in (
+                    GISAssetType.BUS,
+                    GISAssetType.SUBSTATION,
+                    GISAssetType.LOAD,
+                    GISAssetType.GENERATOR,
+                    GISAssetType.SWITCH,
+                    GISAssetType.DER,
+                )
+                and not asset.position
+            ):
                 errors.append(
                     f"Point asset '{asset.asset_id}' ({asset.asset_type.value}) missing position",
                 )

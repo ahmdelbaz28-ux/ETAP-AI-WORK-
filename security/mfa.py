@@ -23,7 +23,28 @@ import secrets
 import struct
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Optional, Protocol, runtime_checkable
+
+
+@runtime_checkable
+class _HashLike(Protocol):
+    """Structural type matching the interface of hashlib hash objects.
+
+    hashlib does not expose a public type for its hash objects (the actual
+    class is `_hashlib.HASH`, which is private). This Protocol lets us type
+    the return value of `_sha1_for_otp` without depending on a private name
+    or quoting the annotation.
+    """
+
+    block_size: int
+    name: str
+    digest_size: int
+
+    def update(self, data: bytes, /) -> None: ...
+    def digest(self) -> bytes: ...
+    def hexdigest(self) -> str: ...
+    def copy(self) -> _HashLike: ...
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +88,20 @@ except ImportError:
 # ===========================================================================
 
 
+def _sha1_for_otp(data: bytes = b"") -> _HashLike:
+    """Return a SHA-1 hash object configured with ``usedforsecurity=False``.
+
+    HMAC-SHA1 is mandated by RFC 6238 (TOTP) / RFC 4226 (HOTP) for
+    interoperability with Google Authenticator, Microsoft Authenticator, etc.
+    SHA-256/512 are optional extensions not universally supported.
+
+    ``usedforsecurity=False`` is the Python 3.9+ hint that allows SHA-1 in
+    FIPS-restricted runtimes and tells static analyzers the algorithm choice
+    is intentional (RFC-mandated, not a security-primitive selection).
+    """
+    return hashlib.sha1(data, usedforsecurity=False)
+
+
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     """Generate an HOTP code (RFC 4226).
 
@@ -92,9 +127,14 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     # Using SHA-256 here would BREAK TOTP compatibility with every
     # authenticator app. SHA1 in HMAC mode remains cryptographically
     # secure (HMAC-SHA1 has no known practical vulnerabilities).
-    # NOSONAR: SHA1 is mandated by RFC 6238 for TOTP interoperability.
+    #
+    # The _sha1_for_otp helper passes usedforsecurity=False so SHA-1 is
+    # allowed in FIPS-restricted runtimes; this is RFC-mandated, not a
+    # security-primitive selection.
     msg = struct.pack(">Q", counter)
-    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
+    h = hmac.new(
+        secret_bytes, msg, _sha1_for_otp
+    ).digest()  # NOSONAR SHA-1 is RFC-mandated for TOTP interoperability; usedforsecurity=False set via _sha1_for_otp
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF
@@ -315,7 +355,9 @@ class TOTPProvider:
         if entry and code in entry.backup_codes:
             entry.backup_codes.remove(code)
             logger.info(
-                "Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes),
+                "Backup code used for user %s (%d remaining)",
+                user_id,
+                len(entry.backup_codes),
             )
             return True
         return False
@@ -642,7 +684,8 @@ class WebAuthnProvider:
                 )
                 # Update sign count
                 stored_cred.sign_count = response.get("response", {}).get(
-                    "signCount", stored_cred.sign_count + 1,
+                    "signCount",
+                    stored_cred.sign_count + 1,
                 )
                 logger.info("WebAuthn authentication succeeded for user %s", owner_id)
                 return True

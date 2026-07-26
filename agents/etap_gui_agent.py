@@ -348,7 +348,7 @@ def _format_a_analyze(question: str, app: str) -> str:
             "",
             "**REQUIRES:** Human confirmation to proceed with screen capture.",
             "",
-            "**REFERENCES:**",  # NOSONAR: intentional repetition (audit constant)
+            "**REFERENCES:**",  # NOSONAR intentional repetition (audit constant)
             "  - skills/etap-gui-agent.md (knowledge base)",
             "  - Safety rule: read-only by default",
         ],
@@ -566,7 +566,13 @@ class ETAPGUIAgent(BaseAgent):
         try:
             from agents.browser_cua_executor import BrowserCUAExecutor
 
-            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or str(_CUA_AUDIT_DIR))
+            # NOSONAR audit_dir is hardened to 0o700 by BaseCUAExecutor.__init__
+            # via os.chmod after mkdir; _CUA_AUDIT_DIR defaults to ~/.etap/cua_audit
+            # (per-user, not publicly writable). /tmp/cua_audit is only used as a
+            # PermissionError fallback in life_safety.py and is also chmod'd 0o700.
+            browser_executor = BrowserCUAExecutor(
+                audit_dir=audit_dir or str(_CUA_AUDIT_DIR)
+            )  # NOSONAR S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
             browser_deps = browser_executor.check_dependencies()
         except Exception as exc:  # noqa: BLE001
             logger.debug("BrowserCUAExecutor init failed: %s", exc)
@@ -577,7 +583,12 @@ class ETAPGUIAgent(BaseAgent):
             from agents.cua_executor import CUAExecutor
 
             executor = CUAExecutor(
-                audit_dir=audit_dir or str(_CUA_AUDIT_DIR),
+                # NOSONAR see justification above — audit_dir is hardened to 0o700
+                # by BaseCUAExecutor.__init__.
+                audit_dir=audit_dir
+                or str(
+                    _CUA_AUDIT_DIR
+                ),  # NOSONAR S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
                 action_timeout=60,
             )
             executor_type = "desktop"
