@@ -66,10 +66,18 @@ function baseAuditFields(rc: RequestContext) {
   };
 }
 
-/** Record an audit entry and flush audit log + metrics in the background. */
+/** Record an audit entry and flush audit log + metrics in the background.
+ *  The background Promise is .catch()'d so a rejection inside flushAuditLog
+ *  or saveMetrics cannot surface as an unhandled promise rejection (SonarCloud
+ *  typescript:S4822). Audit flushing is best-effort by design — a failure
+ *  to persist audit/metrics must not break the response path. */
 function auditAndFlush(rc: RequestContext, audit: Parameters<typeof recordAudit>[0]): void {
   recordAudit(audit);
-  rc.ctx.waitUntil(Promise.all([flushAuditLog(rc.env), saveMetrics(rc.env)]));
+  rc.ctx.waitUntil(
+    Promise.all([flushAuditLog(rc.env), saveMetrics(rc.env)]).catch(() => {
+      // Best-effort flush; suppress rejection to avoid unhandled promise rejection.
+    }),
+  );
 }
 
 /** 0) IP ban check — runs before anything else. Returns a 429 Response if

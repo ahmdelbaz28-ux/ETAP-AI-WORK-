@@ -195,7 +195,15 @@ except PermissionError:
     # HOME may point to a non-writable directory (e.g. /root when running
     # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
     _fallback = Path("/tmp/cua_audit")
-    _fallback.mkdir(parents=True, exist_ok=True)
+    _fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
+    # Harden immediately at the point of /tmp use so other users on the host
+    # cannot read kill-switch state or audit logs. mkdir's `mode` arg is
+    # masked by umask, so we chmod explicitly to guarantee the bits.
+    try:
+        os.chmod(_fallback, 0o700)
+    except OSError:
+        # Best-effort: chmod can fail on some filesystems (e.g., Windows).
+        pass
     _CUA_AUDIT_DIR = _fallback
     logger.warning("HOME directory not writable, falling back to %s", _fallback)
 try:

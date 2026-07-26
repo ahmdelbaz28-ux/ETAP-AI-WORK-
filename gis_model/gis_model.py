@@ -137,9 +137,14 @@ class PolylineGeometry:
         """Get a point along the polyline at a given fraction (0.0 to 1.0)."""
         if not self.coordinates:
             return GeoCoordinate(0, 0)
+        # Clamp out-of-range fractions to the polyline endpoints. Using
+        # `elif` makes the conditional nature explicit to static analyzers
+        # (SonarCloud pythonbugs:S2583 previously raised a false positive
+        # when these were two separate `if` statements). At this branch,
+        # fraction is in (0, +inf) — the elif catches [1, +inf).
         if fraction <= 0:
             return self.coordinates[0]
-        if fraction >= 1:  # NOSONAR: not always true; fraction is in (0, +inf) at this point, this branch catches [1, +inf)
+        elif fraction >= 1:  # NOSONAR: clamps upper bound; fraction > 0 here, branch catches [1, +inf)
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = fraction * total

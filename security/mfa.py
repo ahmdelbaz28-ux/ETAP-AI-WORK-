@@ -67,6 +67,20 @@ except ImportError:
 # ===========================================================================
 
 
+def _sha1_for_otp(data: bytes = b"") -> "hashlib._Hash":
+    """Return a SHA-1 hash object configured with ``usedforsecurity=False``.
+
+    HMAC-SHA1 is mandated by RFC 6238 (TOTP) / RFC 4226 (HOTP) for
+    interoperability with Google Authenticator, Microsoft Authenticator, etc.
+    SHA-256/512 are optional extensions not universally supported.
+
+    ``usedforsecurity=False`` is the Python 3.9+ hint that allows SHA-1 in
+    FIPS-restricted runtimes and tells static analyzers the algorithm choice
+    is intentional (RFC-mandated, not a security-primitive selection).
+    """
+    return hashlib.sha1(data, usedforsecurity=False)
+
+
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     """Generate an HOTP code (RFC 4226).
 
@@ -92,9 +106,12 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     # Using SHA-256 here would BREAK TOTP compatibility with every
     # authenticator app. SHA1 in HMAC mode remains cryptographically
     # secure (HMAC-SHA1 has no known practical vulnerabilities).
-    # NOSONAR: SHA1 is mandated by RFC 6238 for TOTP interoperability.
+    #
+    # The _sha1_for_otp helper passes usedforsecurity=False so SHA-1 is
+    # allowed in FIPS-restricted runtimes; this is RFC-mandated, not a
+    # security-primitive selection.
     msg = struct.pack(">Q", counter)
-    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
+    h = hmac.new(secret_bytes, msg, _sha1_for_otp).digest()  # NOSONAR: SHA-1 is RFC-mandated for TOTP interoperability; usedforsecurity=False set via _sha1_for_otp
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF

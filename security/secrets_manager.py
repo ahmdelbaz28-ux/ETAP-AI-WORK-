@@ -50,10 +50,25 @@ REQUIRED_SECRETS = [
 def _ensure_dir(path: Path) -> Path:
     try:
         path.mkdir(parents=True, exist_ok=True)
+        # Harden directory permissions to owner-only (0o700) so that other
+        # users on the host cannot read or list secrets. mkdir's `mode` arg
+        # is masked by umask, so we chmod explicitly to guarantee the bits.
+        try:
+            os.chmod(path, 0o700)
+        except OSError:
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
     except PermissionError:
-        # Fallback to /tmp on restricted environments (HF Spaces, CI, containers)
+        # Fallback to /tmp on restricted environments (HF Spaces, CI, containers).
+        # We create the directory with 0o700 permissions so that even though
+        # /tmp is world-writable, our subdirectory is owner-only.
         fallback = Path("/tmp/etap-secrets")
-        fallback.mkdir(parents=True, exist_ok=True)
+        fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
+        try:
+            os.chmod(fallback, 0o700)
+        except OSError:
+            # Best-effort on filesystems that don't support chmod (Windows, etc.)
+            pass
         logger.warning("Cannot write to %s, falling back to %s", path, fallback)
         return fallback
     return path

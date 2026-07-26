@@ -111,6 +111,15 @@ class UDSListener:
             os.unlink(self.path)
 
         listener = await anyio.create_unix_listener(self.path)
+        # Harden the UDS socket file to owner-only (0o600) so other users on
+        # the host cannot connect to the ACP runtime. /tmp is world-writable,
+        # so without this, any local process could issue ACP commands.
+        # See acp/cli.py:_run_uds for the entry point that uses /tmp/acp.sock.
+        try:
+            os.chmod(self.path, 0o600)
+        except OSError:
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
         async with listener:
             self._log.info("uds listening on %s", self.path)
             await listener.serve(lambda client: self._handle_client(client, router))

@@ -213,10 +213,14 @@ class BaseCUAExecutor(abc.ABC):
         _default_audit_dir = str(Path.home() / ".etap" / "cua_audit")
         self.audit_dir = Path(audit_dir) if audit_dir else Path(_default_audit_dir)
         self.audit_dir.mkdir(parents=True, exist_ok=True)
+        # Harden audit_dir to owner-only (0o700) so other users on the host
+        # cannot read CUA screenshots / action logs. mkdir's `mode` arg is
+        # masked by umask, so we chmod explicitly to guarantee the bits.
         try:
             os.chmod(self.audit_dir, 0o700)
         except OSError:
-            pass  # Best-effort: chmod can fail on some filesystems
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
 
     # ─── Abstract hooks (platform-specific) ────────────────────────────────
 

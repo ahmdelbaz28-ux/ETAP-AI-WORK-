@@ -148,10 +148,15 @@ class APIKeyStore:
     def __init__(self, db_path: str = str(_DATA_DIR / "api_keys.db")) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        # Harden parent directory to owner-only (0o700) so other users on the
+        # host cannot read or replace the encrypted API key database. mkdir's
+        # `mode` arg is masked by umask, so we chmod explicitly to guarantee
+        # the bits.
         try:
             os.chmod(self.db_path.parent, 0o700)
         except OSError:
-            pass  # Best-effort: chmod can fail on some filesystems
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
+            pass
         self._lock = threading.Lock()
         self._cipher = self._init_cipher()
         self._init_db()

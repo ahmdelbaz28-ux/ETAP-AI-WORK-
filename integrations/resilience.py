@@ -147,9 +147,13 @@ class CheckpointStore:
     def __init__(self, directory: str = str(_CHECKPOINT_DIR)) -> None:
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
+        # Harden to owner-only (0o700) so other users on the host cannot
+        # read or tamper with CUA checkpoint state. mkdir's `mode` arg is
+        # masked by umask, so we chmod explicitly to guarantee the bits.
         try:
             os.chmod(self.directory, 0o700)
         except OSError:
+            # Best-effort: chmod can fail on Windows or read-only filesystems.
             pass
 
     def save(
