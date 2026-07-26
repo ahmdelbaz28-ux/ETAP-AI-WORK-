@@ -27,6 +27,7 @@ from engine.resilience import (
     get_circuit_breaker as _canonical_get_circuit_breaker,
 )
 
+
 logger = logging.getLogger("utils.circuit_breaker")
 
 
@@ -113,6 +114,7 @@ class CircuitBreaker(_CanonicalCircuitBreaker):
                     self._failure_count,
                     self.recovery_timeout,
                 )
+
 
 
 def get_circuit_breaker(

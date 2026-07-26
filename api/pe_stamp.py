@@ -4,11 +4,11 @@ Required by law in most jurisdictions for protection, arc flash, and safety stud
 """
 
 from __future__ import annotations
+
 import hashlib
-import json
-from datetime import UTC, datetime
-from typing import Any, Optional
 import logging
+from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger("api.pe_stamp")
 

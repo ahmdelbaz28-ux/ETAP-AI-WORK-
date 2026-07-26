@@ -15,10 +15,10 @@ Security hardening (2026-07-20):
 import json
 import logging
 import os
-import sys
-import tempfile
 import re
 import subprocess
+import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -56,8 +56,7 @@ ALLOWED_CMDLETS: set[str] = {
     # System information
     "get-wmiobject", "get-ciminstance", "get-cimclass",
     "get-date", "get-location", "get-computerinfo",
-    "get-os", "get-process",
-    # Active Directory (read-only)
+    "get-os", # Active Directory (read-only)
     "get-aduser", "get-adgroup", "get-adgroupmember",
     "get-adcomputer", "get-adorganizationalunit",
     # Git operations
@@ -80,13 +79,13 @@ ALLOWED_CMDLETS: set[str] = {
     "register-psrepository", "get-psrepository",
     # Pipeline common
     "select-string", "out-null", "out-string",
-    "tee-object", "write-host",
+    "tee-object",
 }
 
 
 def _validate_cmdlet_whitelist(command: str) -> bool:
     """Check that all verb-noun cmdlet invocations are in the whitelist.
-    
+
     This uses a regex to find verb-noun patterns (e.g., Get-ChildItem)
     and rejects the command if any matched pattern is not in ALLOWED_CMDLETS.
     This provides defense-in-depth against obfuscated commands.
@@ -106,7 +105,7 @@ def _validate_cmdlet_whitelist(command: str) -> bool:
 
 def _validate_character_set(command: str) -> bool:
     """Ensure command only contains allowed characters.
-    
+
     This prevents injection of null bytes, control characters, and other
     special characters that could be used for obfuscation or bypass.
     """
@@ -120,7 +119,7 @@ def _validate_character_set(command: str) -> bool:
 
 def _write_script_to_temp(command: str) -> str | None:
     """Write the validated PowerShell command to a temporary .ps1 file.
-    
+
     Using -File instead of -Command prevents command-line obfuscation
     techniques because:
       1. The script is written to a file with restricted permissions
@@ -131,7 +130,7 @@ def _write_script_to_temp(command: str) -> str | None:
         # Create a temp file with .ps1 extension
         fd, script_path = tempfile.mkstemp(suffix='.ps1', prefix='etap_')
         os.close(fd)
-        
+
         # Write the command with strict mode and error handling
         script_content = (
             "# ETAP Secure PowerShell Script\n"
@@ -140,15 +139,15 @@ def _write_script_to_temp(command: str) -> str | None:
             "$ErrorActionPreference = 'Stop'\n\n"
             f"{command}\n"
         )
-        
+
         # Write with restricted permissions (owner read/write only)
         with open(script_path, 'w', encoding='utf-8') as f:
             f.write(script_content)
-        
+
         # On Windows, restrict file permissions to current user
         try:
-            import win32security
             import ntsecuritycon as con
+            import win32security
             user, _, _ = win32security.GetUserTokenInformation(
                 win32security.OpenProcessToken(
                     win32security.GetCurrentProcess(),
@@ -175,7 +174,7 @@ def _write_script_to_temp(command: str) -> str | None:
         except ImportError:
             # win32security not available - still secure enough on HF Space
             pass
-        
+
         return script_path
     except Exception as e:
         logger.exception("Failed to write temp script: %s", e)

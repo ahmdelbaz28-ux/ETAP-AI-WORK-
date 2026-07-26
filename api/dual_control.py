@@ -5,8 +5,6 @@ QR code fallback for mobile, and auto-reject after 5-minute timeout.
 """
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
 import secrets
 import time

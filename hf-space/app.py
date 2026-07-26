@@ -20,6 +20,7 @@ if not hasattr(datetime, "UTC"):
 
 import asyncio
 import hmac
+import json
 import logging
 import os
 import time
@@ -34,7 +35,7 @@ if TYPE_CHECKING:
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
@@ -133,12 +134,12 @@ app = FastAPI(
 # log in — the endpoints returned 404.
 from api.assets import router as assets_router  # noqa: E402
 from api.auth import router as auth_router  # noqa: E402
-from api.data_import import router as data_import_router  # noqa: E402
-from api.email_dashboard import router as email_dashboard_router  # noqa: E402
-from api.email_digest import router as email_digest_router  # noqa: E402
 
 # Email integration routers (Resend integration v2 — added 2026-07-10)
 from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
+from api.data_import import router as data_import_router  # noqa: E402
+from api.email_dashboard import router as email_dashboard_router  # noqa: E402
+from api.email_digest import router as email_digest_router  # noqa: E402
 from api.email_otp import router as email_otp_router  # noqa: E402
 from api.email_webhooks import router as email_webhooks_router  # noqa: E402
 from api.magic_links import router as magic_links_router  # noqa: E402
@@ -704,12 +705,12 @@ async def etap_gui_execute(request: Request):
             ),
             timeout=cua_timeout,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError as err:
         logger.error("CUA Loop timed out after %d seconds", cua_timeout)
         raise HTTPException(
             status_code=504,
             detail=f"CUA Loop timed out after {cua_timeout} seconds. The task may be stuck or the target application is unresponsive.",
-        )
+        ) from err
     return {"success": True, "data": result}
 
 
@@ -880,7 +881,6 @@ async def websocket_dual_control_approve(websocket: WebSocket):
     Sends real-time ``approval_update`` events when any approval status changes.
     """
     from api.dual_control import (
-        _pending_approvals,
         approve_request,
         get_pending_approvals,
         reject_request,

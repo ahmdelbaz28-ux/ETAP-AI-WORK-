@@ -25,7 +25,6 @@ import textwrap
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-
 # ---------------------------------------------------------------------------
 # E-01 & E-02: Arc Flash Engine
 # ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@ import requests
 
 from engine.resilience import CircuitBreaker, CircuitBreakerOpenError, get_circuit_breaker
 
+
 logger = logging.getLogger(__name__)
 
 

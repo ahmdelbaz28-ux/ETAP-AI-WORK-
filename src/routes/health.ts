@@ -1,4 +1,4 @@
-/**
+/*
  * Health, root, and metrics routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
@@ -10,62 +10,35 @@ import { getAuditBufferLength } from '../utils/audit.js';
 import { checkEngineeringServiceHealth } from '../core/engineeringService.js';
 
 export async function handleRoot(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const origin = request.headers.get('origin') || '*';
-  return jsonResponse(
-    200,
-    {
-      service: 'AhmedETAP',
-      version: '1.0.0',
-      documentation: '/api/v1/docs',
-      health: '/health',
-      traceId: crypto.randomUUID(),
-    },
-    corsHeaders(origin)
-  );
+  const origin = request.headers.get('origin') || '';
+  return jsonResponse(200, {
+    service: 'AhmedETAP', version: '1.0.0',
+    documentation: '/api/v1/docs', health: '/health', traceId: crypto.randomUUID(),
+  }, corsHeaders(origin, env));
 }
 
 export async function handleHealth(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const origin = request.headers.get('origin') || '*';
+  const origin = request.headers.get('origin') || '';
   const providers = listConfiguredProviders(env).map((p) => p.name);
   const circuits = getAllCircuitHealth();
-  const anyHealthy = providers.length > 0;
-
   const engHealth = await checkEngineeringServiceHealth(env);
-
-  return jsonResponse(
-    200,
-    {
-      ok: true,
-      service: 'etap-ai-platform',
-      version: '1.0.0',
-      traceId: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      providers,
-      circuits,
-      anyProviderHealthy: anyHealthy,
-      engineeringService: {
-        configured: !!env.ENGINEERING_SERVICE_URL,
-        healthy: engHealth.healthy,
-        latencyMs: engHealth.latencyMs,
-        error: engHealth.error,
-      },
+  return jsonResponse(200, {
+    ok: true, service: 'etap-ai-platform', version: '1.0.0',
+    traceId: crypto.randomUUID(), timestamp: new Date().toISOString(),
+    providers, circuits, anyProviderHealthy: providers.length > 0,
+    engineeringService: {
+      configured: !!env.ENGINEERING_SERVICE_URL, healthy: engHealth.healthy,
+      latencyMs: engHealth.latencyMs, error: engHealth.error,
     },
-    corsHeaders(origin)
-  );
+  }, corsHeaders(origin, env));
 }
 
 export async function handleMetrics(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const origin = request.headers.get('origin') || '*';
-  return jsonResponse(
-    200,
-    {
-      service: 'etap-ai-platform',
-      version: '1.0.0',
-      traceId: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      metrics: await composeMetrics(env),
-      audit: { bufferSize: getAuditBufferLength() },
-    },
-    corsHeaders(origin)
-  );
+  const origin = request.headers.get('origin') || '';
+  return jsonResponse(200, {
+    service: 'etap-ai-platform', version: '1.0.0',
+    traceId: crypto.randomUUID(), timestamp: new Date().toISOString(),
+    metrics: await composeMetrics(env),
+    audit: { bufferSize: getAuditBufferLength() },
+  }, corsHeaders(origin, env));
 }

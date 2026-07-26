@@ -23,7 +23,7 @@ class IEC60255Curves:
         """
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
         return TMS * (0.14 / (M ** 0.02 - 1))
 
     @staticmethod
@@ -34,7 +34,7 @@ class IEC60255Curves:
         """
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
         return TMS * (13.5 / (M - 1))
 
     @staticmethod
@@ -45,7 +45,7 @@ class IEC60255Curves:
         """
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
         return TMS * (80 / (M ** 2 - 1))
 
     @staticmethod
@@ -56,5 +56,5 @@ class IEC60255Curves:
         """
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
         return TMS * (120 / (M - 1))
