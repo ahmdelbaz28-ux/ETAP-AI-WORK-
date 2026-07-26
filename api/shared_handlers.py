@@ -28,6 +28,7 @@ from typing import Any, Optional
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel
+from api._messages import MSG_INTERNAL_ERROR, MSG_INVALID_INPUT
 
 logger = logging.getLogger("etap-ai")
 
@@ -895,7 +896,7 @@ def handle_ml_capabilities() -> dict[str, Any]:
             "_status": 503,
         }
     except Exception as e:
-        return {"success": False, "errors": ["Internal server error"], "_status": 500}
+        return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
 def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
@@ -959,10 +960,10 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         }
     except (ValueError, TypeError, KeyError) as e:
         # Client-side input problem — return 400 Bad Request.
-        return {"success": False, "errors": ["Internal server error"], "_status": 400}
+        return {"success": False, "errors": [MSG_INVALID_INPUT], "_status": 400}
     except Exception as e:
         # Genuine server-side failure (ImportError, ML backend crash, etc.).
-        return {"success": False, "errors": ["Internal server error"], "_status": 500}
+        return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
 def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
@@ -988,7 +989,7 @@ def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
 
         return {"success": True, "data": result}
     except Exception as e:
-        return {"success": False, "errors": ["Internal server error"], "_status": 500}
+        return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
 def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
@@ -1030,7 +1031,7 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
                 )
         return response
     except Exception as e:
-        return {"success": False, "errors": ["Internal server error"], "_status": 500}
+        return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
 def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]:
@@ -1055,4 +1056,4 @@ def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]
         }
     except Exception as e:
         logger.exception("Failed to run impact analysis")
-        return {"success": False, "errors": ["Internal server error"], "_status": 500}
+        return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}

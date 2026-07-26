@@ -20,6 +20,7 @@ from core.bootstrap import (
     _total_execution_time_sec,
 )
 from core.metrics import generate_metrics, get_metrics_content_type
+from api._messages import ISO_8601_UTC_FMT
 
 router = APIRouter(prefix="", tags=["health"])
 
@@ -81,7 +82,7 @@ async def health_check(request: Request) -> HealthResponse:
     return HealthResponse(
         status="healthy",
         version="1.0.0",
-        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        timestamp=time.strftime(ISO_8601_UTC_FMT, time.gmtime()),
         trace_id=request.state.trace_id,
     )
 
@@ -146,7 +147,7 @@ async def readiness_check(request: Request) -> ReadyResponse:
         ready=native_ok,
         native_engine_available=native_ok,
         etap_available=etap_ok,
-        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        timestamp=time.strftime(ISO_8601_UTC_FMT, time.gmtime()),
         trace_id=request.state.trace_id,
     )
 

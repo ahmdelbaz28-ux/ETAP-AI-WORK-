@@ -34,6 +34,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
+from api._messages import MSG_USER_NOT_FOUND, MSG_USER_NOT_FOUND_OR_DEACTIVATED, MSG_PASSWORD_MIN_LENGTH, MSG_PASSWORD_TOO_COMMON
+
 UTC = timezone.utc  # noqa: UP017
 # Module-level constants
 _AUTH_LOGGER_NAME = "etap.auth"
@@ -43,9 +45,9 @@ _logger = _logging.getLogger(_AUTH_LOGGER_NAME)
 def _validate_password_strength(v: str) -> str:
     """Validate password meets strength requirements (8+ chars, not common)."""
     if len(v) < 8:
-        raise ValueError("Password must be at least 8 characters")
+        raise ValueError(MSG_PASSWORD_MIN_LENGTH)
     if v.lower() in _COMMON_PASSWORDS:
-        raise ValueError("Password is too common — choose a stronger one")
+        raise ValueError(MSG_PASSWORD_TOO_COMMON)
     return v
 
 try:
@@ -330,9 +332,9 @@ class RegisterRequest(BaseModel):
     def validate_password_strength(cls, v: str, info) -> str:
         """Enforce password policy: length, not common, not same as username."""
         if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")  # NOSONAR — S1192: intentional repetition (audit constant)
+            raise ValueError(MSG_PASSWORD_MIN_LENGTH)
         if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")  # NOSONAR — S1192: intentional repetition (audit constant)
+            raise ValueError(MSG_PASSWORD_TOO_COMMON)
         # Check if password contains the username (if available in validation context)
         if info.data and "username" in info.data and info.data["username"].lower() in v.lower():
             raise ValueError("Password must not contain the username")
@@ -752,7 +754,7 @@ async def refresh(
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or deactivated",
+            detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
         )
 
     access_token = _create_access_token(str(user.id), user.role)
@@ -820,7 +822,7 @@ async def get_me(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",  # NOSONAR — S1192: intentional repetition (audit constant)
+            detail=MSG_USER_NOT_FOUND,
         )
 
     return UserResponse(
@@ -853,7 +855,7 @@ async def update_me(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     if body.email is not None:
@@ -910,7 +912,7 @@ async def change_password(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     if not _verify_password(body.current_password, db_user.password_hash):
@@ -1166,7 +1168,7 @@ async def delete_user(
     if target is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     target.is_active = False

@@ -23,6 +23,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.database import get_db
+from api._messages import MSG_USER_NOT_FOUND
 
 logger = logging.getLogger(__name__)
 
@@ -195,7 +196,7 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail=MSG_USER_NOT_FOUND,
         )
 
     if not user.is_active:

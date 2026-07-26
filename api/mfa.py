@@ -10,6 +10,7 @@ import time
 from collections import defaultdict
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
+from api._messages import MSG_INTERNAL_ERROR
 
 router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
 
@@ -61,7 +62,7 @@ async def setup_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -131,5 +132,5 @@ async def verify_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )

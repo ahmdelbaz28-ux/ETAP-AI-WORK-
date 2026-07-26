@@ -73,11 +73,12 @@ async def ml_capabilities(request: Request):
     except Exception as e:
         # SECURITY AUDIT 2026-07-26 — S-23: Do not leak internal error details to clients.
         logger.exception("ml_capabilities_failed")
-        return JSONResponse(status_code=500, content={"success": False, "errors": ["Internal server error"]})
+        return JSONResponse(status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR]})
 
 
 import math
 from typing import Any
+from api._messages import MSG_INTERNAL_ERROR
 
 
 def _clean_nan(obj: Any) -> Any:
@@ -148,7 +149,7 @@ async def predict_load(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -201,7 +202,7 @@ async def predict_fault(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -247,7 +248,7 @@ async def train_fault_predictor(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -294,7 +295,7 @@ async def detect_anomalies(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -351,7 +352,7 @@ async def gnn_predict(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -404,5 +405,5 @@ async def rag_query(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )

@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api.dependencies import get_api_key
+from api._messages import MSG_INTERNAL_ERROR
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -160,7 +161,7 @@ async def get_agent_by_id(agent_id: str, request: Request):
         logger.exception("get_agent_by_id_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id}
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id}
         )
 
 @router.get("/info")
@@ -200,7 +201,7 @@ async def get_agents_info(request: Request):
         logger.exception("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 # ---------------------------------------------------------------------------
@@ -259,7 +260,7 @@ async def etap_expert_chat(
         logger.exception("etap_expert_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 # ---------------------------------------------------------------------------
@@ -319,7 +320,7 @@ async def etap_gui_chat(
         logger.exception("etap_gui_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 class ETAPGUIExecuteRequest(BaseModel):
@@ -419,7 +420,7 @@ async def etap_gui_execute(
         logger.exception("etap_gui_execute_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": ["Internal server error"], "trace_id": trace_id},
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 @router.get("/etap-gui/health")

@@ -63,6 +63,7 @@ import ssl
 import threading
 from datetime import UTC
 from typing import Any, Optional
+from api._messages import ISO_8601_UTC_FMT
 
 logger = logging.getLogger(__name__)
 
@@ -316,7 +317,7 @@ class SIEMSyslogForwarder:
         # PRI is computed as facility * 8 + severity (RFC 5424 §6.2.1)  # NOSONAR — python:S125: explanatory comment
         pri = facility * 8 + severity
         version = 1
-        timestamp = datetime.datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = datetime.datetime.now(UTC).strftime(ISO_8601_UTC_FMT)
         procid = os.getpid()
 
         # Structured data (SD) — single element with our app name
