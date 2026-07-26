@@ -868,11 +868,23 @@ class ReportGenerationAgent:
         return "\n".join(summary_lines)
 
     def _convert_to_table_data(self, table_text: str) -> list[list[str]]:
-        """Convert text table to list of lists for Excel/Word."""
-        rows = []
+        """Convert text table to list of lists for Excel/Word.
+
+        Supports two cell separators: ``, `` (CSV-style) and ``|`` (Markdown-style).
+        Mixed-separator lines (e.g. ``" | A, B, C, |"``) are split on whichever
+        separator appears, and empty cells are dropped so malformed rows still
+        produce a usable list of non-empty cell values.
+        """
+        import re
+
+        rows: list[list[str]] = []
         for line in table_text.split("\n"):
             if line.strip() and not line.startswith("=") and not line.startswith("-"):
-                cells = [cell.strip() for cell in line.split(", ") if cell.strip()]
+                # Split on either `, ` or `|` so both CSV-style and
+                # Markdown-style tables (and mixed cases) work.
+                raw_cells = re.split(r",\s*|\|", line)
+                cells = [cell.strip().strip('"').strip("'") for cell in raw_cells]
+                cells = [cell for cell in cells if cell]
                 if cells:
                     rows.append(cells)
         return rows

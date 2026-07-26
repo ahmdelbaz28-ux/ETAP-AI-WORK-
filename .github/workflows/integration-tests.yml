@@ -109,8 +109,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR: hashes best-effort; source fallback for unwheeled packages (e.g. langdetect)
-          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR: versions pinned inline; test runner deps
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR(S8544): hashes best-effort; requirements.txt pins versions in-repo; source fallback for unwheeled packages (e.g. langdetect)
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR(S8541): versions pinned inline; test runner deps
 
       - name: Apply database migrations
         run: |
@@ -181,8 +181,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR: hashes best-effort; source fallback for unwheeled packages (e.g. langdetect)
-          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR: versions pinned inline; test runner deps
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR(S8544): hashes best-effort; requirements.txt pins versions in-repo; source fallback for unwheeled packages (e.g. langdetect)
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR(S8541): versions pinned inline; test runner deps
 
       - name: Apply migrations
         run: alembic upgrade head
@@ -283,8 +283,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR: hashes best-effort; source fallback for unwheeled packages; no --no-deps because pydantic-core needs transitive install
-          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR: versions pinned inline; test runner deps
+          pip install -r requirements.txt --require-hashes --only-binary :all: 2>/dev/null || pip install -r requirements.txt --only-binary :all: 2>/dev/null || pip install -r requirements.txt  # NOSONAR(S8544): hashes best-effort; requirements.txt pins versions in-repo; source fallback for unwheeled packages (e.g. langdetect)
+          pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 hypothesis==6.115.0 --only-binary :all:  # NOSONAR(S8541): versions pinned inline; test runner deps
 
       - name: Run agent integration tests
         run: |

@@ -49,10 +49,14 @@ ignore = [
     "UP007",  # Use X | Y for unions (requires Python 3.10+; we sometimes prefer Optional[] for clarity)
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
     "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
+<<<<<<< HEAD
     # UP038 was removed in ruff 0.9+ (Use X | Y in isinstance no longer flagged).
     # Listed here for historical context; ruff emits a non-fatal warning if it
     # appears in this list, so we omit it. CI installs the latest ruff, which
     # already stops enforcing UP038.
+=======
+    "UP038",  # Use X | Y in isinstance — legacy isinstance(x, (A, B)) pattern; not worth migrating repo-wide
+>>>>>>> origin/fix/sync-smoke-test-study-types-auth
     "UP045",  # Non-PEP604 annotation Optional (gradual migration)
     "UP047",  # Use type parameters (Python 3.12+ generic syntax; not yet adopted repo-wide)
     "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)

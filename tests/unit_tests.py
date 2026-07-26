@@ -1742,7 +1742,12 @@ class TestMultiAgentCoordination:
         assert StudyType.MOTOR_STARTING.value == "motor_starting"
         assert StudyType.TRANSIENT_STABILITY.value == "transient_stability"
         assert StudyType.ARC_FLASH.value == "arc_flash"
-        assert len(StudyType) == 8
+        # 8 core study types above remain stable; 7 newer study types
+        # (cable_sizing, earth_grid, renewable_integration,
+        #  battery_storage, scada, etap_expert, etap_gui) were added
+        # by subsequent PRs. Assert exact count to detect accidental
+        # removals/additions.
+        assert len(StudyType) == 15
 
     def test_engineering_task_creation(self):
         task = EngineeringTask(

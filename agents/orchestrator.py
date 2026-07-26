@@ -1382,6 +1382,12 @@ class ChiefEngineeringOrchestrator:
             "validation": ValidationAgent(),
             "report": ReportGenerationAgent(),
         }
+        # Backward-compat aliases — pre-sonarcloud-sweep, these agents were
+        # registered under their short names. Keep both so existing callers
+        # (and tests/test_backward_compatibility.py) keep working.
+        self.agents["harmonic"] = self.agents["harmonic_analysis"]
+        self.agents["opf"] = self.agents["optimal_power_flow"]
+        self.agents["protection"] = self.agents["protection_coordination"]
 
         # ---- Standalone specialist agents (per AGENTS.md §"Python Agents") ----
         # These MUST be registered so the AhmedETAP skill's peer-review matrix
