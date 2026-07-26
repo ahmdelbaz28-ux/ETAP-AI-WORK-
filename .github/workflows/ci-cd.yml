@@ -31,7 +31,11 @@ jobs:
           cache: 'pip'
 
       - name: Install linting tools
-        run: "pip install --only-binary :all: ruff==0.6.9 mypy==1.13.0"
+        # ruff >=0.7.0 added UP045/UP047 rule selectors that are referenced in
+        # ruff.toml's ignore list. ruff 0.6.9 doesn't recognize them and fails
+        # with "Unknown rule selector: UP045" at config parse time.
+        # Use latest ruff which supports all selectors in ruff.toml.
+        run: "pip install --only-binary :all: ruff mypy"
 
       - name: Install pre-commit hooks
         run: "pip install --only-binary :all: pre-commit==4.0.1 && pre-commit install --hook-type pre-commit --hook-type pre-push"
@@ -246,9 +250,9 @@ jobs:
           # --only-binary :all: speeds up CI but packages without binary wheels
           # (e.g. langdetect has no cp312 wheel) would fail the whole job.
           # Try binary-only first; fall back to source build if needed.
-          # NOSONAR(S8544): requirements.txt is audited separately and pins versions in-repo.
-          pip install --only-binary :all: -r requirements.txt || pip install --only-binary :all: -r requirements.txt  # NOSONAR(S8541): binary-first with source fallback for unwheeled packages
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
+          # NOSONAR(githubactions:S8544): requirements.txt is audited separately and pins versions in-repo.
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR(githubactions:S8541): binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1 || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
