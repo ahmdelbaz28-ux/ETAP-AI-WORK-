@@ -23,6 +23,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Duplicated string extracted to a constant (SonarCloud python:S1192)
+_NEO4J_SDK_MISSING_MSG = "Neo4j SDK not installed. Run: pip install neo4j"
+
 # ─── Neo4j SDK (optional dependency) ─────────────────────────────────────
 try:
     from neo4j import Driver, GraphDatabase
@@ -31,7 +34,7 @@ try:
     logger.debug("Neo4j SDK loaded successfully")
 except ImportError:
     NEO4J_AVAILABLE = False
-    logger.warning("Neo4j SDK not installed. Run: pip install neo4j")
+    logger.warning(_NEO4J_SDK_MISSING_MSG)
 
 
 class Neo4jClient:
@@ -139,7 +142,7 @@ class NullNeo4jClient(Neo4jClient):
             "Install it with: pip install neo4j. Query was: %.200s", query,
         )
         return {
-            "error": "Neo4j SDK not installed. Run: pip install neo4j",
+            "error": _NEO4J_SDK_MISSING_MSG,
             "data": [],
         }
 
@@ -149,7 +152,7 @@ class NullNeo4jClient(Neo4jClient):
             "uri": "",
             "sdk_available": False,
             "driver_initialized": False,
-            "note": "Neo4j SDK not installed. Run: pip install neo4j",
+            "note": _NEO4J_SDK_MISSING_MSG,
         }
 
 

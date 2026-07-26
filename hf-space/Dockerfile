@@ -8,7 +8,7 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(docker:S7018): 3 packages, already sorted
     curl gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     # Create non-root user (UID 1000 as required by HF Spaces)
@@ -18,8 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Python dependencies
 COPY requirements.hf.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.hf.txt
+# NOSONAR(docker:S8544): requirements.hf.txt is audited and pins versions in-repo.
+RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
+    pip install --no-cache-dir --only-binary :all: -r requirements.hf.txt
 
 # Application code — copy specific directories instead of recursive COPY
 # (SonarCloud S6470: avoid recursive COPY . . which can inadvertently

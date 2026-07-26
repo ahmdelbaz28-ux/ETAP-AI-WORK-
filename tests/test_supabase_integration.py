@@ -501,11 +501,9 @@ class TestHealthChecks:
 class TestDatabaseUrlNormalisation:
     """api/database.py should accept bare postgres:// and convert to asyncpg."""
 
-    def test_bare_postgres_url_converted_to_asyncpg(self):
+    def test_bare_postgres_url_converted_to_asyncpg(self, monkeypatch):
         # Re-test the _normalise_url function from api/database.py
-        import sys
-
-        sys.path.insert(0, "/home/z/my-project/ETAP-AI-WORK-")
+        monkeypatch.syspath_prepend("/home/z/my-project/ETAP-AI-WORK-")
         from api.database import _normalise_url
 
         # postgres:// → postgresql+asyncpg://

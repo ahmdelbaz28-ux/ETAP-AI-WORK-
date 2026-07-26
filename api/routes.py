@@ -13,6 +13,8 @@ import time
 import uuid
 from typing import Any, Optional
 
+import aiofiles
+
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -350,7 +352,7 @@ def get_celery_components() -> tuple[Optional[Any], Optional[Any], Optional[Any]
         return _celery_cache
 
 
-@app.post("/api/v1/studies/run_async")
+@app.post("/api/v1/studies/run_async", responses={500: {"description": MSG_INTERNAL_ERROR}})
 async def run_study_async(study_request: StudyRequest, request: Request) -> dict[str, Any]:
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
@@ -384,7 +386,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         raise HTTPException(status_code=500, detail=MSG_INTERNAL_ERROR) from e  # SECURITY AUDIT S-23
 
 
-@app.get("/api/v1/studies/task_status/{task_id}")
+@app.get("/api/v1/studies/task_status/{task_id}", responses={500: {"description": MSG_INTERNAL_ERROR}})
 async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
@@ -769,8 +771,9 @@ async def audit_verify(request: Request):
         )
 
     try:
-        with open(audit_path) as f:
-            lines = [line.strip() for line in f if line.strip()]
+        async with aiofiles.open(audit_path) as f:
+            content = await f.read()
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
 
         entries = []
         for line in lines:
@@ -959,9 +962,9 @@ async def cua_audit_log(request: Request, limit: int = 50):
     limit = max(1, min(limit, 200))
     entries = []
     try:
-        with open(log_path, encoding="utf-8") as fh:
-            lines = fh.readlines()
-        for line in lines[-limit:]:
+        async with aiofiles.open(log_path, encoding="utf-8") as fh:
+            content = await fh.read()
+        for line in content.splitlines()[-limit:]:
             line = line.strip()
             if not line:
                 continue

@@ -52,7 +52,7 @@ class RateLimiter:
         # Run full stale-key eviction at most once per window
         self._cleanup_interval: float = max(window_seconds // 2, 10)
 
-    def _evict_stale_keys(self, now: float, window_start: float) -> None:
+    def _evict_stale_keys(self, _now: float, window_start: float) -> None:  # NOSONAR(python:S1172): kept for API symmetry with is_allowed (caller passes `now`)
         """Remove keys that have no entries within the current window.
 
         Called periodically (not on every request) to bound memory usage.

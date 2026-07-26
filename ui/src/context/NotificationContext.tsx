@@ -34,8 +34,7 @@ const colorMap = {
   info: "bg-brand-600/90 border-brand-400/30",
 };
 
-export function NotificationProvider({ children }: { children: ReactNode }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function NotificationProvider({ children }: { readonly children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const notify = useCallback((type: Notification["type"], message: string) => {

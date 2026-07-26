@@ -32,12 +32,17 @@ router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 # Previously, these endpoints were accessible without any authentication, allowing
 # unauthenticated users to trigger resource-intensive ML training and inference.
 
-async def _get_api_key_or_user(request: Request):
+async def _get_api_key_or_user(request: Request) -> None:  # NOSONAR(python:S7503): async for FastAPI dependency consistency; jwt.decode is CPU-bound, not I/O
     """Shared auth dependency for AI/ML endpoints (S-07).
 
     Accepts either:
     1. Valid X-API-Key header (server-to-server)
     2. Valid JWT Bearer token (user auth)
+
+    Returns None on success; raises HTTPException(401) on auth failure.
+    Used as `Depends(_get_api_key_or_user)` — only the exception matters,
+    the return value is intentionally None (S3516: previously returned True
+    on all paths which triggered the "invariant return" blocker).
     """
     import os
 
@@ -45,7 +50,7 @@ async def _get_api_key_or_user(request: Request):
     api_key = request.headers.get("x-api-key", "")
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
     if api_key and expected_key and hmac.compare_digest(api_key, expected_key):
-        return True
+        return
 
     # Check JWT Bearer token
     auth_header = request.headers.get("authorization", "")
@@ -59,7 +64,9 @@ async def _get_api_key_or_user(request: Request):
                 # SECURITY: Reject non-access tokens (e.g. refresh tokens)
                 if payload.get("type") != "access":
                     raise HTTPException(status_code=401, detail="Bearer token must be an access token")
-                return True
+                return
+        except HTTPException:
+            raise
         except Exception:
             pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 

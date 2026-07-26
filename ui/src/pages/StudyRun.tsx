@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -31,6 +31,18 @@ import { studyCategories } from "../lib/studyCategories";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+
+// Resolve a study status code into a localized user-facing message.
+// Extracted to a helper to avoid nested ternaries inline.
+function getStudyStatusMessage(
+  status: string,
+  t: (key: string) => string,
+): string {
+  if (status === "dry_run") return t("studyRun.dryRunCompleted");
+  if (status === "completed") return t("studyRun.completed");
+  return `${t("studyRun.failed")}: ${status}`;
+}
+
 // One-line diagram SVG component for study results visualization
 function OneLineDiagram() {
   return (
@@ -226,8 +238,7 @@ function OneLineDiagram() {
 }
 
 // Result summary component
-function ResultSummary({ result }: { result: Record<string, unknown> }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function ResultSummary({ result }: { readonly result: Record<string, unknown> }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
@@ -282,7 +293,7 @@ export default function StudyRun() {
         <button
           onClick={() => navigate("/studies")}
           className="mt-3 text-brand-400 hover:underline text-sm"
-        >
+         type="button">
           &larr; {t("studyRun.backToStudies")}
         </button>
       </div>
@@ -303,12 +314,7 @@ export default function StudyRun() {
       const res = await runStudy(studyType, params, dryRun);
       setResult(res as unknown as Record<string, unknown> | null);
       const notifyType = res.status === "dry_run" || res.status === "completed" ? "success" : "error";
-      const notifyMsg =
-        res.status === "dry_run"
-          ? t("studyRun.dryRunCompleted")
-          : res.status === "completed"
-            ? t("studyRun.completed")
-            : `${t("studyRun.failed")}: ${res.status}`;
+      const notifyMsg = getStudyStatusMessage(res.status, t);
       notify(notifyType, notifyMsg);
     } catch (err) {
       notify(
@@ -526,7 +532,7 @@ export default function StudyRun() {
                       <button
                         onClick={() => setShowFullResult(!showFullResult)}
                         className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                      >
+                       type="button">
                         {showFullResult ? (
                           <ChevronUp className="w-4 h-4" />
                         ) : (

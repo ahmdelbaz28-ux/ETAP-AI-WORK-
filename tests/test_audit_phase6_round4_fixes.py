@@ -146,9 +146,11 @@ class TestCurvesSingularity(unittest.TestCase):
 
     def test_curve_returns_finite_at_boundary(self):
         """At I == Ip, curves must return finite (not inf) value."""
-        import sys
-        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from curves.curves import IEC60255Curves
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("curves.curves", self.path)
+        curves_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(curves_module)
+        IEC60255Curves = curves_module.IEC60255Curves
 
         result = IEC60255Curves.standard_inverse(1.0, 10.0, 10.0)
         self.assertTrue(self._isfinite(result),

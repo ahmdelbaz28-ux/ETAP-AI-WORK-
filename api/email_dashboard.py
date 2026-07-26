@@ -152,7 +152,7 @@ async def get_recent(
 async def get_by_day(
     request: Request,
     days: int = 7,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)] = None,
 ) -> JSONResponse:
     from services.email_send_log import get_send_count_by_day
 
@@ -170,7 +170,7 @@ async def get_by_day(
 async def get_record(
     record_id: str,
     request: Request,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)] = None,
 ) -> JSONResponse:
     from services.email_send_log import get_record_by_id
 
@@ -184,7 +184,7 @@ async def get_record(
 async def clear_old(
     request: Request,
     max_age_hours: int = 720,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)] = None,
 ) -> JSONResponse:
     from services.email_send_log import clear_old_records
 
@@ -201,7 +201,7 @@ async def clear_old(
 @router.get("/api/config", summary="Current Resend config (no secrets)")
 async def get_config(
     request: Request,
-    _: dict = Depends(_require_admin),
+    _: Annotated[dict, Depends(_require_admin)] = None,
 ) -> JSONResponse:
     """Return non-secret Resend configuration for diagnostic purposes."""
     return JSONResponse(

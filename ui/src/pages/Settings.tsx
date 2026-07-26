@@ -1079,13 +1079,12 @@ function MCPSettingsPanel() {
 type NotifyType = "success" | "error" | "info" | "warning";
 
 interface AISettingsPanelProps {
-  settings: Record<string, string>;
-  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  notify: (type: NotifyType, message: string) => void;
+  readonly settings: Record<string, string>;
+  readonly setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  readonly notify: (type: NotifyType, message: string) => void;
 }
 
 function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   // Quick Setup: which provider is being tested + status
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [providerStatus, setProviderStatus] = useState<Record<string, "ok" | "fail" | null>>({});
@@ -1262,7 +1261,7 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
         </div>
 
         {/* Dynamic configuration inputs based on selection */}
-        {activeProviderId === "custom_openai" ? (
+        {activeProviderId === "custom_openai" && (
           <div className="space-y-4 pt-2 border-t border-[var(--border-primary)]">
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
@@ -1416,7 +1415,8 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               )}
             </div>
           </div>
-        ) : activeProvider ? (
+        )}
+        {activeProviderId !== "custom_openai" && activeProvider && (
           <div className="space-y-4 pt-2 border-t border-[var(--border-primary)]">
             <div className="flex items-center gap-3">
               <ProviderLogo providerId={activeProvider.id} size={48} />
@@ -1561,7 +1561,7 @@ function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps
               <ExternalLink className="w-2.5 h-2.5 ml-1" />
             </a>
           </div>
-        ) : null}
+        )}
       </Card>
 
       {/* ─── Collapsible Configure Other Providers Card ────────────────── */}
@@ -1930,14 +1930,13 @@ const EXTERNAL_SERVICES: ServiceDescriptor[] = [
 ];
 
 function ExternalServicesPanel({
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   settings,
   setSettings,
   notify,
 }: {
-  settings: Record<string, string>;
-  setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  notify: (type: NotifyType, message: string) => void;
+  readonly settings: Record<string, string>;
+  readonly setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  readonly notify: (type: NotifyType, message: string) => void;
 }) {
   // status[id] = { state, detail }
   const [status, setStatus] = useState<Record<string, { state: TestStatus; detail: string }>>({});
@@ -2083,8 +2082,7 @@ function SettingsField({
   field,
   value,
   onChange,
-}: { field: string; value: string; onChange: (v: string) => void }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+}: { readonly field: string; readonly value: string; readonly onChange: (v: string) => void }) {
   const isSecret = field.includes("KEY") || field.includes("SECRET");
   const isFeatureFlag = field.startsWith("ENABLE_") || field.endsWith("_ENABLED");
   const isNumber =
@@ -2186,8 +2184,7 @@ const VISION_PROVIDERS = [
   },
 ];
 
-function VisionApiKeysPanel({ notify }: { notify: (type: NotifyType, message: string) => void }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+function VisionApiKeysPanel({ notify }: { readonly notify: (type: NotifyType, message: string) => void }) {
   const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<

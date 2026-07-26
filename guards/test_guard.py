@@ -431,8 +431,7 @@ class TestGuard(BaseGuard):
 
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
-        # NOSONAR — python:S8786: .* is bounded by single-line source code
-        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
+        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'  # NOSONAR(python:S8786): `.*` matches a single line of source code — bounded, no nested quantifier
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(

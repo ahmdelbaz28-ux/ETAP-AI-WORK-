@@ -91,8 +91,10 @@ def _validate_cmdlet_whitelist(command: str) -> bool:
     This provides defense-in-depth against obfuscated commands.
     """
     # Match Verb-Noun patterns: Get-ChildItem, Invoke-WebRequest, etc.
+    # re.IGNORECASE makes [A-Z] equivalent to [A-Za-z], so the lower-case
+    # range would be redundant (SonarCloud python:S5869).
     cmdlet_pattern = re.compile(
-        r'\b([A-Za-z]+)-([A-Za-z]+)\b',
+        r'\b([A-Z]+)-([A-Z]+)\b',
         re.IGNORECASE,
     )
     for match in cmdlet_pattern.finditer(command):
@@ -193,88 +195,38 @@ def _read_command_from_stdin():
         return None
 
 
-def main():
-    command = _read_command_from_stdin()
-    if command is None:
-        print(json.dumps({"error": "No command provided via stdin", "success": False}))
-        sys.exit(1)
+def _security_violation(audit, reason: str, command_len: int, message: str) -> None:
+    """Log a security violation and print the JSON failure response."""
+    audit.log_security_violation("agent_tool", reason, {"command_length": command_len})
+    print(json.dumps({"error": message, "success": False}))
 
-    # Limit command length to prevent resource exhaustion
-    if len(command) > MAX_COMMAND_LENGTH:
-        print(
-            json.dumps(
-                {
-                    "error": f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
-                    "success": False,
-                },
-            ),
-        )
-        sys.exit(1)
 
-    audit = get_audit_logger()
-    validator = get_validator()
-
-    # P0 Validation - must pass before any execution
+def _run_security_checks(command: str, audit, validator) -> bool:
+    """Run P0 + cmdlet whitelist + character set checks. Returns True if all pass."""
+    cmd_len = len(command)
     if not validator.validate_powershell_command(command):
-        audit.log_security_violation(
-            "agent_tool", "Forbidden PowerShell pattern detected", {"command_length": len(command)},
+        _security_violation(
+            audit, "Forbidden PowerShell pattern detected", cmd_len,
+            "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
         )
-        print(
-            json.dumps(
-                {
-                    "error": "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
-                    "success": False,
-                },
-            ),
-        )
-        sys.exit(1)
-
-    # Defense-in-depth: cmdlet whitelist check
+        return False
     if not _validate_cmdlet_whitelist(command):
-        audit.log_security_violation(
-            "agent_tool",
-            "Unauthorized cmdlet detected",
-            {"command_length": len(command)},
+        _security_violation(
+            audit, "Unauthorized cmdlet detected", cmd_len,
+            "Security Violation: Unauthorized PowerShell cmdlet detected.",
         )
-        print(
-            json.dumps(
-                {
-                    "error": "Security Violation: Unauthorized PowerShell cmdlet detected.",
-                    "success": False,
-                },
-            ),
-        )
-        sys.exit(1)
-
-    # Defense-in-depth: character set validation
+        return False
     if not _validate_character_set(command):
-        audit.log_security_violation(
-            "agent_tool",
-            "Disallowed characters in command",
-            {"command_length": len(command)},
+        _security_violation(
+            audit, "Disallowed characters in command", cmd_len,
+            "Security Violation: Command contains disallowed characters.",
         )
-        print(
-            json.dumps(
-                {
-                    "error": "Security Violation: Command contains disallowed characters.",
-                    "success": False,
-                },
-            ),
-        )
-        sys.exit(1)
+        return False
+    return True
 
-    audit.log_action("agent_tool", "execute_powershell", "restricted_sandbox", True)
 
-    # Write command to temp script and execute via -File (more secure than -Command)
-    script_path = _write_script_to_temp(command)
-    if script_path is None:
-        print(
-            json.dumps(
-                {"success": False, "output": None, "error": "Failed to create temporary script"},
-            ),
-        )
-        sys.exit(1)
-
+def _execute_powershell(script_path: str) -> None:
+    """Run powershell with -File and print the JSON result. Cleans up temp file."""
     try:
         result = subprocess.run(
             [
@@ -321,6 +273,46 @@ def main():
                 os.remove(script_path)
         except Exception as e:
             logger.warning("Failed to clean up temp script %s: %s", script_path, e)
+
+
+def main():
+    command = _read_command_from_stdin()
+    if command is None:
+        print(json.dumps({"error": "No command provided via stdin", "success": False}))
+        sys.exit(1)
+
+    # Limit command length to prevent resource exhaustion
+    if len(command) > MAX_COMMAND_LENGTH:
+        print(
+            json.dumps(
+                {
+                    "error": f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
+                    "success": False,
+                },
+            ),
+        )
+        sys.exit(1)
+
+    audit = get_audit_logger()
+    validator = get_validator()
+
+    # P0 + defense-in-depth validations
+    if not _run_security_checks(command, audit, validator):
+        sys.exit(1)
+
+    audit.log_action("agent_tool", "execute_powershell", "restricted_sandbox", True)
+
+    # Write command to temp script and execute via -File (more secure than -Command)
+    script_path = _write_script_to_temp(command)
+    if script_path is None:
+        print(
+            json.dumps(
+                {"success": False, "output": None, "error": "Failed to create temporary script"},
+            ),
+        )
+        sys.exit(1)
+
+    _execute_powershell(script_path)
 
 
 if __name__ == "__main__":

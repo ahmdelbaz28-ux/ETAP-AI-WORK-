@@ -68,7 +68,10 @@ async def setup_totp(request: Request):
         )
 
 
-@router.post("/totp/verify")
+@router.post("/totp/verify", responses={
+    400: {"description": "Bad request — user_id or code is required"},
+    429: {"description": "Too many failed MFA attempts — account temporarily locked"},
+})
 async def verify_totp(request: Request):
     """Verify a TOTP code for MFA."""
     trace_id = getattr(request.state, "trace_id", "unknown")

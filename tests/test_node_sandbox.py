@@ -159,20 +159,13 @@ class TestCodeValidation:
             result = run_sandbox(f"const x = require('{module}');")
             assert result["success"] is False, f"{module} should be blocked"
 
-    def test_oversized_code_rejected(self) -> None:
+    def test_oversized_code_rejected(self, monkeypatch) -> None:
         """Code longer than NODE_MAX_CODE_LENGTH is rejected."""
-        env_backup = os.environ.get("NODE_MAX_CODE_LENGTH")
-        os.environ["NODE_MAX_CODE_LENGTH"] = "100"
-        try:
-            long_code = "console.log(1);\n" * 20  # ~280 chars, > 100 limit
-            result = run_sandbox(long_code)
-            assert result["success"] is False
-            assert "exceeds" in result["error"].lower() or "length" in result["error"].lower()
-        finally:
-            if env_backup is None:
-                os.environ.pop("NODE_MAX_CODE_LENGTH", None)
-            else:
-                os.environ["NODE_MAX_CODE_LENGTH"] = env_backup
+        monkeypatch.setenv("NODE_MAX_CODE_LENGTH", "100")
+        long_code = "console.log(1);\n" * 20  # ~280 chars, > 100 limit
+        result = run_sandbox(long_code)
+        assert result["success"] is False
+        assert "exceeds" in result["error"].lower() or "length" in result["error"].lower()
 
 
 # ---------------------------------------------------------------------------
@@ -270,20 +263,13 @@ class TestSandboxExecution:
         assert result["success"] is True
         assert "42" in result["output"]
 
-    def test_output_truncation(self) -> None:
+    def test_output_truncation(self, monkeypatch) -> None:
         """Outputs longer than NODE_MAX_OUTPUT_LENGTH are truncated."""
-        env_backup = os.environ.get("NODE_MAX_OUTPUT_LENGTH")
-        os.environ["NODE_MAX_OUTPUT_LENGTH"] = "50"
-        try:
-            code = "console.log('x'.repeat(200));"
-            result = run_sandbox(code)
-            assert result["success"] is True
-            assert "truncated" in result["output"].lower()
-        finally:
-            if env_backup is None:
-                os.environ.pop("NODE_MAX_OUTPUT_LENGTH", None)
-            else:
-                os.environ["NODE_MAX_OUTPUT_LENGTH"] = env_backup
+        monkeypatch.setenv("NODE_MAX_OUTPUT_LENGTH", "50")
+        code = "console.log('x'.repeat(200));"
+        result = run_sandbox(code)
+        assert result["success"] is True
+        assert "truncated" in result["output"].lower()
 
 
 # ---------------------------------------------------------------------------

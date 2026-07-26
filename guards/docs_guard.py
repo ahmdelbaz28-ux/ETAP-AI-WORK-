@@ -398,8 +398,7 @@ class DocsGuard(BaseGuard):
                 # Anchor link — check if a matching heading exists
                 anchor = link_target[1:].lower()
                 # Look for markdown headings that match this anchor.
-                # NOSONAR — python:S8786: .* is bounded by single-line markdown
-                heading_pattern = r"^#+\s+.*$"
+                heading_pattern = r"^#+\s+.*$"  # NOSONAR(python:S8786): `.*` matches a single line — bounded by markdown line length, no nested quantifier
                 headings = [
                     re.sub(r"^#+\s+", "", m.group().lower()).strip()
                     for m in re.finditer(heading_pattern, source, re.MULTILINE)

@@ -84,8 +84,32 @@ const sectionIcons: Record<string, React.ElementType> = {
   system: Wrench,
 };
 
+// Map health status to a tailwind dot color class. Extracted to keep Sidebar's
+// cognitive complexity below the S3776 threshold.
+function healthDotColor(status: "online" | "offline" | "checking"): string {
+  if (status === "online") return "bg-green-400 animate-pulse";
+  if (status === "checking") return "bg-amber-400";
+  return "bg-red-400";
+}
+
+// Partition navItems into top-level items and items grouped by section.
+function partitionNavItems(
+  items: readonly NavItem[],
+): { topLevel: NavItem[]; grouped: Record<string, NavItem[]> } {
+  const grouped: Record<string, NavItem[]> = {};
+  const topLevel: NavItem[] = [];
+  items.forEach((item) => {
+    if (item.section) {
+      if (!grouped[item.section]) grouped[item.section] = [];
+      grouped[item.section].push(item);
+    } else {
+      topLevel.push(item);
+    }
+  });
+  return { topLevel, grouped };
+}
+
 export function Sidebar() {
-  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -122,16 +146,7 @@ export function Sidebar() {
     return () => clearInterval(interval);
   }, []);
 
-  const groupedItems: Record<string, NavItem[]> = {};
-  const topLevel: NavItem[] = [];
-  navItems.forEach((item) => {
-    if (item.section) {
-      if (!groupedItems[item.section]) groupedItems[item.section] = [];
-      groupedItems[item.section].push(item);
-    } else {
-      topLevel.push(item);
-    }
-  });
+  const { topLevel, grouped: groupedItems } = partitionNavItems(navItems);
 
   return (
     <>
@@ -158,15 +173,7 @@ export function Sidebar() {
                   {t("app.name")}
                 </h1>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {(() => {
-                    let dotColor;
-                    if (healthStatus === "online") dotColor = "bg-green-400 animate-pulse";
-                    else if (healthStatus === "checking") dotColor = "bg-amber-400";
-                    else dotColor = "bg-red-400";
-                    return (
-                      <span className={cn("w-1.5 h-1.5 rounded-full", dotColor)} />
-                    );
-                  })()}
+                  <span className={cn("w-1.5 h-1.5 rounded-full", healthDotColor(healthStatus))} />
                   <span className="text-[10px] text-[var(--text-muted)] capitalize">
                     {t(`dashboard.${healthStatus}`)}
                   </span>
@@ -258,7 +265,7 @@ export function Sidebar() {
               sidebarCollapsed && "justify-center px-0",
             )}
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-          >
+           type="button">
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (
@@ -277,7 +284,7 @@ export function Sidebar() {
             )}
             title={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
             aria-label={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-          >
+           type="button">
             {sidebarCollapsed ? (
               <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? "rotate-180" : ""}`} />
             ) : (
@@ -357,7 +364,7 @@ export function Sidebar() {
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="Close menu"
             className="p-2 -mr-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors shrink-0"
-          >
+           type="button">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -423,7 +430,7 @@ export function Sidebar() {
             onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-          >
+           type="button">
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (

@@ -1,4 +1,3 @@
-// NOSONAR(javascript:S6582, javascript:S6594, javascript:S7773, javascript:S2486): intentional patterns
 /**
  * secure_node_executor.js — Secure JavaScript/TypeScript sandbox executor
  * =====================================================================
@@ -123,14 +122,16 @@ const ALLOWED_GLOBALS = {
   WeakSet,
   Promise,
   Symbol,
-  // Math-related
-  parseInt,
-  parseFloat,
-  isNaN,
-  isFinite,
+  // Math-related (SonarCloud javascript:S7773: use Number.* static methods
+  //   rather than the global ones — the sandbox gets the same primitives
+  //   without depending on global-scope pollution.)
+  parseInt: Number.parseInt,
+  parseFloat: Number.parseFloat,
+  isNaN: Number.isNaN,
+  isFinite: Number.isFinite,
   // Constants
   undefined,
-  NaN,
+  NaN: Number.NaN,
   Infinity,
 };
 
@@ -283,6 +284,27 @@ function injectSandboxConsole(isolate, jail, context, outputHolder) {
 }
 
 /**
+ * Convert a thrown sandbox value to a human-readable string. (SonarCloud
+ * javascript:S6551: avoid `String(err)` on a non-Error object because it
+ * would yield `[object Object]`.)
+ *
+ * @param {unknown} err - thrown value (Error, string, or other)
+ * @returns {string}
+ */
+function describeSandboxError(err) {
+  if (err === null || err === undefined) return 'unknown error';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'number' || typeof err === 'boolean' || typeof err === 'bigint') {
+    return String(err);
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return 'unknown error';
+  }
+}
+
+/**
  * Run code in an isolated V8 sandbox.
  *
  * @param {string} code - JavaScript source code
@@ -329,7 +351,7 @@ async function runInSandbox(code) {
         error_type: 'timeout',
       };
     }
-    if (err && err.message.includes('memory')) {
+    if (err?.message?.includes('memory')) {
       return {
         success: false,
         error: `Memory limit exceeded (${MEMORY_MB}MB)`,
@@ -338,9 +360,9 @@ async function runInSandbox(code) {
     }
     return {
       success: false,
-      error: err && err.message ? err.message : String(err),
+      error: err?.message ?? describeSandboxError(err),
       error_type: 'runtime_error',
-      stack: err && err.stack ? err.stack.split('\n').slice(0, 5).join('\n') : undefined,
+      stack: err?.stack ? err.stack.split('\n').slice(0, 5).join('\n') : undefined,
     };
   } finally {
     try {
@@ -365,10 +387,13 @@ async function main() {
     }
     code = Buffer.concat(chunks).toString('utf8');
   } catch (e) {
+    // SonarCloud javascript:S2486: surface the underlying read error so the
+    // user can tell stdin piping issues apart from the generic "failed to
+    // read" message.
     console.error(
       JSON.stringify({
         success: false,
-        error: 'Failed to read code from stdin',
+        error: `Failed to read code from stdin: ${describeSandboxError(e)}`,
         error_type: 'input_error',
       }),
     );

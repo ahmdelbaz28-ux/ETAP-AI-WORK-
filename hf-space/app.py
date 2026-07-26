@@ -198,6 +198,15 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 
+# CSRF middleware — validates X-CSRF-Token on state-changing requests.
+# Added BEFORE CORSMiddleware so that CORS becomes the outermost layer
+# (SonarCloud S8414: CORSMiddleware must be added LAST so it runs FIRST
+# on inbound requests and handles OPTIONS preflight before any other
+# middleware touches the request). In Starlette, the LAST middleware
+# added via add_middleware() wraps all previous middleware — i.e. it is
+# the outermost layer and is the first to see inbound requests.
+app.add_middleware(CSRFMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -210,10 +219,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
     allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-csrf-token"],
 )
-
-# CSRF middleware — validates X-CSRF-Token on state-changing requests
-# Added AFTER CORSMiddleware so CORS handles OPTIONS preflight first.
-app.add_middleware(CSRFMiddleware)
 
 
 # -- Security headers middleware ----------------------------------------------

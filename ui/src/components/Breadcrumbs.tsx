@@ -20,8 +20,7 @@ const routeLabels: Record<string, string> = {
   "code-guard": "sidebar.codeGuard",
 };
 
-export function Breadcrumbs({ path }: { path: string }) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+export function Breadcrumbs({ path }: { readonly path: string }) {
   const { t } = useTranslation();
   const segments = path.split("/").filter(Boolean);
 

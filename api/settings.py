@@ -140,7 +140,7 @@ async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR — S
 
     return JSONResponse(content={"success": True, "data": config.to_masked_dict()})
 
-@router.post("/keys/{provider}")
+@router.post("/keys/{provider}", responses={400: {"description": "Invalid API key configuration"}})
 async def save_key(
     provider: str,
     request: SaveKeyRequest,

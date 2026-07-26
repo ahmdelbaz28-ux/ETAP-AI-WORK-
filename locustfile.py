@@ -219,13 +219,10 @@ class AuthenticatedUser(HttpUser):
                 name="/api/v1/auth/register",
                 catch_response=True,
             )
-            if reg_resp.status_code in (200, 201):
-                # Registration succeeded — now log in to get a JWT.
-                self._do_login()  # NOSONAR python:S1871: intentional duplicate for flow control
-            elif reg_resp.status_code == 409:
-                # 409 Conflict = username already registered (race condition
-                # when 100 concurrent locust users all try to register the
-                # same test user at start). This is expected — just log in.
+            if reg_resp.status_code in (200, 201, 409):
+                # 200/201 = newly registered; 409 = already registered (race
+                # condition when 100 concurrent locust users all try to
+                # register the same test user at start). Either way, log in.
                 self._do_login()
             reg_resp.success()
         except Exception:

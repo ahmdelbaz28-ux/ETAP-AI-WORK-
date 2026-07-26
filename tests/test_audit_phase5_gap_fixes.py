@@ -49,8 +49,7 @@ class TestS09BlacklistGetCurrentUser(unittest.TestCase):
     def test_get_current_user_blacklist_is_lazy_import(self):
         """Blacklist check in get_current_user must use lazy import."""
         src = self._read()
-        self.assertTrue(src.count("from api.auth import _is_token_blacklisted") >= 2,
-                        "Both get_api_key AND get_current_user must lazy-import _is_token_blacklisted")
+        self.assertGreaterEqual(src.count("from api.auth import _is_token_blacklisted"), 2)
 
     def test_get_current_user_blacklist_checks_jti(self):
         """Blacklist check must verify JTI, not just import."""

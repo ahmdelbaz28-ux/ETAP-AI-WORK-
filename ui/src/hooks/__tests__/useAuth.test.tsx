@@ -287,7 +287,7 @@ describe("useAuth", () => {
         await result.current.refreshToken();
         refreshError = undefined;
       } catch (e: unknown) {
-        refreshError = e instanceof Error ? e : new Error(String(e));
+        refreshError = e instanceof Error ? e : new Error(e instanceof Object ? JSON.stringify(e) : String(e));
       }
     });
 

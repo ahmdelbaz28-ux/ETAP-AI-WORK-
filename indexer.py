@@ -525,8 +525,7 @@ def scan_env_variables() -> dict:  # NOSONAR — S3776: cognitive complexity; sc
             if not line or line.startswith("#"):
                 # Capture section headers (lines of # === Text ===)
                 if line.startswith("# ===") and "===" in line[5:]:
-                    # NOSONAR — python:S8786: bounded by single-line input
-                    section_match = re.search(r"#\s*=+\s*([^=]+?)\s*=", line)
+                    section_match = re.search(r"#\s*=+\s*([^=]+?)\s*=", line)  # NOSONAR(python:S8786): single-line input bounded by env.example format — no super-linear backtracking reachable
                     if section_match:
                         current_section = section_match.group(1).strip()
                 continue
@@ -606,8 +605,7 @@ def scan_scripts() -> dict:  # NOSONAR — S3776: cognitive complexity; schedule
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
-                    # NOSONAR — python:S8786: .+ is bounded by line content (no nested quantifier)
-                    m = re.search(r"^#\s*(.+)$", content, re.MULTILINE)
+                    m = re.search(r"^#\s*(.+)$", content, re.MULTILINE)  # NOSONAR(python:S8786): `.+` matches a single line — bounded by line length, no nested quantifier
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:

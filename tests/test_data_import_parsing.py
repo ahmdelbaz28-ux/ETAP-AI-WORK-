@@ -265,7 +265,7 @@ class TestParseJson:
         THEN it raises an exception (JSONDecodeError or HTTPException).
         """
         content = b"{not valid json"
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError, match="Invalid JSON"):
             _parse_json(content)
 
     def test_handles_empty_buses_array(self):

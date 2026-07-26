@@ -401,10 +401,10 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install --upgrade pip
+          pip install --upgrade pip==25.0.1 --only-binary :all:
           # Only install packages needed by test_hf_space_production.py
           # (urllib is stdlib, pytest is the only external dep)
-          pip install pytest
+          pip install --only-binary :all: pytest==8.3.5
 
       - name: ⏳ Wait for HF Space to become healthy (up to 6 min)
         env:

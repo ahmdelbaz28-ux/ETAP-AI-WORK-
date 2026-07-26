@@ -2,14 +2,13 @@ import { type ReactNode, useState } from "react";
 import { cn } from "../../utils/helpers";
 
 interface TabsProps {
-  tabs: { id: string; label: string; icon?: ReactNode; badge?: string | number }[];
-  activeTab: string;
-  onChange: (id: string) => void;
-  className?: string;
+  readonly tabs: { readonly id: string; readonly label: string; readonly icon?: ReactNode; readonly badge?: string | number }[];
+  readonly activeTab: string;
+  readonly onChange: (id: string) => void;
+  readonly className?: string;
 }
 
 export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div
       className={cn("flex items-center gap-1 bg-[var(--bg-elevated)] rounded-lg p-1", className)}
@@ -24,7 +23,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               ? "bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm"
               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/50",
           )}
-        >
+         type="button">
           {tab.icon}
           {tab.label}
           {tab.badge !== undefined && (
@@ -51,7 +50,6 @@ interface TabPanelsProps {
 }
 
 export function TabPanels({ children, className }: TabPanelsProps) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return <div className={cn("mt-4", className)}>{children}</div>;
 }
 

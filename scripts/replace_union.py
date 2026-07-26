@@ -3,6 +3,22 @@ import re
 
 root = pathlib.Path(r"C:/Users/EWS-01/Desktop/ETAP-WORK")
 
+def _find_typing_import_insertion_point(lines: list[str]) -> int:
+    """Find the line index where `from typing import ...` should be inserted."""
+    insert_idx = 0
+    # skip shebang / encoding lines
+    while insert_idx < len(lines) and lines[insert_idx].startswith(("#!", "#")):
+        insert_idx += 1
+    # skip module docstring if present
+    if insert_idx < len(lines) and lines[insert_idx].strip().startswith('"""'):
+        # find closing triple quotes
+        end = insert_idx + 1
+        while end < len(lines) and not lines[end].strip().endswith('"""'):
+            end += 1
+        insert_idx = end + 1
+    return insert_idx
+
+
 def ensure_typing_import(content):
     # Check if typing import exists
     if re.search(r"from\s+typing\s+import", content):
@@ -21,17 +37,7 @@ def ensure_typing_import(content):
     else:
         # Add import at top after any future imports or docstring
         lines = content.splitlines()
-        insert_idx = 0
-        # skip shebang / encoding lines
-        while insert_idx < len(lines) and (lines[insert_idx].startswith('#!') or lines[insert_idx].startswith('#')):
-            insert_idx += 1
-        # skip module docstring if present
-        if insert_idx < len(lines) and lines[insert_idx].strip().startswith('"""'):
-            # find closing triple quotes
-            end = insert_idx + 1
-            while end < len(lines) and not lines[end].strip().endswith('"""'):
-                end += 1
-            insert_idx = end + 1
+        insert_idx = _find_typing_import_insertion_point(lines)
         lines.insert(insert_idx, 'from typing import Optional, Union, Union')
         content = '\n'.join(lines)
     return content

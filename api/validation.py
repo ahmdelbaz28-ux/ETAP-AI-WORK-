@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/system", tags=["validation"])
 
 
-@router.post("/validate")
+@router.post("/validate", responses={
+    400: {"description": "Invalid input data for system validation"},
+    500: {"description": "Internal validation error"},
+})
 async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 

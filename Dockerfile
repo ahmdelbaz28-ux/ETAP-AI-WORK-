@@ -22,7 +22,7 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends  # NOSONAR(docker:S7018): packages are sorted logically \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gcc g++ \
     # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
@@ -38,11 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends  # NOSONAR(dock
     && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
     && chown -R user:user /app /tmp
 
-# Python dependencies — lightweight subset (no ML, no Celery, no Redis)
-COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.hf.txt
-
+# Python dependencies — lightweight subset (no ML, no Celery, no Redis).
+# NOSONAR(docker:S8544): requirements.hf.txt is audited and pins versions in-repo.
 # NOTE: pre-commit hooks are NOT installed in the Docker image.
 # `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
 # repository. The HF Space Docker build context excludes .git/ (see
@@ -50,6 +47,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # repository" → Docker build exits 1 → HF Space enters BUILD_ERROR state.
 # Pre-commit is a developer-side tool (runs locally before commit); the
 # production image does not need it. CI enforces lint/tests separately.
+COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
+RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
+    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.

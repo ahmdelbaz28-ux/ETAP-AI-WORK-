@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { spawnPythonSecure } from './_spawn-helpers';
+import { spawnSecure } from './_spawn-helpers';
 
 const POWERSHELL_TIMEOUT_MS = 30000; // 30 second timeout
 const MAX_OUTPUT_LENGTH = 10000; // Maximum output length in characters
@@ -17,9 +17,9 @@ export const run_powershell = createTool({
 
       // Spawn a Python helper that runs the PowerShell command under a
       // security policy. All hardening (PATH override, no .pyc, stdin-only
-      // input, hard timeout) lives in `spawnPythonSecure` — see
+      // input, hard timeout) lives in `spawnSecure` — see
       // `_spawn-helpers.ts` for the security rationale.
-      const child = spawnPythonSecure(secureExecutorPath, {
+      const child = spawnSecure('python', secureExecutorPath, {
         timeoutMs: POWERSHELL_TIMEOUT_MS,
       });
 

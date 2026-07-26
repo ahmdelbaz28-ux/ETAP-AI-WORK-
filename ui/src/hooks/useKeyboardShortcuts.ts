@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -17,6 +17,55 @@ export interface ShortcutDef {
   global?: boolean; // true = works even when typing in inputs
 }
 
+// G-then-letter navigation routes (extracted to keep handleKeyDown simple).
+const G_SEQUENCE_ROUTES: Record<string, string> = {
+  d: "/dashboard",
+  p: "/projects",
+  s: "/studies",
+  a: "/assistant",
+  r: "/reports",
+  e: "/settings",
+  t: "/digital-twin",
+  i: "/diagnostics",
+  l: "/logs",
+};
+
+// Build the lowercased key-combo string from a KeyboardEvent (e.g. "ctrl+k").
+function buildCombo(e: KeyboardEvent): string {
+  const parts: string[] = [];
+  if (e.ctrlKey || e.metaKey) parts.push("ctrl");
+  if (e.shiftKey) parts.push("shift");
+  if (e.altKey) parts.push("alt");
+  let key = e.key.toLowerCase();
+  if (key === " ") key = "space";
+  parts.push(key);
+  return parts.join("+");
+}
+
+// Returns true if the event target is an input/textarea/contenteditable element.
+function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable;
+}
+
+// Begin the G-then-letter navigation sequence: dispatch the marker event and
+// listen for the next key (within 1.5s) to route to the matching page.
+function beginGSequence(navigate: (path: string) => void): void {
+  globalThis.dispatchEvent(new CustomEvent("shortcut-g-sequence"));
+  const sequenceHandler = (ev: KeyboardEvent) => {
+    const seqKey = ev.key.toLowerCase();
+    const route = G_SEQUENCE_ROUTES[seqKey];
+    if (route) {
+      ev.preventDefault();
+      navigate(route);
+    }
+    globalThis.removeEventListener("keydown", sequenceHandler);
+  };
+  setTimeout(() => globalThis.removeEventListener("keydown", sequenceHandler), 1500);
+  globalThis.addEventListener("keydown", sequenceHandler, { once: true });
+}
+
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
   const [shortcutsPanelOpen, setShortcutsPanelOpen] = useState(false);
@@ -26,60 +75,21 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
       // Don't intercept if the user is typing in an input/textarea AND the
       // shortcut isn't explicitly global. Exception: Ctrl/Cmd combos and F-keys
       // always work (they don't conflict with normal typing).
-      const target = e.target as HTMLElement;
-      const isTyping =
-        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+      const isTyping = isTypingTarget(e.target);
       const isModKey = e.ctrlKey || e.metaKey;
       const isFunctionKey = e.key.startsWith("F");
 
       if (isTyping && !isModKey && !isFunctionKey) return;
 
-      // Build the key combo string
-      const parts: string[] = [];
-      if (e.ctrlKey || e.metaKey) parts.push("ctrl");
-      if (e.shiftKey) parts.push("shift");
-      if (e.altKey) parts.push("alt");
-
-      // Normalize the key
-      let key = e.key.toLowerCase();
-      if (key === " ") key = "space";
-      if (key === "/") key = "/";
-      if (key === "escape") key = "escape";
-      parts.push(key);
-      const combo = parts.join("+");
+      const combo = buildCombo(e);
 
       // ─── Navigation Shortcuts (G then letter) ───────────────────────
-      // These use a two-key sequence: press G, then the destination key
       if (combo === "g" && !isTyping) {
         e.preventDefault();
-        // Set a flag that we're waiting for the next key
-        globalThis.dispatchEvent(new CustomEvent("shortcut-g-sequence"));
-        const sequenceHandler = (ev: KeyboardEvent) => {
-          const seqKey = ev.key.toLowerCase();
-          const routes: Record<string, string> = {
-            d: "/dashboard",
-            p: "/projects",
-            s: "/studies",
-            a: "/assistant",
-            r: "/reports",
-            e: "/settings",
-            t: "/digital-twin",
-            i: "/diagnostics",
-            l: "/logs",
-          };
-          if (routes[seqKey]) {
-            ev.preventDefault();
-            navigate(routes[seqKey]);
-          }
-          globalThis.removeEventListener("keydown", sequenceHandler);
-        };
-        // Listen for the next key within 1.5 seconds
-        setTimeout(() => globalThis.removeEventListener("keydown", sequenceHandler), 1500);
-        globalThis.addEventListener("keydown", sequenceHandler, { once: true });
+        beginGSequence(navigate);
         return;
       }
 

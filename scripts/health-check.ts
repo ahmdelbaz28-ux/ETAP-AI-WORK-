@@ -70,6 +70,33 @@ interface ApiResponse {
   ok: boolean;
 }
 
+/**
+ * Describe an HTTP error response safely. If `body.error` is a string, use
+ * it; otherwise fall back to the HTTP status code. (SonarCloud
+ * typescript:S6551: never stringify `body.error` directly because it may be
+ * an object that would yield `[object Object]`.)
+ */
+function describeHttpError(res: ApiResponse): string {
+  const err = res.body?.error;
+  if (typeof err === 'string') return err;
+  return `status ${res.status}`;
+}
+
+/**
+ * Describe a caught error safely. Errors use their `.message`; strings are
+ * returned as-is; everything else is JSON-stringified so non-Error objects
+ * don't yield `[object Object]`. (SonarCloud typescript:S6551.)
+ */
+function describeError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return 'unknown error';
+  }
+}
+
 async function httpGet(path: string, config: HealthCheckConfig, headers?: Record<string, string>): Promise<ApiResponse> {
   const url = `${config.apiUrl}${path}`;
   const start = Date.now();
@@ -98,7 +125,7 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     return { status: res.status, body, latencyMs, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
     const latencyMs = Date.now() - start;
-    const message = e instanceof Error ? e.message : String(e);
+    const message = describeError(e);
     return { status: 0, body: { error: message }, latencyMs, ok: false };
   }
 }
@@ -130,7 +157,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
     return { status: res.status, body, latencyMs, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
     const latencyMs = Date.now() - start;
-    const message = e instanceof Error ? e.message : String(e);
+    const message = describeError(e);
     return { status: 0, body: { error: message }, latencyMs, ok: false };
   }
 }
@@ -150,7 +177,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Health endpoint responsive',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${String(res.body?.error ?? res.status)}`,
+      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, body: res.body },
     });
@@ -164,7 +191,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Metrics endpoint accessible',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${String(res.body?.error ?? res.status)}`,
+      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, hasApiMetrics: !!res.body?.metrics?.api },
     });
@@ -178,7 +205,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Authenticated API (agents list)',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${String(res.body?.error ?? res.status)}`,
+      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, agentCount: res.body?.agents?.length },
     });
@@ -208,7 +235,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${String(res.body?.error ?? res.status)}`,
+      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -222,7 +249,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${String(res.body?.error ?? res.status)}`,
+      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -397,7 +424,7 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${String(res.body?.error ?? res.status)}`,
+      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
@@ -731,6 +758,6 @@ Environment:
 try {
   await main()
 } catch (e: unknown) {
-  console.error('Health check failed:', e instanceof Error ? e.message : String(e));
+  console.error('Health check failed:', describeError(e));
   process.exit(2);
 }

@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 /**
  * AhmedETAP Platform — API Client
  *
@@ -9,6 +9,47 @@
  */
 
 import { API_BASE_URL, getCachedSettings } from "./api-config";
+
+// Forward user's active provider key/model to backend dynamically.
+// Extracted to a helper to keep request() below SonarCloud's cognitive
+// complexity threshold (S3776).
+function buildProviderHeaders(
+  settings: Record<string, string>,
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
+  headers["x-active-provider"] = activeProviderId;
+
+  if (activeProviderId === "custom_openai") {
+    if (settings.CUSTOM_OPENAI_API_KEY) headers["x-active-key"] = settings.CUSTOM_OPENAI_API_KEY;
+    if (settings.CUSTOM_OPENAI_BASE_URL) headers["x-active-url"] = settings.CUSTOM_OPENAI_BASE_URL;
+    if (settings.CUSTOM_OPENAI_MODEL_ID) headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
+    return headers;
+  }
+
+  const upper = activeProviderId.toUpperCase();
+  const keyName = `PROVIDER_${upper}_KEY`;
+  const modelName = `PROVIDER_${upper}_MODEL`;
+  if (settings[keyName]) headers["x-active-key"] = settings[keyName];
+  if (settings[modelName]) headers["x-active-model"] = settings[modelName];
+  return headers;
+}
+
+// Extract a user-facing error detail from a non-OK HTTP response.
+// Tries JSON first (structured backend error), then plain text, then a
+// generic HTTP status fallback.
+async function extractErrorDetail(response: Response): Promise<string> {
+  try {
+    const body = await response.json();
+    return body.detail || body.message || JSON.stringify(body);
+  } catch {
+    try {
+      return await response.text();
+    } catch {
+      return `HTTP ${response.status} ${response.statusText}`;
+    }
+  }
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
@@ -23,33 +64,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  // Forward user's active provider key/model to backend dynamically
   // Use a cached settings snapshot to avoid async overhead on every request.
   // The cache is populated on first call and refreshed periodically.
-  const settings = getCachedSettings();
-  const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
-  headers["x-active-provider"] = activeProviderId;
-
-  if (activeProviderId === "custom_openai") {
-    if (settings.CUSTOM_OPENAI_API_KEY) {
-      headers["x-active-key"] = settings.CUSTOM_OPENAI_API_KEY;
-    }
-    if (settings.CUSTOM_OPENAI_BASE_URL) {
-      headers["x-active-url"] = settings.CUSTOM_OPENAI_BASE_URL;
-    }
-    if (settings.CUSTOM_OPENAI_MODEL_ID) {
-      headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
-    }
-  } else {
-    const keyName = `PROVIDER_${activeProviderId.toUpperCase()}_KEY`;
-    const modelName = `PROVIDER_${activeProviderId.toUpperCase()}_MODEL`;
-    if (settings[keyName]) {
-      headers["x-active-key"] = settings[keyName];
-    }
-    if (settings[modelName]) {
-      headers["x-active-model"] = settings[modelName];
-    }
-  }
+  Object.assign(headers, buildProviderHeaders(getCachedSettings()));
 
   const response = await fetch(url, {
     ...options,
@@ -58,18 +75,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    // Try to extract a structured error from the backend
-    let detail = "Unknown error";
-    try {
-      const body = await response.json();
-      detail = body.detail || body.message || JSON.stringify(body);
-    } catch {
-      try {
-        detail = await response.text();
-      } catch {
-        detail = `HTTP ${response.status} ${response.statusText}`;
-      }
-    }
+    const detail = await extractErrorDetail(response);
     throw new Error(`API ${response.status}: ${detail}`);
   }
 

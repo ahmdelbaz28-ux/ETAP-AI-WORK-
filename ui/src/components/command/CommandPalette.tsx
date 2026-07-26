@@ -1,4 +1,4 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
+// UI components are intentionally complex for feature-rich DX
 import {
   Activity,
   ArrowRight,
@@ -35,6 +35,193 @@ interface Command {
   action: () => void;
 }
 
+// --- Module-scope static command catalog (extracted from the inline useMemo
+// callback to keep S3776 cognitive complexity below the threshold). ---
+// Each entry stores bilingual label/description/section plus an action factory
+// so the runtime `lang` decision stays a single property pick per field.
+
+type Lang = "en" | "ar";
+
+interface BilingualText {
+  readonly en: string;
+  readonly ar: string;
+}
+
+interface CommandDef {
+  readonly id: string;
+  readonly label: BilingualText;
+  readonly description?: BilingualText;
+  readonly icon: React.ElementType;
+  readonly shortcut?: string;
+  readonly section: BilingualText;
+  readonly buildAction: (navigate: ReturnType<typeof useNavigate>) => () => void;
+}
+
+const NAV_SECTION: BilingualText = { en: "Navigation", ar: "التنقل" };
+const ENG_SECTION: BilingualText = { en: "Engineering", ar: "الهندسة" };
+const ACTION_SECTION: BilingualText = { en: "Actions", ar: "إجراءات" };
+
+const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
+  // Navigation
+  {
+    id: "nav-dashboard",
+    label: { en: "Dashboard", ar: "لوحة التحكم" },
+    description: { en: "Go to main dashboard", ar: "الذهاب للوحة الرئيسية" },
+    icon: LayoutDashboard,
+    shortcut: "G D",
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/dashboard"),
+  },
+  {
+    id: "nav-studies",
+    label: { en: "Studies", ar: "الدراسات" },
+    description: { en: "Engineering studies", ar: "نظرة عامة على الدراسات" },
+    icon: FlaskConical,
+    shortcut: "G S",
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/studies"),
+  },
+  {
+    id: "nav-assistant",
+    label: { en: "AI Assistant", ar: "المساعد الذكي" },
+    description: { en: "Chat with AI agents", ar: "الدردشة مع الوكلاء" },
+    icon: Bot,
+    shortcut: "G A",
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/assistant"),
+  },
+  {
+    id: "nav-projects",
+    label: { en: "Projects", ar: "المشاريع" },
+    description: { en: "Manage projects", ar: "إدارة المشاريع" },
+    icon: FolderPlus,
+    shortcut: "G P",
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/projects"),
+  },
+  {
+    id: "nav-asset-management",
+    label: { en: "Asset Management", ar: "إدارة الأصول" },
+    description: { en: "Power system assets", ar: "أصول النظام" },
+    icon: Activity,
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/asset-management"),
+  },
+  {
+    id: "nav-reports",
+    label: { en: "Reports", ar: "التقارير" },
+    description: { en: "View reports", ar: "عرض التقارير" },
+    icon: FileText,
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/reports"),
+  },
+  {
+    id: "nav-settings",
+    label: { en: "Settings", ar: "الإعدادات" },
+    description: { en: "App settings", ar: "إعدادات التطبيق" },
+    icon: Settings,
+    shortcut: "G ,",
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/settings"),
+  },
+  {
+    id: "nav-diagnostics",
+    label: { en: "Diagnostics", ar: "التشخيص" },
+    description: { en: "System checks", ar: "فحوصات النظام" },
+    icon: Bug,
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/diagnostics"),
+  },
+  {
+    id: "nav-logs",
+    label: { en: "Logs", ar: "السجلات" },
+    description: { en: "Audit log", ar: "سجل التدقيق" },
+    icon: ScrollText,
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/logs"),
+  },
+  {
+    id: "nav-admin",
+    label: { en: "Administration", ar: "الإدارة" },
+    description: { en: "System admin", ar: "إدارة النظام" },
+    icon: ShieldCheck,
+    section: NAV_SECTION,
+    buildAction: (navigate) => () => navigate("/admin"),
+  },
+  // Engineering
+  {
+    id: "nav-etap",
+    label: { en: "ETAP Integration", ar: "تكامل ETAP" },
+    icon: Zap,
+    section: ENG_SECTION,
+    buildAction: (navigate) => () => navigate("/etap"),
+  },
+  {
+    id: "nav-gis",
+    label: { en: "GIS Integration", ar: "تكامل GIS" },
+    icon: Map,
+    section: ENG_SECTION,
+    buildAction: (navigate) => () => navigate("/gis"),
+  },
+  {
+    id: "nav-digital-twin",
+    label: { en: "Digital Twin", ar: "التوأم الرقمي" },
+    icon: Layers,
+    section: ENG_SECTION,
+    buildAction: (navigate) => () => navigate("/digital-twin"),
+  },
+  {
+    id: "nav-code-guard",
+    label: { en: "Code Guard", ar: "حارس الكود" },
+    icon: ShieldCheck,
+    section: ENG_SECTION,
+    buildAction: (navigate) => () => navigate("/code-guard"),
+  },
+  // Actions
+  {
+    id: "act-import",
+    label: { en: "Import Data", ar: "استيراد البيانات" },
+    icon: Upload,
+    section: ACTION_SECTION,
+    buildAction: (navigate) => () => navigate("/data-import"),
+  },
+  {
+    id: "act-export",
+    label: { en: "Export Data", ar: "تصدير البيانات" },
+    icon: Download,
+    section: ACTION_SECTION,
+    buildAction: (navigate) => () => navigate("/data-export"),
+  },
+  {
+    id: "act-help",
+    label: { en: "Smart Help", ar: "المساعدة الذكية" },
+    icon: HelpCircle,
+    shortcut: "F1",
+    section: ACTION_SECTION,
+    buildAction: () => () => globalThis.dispatchEvent(new CustomEvent("toggle-smart-help")),
+  },
+  {
+    id: "act-magic-help",
+    label: { en: "✨ Magic Help Inspector", ar: "✨ فاحص المساعدة" },
+    icon: Zap,
+    section: ACTION_SECTION,
+    buildAction: () => () =>
+      globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
+  },
+];
+
+function buildStaticCommands(lang: Lang, navigate: ReturnType<typeof useNavigate>): Command[] {
+  return COMMAND_DEFS.map((def) => ({
+    id: def.id,
+    label: def.label[lang],
+    description: def.description?.[lang],
+    icon: def.icon,
+    shortcut: def.shortcut,
+    section: def.section[lang],
+    action: def.buildAction(navigate),
+  }));
+}
+
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -43,160 +230,11 @@ export function CommandPalette() {
   const listRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const lang = (i18n.language === "ar" ? "ar" : "en") as "en" | "ar";
+  const lang: Lang = i18n.language === "ar" ? "ar" : "en";
 
   // ─── Static commands (always available) ──────────────────────────────
   const staticCommands: Command[] = useMemo(
-    () => [
-      // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-      // Navigation
-      {
-        id: "nav-dashboard",
-        label: lang === "ar" ? "لوحة التحكم" : "Dashboard",
-        description: lang === "ar" ? "الذهاب للوحة الرئيسية" : "Go to main dashboard",
-        icon: LayoutDashboard,
-        shortcut: "G D",
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/dashboard"),
-      },
-      {
-        id: "nav-studies",
-        label: lang === "ar" ? "الدراسات" : "Studies",
-        description: lang === "ar" ? "نظرة عامة على الدراسات" : "Engineering studies",
-        icon: FlaskConical,
-        shortcut: "G S",
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/studies"),
-      },
-      {
-        id: "nav-assistant",
-        label: lang === "ar" ? "المساعد الذكي" : "AI Assistant",
-        description: lang === "ar" ? "الدردشة مع الوكلاء" : "Chat with AI agents",
-        icon: Bot,
-        shortcut: "G A",
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/assistant"),
-      },
-      {
-        id: "nav-projects",
-        label: lang === "ar" ? "المشاريع" : "Projects",
-        description: lang === "ar" ? "إدارة المشاريع" : "Manage projects",
-        icon: FolderPlus,
-        shortcut: "G P",
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/projects"),
-      },
-      {
-        id: "nav-asset-management",
-        label: lang === "ar" ? "إدارة الأصول" : "Asset Management",
-        description: lang === "ar" ? "أصول النظام" : "Power system assets",
-        icon: Activity,
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/asset-management"),
-      },
-      {
-        id: "nav-reports",
-        label: lang === "ar" ? "التقارير" : "Reports",
-        description: lang === "ar" ? "عرض التقارير" : "View reports",
-        icon: FileText,
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/reports"),
-      },
-      {
-        id: "nav-settings",
-        label: lang === "ar" ? "الإعدادات" : "Settings",
-        description: lang === "ar" ? "إعدادات التطبيق" : "App settings",
-        icon: Settings,
-        shortcut: "G ,",
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/settings"),
-      },
-      {
-        id: "nav-diagnostics",
-        label: lang === "ar" ? "التشخيص" : "Diagnostics",
-        description: lang === "ar" ? "فحوصات النظام" : "System checks",
-        icon: Bug,
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/diagnostics"),
-      },
-      {
-        id: "nav-logs",
-        label: lang === "ar" ? "السجلات" : "Logs",
-        description: lang === "ar" ? "سجل التدقيق" : "Audit log",
-        icon: ScrollText,
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/logs"),
-      },
-      {
-        id: "nav-admin",
-        label: lang === "ar" ? "الإدارة" : "Administration",
-        description: lang === "ar" ? "إدارة النظام" : "System admin",
-        icon: ShieldCheck,
-        section: lang === "ar" ? "التنقل" : "Navigation",
-        action: () => navigate("/admin"),
-      },
-
-      // Engineering
-      {
-        id: "nav-etap",
-        label: lang === "ar" ? "تكامل ETAP" : "ETAP Integration",
-        icon: Zap,
-        section: lang === "ar" ? "الهندسة" : "Engineering",
-        action: () => navigate("/etap"),
-      },
-      {
-        id: "nav-gis",
-        label: lang === "ar" ? "تكامل GIS" : "GIS Integration",
-        icon: Map,
-        section: lang === "ar" ? "الهندسة" : "Engineering",
-        action: () => navigate("/gis"),
-      },
-      {
-        id: "nav-digital-twin",
-        label: lang === "ar" ? "التوأم الرقمي" : "Digital Twin",
-        icon: Layers,
-        section: lang === "ar" ? "الهندسة" : "Engineering",
-        action: () => navigate("/digital-twin"),
-      },
-      {
-        id: "nav-code-guard",
-        label: lang === "ar" ? "حارس الكود" : "Code Guard",
-        icon: ShieldCheck,
-        section: lang === "ar" ? "الهندسة" : "Engineering",
-        action: () => navigate("/code-guard"),
-      },
-
-      // Actions
-      {
-        id: "act-import",
-        label: lang === "ar" ? "استيراد البيانات" : "Import Data",
-        icon: Upload,
-        section: lang === "ar" ? "إجراءات" : "Actions",
-        action: () => navigate("/data-import"),
-      },
-      {
-        id: "act-export",
-        label: lang === "ar" ? "تصدير البيانات" : "Export Data",
-        icon: Download,
-        section: lang === "ar" ? "إجراءات" : "Actions",
-        action: () => navigate("/data-export"),
-      },
-      {
-        id: "act-help",
-        label: lang === "ar" ? "المساعدة الذكية" : "Smart Help",
-        icon: HelpCircle,
-        shortcut: "F1",
-        section: lang === "ar" ? "إجراءات" : "Actions",
-        action: () => globalThis.dispatchEvent(new CustomEvent("toggle-smart-help")),
-      },
-      {
-        id: "act-magic-help",
-        label: lang === "ar" ? "✨ فاحص المساعدة" : "✨ Magic Help Inspector",
-        icon: Zap,
-        section: lang === "ar" ? "إجراءات" : "Actions",
-        action: () => globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
-      },
-    ],
+    () => buildStaticCommands(lang, navigate),
     [lang, navigate],
   );
 
@@ -283,7 +321,7 @@ export function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      {/* NOSONAR — typescript:S6819: native <button> for backdrop accessibility */}
+      {/* NOSONAR — typescript:S6819: native <button type="button"> for backdrop accessibility */}
       <button
         type="button"
         className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-default border-0 p-0"
@@ -347,7 +385,7 @@ export function CommandPalette() {
                             ? "bg-[var(--accent-glow)] text-[var(--accent-primary)]"
                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]",
                         )}
-                      >
+                       type="button">
                         <cmd.icon
                           className={cn(
                             "w-4 h-4 shrink-0",

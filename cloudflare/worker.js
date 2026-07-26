@@ -44,11 +44,12 @@ const BLOCKED_UA_PATTERNS = [
   /semrushbot/i,    // Uncomment to block SEO bots
 ];
 
-// Blocked countries (ISO 3166-1 alpha-2). Empty array = no blocking.
-// NOSONAR(javascript:S7776): array is intentional for simplicity
-const BLOCKED_COUNTRIES = [
+// Blocked countries (ISO 3166-1 alpha-2). Empty set = no blocking.
+// SonarCloud javascript:S7776: a Set is the right shape for an existence
+// check (`BLOCKED_COUNTRIES.has(country)` is O(1) and self-documenting).
+const BLOCKED_COUNTRIES = new Set([
   // "CN", "RU", "KP", "IR"
-];
+]);
 
 // ─── Rate Limiting (in-memory per Worker isolate) ────────────────────────────
 
@@ -89,13 +90,142 @@ function maybeCleanupRateLimitStore() {
   }
 }
 
+// ─── Pre-forward guards (module scope so the main fetch handler stays
+// below SonarCloud javascript:S3776 cognitive-complexity threshold) ────────
+
+// SQL-injection signatures checked against the lower-cased query string.
+const SQLI_PATTERNS = [
+  /union\s+select/,
+  /or\s+1\s*=\s*1/,
+  /'\s*or\s*'/,
+  /drop\s+table/,
+  /insert\s+into/,
+  /delete\s+from/,
+];
+
+// XSS signatures checked against the lower-cased query string.
+const XSS_PATTERNS = [
+  /<script/i,
+  /javascript:/i,
+  /onerror\s*=/i,
+  /onload\s*=/i,
+  /<iframe/i,
+  /document\.cookie/i,
+];
+
+// Regex for static asset file extensions (used for caching).
+const STATIC_ASSET_PATTERN = /\.(js|css|png|jpg|svg|woff2?)$/;
+
+/**
+ * Build a small JSON "block" response. Centralised so the main fetch
+ * handler doesn't repeat the Response boilerplate for every guard.
+ */
+function blockResponse(detail, status, rayID, reason) {
+  return new Response(JSON.stringify({ detail, cf_ray: rayID }), {
+    status,
+    headers: { "Content-Type": "application/json", "X-Block-Reason": reason },
+  });
+}
+
+function blockIfGeoBlocked(country, rayID) {
+  if (BLOCKED_COUNTRIES.size > 0 && BLOCKED_COUNTRIES.has(country)) {
+    return new Response(JSON.stringify({
+      detail: "This service is not available in your region.",
+      cf_ray: rayID,
+      country: country,
+    }), {
+      status: 451,
+      headers: { "Content-Type": "application/json", "X-Block-Reason": "geo-block" },
+    });
+  }
+  return null;
+}
+
+function blockIfMaliciousUA(userAgent, rayID) {
+  for (const pattern of BLOCKED_UA_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      return blockResponse("Blocked: malicious user agent.", 403, rayID, "bad-ua");
+    }
+  }
+  return null;
+}
+
+function enforceRateLimit(path, clientIP, rayID) {
+  if (path.startsWith("/api/v1/auth/")) {
+    if (!checkRateLimit(clientIP, RATE_LIMIT_AUTH, RATE_LIMIT_WINDOW)) {
+      return new Response(JSON.stringify({
+        detail: "Too many authentication attempts. Please try again later.",
+        cf_ray: rayID,
+      }), {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(RATE_LIMIT_WINDOW),
+          "X-Block-Reason": "rate-limit-auth",
+        },
+      });
+    }
+    return null;
+  }
+  if (path.startsWith("/api/")) {
+    if (!checkRateLimit(clientIP, RATE_LIMIT_API, RATE_LIMIT_WINDOW)) {
+      return new Response(JSON.stringify({
+        detail: "Rate limit exceeded. Please slow down.",
+        cf_ray: rayID,
+      }), {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(RATE_LIMIT_WINDOW),
+          "X-Block-Reason": "rate-limit-api",
+        },
+      });
+    }
+  }
+  return null;
+}
+
+function blockIfMaliciousQuery(queryString, path, rayID) {
+  for (const pattern of SQLI_PATTERNS) {
+    if (pattern.test(queryString)) {
+      return blockResponse("Blocked: SQL injection pattern detected.", 403, rayID, "sqli");
+    }
+  }
+  for (const pattern of XSS_PATTERNS) {
+    if (pattern.test(queryString)) {
+      return blockResponse("Blocked: XSS pattern detected.", 403, rayID, "xss");
+    }
+  }
+  if (path.includes("../") || path.includes("..\\") || path.includes("%2e%2e")) {
+    return blockResponse("Blocked: path traversal detected.", 403, rayID, "path-traversal");
+  }
+  return null;
+}
+
+function applySecurityHeaders(response, rayID) {
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
+  response.headers.set("Content-Security-Policy",
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+    "img-src 'self' data: https:; " +
+    "font-src 'self' data: https://cdn.jsdelivr.net; " +
+    "connect-src 'self'"
+  );
+  response.headers.set("CF-RAY", rayID);
+  return response;
+}
+
 // ─── Main Handler ────────────────────────────────────────────────────────────
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-//     const method = request.method;
     const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
     const country = request.headers.get("CF-IPCountry") || "";
     const userAgent = request.headers.get("User-Agent") || "";
@@ -106,160 +236,41 @@ export default {
     // directly should be blocked at the origin (via CLOUDFLARE_ORIGIN_SECRET).
 
     // ── 2. Geo blocking ─────────────────────────────────────────────────
-    if (BLOCKED_COUNTRIES.length > 0 && BLOCKED_COUNTRIES.includes(country)) {
-      return new Response(JSON.stringify({
-        detail: "This service is not available in your region.",
-        cf_ray: rayID,
-        country: country,
-      }), {
-        status: 451,
-        headers: { "Content-Type": "application/json", "X-Block-Reason": "geo-block" },
-      });
-    }
+    const geoBlock = blockIfGeoBlocked(country, rayID);
+    if (geoBlock) return geoBlock;
 
     // ── 3. Block malicious User-Agents ──────────────────────────────────
-    for (const pattern of BLOCKED_UA_PATTERNS) {
-      if (pattern.test(userAgent)) {
-        return new Response(JSON.stringify({
-          detail: "Blocked: malicious user agent.",
-          cf_ray: rayID,
-        }), {
-          status: 403,
-          headers: { "Content-Type": "application/json", "X-Block-Reason": "bad-ua" },
-        });
-      }
-    }
+    const uaBlock = blockIfMaliciousUA(userAgent, rayID);
+    if (uaBlock) return uaBlock;
 
     // ── 4. Rate limiting ────────────────────────────────────────────────
     maybeCleanupRateLimitStore();
+    const rateLimitBlock = enforceRateLimit(path, clientIP, rayID);
+    if (rateLimitBlock) return rateLimitBlock;
 
-    if (path.startsWith("/api/v1/auth/")) {
-      if (!checkRateLimit(clientIP, RATE_LIMIT_AUTH, RATE_LIMIT_WINDOW)) {
-        return new Response(JSON.stringify({
-          detail: "Too many authentication attempts. Please try again later.",
-          cf_ray: rayID,
-        }), {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(RATE_LIMIT_WINDOW),
-            "X-Block-Reason": "rate-limit-auth",
-          },
-        });
-      }
-    } else if (path.startsWith("/api/")) {
-      if (!checkRateLimit(clientIP, RATE_LIMIT_API, RATE_LIMIT_WINDOW)) {
-        return new Response(JSON.stringify({
-          detail: "Rate limit exceeded. Please slow down.",
-          cf_ray: rayID,
-        }), {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(RATE_LIMIT_WINDOW),
-            "X-Block-Reason": "rate-limit-api",
-          },
-        });
-      }
-    }
-
-    // ── 5. Block SQL injection patterns in query params ─────────────────
-    const queryString = url.search.toLowerCase();
-    const sqliPatterns = [
-      /union\s+select/,
-      /or\s+1\s*=\s*1/,
-      /'\s*or\s*'/,
-      /drop\s+table/,
-      /insert\s+into/,
-      /delete\s+from/,
-    ];
-    for (const pattern of sqliPatterns) {
-      if (pattern.test(queryString)) {
-        return new Response(JSON.stringify({
-          detail: "Blocked: SQL injection pattern detected.",
-          cf_ray: rayID,
-        }), {
-          status: 403,
-          headers: { "Content-Type": "application/json", "X-Block-Reason": "sqli" },
-        });
-      }
-    }
-
-    // ── 6. Block XSS patterns in query params ───────────────────────────
-    const xssPatterns = [
-      /<script/i,
-      /javascript:/i,
-      /onerror\s*=/i,
-      /onload\s*=/i,
-      /<iframe/i,
-      /document\.cookie/i,
-    ];
-    for (const pattern of xssPatterns) {
-      if (pattern.test(queryString)) {
-        return new Response(JSON.stringify({
-          detail: "Blocked: XSS pattern detected.",
-          cf_ray: rayID,
-        }), {
-          status: 403,
-          headers: { "Content-Type": "application/json", "X-Block-Reason": "xss" },
-        });
-      }
-    }
-
-    // ── 7. Block path traversal ─────────────────────────────────────────
-    if (path.includes("../") || path.includes("..\\") || path.includes("%2e%2e")) {
-      return new Response(JSON.stringify({
-        detail: "Blocked: path traversal detected.",
-        cf_ray: rayID,
-      }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", "X-Block-Reason": "path-traversal" },
-      });
-    }
+    // ── 5-7. Block SQL injection / XSS / path traversal ─────────────────
+    const maliciousBlock = blockIfMaliciousQuery(url.search.toLowerCase(), path, rayID);
+    if (maliciousBlock) return maliciousBlock;
 
     // ── 8. Forward request to origin with verification header ───────────
     const originRequest = new Request(ORIGIN_URL + path + url.search, request);
-
-    // Inject the origin verification secret
     originRequest.headers.set("X-Origin-Verify", env.ORIGIN_VERIFY_SECRET || ORIGIN_VERIFY_SECRET);
-
-    // Preserve real client IP (Cloudflare already sets CF-Connecting-IP)
-    // The origin middleware will use CF-Connecting-IP
-
-    // Regex for static asset file extensions (used for caching)
-    const staticAssetPattern = /\.(js|css|png|jpg|svg|woff2?)$/;
 
     try {
       const originResponse = await fetch(originRequest, {
         cf: {
           // Don't cache API responses — they're dynamic and user-specific
-          cacheEverything: path.startsWith("/assets/") || staticAssetPattern.test(path),
+          cacheEverything: path.startsWith("/assets/") || STATIC_ASSET_PATTERN.test(path),
           cacheTtl: path.startsWith("/assets/") ? 31536000 : 0,  // 1 year for static assets
         },
       });
 
       // ── 9. Add security headers to the response ──────────────────────
       const response = new Response(originResponse.body, originResponse);
-
-      response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-      response.headers.set("X-Content-Type-Options", "nosniff");
-      response.headers.set("X-Frame-Options", "SAMEORIGIN");
-      response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-      response.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
-      response.headers.set("Content-Security-Policy",
-        "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
-        "img-src 'self' data: https:; " +
-        "font-src 'self' data: https://cdn.jsdelivr.net; " +
-        "connect-src 'self'"
-      );
-
-      // Add CF-RAY for correlation
-      response.headers.set("CF-RAY", rayID);
+      applySecurityHeaders(response, rayID);
 
       // Cache static assets for 1 year (immutable — Vite uses content-hashed filenames)
-      if (path.startsWith("/assets/") || staticAssetPattern.test(path)) {
+      if (path.startsWith("/assets/") || STATIC_ASSET_PATTERN.test(path)) {
         response.headers.set("Cache-Control", "public, max-age=31536000, immutable");
       }
 
@@ -271,7 +282,10 @@ export default {
       return response;
 
     } catch (err) {
-      // Origin unreachable
+      // SonarCloud javascript:S2486: surface the backend error in the Worker
+      // logs (the client response is still the generic 502 so we don't leak
+      // origin internals to attackers).
+      console.error(`[worker] origin fetch failed (cf_ray=${rayID}):`, err?.message || err);
       return new Response(JSON.stringify({
         detail: "Backend service temporarily unavailable.",
         cf_ray: rayID,

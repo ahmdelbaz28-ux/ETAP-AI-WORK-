@@ -2,15 +2,14 @@ import type { ReactNode } from "react";
 import { cn } from "../../utils/helpers";
 
 interface EmptyStateProps {
-  icon?: ReactNode;
-  title: string;
-  description?: string;
-  action?: ReactNode;
-  className?: string;
+  readonly icon?: ReactNode;
+  readonly title: string;
+  readonly description?: string;
+  readonly action?: ReactNode;
+  readonly className?: string;
 }
 
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className={cn("flex flex-col items-center justify-center py-12 text-center", className)}>
       {icon && <div className="mb-4 text-[var(--text-muted)] opacity-50">{icon}</div>}

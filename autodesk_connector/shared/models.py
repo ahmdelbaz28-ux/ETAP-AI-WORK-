@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 import contextlib
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -482,7 +482,7 @@ class UnifiedEngineeringModel(BaseModel):
         return self.model_dump_json(indent=indent)
 
     @classmethod
-    def from_json(cls, data: Union[str, bytes]) -> UnifiedEngineeringModel:
+    def from_json(cls, data: str | bytes) -> UnifiedEngineeringModel:
         return cls.model_validate_json(data)
 
     @classmethod

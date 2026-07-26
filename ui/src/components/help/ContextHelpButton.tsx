@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 
 interface ContextHelpButtonProps {
   /** The context ID to look up in the contextRegistry. */
-  contextId: string;
+  readonly contextId: string;
   /** Optional CSS class for custom positioning. */
-  className?: string;
+  readonly className?: string;
   /** Optional size variant. */
-  size?: "sm" | "md" | "lg";
+  readonly size?: "sm" | "md" | "lg";
   /** Optional label override (defaults to localized "Help"). */
-  label?: string;
+  readonly label?: string;
 }
 
 /**
@@ -23,7 +23,6 @@ interface ContextHelpButtonProps {
  *   <ContextHelpButton contextId="studies.load-flow" />
  */
 export function ContextHelpButton({
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   contextId,
   className = "",
   size = "sm",

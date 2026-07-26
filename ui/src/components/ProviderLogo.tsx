@@ -197,11 +197,8 @@ export function ProviderLogo({ providerId, size = 40, className }: ProviderLogoP
           role="img"
           aria-label={providerId}
         >
-          {brand.paths.map((d, i) => (
-            // NOSONAR — typescript:S6479: SVG <path> elements in a static
-            // brand logo have no stable identifier other than their index;
-            // the list never reorders, so index keys are safe here.
-            <path key={`path-${i}`} d={d} />
+          {brand.paths.map((d) => (
+            <path key={d} d={d} />
           ))}
         </svg>
       </div>

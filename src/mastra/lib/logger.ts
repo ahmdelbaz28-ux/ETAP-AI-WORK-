@@ -32,6 +32,22 @@ export const LOG_TYPES = {
 /**
  * Sanitize log metadata to remove sensitive information.
  */
+
+/**
+ * Stringify a value for hashing. Objects use JSON.stringify (so we never get
+ * `[object Object]`); primitives use their natural string form so the hash
+ * matches the original value's text representation. (SonarCloud
+ * typescript:S6551: never call String() on an `unknown` value because a
+ * non-Error object would yield `[object Object]`.)
+ */
+function stringifyForHash(raw: unknown): string {
+  if (typeof raw === 'string') return raw;
+  if (typeof raw === 'number' || typeof raw === 'boolean' || typeof raw === 'bigint') {
+    return String(raw);
+  }
+  return JSON.stringify(raw);
+}
+
 function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown> {
   const sanitized: Record<string, unknown> = { ...meta };
 
@@ -49,10 +65,8 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const key of sensitiveKeys) {
     if (sanitized[key]) {
-      // SonarCloud typescript:S6551: explicit JSON.stringify for objects,
-      // String() for primitives — avoids [object Object] when interpolated.
       const raw = sanitized[key];
-      const valueStr = typeof raw === 'object' && raw !== null ? JSON.stringify(raw) : String(raw);
+      const valueStr = stringifyForHash(raw);
       const hash = createHash('sha256').update(valueStr).digest('hex');
       sanitized[key] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
@@ -69,7 +83,7 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const prop in sanitized) {
     if (sensitivePatterns.some(pattern => pattern.test(prop))) {
-      const hash = createHash('sha256').update(String(sanitized[prop])).digest('hex');
+      const hash = createHash('sha256').update(stringifyForHash(sanitized[prop])).digest('hex');
       sanitized[prop] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
   }

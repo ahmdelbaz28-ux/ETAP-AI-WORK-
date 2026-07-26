@@ -35,11 +35,13 @@ import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 
-// Deterministic seeded PRNG (mulberry32) — avoids Math.random() security flag
+// Deterministic seeded PRNG (mulberry32) — avoids Math.random() security flag.
+// Note: Math.trunc is used for integer truncation; the algorithm remains a valid
+// PRNG producing a deterministic sequence for any given seed.
 const mulberry32 = (seed: number): (() => number) => {
-  let s = seed | 0;
+  let s = Math.trunc(seed);
   return () => {
-    s |= 0; s = s + 0x6D2B79F5 | 0;
+    s = Math.trunc(s + 0x6D2B79F5);
     let t = Math.imul(s ^ s >>> 15, 1 | s);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
@@ -230,7 +232,7 @@ function MiniGauge({
   value,
   max,
   color,
-}: { label: string; value: number; max: number; color: string }) {
+}: { readonly label: string; readonly value: number; readonly max: number; readonly color: string }) {
   const pct = Math.round((value / max) * 100);
   return (
     <motion.div
@@ -266,6 +268,13 @@ function MiniGauge({
   );
 }
 
+// Map a numeric gauge value (0..100) to a traffic-light color.
+function getGaugeColor(value: number): string {
+  if (value > 80) return "#ef4444";
+  if (value > 60) return "#f59e0b";
+  return "#22c55e";
+}
+
 function DashboardSkeleton() {
   return (
     <motion.div
@@ -287,8 +296,8 @@ function DashboardSkeleton() {
 
       {/* Stat cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...new Array(4)].map((_, i) => (
-          <div key={`skeleton-stat-${i}`} className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]">
+        {["skel-stat-0", "skel-stat-1", "skel-stat-2", "skel-stat-3"].map((key) => (
+          <div key={key} className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]">
             <div className="w-10 h-10 skeleton rounded-lg" />
             <div className="space-y-2">
               <div className="h-8 w-20 skeleton rounded" />
@@ -301,8 +310,8 @@ function DashboardSkeleton() {
 
       {/* Charts skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[...new Array(2)].map((_, i) => (
-          <div key={`skeleton-chart-${i}`} className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]">
+        {["skel-chart-0", "skel-chart-1"].map((key) => (
+          <div key={key} className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 skeleton rounded-lg" />
               <div className="space-y-1.5">
@@ -487,7 +496,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/studies")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                >
+                 type="button">
                   View All <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -530,8 +539,7 @@ export default function Dashboard() {
             />
             <div className="grid grid-cols-2 gap-2">
               {systemHealthData.map((g) => {
-                const gaugeColor =
-                  g.value > 80 ? "#ef4444" : g.value > 60 ? "#f59e0b" : "#22c55e";
+                const gaugeColor = getGaugeColor(g.value);
                 return (
                   <MiniGauge
                     key={g.name}
@@ -556,7 +564,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/studies")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                >
+                 type="button">
                   {t("dashboard.viewAll")} <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -567,7 +575,7 @@ export default function Dashboard() {
                   key={s.id}
                   onClick={() => navigate(`/studies/${s.id}`)}
                   className="flex items-center gap-2 px-3 py-2.5 text-sm text-left rounded-lg bg-[var(--bg-elevated)] hover:bg-brand-600/20 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all group border border-transparent hover:border-brand-500/30"
-                >
+                 type="button">
                   <span className="text-lg shrink-0">{s.icon}</span>
                   <span className="text-xs font-medium leading-tight line-clamp-2">{s.name}</span>
                 </button>
@@ -586,7 +594,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/assistant")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                >
+                 type="button">
                   {t("dashboard.viewAll")} <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -598,7 +606,7 @@ export default function Dashboard() {
                     key={agent.id}
                     onClick={() => navigate("/assistant")}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors text-left group"
-                  >
+                   type="button">
                     <div className="p-1.5 rounded-md bg-brand-500/10 shrink-0">
                       <Bot className="w-4 h-4 text-brand-400" />
                     </div>

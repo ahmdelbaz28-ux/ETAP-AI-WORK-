@@ -37,6 +37,112 @@ def print_header(title):
     print(f"{'='*60}")
 
 
+def _test_token_verification(headers) -> bool:
+    """Test 1: Verify Cloudflare API token. Returns False on hard failure."""
+    print("\n  --- Test 1: Token Verification ---")
+    try:
+        r = httpx.get("https://api.cloudflare.com/client/v4/user/tokens/verify", headers=headers, timeout=10)
+        if r.status_code != 200:
+            print(f"  {FAIL}[FAIL]{END}  Token verify: HTTP {r.status_code} — {r.text[:200]}")
+            return False
+        data = r.json()
+        if not data.get("success"):
+            print(f"  {FAIL}[FAIL]{END}  Token verification failed: {data.get('errors', [])}")
+            return True  # Soft failure — continue other tests
+        print(f"  {OK}[OK]{END}   Token is VALID")
+        token_info = data.get("result", {})
+        if token_info.get("status"):
+            print(f"  {OK}[OK]{END}   Status: {token_info['status']}")
+        if token_info.get("expires_at"):
+            print(f"  {OK}[OK]{END}   Expires: {token_info['expires_at']}")
+        return True
+    except Exception as e:
+        print(f"  {FAIL}[FAIL]{END}  Token verify failed: {e}")
+        return False
+
+
+def _test_account_access(headers, cf_account_id) -> None:
+    """Test 2: Cloudflare account access."""
+    if not cf_account_id:
+        print(f"\n  {WARN}[WARN]{END}  CLOUDFLARE_ACCOUNT_ID not set")
+        return
+    print("\n  --- Test 2: Account Access ---")
+    try:
+        r = httpx.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}",
+            headers=headers, timeout=10,
+        )
+        if r.status_code != 200:
+            print(f"  {FAIL}[FAIL]{END}  Account: HTTP {r.status_code}")
+            return
+        data = r.json()
+        if not data.get("success"):
+            print(f"  {FAIL}[FAIL]{END}  Account access failed: {data.get('errors', [])}")
+            return
+        account = data.get("result", {})
+        print(f"  {OK}[OK]{END}   Account: {account.get('name', '?')}")
+        print(f"  {OK}[OK]{END}   Account ID: {account.get('id', '?')}")
+        print(f"  {OK}[OK]{END}   Plan: {account.get('plan', {}).get('name', '?')}")
+    except Exception as e:
+        print(f"  {FAIL}[FAIL]{END}  Account access failed: {e}")
+
+
+def _test_workers_list(headers, cf_account_id) -> None:
+    """Test 3: Workers scripts list."""
+    print("\n  --- Test 3: Workers List ---")
+    if not cf_account_id:
+        print(f"  {WARN}[WARN]{END}  Skipped (no account ID)")
+        return
+    try:
+        r = httpx.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}/workers/scripts",
+            headers=headers, timeout=10,
+        )
+        if r.status_code != 200:
+            print(f"  {FAIL}[FAIL]{END}  Workers: HTTP {r.status_code}")
+            return
+        data = r.json()
+        if not data.get("success"):
+            print(f"  {FAIL}[FAIL]{END}  Workers list failed: {data.get('errors', [])}")
+            return
+        workers = data.get("result", [])
+        print(f"  {OK}[OK]{END}   Workers: {len(workers)}")
+        for w in workers[:5]:
+            print(f"    - {w.get('id', '?')} ({w.get('modified_on', '?')})")
+    except Exception as e:
+        print(f"  {FAIL}[FAIL]{END}  Workers list failed: {e}")
+
+
+def _test_r2_buckets(headers, r2_account) -> None:
+    """Test 4: R2 buckets list."""
+    print("\n  --- Test 4: R2 Buckets ---")
+    if not r2_account:
+        print(f"  {WARN}[WARN]{END}  Skipped (no R2 account ID)")
+        return
+    try:
+        r = httpx.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{r2_account}/r2/buckets",
+            headers=headers, timeout=10,
+        )
+        if r.status_code != 200:
+            print(f"  {FAIL}[FAIL]{END}  R2: HTTP {r.status_code}")
+            return
+        data = r.json()
+        if not data.get("success"):
+            errors = data.get("errors", [])
+            if any("not entitled" in str(e) for e in errors):
+                print(f"  {WARN}[WARN]{END}  R2 not enabled on this account (optional)")
+            else:
+                print(f"  {FAIL}[FAIL]{END}  R2 buckets: {errors}")
+            return
+        buckets = data.get("result", [])
+        print(f"  {OK}[OK]{END}   R2 Buckets: {len(buckets)}")
+        for b in buckets:
+            print(f"    - {b.get('name', '?')} (created: {b.get('creation_date', '?')})")
+    except Exception as e:
+        print(f"  {FAIL}[FAIL]{END}  R2 buckets failed: {e}")
+
+
 def test_cloudflare_api():
     """Test Cloudflare API token validity."""
     print_header("CLOUDFLARE API TOKEN TEST")
@@ -53,104 +159,14 @@ def test_cloudflare_api():
 
     headers = {"Authorization": f"Bearer {cf_api_key}", "Content-Type": "application/json"}
 
-    # Test 1: Token verification
-    print("\n  --- Test 1: Token Verification ---")
-    try:
-        r = httpx.get("https://api.cloudflare.com/client/v4/user/tokens/verify", headers=headers, timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            if data.get("success"):
-                print(f"  {OK}[OK]{END}   Token is VALID")
-                token_info = data.get("result", {})
-                if token_info.get("status"):
-                    print(f"  {OK}[OK]{END}   Status: {token_info['status']}")
-                if token_info.get("expires_at"):
-                    print(f"  {OK}[OK]{END}   Expires: {token_info['expires_at']}")
-            else:
-                print(f"  {FAIL}[FAIL]{END}  Token verification failed: {data.get('errors', [])}")
-        else:
-            print(f"  {FAIL}[FAIL]{END}  Token verify: HTTP {r.status_code} — {r.text[:200]}")
-            return False
-    except Exception as e:
-        print(f"  {FAIL}[FAIL]{END}  Token verify failed: {e}")
+    if not _test_token_verification(headers):
         return False
 
-    # Test 2: Account access
-    if cf_account_id:
-        print("\n  --- Test 2: Account Access ---")
-        try:
-            r = httpx.get(
-                f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}",
-                headers=headers, timeout=10,
-            )
-            if r.status_code == 200:
-                data = r.json()
-                if data.get("success"):
-                    account = data.get("result", {})
-                    print(f"  {OK}[OK]{END}   Account: {account.get('name', '?')}")
-                    print(f"  {OK}[OK]{END}   Account ID: {account.get('id', '?')}")
-                    print(f"  {OK}[OK]{END}   Plan: {account.get('plan', {}).get('name', '?')}")
-                else:
-                    print(f"  {FAIL}[FAIL]{END}  Account access failed: {data.get('errors', [])}")
-            else:
-                print(f"  {FAIL}[FAIL]{END}  Account: HTTP {r.status_code}")
-        except Exception as e:
-            print(f"  {FAIL}[FAIL]{END}  Account access failed: {e}")
-    else:
-        print(f"\n  {WARN}[WARN]{END}  CLOUDFLARE_ACCOUNT_ID not set")
+    _test_account_access(headers, cf_account_id)
+    _test_workers_list(headers, cf_account_id)
 
-    # Test 3: Workers list
-    print("\n  --- Test 3: Workers List ---")
-    if cf_account_id:
-        try:
-            r = httpx.get(
-                f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}/workers/scripts",
-                headers=headers, timeout=10,
-            )
-            if r.status_code == 200:
-                data = r.json()
-                if data.get("success"):
-                    workers = data.get("result", [])
-                    print(f"  {OK}[OK]{END}   Workers: {len(workers)}")
-                    for w in workers[:5]:
-                        print(f"    - {w.get('id', '?')} ({w.get('modified_on', '?')})")
-                else:
-                    print(f"  {FAIL}[FAIL]{END}  Workers list failed: {data.get('errors', [])}")
-            else:
-                print(f"  {FAIL}[FAIL]{END}  Workers: HTTP {r.status_code}")
-        except Exception as e:
-            print(f"  {FAIL}[FAIL]{END}  Workers list failed: {e}")
-    else:
-        print(f"  {WARN}[WARN]{END}  Skipped (no account ID)")
-
-    # Test 4: R2 buckets
-    print("\n  --- Test 4: R2 Buckets ---")
     r2_account = os.environ.get("R2_ACCOUNT_ID", "") or cf_account_id
-    if r2_account:
-        try:
-            r = httpx.get(
-                f"https://api.cloudflare.com/client/v4/accounts/{r2_account}/r2/buckets",
-                headers=headers, timeout=10,
-            )
-            if r.status_code == 200:
-                data = r.json()
-                if data.get("success"):
-                    buckets = data.get("result", [])
-                    print(f"  {OK}[OK]{END}   R2 Buckets: {len(buckets)}")
-                    for b in buckets:
-                        print(f"    - {b.get('name', '?')} (created: {b.get('creation_date', '?')})")
-                else:
-                    errors = data.get("errors", [])
-                    if any("not entitled" in str(e) for e in errors):
-                        print(f"  {WARN}[WARN]{END}  R2 not enabled on this account (optional)")
-                    else:
-                        print(f"  {FAIL}[FAIL]{END}  R2 buckets: {errors}")
-            else:
-                print(f"  {FAIL}[FAIL]{END}  R2: HTTP {r.status_code}")
-        except Exception as e:
-            print(f"  {FAIL}[FAIL]{END}  R2 buckets failed: {e}")
-    else:
-        print(f"  {WARN}[WARN]{END}  Skipped (no R2 account ID)")
+    _test_r2_buckets(headers, r2_account)
 
     return True
 

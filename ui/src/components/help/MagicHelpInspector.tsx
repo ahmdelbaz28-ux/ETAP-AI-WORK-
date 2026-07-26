@@ -1,8 +1,93 @@
-// NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
 import { Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { resolveContext } from "../../help/contextRegistry";
+
+// --- Module-scope helpers (extracted from handleClick to keep S3776 cognitive complexity low) ---
+
+const INTERACTIVE_SELECTOR =
+  '[data-help-context], button, a, select, input, textarea, .card, [role="button"], h1, h2, h3, h4, li, label';
+
+const OVERLAY_SELECTOR = ".fixed.z-\\[100\\], .magic-inspector-overlay, .magic-inspector-banner";
+
+// Bilingual text-content → contextId heuristics (order matters: more specific first).
+const TEXT_CONTEXT_RULES: ReadonlyArray<{ readonly contextId: string; readonly keywords: readonly string[] }> = [
+  { contextId: "dashboard.overview", keywords: ["dashboard", "لوحة التحكم", "التحكم"] },
+  { contextId: "studies.load-flow", keywords: ["load flow", "تدفق الحمل"] },
+  { contextId: "studies.short-circuit", keywords: ["short circuit", "دائرة قصيرة", "قصر"] },
+  { contextId: "studies.arc-flash", keywords: ["arc flash", "شرارة", "قوس"] },
+  { contextId: "studies.overview", keywords: ["studies", "دراسات"] },
+  { contextId: "projects.create", keywords: ["project", "مشروع"] },
+  { contextId: "reports.generate", keywords: ["report", "تقرير"] },
+  { contextId: "digital-twin.overview", keywords: ["twin", "توأم"] },
+  { contextId: "settings.backend", keywords: ["settings", "إعدادات"] },
+  { contextId: "ai-assistant.overview", keywords: ["assistant", "مساعد", "ذكاء"] },
+  { contextId: "asset-management.overview", keywords: ["asset", "أصول", "أصل"] },
+  { contextId: "etap-integration.overview", keywords: ["etap", "إيتاب"] },
+  { contextId: "gis-integration.overview", keywords: ["gis", "جغرافي"] },
+  { contextId: "code-guard.overview", keywords: ["code", "كود", "حارس"] },
+  { contextId: "administration.overview", keywords: ["admin", "إدارة", "مسؤول"] },
+  { contextId: "diagnostics.overview", keywords: ["diagnostic", "تشخيص"] },
+  { contextId: "logs.overview", keywords: ["logs", "سجلات"] },
+  { contextId: "data-import.overview", keywords: ["import", "استيراد"] },
+  { contextId: "data-export.overview", keywords: ["export", "تصدير"] },
+  { contextId: "settings.external-services", keywords: ["test", "اختبار", "اتصال"] },
+];
+
+// URL-path → contextId heuristics (order matters: longer paths first to avoid false matches).
+const PATH_CONTEXT_RULES: ReadonlyArray<{ readonly contextId: string; readonly path: string }> = [
+  { contextId: "dashboard.overview", path: "dashboard" },
+  { contextId: "projects.create", path: "projects" },
+  { contextId: "studies.overview", path: "studies" },
+  { contextId: "ai-assistant.overview", path: "assistant" },
+  { contextId: "asset-management.overview", path: "asset" },
+  { contextId: "etap-integration.overview", path: "etap" },
+  { contextId: "gis-integration.overview", path: "gis" },
+  { contextId: "reports.generate", path: "reports" },
+  { contextId: "digital-twin.overview", path: "digital-twin" },
+  { contextId: "settings.backend", path: "settings" },
+  { contextId: "code-guard.overview", path: "code-guard" },
+  { contextId: "data-import.overview", path: "data-import" },
+  { contextId: "data-export.overview", path: "data-export" },
+  { contextId: "administration.overview", path: "admin" },
+  { contextId: "diagnostics.overview", path: "diagnostics" },
+  { contextId: "logs.overview", path: "logs" },
+];
+
+function resolveContextFromText(text: string): string | null {
+  const lowered = text.toLowerCase();
+  for (const rule of TEXT_CONTEXT_RULES) {
+    if (rule.keywords.some((kw) => lowered.includes(kw))) {
+      return rule.contextId;
+    }
+  }
+  return null;
+}
+
+function resolveContextFromPath(path: string): string {
+  for (const rule of PATH_CONTEXT_RULES) {
+    if (path.includes(rule.path)) {
+      return rule.contextId;
+    }
+  }
+  return "dashboard.overview";
+}
+
+function findContextFromAncestors(el: HTMLElement): string | null {
+  let parent: HTMLElement | null = el.parentElement;
+  let depth = 0;
+  while (parent && depth < 5) {
+    const attr = parent.dataset.helpContext;
+    if (attr) return attr;
+    parent = parent.parentElement;
+    depth++;
+  }
+  return null;
+}
+
+function isInspectorOverlay(el: HTMLElement): boolean {
+  return Boolean(el.closest(OVERLAY_SELECTOR));
+}
 
 /**
  * MagicHelpInspector
@@ -49,16 +134,9 @@ export function MagicHelpInspector() {
 
       // Find the closest interactive or semantic element. Prefer elements
       // with `data-help-context` attribute (these are guaranteed to have docs).
-      const interactiveEl = target.closest(
-        '[data-help-context], button, a, select, input, textarea, .card, [role="button"], h1, h2, h3, h4, li, label',
-      ) as HTMLElement | null;
+      const interactiveEl = target.closest(INTERACTIVE_SELECTOR) as HTMLElement | null;
 
-      if (
-        interactiveEl &&
-        !interactiveEl.closest(String.raw`.fixed.z-\[100\]`) &&
-        !interactiveEl.closest(".magic-inspector-overlay") &&
-        !interactiveEl.closest(".magic-inspector-banner")
-      ) {
+      if (interactiveEl && !isInspectorOverlay(interactiveEl)) {
         setHoveredRect(interactiveEl.getBoundingClientRect());
         // Build a label for the floating tooltip
         const ctx = interactiveEl.dataset.helpContext ?? null;
@@ -78,7 +156,6 @@ export function MagicHelpInspector() {
     };
 
     const handleClick = (e: MouseEvent) => {
-      // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
       // ALWAYS prevent the default action and stop propagation — we want
       // the click to be interpreted as "show me docs for this element",
       // not as a normal button press.
@@ -91,114 +168,28 @@ export function MagicHelpInspector() {
         return;
       }
 
-      const interactiveEl = target.closest(
-        '[data-help-context], button, a, select, input, textarea, .card, [role="button"], h1, h2, h3, h4, li, label',
-      ) as HTMLElement | null;
+      const interactiveEl = target.closest(INTERACTIVE_SELECTOR) as HTMLElement | null;
 
-      // 1. Try the explicit `data-help-context` attribute (preferred path)
+      // Resolve contextId through the four documented fallback layers:
+      // 1. explicit data-help-context on the clicked element,
+      // 2. ancestor data-help-context (walk up to 5 levels),
+      // 3. text-content bilingual heuristics,
+      // 4. URL-path heuristics (ultimate fallback to dashboard.overview).
       let contextId: string | null = null;
-
       if (interactiveEl) {
         contextId = interactiveEl.dataset.helpContext ?? null;
-
-        // 2. Walk up the DOM tree looking for a data-help-context on an ancestor
+        if (!contextId) contextId = findContextFromAncestors(interactiveEl);
         if (!contextId) {
-          let parent: HTMLElement | null = interactiveEl.parentElement;
-          let depth = 0;
-          while (parent && depth < 5) {
-            const attr = parent.dataset.helpContext;
-            if (attr) {
-              contextId = attr;
-              break;
-            }
-            parent = parent.parentElement;
-            depth++;
-          }
-        }
-
-        // 3. Text-content heuristics (fallback when no data-help-context)
-        if (!contextId) {
-          const text = (interactiveEl.textContent || "").toLowerCase();
-          if (
-            text.includes("dashboard") ||
-            text.includes("لوحة التحكم") ||
-            text.includes("التحكم")
-          ) {
-            contextId = "dashboard.overview";
-          } else if (text.includes("load flow") || text.includes("تدفق الحمل")) {
-            contextId = "studies.load-flow";
-          } else if (
-            text.includes("short circuit") ||
-            text.includes("دائرة قصيرة") ||
-            text.includes("قصر")
-          ) {
-            contextId = "studies.short-circuit";
-          } else if (text.includes("arc flash") || text.includes("شرارة") || text.includes("قوس")) {
-            contextId = "studies.arc-flash";
-          } else if (text.includes("studies") || text.includes("دراسات")) {
-            contextId = "studies.overview";
-          } else if (text.includes("project") || text.includes("مشروع")) {
-            contextId = "projects.create";
-          } else if (text.includes("report") || text.includes("تقرير")) {
-            contextId = "reports.generate";
-          } else if (text.includes("twin") || text.includes("توأم")) {
-            contextId = "digital-twin.overview";
-          } else if (text.includes("settings") || text.includes("إعدادات")) {
-            contextId = "settings.backend";
-          } else if (
-            text.includes("assistant") ||
-            text.includes("مساعد") ||
-            text.includes("ذكاء")
-          ) {
-            contextId = "ai-assistant.overview";
-          } else if (text.includes("asset") || text.includes("أصول") || text.includes("أصل")) {
-            contextId = "asset-management.overview";
-          } else if (text.includes("etap") || text.includes("إيتاب")) {
-            contextId = "etap-integration.overview";
-          } else if (text.includes("gis") || text.includes("جغرافي")) {
-            contextId = "gis-integration.overview";
-          } else if (text.includes("code") || text.includes("كود") || text.includes("حارس")) {
-            contextId = "code-guard.overview";
-          } else if (text.includes("admin") || text.includes("إدارة") || text.includes("مسؤول")) {
-            contextId = "administration.overview";
-          } else if (text.includes("diagnostic") || text.includes("تشخيص")) {
-            contextId = "diagnostics.overview";
-          } else if (text.includes("logs") || text.includes("سجلات")) {
-            contextId = "logs.overview";
-          } else if (text.includes("import") || text.includes("استيراد")) {
-            contextId = "data-import.overview";
-          } else if (text.includes("export") || text.includes("تصدير")) {
-            contextId = "data-export.overview";
-          } else if (text.includes("test") || text.includes("اختبار") || text.includes("اتصال")) {
-            contextId = "settings.external-services";
-          }
+          contextId = resolveContextFromText(interactiveEl.textContent || "");
         }
       }
-
-      // 4. URL-path fallback (ultimate fallback)
       if (!contextId) {
         const path = globalThis.location.hash || globalThis.location.pathname;
-        if (path.includes("dashboard")) contextId = "dashboard.overview";
-        else if (path.includes("projects")) contextId = "projects.create";
-        else if (path.includes("studies")) contextId = "studies.overview";
-        else if (path.includes("assistant")) contextId = "ai-assistant.overview";
-        else if (path.includes("asset")) contextId = "asset-management.overview";
-        else if (path.includes("etap")) contextId = "etap-integration.overview";
-        else if (path.includes("gis")) contextId = "gis-integration.overview";
-        else if (path.includes("reports")) contextId = "reports.generate";
-        else if (path.includes("digital-twin")) contextId = "digital-twin.overview";
-        else if (path.includes("settings")) contextId = "settings.backend";
-        else if (path.includes("code-guard")) contextId = "code-guard.overview";
-        else if (path.includes("data-import")) contextId = "data-import.overview";
-        else if (path.includes("data-export")) contextId = "data-export.overview";
-        else if (path.includes("admin")) contextId = "administration.overview";
-        else if (path.includes("diagnostics")) contextId = "diagnostics.overview";
-        else if (path.includes("logs")) contextId = "logs.overview";
-        else contextId = "dashboard.overview"; // ultimate fallback
+        contextId = resolveContextFromPath(path);
       }
 
-      // 5. Validate the contextId resolves to an actual topic
-      // (if not, the SmartHelpDrawer will show the dashboard default)
+      // Validate the contextId resolves to an actual topic in the registry.
+      // (if not, the SmartHelpDrawer will show the dashboard default.)
       const resolvedTopicId = resolveContext(contextId);
       if (!resolvedTopicId) {
         // contextId is not in registry — log a warning so devs can fix it
@@ -207,7 +198,7 @@ export function MagicHelpInspector() {
         );
       }
 
-      // 6. Open the help drawer with this context
+      // Open the help drawer with this context.
       globalThis.dispatchEvent(
         new CustomEvent("open-smart-help", {
           detail: { contextId },
@@ -295,7 +286,7 @@ export function MagicHelpInspector() {
           onClick={() => setIsActive(false)}
           className="ml-2 p-1 rounded hover:bg-white/10 transition-colors"
           title={lang === "ar" ? "إغلاق" : "Close"}
-        >
+         type="button">
           <X className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </button>
       </div>

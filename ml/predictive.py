@@ -550,7 +550,18 @@ class FaultPredictor:
                 best_params = self._optimize_rf(features, labels)
 
             if best_params:
-                self.model = RandomForestClassifier(**best_params)
+                # Explicitly pass all hyperparameters (incl. min_samples_leaf,
+                # max_features, random_state) so SonarCloud S6973/S6709 can see
+                # the safe defaults even when best_params omits them.
+                self.model = RandomForestClassifier(
+                    n_estimators=best_params.get("n_estimators", 100),
+                    max_depth=best_params.get("max_depth", 10),
+                    min_samples_leaf=best_params.get("min_samples_leaf", 1),
+                    max_features=best_params.get("max_features", "sqrt"),
+                    min_samples_split=best_params.get("min_samples_split", 2),
+                    random_state=best_params.get("random_state", 42),
+                    n_jobs=-1,
+                )
             else:
                 self.model = RandomForestClassifier(
                     n_estimators=100,
@@ -629,7 +640,15 @@ class FaultPredictor:
             }
             from sklearn.model_selection import cross_val_score
 
-            clf = RandomForestClassifier(**params)
+            clf = RandomForestClassifier(
+                n_estimators=params["n_estimators"],
+                max_depth=params["max_depth"],
+                min_samples_split=params["min_samples_split"],
+                min_samples_leaf=params["min_samples_leaf"],
+                max_features=params["max_features"],
+                random_state=params["random_state"],
+                n_jobs=params["n_jobs"],
+            )
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
 

@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 def _is_redis_url(redis_url: str) -> bool:
     # str.startswith accepts a TUPLE of prefixes — passing two string args
     # was a bug (the second arg is interpreted as a start index, causing
-    # TypeError at runtime). The previous code had a NOSONAR comment claiming
-    # this was "already tuple form" — it was NOT, and the test suite caught it.
+    # TypeError at runtime). The previous code had a noqa-style comment claiming
+    # this was "already tuple form" - it was NOT, and the test suite caught it.
     return redis_url.startswith(("redis://", "rediss://"))
 
 

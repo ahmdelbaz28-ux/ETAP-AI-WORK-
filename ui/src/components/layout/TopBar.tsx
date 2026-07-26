@@ -39,7 +39,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
        * below with an orange-red gradient tile. See PR #85 review thread.
        */}
       <div className="flex items-center gap-3">
-        {/* NOSONAR — typescript:S6819: native <button> for keyboard-accessible nav */}
+        {/* NOSONAR — typescript:S6819: native <button type="button"> for keyboard-accessible nav */}
         <button
           type="button"
           className="flex items-center gap-2 cursor-pointer bg-transparent border-0 p-0"
@@ -82,7 +82,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           onClick={() => {
             globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect"));
           }}
-        >
+         type="button">
           <Sparkles className="w-4 h-4" />
           <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
         </button>
@@ -90,14 +90,14 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
           title={t("help.title") || "Help"}
           onClick={handleHelp}
-        >
+         type="button">
           <HelpCircle className="w-4 h-4" />
         </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors relative"
           title={t("settings.title") || "Settings"}
           onClick={() => navigate("/settings")}
-        >
+         type="button">
           <Settings className="w-4 h-4" />
         </button>
       </div>
