@@ -135,52 +135,68 @@ _cache_lock = threading.Lock()
 # ---------------------------------------------------------------------------
 
 
-class _CircuitBreaker:
-    """Simple thread-safe circuit breaker.
+# SECURITY AUDIT 2026-07-26 — BUG-19: Replaced internal _CircuitBreaker with canonical
+# engine.resilience.CircuitBreaker to eliminate code duplication.
+# The internal version lacked proper half-open probing, registry integration,
+# and metrics tracking. The canonical version provides all of these.
+# We add an .is_open property adapter for backward compatibility.
+try:
+    from engine.resilience import CircuitBreaker as _CanonicalCB
 
-    After ``failure_threshold`` consecutive failures, the breaker opens
-    and rejects all calls for ``reset_seconds``. After that, it enters
-    half-open: one call is allowed; if it succeeds, the breaker closes;
-    if it fails, it opens again.
-    """
+    class _CircuitBreakerAdapter:
+        """Adapter wrapping canonical CircuitBreaker with .is_open property for prompt_loader."""
 
-    def __init__(self, failure_threshold: int = 5, reset_seconds: float = 60.0):
-        self.failure_threshold = failure_threshold
-        self.reset_seconds = reset_seconds
-        self._failures = 0
-        self._opened_at: Optional[float] = None
-        self._lock = threading.Lock()
+        def __init__(self, name: str, failure_threshold: int, recovery_timeout: float):
+            self._cb = _CanonicalCB(name, failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
 
-    @property
-    def is_open(self) -> bool:
-        with self._lock:
-            if self._opened_at is None:
-                return False
-            if time.monotonic() - self._opened_at >= self.reset_seconds:
-                # Half-open: allow one trial
-                self._opened_at = None
-                return False
-            return True
+        @property
+        def is_open(self) -> bool:
+            return self._cb.get_state() in ("OPEN", "HALF_OPEN")
 
-    def record_success(self) -> None:
-        with self._lock:
+        def record_success(self) -> None:
+            self._cb.record_success()
+
+        def record_failure(self) -> None:
+            self._cb.record_failure()
+
+    _langfuse_cb = _CircuitBreakerAdapter("langfuse_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+    _langwatch_cb = _CircuitBreakerAdapter("langwatch_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+except ImportError:
+    # Fallback: engine.resilience unavailable (minimal deployment)
+    class _CircuitBreaker:
+        """Fallback circuit breaker when engine.resilience is unavailable."""
+
+        def __init__(self, failure_threshold: int = 5, reset_seconds: float = 60.0):
+            self.failure_threshold = failure_threshold
+            self.reset_seconds = reset_seconds
             self._failures = 0
-            self._opened_at = None
+            self._opened_at: Optional[float] = None
+            self._lock = threading.Lock()
 
-    def record_failure(self) -> None:
-        with self._lock:
-            self._failures += 1
-            if self._failures >= self.failure_threshold:
-                self._opened_at = time.monotonic()
-                logger.warning(
-                    "Prompt-fetch circuit breaker opened after %d failures (will reset in %.1fs)",
-                    self._failures,
-                    self.reset_seconds,
-                )
+        @property
+        def is_open(self) -> bool:
+            with self._lock:
+                if self._opened_at is None:
+                    return False
+                if time.monotonic() - self._opened_at >= self.reset_seconds:
+                    self._opened_at = None
+                    return False
+                return True
 
+        def record_success(self) -> None:
+            with self._lock:
+                self._failures = 0
+                self._opened_at = None
 
-_langfuse_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
-_langwatch_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+        def record_failure(self) -> None:
+            with self._lock:
+                self._failures += 1
+                if self._failures >= self.failure_threshold:
+                    self._opened_at = time.monotonic()
+
+    _langfuse_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+    _langwatch_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+
 
 
 # ---------------------------------------------------------------------------
