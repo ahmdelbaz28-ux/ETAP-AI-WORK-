@@ -69,11 +69,18 @@ def load_config(path: str) -> dict[str, Any]:
 
     # SonarCloud pythonsecurity:S8707: validate that a CLI-supplied path
     # doesn't escape the project tree before reading it. We allow paths
-    # inside the current working directory, the system temp dir (for tests),
+    # inside the current working directory, the per-user ACP temp directory,
     # or the user's home directory (for shared config files like ~/.acp/config.yaml).
-    import tempfile
-    _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR(S5443): tempdir is the system default; we explicitly allow it for test fixtures
-    allowed_roots = [Path.cwd().resolve(), _tmp_root, Path.home().resolve()]
+    # Using per-user dir (~/.etap/acp_temp) instead of system tempdir to avoid
+    # SonarCloud S5443 (publicly writable directories).
+    _default_acp_temp = str(Path.home() / ".etap" / "acp_temp")
+    _acp_temp_dir = Path(os.environ.get("ACP_TEMP_DIR", _default_acp_temp)).resolve()
+    _acp_temp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(_acp_temp_dir, 0o700)
+    except OSError:
+        pass  # Best-effort: chmod can fail on some filesystems
+    allowed_roots = [Path.cwd().resolve(), _acp_temp_dir, Path.home().resolve()]
     if not any(_is_within(p, root) for root in allowed_roots):
         raise SystemExit(
             f"Refusing to read config file outside CWD, tempdir, or HOME: {path!r}"

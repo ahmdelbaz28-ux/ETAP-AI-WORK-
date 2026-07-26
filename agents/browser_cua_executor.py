@@ -140,7 +140,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
     hooks for screenshot capture, action execution, and cleanup.
 
     Usage:
-        executor = BrowserCUAExecutor(audit_dir="/tmp/cua_audit")
+        executor = BrowserCUAExecutor(audit_dir="~/.etap/cua_audit")
         result = executor.execute_loop(
             objective="Open the dashboard and check the latest study status",
             start_url="https://ahmdelbaz28-ahmedetap-platform.hf.space/dashboard",

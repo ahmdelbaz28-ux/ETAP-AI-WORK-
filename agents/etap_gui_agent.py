@@ -36,6 +36,7 @@ import os
 from pathlib import Path
 from typing import Any, Literal, Optional
 
+from agents.life_safety import _CUA_AUDIT_DIR
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger("agent.etap_gui")
@@ -565,7 +566,7 @@ class ETAPGUIAgent(BaseAgent):
         try:
             from agents.browser_cua_executor import BrowserCUAExecutor
 
-            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or "/tmp/cua_audit")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or str(_CUA_AUDIT_DIR))
             browser_deps = browser_executor.check_dependencies()
         except Exception as exc:  # noqa: BLE001
             logger.debug("BrowserCUAExecutor init failed: %s", exc)
@@ -576,7 +577,7 @@ class ETAPGUIAgent(BaseAgent):
             from agents.cua_executor import CUAExecutor
 
             executor = CUAExecutor(
-                audit_dir=audit_dir or "/tmp/cua_audit",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                audit_dir=audit_dir or str(_CUA_AUDIT_DIR),
                 action_timeout=60,
             )
             executor_type = "desktop"

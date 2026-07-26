@@ -20,7 +20,7 @@ Environment variables (all optional)::
     ACP_AUDIT_LOG         -- Path to NDJSON audit log file
     ACP_TRACE_FILE        -- Path to JSON trace output file
     ACP_DEADLINE_MS       -- Default deadline in ms (default 30000)
-    ACP_UDS_PATH          -- UDS socket path (default /tmp/acp.sock)
+    ACP_UDS_PATH          -- UDS socket path (default ~/.etap/acp.sock)
     ACP_WS_HOST           -- WebSocket bind host (default localhost)
     ACP_WS_PORT           -- WebSocket bind port (default 8765)
 """
@@ -31,6 +31,7 @@ import argparse
 import importlib
 import os
 import sys
+from pathlib import Path
 from typing import Any, Optional
 
 import anyio
@@ -250,7 +251,15 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
 async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="uds")
     router = _build_router(args, runtime, tracer, metrics, logger)
-    path = args.path or os.environ.get("ACP_UDS_PATH", "/tmp/acp.sock")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    _default_uds_path = str(Path.home() / ".etap" / "acp.sock")
+    path = args.path or os.environ.get("ACP_UDS_PATH", _default_uds_path)
+    # Ensure parent directory exists with restrictive permissions
+    uds_dir = Path(path).parent
+    uds_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(uds_dir, 0o700)
+    except OSError:
+        pass  # Best-effort: chmod can fail on some filesystems
     listener = UDSListener(path)
     if logger is not None:
         logger.info("ACP UDS server started", path=path)
@@ -391,7 +400,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     uds_parser.add_argument(
         "--path",
-        help="UDS socket path (default /tmp/acp.sock, or ACP_UDS_PATH env)",
+        help="UDS socket path (default ~/.etap/acp.sock, or ACP_UDS_PATH env)",
     )
 
     # websocket

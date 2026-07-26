@@ -16,9 +16,17 @@ from __future__ import annotations
 
 import asyncio
 import os
+import tempfile
 from pathlib import Path
 
 import pytest
+
+# Module-level temp dir for test fixtures (S5443 mitigation)
+_TEST_BROWSER_CUA_DIR = tempfile.mkdtemp(prefix="test_browser_cua_")
+
+# Cleanup on module unload
+import atexit
+atexit.register(lambda: __import__('shutil').rmtree(_TEST_BROWSER_CUA_DIR, ignore_errors=True))
 
 # ---------------------------------------------------------------------------
 # 1. Module import safety
@@ -58,7 +66,7 @@ def test_browser_cua_check_dependencies_returns_dict():
     """check_dependencies() must return a dict, never crash."""
     from agents.browser_cua_executor import BrowserCUAExecutor
 
-    executor = BrowserCUAExecutor(audit_dir="/tmp/test_browser_cua")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    executor = BrowserCUAExecutor(audit_dir=_TEST_BROWSER_CUA_DIR)
     deps = executor.check_dependencies()
 
     assert isinstance(deps, dict)
@@ -75,7 +83,7 @@ def test_browser_cua_executor_falls_back_when_deps_missing():
     with success=False and aborted_reason — never raise."""
     from agents.browser_cua_executor import BrowserCUAExecutor
 
-    executor = BrowserCUAExecutor(audit_dir="/tmp/test_browser_cua")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    executor = BrowserCUAExecutor(audit_dir=_TEST_BROWSER_CUA_DIR)
     deps = executor.check_dependencies()
 
     result = executor.execute_loop(
@@ -138,7 +146,7 @@ def test_etap_gui_agent_executor_used_field_in_result():
         question="Open the dashboard",
         max_steps=1,
         require_confirmation=False,
-        audit_dir="/tmp/test_browser_cua",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+        audit_dir=_TEST_BROWSER_CUA_DIR,
     )
 
     assert isinstance(result, dict)
@@ -153,7 +161,7 @@ def test_etap_gui_agent_browser_executor_used_when_desktop_unavailable():
     from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
 
     desktop_ok, _ = _check_gui_deps()
-    browser_exec = BrowserCUAExecutor(audit_dir="/tmp/test_browser_cua")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+    browser_exec = BrowserCUAExecutor(audit_dir=_TEST_BROWSER_CUA_DIR)
     browser_deps = browser_exec.check_dependencies()
 
     if desktop_ok:

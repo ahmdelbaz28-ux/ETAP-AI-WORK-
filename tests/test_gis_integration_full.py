@@ -108,7 +108,7 @@ class TestArcGISProvider:
             # Force the import to fail
             with patch("builtins.__import__", side_effect=ImportError("no arcpy")):
                 with pytest.raises(GISProviderUnavailableError, match="unavailable"):
-                    provider.load_project("/tmp/test.gdb")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                    provider.load_project("/tmp/test.gdb")
 
     def test_list_layers_returns_empty_when_not_loaded(self):
         """list_layers should return [] if provider not loaded."""
@@ -321,7 +321,7 @@ class TestQGISProvider:
         provider = QGISProvider()
         with patch("builtins.__import__", side_effect=ImportError("no qgis")):
             with pytest.raises(GISProviderUnavailableError, match="unavailable"):
-                provider.load_project("/tmp/test.qgs")  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                provider.load_project("/tmp/test.qgs")
 
     def test_list_layers_returns_empty_when_not_loaded(self):
         """list_layers should return [] if project not loaded."""

@@ -134,14 +134,21 @@ class CodeIndexer:
         # the directory so an LLM-supplied CLI argument can't be tricked into
         # writing outside the project tree (e.g. via ../ escapes or absolute
         # paths). We resolve the path and confirm it stays within an allowed
-        # root: the current working directory, the system temp dir (for tests),
+        # root: the current working directory, the per-user indexer directory,
         # or the user's home directory.
-        import tempfile
-        _tmp_root = Path(tempfile.gettempdir()).resolve()  # NOSONAR(S5443): tempdir is the system default; we explicitly allow it for test fixtures
+        # Using per-user dir (~/.etap/indexer) instead of system tempdir to
+        # avoid SonarCloud S5443 (publicly writable directories).
+        _default_indexer_dir = str(Path.home() / ".etap" / "indexer")
+        _indexer_root = Path(os.environ.get("ETAP_INDEXER_DIR", _default_indexer_dir)).resolve()
+        _indexer_root.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(_indexer_root, 0o700)
+        except OSError:
+            pass  # Best-effort: chmod can fail on some filesystems
         candidate = Path(output_dir).expanduser().resolve()
         allowed_roots = [
             Path.cwd().resolve(),
-            _tmp_root,
+            _indexer_root,
             Path.home().resolve(),
         ]
         if not any(_is_within(candidate, root) for root in allowed_roots):

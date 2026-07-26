@@ -6,8 +6,16 @@ PDF/DOCX/XLSX export, report compilation, and recommendation generation.
 
 import os
 import sys
+import tempfile
 
 import pytest
+
+# Module-level temp dir for test fixtures (S5443 mitigation)
+_TEST_REPORT_DIR = tempfile.mkdtemp(prefix="etap_test_reports_")
+
+# Cleanup on module unload
+import atexit
+atexit.register(lambda: __import__('shutil').rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -58,7 +66,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
-                "output_path": "/tmp/etap_test_reports",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "output_path": _TEST_REPORT_DIR,
             },
         )
         result = await agent.execute(task)
@@ -76,7 +84,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "docx",
-                "output_path": "/tmp/etap_test_reports",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "output_path": _TEST_REPORT_DIR,
             },
         )
         result = await agent.execute(task)
@@ -93,7 +101,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "xlsx",
-                "output_path": "/tmp/etap_test_reports",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "output_path": _TEST_REPORT_DIR,
             },
         )
         result = await agent.execute(task)
@@ -110,7 +118,7 @@ class TestReportScenario:
             parameters={
                 "results": [],
                 "format": "rtf",
-                "output_path": "/tmp/etap_test_reports",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "output_path": _TEST_REPORT_DIR,
             },
         )
         result = await agent.execute(task)
@@ -126,7 +134,7 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
-                "output_path": "/tmp/etap_test_reports",  # NOSONAR(S5443): /tmp use is intentional & permission-hardened
+                "output_path": _TEST_REPORT_DIR,
             },
         )
         result = await agent.execute(task)

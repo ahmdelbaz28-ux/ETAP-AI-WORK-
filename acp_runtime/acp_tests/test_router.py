@@ -287,12 +287,10 @@ async def test_notification_callback():
         }
     )
     assert called_with is not None  # NOSONAR(S5727): Sonar can't track nonlocal assignment in async callback; this verifies on_notification was actually invoked
-    # SonarCloud S5644 still flags Optional[dict] __getitem__ access even after
-    # the None-check above. Use an explicit dict() cast to satisfy the type
-    # narrowing and access the keys safely.
-    received: dict = dict(called_with)  # type: ignore[arg-type]  — called_with is dict after None-check
-    assert received["method"] == "progress.update"
-    assert received["params"]["percent"] == 75
+    # After the assert, called_with is narrowed from Optional[dict] to dict,
+    # so bracket access is safe (S5644 satisfied).
+    assert called_with["method"] == "progress.update"
+    assert called_with["params"]["percent"] == 75
 
 
 # ------------------------------------------------------- scope validator
