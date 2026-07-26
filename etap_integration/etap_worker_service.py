@@ -178,9 +178,10 @@ async def execute_study(
 if __name__ == "__main__":
     # Load configuration
     port = int(os.environ.get("ETAP_WORKER_PORT", 8080))
-    # Bind to 0.0.0.0 — required for Docker container port-mapping and
-    # Hugging Face Spaces. Override via HOST env var for localhost dev.
-    # SonarCloud S8392 flags this as security-sensitive; it's intentional.
-    host = os.environ.get("ETAP_WORKER_HOST", "0.0.0.0")
+    # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
+    # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
+    # SonarCloud S8392: 0.0.0.0 is NOT the default — it's only used when
+    # explicitly set via the ETAP_WORKER_HOST env var in containerized deployments.
+    host = os.environ.get("ETAP_WORKER_HOST", "127.0.0.1")
     print(f"Starting ETAP Worker on {host}:{port}...")
     uvicorn.run(app, host=host, port=port)

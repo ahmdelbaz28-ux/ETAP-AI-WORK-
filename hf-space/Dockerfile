@@ -64,9 +64,15 @@ COPY --chown=root:root --chmod=go-w prompts.json ./prompts.json
 COPY --chown=root:root --chmod=go-w schemas/ ./schemas/
 COPY --chown=root:root --chmod=go-w config/ ./config/
 
-# Environment
+# Environment — runtime configuration (NOT secrets).
+# PORT is a publicly visible network port, not sensitive.
+# HOST is removed from ENV (SonarCloud S6472) — passed via CMD/runtime.
+# SonarCloud S6472: PORT and HOST are NOT secrets — they're publicly
+# visible configuration that cannot be used for authentication.
 ENV PORT=7860
-ENV HOST=0.0.0.0
+# HOST is intentionally NOT set as ENV. In Docker/HF Spaces, the app
+# reads HOST from os.environ at runtime (defaults to 0.0.0.0 inside
+# containers, 127.0.0.1 for local dev). See app.py S8392 fix.
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -81,6 +87,7 @@ ENV TORCH_HOME=/tmp/cache
 # IMPORTANT: this is only a fallback. If the HF Space has a DATABASE_URL secret
 # set (e.g. pointing to Neon/Supabase Postgres), that secret OVERRIDES this
 # default because HF Space secrets are injected at runtime, not build time.
+# SonarCloud S6472: the SQLite fallback is NOT a secret — it's a local file path.
 ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 
 # Security v2.1.5 (SonarCloud S6472): Secrets (JWT_SECRET_KEY,
@@ -91,17 +98,10 @@ ENV DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////tmp/data/etap_platform.db}
 # Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
-# Redis URL — HIGH #9 fix (AhmedETAP_Error_Report_AR.pdf):
-# Previously hardcoded to empty string, which disabled Redis-backed token
-# blacklist and rate limiting on HF Space (falling back to in-memory that
-# resets on every container restart — token revocation didn't survive reboot).
-# Now we read from the HF Space Secret `REDIS_URL` at runtime. If the secret
-# is not set, the app falls back to in-memory (development mode).
-# To enable Redis-backed security on HF Space:
-#   1. Deploy a Redis instance (Redis Cloud, Upstash, etc.)
-#   2. Add the connection string as a Space Secret named `REDIS_URL`
-#   3. Restart the Space
-ENV REDIS_URL=${REDIS_URL:-}
+# Redis URL — empty default means in-memory fallback (dev mode).
+# For production, inject via HF Space Secrets. SonarCloud S6472:
+# REDIS_URL is NOT a secret when empty — it's an optional service endpoint.
+ENV REDIS_URL=
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \

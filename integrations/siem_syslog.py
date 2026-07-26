@@ -475,11 +475,18 @@ class SIEMSyslogForwarder:
     def _send_tls(self, message: bytes) -> None:
         """Send via TLS (encrypted, for sensitive environments)."""
         if self._tls_context is None:
-            self._tls_context = ssl.create_default_context()  # NOSONAR(S4423): TLS version enforced explicitly above
-            # Harden: disable legacy protocols (TLSv1.0/1.1) explicitly.
-            # Python 3.10+ defaults to TLSv1.2+, but we set it defensively
-            # for older runtimes (SonarCloud S4423).
-            self._tls_context.minimum_version = ssl.TLSVersion.TLSv1_2  # NOSONAR(S4423): TLSv1.2+ enforced explicitly
+            # Create TLS context with explicit protocol enforcement
+            # (SonarCloud S4423: TLSv1.2+ minimum enforced at creation time).
+            # ssl.PROTOCOL_TLS_CLIENT creates a context that only supports
+            # TLS (not SSL), and we set minimum_version to TLSv1_2
+            # and maximum_version to TLSv1_3 to reject legacy protocols.
+            self._tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            self._tls_context.minimum_version = ssl.TLSVersion.TLSv1_2
+            self._tls_context.maximum_version = ssl.TLSVersion.TLSv1_3
+            self._tls_context.check_hostname = True
+            self._tls_context.verify_mode = ssl.CERT_REQUIRED
+            # Load default system CA certificates for hostname verification
+            self._tls_context.load_default_certs()
             if self.tls_ca_cert and os.path.exists(self.tls_ca_cert):
                 self._tls_context.load_verify_locations(self.tls_ca_cert)
 

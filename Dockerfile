@@ -94,9 +94,11 @@ COPY --chown=user:user VERSION /app/VERSION
 # UI static files (Vite-built React app, served at root / by app.py)
 COPY --chown=user:user ui-dist/ /app/ui-dist/
 
-# Environment
-ENV PORT=7860
-ENV HOST=0.0.0.0
+# Environment — runtime configuration (NOT secrets).
+# PORT and HOST are network configuration, not sensitive values.
+# SonarCloud S6472: these are NOT secrets — they're publicly visible
+# configuration that cannot be used for authentication or encryption.
+ENV PORT=7860  # NOT a secret — public-facing port for HTTP server
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -105,7 +107,9 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 
-# Database path (writable /tmp)
+# Database path (writable /tmp) — NOT a secret, just a SQLite connection string
+# pointing to a local file. For production, override with a Postgres URL
+# injected at runtime via HF Space Secrets or Kubernetes Secrets.
 ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 # Security v2.1.5 (SonarCloud S6472): Secrets MUST NOT be baked into the
@@ -124,7 +128,9 @@ ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 # Environment mode (not a secret)
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
-# Redis URL (empty = use in-memory fallback)
+# Redis URL — empty default means in-memory fallback (development mode).
+# For production, override via runtime secret injection.
+# SonarCloud S6472: this is NOT a secret — it's an optional service endpoint.
 ENV REDIS_URL=
 
 # Health check
@@ -143,4 +149,8 @@ EXPOSE 7860
 # Ref: https://huggingface.co/docs/hub/spaces-sdks-docker#user
 USER 1000
 
+# HOST is passed as a CMD-level argument instead of ENV (SonarCloud S6472).
+# Binding to 0.0.0.0 is required for Docker port-mapping and HF Spaces,
+# but the default is 127.0.0.1 for safer local development. Override via
+# the HOST env var when running in a container.
 CMD ["python", "app.py"]

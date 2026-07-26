@@ -25,10 +25,22 @@ from typing import Optional
 import httpx
 
 BASE = os.environ.get("ETAP_DEV_BASE_URL", "http://localhost:8000")
-API_KEY = os.environ.get(
-    "ETAP_DEV_API_KEY",
-    "".join(["etap_dev_key_", "SneIcL0u9eZYDMNm7OIag1q_3SewQuIa4aZYkBrb1KI"]),
-)
+# SonarCloud S6418: previously had a hardcoded API key as default value.
+# Now the default is empty — the env var MUST be set for non-localhost targets.
+API_KEY = os.environ.get("ETAP_DEV_API_KEY", "")
+
+# Warn if API_KEY is missing for non-localhost targets (security requirement).
+if not API_KEY and not BASE.startswith("http://localhost"):
+    print(
+        "FATAL: ETAP_DEV_API_KEY environment variable is required for non-localhost "
+        f"targets (current: {BASE}). Set it before running e2e tests."
+    )
+    sys.exit(1)
+elif not API_KEY:
+    print(
+        "WARNING: ETAP_DEV_API_KEY is not set. Unauthenticated requests will fail "
+        "for endpoints that require authentication."
+    )
 
 PROJECTS_URL = "/api/v1/projects/"
 ASSETS_URL = "/api/v1/assets"

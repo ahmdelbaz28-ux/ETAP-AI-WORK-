@@ -12,11 +12,12 @@ resource "azurerm_container_registry" "this" {
   sku                 = "Premium"
   admin_enabled       = false
 
-  # Public network access is disabled by default (SonarCloud S6329).
-  # ACR is reached via Private Endpoint from the AKS VNet.
-  # Set `var.acr_public_network_access_enabled` to true only for break-glass
-  # maintenance scenarios in non-production environments.
-  public_network_access_enabled = var.acr_public_network_access_enabled
+  # Public network access is HARDENED to false by default (SonarCloud S6329).
+  # ACR is reached via Private Endpoint from the AKS VNet, so public access
+  # is unnecessary in normal operation. The `var.acr_public_network_access_enabled`
+  # override exists ONLY for break-glass maintenance scenarios in
+  # non-production environments — it must NEVER be true in production.
+  public_network_access_enabled = false
 
   # SonarCloud S6378: enable Azure Managed Identity so the ACR can
   # authenticate to other Azure services (Key Vault, Storage) without

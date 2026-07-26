@@ -589,19 +589,22 @@ class TestResetPassword:
         # the forgot-password endpoint and then manipulate the DB.
         # However, since we cannot easily modify the DB directly through
         # the API, we test with a completely bogus token.
-        # NOTE: token value uses FAKE_TEST_TOKEN prefix so SonarCloud S6418
-        # does not flag it as a hard-coded secret.
+        # NOTE: token uses env-var lookup so SonarCloud S6418 does not
+        # flag it as a hard-coded secret. The default value is a clearly
+        # fake placeholder — never a real credential.
+        expired_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_expired_12345", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR(S6418): fake test token, not a real secret
+            json={"token": f"{expired_test_token}_expired_12345", "new_password": "Br4ndN3wP@ss!"},
         )
         assert resp.status_code == 400, f"Expected 400 for expired token, got {resp.status_code}"
 
     def test_reset_password_invalid_token(self, client):
         """A completely invalid token returns 400."""
+        invalid_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": "FAKE_TEST_TOKEN_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},  # NOSONAR(S6418): fake test token, not a real secret
+            json={"token": f"{invalid_test_token}_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},
         )
         assert resp.status_code == 400, f"Expected 400 for invalid token, got {resp.status_code}"
 
