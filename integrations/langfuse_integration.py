@@ -104,7 +104,9 @@ class LangfuseTracker:
         self.secret_key = os.getenv("LANGFUSE_SECRET_KEY", "")
         self.base_url = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
         self.default_model = os.getenv("LANGFUSE_DEFAULT_MODEL", "gpt-4o")
-        self.timeout = int(os.getenv("LANGFUSE_TIMEOUT", "5"))
+        # Handle float strings (e.g. "5.0") — HF Space sets LANGFUSE_TIMEOUT="5.0"
+        # int("5.0") raises ValueError; int(float("5.0")) returns 5.
+        self.timeout = int(float(os.getenv("LANGFUSE_TIMEOUT", "5")))
         self.max_capture_chars = int(os.getenv("LANGFUSE_MAX_CAPTURE_CHARS", "4096"))
 
         # Explicit disable flag takes precedence
