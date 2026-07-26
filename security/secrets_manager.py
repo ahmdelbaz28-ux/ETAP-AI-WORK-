@@ -33,9 +33,13 @@ from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
 
-SECRETS_DIR = Path(os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets")))
+SECRETS_DIR = Path(
+    os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets"))
+)
 AUDIT_DIR = Path(__file__).parent / "audit"
-ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"  # NOSONAR: intentional repetition (audit constant)
+ENCRYPTION_KEY_FILE = (
+    SECRETS_DIR / ".encryption_key"
+)  # NOSONAR: intentional repetition (audit constant)
 REQUIRED_SECRETS = [
     "JWT_SECRET_KEY",
     "ENCRYPTION_KEY",
@@ -62,7 +66,9 @@ def _ensure_dir(path: Path) -> Path:
         # Fallback to /tmp on restricted environments (HF Spaces, CI, containers).
         # We create the directory with 0o700 permissions so that even though
         # /tmp is world-writable, our subdirectory is owner-only.
-        fallback = Path("/tmp/etap-secrets")  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+        fallback = Path(
+            "/tmp/etap-secrets"
+        )  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
         fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
         try:
             os.chmod(fallback, 0o700)
@@ -167,7 +173,9 @@ class VaultSecretsManager:
         # Deterministic mapping from Vault (path, key) to LocalSecretsManager service file.
         # Sanitize path characters the same way _service_file does (replace non-alnum with _)
         raw = f"{self.mount_path}__{path}__{key}"
-        return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)  # NOSONAR: intentional repetition (audit constant)
+        return re.sub(
+            r"[^a-zA-Z0-9_-]", "_", raw
+        )  # NOSONAR: intentional repetition (audit constant)
 
     def get_secret(self, path: str, key: str) -> Optional[str]:
         """Retrieve a secret from Vault or local fallback."""
@@ -532,7 +540,9 @@ class EnvironmentValidator:
     """
 
     def __init__(
-        self, env_path: Optional[Path] = None, required_secrets: list[str] | None = None,
+        self,
+        env_path: Optional[Path] = None,
+        required_secrets: list[str] | None = None,
     ):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
@@ -582,7 +592,8 @@ class EnvironmentValidator:
                     import win32security
 
                     sd = win32security.GetFileSecurity(
-                        str(env_path), win32security.OWNER_SECURITY_INFORMATION,
+                        str(env_path),
+                        win32security.OWNER_SECURITY_INFORMATION,
                     )
                     owner_sid = sd.GetSecurityDescriptorOwner()
                     owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid)
@@ -599,7 +610,11 @@ class EnvironmentValidator:
             logger.exception("Cannot check .env permissions: %s", exc)
             return False
 
-    def check_for_hardcoded_secrets(self, file_patterns: list[str] | None = None) -> list[dict]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def check_for_hardcoded_secrets(
+        self, file_patterns: list[str] | None = None
+    ) -> list[
+        dict
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]

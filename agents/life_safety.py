@@ -194,7 +194,9 @@ except PermissionError:
     # Fallback to /tmp on restricted environments (HF Spaces, CI) where
     # HOME may point to a non-writable directory (e.g. /root when running
     # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
-    _fallback = Path("/tmp/cua_audit")  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
+    _fallback = Path(
+        "/tmp/cua_audit"
+    )  # NOSONAR: /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
     _fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
     # Harden immediately at the point of /tmp use so other users on the host
     # cannot read kill-switch state or audit logs. mkdir's `mode` arg is
@@ -223,8 +225,7 @@ _resolved_expected_parent = os.path.realpath(Path.home() / ".etap")
 if not _resolved_audit_dir.startswith(_resolved_expected_parent):
     _CUA_AUDIT_DIR = Path(_DEFAULT_CUA_AUDIT_DIR)
     logger.warning(
-        "CUA_AUDIT_DIR escapes expected parent directory; "
-        "falling back to default %s",
+        "CUA_AUDIT_DIR escapes expected parent directory; falling back to default %s",
         _DEFAULT_CUA_AUDIT_DIR,
     )
 KILL_SWITCH_PATH = _CUA_AUDIT_DIR / "cua_kill_switch"
@@ -268,7 +269,9 @@ def activate_kill_switch(reason: str = "manual") -> None:
         indent=2,
     )
     _write_secure_file(KILL_SWITCH_PATH, payload)
-    logger.critical("🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason)  # NOSONAR: logging injection; user input is sanitized upstream
+    logger.critical(
+        "🚨 CUA KILL SWITCH ACTIVATED — reason: %s", reason
+    )  # NOSONAR: logging injection; user input is sanitized upstream
 
     # ── SIEM FORWARDING — record the kill switch activation ──────────────
     # This is critical for forensic analysis: if someone hits the emergency
@@ -476,7 +479,7 @@ class LifeSafetyGuard:
 
     # Mandatory cooldown between control actions (seconds)
     CONTROL_COOLDOWN_SECONDS = 2.0
-  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     # OpenCV accuracy is too low for control — read-only mode only
     DEGRADED_VISION_SOURCES = {"opencv"}
 
@@ -930,6 +933,7 @@ class LifeSafetyGuard:
         def _do_upload(entry: dict, url: str, ak: str, sk: str) -> None:
             try:
                 import requests
+
                 entry_id = entry.get("entry_id", "unknown")
                 resp = requests.put(
                     f"{url.rstrip('/')}/safety_chain_{entry_id}.json",
@@ -944,11 +948,15 @@ class LifeSafetyGuard:
                 if resp.ok:
                     logger.debug("Audit entry %s backed up to %s", entry_id, url)
                 else:
-                    logger.warning("Audit backup failed: HTTP %s for entry %s", resp.status_code, entry_id)
+                    logger.warning(
+                        "Audit backup failed: HTTP %s for entry %s", resp.status_code, entry_id
+                    )
             except Exception as exc:
                 logger.debug("Audit backup skipped (non-blocking): %s", exc)
 
-        t = threading.Thread(target=_do_upload, args=(entry, bucket_url, access_key, secret_key), daemon=True)
+        t = threading.Thread(
+            target=_do_upload, args=(entry, bucket_url, access_key, secret_key), daemon=True
+        )
         t.start()
 
     # ─── Internal: helpers ─────────────────────────────────────────────────

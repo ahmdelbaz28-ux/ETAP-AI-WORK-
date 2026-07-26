@@ -61,7 +61,10 @@ class ArcGISProIndexingWorkflow:
         return docs_to_process
 
     def _extract_doc_items(
-        self, section: dict[str, Any], base_url: str, parent: Optional[str] = None,
+        self,
+        section: dict[str, Any],
+        base_url: str,
+        parent: Optional[str] = None,
     ) -> list[dict[str, Any]]:
         """
         Recursively extract documentation items from nested sections.
@@ -95,7 +98,7 @@ class ArcGISProIndexingWorkflow:
         for item in raw_data:
             # Validate URL
             if not self._is_valid_url(item["url"]):
-                self.logger.warning("Invalid URL skipped: %s", item['url'])
+                self.logger.warning("Invalid URL skipped: %s", item["url"])
                 continue
 
             # Clean title
@@ -207,7 +210,7 @@ class ArcGISProIndexingWorkflow:
                     self.logger.info("Indexed %s/%s items", i + 1, len(transformed_data))
 
             except Exception as e:
-                self.logger.exception("Failed to index document %s: %s", item['url'], str(e))
+                self.logger.exception("Failed to index document %s: %s", item["url"], str(e))
 
         self.logger.info("Successfully indexed %s documents", len(transformed_data))
 
@@ -241,7 +244,7 @@ class ArcGISProIndexingWorkflow:
         """
         Execute the complete workflow.
         """
-        self.logger.info("Starting workflow: %s", self.config['workflow_name'])
+        self.logger.info("Starting workflow: %s", self.config["workflow_name"])
         start_time = time.time()
 
         try:

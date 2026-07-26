@@ -570,7 +570,9 @@ class ETAPGUIAgent(BaseAgent):
             # via os.chmod after mkdir; _CUA_AUDIT_DIR defaults to ~/.etap/cua_audit
             # (per-user, not publicly writable). /tmp/cua_audit is only used as a
             # PermissionError fallback in life_safety.py and is also chmod'd 0o700.
-            browser_executor = BrowserCUAExecutor(audit_dir=audit_dir or str(_CUA_AUDIT_DIR))  # NOSONAR: S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
+            browser_executor = BrowserCUAExecutor(
+                audit_dir=audit_dir or str(_CUA_AUDIT_DIR)
+            )  # NOSONAR: S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
             browser_deps = browser_executor.check_dependencies()
         except Exception as exc:  # noqa: BLE001
             logger.debug("BrowserCUAExecutor init failed: %s", exc)
@@ -583,7 +585,10 @@ class ETAPGUIAgent(BaseAgent):
             executor = CUAExecutor(
                 # NOSONAR: see justification above — audit_dir is hardened to 0o700
                 # by BaseCUAExecutor.__init__.
-                audit_dir=audit_dir or str(_CUA_AUDIT_DIR),  # NOSONAR: S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
+                audit_dir=audit_dir
+                or str(
+                    _CUA_AUDIT_DIR
+                ),  # NOSONAR: S5443 — audit_dir is permission-hardened by BaseCUAExecutor.__init__
                 action_timeout=60,
             )
             executor_type = "desktop"

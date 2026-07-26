@@ -40,6 +40,7 @@ Usage:
     else:
         # Fall back to env vars
 """
+
 from __future__ import annotations
 
 import base64
@@ -135,17 +136,28 @@ class APIKeyStore:
     # Settings.tsx (POPULAR_PROVIDERS) MUST stay in sync with this set.
     SUPPORTED_PROVIDERS = {
         # Coding agent platforms
-        "opencode", "kilocode", "claudecode",
+        "opencode",
+        "kilocode",
+        "claudecode",
         # Major cloud providers
-        "openai", "anthropic", "gemini",
-        "nvidia", "qwen",
+        "openai",
+        "anthropic",
+        "gemini",
+        "nvidia",
+        "qwen",
         # Specialized / open source providers
-        "deepseek", "groq", "fireworks",
-        "cloudflare", "zhipu",
-        "cohere", "huggingface",
+        "deepseek",
+        "groq",
+        "fireworks",
+        "cloudflare",
+        "zhipu",
+        "cohere",
+        "huggingface",
     }
 
-    def __init__(self, db_path: str = str(_DATA_DIR / "api_keys.db")) -> None:  # NOSONAR: S5443 — db_path defaults to per-user _DATA_DIR; if caller-supplied, parent dir is hardened to 0o700 below
+    def __init__(
+        self, db_path: str = str(_DATA_DIR / "api_keys.db")
+    ) -> None:  # NOSONAR: S5443 — db_path defaults to per-user _DATA_DIR; if caller-supplied, parent dir is hardened to 0o700 below
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden parent directory to owner-only (0o700) so other users on the
@@ -180,7 +192,8 @@ class APIKeyStore:
                 return Fernet(fernet_key)
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
-                    "Failed to init cipher from env var: %s — generating random key", exc,
+                    "Failed to init cipher from env var: %s — generating random key",
+                    exc,
                 )
 
         # Generate a random key (persists in memory only — keys lost on restart)

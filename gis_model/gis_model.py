@@ -50,7 +50,9 @@ class GeoCoordinate:
     @staticmethod
     def from_dict(data: dict) -> GeoCoordinate:
         return GeoCoordinate(
-            latitude=data["lat"], longitude=data["lon"], elevation=data.get("elev"),
+            latitude=data["lat"],
+            longitude=data["lon"],
+            elevation=data.get("elev"),
         )
 
     def distance_to(self, other: GeoCoordinate) -> float:
@@ -144,7 +146,9 @@ class PolylineGeometry:
         # fraction is in (0, +inf) — the elif catches [1, +inf).
         if fraction <= 0:
             return self.coordinates[0]
-        elif fraction >= 1:  # NOSONAR: clamps upper bound; fraction > 0 here, branch catches [1, +inf)
+        elif (
+            fraction >= 1
+        ):  # NOSONAR: clamps upper bound; fraction > 0 here, branch catches [1, +inf)
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = fraction * total
@@ -358,7 +362,9 @@ class GISDatabase:
                     del self.spatial_index[key]
 
     def find_nearby_assets(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, coord: GeoCoordinate, radius_meters: float,
+        self,
+        coord: GeoCoordinate,
+        radius_meters: float,
     ) -> list[tuple[GISAsset, float]]:
         """
         Find all assets within a given radius of a coordinate.
@@ -551,14 +557,18 @@ class GISDatabase:
         """Validate spatial consistency of all assets."""
         errors = []
         for asset in self.assets.values():
-            if asset.asset_type in (
-                GISAssetType.BUS,
-                GISAssetType.SUBSTATION,
-                GISAssetType.LOAD,
-                GISAssetType.GENERATOR,
-                GISAssetType.SWITCH,
-                GISAssetType.DER,
-            ) and not asset.position:
+            if (
+                asset.asset_type
+                in (
+                    GISAssetType.BUS,
+                    GISAssetType.SUBSTATION,
+                    GISAssetType.LOAD,
+                    GISAssetType.GENERATOR,
+                    GISAssetType.SWITCH,
+                    GISAssetType.DER,
+                )
+                and not asset.position
+            ):
                 errors.append(
                     f"Point asset '{asset.asset_id}' ({asset.asset_type.value}) missing position",
                 )
