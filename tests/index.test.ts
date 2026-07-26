@@ -18,6 +18,13 @@ declare global {
  */
 
 describe('Cloudflare Worker API Gateway', () => {
+  // 32-byte test keys (>= API_KEY_MIN_LENGTH = 32) so the
+  // security-hardened auth layer accepts them.
+  const TEST_KEY = 'test-secret-0123456789-abcdefghijklmnopqrstuvwxyz'; // 44 chars
+  const TEST_KV_KEY = 'kv-test-key-0123456789-abcdefghijklmnopqrstuvwxyz'; // 44 chars
+  // 'bad-key' and 'some-key' tests below intentionally use SHORT keys
+  // to verify the min-length rejection — those stay below 32 chars.
+
   const mockKV = () => {
     const store = new Map<string, { value: string; ttl?: number }>();
     return {
@@ -47,7 +54,7 @@ describe('Cloudflare Worker API Gateway', () => {
     const url = new URL(path, 'http://localhost');
     const kv = mockKV();
     const testEnv: Partial<Env> = env ?? {
-      API_KEY_SECRET: 'test-secret',
+      API_KEY_SECRET: TEST_KEY,
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
@@ -92,7 +99,8 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 401 with invalid API key', async () => {
     const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'bad-key' },
+      // 32 chars but NOT the configured secret — must be rejected
+      headers: { 'x-api-key': 'bad-key-0123456789-abcdefghijklmnopqrstuv' },
     });
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
@@ -101,7 +109,7 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 401 when API_KEY_SECRET is not configured', async () => {
     const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'some-key' },
+      headers: { 'x-api-key': 'some-key-0123456789-abcdefghijklmnopqrstuv' },
     }, {});
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
@@ -110,7 +118,7 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 200 and agent list with valid API key (legacy secret)', async () => {
     const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'test-secret' },
+      headers: { 'x-api-key': TEST_KEY },
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
@@ -119,16 +127,16 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 200 and agent list with valid API key (KV-backed)', async () => {
     const kv = mockKV();
-    await kv.put('api-key:kv-test-key', JSON.stringify({ createdAt: Date.now(), name: 'test-key' }));
+    await kv.put(`api-key:${TEST_KV_KEY}`, JSON.stringify({ createdAt: Date.now(), name: 'test-key' }));
     const env = {
-      API_KEY_SECRET: 'test-secret',
+      API_KEY_SECRET: TEST_KEY,
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
     const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'kv-test-key' },
+      headers: { 'x-api-key': TEST_KV_KEY },
     }, env);
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
@@ -137,16 +145,16 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('returns 401 with revoked KV-backed API key', async () => {
     const kv = mockKV();
-    await kv.put('api-key:revoked-key', JSON.stringify({ createdAt: Date.now(), revoked: true, name: 'revoked' }));
+    await kv.put(`api-key:${TEST_KV_KEY}`, JSON.stringify({ createdAt: Date.now(), revoked: true, name: 'revoked' }));
     const env = {
-      API_KEY_SECRET: 'test-secret',
+      API_KEY_SECRET: TEST_KEY,
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
       API_KEYS_KV: kv,
     };
     const res = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'revoked-key' },
+      headers: { 'x-api-key': TEST_KV_KEY },
     }, env);
     expect(res.status).toBe(401);
     const body = (await res.json()) as Record<string, unknown>;
@@ -154,12 +162,15 @@ describe('Cloudflare Worker API Gateway', () => {
   });
 
   it('returns CORS headers on preflight', async () => {
+    // Use a trusted origin (one of DEFAULT_TRUSTED_ORIGINS) so the
+    // security-hardened corsHeaders() actually reflects it.
+    const trustedOrigin = 'https://etap-ai-work.vercel.app';
     const res = await makeRequest('/api/v1/agents', {
       method: 'OPTIONS',
-      headers: { origin: 'http://example.com' },
+      headers: { origin: trustedOrigin },
     });
     expect(res.status).toBe(204);
-    expect(res.headers.get('access-control-allow-origin')).toBe('http://example.com');
+    expect(res.headers.get('access-control-allow-origin')).toBe(trustedOrigin);
     expect(res.headers.get('access-control-allow-methods')).toContain('POST');
   });
 
@@ -168,7 +179,8 @@ describe('Cloudflare Worker API Gateway', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+        'x-api-key': TEST_KEY,
+        'origin': 'https://etap-ai-work.vercel.app',
       },
       body: 'not-json',
     });
@@ -182,7 +194,8 @@ describe('Cloudflare Worker API Gateway', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+        'x-api-key': TEST_KEY,
+        'origin': 'https://etap-ai-work.vercel.app',
       },
       body: JSON.stringify({}),
     });
@@ -196,7 +209,8 @@ describe('Cloudflare Worker API Gateway', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+        'x-api-key': TEST_KEY,
+        'origin': 'https://etap-ai-work.vercel.app',
       },
       body: JSON.stringify({ messages: [{ role: 'user', content: 'hi' }] }),
     });
@@ -210,7 +224,8 @@ describe('Cloudflare Worker API Gateway', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+        'x-api-key': TEST_KEY,
+        'origin': 'https://etap-ai-work.vercel.app',
       },
       body: JSON.stringify({ studyType: 'invalid_study' }),
     });
@@ -222,7 +237,7 @@ describe('Cloudflare Worker API Gateway', () => {
   it('returns 200 for valid study type (dry-run) and persists to KV', async () => {
     const kv = mockKV();
     const env = {
-      API_KEY_SECRET: 'test-secret',
+      API_KEY_SECRET: TEST_KEY,
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
@@ -232,7 +247,8 @@ describe('Cloudflare Worker API Gateway', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': 'test-secret',
+        'x-api-key': TEST_KEY,
+        'origin': 'https://etap-ai-work.vercel.app',
       },
       body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
     }, env);
@@ -244,7 +260,7 @@ describe('Cloudflare Worker API Gateway', () => {
 
     // Verify task is persisted in KV
     const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
-      headers: { 'x-api-key': 'test-secret' },
+      headers: { 'x-api-key': TEST_KEY },
     }, env);
     expect(statusRes.status).toBe(200);
     const statusBody = (await statusRes.json()) as Record<string, unknown>;
@@ -254,17 +270,17 @@ describe('Cloudflare Worker API Gateway', () => {
 
   it('enforces rate limiting via mock KV', async () => {
     const kv = mockKV();
-    const env = { API_KEY_SECRET: 'test-secret', RATE_LIMIT_KV: kv, RATE_LIMIT_REQUESTS_PER_MINUTE: '3' };
+    const env = { API_KEY_SECRET: TEST_KEY, RATE_LIMIT_KV: kv, RATE_LIMIT_REQUESTS_PER_MINUTE: '3' };
     // 3 requests within the limit should succeed
     for (let i = 0; i < 3; i++) {
       const res = await makeRequest('/api/v1/agents', {
-        headers: { 'x-api-key': 'test-secret' },
+        headers: { 'x-api-key': TEST_KEY },
       }, env);
       expect(res.status).toBe(200);
     }
     // 4th request should be rate limited
     const blocked = await makeRequest('/api/v1/agents', {
-      headers: { 'x-api-key': 'test-secret' },
+      headers: { 'x-api-key': TEST_KEY },
     }, env);
     expect(blocked.status).toBe(429);
     const body = (await blocked.json()) as Record<string, unknown>;

@@ -39,8 +39,10 @@ function makeRequest(
 ): Promise<Response> {
   const url = new URL(path, 'http://localhost');
   const kv = mockKV();
+  // 44-char key — satisfies API_KEY_MIN_LENGTH (32).
+  const TEST_KEY = 'test-secret-0123456789-abcdefghijklmnopqrstuvwxyz';
   const testEnv: Partial<Env> = env ?? {
-    API_KEY_SECRET: 'test-secret',
+    API_KEY_SECRET: TEST_KEY,
     RATE_LIMIT_KV: kv,
     TASK_STORE_KV: kv,
     METRICS_KV: kv,
@@ -50,28 +52,35 @@ function makeRequest(
   return worker.fetch(new Request(url.toString(), init), testEnv as any, testCtx);
 }
 
+// 44-char key — satisfies API_KEY_MIN_LENGTH (32).
+// POST requests also need a trusted origin to pass CSRF validation.
+const TEST_KEY = 'test-secret-0123456789-abcdefghijklmnopqrstuvwxyz';
+const TRUSTED_ORIGIN = 'https://etap-ai-work.vercel.app';
+const POST_HEADERS = {
+  'content-type': 'application/json',
+  'x-api-key': TEST_KEY,
+  'origin': TRUSTED_ORIGIN,
+};
+
 describe('Engineering Service Integration', () => {
   it('returns 503 when Engineering Service is not configured', async () => {
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
-      },
+      headers: POST_HEADERS,
       body: JSON.stringify({ studyType: 'load_flow', parameters: {} }),
     });
+    // Note: status >= 500 responses have their message masked to
+    // 'Internal server error' by errorResponse() per security hardening
+    // (commit c24ae1d3 — Better Auth best practices: never leak internals).
+    // We verify the status code; the original message is still in the
+    // audit log, not the response body.
     expect(res.status).toBe(503);
-    const body = (await res.json()) as Record<string, unknown>;
-    expect(body.message).toMatch(/Engineering Service is not configured/i);
   });
 
   it('returns 200 for dry-run mode even without Engineering Service', async () => {
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
-      },
+      headers: POST_HEADERS,
       body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
     });
     expect(res.status).toBe(200);
@@ -83,10 +92,7 @@ describe('Engineering Service Integration', () => {
   it('validates study type before checking Engineering Service', async () => {
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
-      },
+      headers: POST_HEADERS,
       body: JSON.stringify({ studyType: 'invalid_type', parameters: {} }),
     });
     expect(res.status).toBe(400);
@@ -97,10 +103,7 @@ describe('Engineering Service Integration', () => {
   it('requires studyType in request body', async () => {
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
-      },
+      headers: POST_HEADERS,
       body: JSON.stringify({ parameters: {} }),
     });
     expect(res.status).toBe(400);
@@ -135,10 +138,7 @@ describe('Engineering Service Integration', () => {
     for (const studyType of validTypes) {
       const res = await makeRequest('/api/v1/studies/run', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': 'test-secret',
-        },
+        headers: POST_HEADERS,
         body: JSON.stringify({ studyType, parameters: {}, dryRun: true }),
       });
       expect(res.status).toBe(200);
@@ -159,7 +159,7 @@ describe('Engineering Service Integration', () => {
   it('persists task to KV and returns status', async () => {
     const kv = mockKV();
     const env = {
-      API_KEY_SECRET: 'test-secret',
+      API_KEY_SECRET: TEST_KEY,
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
@@ -167,10 +167,7 @@ describe('Engineering Service Integration', () => {
     };
     const res = await makeRequest('/api/v1/studies/run', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': 'test-secret',
-      },
+      headers: POST_HEADERS,
       body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
     }, env);
     expect(res.status).toBe(200);
@@ -178,7 +175,7 @@ describe('Engineering Service Integration', () => {
     const taskId = body.taskId as string;
 
     const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
-      headers: { 'x-api-key': 'test-secret' },
+      headers: { 'x-api-key': TEST_KEY },
     }, env);
     expect(statusRes.status).toBe(200);
     const statusBody = (await statusRes.json()) as Record<string, unknown>;
