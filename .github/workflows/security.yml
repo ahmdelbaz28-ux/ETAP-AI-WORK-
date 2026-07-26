@@ -39,7 +39,7 @@ jobs:
         with:
           languages: javascript-typescript, python
       - name: Build Python
-        run: pip install --only-binary :all: -r requirements.txt  # NOSONAR: CodeQL build; requirements.txt pins versions in-repo; continue-on-error=true below makes this advisory
+        run: "pip install --only-binary :all: -r requirements.txt  # NOSONAR: CodeQL build; requirements.txt pins versions in-repo; continue-on-error=true below makes this advisory"
         continue-on-error: true
       - name: Build TypeScript
         run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
