@@ -251,6 +251,11 @@ from fastapi import Depends, HTTPException, Query, status  # noqa: E402
 from sqlalchemy import func, select  # noqa: E402
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
 
+from api._messages import (  # noqa: E402
+    MSG_PROJECT_ALREADY_DELETED,
+    MSG_PROJECT_DELETED,
+    MSG_PROJECT_NOT_FOUND,
+)
 from api.auth import CurrentUserDep  # noqa: E402
 from api.database import get_db  # noqa: E402
 from api.dependencies import (  # noqa: E402
@@ -258,7 +263,6 @@ from api.dependencies import (  # noqa: E402
     get_api_key,
     pagination_params,
 )
-from api._messages import MSG_PROJECT_NOT_FOUND, MSG_PROJECT_DELETED, MSG_PROJECT_ALREADY_DELETED  # noqa: E402
 
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ApiKeyDep = Annotated[str, Depends(get_api_key)]

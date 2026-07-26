@@ -32,11 +32,11 @@ import uuid
 from datetime import UTC, datetime
 
 from agents.cua_base_executor import (
+    DEFAULT_ACTION_TIMEOUT,
     BaseCUAExecutor,
     CUAAction,
     CUAExecutionResult,
     CUAStepResult,
-    DEFAULT_ACTION_TIMEOUT,
 )
 
 logger = logging.getLogger("agent.cua_executor")

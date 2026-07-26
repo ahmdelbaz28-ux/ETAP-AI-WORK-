@@ -12,6 +12,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+from api._messages import ISO_8601_UTC_FMT
 from core.bootstrap import (
     _failed_count,
     _metrics_lock,
@@ -20,7 +21,6 @@ from core.bootstrap import (
     _total_execution_time_sec,
 )
 from core.metrics import generate_metrics, get_metrics_content_type
-from api._messages import ISO_8601_UTC_FMT
 
 router = APIRouter(prefix="", tags=["health"])
 

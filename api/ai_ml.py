@@ -21,6 +21,7 @@ from typing import Any
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
+
 from api._messages import MSG_INTERNAL_ERROR
 
 logger = logging.getLogger(__name__)

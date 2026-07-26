@@ -24,6 +24,7 @@ from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
@@ -54,8 +55,6 @@ from core.tracing import get_tracer
 from services.study_service import (
     StudyRequest,
 )
-
-from api._messages import MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE, ISO_8601_UTC_FMT
 
 # ─── Shared format constants ────────────────────────────────────────────────
 # Imported from api._messages (SonarCloud python:S1192 — consolidated).

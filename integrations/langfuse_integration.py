@@ -68,7 +68,8 @@ except ImportError:
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 
-from integrations._observability_base import NoOpContext as _NoOpContext, build_health_check
+from integrations._observability_base import NoOpContext as _NoOpContext
+from integrations._observability_base import build_health_check
 
 
 def _env_truthy(var: str, default: bool = False) -> bool:

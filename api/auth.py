@@ -34,6 +34,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
+from api._messages import (
+    MSG_PASSWORD_MIN_LENGTH,
+    MSG_PASSWORD_TOO_COMMON,
+    MSG_USER_NOT_FOUND,
+    MSG_USER_NOT_FOUND_OR_DEACTIVATED,
+)
+
 UTC = timezone.utc  # noqa: UP017
 # Module-level constants
 _AUTH_LOGGER_NAME = "etap.auth"
@@ -70,7 +77,6 @@ from api.dependencies import (
     pagination_params,
     require_role,
 )
-from api._messages import MSG_USER_NOT_FOUND, MSG_USER_NOT_FOUND_OR_DEACTIVATED, MSG_PASSWORD_MIN_LENGTH, MSG_PASSWORD_TOO_COMMON
 
 # ---------------------------------------------------------------------------
 # JWT configuration

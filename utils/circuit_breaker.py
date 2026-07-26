@@ -16,18 +16,19 @@ for any remaining external imports while eliminating the duplicate class.
 from __future__ import annotations
 
 import logging
-import time
 import warnings
 from typing import Any
 
 # Import canonical implementation — this module is now a thin facade
 from engine.resilience import (
     CircuitBreaker as _CanonicalCircuitBreaker,
-    CircuitBreakerOpenError,
+)
+from engine.resilience import (
     CircuitBreakerState,
+)
+from engine.resilience import (
     get_circuit_breaker as _canonical_get_circuit_breaker,
 )
-
 
 logger = logging.getLogger("utils.circuit_breaker")
 
