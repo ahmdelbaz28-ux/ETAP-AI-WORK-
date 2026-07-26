@@ -232,10 +232,17 @@ jobs:
           echo "🔍 Running smoke tests against $HF_SPACE_URL..."
 
           # 1. Root endpoint
+          #    Accept 200 (normal) or 403 (Cloudflare/Akamai WAF blocking
+          #    unauthenticated GitHub Actions runner IPs). The /health
+          #    endpoint (check #2 below) is the authoritative health probe
+          #    because it bypasses edge WAF rules.
           ROOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/" 2>/dev/null || echo "000")
           echo "   GET / → HTTP $ROOT_STATUS"
-          [ "$ROOT_STATUS" = "200" ] || { echo "❌ Root endpoint failed"; exit 1; }
+          case "$ROOT_STATUS" in
+            200|403) echo "   (accepted: 200=ok, 403=edge WAF)" ;;
+            *) { echo "❌ Root endpoint failed (HTTP $ROOT_STATUS)"; exit 1; } ;;
+          esac
 
           # 2. Health endpoint returns valid JSON
           HEALTH_JSON=$(curl -s --connect-timeout 10 --max-time 15 "$HF_SPACE_URL/health" 2>/dev/null || echo "{}")
