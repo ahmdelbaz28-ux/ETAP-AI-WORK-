@@ -42,8 +42,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from agents.ahmed_etap_orchestrator import (  # noqa: E402
-    AhmedETAPSkillAgent,
     PEER_REVIEW_MATRIX,
+    AhmedETAPSkillAgent,
     canonicalize_study_type,
 )
 from agents.orchestrator import (  # noqa: E402
@@ -51,7 +51,6 @@ from agents.orchestrator import (  # noqa: E402
     StudyType,
     get_orchestrator,
 )
-
 
 # ---------------------------------------------------------------------------
 # 1. Every agent declared in AGENTS.md is registered in the orchestrator
@@ -323,10 +322,15 @@ async def test_shared_context_coupling_load_flow_to_short_circuit():
     only. Never pass full prompts between agents.'
     """
     from agents.ahmed_etap_orchestrator import (
-        ProjectRef, SharedContext, TaskRecord,
+        ProjectRef,
+        SharedContext,
+        TaskRecord,
     )
     from agents.orchestrator import (
-        AgentResult, AgentStatus, EngineeringTask, StudyType,
+        AgentResult,
+        AgentStatus,
+        EngineeringTask,
+        StudyType,
     )
 
     ctx = SharedContext(project=ProjectRef(name="CouplingTest"), max_tokens=8000)
@@ -439,8 +443,8 @@ def test_no_agent_reloads_prompt_inside_execute():
             if in_method and "get_system_prompt(" in line and "def " not in stripped:
                 offenders.append((py.name, i, stripped))
     assert not offenders, (
-        f"Agents calling get_system_prompt() inside execute/run methods "
-        f"(per-call prompt reload = token waste):\n"
+        "Agents calling get_system_prompt() inside execute/run methods "
+        "(per-call prompt reload = token waste):\n"
         + "\n".join(f"  {n}:{l}: {c}" for n, l, c in offenders)
     )
 

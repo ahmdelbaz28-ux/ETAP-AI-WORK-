@@ -13,6 +13,7 @@ _TEST_REPORT_DIR = tempfile.mkdtemp(prefix="test_reporting_")
 
 # Cleanup on module unload
 import atexit
+
 atexit.register(lambda: __import__('shutil').rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
 from reporting.advanced_reports import (

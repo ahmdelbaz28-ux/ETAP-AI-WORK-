@@ -23,18 +23,13 @@ WORKDIR /app
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # SonarCloud docker:S7018: package names sorted alphanumerically
     curl g++ gcc \
-    # Playwright Chromium runtime deps (libnss3, libnspr4, libatk1.0, etc.)
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
     libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
     libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
     libxkbcommon0 libxrandr2 \
-    # Tesseract OCR — for offline vision fallback (integrations/opencv_vision.py)
-    # Used when Gemini Vision is unreachable (network down, API quota exceeded)
     tesseract-ocr tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/* \
-    # Create non-root user (UID 1000 as required by HF Spaces)
     && useradd -m -u 1000 user \
     && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
     && chown -R user:user /app /tmp
@@ -99,7 +94,13 @@ COPY --chown=user:user ui-dist/ /app/ui-dist/
 # PORT and HOST are network configuration, not sensitive values.
 # SonarCloud S6472: these are NOT secrets — they're publicly visible
 # configuration that cannot be used for authentication or encryption.
-ENV PORT=7860  # NOT a secret — public-facing port for HTTP server
+ENV PORT=7860
+# HOST=0.0.0.0 is required for Docker/HF Spaces port-mapping.
+# Without it, uvicorn binds to 127.0.0.1 and the HF Space platform
+# health probe cannot reach the container — resulting in RUNTIME_ERROR:
+# "Launch timed out, workload was not healthy after 30 min".
+# SonarCloud S6472: binding address is network config, NOT a secret.
+ENV HOST=0.0.0.0
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -150,8 +151,7 @@ EXPOSE 7860
 # Ref: https://huggingface.co/docs/hub/spaces-sdks-docker#user
 USER 1000
 
-# HOST is passed as a CMD-level argument instead of ENV (SonarCloud S6472).
-# Binding to 0.0.0.0 is required for Docker port-mapping and HF Spaces,
-# but the default is 127.0.0.1 for safer local development. Override via
-# the HOST env var when running in a container.
+# HOST=0.0.0.0 is set via ENV above so uvicorn binds to all interfaces,
+# which is required for Docker/HF Spaces port-mapping. For local development,
+# override HOST=127.0.0.1 when running outside a container.
 CMD ["python", "app.py"]

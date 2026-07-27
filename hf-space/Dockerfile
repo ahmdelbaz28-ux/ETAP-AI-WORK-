@@ -8,10 +8,9 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR(S7018): 3 packages, already sorted
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
-    # Create non-root user (UID 1000 as required by HF Spaces)
     && useradd -m -u 1000 user \
     && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit /home/user \
     && chown -R user:user /app /tmp
@@ -34,7 +33,7 @@ COPY --chown=root:root --chmod=go-w app.py .
 # let the non-root runtime user tamper with the code on disk.
 COPY --chown=root:root --chmod=go-w compat.py .
 COPY --chown=root:root --chmod=go-w api/ ./api/
-COPY --chown=root:root --chmod=go-w agents/ ./agents/  # NOSONAR — S6470: .dockerignore excludes secrets
+COPY --chown=root:root --chmod=go-w agents/ ./agents/   # NOSONAR — S6470: .dockerignore excludes secrets
 COPY --chown=root:root --chmod=go-w core/ ./core/
 COPY --chown=root:root --chmod=go-w core_model/ ./core_model/
 COPY --chown=root:root --chmod=go-w engine/ ./engine/

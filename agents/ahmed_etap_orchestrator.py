@@ -42,13 +42,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
-import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Optional
+
+# Import used only in type annotations; guarded to avoid circular imports.
+# ChiefEngineeringOrchestrator is defined in agents/orchestrator.py and used
+# as a type hint in AhmedETAPSkillAgent.__init__ and _resolve_orchestrator.
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from agents.orchestrator import (
     AgentResult,
@@ -57,6 +60,9 @@ from agents.orchestrator import (
     EngineeringTask,
     StudyType,
 )
+
+if TYPE_CHECKING:
+    from agents.orchestrator import ChiefEngineeringOrchestrator
 
 logger = logging.getLogger("agent.ahmed_etap")
 
@@ -415,7 +421,7 @@ class MathGuard:
         quantity_kind: str,
         claim_unit: str,
         expected_unit: Optional[str] = None,
-    ) -> "MathGuardResult":
+    ) -> MathGuardResult:
         """Validate a single numerical claim.
 
         Parameters
@@ -574,7 +580,7 @@ class PeerReview:
         lead_study_type: str,
         result: dict[str, Any],
         reviewer_fn: Optional[Callable[[dict[str, Any]], tuple[bool, str]]] = None,
-    ) -> "PeerReviewResult":
+    ) -> PeerReviewResult:
         """Run a peer review on ``result``.
 
         Parameters
@@ -757,7 +763,7 @@ class AhmedETAPOrchestrator:
         study_type: str,
         project: ProjectRef,
         parameters: dict[str, Any],
-        lead_agent_fn: Callable[[EngineeringTask], "Any"],
+        lead_agent_fn: Callable[[EngineeringTask], Any],
         recompute_fn: Callable[[], float],
         claim_value: float,
         claim_unit: str,
@@ -986,12 +992,12 @@ class AhmedETAPSkillAgent(BaseAgent):
 
     prompt_handle = "ahmed_etap_agent"
 
-    def __init__(self, orchestrator: Optional["ChiefEngineeringOrchestrator"] = None) -> None:
+    def __init__(self, orchestrator: Optional[ChiefEngineeringOrchestrator] = None) -> None:
         super().__init__("ahmed_etap_skill")
         self._orch = orchestrator
         self._skill_orch = AhmedETAPOrchestrator()
 
-    def _resolve_orchestrator(self) -> "ChiefEngineeringOrchestrator":
+    def _resolve_orchestrator(self) -> ChiefEngineeringOrchestrator:
         if self._orch is None:
             # Lazy-import to avoid circular import at module load time.
             from agents.orchestrator import get_orchestrator
@@ -1041,9 +1047,7 @@ class AhmedETAPSkillAgent(BaseAgent):
             task_id=f"{task.task_id}_lead",
             description=f"Skill-driven {study_type}",
             study_types=[self._skill_orch._study_type_enum(canonicalize_study_type(study_type))],
-            parameters={
-                k: v for k, v in params.get("parameters", {}).items()
-            },
+            parameters=dict(params.get("parameters", {}).items()),
         )
 
         async def _lead_fn(t: EngineeringTask) -> AgentResult:

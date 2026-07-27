@@ -26,6 +26,7 @@ _TEST_BROWSER_CUA_DIR = tempfile.mkdtemp(prefix="test_browser_cua_")
 
 # Cleanup on module unload
 import atexit
+
 atexit.register(lambda: __import__('shutil').rmtree(_TEST_BROWSER_CUA_DIR, ignore_errors=True))
 
 # ---------------------------------------------------------------------------

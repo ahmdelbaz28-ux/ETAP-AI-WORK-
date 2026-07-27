@@ -15,6 +15,7 @@ _TEST_REPORT_DIR = tempfile.mkdtemp(prefix="etap_test_reports_")
 
 # Cleanup on module unload
 import atexit
+
 atexit.register(lambda: __import__('shutil').rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
