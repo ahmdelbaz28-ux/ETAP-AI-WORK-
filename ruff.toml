@@ -111,7 +111,7 @@ unfixable = []
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "E402"]
-"tests/**" = ["F401", "F841", "E741", "S101", "B017", "T201"]  # T201: tests use print() for debug output
+"tests/**" = ["F401", "F841", "E741", "S101", "B017", "T201", "SIM103", "SIM118"]  # T201: tests use print() for debug output
 "tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821", "T201"]  # T201: notebook demos use print() for output display
@@ -143,6 +143,7 @@ unfixable = []
 "fault_analysis/arc_flash_calc.py" = ["T201"]     # CLI entry point for arc-flash calculations
 "agents/etap_expert_agent.py" = ["T201"]          # CLI entry point for agent Q&A
 "agents/etap_gui_agent.py" = ["T201"]
+"agents/ahmed_etap_orchestrator.py" = ["T201"]     # CLI entry point for skill orchestration
 "etap_integration/etap_worker_service.py" = ["T201"]
 "zenon_user_guide/zenon_guide_rag.py" = ["T201"]
 "utils/language_detection.py" = ["T201"]

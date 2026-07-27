@@ -752,15 +752,17 @@ async def ahmed_etap_orchestrate(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+        # Resolve the canonical StudyType enum for the inner task
+        from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent, canonicalize_study_type
         from agents.orchestrator import (
-            EngineeringTask as _ET,
-            StudyType as _ST,
+            EngineeringTask as _ET,  # noqa: N814
+        )
+        from agents.orchestrator import (
+            StudyType as _ST,  # noqa: N814
+        )
+        from agents.orchestrator import (
             get_orchestrator,
         )
-
-        # Resolve the canonical StudyType enum for the inner task
-        from agents.ahmed_etap_orchestrator import canonicalize_study_type
         canonical = canonicalize_study_type(payload.study_type)
         try:
             st_enum = _ST(canonical)

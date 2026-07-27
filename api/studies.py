@@ -262,8 +262,12 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
 
         from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
         from agents.orchestrator import (
-            EngineeringTask as _ET,
-            StudyType as _ST,
+            EngineeringTask as _ET,  # noqa: N814
+        )
+        from agents.orchestrator import (
+            StudyType as _ST,  # noqa: N814
+        )
+        from agents.orchestrator import (
             get_orchestrator,
         )
 
@@ -287,7 +291,7 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
         # inside an async caller, the caller should use the async endpoint
         # (/api/v1/agents/ahmed-etap/orchestrate) instead.
         try:
-            loop = _asyncio.get_running_loop()
+            _asyncio.get_running_loop()
             # Already inside an event loop — create a task and block on it.
             import concurrent.futures as _cf
 

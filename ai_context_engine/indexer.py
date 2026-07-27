@@ -8,9 +8,9 @@ from __future__ import annotations
 import argparse
 import ast
 import hashlib
-import tempfile
 import logging
 import os
+import tempfile
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)

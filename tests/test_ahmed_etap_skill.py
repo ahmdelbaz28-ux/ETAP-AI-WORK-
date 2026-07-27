@@ -28,13 +28,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from agents.ahmed_etap_orchestrator import (  # noqa: E402
+    PEER_REVIEW_MATRIX,
     AhmedETAPOrchestrator,
     AhmedETAPSkillAgent,
     MathGuard,
     MathGuardResult,
     OrchestrationResult,
     OrchestrationVerdict,
-    PEER_REVIEW_MATRIX,
     PeerReview,
     PeerReviewResult,
     ProjectRef,
@@ -52,7 +52,6 @@ from agents.orchestrator import (  # noqa: E402
     StudyType,
     get_orchestrator,
 )
-
 
 # ---------------------------------------------------------------------------
 # 1. Skill files exist & are loaded
