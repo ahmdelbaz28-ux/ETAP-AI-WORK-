@@ -22,7 +22,8 @@ DOCKERFILE = REPO_ROOT / "Dockerfile"
 def parse_dockerfile(path: Path) -> list[tuple[int, str, list[str]]]:
     """Parse Dockerfile into list of (line_number, instruction, args)."""
     instructions = []
-    for i, line in enumerate(path.read_text().splitlines(), 1):
+    for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
@@ -39,19 +40,23 @@ def validate_copy_sources(instructions: list, dockerfile_dir: Path) -> list[str]
     for lineno, instr, args in instructions:
         if instr != "COPY":
             continue
-        # Handle COPY --chown=user:user src dest
-        if args[0].startswith("--"):
-            args = args[1:]
+        # Strip all docker COPY flags like --chown=... or --chmod=...
+        args = [a for a in args if not a.startswith("--")]
         if len(args) < 2:
             errors.append(f"L{lineno}: COPY has no destination")
             continue
         # Sources are all but last arg; last arg is dest
         sources = args[:-1]
         for src in sources:
+            clean_src = src.rstrip("/")
+            if clean_src == "ui-dist":
+                # Build artifact produced by vite in CI/CD pipeline
+                continue
             src_path = dockerfile_dir / src
             if not src_path.exists():
                 errors.append(f"L{lineno}: COPY source '{src}' does not exist at {src_path}")
     return errors
+
 
 
 def validate_ml_is_copied(instructions: list) -> list[str]:
@@ -130,24 +135,26 @@ def main() -> int:
     # Also validate the sync-platforms.yml copies ml/
     sync_yml = REPO_ROOT / ".github" / "workflows" / "sync-platforms.yml"
     if sync_yml.exists():
-        content = sync_yml.read_text()
+        content = sync_yml.read_text(encoding="utf-8")
+
         if "../ml" not in content and "ml " not in content:
             all_errors.append("sync-platforms.yml does not copy ml/ to HF Space repo")
         else:
-            print("✅ sync-platforms.yml copies ml/ to HF Space")
+            print("[OK] sync-platforms.yml copies ml/ to HF Space")
 
     if all_errors:
-        print(f"\n❌ {len(all_errors)} validation error(s):")
+        print(f"\n[ERR] {len(all_errors)} validation error(s):")
         for e in all_errors:
             print(f"  - {e}")
         return 1
 
-    print("\n✅ All Dockerfile validations passed:")
+    print("\n[OK] All Dockerfile validations passed:")
     print(f"  - {len([i for _, i, _ in instructions if i == 'COPY'])} COPY sources verified")
     print("  - ml/ is copied (regression check passed)")
     print("  - Entry point app.py exists")
     print("  - EXPOSE port matches ENV PORT")
     return 0
+
 
 
 if __name__ == "__main__":

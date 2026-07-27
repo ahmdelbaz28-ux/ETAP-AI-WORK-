@@ -93,7 +93,8 @@ export function Modal({
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
-             type="button">
+              type="button"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>

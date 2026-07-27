@@ -82,9 +82,13 @@ function ToolButton({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={cn("relative p-2 rounded-lg transition-all duration-150 group", toolButtonClass)}
-     type="button">
-      <Icon className="w-[18px] h-[18px]" />
+      className={cn(
+        "relative p-2 rounded-lg transition-all duration-150 group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+        toolButtonClass,
+      )}
+      type="button"
+    >
+      <Icon className="w-5 h-5" />
       {badge && unreadCount > 0 && (
         <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)]">
           {unreadCount > 9 ? "9+" : unreadCount}
@@ -208,7 +212,8 @@ export function Navbar() {
           onClick={toggleMobileSidebar}
           aria-label="Open menu"
           className="lg:hidden p-2 -ml-1 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors shrink-0"
-         type="button">
+          type="button"
+        >
           <Menu className="w-5 h-5" />
         </button>
 
@@ -239,7 +244,8 @@ export function Navbar() {
                 setSearchQuery("");
               }}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-             type="button">
+              type="button"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -251,7 +257,8 @@ export function Navbar() {
             onClick={() => setShowSearch(true)}
             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-input)]/50 border border-[var(--border-primary)]/50 hover:bg-[var(--bg-input)] hover:border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all text-sm group"
             aria-label="Search"
-           type="button">
+            type="button"
+          >
             <Search className="w-4 h-4" />
             <span className="hidden lg:inline text-xs">
               {t("navbar.searchPlaceholder") || "Search..."}
@@ -268,7 +275,8 @@ export function Navbar() {
             onClick={() => setShowSearch(true)}
             aria-label="Search"
             className="sm:hidden p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors shrink-0"
-           type="button">
+            type="button"
+          >
             <Search className="w-5 h-5" />
           </button>
         )}
@@ -349,7 +357,8 @@ export function Navbar() {
                 ? "bg-brand-500/15 text-brand-400"
                 : "text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
             )}
-           type="button">
+            type="button"
+          >
             <Bell className="w-[18px] h-[18px]" />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)] animate-pulse">
@@ -383,7 +392,8 @@ export function Navbar() {
                   <button
                     onClick={markAllRead}
                     className="text-[10px] text-brand-400 hover:text-brand-300 font-medium transition-colors"
-                   type="button">
+                    type="button"
+                  >
                     Mark all read
                   </button>
                 )}
@@ -423,7 +433,8 @@ export function Navbar() {
                           onClick={() => dismissNotification(n.id)}
                           className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors opacity-0 group-hover:opacity-100"
                           aria-label="Dismiss"
-                         type="button">
+                          type="button"
+                        >
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -459,7 +470,9 @@ export function Navbar() {
               setShowUserMenu((prev) => !prev);
             }}
             className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group"
-           type="button">
+            aria-label="User menu"
+            type="button"
+          >
             {/* Professional user avatar with gradient ring */}
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 p-[2px]">
@@ -526,7 +539,8 @@ export function Navbar() {
                     navigate("/settings");
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
-                 type="button">
+                  type="button"
+                >
                   <Settings className="w-4 h-4 text-[var(--text-muted)]" />
                   <span>Settings</span>
                   <kbd className="ml-auto text-[9px] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--border-primary)] font-mono text-[var(--text-muted)]">
@@ -540,7 +554,8 @@ export function Navbar() {
                     navigate("/diagnostics");
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
-                 type="button">
+                  type="button"
+                >
                   <ShieldCheck className="w-4 h-4 text-[var(--text-muted)]" />
                   <span>Diagnostics</span>
                   <kbd className="ml-auto text-[9px] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--border-primary)] font-mono text-[var(--text-muted)]">
@@ -553,7 +568,8 @@ export function Navbar() {
                 <button
                   onClick={handleSignOut}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                 type="button">
+                  type="button"
+                >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
                 </button>

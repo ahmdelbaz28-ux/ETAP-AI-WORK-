@@ -122,15 +122,16 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group relative",
-                sidebarCollapsed && "justify-center px-0",
+                "flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-all duration-150 group relative focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+                sidebarCollapsed && "justify-center px-2",
                 isActive
                   ? "bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30"
                   : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
               )
             }
+            aria-label={sidebarCollapsed ? t(item.labelKey) : undefined}
           >
-            <item.icon className="w-[18px] h-[18px] shrink-0" />
+            <item.icon className="w-5 h-5 shrink-0" />
             {!sidebarCollapsed && <span className="truncate">{t(item.labelKey)}</span>}
             {sidebarCollapsed && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-md text-xs text-[var(--text-primary)] shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
@@ -161,15 +162,16 @@ export function Sidebar() {
                     to={item.to}
                     className={() =>
                       cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 mt-0.5 group relative",
-                        sidebarCollapsed && "justify-center px-0",
+                        "flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-all duration-150 mt-0.5 group relative focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+                        sidebarCollapsed && "justify-center px-2",
                         isActive
                           ? "bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30"
                           : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
                       )
                     }
+                    aria-label={sidebarCollapsed ? t(item.labelKey) : undefined}
                   >
-                    <item.icon className="w-[18px] h-[18px] shrink-0" />
+                    <item.icon className="w-5 h-5 shrink-0" />
                     {!sidebarCollapsed && <span className="truncate">{t(item.labelKey)}</span>}
                     {sidebarCollapsed && (
                       <div className="absolute left-full ml-2 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-md text-xs text-[var(--text-primary)] shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
@@ -206,14 +208,22 @@ export function Sidebar() {
         <button
           onClick={toggleTheme}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors",
-            sidebarCollapsed && "justify-center px-0",
+            "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+            sidebarCollapsed && "justify-center px-2",
           )}
-         type="button">
+          aria-label={
+            sidebarCollapsed
+              ? theme === "dark"
+                ? t("sidebar.lightMode")
+                : t("sidebar.darkMode")
+              : undefined
+          }
+          type="button"
+        >
           {theme === "dark" ? (
-            <Sun className="w-[18px] h-[18px] shrink-0" />
+            <Sun className="w-5 h-5 shrink-0" />
           ) : (
-            <Moon className="w-[18px] h-[18px] shrink-0" />
+            <Moon className="w-5 h-5 shrink-0" />
           )}
           {!sidebarCollapsed && (
             <span>{theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}</span>
@@ -223,19 +233,20 @@ export function Sidebar() {
         <button
           onClick={toggleSidebar}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors",
-            sidebarCollapsed && "justify-center px-0",
+            "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+            sidebarCollapsed && "justify-center px-2",
           )}
-          title={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-         type="button">
+          aria-label={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
+          type="button"
+        >
           {sidebarCollapsed ? (
-            <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? "rotate-180" : ""}`} />
+            <ChevronRight className={`w-5 h-5 shrink-0 ${isRtl ? "rotate-180" : ""}`} />
           ) : (
             <>
               {isRtl ? (
-                <ChevronRight className="w-[18px] h-[18px] shrink-0" />
+                <ChevronRight className="w-5 h-5 shrink-0" />
               ) : (
-                <ChevronLeft className="w-[18px] h-[18px] shrink-0" />
+                <ChevronLeft className="w-5 h-5 shrink-0" />
               )}
               <span>{t("sidebar.collapse")}</span>
             </>
