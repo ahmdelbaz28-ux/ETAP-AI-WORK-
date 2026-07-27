@@ -120,16 +120,22 @@ def check_requirements():
             line = line.strip().lower()
             if line.startswith("#") or not line:
                 continue
-            for pkg in forbidden_pkgs:
-                if pkg in line:
-                    raise ValueError(f"Windows/forbidden package found: {pkg}")
+            pkg_name = line.split("==")[0].split(">=")[0].split("<=")[0].split("~=")[0].split("[")[0].strip()
+            if pkg_name in forbidden_pkgs:
+                raise ValueError(f"Windows/forbidden package found: {pkg_name}")
     return True
 
 
 def check_docker_available():
     """Check if Docker is available on this machine."""
-    result = subprocess.run(["docker", "info"], capture_output=True, timeout=10)
-    return result.returncode == 0
+    if not shutil.which("docker"):
+        return False
+    try:
+        result = subprocess.run(["docker", "info"], capture_output=True, timeout=10)
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return False
+
 
 
 def check_docker_build():
@@ -273,10 +279,16 @@ def check_no_secrets():
 
 def cleanup():
     """Clean up Docker test artifacts."""
-    subprocess.run(
-        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10,
-    )
-    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
+    if not check_docker_available():
+        return
+    try:
+        subprocess.run(
+            ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10,
+        )
+        subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
+    except Exception:
+        pass
+
 
 
 def main():

@@ -175,7 +175,8 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR: 
         issues.append(f"INFO: Large prompt ({total_chars} chars, ~{total_chars // 4} tokens)")
 
     return len(
-        [i for i in issues if i.startswith("CRITICAL:", "ERROR:")],  # NOSONAR: false positive — already tuple form
+        [i for i in issues if i.startswith(("CRITICAL:", "ERROR:"))],
+
     ) == 0, issues
 
 
@@ -197,21 +198,22 @@ def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR: cognitive co
         success, issues = validate_prompt_file(filepath)
 
         if success and not issues:
-            print(f"  ✓ {filepath.name}")
+            print(f"  [OK] {filepath.name}")
             passed += 1
         else:
-            print(f"  ✗ {filepath.name}")
+            print(f"  [FAIL] {filepath.name}")
             for issue in issues:
                 prefix = "    "
-                if issue.startswith("CRITICAL:", "ERROR:"):  # NOSONAR: false positive — already tuple form
+                if issue.startswith(("CRITICAL:", "ERROR:")):
                     total_errors += 1
-                    print(f"{prefix}❌ {issue}")
+                    print(f"{prefix}[ERR] {issue}")
                 elif issue.startswith("WARNING:"):
                     total_warnings += 1
-                    print(f"{prefix}⚠️  {issue}")
+                    print(f"{prefix}[WARN] {issue}")
                 elif issue.startswith("INFO:"):
                     total_info += 1
-                    print(f"{prefix}ℹ️  {issue}")
+                    print(f"{prefix}[INFO] {issue}")
+
 
     print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{len(yaml_files)} files passed")

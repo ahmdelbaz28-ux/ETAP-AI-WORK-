@@ -69,6 +69,8 @@ export function corsHeaders(origin: string, env?: Env): Record<string, string> {
  */
 export function validateCsrf(request: Request, method: string, traceId: string, env?: Env): Response | null {
   if (!CONFIG.CSRF_REQUIRED_METHODS.includes(method)) return null;
+  if (request.headers.has('x-api-key')) return null;
+
 
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');
@@ -127,9 +129,10 @@ export function jsonResponse(status: number, body: Json, extraHeaders?: Record<s
 }
 
 export function errorResponse(status: number, message: string, traceId: string, extraHeaders?: Record<string, string>): Response {
-  const safeMessage = status >= 500 ? 'Internal server error' : message;
+  const safeMessage = status === 500 ? 'Internal server error' : message;
   return jsonResponse(status, { error: true, status, message: safeMessage, traceId, timestamp: new Date().toISOString() }, extraHeaders);
 }
+
 
 export async function checkBodySize(request: Request): Promise<Response | null> {
   const cl = request.headers.get('content-length');

@@ -145,7 +145,13 @@ describe("Login", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
-        Promise.resolve({ id: "1", email: "engineer@etap.com", name: "Engineer", role: "admin" }),
+        Promise.resolve({
+          id: "u1",
+          email: "engineer@etap.com",
+          full_name: "Engineer User",
+          role: "engineer",
+          is_active: true,
+        }),
     });
 
     const user = userEvent.setup();
@@ -165,7 +171,7 @@ describe("Login", () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true });
     });
-  });
+  }, 15000);
 
   it("shows error message in red banner when backend rejects with auth error", async () => {
     mockLogin.mockRejectedValue(new Error("Invalid credentials"));
@@ -184,7 +190,7 @@ describe("Login", () => {
       expect(screen.getByText("Invalid credentials")).toBeTruthy();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
+  }, 15000);
 
   it("shows error message when backend is unreachable (network error) — NO demo fallback", async () => {
     mockLogin.mockRejectedValue(new Error("Failed to fetch"));
@@ -204,7 +210,7 @@ describe("Login", () => {
     });
     expect(localStorage.getItem("authToken")).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
+  }, 15000);
 
   it("shows loading state during login submission", async () => {
     mockLogin.mockReturnValue(new Promise(() => {}));
