@@ -151,6 +151,9 @@ unfixable = []
 "etap_user_guide/**" = ["T201"]                    # standalone CLI tools
 "_scan_tool.py" = ["T201"]                          # CLI tool: security scanner
 "fix_future_imports.py" = ["T201"]                  # CLI tool: fix script
+"check_hf_status.py" = ["T201"]                      # CLI tool: HF Space status check
+"monitor_hf.py" = ["T201"]                           # CLI tool: HF Space build monitor
+"sync_hf.py" = ["T201"]                              # CLI tool: HF Space sync
 "benchmarks/**" = ["T201"]                          # benchmark scripts print results
 
 # SQLAlchemy ORM files use == True/False for filter expressions (e.g., Equipment.is_active == True).

@@ -95,6 +95,12 @@ COPY --chown=user:user ui-dist/ /app/ui-dist/
 # SonarCloud S6472: these are NOT secrets — they're publicly visible
 # configuration that cannot be used for authentication or encryption.
 ENV PORT=7860
+# HOST=0.0.0.0 is required for Docker/HF Spaces port-mapping.
+# Without it, uvicorn binds to 127.0.0.1 and the HF Space platform
+# health probe cannot reach the container — resulting in RUNTIME_ERROR:
+# "Launch timed out, workload was not healthy after 30 min".
+# SonarCloud S6472: binding address is network config, NOT a secret.
+ENV HOST=0.0.0.0
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -145,8 +151,7 @@ EXPOSE 7860
 # Ref: https://huggingface.co/docs/hub/spaces-sdks-docker#user
 USER 1000
 
-# HOST is passed as a CMD-level argument instead of ENV (SonarCloud S6472).
-# Binding to 0.0.0.0 is required for Docker port-mapping and HF Spaces,
-# but the default is 127.0.0.1 for safer local development. Override via
-# the HOST env var when running in a container.
+# HOST=0.0.0.0 is set via ENV above so uvicorn binds to all interfaces,
+# which is required for Docker/HF Spaces port-mapping. For local development,
+# override HOST=127.0.0.1 when running outside a container.
 CMD ["python", "app.py"]
