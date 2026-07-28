@@ -204,6 +204,12 @@ source = [
     "visualization",
     "backend",
     "core",
+    "services",      # CRITICAL FIX: Added services/ to coverage
+    "skills",        # CRITICAL FIX: Added skills/ to coverage
+    "worker",        # CRITICAL FIX: Added worker/ to coverage
+    "api",           # CRITICAL FIX: Added api/ to coverage
+    "ml",            # CRITICAL FIX: Added ml/ to coverage
+    "utils",         # CRITICAL FIX: Added utils/ to coverage
 ]
 
 [tool.coverage.report]
@@ -214,6 +220,11 @@ exclude_lines = [
     "def __repr__",
     "def __str__",
 ]
+# CRITICAL FIX: Added fail_under to enforce minimum coverage.
+# Per CI/CD skill: "No gate can be skipped." CI should pass with 0% coverage
+# is unacceptable. Start at 20% and increase incrementally.
+# Set to 20% initially — increase to 50%+ over time.
+fail_under = 20
 
 [tool.pyright]
 include = ["."]
