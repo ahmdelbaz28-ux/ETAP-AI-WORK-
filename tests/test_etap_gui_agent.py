@@ -490,11 +490,15 @@ def test_study_endpoint_returns_response(fastapi_client):
 
 
 def test_study_endpoint_rejects_missing_question(fastapi_client):
-    """Missing 'question' must return HTTP 400."""
+    """Missing 'question' must return HTTP 400 with validation error."""
     r = fastapi_client.post(
         "/api/v1/studies/run",
         headers={"X-API-Key": "test-key", "Content-Type": "application/json"},
         json={"study_type": "etap_gui", "parameters": {}, "use_etap": False},
     )
     assert r.status_code == 400
-    assert "question" in r.text.lower()
+    # The API wraps ValueError in a generic "Invalid study request parameters"
+    # detail (see api/studies.py line 675) to avoid leaking internal messages.
+    # The original ValueError ("'question' field is required") is logged but
+    # not returned to the client.
+    assert "invalid" in r.text.lower()
