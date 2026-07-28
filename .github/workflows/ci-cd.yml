@@ -210,7 +210,56 @@ jobs:
             -Dsonar.tests=tests,acp_runtime/acp_tests
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
-  # ── 2. PYTHON TESTS ─────────────────────────────────────────────────────────
+  # ── 2. E2E TESTS (PLAYWRIGHT) ──────────────────────────────────────────────
+  e2e:
+    name: 🌐 E2E
+    runs-on: ubuntu-latest
+    needs: lint
+    if: ${{ !cancelled() }}
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Set up Node.js '24'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: npm ci --ignore-scripts --include=optional
+
+      - name: Install Playwright browsers
+        working-directory: ui
+        run: npx playwright install chromium
+
+      - name: Start Vite dev server
+        working-directory: ui
+        run: |
+          npx vite --port 5173 &
+          echo "PID=$!"
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:5173 > /dev/null 2>&1; then
+              echo "✅ Vite ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright E2E tests
+        working-directory: ui
+        run: npx playwright test --config=playwright.config.ts
+
+      - name: Upload Playwright screenshots (on failure)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots-${{ github.sha }}
+          path: ui/test-results/
+          retention-days: 3
+
+  # ── 3. PYTHON TESTS ─────────────────────────────────────────────────────────
   python-tests:
     name: test
     runs-on: ubuntu-latest
@@ -326,7 +375,7 @@ jobs:
           retention-days: 1
 
 
-  # ── 3. SECURITY SCAN ────────────────────────────────────────────────────────
+  # ── 4. SECURITY SCAN ────────────────────────────────────────────────────────
   security-scan:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
@@ -392,7 +441,7 @@ jobs:
           ignore-unfixed: true
           trivyignores: .trivyignore
 
-  # ── 4. HELM CHART VALIDATION ─────────────────────────────────────────────────
+  # ── 5. HELM CHART VALIDATION ─────────────────────────────────────────────────
   helm-chart:
     name: ⎈ Helm Chart Validation
     runs-on: ubuntu-latest
@@ -414,7 +463,7 @@ jobs:
       - name: Helm template render
         run: helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-manifests.yaml
 
-  # ── 5. BUILD UI (VITE) ──────────────────────────────────────────────────────
+  # ── 6. BUILD UI (VITE) ──────────────────────────────────────────────────────
   build-ui:
     name: build
     runs-on: ubuntu-latest
@@ -449,7 +498,7 @@ jobs:
           path: ui/dist/
           retention-days: 1
 
-  # ── 6. BUILD DOCKER IMAGE ────────────────────────────────────────────────────
+  # ── 7. BUILD DOCKER IMAGE ────────────────────────────────────────────────────
   docker-build:
     name: 🐳 Build Docker Image
     runs-on: ubuntu-latest
@@ -531,7 +580,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── 6b. CONTAINER SCAN + SBOM ────────────────────────────────────────────────
+  # ── 7b. CONTAINER SCAN + SBOM ────────────────────────────────────────────────
   container-scan:
     name: 🔬 Container Scan + SBOM
     runs-on: ubuntu-latest
@@ -599,7 +648,7 @@ jobs:
           path: sbom.json
           retention-days: 90
 
-  # ── 7. DEPLOY TO VERCEL (Auto on push to main) ─────────────────────────────
+  # ── 8. DEPLOY TO VERCEL (Auto on push to main) ─────────────────────────────
   deploy-vercel:
     name: ▲ Deploy to Vercel (Auto)
     runs-on: ubuntu-latest
@@ -640,7 +689,7 @@ jobs:
           vercel --prod --token "$VERCEL_TOKEN" --yes
           echo "✅ Vercel deployment complete"
 
-  # ── 8. SYNC HF SPACE SECRETS (Auto on push to main) ─────────────────────────
+  # ── 9. SYNC HF SPACE SECRETS (Auto on push to main) ─────────────────────────
   # NOTE: Code sync to HF Space is handled by .github/workflows/sync-platforms.yml
   # (it builds the Vite UI → ui-dist/, then git-pushes to the HF Space repo).
   # This job previously ALSO synced code via huggingface_hub.upload_folder with
@@ -733,7 +782,7 @@ jobs:
                   print(f"  ⚠️  Skipped (empty): {key}")
           EOF
 
-  # ── 9. HEALTH CHECK ──────────────────────────────────────────────────────────
+  # ── 10. HEALTH CHECK ──────────────────────────────────────────────────────────
   health-check:
     name: 🩺 Production Health Check
     runs-on: ubuntu-latest
@@ -777,7 +826,7 @@ jobs:
           echo "   Commit:    $GIT_COMMIT_SHA"
           echo "   Branch:    $GIT_BRANCH_NAME"
 
-  # ── 10. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
+  # ── 11. AUTO-UPDATE PROJECT INDEX ─────────────────────────────────────────────
   update-index:
     name: 📋 Update Project Index
     runs-on: ubuntu-latest
