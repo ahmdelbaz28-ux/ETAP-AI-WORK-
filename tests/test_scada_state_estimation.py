@@ -337,14 +337,18 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.CONVERGED
 
     def test_estimate_insufficient_measurements(self):
-        Ybus = np.array([[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(
+            [[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=["B1", "B2"])
         assert result.status == StateEstimationStatus.INSUFFICIENT_MEASUREMENTS
 
     def test_estimate_empty_bus_list(self):
-        Ybus = np.array([])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.array(
+            []
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=[])

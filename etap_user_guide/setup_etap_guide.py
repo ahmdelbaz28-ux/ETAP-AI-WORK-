@@ -83,7 +83,9 @@ def check_pdf_files():
         print_error("PDFs directory not found")
         return 0
 
-    pdf_count = len(list(pdfs_path.glob("*.pdf")))  # NOSONAR: intentional repetition (audit constant)
+    pdf_count = len(
+        list(pdfs_path.glob("*.pdf"))
+    )  # NOSONAR: intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob("*.pdf"))) if ac_path.exists() else 0
 
     print_info(f"Main PDFs: {pdf_count}")

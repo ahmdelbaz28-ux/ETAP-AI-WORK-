@@ -59,18 +59,33 @@ from agents.orchestrator import (  # noqa: E402
 # The 24 agents per AGENTS.md (plus the AhmedETAP skill agent = 25)
 EXPECTED_REGISTERED_AGENTS = {
     # Core 8 (defined inside orchestrator.py)
-    "load_flow", "short_circuit", "harmonic_analysis",
-    "optimal_power_flow", "protection_coordination",
-    "etap_execution", "validation", "report",
+    "load_flow",
+    "short_circuit",
+    "harmonic_analysis",
+    "optimal_power_flow",
+    "protection_coordination",
+    "etap_execution",
+    "validation",
+    "report",
     # Standalone specialist agents (per AGENTS.md §"Python Agents" #10-#24)
-    "arc_flash", "motor_starting", "transient_stability",
-    "cable_sizing", "earth_grid",
-    "renewable_integration", "battery_storage",
-    "scada", "digital_twin",
-    "anomaly", "predictive",
-    "weather", "goal_planner",
+    "arc_flash",
+    "motor_starting",
+    "transient_stability",
+    "cable_sizing",
+    "earth_grid",
+    "renewable_integration",
+    "battery_storage",
+    "scada",
+    "digital_twin",
+    "anomaly",
+    "predictive",
+    "weather",
+    "goal_planner",
     # Skill / guard agents
-    "code_guard", "etap_expert", "etap_gui", "ahmed_etap",
+    "code_guard",
+    "etap_expert",
+    "etap_gui",
+    "ahmed_etap",
 }
 
 # Optional agents that may be missing if their dependencies aren't installed.
@@ -102,9 +117,7 @@ def test_no_orphan_agents_in_orchestrator():
     orch = get_orchestrator()
     registered = set(orch.agents.keys())
     unknown = registered - EXPECTED_REGISTERED_AGENTS
-    assert not unknown, (
-        f"Unknown agents registered in orchestrator: {sorted(unknown)}"
-    )
+    assert not unknown, f"Unknown agents registered in orchestrator: {sorted(unknown)}"
 
 
 # ---------------------------------------------------------------------------
@@ -112,14 +125,27 @@ def test_no_orphan_agents_in_orchestrator():
 # ---------------------------------------------------------------------------
 
 EXPECTED_STUDY_TYPES = {
-    "load_flow", "short_circuit", "harmonic_analysis",
-    "optimal_power_flow", "protection_coordination",
-    "arc_flash", "motor_starting", "transient_stability",
-    "cable_sizing", "earth_grid",
-    "renewable_integration", "battery_storage",
-    "scada", "digital_twin",
-    "etap_expert", "etap_gui", "etap_execution",
-    "validation", "report", "ahmed_etap", "ahmed_etap_orchestration",
+    "load_flow",
+    "short_circuit",
+    "harmonic_analysis",
+    "optimal_power_flow",
+    "protection_coordination",
+    "arc_flash",
+    "motor_starting",
+    "transient_stability",
+    "cable_sizing",
+    "earth_grid",
+    "renewable_integration",
+    "battery_storage",
+    "scada",
+    "digital_twin",
+    "etap_expert",
+    "etap_gui",
+    "etap_execution",
+    "validation",
+    "report",
+    "ahmed_etap",
+    "ahmed_etap_orchestration",
 }
 
 
@@ -133,9 +159,7 @@ def test_study_type_mapping_contains_all_study_types():
     mapping = orch.get_study_type_mapping()
     keys = set(mapping.keys())
     missing = EXPECTED_STUDY_TYPES - keys
-    assert not missing, (
-        f"Study types missing from get_study_type_mapping(): {sorted(missing)}"
-    )
+    assert not missing, f"Study types missing from get_study_type_mapping(): {sorted(missing)}"
 
 
 def test_study_type_mapping_values_resolve_to_registered_agents():
@@ -147,9 +171,7 @@ def test_study_type_mapping_values_resolve_to_registered_agents():
     mapping = orch.get_study_type_mapping()
     registered = set(orch.agents.keys())
     broken = {st: key for st, key in mapping.items() if key not in registered}
-    assert not broken, (
-        f"Study types mapping to unregistered agents: {broken}"
-    )
+    assert not broken, f"Study types mapping to unregistered agents: {broken}"
 
 
 # ---------------------------------------------------------------------------
@@ -184,9 +206,7 @@ def test_default_lead_for_returns_registered_agent_keys():
         lead_key = AhmedETAPSkillAgent._default_lead_for(lead_study)
         if lead_key not in registered:
             unregistered.append((lead_study, lead_key))
-    assert not unregistered, (
-        f"_default_lead_for returns unregistered agent keys: {unregistered}"
-    )
+    assert not unregistered, f"_default_lead_for returns unregistered agent keys: {unregistered}"
 
 
 # ---------------------------------------------------------------------------
@@ -206,8 +226,7 @@ def test_peer_review_matrix_leads_resolve_to_registered_agents():
         if agent_key is None or agent_key not in orch.agents:
             unresolved.append(lead_study)
     assert not unresolved, (
-        f"Peer-review matrix lead study types with no registered agent: "
-        f"{unresolved}"
+        f"Peer-review matrix lead study types with no registered agent: {unresolved}"
     )
 
 
@@ -227,8 +246,7 @@ def test_peer_review_matrix_reviewers_resolve_to_registered_agents():
         if agent_key not in registered:
             unresolved.append(reviewer_study)
     assert not unresolved, (
-        f"Peer-review matrix reviewer study types with no registered agent: "
-        f"{unresolved}"
+        f"Peer-review matrix reviewer study types with no registered agent: {unresolved}"
     )
 
 
@@ -252,9 +270,7 @@ def test_study_type_enum_covers_all_matrix_entries():
             not_enum.append(st)
     # 'validation' is intentionally not a StudyType (it's an agent key)
     not_enum = [s for s in not_enum if s != "validation"]
-    assert not not_enum, (
-        f"Study types in PEER_REVIEW_MATRIX not in StudyType enum: {not_enum}"
-    )
+    assert not not_enum, f"Study types in PEER_REVIEW_MATRIX not in StudyType enum: {not_enum}"
 
 
 # ---------------------------------------------------------------------------
@@ -272,8 +288,7 @@ def test_skill_agent_finds_arc_flash_lead():
     orch = get_orchestrator()
     assert "arc_flash" in orch.agents, "arc_flash agent not registered"
     assert isinstance(orch.agents["arc_flash"], ArcFlashAgent), (
-        f"arc_flash agent is {type(orch.agents['arc_flash']).__name__}, "
-        f"expected ArcFlashAgent"
+        f"arc_flash agent is {type(orch.agents['arc_flash']).__name__}, expected ArcFlashAgent"
     )
 
     # And the skill's lead lookup must agree
@@ -360,8 +375,7 @@ async def test_shared_context_coupling_load_flow_to_short_circuit():
         record = await ctx.add_task(agent="short_circuit", study_type="short_circuit")
         await ctx.mark_running(record)
         lf = next(
-            (t for t in ctx.tasks
-             if t.agent == "load_flow" and t.status == "completed"),
+            (t for t in ctx.tasks if t.agent == "load_flow" and t.status == "completed"),
             None,
         )
         assert lf is not None, "SharedContext did not surface load_flow result to short_circuit"
@@ -458,12 +472,16 @@ def test_math_guard_module_is_llm_free():
     mod_path = PROJECT_ROOT / "agents" / "ahmed_etap_orchestrator.py"
     src = mod_path.read_text(encoding="utf-8").lower()
     forbidden = [
-        "import openai", "import anthropic", "import langchain",
-        "from openai", "from anthropic", "from langchain",
-        "llm.invoke", "chat.completions.create",
+        "import openai",
+        "import anthropic",
+        "import langchain",
+        "from openai",
+        "from anthropic",
+        "from langchain",
+        "llm.invoke",
+        "chat.completions.create",
     ]
     found = [kw for kw in forbidden if kw in src]
     assert not found, (
-        f"MathGuard module imports LLM SDKs: {found}. "
-        f"MathGuard must be 100% deterministic Python."
+        f"MathGuard module imports LLM SDKs: {found}. MathGuard must be 100% deterministic Python."
     )

@@ -32,6 +32,7 @@ router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
 # Previously, these endpoints were accessible without any authentication, allowing
 # unauthenticated users to trigger resource-intensive ML training and inference.
 
+
 class AuthPrincipal:
     """Lightweight authentication result returned by the auth dependency.
 
@@ -45,7 +46,7 @@ class AuthPrincipal:
 
     def __init__(self, auth_type: str, identity: str) -> None:
         self.auth_type = auth_type  # "api_key" or "jwt"
-        self.identity = identity    # key fingerprint or user_id
+        self.identity = identity  # key fingerprint or user_id
 
 
 def _get_api_key_or_user(request: Request) -> AuthPrincipal:
@@ -61,7 +62,11 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     import os
 
     # Allow bypass in development/test mode (ENGINEERING_SERVICE_AUTH_DISABLED)
-    _auth_disabled = os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes")
+    _auth_disabled = os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
     if _auth_disabled:
         return AuthPrincipal(auth_type="dev_bypass", identity="anonymous")
 
@@ -79,12 +84,15 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
         token = auth_header.split(" ", 1)[1]
         try:
             import jwt
+
             jwt_secret = os.getenv("JWT_SECRET_KEY", "")
             if jwt_secret:
                 payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
                 # SECURITY: Reject non-access tokens (e.g. refresh tokens)
                 if payload.get("type") != "access":
-                    raise HTTPException(status_code=401, detail="Bearer token must be an access token")
+                    raise HTTPException(
+                        status_code=401, detail="Bearer token must be an access token"
+                    )
                 return AuthPrincipal(auth_type="jwt", identity=payload.get("sub", "unknown"))
         except HTTPException:
             raise
@@ -109,7 +117,9 @@ def ml_capabilities(request: Request):
     except Exception:
         # SECURITY AUDIT 2026-07-26 — S-23: Do not leak internal error details to clients.
         logger.exception("ml_capabilities_failed")
-        return JSONResponse(status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR]})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR]}
+        )
 
 
 def _clean_nan(obj: Any) -> Any:
@@ -138,15 +148,22 @@ async def predict_load(request: Request):
         method = body.get("method", "auto")  # auto, prophet, lstm, linear
 
         if not historical:
-            raise HTTPException(status_code=400, detail="historical_data is required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="historical_data is required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
         if not isinstance(historical, list):
-            raise HTTPException(status_code=400, detail="historical_data must be an array")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="historical_data must be an array"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
         if len(historical) > 10000:
             raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
-                status_code=400, detail="historical_data array too large (max 10000 points)",
+                status_code=400,
+                detail="historical_data array too large (max 10000 points)",
             )
         if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
-            raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="horizon_hours must be between 1 and 168"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from ml.predictive import LoadForecaster
 
@@ -157,19 +174,21 @@ async def predict_load(request: Request):
         metrics = lf.evaluate(data) if hasattr(lf, "evaluate") else {}
 
         return JSONResponse(
-            content=_clean_nan({
-                "success": True,
-                "data": {
-                    "predictions": predictions.tolist()
-                    if hasattr(predictions, "tolist")
-                    else list(predictions),
-                    "horizon_hours": horizon,
-                    "input_points": len(historical),
-                    "method": train_result.get("method", "unknown"),
-                    "metrics": metrics,
-                },
-                "trace_id": trace_id,
-            }),
+            content=_clean_nan(
+                {
+                    "success": True,
+                    "data": {
+                        "predictions": predictions.tolist()
+                        if hasattr(predictions, "tolist")
+                        else list(predictions),
+                        "horizon_hours": horizon,
+                        "input_points": len(historical),
+                        "method": train_result.get("method", "unknown"),
+                        "metrics": metrics,
+                    },
+                    "trace_id": trace_id,
+                }
+            ),
         )
 
     except HTTPException:
@@ -180,7 +199,8 @@ async def predict_load(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -195,9 +215,13 @@ async def predict_fault(request: Request):
         explain = body.get("explain", False)
 
         if not features:
-            raise HTTPException(status_code=400, detail="features array is required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="features array is required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
         if not isinstance(features, list):
-            raise HTTPException(status_code=400, detail="features must be an array")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="features must be an array"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from ml.predictive import FaultPredictor
 
@@ -233,7 +257,8 @@ async def predict_fault(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -249,7 +274,9 @@ async def train_fault_predictor(request: Request):
         optimize = body.get("optimize", False)
 
         if not features or not labels:
-            raise HTTPException(status_code=400, detail="features and labels are required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="features and labels are required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from ml.predictive import FaultPredictor
 
@@ -279,7 +306,8 @@ async def train_fault_predictor(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -294,11 +322,17 @@ async def detect_anomalies(request: Request):
         contamination = body.get("contamination", 0.05)
 
         if not data:
-            raise HTTPException(status_code=400, detail="data array is required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="data array is required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
         if not isinstance(data, list):
-            raise HTTPException(status_code=400, detail="data must be an array")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="data must be an array"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
         if len(data) > 10000:
-            raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="data array too large (max 10000 points)"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from ml.predictive import AnomalyDetector
 
@@ -326,7 +360,8 @@ async def detect_anomalies(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -355,7 +390,8 @@ async def gnn_predict(request: Request):
 
         if not node_features or not edge_index or not targets:
             raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
-                status_code=400, detail="node_features, edge_index, and targets are required",
+                status_code=400,
+                detail="node_features, edge_index, and targets are required",
             )
 
         from ml.predictive import PowerGridGNN
@@ -383,7 +419,8 @@ async def gnn_predict(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -401,7 +438,9 @@ async def rag_query(request: Request):
         top_k = body.get("top_k", 5)
 
         if not query:
-            raise HTTPException(status_code=400, detail="query is required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="query is required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from knowledge.rag_engine import EngineeringKnowledgeBase
 
@@ -436,5 +475,6 @@ async def rag_query(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )

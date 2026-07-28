@@ -573,7 +573,8 @@ class CopilotMCPServer:
     def _handle_validate_design(self, args: dict) -> dict:
         """Run validation checks on the current model."""
         check_types = args.get(
-            "check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"],
+            "check_types",
+            ["overcurrent", "voltage", "coordination", "cable_sizing"],
         )
         results: dict = {}
 

@@ -7,6 +7,7 @@ Validates the power system calculations against known IEEE test systems:
 - Arc Flash: IEEE 1584-2018 examples
 - Protection Coordination: Relay operating time validation
 """
+
 import os
 import sys
 
@@ -383,15 +384,23 @@ class ValidationSuite:
         system.build_sequence_networks(for_fault=True)
 
         # Test three-phase fault
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(
+            seq="2"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(
+            seq="0"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
         # Three-phase fault at bus 1
         result_3ph = fault_analyzer.three_phase_fault(0)
-        If_3ph = abs(result_3ph["fault_current"])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        If_3ph = abs(
+            result_3ph["fault_current"]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # For a slack bus with Z=0+j0.2, expected If ~ 1.0/0.2 = 5.0 pu
         expected_3ph = 1.0 / abs(complex(0, 0.2))
         tolerance = 0.5  # Allow tolerance due to line contributions
@@ -404,19 +413,27 @@ class ValidationSuite:
 
         # Line-to-ground fault at bus 1
         result_lg = fault_analyzer.line_to_ground_fault(0)
-        If_lg = abs(result_lg["fault_current"])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        If_lg = abs(
+            result_lg["fault_current"]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # For SLG: If = 3*V / (Z1+Z2+Z0)
         self._record("Line-to-Ground Fault at Bus 1", If_lg > 0, f"If={If_lg:.4f} pu")
 
         # Line-to-line fault at bus 1
         result_ll = fault_analyzer.line_to_line_fault(0)
-        If_ll = abs(result_ll["fault_current"])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        If_ll = abs(
+            result_ll["fault_current"]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("Line-to-Line Fault at Bus 1", If_ll > 0, f"If={If_ll:.4f} pu")
 
         # Double line-to-ground fault at bus 1
         result_dlg = fault_analyzer.double_line_to_ground_fault(0)
-        Ib = abs(result_dlg["fault_current_b"])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic = abs(result_dlg["fault_current_c"])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ib = abs(
+            result_dlg["fault_current_b"]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ic = abs(
+            result_dlg["fault_current_c"]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record(
             "Double Line-to-Ground Fault at Bus 1",
             Ib > 0 and Ic > 0,
@@ -456,13 +473,17 @@ class ValidationSuite:
         afb1 = result1.arc_flash_boundary_mm
         passed_afb1 = afb1 > 0
         self._record(
-            "Arc Flash 4.16kV/20kA Boundary", passed_afb1, f"AFB={afb1:.1f} mm (expected > 0)",
+            "Arc Flash 4.16kV/20kA Boundary",
+            passed_afb1,
+            f"AFB={afb1:.1f} mm (expected > 0)",
         )
 
         # PPE level should be assigned
         passed_ppe1 = result1.ppe_level in ["0", "1", "2", "3", "4", "DANGER"]
         self._record(
-            "Arc Flash 4.16kV/20kA PPE Level", passed_ppe1, f"PPE Level={result1.ppe_level}",
+            "Arc Flash 4.16kV/20kA PPE Level",
+            passed_ppe1,
+            f"PPE Level={result1.ppe_level}",
         )
 
         # Test Case 2: 0.48 kV system, 30 kA fault current
@@ -486,7 +507,9 @@ class ValidationSuite:
         # Test Case 3: Higher voltage should generally produce different results
         # than lower voltage for same fault current
         self._record(
-            "Arc Flash Voltage Sensitivity", ie1 != ie2, f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}",
+            "Arc Flash Voltage Sensitivity",
+            ie1 != ie2,
+            f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}",
         )
 
     # =========================================================================
@@ -499,7 +522,11 @@ class ValidationSuite:
 
         # Test IEC 60255 Standard Inverse curve
         relay = OvercurrentRelay(
-            relay_id=1, name="Test Relay", curve_type="standard_inverse", TMS=1.0, Ip=1.0,
+            relay_id=1,
+            name="Test Relay",
+            curve_type="standard_inverse",
+            TMS=1.0,
+            Ip=1.0,
         )
 
         # At I/Ip = 10, standard inverse: t = 1.0 * 0.14 / (10^0.02 - 1) = 0.14 / 0.04713 ~ 2.971 s
@@ -524,7 +551,11 @@ class ValidationSuite:
 
         # Test Very Inverse curve
         relay_vi = OvercurrentRelay(
-            relay_id=2, name="VI Relay", curve_type="very_inverse", TMS=1.0, Ip=1.0,
+            relay_id=2,
+            name="VI Relay",
+            curve_type="very_inverse",
+            TMS=1.0,
+            Ip=1.0,
         )
         t_vi = relay_vi.trip_time(10.0)
         expected_tvi = 1.0 * 13.5 / (10.0 - 1.0)
@@ -537,7 +568,11 @@ class ValidationSuite:
 
         # Test Extremely Inverse curve
         relay_ei = OvercurrentRelay(
-            relay_id=3, name="EI Relay", curve_type="extremely_inverse", TMS=1.0, Ip=1.0,
+            relay_id=3,
+            name="EI Relay",
+            curve_type="extremely_inverse",
+            TMS=1.0,
+            Ip=1.0,
         )
         t_ei = relay_ei.trip_time(10.0)
         expected_tei = 1.0 * 80.0 / (10.0**2 - 1.0)
@@ -592,7 +627,9 @@ class ValidationSuite:
         line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=z)
         system.add_line(line)
 
-        Ybus = system.build_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = system.build_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Expected Ybus:
         # Ybus[0,0] = y, Ybus[0,1] = -y

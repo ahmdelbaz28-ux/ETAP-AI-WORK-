@@ -226,7 +226,9 @@ class TestRevitPluginClientInit:
             timeout=60,
             api_key="secret-key",
         )
-        assert client.base_url == "http://revit-host:9999"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+        assert (
+            client.base_url == "http://revit-host:9999"
+        )  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 60
         assert client.session.headers["X-API-Key"] == "secret-key"
 
@@ -508,7 +510,9 @@ class TestAutoCADPluginClientInit:
             timeout=120,
             api_key="test-key",
         )
-        assert client.base_url == "http://acad-host:8080"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+        assert (
+            client.base_url == "http://acad-host:8080"
+        )  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert client.timeout == 120
         assert client.session.headers["X-API-Key"] == "test-key"
 
@@ -561,6 +565,7 @@ class TestAutoCADPluginClientCommands:
             payload = mock_post.call_args[1]["json"]
             assert payload["command"] == "open_drawing"
             assert payload["params"]["file_path"] == "/tmp/test.dwg"
+
     def test_create_layer_sends_layer_properties(self):
         """create_layer should include name, color, linetype, lineweight."""
         client = AutoCADPluginClient()
@@ -627,6 +632,7 @@ class TestAutoCADConnector:
             assert result["success"] is True
             assert conn._current_drawing is not None
             assert conn._current_drawing.file_path == "/tmp/test.dwg"
+
     def test_close_drawing_clears_context(self):
         """AutoCADConnector.close_drawing should set _current_drawing to None."""
         conn = self._make_connector()
@@ -770,6 +776,7 @@ class TestAutoCADConnector:
         stats = conn.get_statistics()
         assert stats["current_drawing"] == "/tmp/proj.dwg"
 
+
 # ===========================================================================
 # 8. Data Model Validation — shared/models.py
 # ===========================================================================
@@ -861,6 +868,7 @@ class TestConnectionFailures:
         ):
             with pytest.raises(requests.exceptions.ConnectionError):
                 client.send_command("open_drawing", {"file_path": "/tmp/x.dwg"})
+
     def test_autocad_server_error(self):
         """AutoCADPluginClient should raise on 500."""
         import requests

@@ -438,7 +438,9 @@ class SIEMForwarder:
         with self._lock:
             self._stats["failed"] += len(events)
         logger.error(
-            "SIEM forward failed after %d attempts for %d events", self.retry_attempts, len(events),
+            "SIEM forward failed after %d attempts for %d events",
+            self.retry_attempts,
+            len(events),
         )
         return False
 
@@ -495,7 +497,10 @@ class SIEMForwarder:
 
         def _blocking_post() -> None:
             req = urllib.request.Request(
-                self.endpoint, data=payload, headers=headers, method="POST",
+                self.endpoint,
+                data=payload,
+                headers=headers,
+                method="POST",
             )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 if resp.status >= HTTP_ERROR_THRESHOLD:
@@ -587,10 +592,13 @@ class SIEMForwarder:
                     resp = await client.get(self.endpoint.rsplit("/", 1)[0] + "/ready", timeout=5.0)
                     healthy = resp.status_code < HTTP_ERROR_THRESHOLD
             elif _HAS_AIOHTTP:
-                async with aiohttp.ClientSession() as session, session.get(
-                    self.endpoint.rsplit("/", 1)[0] + "/ready",
-                    timeout=aiohttp.ClientTimeout(total=5),
-                ) as resp:
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.get(
+                        self.endpoint.rsplit("/", 1)[0] + "/ready",
+                        timeout=aiohttp.ClientTimeout(total=5),
+                    ) as resp,
+                ):
                     healthy = resp.status < HTTP_ERROR_THRESHOLD
             else:
                 healthy = True  # no way to check; assume OK

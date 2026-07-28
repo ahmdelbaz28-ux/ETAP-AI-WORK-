@@ -55,7 +55,9 @@ class PowerSystemEngine:
         self.load_flow_solver = (
             load_flow_solver
             if load_flow_solver is not None
-            else (LoadFlowSolver(system) if system is not None else None)  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            else (
+                LoadFlowSolver(system) if system is not None else None
+            )  # NOSONAR: nested conditional; extract to named variable (tech debt)
         )
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
@@ -101,9 +103,15 @@ class PowerSystemEngine:
             raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
-        Ybus_pos = self.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = self.system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = self.system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = self.system.get_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = self.system.get_ybus(
+            seq="2"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = self.system.get_ybus(
+            seq="0"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
         # Get bus index
@@ -264,8 +272,9 @@ class PowerSystemEngine:
                 "is_simulated": True,
                 "error": (
                     "Both upstream and downstream relay configurations are required. "
-                    "Received: upstream={}, downstream={}".format("present" if up_conf else "missing",
-                                                              "present" if down_conf else "missing")
+                    "Received: upstream={}, downstream={}".format(
+                        "present" if up_conf else "missing", "present" if down_conf else "missing"
+                    )
                 ),
                 "results": [],
             }
@@ -288,7 +297,9 @@ class PowerSystemEngine:
 
         # Check coordination
         results = self.coordination_engine.check_coordination_range(
-            upstream_relay, downstream_relay, fault_currents,
+            upstream_relay,
+            downstream_relay,
+            fault_currents,
         )
 
         # Determine if coordinated for all faults
@@ -339,7 +350,9 @@ class PowerSystemEngine:
                     "upstream_relay_id, downstream_relay_id, and fault_currents must be provided",
                 )
             return self.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents,
+                upstream_relay_id,
+                downstream_relay_id,
+                fault_currents,
             )
         elif study_type == "arc_flash":
             required = (
@@ -411,6 +424,9 @@ class PowerSystemEngine:
 
         fig, ax = plt.subplots()
         self.visualizer.plot_coordination_margin(
-            upstream_relay, downstream_relay, fault_currents, ax=ax,
+            upstream_relay,
+            downstream_relay,
+            fault_currents,
+            ax=ax,
         )
         return fig

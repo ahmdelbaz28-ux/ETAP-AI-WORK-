@@ -73,8 +73,7 @@ print(f"Official procedure: {procedure}")
 
 # التحقق من الخطوات المقترحة
 validation = rag.validate_etap_operation(
-    "load flow analysis",
-    ["Open ETAP", "Create project", "Run study"]
+    "load flow analysis", ["Open ETAP", "Create project", "Run study"]
 )
 
 if validation["valid"]:
@@ -91,12 +90,13 @@ print(f"Answer: {answer['answer']}")
 
 ```python
 # قراءة نص مستخرج
-with open('etap_user_guide/extracted/ETAP USER GUIDE_Part1.txt', 'r') as f:
+with open("etap_user_guide/extracted/ETAP USER GUIDE_Part1.txt", "r") as f:
     content = f.read()
 
 # تحميل الفهرس الرئيسي
 import json
-with open('etap_user_guide/index/master_index.json', 'r') as f:
+
+with open("etap_user_guide/index/master_index.json", "r") as f:
     index = json.load(f)
     print(f"Total documents: {index['total_documents']}")
     print(f"Total chunks: {index['total_chunks']}")
@@ -165,8 +165,8 @@ validation = rag.validate_etap_operation(
         "Select Short Circuit module",
         "Configure fault parameters",
         "Run analysis",
-        "Review results"
-    ]
+        "Review results",
+    ],
 )
 
 print(f"Valid: {validation['valid']}")
@@ -195,9 +195,9 @@ else:
 ```python
 import json
 
-with open('etap_user_guide/extraction_summary.json', 'r') as f:
+with open("etap_user_guide/extraction_summary.json", "r") as f:
     summary = json.load(f)
-    
+
 print(f"Total files: {summary['total_files']}")
 print(f"Successful: {summary['successful']}")
 print(f"Failed: {summary['failed']}")
@@ -262,7 +262,7 @@ proposed_steps = [
     "Configure load flow settings",
     "Run study",
     "Check convergence",
-    "Extract results"
+    "Extract results",
 ]
 
 validation = rag.validate_etap_operation("load flow analysis", proposed_steps)
@@ -272,7 +272,7 @@ if validation["valid"]:
     with ETAPAutomation(visible=True) as etap:
         project = etap.open_project("C:\\Projects\\MyProject.edb")
         result = project.run_study("load_flow")
-        
+
         if result.success:
             print(f"✓ Study completed successfully")
             print(f"Results: {result.data}")

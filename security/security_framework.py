@@ -12,6 +12,7 @@ Features:
 - Audit logging
 - Secrets management
 """
+
 from __future__ import annotations
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
@@ -239,7 +240,11 @@ class AuthenticationManager:
             return False
 
     def create_user(
-        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER,
+        self,
+        username: str,
+        email: str,
+        password: str,
+        role: UserRole = UserRole.VIEWER,
     ) -> Optional[User]:
         """Create a new user (returns User on success, None on duplicate username)."""
         if username in self.username_to_id:
@@ -260,7 +265,11 @@ class AuthenticationManager:
         password_hash = self._hash_password(password)
 
         user = User(
-            user_id=user_id, username=username, email=email, role=role, password_hash=password_hash,
+            user_id=user_id,
+            username=username,
+            email=email,
+            role=role,
+            password_hash=password_hash,
         )
 
         self.users[user_id] = user
@@ -450,7 +459,9 @@ class InputValidator:
     FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
-    def validate_python_code(code: str, allowed_imports: set[str] = None) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def validate_python_code(
+        code: str, allowed_imports: set[str] = None
+    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Validate Python code for safety using AST parsing.
 
@@ -672,7 +683,8 @@ class RateLimiter:
         max_clients = self.MAX_CLIENT_MULTIPLIER * self.max_requests
         if len(self.requests) > max_clients:
             sorted_clients = sorted(
-                self.requests.items(), key=lambda item: item[1][-1] if item[1] else 0,
+                self.requests.items(),
+                key=lambda item: item[1][-1] if item[1] else 0,
             )
             to_remove = len(self.requests) - max_clients
             for cid, _ in sorted_clients[:to_remove]:
@@ -723,7 +735,12 @@ class AuditLogger:
         self.logger.setLevel(logging.INFO)
 
     def log_event(
-        self, event_type: str, user_id: str, action: str, details: dict = None, success: bool = True,
+        self,
+        event_type: str,
+        user_id: str,
+        action: str,
+        details: dict = None,
+        success: bool = True,
     ) -> None:
         """Append a structured security audit event to the audit log."""
         log_entry = {
@@ -751,7 +768,11 @@ class AuditLogger:
     def log_action(self, user_id: str, action: str, resource: str, success: bool = True):
         """Log user action."""
         self.log_event(
-            "action", user_id, f"{action} on {resource}", {"resource": resource}, success,
+            "action",
+            user_id,
+            f"{action} on {resource}",
+            {"resource": resource},
+            success,
         )
 
     def log_security_violation(self, user_id: str, violation: str, details: dict = None):

@@ -164,13 +164,15 @@ async def send_email_otp(
         f"If you did not request this, ignore this email.\n"
     )
 
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "otp"}, {"name": "purpose", "value": purpose}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "otp"}, {"name": "purpose", "value": purpose}],
+        )
+    )
 
 
 async def send_password_reset(
@@ -195,13 +197,15 @@ async def send_password_reset(
         f"This link expires in {ttl_minutes} minutes.\n"
         f"If you did not request a reset, ignore this email.\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "password_reset"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "password_reset"}],
+        )
+    )
 
 
 async def send_welcome(email: str, user_name: Optional[str] = None) -> EmailResult:
@@ -220,13 +224,15 @@ async def send_welcome(email: str, user_name: Optional[str] = None) -> EmailResu
         f"Your account has been created. Visit {_APP_URL}/login to get started.\n"
         f"For help, contact {_SUPPORT_EMAIL}.\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "welcome"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "welcome"}],
+        )
+    )
 
 
 async def send_email_verification(
@@ -243,18 +249,16 @@ async def send_email_verification(
         current_year=datetime.now(UTC).year,
     )
     html = _render(template, **ctx) if template else _fallback_verify_html(verify_link)
-    text = (
-        f"Verify your email address:\n\n"
-        f"{verify_link}\n\n"
-        f"This link expires in 24 hours.\n"
+    text = f"Verify your email address:\n\n{verify_link}\n\nThis link expires in 24 hours.\n"
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "email_verification"}],
+        )
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "email_verification"}],
-    ))
 
 
 async def send_login_alert(
@@ -287,13 +291,15 @@ async def send_login_alert(
         f"If this was you, no action is needed.\n"
         f"If not, change your password immediately at {_APP_URL}/settings/security\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "login_alert"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "login_alert"}],
+        )
+    )
 
 
 async def send_account_lockout(
@@ -317,13 +323,15 @@ async def send_account_lockout(
         f"It will automatically unlock at: {unlock_at.strftime(_TIMESTAMP_FMT)}\n"
         f"If this was not you, contact {_SUPPORT_EMAIL} immediately.\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "lockout"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "lockout"}],
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -354,16 +362,18 @@ async def send_notification_email(
     )
     html = _render(template, **ctx) if template else _fallback_notification_html(title, message)
     text = f"{title}\n\n{message}\n\nOpen: {action_url or _APP_URL}\n"
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[
-            {"name": "flow", "value": "notification"},
-            {"name": "priority", "value": priority},
-        ],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[
+                {"name": "flow", "value": "notification"},
+                {"name": "priority", "value": priority},
+            ],
+        )
+    )
 
 
 async def send_study_complete_email(
@@ -385,19 +395,25 @@ async def send_study_complete_email(
         completed_at=datetime.now(UTC).strftime(_TIMESTAMP_FMT),
         current_year=datetime.now(UTC).year,
     )
-    html = _render(template, **ctx) if template else _fallback_study_html(study_name, study_url, completed=True)
+    html = (
+        _render(template, **ctx)
+        if template
+        else _fallback_study_html(study_name, study_url, completed=True)
+    )
     text = (
         f"Your study '{study_name}' has completed.\n"
         f"Duration: {duration_str}\n"
         f"View results: {study_url}\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "study_complete"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "study_complete"}],
+        )
+    )
 
 
 async def send_study_failed_email(
@@ -417,19 +433,25 @@ async def send_study_failed_email(
         support_email=_SUPPORT_EMAIL,
         current_year=datetime.now(UTC).year,
     )
-    html = _render(template, **ctx) if template else _fallback_study_html(study_name, "", completed=False, err=error_message)
+    html = (
+        _render(template, **ctx)
+        if template
+        else _fallback_study_html(study_name, "", completed=False, err=error_message)
+    )
     text = (
         f"Your study '{study_name}' failed.\n"
         f"Error: {error_message[:500]}\n"
         f"For help, contact {_SUPPORT_EMAIL}\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "study_failed"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "study_failed"}],
+        )
+    )
 
 
 async def send_role_change_email(
@@ -454,13 +476,15 @@ async def send_role_change_email(
         f"Changed by: {changed_by}\n"
         f"If this is unexpected, contact {_SUPPORT_EMAIL}.\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "role_change"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "role_change"}],
+        )
+    )
 
 
 async def send_password_change_email(
@@ -485,13 +509,15 @@ async def send_password_change_email(
         f"{datetime.now(UTC).strftime(_TIMESTAMP_FMT)}.\n"
         f"If this was not you, contact {_SUPPORT_EMAIL} immediately.\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "password_change"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[{"name": "flow", "value": "password_change"}],
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -518,18 +544,20 @@ async def send_critical_alert(
     )
     html = _render(template, **ctx) if template else _fallback_critical_html(title, body)
     text = (
-        f"CRITICAL ALERT\n\n"
-        f"Title: {title}\n"
-        f"Body: {body}\n"
-        f"Time: {datetime.now(UTC).isoformat()}\n"
+        f"CRITICAL ALERT\n\nTitle: {title}\nBody: {body}\nTime: {datetime.now(UTC).isoformat()}\n"
     )
-    return await resend_client.send(EmailParams(
-        to=email,
-        subject=subject,
-        html=html,
-        text=text,
-        tags=[{"name": "flow", "value": "critical_alert"}, {"name": "priority", "value": "critical"}],
-    ))
+    return await resend_client.send(
+        EmailParams(
+            to=email,
+            subject=subject,
+            html=html,
+            text=text,
+            tags=[
+                {"name": "flow", "value": "critical_alert"},
+                {"name": "priority", "value": "critical"},
+            ],
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -564,10 +592,10 @@ def _fallback_html_shell(body_html: str, border_style: str = "") -> str:
 def _fallback_otp_html(code: str, purpose: str, ttl: int) -> str:
     body = (
         f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
-        f'<p>Your verification code is:</p>\n'
+        f"<p>Your verification code is:</p>\n"
         f'<h1 style="font-size:36px;letter-spacing:8px;color:#1e40af;">{code}</h1>\n'
-        f'<p>Purpose: {purpose}</p>\n'
-        f'<p>This code expires in {ttl} minutes.</p>\n'
+        f"<p>Purpose: {purpose}</p>\n"
+        f"<p>This code expires in {ttl} minutes.</p>\n"
         f'<p style="color:#6b7280;font-size:12px;margin-top:32px;">If you did not request this, ignore this email.</p>'
     )
     return _fallback_html_shell(body)
@@ -576,10 +604,10 @@ def _fallback_otp_html(code: str, purpose: str, ttl: int) -> str:
 def _fallback_reset_html(link: str, ttl: int) -> str:
     body = (
         f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
-        f'<p>Reset your password by clicking the button below:</p>\n'
+        f"<p>Reset your password by clicking the button below:</p>\n"
         f'<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Reset Password</a></p>\n'
         f'<p style="color:#6b7280;font-size:12px;">Or copy this link: {link}</p>\n'
-        f'<p>This link expires in {ttl} minutes.</p>'
+        f"<p>This link expires in {ttl} minutes.</p>"
     )
     return _fallback_html_shell(body)
 
@@ -587,8 +615,8 @@ def _fallback_reset_html(link: str, ttl: int) -> str:
 def _fallback_welcome_html(name: str) -> str:
     body = (
         f'<h2 style="color:#1e40af;">Welcome to {_BRAND_NAME}!</h2>\n'
-        f'<p>Hi {name},</p>\n'
-        f'<p>Your account has been created. Visit {_APP_URL}/login to get started.</p>'
+        f"<p>Hi {name},</p>\n"
+        f"<p>Your account has been created. Visit {_APP_URL}/login to get started.</p>"
     )
     return _fallback_html_shell(body)
 
@@ -596,7 +624,7 @@ def _fallback_welcome_html(name: str) -> str:
 def _fallback_verify_html(link: str) -> str:
     body = (
         f'<h2 style="color:#1e40af;">{_BRAND_NAME}</h2>\n'
-        f'<p>Verify your email address:</p>\n'
+        f"<p>Verify your email address:</p>\n"
         f'<p><a href="{link}" style="display:inline-block;background:#1e40af;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;">Verify Email</a></p>'
     )
     return _fallback_html_shell(body)
@@ -605,10 +633,10 @@ def _fallback_verify_html(link: str) -> str:
 def _fallback_login_alert_html(ip: str, ua: str, ts: datetime) -> str:
     body = (
         f'<h2 style="color:#dc2626;">New Login to {_BRAND_NAME}</h2>\n'
-        f'<p>Time: {ts.strftime(_TIMESTAMP_FMT)}</p>\n'
-        f'<p>IP: {ip}</p>\n'
-        f'<p>Device: {ua[:200]}</p>\n'
-        f'<p>If this was not you, change your password immediately.</p>'
+        f"<p>Time: {ts.strftime(_TIMESTAMP_FMT)}</p>\n"
+        f"<p>IP: {ip}</p>\n"
+        f"<p>Device: {ua[:200]}</p>\n"
+        f"<p>If this was not you, change your password immediately.</p>"
     )
     return _fallback_html_shell(body)
 
@@ -616,50 +644,48 @@ def _fallback_login_alert_html(ip: str, ua: str, ts: datetime) -> str:
 def _fallback_lockout_html(unlock_at: datetime) -> str:
     body = (
         f'<h2 style="color:#dc2626;">Account Locked</h2>\n'
-        f'<p>Your {_BRAND_NAME} account has been temporarily locked due to multiple failed login attempts.</p>\n'
-        f'<p>It will automatically unlock at: <strong>{unlock_at.strftime(_TIMESTAMP_FMT)}</strong></p>'
+        f"<p>Your {_BRAND_NAME} account has been temporarily locked due to multiple failed login attempts.</p>\n"
+        f"<p>It will automatically unlock at: <strong>{unlock_at.strftime(_TIMESTAMP_FMT)}</strong></p>"
     )
     return _fallback_html_shell(body)
 
 
 def _fallback_notification_html(title: str, message: str) -> str:
-    body = f'<h3>{title}</h3>\n<p>{message}</p>'
+    body = f"<h3>{title}</h3>\n<p>{message}</p>"
     return _fallback_html_shell(body)
 
 
 def _fallback_study_html(name: str, url: str, completed: bool, err: str = "") -> str:
     status = "Completed" if completed else "Failed"
     color = "#16a34a" if completed else "#dc2626"
-    link_html = f'<p><a href="{url}">View results</a></p>' if completed else f'<p>Error: {err[:200]}</p>'
+    link_html = (
+        f'<p><a href="{url}">View results</a></p>' if completed else f"<p>Error: {err[:200]}</p>"
+    )
     body = f'<h2 style="color:{color};">Study {status}: {name}</h2>\n{link_html}'
     return _fallback_html_shell(body)
 
 
 def _fallback_role_html(role: str, by: str) -> str:
     body = (
-        f'<h2>Role Updated</h2>\n'
-        f'<p>Your role has been updated to: <strong>{role}</strong></p>\n'
-        f'<p>Changed by: {by}</p>'
+        f"<h2>Role Updated</h2>\n"
+        f"<p>Your role has been updated to: <strong>{role}</strong></p>\n"
+        f"<p>Changed by: {by}</p>"
     )
     return _fallback_html_shell(body)
 
 
 def _fallback_pwd_change_html(ip: Optional[str]) -> str:
     body = (
-        f'<h2>Password Changed</h2>\n'
-        f'<p>Your {_BRAND_NAME} password was changed.</p>\n'
-        f'<p>IP: {ip or "unknown"}</p>\n'
-        f'<p>If this was not you, contact support immediately.</p>'
+        f"<h2>Password Changed</h2>\n"
+        f"<p>Your {_BRAND_NAME} password was changed.</p>\n"
+        f"<p>IP: {ip or 'unknown'}</p>\n"
+        f"<p>If this was not you, contact support immediately.</p>"
     )
     return _fallback_html_shell(body)
 
 
 def _fallback_critical_html(title: str, body: str) -> str:
-    inner = (
-        f'<h2 style="color:#dc2626;">CRITICAL ALERT</h2>\n'
-        f'<h3>{title}</h3>\n'
-        f'<p>{body}</p>'
-    )
+    inner = f'<h2 style="color:#dc2626;">CRITICAL ALERT</h2>\n<h3>{title}</h3>\n<p>{body}</p>'
     return _fallback_html_shell(inner, border_style="border-left:4px solid #dc2626;")
 
 

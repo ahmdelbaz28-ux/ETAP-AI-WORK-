@@ -42,29 +42,35 @@ class BusSpec(_BaseSpecModel):
 
     bus_id: int
     voltage_magnitude: float = Field(
-        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm"),
+        default=1.0,
+        validation_alias=AliasChoices("voltage_magnitude", "vm"),
     )
     voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
     load_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd"),
+        default=0.0,
+        validation_alias=AliasChoices("load_power_real", "p_load", "pd"),
     )
     load_power_imag: float = Field(
         default=0.0,
         validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
     )
     generation_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg"),
+        default=0.0,
+        validation_alias=AliasChoices("generation_power_real", "power_real", "pg"),
     )
     generation_power_imag: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"),
+        default=0.0,
+        validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"),
     )
     bus_type: str = "pq"
     base_kv: Optional[float] = None
     q_min: float = Field(
-        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"),
+        default=-999.0,
+        validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"),
     )
     q_max: float = Field(
-        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"),
+        default=999.0,
+        validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"),
     )
     area: Optional[int] = None
     zone: Optional[int] = None
@@ -123,7 +129,8 @@ class LineSpec(_BaseSpecModel):
     r0: Optional[float] = None
     x0: Optional[float] = None
     bshunt1: float = Field(
-        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"),
+        default=0.02,
+        validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"),
     )
     bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
     rating_mva: Optional[float] = None
@@ -158,7 +165,8 @@ class TransformerSpec(_BaseSpecModel):
     x1: float = 0.05
     tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
     phase_shift_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift"),
+        default=0.0,
+        validation_alias=AliasChoices("phase_shift_deg", "phase_shift"),
     )
 
     @field_validator("tap_ratio")
@@ -197,19 +205,24 @@ class GeneratorSpec(_BaseSpecModel):
         validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
     )
     internal_voltage_ang_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"),
+        default=0.0,
+        validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"),
     )
     power_real: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("power_real", "pg"),
+        default=None,
+        validation_alias=AliasChoices("power_real", "pg"),
     )
     power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("power_reactive", "qg"),
+        default=None,
+        validation_alias=AliasChoices("power_reactive", "qg"),
     )
     max_power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max"),
+        default=None,
+        validation_alias=AliasChoices("max_power_reactive", "q_max"),
     )
     min_power_reactive: Optional[float] = Field(
-        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min"),
+        default=None,
+        validation_alias=AliasChoices("min_power_reactive", "q_min"),
     )
 
 
@@ -222,7 +235,8 @@ class LoadSpec(_BaseSpecModel):
     load_id: int
     bus_id: int
     p_mw: float = Field(
-        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"),
+        default=0.0,
+        validation_alias=AliasChoices("p_mw", "power_real", "load_power_real"),
     )
     q_mvar: float = Field(
         default=0.0,
@@ -238,11 +252,13 @@ class SystemSpec(_BaseSpecModel):
     """Complete power-system specification for a study."""
 
     base_mva: float = Field(
-        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva"),
+        default=100.0,
+        validation_alias=AliasChoices("base_mva", "sbase", "base_mva"),
     )
     buses: list[BusSpec] = Field(default_factory=list)
     lines: list[LineSpec] = Field(
-        default_factory=list, validation_alias=AliasChoices("lines", "branches"),
+        default_factory=list,
+        validation_alias=AliasChoices("lines", "branches"),
     )
     transformers: list[TransformerSpec] = Field(default_factory=list)
     generators: list[GeneratorSpec] = Field(default_factory=list)
@@ -264,28 +280,30 @@ class SystemSpec(_BaseSpecModel):
 
 # Full superset of allowed study types (API layer accepts all of these; the
 # service layer may narrow the set at runtime based on USE_ETAP).
-_ALLOWED_STUDY_TYPES: frozenset[str] = frozenset({
-    "load_flow",
-    "short_circuit",
-    "fault",
-    "arc_flash",
-    "protection_coordination",
-    "coordination",
-    "motor_starting",
-    "harmonic_analysis",
-    "optimal_power_flow",
-    "etap_load_flow",
-    "etap_short_circuit",
-    "etap_arc_flash",
-    "etap_harmonic_analysis",
-    "etap_optimal_power_flow",
-    "etap_motor_starting",
-    "etap_protection_coordination",
-    # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses
-    "etap_expert",
-    # ETAP GUI Agent — Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, etc.)
-    "etap_gui",
-})
+_ALLOWED_STUDY_TYPES: frozenset[str] = frozenset(
+    {
+        "load_flow",
+        "short_circuit",
+        "fault",
+        "arc_flash",
+        "protection_coordination",
+        "coordination",
+        "motor_starting",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "etap_load_flow",
+        "etap_short_circuit",
+        "etap_arc_flash",
+        "etap_harmonic_analysis",
+        "etap_optimal_power_flow",
+        "etap_motor_starting",
+        "etap_protection_coordination",
+        # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses
+        "etap_expert",
+        # ETAP GUI Agent — Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, etc.)
+        "etap_gui",
+    }
+)
 
 
 class StudyRequest(_BaseSpecModel):
@@ -293,16 +311,19 @@ class StudyRequest(_BaseSpecModel):
 
     study_type: str = Field(..., description="Type of study to run")
     system: Optional[SystemSpec] = Field(
-        default=None, validation_alias=AliasChoices("system", "system_spec"),
+        default=None,
+        validation_alias=AliasChoices("system", "system_spec"),
     )
     parameters: dict[str, Any] = Field(default_factory=dict)
     task_id: Optional[str] = None
     use_etap: bool = Field(
-        default=False, description="If True, route to ETAP provider instead of native engine",
+        default=False,
+        description="If True, route to ETAP provider instead of native engine",
     )
     etap_project_path: Optional[str] = None
     pe_stamp: Optional[dict[str, Any]] = Field(
-        default=None, description="Professional Engineer (PE) stamp for regulated studies",
+        default=None,
+        description="Professional Engineer (PE) stamp for regulated studies",
     )
 
     @field_validator("study_type")
@@ -337,7 +358,8 @@ class StudyResult(_BaseSpecModel):
     study_type: str = ""
     provider: str = "native"
     pe_stamp: Optional[dict[str, Any]] = Field(
-        default=None, description="Professional Engineer (PE) stamp for regulated studies",
+        default=None,
+        description="Professional Engineer (PE) stamp for regulated studies",
     )
 
     @model_validator(mode="before")

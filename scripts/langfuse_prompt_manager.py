@@ -196,7 +196,9 @@ def main() -> None:
     sub.add_parser("list", help="List all prompts").set_defaults(func=cmd_list)
 
     p_versions = sub.add_parser("versions", help="Show all versions of a prompt")
-    p_versions.add_argument("name", help="Prompt name")  # NOSONAR: intentional repetition (audit constant)
+    p_versions.add_argument(
+        "name", help="Prompt name"
+    )  # NOSONAR: intentional repetition (audit constant)
     p_versions.set_defaults(func=cmd_versions)
 
     p_labels = sub.add_parser("labels", help="Show labels for a prompt")
@@ -206,14 +208,18 @@ def main() -> None:
     p_promote = sub.add_parser("promote", help="Promote latest version to a label")
     p_promote.add_argument("name", help="Prompt name")
     p_promote.add_argument(
-        "label", choices=["production", "staging", "experimental"], help="Label to assign",
+        "label",
+        choices=["production", "staging", "experimental"],
+        help="Label to assign",
     )
     p_promote.set_defaults(func=cmd_promote)
 
     p_demote = sub.add_parser("demote", help="Remove a label from all versions")
     p_demote.add_argument("name", help="Prompt name")
     p_demote.add_argument(
-        "label", choices=["production", "staging", "experimental"], help="Label to remove",
+        "label",
+        choices=["production", "staging", "experimental"],
+        help="Label to remove",
     )
     p_demote.set_defaults(func=cmd_demote)
 

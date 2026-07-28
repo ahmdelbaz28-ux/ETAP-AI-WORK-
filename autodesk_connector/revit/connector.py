@@ -134,7 +134,10 @@ class RevitPluginClient:
         return self._call("/family/load", {"family_path": family_path})
 
     def place_family(
-        self, family_symbol: str, insertion_point: list[float], level_id: str = "",
+        self,
+        family_symbol: str,
+        insertion_point: list[float],
+        level_id: str = "",
     ) -> dict:
         return self._call(
             "/family/place",
@@ -199,7 +202,10 @@ class RevitPluginClient:
         return self._call("/mep/data", {})
 
     def create_circuit(
-        self, panel_id: str, device_ids: list[str], circuit_number: Optional[int] = None,
+        self,
+        panel_id: str,
+        device_ids: list[str],
+        circuit_number: Optional[int] = None,
     ) -> dict:
         return self._call(
             "/mep/create_circuit",
@@ -455,7 +461,11 @@ class RevitConnector:
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: Optional[dict] = None,
+        self,
+        operation: str,
+        target: str,
+        success: bool,
+        details: Optional[dict] = None,
     ) -> None:
         self._operation_log.append(
             {

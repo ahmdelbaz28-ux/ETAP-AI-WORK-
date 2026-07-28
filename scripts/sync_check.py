@@ -23,6 +23,7 @@ Required env vars:
     VERCEL_TOKEN      — Vercel API token
     VERCEL_PROJECT_ID — Vercel project ID
 """
+
 from __future__ import annotations
 
 import argparse
@@ -80,12 +81,20 @@ CANONICAL_SECRETS = {
 }
 
 # Secrets that are safe to set as "plain" (non-encrypted) on Vercel
-PLAIN_ENV_VARS = {"SUPABASE_URL", "LANGFUSE_BASE_URL", "VITE_API_URL", "R2_BUCKET_NAME", "R2_ACCOUNT_ID", "VERCEL_PROJECT_ID"}
+PLAIN_ENV_VARS = {
+    "SUPABASE_URL",
+    "LANGFUSE_BASE_URL",
+    "VITE_API_URL",
+    "R2_BUCKET_NAME",
+    "R2_ACCOUNT_ID",
+    "VERCEL_PROJECT_ID",
+}
 
 
 @dataclass
 class SyncStatus:
     """Sync status for a single platform."""
+
     platform: str
     in_sync: bool
     missing_secrets: list[str]
@@ -96,6 +105,7 @@ class SyncStatus:
 
 # ─── GitHub ──────────────────────────────────────────────────────────────────
 
+
 def check_github_secrets() -> tuple[set[str], Optional[str]]:
     """Return (present_secret_names, error) for GitHub Actions secrets."""
     headers = {
@@ -104,7 +114,8 @@ def check_github_secrets() -> tuple[set[str], Optional[str]]:
     }
     r = requests.get(
         f"https://api.github.com/repos/{GITHUB_REPO}/actions/secrets",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code != 200:
         return set(), f"GitHub API HTTP {r.status_code}: {r.text[:200]}"
@@ -117,7 +128,8 @@ def check_github_latest_commit() -> Optional[str]:
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}", "Accept": "application/vnd.github+json"}
     r = requests.get(
         f"https://api.github.com/repos/{GITHUB_REPO}/commits/main",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code == 200:
         return r.json()["sha"]
@@ -126,12 +138,14 @@ def check_github_latest_commit() -> Optional[str]:
 
 # ─── HuggingFace Space ──────────────────────────────────────────────────────
 
+
 def check_hf_secrets() -> tuple[set[str], Optional[str]]:
     """Return (present_secret_names, error) for HF Space secrets."""
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     r = requests.get(
         f"https://huggingface.co/api/spaces/{HF_SPACE_ID}/secrets",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code != 200:
         return set(), f"HF API HTTP {r.status_code}: {r.text[:200]}"
@@ -144,7 +158,8 @@ def check_hf_runtime_status() -> dict[str, Any]:
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     r = requests.get(
         f"https://huggingface.co/api/spaces/{HF_SPACE_ID}",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code != 200:
         return {"error": f"HTTP {r.status_code}"}
@@ -159,12 +174,14 @@ def check_hf_runtime_status() -> dict[str, Any]:
 
 # ─── Vercel ──────────────────────────────────────────────────────────────────
 
+
 def check_vercel_envs() -> tuple[set[str], Optional[str]]:
     """Return (present_env_names, error) for Vercel project env vars."""
     headers = {"Authorization": f"Bearer {VERCEL_TOKEN}"}
     r = requests.get(
         f"https://api.vercel.com/v9/projects/{VERCEL_PROJECT_ID}/env",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code != 200:
         return set(), f"Vercel API HTTP {r.status_code}: {r.text[:200]}"
@@ -177,7 +194,8 @@ def check_vercel_latest_deployment() -> Optional[dict[str, Any]]:
     headers = {"Authorization": f"Bearer {VERCEL_TOKEN}"}
     r = requests.get(
         f"https://api.vercel.com/v6/deployments?projectId={VERCEL_PROJECT_ID}&limit=1",
-        headers=headers, timeout=30,
+        headers=headers,
+        timeout=30,
     )
     if r.status_code != 200:
         return None
@@ -195,6 +213,7 @@ def check_vercel_latest_deployment() -> Optional[dict[str, Any]]:
 
 # ─── Sync Verification ──────────────────────────────────────────────────────
 
+
 def verify_sync() -> list[SyncStatus]:
     """Check all platforms for secret + deployment sync."""
     results: list[SyncStatus] = []
@@ -203,38 +222,46 @@ def verify_sync() -> list[SyncStatus]:
     # GitHub
     gh_secrets, gh_err = check_github_secrets()
     gh_sha = check_github_latest_commit()
-    results.append(SyncStatus(
-        platform="GitHub",
-        in_sync=gh_err is None,
-        missing_secrets=sorted(canonical - gh_secrets) if gh_err is None else [],
-        extra_secrets=sorted(gh_secrets - canonical) if gh_err is None else [],
-        last_deployment=gh_sha[:8] if gh_sha else None,
-        error=gh_err,
-    ))
+    results.append(
+        SyncStatus(
+            platform="GitHub",
+            in_sync=gh_err is None,
+            missing_secrets=sorted(canonical - gh_secrets) if gh_err is None else [],
+            extra_secrets=sorted(gh_secrets - canonical) if gh_err is None else [],
+            last_deployment=gh_sha[:8] if gh_sha else None,
+            error=gh_err,
+        )
+    )
 
     # HuggingFace
     hf_secrets, hf_err = check_hf_secrets()
     hf_status = check_hf_runtime_status()
-    results.append(SyncStatus(
-        platform="HuggingFace",
-        in_sync=hf_err is None and hf_status.get("stage") == "RUNNING",
-        missing_secrets=sorted(canonical - hf_secrets) if hf_err is None else [],
-        extra_secrets=sorted(hf_secrets - canonical) if hf_err is None else [],
-        last_deployment=hf_status.get("sha", "")[:8] if isinstance(hf_status.get("sha"), str) else None,
-        error=hf_err or hf_status.get("error"),
-    ))
+    results.append(
+        SyncStatus(
+            platform="HuggingFace",
+            in_sync=hf_err is None and hf_status.get("stage") == "RUNNING",
+            missing_secrets=sorted(canonical - hf_secrets) if hf_err is None else [],
+            extra_secrets=sorted(hf_secrets - canonical) if hf_err is None else [],
+            last_deployment=hf_status.get("sha", "")[:8]
+            if isinstance(hf_status.get("sha"), str)
+            else None,
+            error=hf_err or hf_status.get("error"),
+        )
+    )
 
     # Vercel
     v_envs, v_err = check_vercel_envs()
     v_dep = check_vercel_latest_deployment()
-    results.append(SyncStatus(
-        platform="Vercel",
-        in_sync=v_err is None,
-        missing_secrets=sorted(canonical - v_envs) if v_err is None else [],
-        extra_secrets=sorted(v_envs - canonical) if v_err is None else [],
-        last_deployment=v_dep.get("sha", "")[:8] if v_dep else None,
-        error=v_err,
-    ))
+    results.append(
+        SyncStatus(
+            platform="Vercel",
+            in_sync=v_err is None,
+            missing_secrets=sorted(canonical - v_envs) if v_err is None else [],
+            extra_secrets=sorted(v_envs - canonical) if v_err is None else [],
+            last_deployment=v_dep.get("sha", "")[:8] if v_dep else None,
+            error=v_err,
+        )
+    )
 
     return results
 
@@ -280,6 +307,7 @@ def print_sync_report(results: list[SyncStatus]) -> bool:
 
 
 # ─── Main ────────────────────────────────────────────────────────────────────
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cross-platform sync checker")

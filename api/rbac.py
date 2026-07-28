@@ -94,9 +94,7 @@ class Permission(Base):
         default=lambda: datetime.now(UTC),
     )
 
-    __table_args__ = (
-        UniqueConstraint("resource", "action", name="uq_permission_resource_action"),
-    )
+    __table_args__ = (UniqueConstraint("resource", "action", name="uq_permission_resource_action"),)
 
     # Relationships
     roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
@@ -107,7 +105,12 @@ role_permissions = Table(
     "role_permissions",
     Base.metadata,
     Column("role_id", String(36), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
-    Column("permission_id", String(36), ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "permission_id",
+        String(36),
+        ForeignKey("permissions.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
 )
 
 
@@ -117,17 +120,19 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    role_id: Mapped[str] = mapped_column(String(36), ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    role_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     assigned_by: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "role_id", name="uq_user_role"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_role"),)
 
     # Relationships
     role = relationship("Role", back_populates="users")
@@ -153,7 +158,9 @@ class RoleUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
+    name: Optional[str] = Field(
+        default=None, min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$"
+    )
     description: Optional[str] = Field(default=None, max_length=500)
     permission_ids: Optional[list[str]] = None
 
@@ -348,17 +355,13 @@ async def _sync_role_permissions(db: AsyncSession, role: Role, permission_ids: l
     # Add new permissions
     for perm_id in permission_ids:
         perm = await _get_permission_by_id(db, perm_id)
-        await db.execute(
-            role_permissions.insert().values(role_id=role.id, permission_id=perm.id)
-        )
+        await db.execute(role_permissions.insert().values(role_id=role.id, permission_id=perm.id))
 
 
 async def _build_role_response(db: AsyncSession, role: Role) -> RoleResponse:
     """Build a RoleResponse with permission IDs."""
     result = await db.execute(
-        select(role_permissions.c.permission_id).where(
-            role_permissions.c.role_id == role.id
-        )
+        select(role_permissions.c.permission_id).where(role_permissions.c.role_id == role.id)
     )
     permission_ids = [row[0] for row in result.fetchall()]
     return RoleResponse(
@@ -473,9 +476,7 @@ async def update_role(
 
     if body.name is not None:
         # Check name uniqueness
-        existing = await db.execute(
-            select(Role).where(Role.name == body.name, Role.id != role_id)
-        )
+        existing = await db.execute(select(Role).where(Role.name == body.name, Role.id != role_id))
         if existing.scalar_one_or_none() is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -518,14 +519,10 @@ async def delete_role(
         )
 
     # Remove all user-role associations
-    await db.execute(
-        UserRole.__table__.delete().where(UserRole.role_id == role_id)
-    )
+    await db.execute(UserRole.__table__.delete().where(UserRole.role_id == role_id))
 
     # Remove all role-permission associations
-    await db.execute(
-        role_permissions.delete().where(role_permissions.c.role_id == role_id)
-    )
+    await db.execute(role_permissions.delete().where(role_permissions.c.role_id == role_id))
 
     await db.delete(role)
     await db.flush()
@@ -695,9 +692,7 @@ async def assign_user_roles(
         await _get_role_by_id(db, role_id)
 
     # Remove existing role assignments
-    await db.execute(
-        UserRole.__table__.delete().where(UserRole.user_id == user_id)
-    )
+    await db.execute(UserRole.__table__.delete().where(UserRole.user_id == user_id))
 
     # Assign new roles
     for role_id in body.role_ids:

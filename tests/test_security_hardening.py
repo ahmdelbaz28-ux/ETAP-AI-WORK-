@@ -164,9 +164,13 @@ class TestABAC:
         from security.abac import ip_in_ranges
 
         # Internal IP → within range
-        assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8", "192.168.0.0/16"]) is True  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("10.0.1.5", ["10.0.0.0/8", "192.168.0.0/16"]) is True
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
         # External IP → not in range
-        assert ip_in_ranges("203.0.113.5", ["10.0.0.0/8", "192.168.0.0/16"]) is False  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("203.0.113.5", ["10.0.0.0/8", "192.168.0.0/16"]) is False
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
 
     def test_policy_removal(self):
         """Test 7: Policies can be removed at runtime."""
@@ -197,10 +201,18 @@ class TestABAC:
         """Test 9: IP range checking utility function."""
         from security.abac import ip_in_ranges
 
-        assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-        assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8"]) is False  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-        assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8", "192.168.0.0/16"]) is True  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-        assert ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("192.168.1.1", ["10.0.0.0/8"]) is False
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("192.168.1.1", ["10.0.0.0/8", "192.168.0.0/16"]) is True
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        assert (
+            ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
 
 
 # ===========================================================================

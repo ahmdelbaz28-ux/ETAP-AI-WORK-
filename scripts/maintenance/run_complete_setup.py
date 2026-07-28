@@ -66,7 +66,11 @@ def run_command(cmd, description="", timeout=300):
         cmd_parts = shlex.split(cmd) if isinstance(cmd, str) else cmd
 
         result = subprocess.run(
-            cmd_parts, capture_output=True, text=True, timeout=timeout, cwd=os.getcwd(),
+            cmd_parts,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=os.getcwd(),
         )
 
         if result.returncode == 0:
@@ -249,7 +253,9 @@ print("Short Circuit Test: PASSED")
 """
 
     success, _ = run_command(
-        [sys.executable, "-c", test_code], "Short Circuit Test", timeout=30,
+        [sys.executable, "-c", test_code],
+        "Short Circuit Test",
+        timeout=30,
     )
 
     return success
@@ -316,7 +322,9 @@ print("Harmonic Analysis Test: PASSED")
 """
 
     success, _ = run_command(
-        [sys.executable, "-c", test_code], "Harmonic Analysis Test", timeout=30,
+        [sys.executable, "-c", test_code],
+        "Harmonic Analysis Test",
+        timeout=30,
     )
 
     return success
@@ -399,7 +407,9 @@ else:
 """
 
     success, _ = run_command(
-        [sys.executable, "-c", test_code], "Security Framework Test", timeout=30,
+        [sys.executable, "-c", test_code],
+        "Security Framework Test",
+        timeout=30,
     )
 
     return success
@@ -447,7 +457,9 @@ result = asyncio.run(test_report())
 """
 
     success, _ = run_command(
-        [sys.executable, "-c", test_code], "Report Generation Test", timeout=60,
+        [sys.executable, "-c", test_code],
+        "Report Generation Test",
+        timeout=60,
     )
 
     return success

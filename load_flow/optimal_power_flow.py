@@ -18,6 +18,7 @@ Methods:
 
 Reference: IEEE PES Test Cases, MATPOWER methodology
 """
+
 from __future__ import annotations
 
 import logging
@@ -95,7 +96,9 @@ class OptimalPowerFlowEngine:
       - Line flow limits (inequality constraints)
     """
 
-    def __init__(self, Ybus: np.ndarray, bus_ids: list[int], generator_costs: list[GeneratorCost]):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def __init__(
+        self, Ybus: np.ndarray, bus_ids: list[int], generator_costs: list[GeneratorCost]
+    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Initialize OPF engine.
 
@@ -147,10 +150,14 @@ class OptimalPowerFlowEngine:
 
         # Form B' matrix (remove reference bus row/column)
         # Assume bus 0 is slack/reference
-        B_prime = B[1:, 1:]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        B_prime = B[
+            1:, 1:
+        ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate net power injections
-        P_injection = np.zeros(self.n_buses - 1)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_injection = np.zeros(
+            self.n_buses - 1
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         for i, bus_id in enumerate(self.bus_ids[1:], start=0):
             # Generation
             P_gen = sum(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -159,7 +166,9 @@ class OptimalPowerFlowEngine:
                 if bid == bus_id
             )
             # Load
-            P_load = self.load_data.get(bus_id, 0).real if bus_id in self.load_data else 0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            P_load = (
+                self.load_data.get(bus_id, 0).real if bus_id in self.load_data else 0
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             P_injection[i] = P_gen - P_load
 
         return B_prime, P_injection
@@ -230,7 +239,9 @@ class OptimalPowerFlowEngine:
             gen_col_map[gid] = i
 
         # Single system-wide power balance constraint: sum(gen) = sum(load)
-        A_eq_row = np.zeros(len(gen_ids))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        A_eq_row = np.zeros(
+            len(gen_ids)
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_eq_val = 0.0
         for _bus_idx, bid in enumerate(self.bus_ids):
             load_val = self.load_data.get(bid, complex(0, 0)).real
@@ -238,7 +249,9 @@ class OptimalPowerFlowEngine:
         for gid, _bus_id in self.gen_buses.items():
             gen_col = gen_col_map[gid]
             A_eq_row[gen_col] = 1.0
-        A_eq = A_eq_row.reshape(1, -1)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        A_eq = A_eq_row.reshape(
+            1, -1
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_eq = np.array([b_eq_val])
 
         # Solve LP
@@ -308,7 +321,9 @@ class OptimalPowerFlowEngine:
                 convergence_status="error",
             )
 
-    def solve_ac_opf_interior_point(self, max_iter: int = 100, tol: float = 1e-6) -> OPFResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def solve_ac_opf_interior_point(
+        self, max_iter: int = 100, tol: float = 1e-6
+    ) -> OPFResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Solve AC Optimal Power Flow using Interior Point Method.
 
@@ -364,7 +379,9 @@ class OptimalPowerFlowEngine:
                 P_gen_bus = sum(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     x[i] for i, gid in enumerate(gen_ids) if self.gen_buses.get(gid) == bus_id
                 )
-                P_load = self.load_data.get(bus_id, 0).real  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                P_load = self.load_data.get(
+                    bus_id, 0
+                ).real  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 return P_gen_bus - P_load
 
             constraints.append({"type": "eq", "fun": active_power_constraint})
@@ -376,7 +393,9 @@ class OptimalPowerFlowEngine:
                     for i, gid in enumerate(gen_ids)
                     if self.gen_buses.get(gid) == bus_id
                 )
-                Q_load = self.load_data.get(bus_id, 0).imag  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Q_load = self.load_data.get(
+                    bus_id, 0
+                ).imag  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 return Q_gen_bus - Q_load
 
             constraints.append({"type": "eq", "fun": reactive_power_constraint})

@@ -196,7 +196,7 @@ if balance_error > 1.0:  # 1 MW tolerance
 # التحقق من قيم تيارات القصر
 for bus_id, faults in fault_results.items():
     for fault_type, fault_data in faults.items():
-        current = abs(fault_data['fault_current'])
+        current = abs(fault_data["fault_current"])
         if current > 100:  # 100 kA threshold
             violations.append(f"Very high fault current: {current:.2f} kA")
 ```
@@ -659,8 +659,7 @@ orchestrator = get_orchestrator()
 
 # تنفيذ سير عمل مستقل
 results = await orchestrator.execute_autonomous_workflow(
-    user_goal="Analyze voltage profile and optimize power flow",
-    system_data=system
+    user_goal="Analyze voltage profile and optimize power flow", system_data=system
 )
 
 print(f"Task ID: {results['task_id']}")
@@ -702,14 +701,14 @@ report_agent = get_report_agent()
 # إنشاء تقرير كامل
 generated_files = await report_agent.generate_complete_report(
     analysis_results={
-        'load_flow': lf_results,
-        'short_circuit': sc_results,
-        'harmonic': harm_results,
-        'opf': opf_results,
-        'recommendations': recommendations
+        "load_flow": lf_results,
+        "short_circuit": sc_results,
+        "harmonic": harm_results,
+        "opf": opf_results,
+        "recommendations": recommendations,
     },
-    formats=['pdf', 'docx', 'xlsx'],
-    output_path='./reports'
+    formats=["pdf", "docx", "xlsx"],
+    output_path="./reports",
 )
 
 print(f"Reports generated: {list(generated_files.keys())}")

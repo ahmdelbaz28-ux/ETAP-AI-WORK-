@@ -9,6 +9,7 @@ This module:
 3. Creates searchable text chunks
 4. Builds a knowledge base for the RAG engine
 """
+
 from __future__ import annotations
 
 import json
@@ -159,7 +160,10 @@ class ETAPGuideExtractor:
         return text.strip()
 
     def create_text_chunks(
-        self, text: str, chunk_size: int = 1000, overlap: int = 100,
+        self,
+        text: str,
+        chunk_size: int = 1000,
+        overlap: int = 100,
     ) -> list[str]:
         """
         Split text into overlapping chunks for RAG.

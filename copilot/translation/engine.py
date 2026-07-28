@@ -655,7 +655,11 @@ class TranslationEngine:
         return mapping.get(etap_type.lower(), "pq")
 
     def _log_translation(
-        self, direction: str, entity_type: str, source_id: str, target_id: str,
+        self,
+        direction: str,
+        entity_type: str,
+        source_id: str,
+        target_id: str,
     ) -> None:
         self._translation_log.append(
             {

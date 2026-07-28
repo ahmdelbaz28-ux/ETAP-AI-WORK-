@@ -274,7 +274,9 @@ async def test_notification_callback():
     runtime = AcpRuntime([MathHandler()])
     called_with: Optional[dict] = None
 
-    async def on_notification(env: dict):  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def on_notification(
+        env: dict,
+    ):  # NOSONAR: async function uses sync I/O for compatibility reasons
         nonlocal called_with
         called_with = env
 
@@ -286,7 +288,9 @@ async def test_notification_callback():
             "params": {"percent": 75},
         }
     )
-    assert called_with is not None  # NOSONAR: Sonar can't track nonlocal assignment in async callback; this verifies on_notification was actually invoked
+    assert (
+        called_with is not None
+    )  # NOSONAR: Sonar can't track nonlocal assignment in async callback; this verifies on_notification was actually invoked
     # After the assert, called_with is narrowed from Optional[dict] to dict,
     # so bracket access is safe (S5644 satisfied).
     assert called_with["method"] == "progress.update"

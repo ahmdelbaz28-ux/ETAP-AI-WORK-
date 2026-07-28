@@ -8,6 +8,7 @@ Provides reusable dependency callables for:
 * API-key validation (``get_api_key``)
 * Pagination parameter parsing (``PaginationParams``)
 """
+
 from __future__ import annotations
 
 import hmac
@@ -38,7 +39,7 @@ if not _jwt_key:
         raise RuntimeError(
             "JWT_SECRET_KEY must be set in production/staging. "
             "Refusing to start with a default secret. "
-            "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
         )
     # Development fallback: generate a random key at startup.
     # This is unique per process restart — tokens won't persist across restarts,
@@ -181,6 +182,7 @@ async def get_current_user(
     if jti:
         try:
             from api.auth import _is_token_blacklisted
+
             if await _is_token_blacklisted(jti):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -309,6 +311,7 @@ async def get_api_key(  # NOSONAR: async function uses sync I/O for compatibilit
             if jti:
                 try:
                     from api.auth import _is_token_blacklisted
+
                     if await _is_token_blacklisted(jti):
                         raise HTTPException(
                             status_code=status.HTTP_401_UNAUTHORIZED,

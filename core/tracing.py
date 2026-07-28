@@ -133,7 +133,8 @@ def setup_tracing(  # NOSONAR: cognitive complexity; scheduled for refactoring s
             )
 
             langfuse_base = _os.environ.get(
-                "LANGFUSE_BASE_URL", "https://cloud.langfuse.com",
+                "LANGFUSE_BASE_URL",
+                "https://cloud.langfuse.com",
             ).rstrip("/")
             langfuse_url = f"{langfuse_base}/api/public/otel/v1/traces"
             # The OTLP/HTTP exporter accepts headers for authentication.

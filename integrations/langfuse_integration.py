@@ -75,6 +75,7 @@ from integrations._observability_base import build_health_check
 def _env_truthy(var: str, default: bool = False) -> bool:
     """Delegate to shared ``core.utils.env_truthy`` to eliminate duplication."""
     from core.utils import env_truthy
+
     return env_truthy(var, default)
 
 
@@ -413,7 +414,8 @@ def track_llm_call(  # NOSONAR: cognitive complexity; scheduled for refactoring 
                     try:
                         result = await func(*args, **kwargs)
                         captured_input = _truncate_for_capture(
-                            input_text, langfuse_tracker.max_capture_chars,
+                            input_text,
+                            langfuse_tracker.max_capture_chars,
                         )
                         captured_output = _truncate_for_capture(
                             result if capture_output else None,
@@ -463,7 +465,8 @@ def track_llm_call(  # NOSONAR: cognitive complexity; scheduled for refactoring 
                 try:
                     result = func(*args, **kwargs)
                     captured_input = _truncate_for_capture(
-                        input_text, langfuse_tracker.max_capture_chars,
+                        input_text,
+                        langfuse_tracker.max_capture_chars,
                     )
                     captured_output = _truncate_for_capture(
                         result if capture_output else None,

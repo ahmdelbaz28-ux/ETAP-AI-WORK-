@@ -17,6 +17,7 @@ SECURITY AUDIT 2026-07-25 — Fix S-08:
   Keys that have no entries within the window are evicted on each call.
 - Added _last_cleanup tracking to avoid O(n) full-scan on every call.
 """
+
 from __future__ import annotations
 
 import threading
@@ -52,7 +53,9 @@ class RateLimiter:
         # Run full stale-key eviction at most once per window
         self._cleanup_interval: float = max(window_seconds // 2, 10)
 
-    def _evict_stale_keys(self, _now: float, window_start: float) -> None:  # NOSONAR: kept for API symmetry with is_allowed (caller passes `now`)
+    def _evict_stale_keys(
+        self, _now: float, window_start: float
+    ) -> None:  # NOSONAR: kept for API symmetry with is_allowed (caller passes `now`)
         """Remove keys that have no entries within the current window.
 
         Called periodically (not on every request) to bound memory usage.
@@ -60,7 +63,8 @@ class RateLimiter:
         number of unique clients seen within the window.
         """
         stale_keys = [
-            key for key, entries in self._store.items()
+            key
+            for key, entries in self._store.items()
             if not entries or entries[-1] <= window_start
         ]
         for key in stale_keys:

@@ -52,17 +52,23 @@ class FakeByteStream:
         self._sent: list[bytes] = []
         self._closed = False
 
-    async def receive(self, max_bytes: int = 65536) -> bytes:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def receive(
+        self, max_bytes: int = 65536
+    ) -> bytes:  # NOSONAR: async function uses sync I/O for compatibility reasons
         if not self._read_data:
             return b""
         chunk = self._read_data[:max_bytes]
         self._read_data = self._read_data[max_bytes:]
         return chunk
 
-    async def send(self, data: bytes) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def send(
+        self, data: bytes
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         self._sent.append(data)
 
-    async def aclose(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def aclose(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         self._closed = True
 
 
@@ -228,7 +234,9 @@ class TestWebSocketTransport:
         async def recv() -> str:  # NOSONAR: async function uses sync I/O for compatibility reasons
             return ""
 
-        async def send(msg: str) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+        async def send(
+            msg: str,
+        ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
             sent.append(msg)
 
         transport = WebSocketTransport(send, recv)
@@ -255,7 +263,9 @@ class TestWebSocketTransport:
         async def recv() -> str:  # NOSONAR: async function uses sync I/O for compatibility reasons
             return ""
 
-        async def send(msg: str) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+        async def send(
+            msg: str,
+        ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
             sent.append(msg)
 
         transport = WebSocketTransport(send, recv)

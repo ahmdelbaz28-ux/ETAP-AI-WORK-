@@ -38,6 +38,7 @@ def env_bool(key: str, default: bool) -> bool:
     ``integrations.langfuse_integration._env_truthy``.
     """
     from core.utils import env_truthy
+
     return env_truthy(key, default)
 
 
@@ -82,9 +83,7 @@ def load_config(path: str) -> dict[str, Any]:
         pass  # Best-effort: chmod can fail on some filesystems
     allowed_roots = [Path.cwd().resolve(), _acp_temp_dir, Path.home().resolve()]
     if not any(_is_within(p, root) for root in allowed_roots):
-        raise SystemExit(
-            f"Refusing to read config file outside CWD, tempdir, or HOME: {path!r}"
-        )
+        raise SystemExit(f"Refusing to read config file outside CWD, tempdir, or HOME: {path!r}")
 
     data = p.read_text(encoding="utf-8")
     suffix = p.suffix.lower()

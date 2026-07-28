@@ -77,7 +77,9 @@ class NumericalGuard:
     """
 
     def __init__(
-        self, warn_on_clamp: bool = True, logger_instance: logging.Logger | None = None,
+        self,
+        warn_on_clamp: bool = True,
+        logger_instance: logging.Logger | None = None,
     ):
         self.warn_on_clamp = warn_on_clamp
         self.log = logger_instance or logger
@@ -124,7 +126,8 @@ class NumericalGuard:
         mask = np.abs(den) < epsilon
         if np.any(mask):
             self.log.warning(
-                "Division by near-zero denominator detected — using default %s", default,
+                "Division by near-zero denominator detected — using default %s",
+                default,
             )
         safe_den = np.where(mask, np.inf, den)
         return np.divide(num, safe_den, out=np.full_like(num, default, dtype=float), where=~mask)
@@ -159,7 +162,9 @@ class NumericalGuard:
             )
         return np.clip(arr, min_val, max_val)
 
-    def is_within_bounds(self, value: float | np.ndarray, min_val: float, max_val: float, _name: str = "value") -> bool:  # NOSONAR: param kept for API symmetry with clamp_to_bounds
+    def is_within_bounds(
+        self, value: float | np.ndarray, min_val: float, max_val: float, _name: str = "value"
+    ) -> bool:  # NOSONAR: param kept for API symmetry with clamp_to_bounds
         """Check whether all elements lie within [min_val, max_val]."""
         arr = np.asarray(value, dtype=float)
         return bool(np.all((arr >= min_val) & (arr <= max_val)))
@@ -458,9 +463,13 @@ class MatrixStabilizer:
             self.log.warning("Matrix inversion failed — falling back to pseudo-inverse")
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
-    def safe_solve(self, A: np.ndarray, b: np.ndarray, _method: str = "lu") -> np.ndarray:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def safe_solve(
+        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"
+    ) -> np.ndarray:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Solve Ax = b with fallback to least-squares on singular systems."""
-        A_arr = np.asarray(A, dtype=float)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        A_arr = np.asarray(
+            A, dtype=float
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_arr = np.asarray(b, dtype=float)
         try:
             return solve(A_arr, b_arr)

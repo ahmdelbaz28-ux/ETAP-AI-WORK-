@@ -1419,10 +1419,7 @@ import requests
 
 api_key = "your-api-key"
 base_url = "http://localhost:8000/api/v1"
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
 # Run load flow
 response = requests.post(
@@ -1430,25 +1427,22 @@ response = requests.post(
     json={
         "study_type": "load_flow",
         "system": {"base_mva": 100, "buses": [...], "lines": [...]},
-        "parameters": {"method": "newton_raphson"}
+        "parameters": {"method": "newton_raphson"},
     },
-    headers=headers
+    headers=headers,
 )
 result = response.json()
 print(f"Converged: {result['converged']}")
 
 # Check SCADA measurements
-response = requests.get(
-    f"{base_url}/scada/measurements?bus_id=1",
-    headers=headers
-)
+response = requests.get(f"{base_url}/scada/measurements?bus_id=1", headers=headers)
 measurements = response.json()
 
 # Run anomaly detection
 response = requests.post(
     f"{base_url}/predictive/anomaly-detect",
     json={"measurements": [...], "contamination": 0.05},
-    headers=headers
+    headers=headers,
 )
 anomalies = response.json()
 ```

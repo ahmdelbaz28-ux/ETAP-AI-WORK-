@@ -240,7 +240,9 @@ class ConfirmationBroker:
         except TimeoutError:
             result = False
             logger.warning(
-                "Confirmation request %s TIMED OUT after %ds", request_id, timeout_seconds,
+                "Confirmation request %s TIMED OUT after %ds",
+                request_id,
+                timeout_seconds,
             )
         except Exception as exc:  # noqa: BLE001
             result = False
@@ -282,7 +284,9 @@ class ConfirmationBroker:
                     {"type": "confirmation_resolved", "data": req.to_dict(), "approved": True},
                 )
                 logger.info(
-                    "Confirmation %s APPROVED by %d humans", request_id, len(req.confirmations),
+                    "Confirmation %s APPROVED by %d humans",
+                    request_id,
+                    len(req.confirmations),
                 )
 
             return {"success": True, "data": req.to_dict()}

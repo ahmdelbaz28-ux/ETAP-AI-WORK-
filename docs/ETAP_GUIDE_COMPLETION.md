@@ -162,10 +162,7 @@ rag = ETAPGuideRAG()
 procedure = rag.get_etap_procedure("load flow analysis")
 
 # التحقق من الخطوات
-validation = rag.validate_etap_operation(
-    "load flow analysis",
-    ["Step 1", "Step 2", "Step 3"]
-)
+validation = rag.validate_etap_operation("load flow analysis", ["Step 1", "Step 2", "Step 3"])
 
 # الاستعلام
 answer = rag.query("How to add a transformer?")
@@ -368,8 +365,7 @@ for step in procedure["steps"]:
 
 # التحقق من الخطوات
 validation = rag.validate_etap_operation(
-    "load flow analysis",
-    ["Open ETAP", "Create project", "Run study"]
+    "load flow analysis", ["Open ETAP", "Create project", "Run study"]
 )
 
 if validation["valid"]:

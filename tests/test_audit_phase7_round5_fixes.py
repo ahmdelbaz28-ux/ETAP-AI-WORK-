@@ -8,6 +8,7 @@ Tests verify:
 - F-1: Admin rollback endpoint has error handling (try/except)
 - I-1: pylock.toml has updated openai/anthropic versions
 """
+
 from __future__ import annotations
 
 import importlib
@@ -33,6 +34,7 @@ def _read_file(relative: str) -> str:
 # S-15: Admin endpoints require API key authentication
 # ---------------------------------------------------------------------------
 
+
 class TestAdminEndpointAuthentication:
     """Verify all admin endpoints call _require_api_key(request)."""
 
@@ -50,17 +52,19 @@ class TestAdminEndpointAuthentication:
         return _read_file("api/routes.py")
 
     @pytest.mark.parametrize("method,path", ADMIN_ENDPOINTS)
-    def test_admin_endpoint_has_require_api_key(self, routes_source: str, method: str, path: str) -> None:
+    def test_admin_endpoint_has_require_api_key(
+        self, routes_source: str, method: str, path: str
+    ) -> None:
         """Each admin endpoint must call _require_api_key(request)."""
         # Find the route decorator and the function that follows
         # Check that within the function body, _require_api_key is called
-        assert f"@app.{method.lower()}(\"{path}\"" in routes_source, (
+        assert f'@app.{method.lower()}("{path}"' in routes_source, (
             f"Route decorator for {method} {path} not found"
         )
         # Find the function definition after the decorator
-        decorator_pos = routes_source.index(f"@app.{method.lower()}(\"{path}\"")
+        decorator_pos = routes_source.index(f'@app.{method.lower()}("{path}"')
         # Get the next ~500 characters after the decorator (should contain the function body)
-        func_body = routes_source[decorator_pos:decorator_pos + 3000]
+        func_body = routes_source[decorator_pos : decorator_pos + 3000]
         assert "_require_api_key(request)" in func_body, (
             f"{method} {path} does NOT call _require_api_key(request)"
         )
@@ -94,6 +98,7 @@ class TestAdminEndpointAuthentication:
 # S-15: CUA WebSocket requires API key authentication
 # ---------------------------------------------------------------------------
 
+
 class TestCUAWebSocketAuthentication:
     """Verify /ws/cua/confirmation WebSocket requires API key."""
 
@@ -105,28 +110,29 @@ class TestCUAWebSocketAuthentication:
         """CUA confirmation WebSocket must validate x-api-key header."""
         assert 'websocket.headers.get("x-api-key")' in routes_source
         # Check hmac.compare_digest is used
-        ws_section = routes_source[routes_source.index("@app.websocket(\"/ws/cua/confirmation\")"):]
+        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
         assert "hmac.compare_digest" in ws_section[:1000], (
             "CUA WebSocket must use hmac.compare_digest for constant-time comparison"
         )
-        assert 'code=1008' in ws_section[:1000], (
+        assert "code=1008" in ws_section[:1000], (
             "CUA WebSocket must close with code 1008 on auth failure"
         )
 
     def test_cua_websocket_closes_on_missing_key(self, routes_source: str) -> None:
         """CUA WebSocket must close connection if API key is missing."""
-        ws_section = routes_source[routes_source.index("@app.websocket(\"/ws/cua/confirmation\")"):]
-        assert 'await websocket.close(' in ws_section[:1500]
+        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
+        assert "await websocket.close(" in ws_section[:1500]
 
     def test_cua_websocket_closes_on_exception(self, routes_source: str) -> None:
         """CUA WebSocket must close on any auth exception."""
-        ws_section = routes_source[routes_source.index("@app.websocket(\"/ws/cua/confirmation\")"):]
+        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
         assert "except Exception:" in ws_section[:1500]
 
 
 # ---------------------------------------------------------------------------
 # S-16: Security headers middleware
 # ---------------------------------------------------------------------------
+
 
 class TestSecurityHeadersMiddleware:
     """Verify security headers are set by the application middleware."""
@@ -164,6 +170,7 @@ class TestSecurityHeadersMiddleware:
 # Helm: Pod anti-affinity
 # ---------------------------------------------------------------------------
 
+
 class TestHelmAntiAffinity:
     """Verify pod anti-affinity is configured in Helm values."""
 
@@ -195,6 +202,7 @@ class TestHelmAntiAffinity:
 # F-1: Admin rollback error handling
 # ---------------------------------------------------------------------------
 
+
 class TestAdminRollbackErrorHandling:
     """Verify admin rollback endpoint has try/except with safe error response."""
 
@@ -205,28 +213,27 @@ class TestAdminRollbackErrorHandling:
     def test_rollback_has_try_except(self, routes_source: str) -> None:
         """Rollback endpoint must have try/except block."""
         rollback_pos = routes_source.index("async def cua_rollback(")
-        rollback_body = routes_source[rollback_pos:rollback_pos + 2000]
+        rollback_body = routes_source[rollback_pos : rollback_pos + 2000]
         assert "try:" in rollback_body
         assert "except Exception" in rollback_body
 
     def test_rollback_error_no_str_exc(self, routes_source: str) -> None:
         """Rollback error response must NOT use str(exc) or str(e)."""
         rollback_pos = routes_source.index("async def cua_rollback(")
-        rollback_body = routes_source[rollback_pos:rollback_pos + 2000]
-        except_block = rollback_body[rollback_body.index("except Exception"):]
+        rollback_body = routes_source[rollback_pos : rollback_pos + 2000]
+        except_block = rollback_body[rollback_body.index("except Exception") :]
         # The error response must not leak internal details
         assert '"Rollback operation failed"' in except_block
         # Verify NO str(exc) in the JSON response
         lines_after_except = except_block.split("\n")
         for line in lines_after_except[:10]:
-            assert "str(exc)" not in line or "logger" in line, (
-                f"str(exc) in HTTP response: {line}"
-            )
+            assert "str(exc)" not in line or "logger" in line, f"str(exc) in HTTP response: {line}"
 
 
 # ---------------------------------------------------------------------------
 # I-1: Stale dependencies updated
 # ---------------------------------------------------------------------------
+
 
 class TestDependencyUpdates:
     """Verify openai and anthropic SDK versions are updated."""

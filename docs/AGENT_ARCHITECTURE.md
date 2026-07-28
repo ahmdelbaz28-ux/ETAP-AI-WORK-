@@ -125,6 +125,7 @@ class EngineeringTask:
     status: AgentStatus = AgentStatus.IDLE
     results: List[AgentResult] = field(default_factory=list)
 
+
 @dataclass
 class AgentResult:
     agent_name: str
@@ -147,17 +148,17 @@ class ChiefEngineeringOrchestrator:
 
     def __init__(self):
         self.agents = {
-            "load_flow":     LoadFlowAgent(),
+            "load_flow": LoadFlowAgent(),
             "short_circuit": ShortCircuitAgent(),
-            "harmonic":      HarmonicAnalysisAgent(),
-            "opf":           OptimalPowerFlowAgent(),
-            "protection":    ProtectionCoordinationAgent(),
+            "harmonic": HarmonicAnalysisAgent(),
+            "opf": OptimalPowerFlowAgent(),
+            "protection": ProtectionCoordinationAgent(),
             "etap_execution": ETAPExecutionAgent(),
-            "validation":    ValidationAgent(),
-            "report":        ReportGenerationAgent(),
-            "code_guard":    CodeGuardAgent(),        # optional
-            "etap_expert":   ETAPExpertAgent(),        # optional
-            "etap_gui":      ETAPGUIAgent(),           # optional
+            "validation": ValidationAgent(),
+            "report": ReportGenerationAgent(),
+            "code_guard": CodeGuardAgent(),  # optional
+            "etap_expert": ETAPExpertAgent(),  # optional
+            "etap_gui": ETAPGUIAgent(),  # optional
         }
 
     async def execute_autonomous_workflow(self, user_goal, system_data, parameters):
@@ -657,6 +658,7 @@ In `agents/orchestrator.py`, add the agent to `ChiefEngineeringOrchestrator.__in
 
 ```python
 from agents.my_new_agent import MyNewAgent
+
 
 class ChiefEngineeringOrchestrator:
     def __init__(self):

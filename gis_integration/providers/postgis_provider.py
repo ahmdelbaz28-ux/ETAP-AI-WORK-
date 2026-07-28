@@ -66,6 +66,7 @@ def _validate_schema_name(schema: str) -> str:
         )
     return schema
 
+
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
@@ -105,8 +106,6 @@ _HAS_POSTGIS = False
 _psycopg2 = None
 try:
     import psycopg2  # type: ignore
-
-
 
     _psycopg2 = psycopg2
     _HAS_POSTGIS = True
@@ -152,7 +151,11 @@ class PostGISProvider:
         if not _HAS_POSTGIS:
             self._use_fallback = True
             self._fallback_dir = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "postgis_fallback",
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                "..",
+                "data",
+                "postgis_fallback",
             )
             os.makedirs(self._fallback_dir, exist_ok=True)
             logger.info("PostGIS: using file fallback mode at %s", self._fallback_dir)
@@ -169,7 +172,11 @@ class PostGISProvider:
         except Exception as exc:
             self._use_fallback = True
             self._fallback_dir = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "postgis_fallback",
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                "..",
+                "data",
+                "postgis_fallback",
             )
             os.makedirs(self._fallback_dir, exist_ok=True)
             logger.warning("PostGIS connection failed (%s) — using file fallback", exc)
@@ -368,7 +375,9 @@ class PostGISProvider:
                     geometry=json.loads(row[2]) if row[2] else None,
                     properties=row[3]
                     if isinstance(row[3], dict)
-                    else (json.loads(row[3]) if row[3] else {}),  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                    else (
+                        json.loads(row[3]) if row[3] else {}
+                    ),  # NOSONAR: nested conditional; extract to named variable (tech debt)
                     electrical_id=row[4],
                 )
         except Exception as exc:
@@ -400,7 +409,9 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                            else (
+                                json.loads(row[3]) if row[3] else {}
+                            ),  # NOSONAR: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -443,7 +454,9 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                            else (
+                                json.loads(row[3]) if row[3] else {}
+                            ),  # NOSONAR: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -453,7 +466,11 @@ class PostGISProvider:
             return []
 
     def query_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float,
+        self,
+        min_lat: float,
+        min_lon: float,
+        max_lat: float,
+        max_lon: float,
     ) -> list[SpatialAsset]:
         """Spatial query: find all assets within a bounding box."""
         if self._use_fallback:
@@ -479,7 +496,9 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                            else (
+                                json.loads(row[3]) if row[3] else {}
+                            ),  # NOSONAR: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -531,7 +550,9 @@ class PostGISProvider:
                             geometry=json.loads(row[2]) if row[2] else None,
                             properties=row[3]
                             if isinstance(row[3], dict)
-                            else (json.loads(row[3]) if row[3] else {}),  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                            else (
+                                json.loads(row[3]) if row[3] else {}
+                            ),  # NOSONAR: nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
                     )
@@ -544,7 +565,11 @@ class PostGISProvider:
     # Network mapping
     # ------------------------------------------------------------------
 
-    def map_electrical_to_gis(self, electrical_ids: list[str]) -> dict[str, dict[str, Any]]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def map_electrical_to_gis(
+        self, electrical_ids: list[str]
+    ) -> dict[
+        str, dict[str, Any]
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Map electrical model IDs to their GIS spatial assets.
 
         Returns dict of electrical_id -> {asset_id, geometry, properties}

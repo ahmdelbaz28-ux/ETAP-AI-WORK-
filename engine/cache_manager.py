@@ -47,7 +47,10 @@ class _CacheEntry:
     )
 
     def __init__(
-        self, value: Any, expires_at: Optional[float] = None, tags: list[str] | None = None,
+        self,
+        value: Any,
+        expires_at: Optional[float] = None,
+        tags: list[str] | None = None,
     ):
         self.value = value
         self.expires_at = expires_at
@@ -88,7 +91,8 @@ class CalculationCache:
             maxsize = max(1, int(max_size_mb * 1024 * 1024 / 512))
             if strategy == CacheStrategy.TTL:
                 self._cachetools_cache = TLRUCache(
-                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds),
+                    maxsize=maxsize,
+                    ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds),
                 )  # type: ignore
             else:
                 self._cachetools_cache = LRUCache(maxsize=maxsize)
@@ -151,7 +155,8 @@ class CalculationCache:
                     self._cachetools_data[cache_key] = (value, expires_at, tags or [])
                 except ValueError:
                     logger.debug(
-                        "Cachetools cache set skipped for key %s (value too large)", cache_key,
+                        "Cachetools cache set skipped for key %s (value too large)",
+                        cache_key,
                     )
 
     def invalidate(self, cache_key: str) -> bool:
@@ -391,7 +396,9 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "fault_analysis":
                 key = builder.build_key(
-                    "fault_analysis", "analyze", builder.hash_system_state(system),
+                    "fault_analysis",
+                    "analyze",
+                    builder.hash_system_state(system),
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -403,7 +410,9 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "coordination":
                 key = builder.build_key(
-                    "coordination", "evaluate", builder.hash_system_state(system),
+                    "coordination",
+                    "evaluate",
+                    builder.hash_system_state(system),
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -452,7 +461,9 @@ class MemoryManager:
             )
         return result
 
-    def evict_if_needed(self, _required_mb: int = 0) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def evict_if_needed(
+        self, _required_mb: int = 0
+    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         with self._lock:
             usage = self.get_memory_usage()
             if HAS_PSUTIL:

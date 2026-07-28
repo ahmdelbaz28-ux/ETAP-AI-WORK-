@@ -106,7 +106,9 @@ class AIMemoryService:
         # Neo4j Settings
         self.neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
         self.neo4j_username = os.environ.get("NEO4J_USER", "neo4j")
-        self.neo4j_password = os.environ.get("NEO4J_PASSWORD", "")  # no S2068: default empty; required from env in production
+        self.neo4j_password = os.environ.get(
+            "NEO4J_PASSWORD", ""
+        )  # no S2068: default empty; required from env in production
 
         # Qdrant Settings
         self.qdrant_url = os.environ.get("QDRANT_URL", "")
@@ -161,7 +163,9 @@ class AIMemoryService:
                     api_key=self.qdrant_api_key if self.qdrant_api_key else None,
                 )
             else:
-                logger.info("Connecting to local Qdrant at %s:%s", self.qdrant_host, self.qdrant_port)
+                logger.info(
+                    "Connecting to local Qdrant at %s:%s", self.qdrant_host, self.qdrant_port
+                )
                 self._qdrant_client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
             self._initialized_qdrant = True
             return True
@@ -202,15 +206,21 @@ class AIMemoryService:
         api_key = self.openai_api_key if self.openai_api_key else "dummy-api-key"
         try:
             return ChatOpenAI(
-                model=self.llm_model, base_url=self.openai_base_url, api_key=api_key, temperature=0,
+                model=self.llm_model,
+                base_url=self.openai_base_url,
+                api_key=api_key,
+                temperature=0,
             )
         except Exception as exc:
             logger.warning("Failed to initialize ChatOpenAI (%s). Using dummy LLM.", exc)
 
             class DummyLLM:
-                def predict(self, _prompt: str, **_kwargs) -> str:  # NOSONAR: param kept for LLM-predict interface compatibility
+                def predict(
+                    self, _prompt: str, **_kwargs
+                ) -> str:  # NOSONAR: param kept for LLM-predict interface compatibility
                     # Simple echo or placeholder implementation.
                     return ""
+
             return DummyLLM()
 
     def add_knowledge_to_graph(self, text: str, allowed_nodes: Optional[List[str]] = None) -> bool:
@@ -265,13 +275,16 @@ class AIMemoryService:
                 self._qdrant_client.create_collection(
                     collection_name=index_name,
                     vectors_config=qdrant_models.VectorParams(
-                        size=dimension, distance=qdrant_models.Distance.COSINE,
+                        size=dimension,
+                        distance=qdrant_models.Distance.COSINE,
                     ),
                 )
 
             # Store using QdrantVectorStore wrapper
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings,
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings,
             )
             vector_db.add_texts([fact_text])
             logger.info("Successfully added fact to Qdrant collection '%s'", index_name)
@@ -291,7 +304,9 @@ class AIMemoryService:
                 return "Vector memory collection does not exist."
 
             vector_db = QdrantVectorStore(
-                client=self._qdrant_client, collection_name=index_name, embedding=embeddings,
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings,
             )
             retriever = vector_db.as_retriever()
             # NOTE: get_relevant_documents is deprecated in LangChain >= 0.3;

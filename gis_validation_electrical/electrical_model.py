@@ -47,7 +47,9 @@ def _stable_float_from_str(s: str, *, min_val: float, max_val: float) -> float:
     return min_val + (h % 100000) / 100000.0 * span
 
 
-def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def build_electrical_model(
+    assets: list[ADMSAsset],
+) -> ElectricalModel:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Build a simplified deterministic electrical model derived from ADMS assets.
 
@@ -79,7 +81,9 @@ def build_electrical_model(assets: list[ADMSAsset]) -> ElectricalModel:  # NOSON
             key = (float(coords[0]), float(coords[1]))
             sub_coords[key] = s.asset_id
             nodes[s.asset_id] = ElectricalNode(
-                node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata),
+                node_id=s.asset_id,
+                voltage_level_kv=None,
+                metadata=dict(s.metadata),
             )
             asset_to_node[s.asset_id] = s.asset_id
 

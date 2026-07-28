@@ -204,9 +204,7 @@ class TestContextRetrievalAPI:
         r = client.post(
             "/api/v1/context/retrieve",
             json={"query": "test_search", "top_k": 3, "max_tokens": 100},
-            headers={
-                "x-api-key": _TEST_API_KEY
-            },  # Mocked in conftest or bypass
+            headers={"x-api-key": _TEST_API_KEY},  # Mocked in conftest or bypass
         )
         # If API auth blocks, it returns 401, if it passes it returns 200.
         # Let's test the endpoint logic itself or verify structure.

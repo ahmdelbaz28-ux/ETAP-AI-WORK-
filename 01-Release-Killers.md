@@ -184,6 +184,7 @@ def get_api_key_auth(request: Request) -> Optional[dict]:
 The `ENGINEERING_SERVICE_API_KEY` (value: `etap-platform-secret-2024`) grants **full admin privileges** when passed as `X-API-Key` header. This is used by dashboard endpoints as an alternative authentication mechanism:
 ```python
 from api._test_mode import get_api_key_auth
+
 current_user = get_api_key_auth(request) or get_current_user(request)
 ```
 

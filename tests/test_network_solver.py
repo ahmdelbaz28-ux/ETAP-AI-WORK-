@@ -83,7 +83,9 @@ class TestPerUnit:
     def test_impedance_to_per_unit_complex(self):
         z = complex(0.5, 0.2)
         result = impedance_to_per_unit(z, base_voltage_kv=13.8, base_mva=100)
-        assert result.real == pytest.approx(0.5 / (13.8**2 / 100))  # NOSONAR: false positive — actual code, not a comment
+        assert result.real == pytest.approx(
+            0.5 / (13.8**2 / 100)
+        )  # NOSONAR: false positive — actual code, not a comment
         assert result.imag == pytest.approx(0.2 / (13.8**2 / 100))
 
     def test_admittance_to_per_unit(self):
@@ -151,7 +153,9 @@ class TestZbus:
             ]
         )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
-        Z_full = zbus_full(Ybus)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_full = zbus_full(
+            Ybus
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         assert Z.shape == (2, 2)
         assert Z_full.shape == (3, 3)
 
@@ -177,7 +181,9 @@ class TestZbus:
         assert Z.shape == (1, 1)
 
     def test_zbus_full_identity(self):
-        Ybus = np.eye(3, dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.eye(
+            3, dtype=complex
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z = zbus_full(Ybus)
         assert np.allclose(Z, np.eye(3))
 
@@ -185,7 +191,9 @@ class TestZbus:
         """Inverse of a Hermitian matrix should be Hermitian (Z == Z^H)."""
         n = 5
         np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR: numpy.random.Generator migration; API change required
+        Y = np.random.randn(n, n) + 1j * np.random.randn(
+            n, n
+        )  # NOSONAR: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T  # Make Hermitian (positive semidefinite)
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)
         Z = zbus_full(Y)
@@ -239,25 +247,35 @@ class TestZbus:
             ]
         )
         # Full Zbus: Z @ Y should be identity
-        Z_full = zbus_full(Ybus)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Z_full = zbus_full(
+            Ybus
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         assert np.allclose(Z_full @ Ybus, np.eye(3), atol=1e-10)
         # Reduced Zbus: reduced Z @ reduced Y should be identity
         for ref in range(3):
-            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Z_red = zbus_from_ybus(
+                Ybus, reference_bus=ref
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Remove reference bus row/col from Ybus
             mask = [i for i in range(3) if i != ref]
-            Y_red = Ybus[np.ix_(mask, mask)]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Y_red = Ybus[
+                np.ix_(mask, mask)
+            ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_zero_off_diagonal(self):
-        Ybus = np.diag([1 + 1j, 2 + 2j, 3 + 3j])  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = np.diag(
+            [1 + 1j, 2 + 2j, 3 + 3j]
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z = zbus_full(Ybus)
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
 
     def test_zbus_large_values(self):
         n = 10
         np.random.seed(123)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR: numpy.random.Generator migration; API change required
+        Y = np.random.randn(n, n) + 1j * np.random.randn(
+            n, n
+        )  # NOSONAR: numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T + np.eye(n) * 100
         Z = zbus_full(Y)
         assert Z.shape == (n, n)

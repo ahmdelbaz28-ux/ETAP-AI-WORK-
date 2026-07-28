@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Sync fixed Dockerfile to HF Space repo and trigger rebuild."""
+
 import os
 import shutil
 import subprocess
@@ -17,8 +18,7 @@ TMP_DIR = tempfile.mkdtemp()
 
 print(f"Cloning HF Space to {TMP_DIR} ...")
 result = subprocess.run(
-    ["git", "clone", "--depth", "1", REPO_URL, TMP_DIR],
-    capture_output=True, text=True, timeout=120
+    ["git", "clone", "--depth", "1", REPO_URL, TMP_DIR], capture_output=True, text=True, timeout=120
 )
 if result.returncode != 0:
     print(f"Clone failed: {result.stderr}")
@@ -34,19 +34,22 @@ for f in ["Dockerfile", ".dockerignore"]:
 orig = os.getcwd()
 os.chdir(TMP_DIR)
 
-subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], capture_output=True)
+subprocess.run(
+    ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
+    capture_output=True,
+)
 subprocess.run(["git", "config", "user.name", "github-actions[bot]"], capture_output=True)
 subprocess.run(["git", "add", "-A"], capture_output=True)
 
 result = subprocess.run(
     ["git", "commit", "-m", "fix(docker): remove inline comments from RUN/ENV to fix BUILD_ERROR"],
-    capture_output=True, text=True
+    capture_output=True,
+    text=True,
 )
 print(f"Commit: {result.stdout.strip()} {result.stderr.strip()}")
 
 result = subprocess.run(
-    ["git", "push", REPO_URL, "main"],
-    capture_output=True, text=True, timeout=120
+    ["git", "push", REPO_URL, "main"], capture_output=True, text=True, timeout=120
 )
 print(f"Push stdout: {result.stdout[-800:]}")
 if result.stderr:

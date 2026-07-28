@@ -60,6 +60,7 @@ router = APIRouter(prefix="/api/v1/assets", tags=["Asset Management"])
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class AssetType(StrEnum):
     """Electrical asset types."""
 
@@ -88,6 +89,7 @@ class AssetStatus(StrEnum):
 # Database model
 # ---------------------------------------------------------------------------
 
+
 class Asset(Base):
     """Electrical asset (transformer, generator, breaker, motor, line, relay)."""
 
@@ -98,10 +100,16 @@ class Asset(Base):
     type: Mapped[str] = mapped_column(String(50), nullable=False)  # AssetType
     rating: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
     voltage: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default=AssetStatus.ACTIVE.value)
-    project_id: Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("projects.id"), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=AssetStatus.ACTIVE.value
+    )
+    project_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("projects.id"), nullable=True
+    )
     created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -114,13 +122,16 @@ class Asset(Base):
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class AssetCreateRequest(BaseModel):
     """Request body for creating an asset."""
 
     name: str = Field(..., min_length=1, max_length=255, description="Asset name")
     type: AssetType = Field(..., description="Asset type")
     rating: Optional[str] = Field(None, max_length=100, description="Asset rating, e.g., '10 MVA'")
-    voltage: Optional[str] = Field(None, max_length=100, description="Operating voltage, e.g., '13.8 kV'")
+    voltage: Optional[str] = Field(
+        None, max_length=100, description="Operating voltage, e.g., '13.8 kV'"
+    )
     status: AssetStatus = Field(AssetStatus.ACTIVE, description="Initial status")
     project_id: Optional[str] = Field(None, description="Optional project ID to link this asset to")
     notes: Optional[str] = Field(None, max_length=1000, description="Free-form notes")
@@ -169,6 +180,7 @@ class AssetListResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get(
     "",
     response_model=AssetListResponse,
@@ -179,8 +191,12 @@ async def list_assets(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: Annotated[AsyncSession, Depends(get_db)],
     project_id: Annotated[Optional[str], Query(description="Filter by project ID")] = None,
-    type_filter: Annotated[Optional[AssetType], Query(alias="type", description="Filter by asset type")] = None,
-    status_filter: Annotated[Optional[AssetStatus], Query(alias="status", description="Filter by status")] = None,
+    type_filter: Annotated[
+        Optional[AssetType], Query(alias="type", description="Filter by asset type")
+    ] = None,
+    status_filter: Annotated[
+        Optional[AssetStatus], Query(alias="status", description="Filter by status")
+    ] = None,
 ) -> Any:
     """Return a paginated, filterable list of electrical assets."""
     base_query = select(Asset)
@@ -225,7 +241,9 @@ async def get_asset(
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
     return AssetResponse.model_validate(asset)
 
 
@@ -279,7 +297,9 @@ async def update_asset(
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
 
     # SECURITY (S-11): Authorization check — owner or admin
     if asset.created_by != user.user_id and user.role != "admin":
@@ -324,7 +344,9 @@ async def delete_asset(
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
 
     # SECURITY (S-11): Authorization check — owner or admin
     if asset.created_by != user.user_id and user.role != "admin":

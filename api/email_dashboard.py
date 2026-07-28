@@ -109,7 +109,7 @@ def _require_admin(request: Request) -> dict:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="EMAIL_DASHBOARD_DEV_OPEN=true is forbidden in production/staging. "
-                       "Remove this env var to start the dashboard safely.",
+                "Remove this env var to start the dashboard safely.",
             )
         return {"user_id": "dev", "role": "dev", "auth_method": "dev"}
 
@@ -180,7 +180,11 @@ async def get_by_day(
     )
 
 
-@router.get("/api/record/{record_id}", summary="Single record detail", responses={404: {"description": "Record not found"}})
+@router.get(
+    "/api/record/{record_id}",
+    summary="Single record detail",
+    responses={404: {"description": "Record not found"}},
+)
 async def get_record(
     record_id: str,
     request: Request,

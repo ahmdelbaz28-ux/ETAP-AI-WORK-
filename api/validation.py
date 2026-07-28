@@ -18,11 +18,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/system", tags=["validation"])
 
 
-@router.post("/validate", responses={
-    400: {"description": "Invalid input data for system validation"},
-    500: {"description": "Internal validation error"},
-})
-async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+@router.post(
+    "/validate",
+    responses={
+        400: {"description": "Invalid input data for system validation"},
+        500: {"description": "Internal validation error"},
+    },
+)
+async def validate_system(
+    request: Request, spec: SystemSpec
+):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 
     Checks structural integrity: all bus references exist, impedance
@@ -85,8 +90,14 @@ async def validate_system(request: Request, spec: SystemSpec):  # NOSONAR: cogni
             "trace_id": trace_id,
         }
     except ValueError as ve:
-        logger.warning("system_validation_value_error error=%s", str(ve), extra={"trace_id": trace_id})
-        raise HTTPException(status_code=400, detail="Invalid input data for system validation") from ve
+        logger.warning(
+            "system_validation_value_error error=%s", str(ve), extra={"trace_id": trace_id}
+        )
+        raise HTTPException(
+            status_code=400, detail="Invalid input data for system validation"
+        ) from ve
     except Exception as e:
         logger.exception("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
-        raise HTTPException(status_code=500, detail="Internal validation error") from e  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(
+            status_code=500, detail="Internal validation error"
+        ) from e  # NOSONAR: HTTPException responses will be documented in API refactoring sprint

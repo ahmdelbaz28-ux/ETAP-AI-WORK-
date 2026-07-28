@@ -76,8 +76,7 @@ An attacker registers `ADMIN@example.com` while the real admin has `admin@exampl
 In `api/auth.py` (lines 958-961):
 ```python
 reset_link = (
-    f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
-    f"/reset-password?token={reset_token}"
+    f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}/reset-password?token={reset_token}"
 )
 ```
 The reset token is inserted into a URL without URL-encoding. If the token contains characters like `&`, `?`, `#`, `+` (which `uuid.uuid4()` does NOT produce, but future changes might), the URL would break.

@@ -241,7 +241,9 @@ class ResendEmailClient:
     def _load_from_env(self) -> None:
         """Load configuration from environment variables on first use."""
         self._api_key = self._api_key or os.getenv("RESEND_API_KEY", "").strip() or None
-        self._from_email = os.getenv("RESEND_FROM_EMAIL", self._from_email).strip() or self._from_email
+        self._from_email = (
+            os.getenv("RESEND_FROM_EMAIL", self._from_email).strip() or self._from_email
+        )
         self._from_name = os.getenv("RESEND_FROM_NAME", self._from_name).strip() or self._from_name
         self._reply_to = os.getenv("RESEND_REPLY_TO", "").strip() or None
         self._timeout = float(os.getenv("RESEND_TIMEOUT_SECONDS", str(self._timeout)))
@@ -293,17 +295,20 @@ class ResendEmailClient:
         """Fire-and-forget async log to email_send_log (best-effort)."""
         try:
             from services.email_send_log import log_email_send
-            _log_task = asyncio.create_task(log_email_send(
-                recipient=recipient,
-                subject=subject,
-                flow=flow,
-                success=success,
-                message_id=message_id,
-                error=error,
-                status_code=status_code,
-                elapsed_ms=elapsed_ms,
-                tags=tags,
-            ))
+
+            _log_task = asyncio.create_task(
+                log_email_send(
+                    recipient=recipient,
+                    subject=subject,
+                    flow=flow,
+                    success=success,
+                    message_id=message_id,
+                    error=error,
+                    status_code=status_code,
+                    elapsed_ms=elapsed_ms,
+                    tags=tags,
+                )
+            )
             _log_task.add_done_callback(
                 lambda t: t.exception() if not t.cancelled() and t.exception() else None
             )
@@ -338,13 +343,22 @@ class ResendEmailClient:
         return payload
 
     def _handle_success(
-        self, body: dict, recipients: list, params: EmailParams,
-        attempt: int, elapsed: int, status: int,
+        self,
+        body: dict,
+        recipients: list,
+        params: EmailParams,
+        attempt: int,
+        elapsed: int,
+        status: int,
     ) -> EmailResult:
         """Handle a successful (200) API response."""
         logger.info(
             "resend_send_ok id=%s recipient=%s subject=%r attempt=%d ms=%d",
-            body.get("id"), recipients[0], params.subject[:80], attempt, elapsed,
+            body.get("id"),
+            recipients[0],
+            params.subject[:80],
+            attempt,
+            elapsed,
         )
         result = EmailResult(
             success=True,
@@ -355,15 +369,25 @@ class ResendEmailClient:
         )
         flow = self._extract_flow_from_tags(params.tags)
         self._log_send_async(
-            recipient=recipients[0], subject=params.subject, flow=flow,
-            success=True, message_id=result.message_id,
-            error=None, status_code=status, elapsed_ms=elapsed, tags=params.tags,
+            recipient=recipients[0],
+            subject=params.subject,
+            flow=flow,
+            success=True,
+            message_id=result.message_id,
+            error=None,
+            status_code=status,
+            elapsed_ms=elapsed,
+            tags=params.tags,
         )
         return result
 
     def _handle_client_error(
-        self, status: int, body: Any, recipients: list,
-        params: EmailParams, elapsed: int,
+        self,
+        status: int,
+        body: Any,
+        recipients: list,
+        params: EmailParams,
+        elapsed: int,
     ) -> EmailResult:
         """Handle a 4xx (non-retryable) API response."""
         msg = (body.get("message") if isinstance(body, dict) else str(body)) or f"HTTP {status}"
@@ -377,9 +401,15 @@ class ResendEmailClient:
         )
         flow = self._extract_flow_from_tags(params.tags)
         self._log_send_async(
-            recipient=recipients[0], subject=params.subject, flow=flow,
-            success=False, message_id=None, error=msg,
-            status_code=status, elapsed_ms=elapsed, tags=params.tags,
+            recipient=recipients[0],
+            subject=params.subject,
+            flow=flow,
+            success=False,
+            message_id=None,
+            error=msg,
+            status_code=status,
+            elapsed_ms=elapsed,
+            tags=params.tags,
         )
         return fail_result
 
@@ -399,7 +429,9 @@ class ResendEmailClient:
         # Rate-limit check
         allowed, retry_after = self._rate_limiter.check(recipients[0].lower())
         if not allowed:
-            logger.warning("resend_rate_limited recipient=%s retry_after=%ds", recipients[0], retry_after)
+            logger.warning(
+                "resend_rate_limited recipient=%s retry_after=%ds", recipients[0], retry_after
+            )
             return EmailResult(success=False, error=f"rate_limited (retry after {retry_after}s)")
 
         # Build request
@@ -444,13 +476,26 @@ class ResendEmailClient:
                     return self._handle_client_error(status, body, recipients, params, elapsed)
 
                 # Server error (5xx) — retry
-                last_error = (body.get("message") if isinstance(body, dict) else str(body)) or f"HTTP {status}"
-                logger.warning("resend_send_5xx status=%s attempt=%d/%d msg=%s", status, attempt, self._max_retries, last_error)
+                last_error = (
+                    body.get("message") if isinstance(body, dict) else str(body)
+                ) or f"HTTP {status}"
+                logger.warning(
+                    "resend_send_5xx status=%s attempt=%d/%d msg=%s",
+                    status,
+                    attempt,
+                    self._max_retries,
+                    last_error,
+                )
 
             except Exception as exc:  # noqa: BLE001
                 last_error = f"{type(exc).__name__}: {exc}"
                 last_status = 0
-                logger.warning("resend_send_exception attempt=%d/%d err=%s", attempt, self._max_retries, last_error)
+                logger.warning(
+                    "resend_send_exception attempt=%d/%d err=%s",
+                    attempt,
+                    self._max_retries,
+                    last_error,
+                )
 
             # Exponential backoff
             if attempt < self._max_retries:

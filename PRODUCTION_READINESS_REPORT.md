@@ -76,6 +76,7 @@ The application is currently **NOT production ready** and requires immediate inf
 _jwt_key = os.getenv("JWT_SECRET_KEY", "")
 if not _jwt_key:
     import secrets as _secrets
+
     _jwt_key = _secrets.token_hex(32)  # RANDOM key every server start!
 ```
 

@@ -48,6 +48,7 @@ class TestHealthHandler:
     @pytest.mark.anyio
     async def test_health_uptime_increases(self):
         import asyncio
+
         t0 = time.time()
         handler = HealthHandler(transport_name="uds", start_time=t0)
         await asyncio.sleep(0.02)  # SonarCloud S7488: use async sleep in async test

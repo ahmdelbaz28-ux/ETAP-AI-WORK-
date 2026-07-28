@@ -86,7 +86,9 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             self.disconnect(client)
 
-    async def _generate_scada_data(self) -> dict:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _generate_scada_data(
+        self,
+    ) -> dict:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Generate mock SCADA data for demonstration purposes.
 
         **SIMULATED DATA**: This generates synthetic data for UI/UX demos only.
@@ -159,14 +161,20 @@ class SCADALiveFeed:
         }
 
         # Randomly add alarms occasionally
-        if random.random() < 0.1:  # 10% chance of alarm  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+        if (
+            random.random() < 0.1
+        ):  # 10% chance of alarm  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
             scada_data["alarms"].append(
                 {
                     "alarm_id": f"ALARM_{random.randint(1000, 9999)}",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                    "severity": "WARNING"
+                    if random.random() < 0.7
+                    else "CRITICAL",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
                     "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
-                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                    "location": random.choice(
+                        ["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]
+                    ),  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
                 },
             )
 
@@ -223,6 +231,7 @@ def _validate_ws_token(token: str) -> bool:
     # Check JWT token
     try:
         import jwt
+
         jwt_secret = os.getenv("JWT_SECRET_KEY", "")
         if not jwt_secret:
             logger.warning("WS auth: JWT_SECRET_KEY not configured")
@@ -237,6 +246,7 @@ def _validate_ws_token(token: str) -> bool:
         if jti:
             try:
                 from api.auth import _is_token_blacklisted
+
                 if _is_token_blacklisted(jti):
                     logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
                     return False
@@ -262,7 +272,9 @@ async def scada_websocket_endpoint(
     """
     # SECURITY: Validate token before accepting connection
     if not _validate_ws_token(token):
-        await websocket.close(code=4001, reason="Authentication required — provide valid token parameter")
+        await websocket.close(
+            code=4001, reason="Authentication required — provide valid token parameter"
+        )
         logger.warning("WebSocket connection rejected: invalid or missing auth token")
         return
 

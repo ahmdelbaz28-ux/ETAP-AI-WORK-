@@ -33,9 +33,9 @@ END = "\033[0m"
 
 
 def print_header(title):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"{BOLD}{title}{END}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 def _test_langfuse_health(base_url: str, headers) -> bool:
@@ -70,7 +70,9 @@ def _test_langfuse_prompts(base_url: str, headers) -> None:
         data = r.json()
         prompts = data.get("data", [])
         total = data.get("meta", {}).get("total", len(prompts))
-        print(f"  {OK}[OK]{END}   Prompts API: 200 — {total} total prompts (showing {len(prompts)})")
+        print(
+            f"  {OK}[OK]{END}   Prompts API: 200 — {total} total prompts (showing {len(prompts)})"
+        )
 
         production = [p for p in prompts if "production" in (p.get("labels") or [])]
         print(f"  {OK}[OK]{END}   Production-labeled: {len(production)}")
@@ -114,6 +116,7 @@ def _test_langfuse_sdk(public_key: str, secret_key: str, base_url: str) -> bool:
     print("\n  --- Test 4: Langfuse SDK Client Init ---")
     try:
         from langfuse import Langfuse
+
         client = Langfuse(
             public_key=public_key,
             secret_key=secret_key,
@@ -122,7 +125,9 @@ def _test_langfuse_sdk(public_key: str, secret_key: str, base_url: str) -> bool:
         print(f"  {OK}[OK]{END}   Langfuse SDK client created successfully")
 
         # Test a simple trace
-        trace = client.trace(name="connection-test", metadata={"test": True, "source": "verification-script"})
+        trace = client.trace(
+            name="connection-test", metadata={"test": True, "source": "verification-script"}
+        )
         print(f"  {OK}[OK]{END}   Test trace created: {trace.id}")
 
         client.flush()
@@ -136,6 +141,7 @@ def _test_langfuse_sdk(public_key: str, secret_key: str, base_url: str) -> bool:
     except Exception as e:
         print(f"  {FAIL}[FAIL]{END}  SDK test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -145,6 +151,7 @@ def _test_langfuse_integration() -> None:
     print("\n  --- Test 5: Project Integration Module ---")
     try:
         from integrations.langfuse_integration import langfuse_tracker
+
         health = langfuse_tracker.health_check()
         print("  Health check:")
         for k, v in health.items():
@@ -158,6 +165,7 @@ def _test_langfuse_integration() -> None:
     except Exception as e:
         print(f"  {FAIL}[FAIL]{END}  Integration module error: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -169,8 +177,16 @@ def test_langfuse():
     base_url = os.environ.get("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
 
     print(f"  Base URL:    {base_url}")
-    print(f"  Public Key:  {public_key[:16]}...{public_key[-4:]}" if len(public_key) > 20 else f"  Public Key:  {public_key}")
-    print(f"  Secret Key:  {'***'+secret_key[-4:]}" if len(secret_key) > 4 else "  Secret Key:  (not set)")
+    print(
+        f"  Public Key:  {public_key[:16]}...{public_key[-4:]}"
+        if len(public_key) > 20
+        else f"  Public Key:  {public_key}"
+    )
+    print(
+        f"  Secret Key:  {'***' + secret_key[-4:]}"
+        if len(secret_key) > 4
+        else "  Secret Key:  (not set)"
+    )
     print(f"  Timeout:     {os.environ.get('LANGFUSE_TIMEOUT', '5.0')}s")
 
     if not public_key or not secret_key:
@@ -199,6 +215,7 @@ def test_langfuse_llm():
     print_header("LANGFUSE LLM INTEGRATION TEST")
     try:
         from integrations.langfuse_llm import health_check
+
         health = health_check()
         print("  LLM Health:")
         for k, v in health.items():

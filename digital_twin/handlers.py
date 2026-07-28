@@ -77,7 +77,10 @@ class PropagationContext:
     ybus_sequences: dict[str, Any] = field(default_factory=dict)
 
     def record_step(
-        self, step_name: str, step_success: bool, details: dict[str, Any] | None = None,
+        self,
+        step_name: str,
+        step_success: bool,
+        details: dict[str, Any] | None = None,
     ) -> None:
         self.steps.append(
             {
@@ -141,7 +144,9 @@ class TopologyUpdateHandler(PropagationHandler):
                 ctx.dt_state.adms.topology.identify_sections()
 
             ctx.record_step(
-                "topology_update", True, {"switch_id": ctx.switch_id, "opened": ctx.is_opening},
+                "topology_update",
+                True,
+                {"switch_id": ctx.switch_id, "opened": ctx.is_opening},
             )
 
             if ctx.event_bus is not None:
@@ -186,7 +191,9 @@ class YbusRebuildHandler(PropagationHandler):
                         ),
                     )
             else:
-                ctx.record_step("ybus_rebuild", False, {"error": "No electrical model bound"})  # NOSONAR: intentional repetition (audit constant)
+                ctx.record_step(
+                    "ybus_rebuild", False, {"error": "No electrical model bound"}
+                )  # NOSONAR: intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
             ctx.record_step("ybus_rebuild", False, {"error": str(e)})
@@ -280,7 +287,9 @@ class StateEstimationHandler(PropagationHandler):
                 if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
-            Ybus = ctx.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus = ctx.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
 
             ctx.record_step(
@@ -318,13 +327,17 @@ class ShortCircuitRefreshHandler(PropagationHandler):
     def handle(self, ctx: PropagationContext) -> PropagationContext:
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
-                "short_circuit_refresh", True, {"status": "skipped", "reason": "No system bound"},
+                "short_circuit_refresh",
+                True,
+                {"status": "skipped", "reason": "No system bound"},
             )
             return ctx
         try:
             ctx.dt_state.system.build_sequence_networks()
             ctx.record_step(
-                "short_circuit_refresh", True, {"status": "refreshed", "sequences_built": True},
+                "short_circuit_refresh",
+                True,
+                {"status": "refreshed", "sequences_built": True},
             )
             if ctx.event_bus is not None:
                 from .event_bus import FaultAnalysisCompleted
@@ -352,7 +365,9 @@ class ArcFlashRefreshHandler(PropagationHandler):
 
     fatal = False
 
-    def handle(self, ctx: PropagationContext) -> PropagationContext:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def handle(
+        self, ctx: PropagationContext
+    ) -> PropagationContext:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
                 "arc_flash_refresh",
@@ -369,12 +384,21 @@ class ArcFlashRefreshHandler(PropagationHandler):
             from fault_analysis.fault import FaultAnalyzer
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_pos = ctx.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = ctx.dt_state.system.get_ybus(
+                seq="2"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = ctx.dt_state.system.get_ybus(
+                seq="0"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva,
+                Ybus_pos,
+                Ybus_neg,
+                Ybus_zero,
+                base_mva=ctx.dt_state.system.base_mva,
             )
 
             af_engine = ArcFlashEngine()
@@ -504,12 +528,21 @@ class ProtectionRefreshHandler(PropagationHandler):
             from relays.relay import OvercurrentRelay
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_pos = ctx.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = ctx.dt_state.system.get_ybus(
+                seq="2"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = ctx.dt_state.system.get_ybus(
+                seq="0"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva,
+                Ybus_pos,
+                Ybus_neg,
+                Ybus_zero,
+                base_mva=ctx.dt_state.system.base_mva,
             )
 
             fault_currents: list[float] = []
@@ -531,7 +564,9 @@ class ProtectionRefreshHandler(PropagationHandler):
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
-                relay1, relay2, representative_faults,
+                relay1,
+                relay2,
+                representative_faults,
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -581,7 +616,9 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
                 # NOSONAR: list() is intentional — creates a
                 # snapshot so we can mutate snapshot.bus_states during iteration.
-                for bid_str in list(snapshot.bus_states.keys()):  # NOSONAR: intentional snapshot for safe mutation during iteration
+                for bid_str in list(
+                    snapshot.bus_states.keys()
+                ):  # NOSONAR: intentional snapshot for safe mutation during iteration
                     try:
                         bid_int = int(bid_str)
                     except (ValueError, TypeError):

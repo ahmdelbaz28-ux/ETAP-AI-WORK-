@@ -29,6 +29,7 @@ X-Origin-Verify          — Shared secret injected by Cloudflare Worker rule
                            (only the Worker + the origin know this value)
 True-Client-IP           — Real client IP (alternative to CF-Connecting-IP)
 """
+
 from __future__ import annotations
 
 import logging
@@ -175,14 +176,16 @@ async def cloudflare_protection_middleware(request: Request, call_next):
         logger.warning(
             "cloudflare: origin verification failed for %s %s (client_ip=%s, "
             "user_agent=%s) — request bypassed Cloudflare edge",
-            request.method, path, metadata["client_ip"],
+            request.method,
+            path,
+            metadata["client_ip"],
             request.headers.get("user-agent", "")[:100],
         )
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "detail": "Direct origin access is not permitted. "
-                          "Requests must go through the CDN.",
+                "Requests must go through the CDN.",
                 "cf_ray": metadata["ray_id"],
             },
             headers={"X-Block-Reason": "origin-verification-failed"},
@@ -191,7 +194,9 @@ async def cloudflare_protection_middleware(request: Request, call_next):
     # ── 2. Rate limiting (origin-side defense-in-depth) ─────────────────
     client_ip = metadata["client_ip"]
     if not _rate_limit_check(client_ip):
-        logger.warning("cloudflare: rate limit exceeded for %s (%s %s)", client_ip, request.method, path)
+        logger.warning(
+            "cloudflare: rate limit exceeded for %s (%s %s)", client_ip, request.method, path
+        )
         return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             content={
@@ -209,7 +214,10 @@ async def cloudflare_protection_middleware(request: Request, call_next):
     if _BLOCKED_COUNTRIES and country and country in _BLOCKED_COUNTRIES:
         logger.warning(
             "cloudflare: blocking country %s for %s (%s %s)",
-            country, client_ip, request.method, path,
+            country,
+            client_ip,
+            request.method,
+            path,
         )
         return JSONResponse(
             status_code=451,  # Unavailable For Legal Reasons
@@ -248,6 +256,7 @@ def _verify_origin_secret(request: Request) -> bool:
     identical implementation.
     """
     from api._cdn_base import verify_origin_secret
+
     return verify_origin_secret(request, CLOUDFLARE_ORIGIN_SECRET)
 
 
@@ -261,6 +270,7 @@ def _parse_visitor_scheme(cf_visitor: str) -> str:
         return ""
     try:
         import json
+
         return json.loads(cf_visitor).get("scheme", "")
     except (ValueError, TypeError):
         return ""
@@ -273,6 +283,7 @@ def _rate_limit_check(client_ip: str) -> bool:
     own ``_rate_limiter`` instance.
     """
     from api._cdn_base import rate_limit_check
+
     return rate_limit_check(client_ip, _rate_limiter)
 
 
@@ -294,14 +305,14 @@ def log_security_event(
     Cloudflare-specific metadata attribute and extra log fields.
     """
     from api._cdn_base import log_security_event as _log_cdn_event
+
     metadata = getattr(request.state, "cloudflare", {}) or {}
-    extra = (
-        f"cf_ray={metadata.get('ray_id', '')} "
-        f"country={metadata.get('country', '')}"
-    )
+    extra = f"cf_ray={metadata.get('ray_id', '')} country={metadata.get('country', '')}"
     _log_cdn_event(
-        request, event_type,
-        detail=detail, severity=severity,
+        request,
+        event_type,
+        detail=detail,
+        severity=severity,
         metadata_attr="cloudflare",
         extra_log_fields=extra,
     )

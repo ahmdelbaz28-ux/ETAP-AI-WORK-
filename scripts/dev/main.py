@@ -140,11 +140,17 @@ def main():  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             print(f"   {fault_type.replace('_', ' ').title()}:")
             if "fault_current" in fault_result:
-                If = fault_result["fault_current"]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                If = fault_result[
+                    "fault_current"
+                ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
             elif "fault_current_b" in fault_result:
-                Ib = fault_result["fault_current_b"]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Ic = fault_result["fault_current_c"]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Ib = fault_result[
+                    "fault_current_b"
+                ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Ic = fault_result[
+                    "fault_current_c"
+                ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current B: {abs(Ib):.4f} angle {np.angle(Ib, deg=True):.2f}° pu")
                 print(f"     Fault Current C: {abs(Ic):.4f} angle {np.angle(Ic, deg=True):.2f}° pu")
             print(f"     Affected Bus Index: {fault_result.get('affected_bus_index', 'N/A')}")
@@ -157,7 +163,9 @@ def main():  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (
     # We'll simulate fault currents for a range of values.
     fault_currents = [2.0, 5.0, 10.0, 20.0, 50.0]  # in per unit (must be > Ip=1.0)
     coord_result = engine.run_protection_coordination(
-        upstream_relay_id=1, downstream_relay_id=2, fault_currents=fault_currents,
+        upstream_relay_id=1,
+        downstream_relay_id=2,
+        fault_currents=fault_currents,
     )
     print(f"   All faults coordinated: {coord_result['all_coordinated']}")
     for i, res in enumerate(coord_result["results"]):

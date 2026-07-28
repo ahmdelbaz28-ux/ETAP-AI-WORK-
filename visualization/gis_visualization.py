@@ -246,7 +246,9 @@ class GISVisualizer:
             coord = bus_coords.get(str(bid)) if bus_coords else None
             if coord is None:
                 coord = self._assign_coordinates(
-                    bid, list(buses.keys()).index(str(bid)) if str(bid) in buses else 0, len(buses),
+                    bid,
+                    list(buses.keys()).index(str(bid)) if str(bid) in buses else 0,
+                    len(buses),
                 )
 
             color = self._voltage_color(vm)
@@ -336,7 +338,12 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid} ({vm:.3f})", color, popup, radius=10 - abs(vm - 1.0) * 5 + 5,
+                m,
+                coord,
+                f"{bid} ({vm:.3f})",
+                color,
+                popup,
+                radius=10 - abs(vm - 1.0) * 5 + 5,
             )
             voltage_values.append(
                 {
@@ -416,7 +423,12 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid}: {fc_ka:.1f} kA", color, popup, radius=int(radius),
+                m,
+                coord,
+                f"{bid}: {fc_ka:.1f} kA",
+                color,
+                popup,
+                radius=int(radius),
             )
 
         # Add fault legend
@@ -483,7 +495,12 @@ class GISVisualizer:
             )
 
             self._add_bus_marker(
-                m, coord, f"{bid}: {ie:.1f} cal/cm²", color, popup, radius=int(radius),
+                m,
+                coord,
+                f"{bid}: {ie:.1f} cal/cm²",
+                color,
+                popup,
+                radius=int(radius),
             )
 
             # Collect for heatmap
@@ -563,7 +580,9 @@ class GISVisualizer:
                 from folium import Icon
 
                 icon = Icon(
-                    color="green" if all_coordinated else "red", icon=icon_type, prefix="glyphicon",
+                    color="green" if all_coordinated else "red",
+                    icon=icon_type,
+                    prefix="glyphicon",
                 )
                 folium.Marker(
                     location=[coord[1], coord[0]],

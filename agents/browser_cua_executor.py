@@ -289,7 +289,9 @@ class BrowserCUAExecutor(BaseCUAExecutor):
             logger.exception("Browser screenshot failed: %s", exc)
             return None
 
-    def _execute_action_hook(self, action: CUAAction, **kwargs) -> Optional[str]:  # NOSONAR  # S3776
+    def _execute_action_hook(
+        self, action: CUAAction, **kwargs
+    ) -> Optional[str]:  # NOSONAR  # S3776
         """Execute a single browser action. Returns error string or None."""
         if self._page is None:
             return "browser page not available"

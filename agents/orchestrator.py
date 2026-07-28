@@ -292,7 +292,8 @@ class LoadFlowAgent(BaseAgent):
         self.convergence_tolerance = 1e-6
 
     @trace_operation(
-        "LoadFlowAgent.execute", attributes={"component": "orchestrator", "study_type": "load_flow"},
+        "LoadFlowAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "load_flow"},
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute load flow analysis."""
@@ -320,7 +321,8 @@ class LoadFlowAgent(BaseAgent):
             # Run load flow
             solver = LoadFlowSolver(system_data)
             converged = solver.solve(
-                max_iter=task.parameters.get("max_iterations", 100), tol=self.convergence_tolerance,
+                max_iter=task.parameters.get("max_iterations", 100),
+                tol=self.convergence_tolerance,
             )
 
             # Extract results
@@ -428,21 +430,33 @@ class ShortCircuitAgent(BaseAgent):
 
             system_data = task.parameters.get("system")
             if not system_data:
-                raise ValueError("System data not provided")  # NOSONAR: intentional repetition (audit constant)
+                raise ValueError(
+                    "System data not provided"
+                )  # NOSONAR: intentional repetition (audit constant)
 
             # Build sequence networks
             system_data.build_sequence_networks()
 
-            Ybus_pos = system_data.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = system_data.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = system_data.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_pos = system_data.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = system_data.get_ybus(
+                seq="2"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = system_data.get_ybus(
+                seq="0"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             # Create fault analyzer
             base_mva = system_data.base_mva
             base_kv = task.parameters.get("base_kv", 115.0)
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=base_mva, base_kv=base_kv,
+                Ybus_pos,
+                Ybus_neg,
+                Ybus_zero,
+                base_mva=base_mva,
+                base_kv=base_kv,
             )
 
             # Execute all fault types at specified buses
@@ -561,7 +575,9 @@ class HarmonicAnalysisAgent(BaseAgent):
             )
 
             # Set system data
-            Ybus = system_data.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus = system_data.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             bus_ids = sorted(system_data.buses.keys())
             engine.set_system_data(Ybus, bus_ids)
 
@@ -662,7 +678,9 @@ class OptimalPowerFlowAgent(BaseAgent):
             method = task.parameters.get("method", "dc")
 
             # Create OPF engine
-            Ybus = system_data.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus = system_data.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
@@ -727,9 +745,15 @@ class OptimalPowerFlowAgent(BaseAgent):
             return False
 
         # Check power balance
-        P_gen = result.data.get("total_generation_mw", 0)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_load = result.data.get("total_load_mw", 0)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_losses = result.data.get("total_losses_mw", 0)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_gen = result.data.get(
+            "total_generation_mw", 0
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_load = result.data.get(
+            "total_load_mw", 0
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        P_losses = result.data.get(
+            "total_losses_mw", 0
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         balance_error = abs(P_gen - P_load - P_losses)
         if balance_error > 1.0:  # Allow 1 MW tolerance
@@ -787,7 +811,9 @@ class ProtectionCoordinationAgent(BaseAgent):
             for i in range(len(relays) - 1):
                 for fault_current in [3.0, 5.0, 10.0, 20.0]:
                     result = coordination_engine.check_coordination(
-                        relays[i], relays[i + 1], fault_current,
+                        relays[i],
+                        relays[i + 1],
+                        fault_current,
                     )
                     coordination_results.append(result)
 
@@ -864,7 +890,8 @@ class ETAPExecutionAgent(BaseAgent):
             self.logger.warning("No ETAP provider is currently available.")
 
     @trace_operation(
-        "ETAPExecutionAgent.execute", attributes={"component": "orchestrator", "study_type": "etap"},
+        "ETAPExecutionAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "etap"},
     )
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """Execute ETAP automation task using the configured provider."""
@@ -1268,10 +1295,14 @@ class ReportGenerationAgent(BaseAgent):
 
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
-                title=content.get("title", "Engineering Report"),  # NOSONAR: intentional repetition (audit constant)
+                title=content.get(
+                    "title", "Engineering Report"
+                ),  # NOSONAR: intentional repetition (audit constant)
                 prepared_by="AhmedETAP",
             )
-            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]  # NOSONAR: intentional repetition (audit constant)
+            sections = [
+                ReportSection(title="Analysis Results", content=str(content), order=1)
+            ]  # NOSONAR: intentional repetition (audit constant)
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
             generator.generate_report(metadata, sections, file_path)
@@ -1279,7 +1310,8 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "PDF generator unavailable (reportlab not installed) — using placeholder", "WARNING",
+                "PDF generator unavailable (reportlab not installed) — using placeholder",
+                "WARNING",
             )
             return ""  # No file generated
         except Exception as e:
@@ -1338,7 +1370,8 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "XLSX generator unavailable (openpyxl not installed) — using placeholder", "WARNING",
+                "XLSX generator unavailable (openpyxl not installed) — using placeholder",
+                "WARNING",
             )
             return ""  # No file generated
         except Exception as e:
@@ -1400,19 +1433,19 @@ class ChiefEngineeringOrchestrator:
         # Each registration is wrapped in try/except so a missing optional
         # dependency does not break orchestrator initialisation.
         for _agent_key, _module_name, _cls_name in (
-            ("arc_flash",             "agents.arc_flash_agent",       "ArcFlashAgent"),
-            ("motor_starting",        "agents.motor_starting_agent",  "MotorStartingAgent"),
-            ("transient_stability",   "agents.stability_agent",       "StabilityAgent"),
-            ("cable_sizing",          "agents.cable_sizing_agent",    "CableSizingAgent"),
-            ("earth_grid",            "agents.earth_grid_agent",      "EarthGridAgent"),
-            ("renewable_integration", "agents.renewable_agent",       "RenewableAgent"),
-            ("battery_storage",       "agents.battery_storage_agent", "BatteryStorageAgent"),
-            ("scada",                 "agents.scada_agent",           "SCADAAgent"),
-            ("digital_twin",          "agents.digital_twin_agent",    "DigitalTwinAgent"),
-            ("anomaly",               "agents.anomaly_agent",         "AnomalyAgent"),
-            ("predictive",            "agents.predictive_agent",      "PredictiveAgent"),
-            ("weather",               "agents.weather_agent",         "WeatherAgent"),
-            ("goal_planner",          "agents.goal_planner_agent",    "GoalPlannerAgent"),
+            ("arc_flash", "agents.arc_flash_agent", "ArcFlashAgent"),
+            ("motor_starting", "agents.motor_starting_agent", "MotorStartingAgent"),
+            ("transient_stability", "agents.stability_agent", "StabilityAgent"),
+            ("cable_sizing", "agents.cable_sizing_agent", "CableSizingAgent"),
+            ("earth_grid", "agents.earth_grid_agent", "EarthGridAgent"),
+            ("renewable_integration", "agents.renewable_agent", "RenewableAgent"),
+            ("battery_storage", "agents.battery_storage_agent", "BatteryStorageAgent"),
+            ("scada", "agents.scada_agent", "SCADAAgent"),
+            ("digital_twin", "agents.digital_twin_agent", "DigitalTwinAgent"),
+            ("anomaly", "agents.anomaly_agent", "AnomalyAgent"),
+            ("predictive", "agents.predictive_agent", "PredictiveAgent"),
+            ("weather", "agents.weather_agent", "WeatherAgent"),
+            ("goal_planner", "agents.goal_planner_agent", "GoalPlannerAgent"),
         ):
             try:
                 _mod = __import__(_module_name, fromlist=[_cls_name])
@@ -1425,7 +1458,10 @@ class ChiefEngineeringOrchestrator:
                 _logger = logging.getLogger("orchestrator")
                 _logger.warning(
                     "Could not register agent '%s' from %s.%s: %s",
-                    _agent_key, _module_name, _cls_name, _exc,
+                    _agent_key,
+                    _module_name,
+                    _cls_name,
+                    _exc,
                 )
 
         # Guard-skills agent for automatic code quality review
@@ -1516,14 +1552,19 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
-    async def submit_task(self, task: EngineeringTask) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def submit_task(
+        self, task: EngineeringTask
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Submit engineering task for execution."""
         self.task_queue.append(task)
         self.logger.info("Task submitted: %s - %s", task.task_id, task.description)
 
     @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
     async def execute_autonomous_workflow(
-        self, user_goal: str, system_data: Any, parameters: Optional[dict] = None,
+        self,
+        user_goal: str,
+        system_data: Any,
+        parameters: Optional[dict] = None,
     ) -> dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
@@ -1595,7 +1636,11 @@ class ChiefEngineeringOrchestrator:
         return studies
 
     @trace_operation("_execute_workflow", attributes={"component": "orchestrator"})
-    async def _execute_workflow(self, task: EngineeringTask) -> list[AgentResult]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def _execute_workflow(
+        self, task: EngineeringTask
+    ) -> list[
+        AgentResult
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Execute workflow by coordinating agents with parallel execution."""
         results = []
 
@@ -1622,7 +1667,8 @@ class ChiefEngineeringOrchestrator:
                 if not result.validation_status:
                     self.logger.warning(
                         "Validation failed for %s: %s",
-                        study_type.value, result.validation_errors,
+                        study_type.value,
+                        result.validation_errors,
                     )
 
         # Phase 2: Run independent studies in parallel
@@ -1880,7 +1926,9 @@ class ChiefEngineeringOrchestrator:
         semaphore = asyncio.Semaphore(max_workers)
 
         async def _run_with_semaphore(
-            study_str: str, agent: BaseAgent, task: EngineeringTask,
+            study_str: str,
+            agent: BaseAgent,
+            task: EngineeringTask,
         ) -> tuple:
             """Run a single agent.execute, bounded by the semaphore."""
             async with semaphore:
@@ -2003,7 +2051,11 @@ class ChiefEngineeringOrchestrator:
 
         return result
 
-    async def get_task_status(self, task_id: str) -> Optional[EngineeringTask]:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def get_task_status(
+        self, task_id: str
+    ) -> Optional[
+        EngineeringTask
+    ]:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

@@ -23,6 +23,7 @@ Architecture:
 - Retrieval Pipeline
 - Citation System
 """
+
 from __future__ import annotations
 
 import logging
@@ -318,7 +319,8 @@ class VectorDatabase:
     def _search_chroma(self, query_embedding: np.ndarray, top_k: int) -> list[RetrievalResult]:
         """Search using ChromaDB."""
         results = self.collection.query(
-            query_embeddings=[query_embedding.tolist()], n_results=top_k,
+            query_embeddings=[query_embedding.tolist()],
+            n_results=top_k,
         )
 
         retrieval_results = []
@@ -352,7 +354,9 @@ class VectorDatabase:
                     relevance_score = 1.0 / (1.0 + distance)
                     retrieval_results.append(
                         RetrievalResult(
-                            document=doc, relevance_score=relevance_score, excerpt=doc.content[:500],
+                            document=doc,
+                            relevance_score=relevance_score,
+                            excerpt=doc.content[:500],
                         ),
                     )
 
@@ -383,7 +387,9 @@ class VectorDatabase:
             doc = self.documents[doc_id]
             retrieval_results.append(
                 RetrievalResult(
-                    document=doc, relevance_score=float(score), excerpt=doc.content[:500],
+                    document=doc,
+                    relevance_score=float(score),
+                    excerpt=doc.content[:500],
                 ),
             )
 
@@ -425,7 +431,8 @@ class EngineeringKnowledgeBase:
                 if actual_dim != faiss_dim:
                     logger.warning(
                         "Embedding dimension (%d) doesn't match FAISS index (%d). Reinitializing FAISS.",
-                        actual_dim, faiss_dim,
+                        actual_dim,
+                        faiss_dim,
                     )
                     import faiss
 
@@ -751,7 +758,10 @@ class EngineeringKnowledgeBase:
         return compliance_result
 
     def _check_specific_compliance(
-        self, calc_type: str, params: dict, doc: EngineeringDocument,  # NOSONAR: unused param kept for API compatibility
+        self,
+        calc_type: str,
+        params: dict,
+        doc: EngineeringDocument,  # NOSONAR: unused param kept for API compatibility
     ) -> list[str]:
         """Check specific compliance rules."""
         violations = []

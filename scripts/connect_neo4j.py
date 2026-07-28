@@ -13,6 +13,7 @@ Environment variables (from .env or shell):
     NEO4J_USER         neo4j (default)
     NEO4J_PASSWORD     (required)
 """
+
 from __future__ import annotations
 
 import os
@@ -84,9 +85,10 @@ def _database_state(driver) -> None:
     print("\n  --- Database State ---")
     try:
         with driver.session() as session:
-            labels = [r["label"] for r in session.run(
-                "CALL db.labels() YIELD label RETURN label ORDER BY label"
-            )]
+            labels = [
+                r["label"]
+                for r in session.run("CALL db.labels() YIELD label RETURN label ORDER BY label")
+            ]
             count = session.run("MATCH (n) RETURN count(n) AS count").single()
             rels = session.run("MATCH ()-[r]->() RETURN count(r) AS count").single()
 
@@ -111,9 +113,7 @@ def _benchmark_latency(driver) -> None:
 
     avg = sum(latencies) / len(latencies)
     status = (
-        f"{OK}{avg:.1f} ms — healthy{END}"
-        if avg < 100
-        else f"{WARN}{avg:.1f} ms — elevated{END}"
+        f"{OK}{avg:.1f} ms — healthy{END}" if avg < 100 else f"{WARN}{avg:.1f} ms — elevated{END}"
     )
     print(f"  {OK}Average{END}: {status}")
 

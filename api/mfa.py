@@ -36,7 +36,9 @@ async def setup_totp(request: Request):
         body = await request.json()
         user_id = body.get("user_id")
         if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(
+                status_code=400, detail="user_id is required"
+            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
         from security.mfa import TOTPProvider
 
@@ -64,14 +66,18 @@ async def setup_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
-@router.post("/totp/verify", responses={
-    400: {"description": "Bad request — user_id or code is required"},
-    429: {"description": "Too many failed MFA attempts — account temporarily locked"},
-})
+@router.post(
+    "/totp/verify",
+    responses={
+        400: {"description": "Bad request — user_id or code is required"},
+        429: {"description": "Too many failed MFA attempts — account temporarily locked"},
+    },
+)
 async def verify_totp(request: Request):
     """Verify a TOTP code for MFA."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -137,5 +143,6 @@ async def verify_totp(request: Request):
         logger = getLogger("engineering_service")
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )

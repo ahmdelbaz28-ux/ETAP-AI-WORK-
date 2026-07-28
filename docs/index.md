@@ -302,25 +302,26 @@ curl https://your-domain/health
 ```python
 import requests
 
-response = requests.post("http://localhost:8000/api/v1/studies/run",
+response = requests.post(
+    "http://localhost:8000/api/v1/studies/run",
     json={
         "study_type": "load_flow",
         "system": {
             "buses": [
                 {"id": "BUS-1", "base_kv": 11.0, "bus_type": "slack"},
                 {"id": "BUS-2", "base_kv": 11.0, "bus_type": "load"},
-                {"id": "BUS-3", "base_kv": 0.4,  "bus_type": "load"}
+                {"id": "BUS-3", "base_kv": 0.4, "bus_type": "load"},
             ],
             "lines": [
                 {"from_bus": "BUS-1", "to_bus": "BUS-2", "r_pu": 0.01, "x_pu": 0.05},
-                {"from_bus": "BUS-2", "to_bus": "BUS-3", "r_pu": 0.02, "x_pu": 0.08}
+                {"from_bus": "BUS-2", "to_bus": "BUS-3", "r_pu": 0.02, "x_pu": 0.08},
             ],
             "loads": [
                 {"bus": "BUS-2", "p_mw": 10.0, "q_mvar": 3.0},
-                {"bus": "BUS-3", "p_mw": 5.0,  "q_mvar": 1.5}
-            ]
-        }
-    }
+                {"bus": "BUS-3", "p_mw": 5.0, "q_mvar": 1.5},
+            ],
+        },
+    },
 )
 print(response.json())
 # {"status": "success", "voltage_pu": {"BUS-1": 1.0, "BUS-2": 0.983, "BUS-3": 0.971}, ...}
@@ -330,11 +331,12 @@ print(response.json())
 
 ```python
 # سؤال باللغة العربية أو الإنجليزية
-response = requests.post("http://localhost:8000/etap-expert/chat",
+response = requests.post(
+    "http://localhost:8000/etap-expert/chat",
     json={
         "message": "ما هي قيمة تيار القصر الثلاثي الأطوار على Bus-4 وما هي توصيات PPE؟",
-        "session_id": "engineer-001"
-    }
+        "session_id": "engineer-001",
+    },
 )
 print(response.json()["reply"])
 ```

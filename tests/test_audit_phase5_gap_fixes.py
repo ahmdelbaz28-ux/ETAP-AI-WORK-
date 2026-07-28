@@ -17,6 +17,7 @@ Tests verify that:
 - S-06 docs fix: csrf.py no longer references removed bypass
 - S-24 lock fix: mfa.py uses threading.Lock for shared state
 """
+
 import os
 import re
 import unittest
@@ -39,12 +40,14 @@ class TestS09BlacklistGetCurrentUser(unittest.TestCase):
         # Find get_current_user function
         gcu_match = re.search(
             r"async def get_current_user\(.+?\n(?=\n[a-z]|\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(gcu_match, "get_current_user function must exist")
         gcu_body = gcu_match.group(0)
-        self.assertIn("_is_token_blacklisted", gcu_body,
-                       "get_current_user must check token blacklist")
+        self.assertIn(
+            "_is_token_blacklisted", gcu_body, "get_current_user must check token blacklist"
+        )
 
     def test_get_current_user_blacklist_is_lazy_import(self):
         """Blacklist check in get_current_user must use lazy import."""
@@ -75,36 +78,36 @@ class TestS10GapFixes(unittest.TestCase):
         # Find delete_many function
         dm_match = re.search(
             r"async def delete_many\(.+?\n(?=\n[a-z]|\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(dm_match, "delete_many function must exist")
         dm_body = dm_match.group(0)
-        self.assertIn("_validate_key", dm_body,
-                       "delete_many must call _validate_key")
+        self.assertIn("_validate_key", dm_body, "delete_many must call _validate_key")
 
     def test_presign_validates_key(self):
         """presign must call _validate_key."""
         src = self._read()
         ps_match = re.search(
             r"def presign\(.+?\n(?=\n[a-z]|\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(ps_match, "presign function must exist")
         ps_body = ps_match.group(0)
-        self.assertIn("_validate_key", ps_body,
-                       "presign must call _validate_key")
+        self.assertIn("_validate_key", ps_body, "presign must call _validate_key")
 
     def test_list_objects_validates_prefix(self):
         """list_objects must validate prefix."""
         src = self._read()
         lo_match = re.search(
             r"async def list_objects\(.+?\n(?=\n[a-z]|\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(lo_match, "list_objects function must exist")
         lo_body = lo_match.group(0)
-        self.assertIn("_validate_key", lo_body,
-                       "list_objects must call _validate_key on prefix")
+        self.assertIn("_validate_key", lo_body, "list_objects must call _validate_key on prefix")
 
 
 class TestS23GapFixes(unittest.TestCase):
@@ -123,18 +126,22 @@ class TestS23GapFixes(unittest.TestCase):
         """settings.py must not leak str(exc) in JSONResponse."""
         src = self._read("settings.py")
         # Find all JSONResponse blocks and verify no str(exc) in content
-        jr_matches = re.finditer(r'JSONResponse\([^)]*content=\{[^}]+\}', src, re.DOTALL)
+        jr_matches = re.finditer(r"JSONResponse\([^)]*content=\{[^}]+\}", src, re.DOTALL)
         for m in jr_matches:
-            self.assertNotIn("str(exc)", m.group(0),
-                              f"settings.py JSONResponse leaks str(exc): {m.group(0)[:100]}")
+            self.assertNotIn(
+                "str(exc)",
+                m.group(0),
+                f"settings.py JSONResponse leaks str(exc): {m.group(0)[:100]}",
+            )
 
     def test_agents_no_str_exc_in_json_response(self):
         """agents.py must not leak str(exc) in JSONResponse."""
         src = self._read("agents.py")
-        jr_matches = re.finditer(r'JSONResponse\([^)]*content=\{[^}]+\}', src, re.DOTALL)
+        jr_matches = re.finditer(r"JSONResponse\([^)]*content=\{[^}]+\}", src, re.DOTALL)
         for m in jr_matches:
-            self.assertNotIn("str(exc)", m.group(0),
-                              f"agents.py JSONResponse leaks str(exc): {m.group(0)[:100]}")
+            self.assertNotIn(
+                "str(exc)", m.group(0), f"agents.py JSONResponse leaks str(exc): {m.group(0)[:100]}"
+            )
 
     def test_magic_links_no_str_exc(self):
         """magic_links.py must not leak str(exc) in JSONResponse."""
@@ -154,36 +161,36 @@ class TestS23GapFixes(unittest.TestCase):
         # Check for f-strings with {exc} in return dicts
         self.assertNotIn('"error": f"ETAP Expert agent error: {exc}', src)
         self.assertNotIn('"error": f"ETAP GUI agent error: {exc}', src)
-        self.assertNotIn('Details: {exc}', src)
+        self.assertNotIn("Details: {exc}", src)
 
     def test_routes_numpy_error_generic(self):
         """routes.py health endpoint must not leak str(numpy_err)."""
         src = self._read("routes.py")
-        self.assertNotIn('str(numpy_err)', src,
-                          "routes.py must not leak str(numpy_err) in health response")
+        self.assertNotIn(
+            "str(numpy_err)", src, "routes.py must not leak str(numpy_err) in health response"
+        )
 
     def test_validation_no_detail_str_ve(self):
         """validation.py must not use detail=str(ve)."""
         src = self._read("validation.py")
-        self.assertNotIn('detail=str(ve)', src)
+        self.assertNotIn("detail=str(ve)", src)
 
     def test_studies_no_detail_str_ve(self):
         """studies.py must not use detail=str(ve)."""
         src = self._read("studies.py")
-        self.assertNotIn('detail=str(ve)', src)
+        self.assertNotIn("detail=str(ve)", src)
 
     def test_settings_no_detail_str_exc(self):
         """settings.py must not use detail=str(exc) for ValueError."""
         src = self._read("settings.py")
         # Should NOT have detail=str(exc) (ValueError handler)
-        ve_matches = re.finditer(r'except ValueError', src)
+        ve_matches = re.finditer(r"except ValueError", src)
         for m in ve_matches:
             # Get surrounding context
             start = m.start()
             end = min(start + 200, len(src))
             context = src[start:end]
-            self.assertNotIn("detail=str(", context,
-                              "ValueError handler must not use detail=str()")
+            self.assertNotIn("detail=str(", context, "ValueError handler must not use detail=str()")
 
 
 class TestS07GapFixes(unittest.TestCase):
@@ -200,8 +207,11 @@ class TestS07GapFixes(unittest.TestCase):
     def test_uses_hmac_compare_digest(self):
         """ai_ml.py must use hmac.compare_digest for API key comparison."""
         src = self._read()
-        self.assertIn("hmac.compare_digest", src,
-                       "ai_ml.py must use hmac.compare_digest for constant-time comparison")
+        self.assertIn(
+            "hmac.compare_digest",
+            src,
+            "ai_ml.py must use hmac.compare_digest for constant-time comparison",
+        )
         self.assertIn("import hmac", src)
 
     def test_jwt_rejects_non_access_tokens(self):
@@ -210,12 +220,14 @@ class TestS07GapFixes(unittest.TestCase):
         # Find _get_api_key_or_user function (async or sync — S7503 removed async keyword)
         func_match = re.search(
             r"(?:async )?def _get_api_key_or_user\(.+?(?=(?:async )?def |\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(func_match)
         func_body = func_match.group(0)
-        self.assertIn('payload.get("type") != "access"', func_body,
-                       "ai_ml.py JWT path must check token type")
+        self.assertIn(
+            'payload.get("type") != "access"', func_body, "ai_ml.py JWT path must check token type"
+        )
 
 
 class TestS06DocsFix(unittest.TestCase):
@@ -235,8 +247,9 @@ class TestS06DocsFix(unittest.TestCase):
         # Module docstring is at top
         doc_end = src.index('"""', src.index('"""') + 3) + 3
         module_doc = src[:doc_end]
-        self.assertNotIn("bypass", module_doc.lower(),
-                          "Module docstring must not reference removed bypass")
+        self.assertNotIn(
+            "bypass", module_doc.lower(), "Module docstring must not reference removed bypass"
+        )
 
     def test_no_bypass_in_class_docstring(self):
         """CSRFMiddleware class docstring must not reference bypass."""
@@ -244,8 +257,9 @@ class TestS06DocsFix(unittest.TestCase):
         class_match = re.search(r'class CSRFMiddleware\(.+?"""', src, re.DOTALL)
         self.assertIsNotNone(class_match)
         class_doc = class_match.group(0)
-        self.assertNotIn("bypass", class_doc.lower(),
-                          "Class docstring must not reference removed bypass")
+        self.assertNotIn(
+            "bypass", class_doc.lower(), "Class docstring must not reference removed bypass"
+        )
 
     def test_no_bypass_in_error_message(self):
         """Error response must not tell clients to use bypass."""
@@ -280,12 +294,12 @@ class TestS24LockFix(unittest.TestCase):
         src = self._read()
         func_match = re.search(
             r"async def verify_totp\(.+?(?=@router|\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(func_match)
         func_body = func_match.group(0)
-        self.assertIn("with _mfa_lock:", func_body,
-                       "verify_totp must use threading.Lock")
+        self.assertIn("with _mfa_lock:", func_body, "verify_totp must use threading.Lock")
 
 
 if __name__ == "__main__":

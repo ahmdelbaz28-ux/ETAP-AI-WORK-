@@ -16,6 +16,7 @@ Each test:
 2. Runs the study via engine/engine.py
 3. Compares key results against reference values within tolerances
 """
+
 from __future__ import annotations
 
 import math
@@ -155,6 +156,7 @@ def build_system(config: dict):
 # Tests
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestIEEE4Bus:
     """IEEE 4-bus radial distribution system."""
 
@@ -204,7 +206,10 @@ class TestIEEE4Bus:
         the slack bus row/column before inversion.
         """
         import pytest
-        pytest.skip("FaultAnalyzer: Ybus singularity (slack bus included). Fix requires slack removal before inversion.")
+
+        pytest.skip(
+            "FaultAnalyzer: Ybus singularity (slack bus included). Fix requires slack removal before inversion."
+        )
         # Run load flow first (required for fault analysis)
         lf = engine.run_load_flow()
         assert lf["converged"]
@@ -267,6 +272,7 @@ class TestIEEE30Bus:
 # ─── IEEE 1584 Arc Flash Reference Tests ────────────────────────────────────
 # Reference: IEEE 1584-2018, Table 2 — Incident Energy for 480V systems
 
+
 class TestArcFlashIEEE1584:
     """Arc flash tests against IEEE 1584-2018 reference values."""
 
@@ -277,6 +283,7 @@ class TestArcFlashIEEE1584:
             ElectrodeConfig,
             EnclosureType,
         )
+
         engine = ArcFlashEngine()
         result = engine.calculate_incident_energy(
             voltage_kv=0.48,  # 480 V
@@ -298,6 +305,7 @@ class TestArcFlashIEEE1584:
 
 # ─── Protection Coordination Reference Tests ────────────────────────────────
 
+
 class TestProtectionCoordination:
     """Protection coordination tests against IEC 60255 reference."""
 
@@ -315,10 +323,8 @@ class TestProtectionCoordination:
         results = ce.check_coordination_range(up, down, faults)
 
         # All should be coordinated
-        assert all(r["coordinated"] for r in results), (
-            "Coordinated relays should pass: {}".format(
-                [(r["fault_current"], r["margin"]) for r in results]
-            )
+        assert all(r["coordinated"] for r in results), "Coordinated relays should pass: {}".format(
+            [(r["fault_current"], r["margin"]) for r in results]
         )
 
     def test_uncoordinated_relays_fail(self):
@@ -335,12 +341,11 @@ class TestProtectionCoordination:
         results = ce.check_coordination_range(up, down, faults)
 
         # At least some should NOT be coordinated
-        assert not all(r["coordinated"] for r in results), (
-            "Reverse-coordinated relays should fail"
-        )
+        assert not all(r["coordinated"] for r in results), "Reverse-coordinated relays should fail"
 
 
 # ─── Test Metadata ──────────────────────────────────────────────────────────
+
 
 def test_benchmark_suite_coverage():
     """Verify all IEEE benchmark systems are registered."""

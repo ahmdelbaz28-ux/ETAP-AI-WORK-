@@ -40,7 +40,10 @@ class DocsGuard(BaseGuard):
     name: str = "docs_guard"
 
     def scan(
-        self, source: str, language: str = "markdown", context: dict[str, Any] | None = None,
+        self,
+        source: str,
+        language: str = "markdown",
+        context: dict[str, Any] | None = None,
     ) -> GuardResult:
         violations: list[GuardViolation] = []
         context = context or {}
@@ -382,7 +385,11 @@ class DocsGuard(BaseGuard):
     # ------------------------------------------------------------------
     # D-10: Navigation tells the truth
     # ------------------------------------------------------------------
-    def _check_navigation_truth(self, source: str) -> list[GuardViolation]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _check_navigation_truth(
+        self, source: str
+    ) -> list[
+        GuardViolation
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: check markdown links for common broken patterns."""
         violations: list[GuardViolation] = []
         # Check for relative links to files that likely don't exist

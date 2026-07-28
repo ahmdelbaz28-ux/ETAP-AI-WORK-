@@ -57,7 +57,9 @@ class Visualizer:
         if ax is None:
             _, ax = plt.subplots()
         Ip = relay.Ip  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_multiples = np.linspace(current_range[0], current_range[1], points)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_multiples = np.linspace(
+            current_range[0], current_range[1], points
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         currents = I_multiples * Ip
         times = []
         for I in currents:

@@ -59,8 +59,12 @@ class StudyVersion(Base):
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
     label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    config_snapshot: Mapped[dict] = mapped_column(JSON, nullable=False)  # Full study config at this version
-    results_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # Results at this version
+    config_snapshot: Mapped[dict] = mapped_column(
+        JSON, nullable=False
+    )  # Full study config at this version
+    results_snapshot: Mapped[Optional[dict]] = mapped_column(
+        JSON, nullable=True
+    )  # Results at this version
     diff_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # What changed
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -102,12 +106,15 @@ class CompareResponse(BaseModel):
     results_diff: Optional[dict[str, Any]] = None
 
 
-router = APIRouter(prefix="/api/v1/projects", tags=["Study Versions"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/projects", tags=["Study Versions"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 
 
 async def _get_study_result(project_id: str, study_id: str, db: AsyncSession) -> Any:
     """Get study result from database."""
     from api.projects import StudyResult
+
     result = await db.execute(
         select(StudyResult).where(
             StudyResult.id == study_id,
@@ -122,7 +129,9 @@ async def _get_study_result(project_id: str, study_id: str, db: AsyncSession) ->
 
 @router.get("/{project_id}/studies/{study_id}/versions", response_model=VersionListResponse)
 async def list_versions(
-    project_id: str, study_id: str, db,
+    project_id: str,
+    study_id: str,
+    db,
     user: CurrentUser = Depends(get_current_user_from_header),
 ):
     """List all versions for a study."""
@@ -136,24 +145,32 @@ async def list_versions(
     )
     versions = result.scalars().all()
     return VersionListResponse(
-        versions=[VersionResponse(
-            id=str(v.id),
-            study_id=v.study_id,
-            project_id=v.project_id,
-            version_number=v.version_number,
-            label=v.label,
-            description=v.description,
-            diff_summary=v.diff_summary,
-            created_by=v.created_by,
-            created_at=v.created_at,
-        ) for v in versions],
+        versions=[
+            VersionResponse(
+                id=str(v.id),
+                study_id=v.study_id,
+                project_id=v.project_id,
+                version_number=v.version_number,
+                label=v.label,
+                description=v.description,
+                diff_summary=v.diff_summary,
+                created_by=v.created_by,
+                created_at=v.created_at,
+            )
+            for v in versions
+        ],
         total=len(versions),
     )
 
 
-@router.post("/{project_id}/studies/{study_id}/versions", response_model=VersionResponse, status_code=201)
+@router.post(
+    "/{project_id}/studies/{study_id}/versions", response_model=VersionResponse, status_code=201
+)
 async def create_version(
-    project_id: str, study_id: str, body: VersionCreateRequest, db,
+    project_id: str,
+    study_id: str,
+    body: VersionCreateRequest,
+    db,
     user: CurrentUser = Depends(require_permission("studies", "update")),
 ):
     """Create a new version snapshot of a study."""
@@ -161,9 +178,7 @@ async def create_version(
 
     # Get current version count
     count_result = await db.execute(
-        select(func.count()).select_from(StudyVersion).where(
-            StudyVersion.study_id == study_id
-        )
+        select(func.count()).select_from(StudyVersion).where(StudyVersion.study_id == study_id)
     )
     version_number = count_result.scalar_one() + 1
 
@@ -196,7 +211,10 @@ async def create_version(
 
 @router.post("/{project_id}/studies/{study_id}/versions/{version_id}/rollback", response_model=dict)
 async def rollback_version(
-    project_id: str, study_id: str, version_id: str, db,
+    project_id: str,
+    study_id: str,
+    version_id: str,
+    db,
     user: CurrentUser = Depends(require_permission("studies", "update")),
 ):
     """Rollback a study to a specific version."""
@@ -217,12 +235,21 @@ async def rollback_version(
     db.add(study)
     await db.flush()
 
-    return {"message": f"Study rolled back to version {version.version_number}", "version": version.version_number}
+    return {
+        "message": f"Study rolled back to version {version.version_number}",
+        "version": version.version_number,
+    }
 
 
-@router.get("/{project_id}/studies/{study_id}/versions/{v1}/compare/{v2}", response_model=CompareResponse)
+@router.get(
+    "/{project_id}/studies/{study_id}/versions/{v1}/compare/{v2}", response_model=CompareResponse
+)
 async def compare_versions(
-    project_id: str, study_id: str, v1: str, v2: str, db,
+    project_id: str,
+    study_id: str,
+    v1: str,
+    v2: str,
+    db,
     user: CurrentUser = Depends(require_permission("studies", "read")),
 ):
     """Compare two versions of a study."""
@@ -249,14 +276,24 @@ async def compare_versions(
 
     return CompareResponse(
         version_a=VersionResponse(
-            id=str(va.id), study_id=va.study_id, project_id=va.project_id,
-            version_number=va.version_number, label=va.label, description=va.description,
-            created_by=va.created_by, created_at=va.created_at,
+            id=str(va.id),
+            study_id=va.study_id,
+            project_id=va.project_id,
+            version_number=va.version_number,
+            label=va.label,
+            description=va.description,
+            created_by=va.created_by,
+            created_at=va.created_at,
         ),
         version_b=VersionResponse(
-            id=str(vb.id), study_id=vb.study_id, project_id=vb.project_id,
-            version_number=vb.version_number, label=vb.label, description=vb.description,
-            created_by=vb.created_by, created_at=vb.created_at,
+            id=str(vb.id),
+            study_id=vb.study_id,
+            project_id=vb.project_id,
+            version_number=vb.version_number,
+            label=vb.label,
+            description=vb.description,
+            created_by=vb.created_by,
+            created_at=vb.created_at,
         ),
         config_diff=compute_diff(va.config_snapshot, vb.config_snapshot),
         results_diff=compute_diff(va.results_snapshot or {}, vb.results_snapshot or {}),

@@ -28,6 +28,7 @@ Features:
 - Multi-language support
 - Digital signatures
 """
+
 from __future__ import annotations
 
 import logging
@@ -307,7 +308,10 @@ class PDFReportGenerator:
         self.logger = logging.getLogger("pdf_generator")
 
     def generate_report(
-        self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
+        self,
+        metadata: ReportMetadata,
+        sections: list[ReportSection],
+        output_path: str,
     ) -> str:
         """
         Generate complete PDF report.
@@ -373,7 +377,7 @@ class PDFReportGenerator:
                     else:
                         self.logger.warning(
                             "Failed to upload PDF to Supabase: %s",
-                            result.get('error'),
+                            result.get("error"),
                         )
             except Exception as e:
                 self.logger.warning("Supabase upload failed (non-critical): %s", e)
@@ -381,7 +385,10 @@ class PDFReportGenerator:
         return filepath
 
     def _generate_with_reportlab(
-        self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
+        self,
+        metadata: ReportMetadata,
+        sections: list[ReportSection],
+        output_path: str,
     ) -> str:
         """Generate PDF using ReportLab library."""
         # Import ReportLab components at method level to ensure availability
@@ -407,7 +414,12 @@ class PDFReportGenerator:
 
         # Create document template
         doc = SimpleDocTemplate(
-            filepath, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18,
+            filepath,
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=18,
         )
 
         # Build content
@@ -472,7 +484,10 @@ class PDFReportGenerator:
         return filepath
 
     def _generate_fallback_pdf(
-        self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
+        self,
+        metadata: ReportMetadata,
+        sections: list[ReportSection],
+        output_path: str,
     ) -> str:
         """Fallback PDF generation using text-to-PDF conversion."""
         os.makedirs(output_path, exist_ok=True)
@@ -511,7 +526,10 @@ class DOCXReportGenerator:
         self.logger = logging.getLogger("docx_generator")
 
     def generate_report(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
+        self,
+        metadata: ReportMetadata,
+        sections: list[ReportSection],
+        output_path: str,
     ) -> str:
         """Generate DOCX report."""
         try:
@@ -571,7 +589,10 @@ class XLSXReportGenerator:
         self.logger = logging.getLogger("xlsx_generator")
 
     def generate_report(
-        self, metadata: ReportMetadata, sections: list[ReportSection], output_path: str,
+        self,
+        metadata: ReportMetadata,
+        sections: list[ReportSection],
+        output_path: str,
     ) -> str:
         """Generate XLSX report."""
         try:
@@ -726,7 +747,8 @@ class ReportGenerationAgent:
             chart_path = ""
             if "buses" in lf_data:
                 chart_path = self.chart_generator.generate_voltage_profile_chart(
-                    lf_data["buses"], output_path,
+                    lf_data["buses"],
+                    output_path,
                 )
 
             sections.append(
@@ -754,7 +776,8 @@ class ReportGenerationAgent:
             chart_path = ""
             if "fault_results" in sc_data:
                 chart_path = self.chart_generator.generate_fault_current_bar_chart(
-                    sc_data["fault_results"], output_path,
+                    sc_data["fault_results"],
+                    output_path,
                 )
 
             sections.append(

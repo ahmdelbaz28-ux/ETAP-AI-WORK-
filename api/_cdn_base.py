@@ -13,6 +13,7 @@ Both CDN modules had identical implementations of:
 This module provides those helpers in a CDN-provider-agnostic way, so each
 module only needs its provider-specific configuration and middleware logic.
 """
+
 from __future__ import annotations
 
 import hmac

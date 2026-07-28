@@ -100,6 +100,7 @@ _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 # Async engine
 # ---------------------------------------------------------------------------
 
+
 def _build_postgres_engine(url: str):
     """Create an async PostgreSQL engine with sensible pool defaults."""
     return create_async_engine(
@@ -140,7 +141,9 @@ def _build_sqlite_engine(url: str):
 # health check fails loudly and the deployment can be debugged, instead of
 # accepting writes that disappear.
 _FELL_BACK_TO_SQLITE: bool = False
-_ALLOW_SQLITE_FALLBACK = False  # Hard-disabled. Setting ALLOW_SQLITE_FALLBACK=true in env has NO effect.
+_ALLOW_SQLITE_FALLBACK = (
+    False  # Hard-disabled. Setting ALLOW_SQLITE_FALLBACK=true in env has NO effect.
+)
 
 # Kept for backward-compat with code that imports the symbol; init_db() no
 # longer uses it. Removing it entirely would break downstream imports.
@@ -241,7 +244,11 @@ async def check_db_health() -> dict:
             # branch on _IS_POSTGRES. (SonarCloud S3923 flagged the
             # identical-branches if/else as redundant.)
             await session.execute(text("SELECT 1"))
-        backend = "sqlite-fallback" if _FELL_BACK_TO_SQLITE else ("postgresql" if _IS_POSTGRES else "sqlite")  # NOSONAR
+        backend = (
+            "sqlite-fallback"
+            if _FELL_BACK_TO_SQLITE
+            else ("postgresql" if _IS_POSTGRES else "sqlite")
+        )  # NOSONAR
         return {
             "status": "healthy" if not _FELL_BACK_TO_SQLITE else "degraded",
             "backend": backend,

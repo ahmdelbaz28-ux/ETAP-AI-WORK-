@@ -118,10 +118,14 @@ class DigitalTwinState:
     def adms(self):
         return self._adms_engine
 
-    def capture_snapshot(self, source_event: str = "", correlation_id: str = "") -> StateSnapshot:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def capture_snapshot(
+        self, source_event: str = "", correlation_id: str = ""
+    ) -> StateSnapshot:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Capture current state of all layers into a snapshot."""
         snapshot = StateSnapshot(
-            timestamp=time.time(), source_event=source_event, correlation_id=correlation_id,
+            timestamp=time.time(),
+            source_event=source_event,
+            correlation_id=correlation_id,
         )
 
         # Capture GIS state
@@ -246,7 +250,10 @@ class SynchronizationEngine:
     """
 
     def __init__(
-        self, dt_state: DigitalTwinState, event_bus: EventBus, validation_gateway: ValidationGateway,
+        self,
+        dt_state: DigitalTwinState,
+        event_bus: EventBus,
+        validation_gateway: ValidationGateway,
     ):
         self.dt_state = dt_state
         self.event_bus = event_bus
@@ -290,7 +297,11 @@ class SynchronizationEngine:
 
         return errors
 
-    def synchronize_adms_to_electrical(self) -> list[str]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def synchronize_adms_to_electrical(
+        self,
+    ) -> list[
+        str
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Synchronize ADMS switching states to the electrical model.
         Ensures the topology processor reflects current switch states.
@@ -313,7 +324,8 @@ class SynchronizationEngine:
                 if did in self.dt_state.adms.topology.switches:
                     bus1, bus2 = self.dt_state.adms.topology.switches[did]
                     is_connected = bus2 in self.dt_state.adms.topology.bus_connections.get(
-                        bus1, set(),
+                        bus1,
+                        set(),
                     )
                     if dev.is_conducting() != is_connected:
                         errors.append(
@@ -436,7 +448,10 @@ class ChangePropagationEngine:
         self._state_estimator = estimator
 
     def propagate_switch_change(
-        self, switch_id: str, is_opening: bool, reason: str = "",
+        self,
+        switch_id: str,
+        is_opening: bool,
+        reason: str = "",
     ) -> dict[str, Any]:
         """
         Propagate a switch change through the entire workflow.
@@ -505,7 +520,8 @@ class ChangePropagationEngine:
 
                 # Update digital twin state
                 snapshot = self.dt_state.capture_snapshot(
-                    source_event="load_changed", correlation_id=propagation_id,
+                    source_event="load_changed",
+                    correlation_id=propagation_id,
                 )
                 validation_results = self.dt_state.validate()
                 snapshot.validation_passed = all(r.passed for r in validation_results)
@@ -582,7 +598,9 @@ class ChangePropagationEngine:
                 if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
-            Ybus = self.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus = self.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
 
             return {
@@ -619,12 +637,21 @@ class ChangePropagationEngine:
             from fault_analysis.fault import FaultAnalyzer
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = self.dt_state.system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = self.dt_state.system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_pos = self.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = self.dt_state.system.get_ybus(
+                seq="2"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = self.dt_state.system.get_ybus(
+                seq="0"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva,
+                Ybus_pos,
+                Ybus_neg,
+                Ybus_zero,
+                base_mva=self.dt_state.system.base_mva,
             )
 
             results: dict[str, Any] = {}
@@ -639,10 +666,18 @@ class ChangePropagationEngine:
                 arc_duration = 0.2  # default 200ms clearing time
                 working_distance_mm = 610.0  # 24 inches
                 k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_Iarc = k1 + k2 * math.log10(fault_ka)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Iarc = 10**log_Iarc  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                log_E = 0.434 + (-0.262) * math.log10(Iarc)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                E_base = 10**log_E  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                log_Iarc = (
+                    k1 + k2 * math.log10(fault_ka)
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Iarc = (
+                    10**log_Iarc
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                log_E = (
+                    0.434 + (-0.262) * math.log10(Iarc)
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                E_base = (
+                    10**log_E
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 E = E_base * arc_duration / (working_distance_mm**x_ie)
                 boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
 
@@ -688,12 +723,21 @@ class ChangePropagationEngine:
             from relays.relay import OvercurrentRelay
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = self.dt_state.system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = self.dt_state.system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_pos = self.dt_state.system.get_ybus(
+                seq="1"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = self.dt_state.system.get_ybus(
+                seq="2"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = self.dt_state.system.get_ybus(
+                seq="0"
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva,
+                Ybus_pos,
+                Ybus_neg,
+                Ybus_zero,
+                base_mva=self.dt_state.system.base_mva,
             )
 
             # Calculate fault currents at all buses
@@ -724,7 +768,9 @@ class ChangePropagationEngine:
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
-                relay1, relay2, representative_faults,
+                relay1,
+                relay2,
+                representative_faults,
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -788,7 +834,9 @@ class EventProcessor:
         self.event_bus.subscribe(EventType.PV_CHANGED, self._on_pv_changed, priority=10)
         self.event_bus.subscribe(EventType.BATTERY_DISPATCH, self._on_battery_dispatch, priority=10)
         self.event_bus.subscribe(
-            EventType.SCADA_UPDATE_RECEIVED, self._on_scada_update, priority=10,
+            EventType.SCADA_UPDATE_RECEIVED,
+            self._on_scada_update,
+            priority=10,
         )
 
     def _on_switch_opened(self, event: DomainEvent) -> None:
@@ -796,7 +844,9 @@ class EventProcessor:
         if not isinstance(event, SwitchOpened):
             return
         result = self.propagation.propagate_switch_change(
-            switch_id=event.switch_id, is_opening=True, reason=event.reason,
+            switch_id=event.switch_id,
+            is_opening=True,
+            reason=event.reason,
         )
         self._processed_events.append(
             {
@@ -812,7 +862,9 @@ class EventProcessor:
         if not isinstance(event, SwitchClosed):
             return
         result = self.propagation.propagate_switch_change(
-            switch_id=event.switch_id, is_opening=False, reason=event.reason,
+            switch_id=event.switch_id,
+            is_opening=False,
+            reason=event.reason,
         )
         self._processed_events.append(
             {
@@ -831,7 +883,8 @@ class EventProcessor:
         if self.dt_state.adms is not None:
             try:
                 flisr_result = self.dt_state.adms.execute_flisr(
-                    tripped_switch_ids=event.tripped_switches, scada_db=self.dt_state.scada,
+                    tripped_switch_ids=event.tripped_switches,
+                    scada_db=self.dt_state.scada,
                 )
                 result = {
                     "flisr_executed": True,
@@ -858,7 +911,8 @@ class EventProcessor:
         if not isinstance(event, LoadChanged):
             return
         result = self.propagation.propagate_load_change(
-            bus_id=event.bus_id, new_power=event.new_power,
+            bus_id=event.bus_id,
+            new_power=event.new_power,
         )
         self._processed_events.append(
             {
@@ -1042,7 +1096,8 @@ class TimeSteppedSimulator:
 
         # Capture state snapshot
         snapshot = self.dt_state.capture_snapshot(
-            source_event="time_step", correlation_id=f"step_{self.current_time}",
+            source_event="time_step",
+            correlation_id=f"step_{self.current_time}",
         )
         snapshot.simulation_time = self.current_time
         version = self.dt_state.commit_snapshot(snapshot)
@@ -1193,7 +1248,10 @@ class LivePowerSystemEngine:
 
         # Run load flow
         if self._base_engine is None:
-            return {"converged": False, "error": "No base engine available"}  # NOSONAR: intentional repetition (audit constant)
+            return {
+                "converged": False,
+                "error": "No base engine available",
+            }  # NOSONAR: intentional repetition (audit constant)
 
         try:
             result = self._base_engine.run_load_flow()
@@ -1271,7 +1329,10 @@ class LivePowerSystemEngine:
         return {**result, "state_version": version}
 
     def run_protection_coordination(
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list,
+        self,
+        upstream_relay_id: int,
+        downstream_relay_id: int,
+        fault_currents: list,
     ) -> dict[str, Any]:
         """
         Run protection coordination with current live topology.
@@ -1283,7 +1344,9 @@ class LivePowerSystemEngine:
 
         try:
             result = self._base_engine.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents,
+                upstream_relay_id,
+                downstream_relay_id,
+                fault_currents,
             )
         except Exception as e:
             return {"error": str(e)}
@@ -1291,7 +1354,8 @@ class LivePowerSystemEngine:
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="protection_coordination")
         snapshot.simulation_results.protection_coordination_ok = result.get(
-            "all_coordinated", False,
+            "all_coordinated",
+            False,
         )
         version = self.dt_state.commit_snapshot(snapshot)
 
@@ -1320,7 +1384,11 @@ class LivePowerSystemEngine:
 
         # Publish event -> EventProcessor -> ChangePropagationEngine
         event = SwitchOpened(
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine",
+            switch_id=switch_id,
+            bus1=bus1,
+            bus2=bus2,
+            reason=reason,
+            source="live_engine",
         )
         self.event_bus.publish(event)
 
@@ -1342,7 +1410,11 @@ class LivePowerSystemEngine:
             bus1, bus2 = self.dt_state.adms.topology.switches[switch_id]
 
         event = SwitchClosed(
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine",
+            switch_id=switch_id,
+            bus1=bus1,
+            bus2=bus2,
+            reason=reason,
+            source="live_engine",
         )
         self.event_bus.publish(event)
 
@@ -1369,7 +1441,10 @@ class LivePowerSystemEngine:
         }
 
     def detect_fault(
-        self, fault_type: str, bus_id: str, tripped_switches: list[str] = None,
+        self,
+        fault_type: str,
+        bus_id: str,
+        tripped_switches: list[str] = None,
     ) -> dict[str, Any]:
         """
         Detect a fault and trigger FLISR workflow.
@@ -1391,7 +1466,9 @@ class LivePowerSystemEngine:
         }
 
     def inject_scada_update(
-        self, measurements: list[dict[str, Any]] = None, switch_statuses: dict[str, str] = None,
+        self,
+        measurements: list[dict[str, Any]] = None,
+        switch_statuses: dict[str, str] = None,
     ) -> dict[str, Any]:
         """
         Inject SCADA update and process.

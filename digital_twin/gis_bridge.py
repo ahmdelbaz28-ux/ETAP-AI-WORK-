@@ -248,7 +248,9 @@ class GISSyncBridge:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
-        xid = int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1  # NOSONAR: nested conditional; extract to named variable (tech debt)
+        xid = (
+            int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1
+        )  # NOSONAR: nested conditional; extract to named variable (tech debt)
         # Ensure the transformer exists — default to unit transformer if buses not yet present
         existing = [t for t in self.dt_state.system.transformers if t.transformer_id == xid]
         if not existing:
@@ -292,9 +294,14 @@ class GISSyncBridge:
     def _upsert_switch(self, switch_id: str, _coords: Optional[tuple]) -> None:
         """Register a switch in the digital twin."""
         if self.dt_state.adms is not None:
-            if hasattr(self.dt_state.adms, "topology") and hasattr(
-                self.dt_state.adms.topology, "switches",
-            ) and switch_id not in self.dt_state.adms.topology.switches:
+            if (
+                hasattr(self.dt_state.adms, "topology")
+                and hasattr(
+                    self.dt_state.adms.topology,
+                    "switches",
+                )
+                and switch_id not in self.dt_state.adms.topology.switches
+            ):
                 buses = list(self.dt_state.system.buses.keys()) if self.dt_state.system else []
                 if len(buses) >= 2:
                     bus1 = str(buses[0])
@@ -314,7 +321,9 @@ class GISSyncBridge:
         )
         existing = [l for l in self.dt_state.system.loads if l.load_id == lid]
         if not existing and self.dt_state.system.buses:
-            first_bus = next(iter(self.dt_state.system.buses.values()))  # NOSONAR: false positive — already uses next(iter(...))
+            first_bus = next(
+                iter(self.dt_state.system.buses.values())
+            )  # NOSONAR: false positive — already uses next(iter(...))
             p_mw = float(props.get("load_mw", 0))
             q_mvar = float(props.get("load_mvar", 0))
             load = Load(
@@ -332,11 +341,17 @@ class GISSyncBridge:
         from core_model.generator import Generator
 
         gid = (
-            int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            int(gen_id.split("_")[-1])
+            if "_" in gen_id
+            else int(gen_id)
+            if gen_id.isdigit()
+            else 1  # NOSONAR: nested conditional; extract to named variable (tech debt)
         )
         existing = [g for g in self.dt_state.system.generators if g.generator_id == gid]
         if not existing and self.dt_state.system.buses:
-            first_bus = next(iter(self.dt_state.system.buses.values()))  # NOSONAR: false positive — already uses next(iter(...))
+            first_bus = next(
+                iter(self.dt_state.system.buses.values())
+            )  # NOSONAR: false positive — already uses next(iter(...))
             gen = Generator(
                 generator_id=gid,
                 bus=first_bus,
@@ -366,7 +381,11 @@ class GISSyncBridge:
                     asset.properties["is_closed"] = is_closed
                     self.postgis.upsert_asset(asset)
 
-    def sync_digital_twin_to_gis(self) -> list[SyncRecord]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def sync_digital_twin_to_gis(
+        self,
+    ) -> list[
+        SyncRecord
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Push digital twin state changes back to PostGIS/QGIS.
 
         Captures a current snapshot and writes bus states, switch states,
@@ -478,7 +497,6 @@ class GISSyncBridge:
             sim = snapshot.simulation_results
             if sim and hasattr(sim, "load_flow_converged"):
                 metadata_asset = self.postgis.get_asset("_simulation_metadata")
-
 
                 if metadata_asset:
                     metadata_asset.properties.update(

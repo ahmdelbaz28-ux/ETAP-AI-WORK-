@@ -390,7 +390,11 @@ class GoalPlannerAgent(BaseAgent):
             "assumptions": assumptions,
             "recommendations": recommendations,
             "risk_count": len(risks),
-            "risk_level": "high" if len(risks) > 3 else "medium" if len(risks) > 1 else "low",  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            "risk_level": "high"
+            if len(risks) > 3
+            else "medium"
+            if len(risks) > 1
+            else "low",  # NOSONAR: nested conditional; extract to named variable (tech debt)
         }
 
     # ------------------------------------------------------------------

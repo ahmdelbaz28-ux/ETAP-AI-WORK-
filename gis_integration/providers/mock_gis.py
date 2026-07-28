@@ -35,8 +35,8 @@ class MockGISProvider(GISProviderInterface):
                         "name": "Cairo East Substation",
                         "voltage_kv": "220",
                         "status": "active",
-                        "asset_type": "SUBSTATION"
-                    }
+                        "asset_type": "SUBSTATION",
+                    },
                 },
                 {
                     "id": "sub_helwan",
@@ -45,16 +45,16 @@ class MockGISProvider(GISProviderInterface):
                         "name": "Helwan Industrial Substation",
                         "voltage_kv": "220",
                         "status": "active",
-                        "asset_type": "SUBSTATION"
-                    }
-                }
+                        "asset_type": "SUBSTATION",
+                    },
+                },
             ],
             "lines": [
                 {
                     "id": "line_east_helwan",
                     "geometry": {
                         "type": "LineString",
-                        "coordinates": [[31.2357, 30.0444], [31.3357, 29.8444]]
+                        "coordinates": [[31.2357, 30.0444], [31.3357, 29.8444]],
                     },
                     "properties": {
                         "name": "East-Helwan Intertie",
@@ -62,8 +62,8 @@ class MockGISProvider(GISProviderInterface):
                         "status": "active",
                         "resistance": 0.045,
                         "reactance": 0.125,
-                        "asset_type": "LINE"
-                    }
+                        "asset_type": "LINE",
+                    },
                 }
             ],
             "switches": [
@@ -74,10 +74,10 @@ class MockGISProvider(GISProviderInterface):
                         "name": "East Sect. Breaker",
                         "status": "closed",
                         "rated_amps": 1200,
-                        "asset_type": "SWITCH"
-                    }
+                        "asset_type": "SWITCH",
+                    },
                 }
-            ]
+            ],
         }
 
     def load_project(self, path: str) -> None:
@@ -102,7 +102,7 @@ class MockGISProvider(GISProviderInterface):
                 geometry=item["geometry"],
                 properties=item["properties"],
                 layer_name=layer_id,
-                crs=self._crs.crs
+                crs=self._crs.crs,
             )
 
     def export_geojson(self, layer_id: str) -> dict:

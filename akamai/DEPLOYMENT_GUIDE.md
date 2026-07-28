@@ -159,13 +159,12 @@ The backend middleware (`api/akamai_protection.py`) checks the `X-Origin-Verify`
 # Replace YOUR_HF_TOKEN with your actual HuggingFace access token
 # Replace YOUR_GENERATED_SECRET with: python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 from huggingface_hub import HfApi
-api = HfApi(token='YOUR_HF_TOKEN')
+
+api = HfApi(token="YOUR_HF_TOKEN")
 api.add_space_secret(
-    'ahmdelbaz28/AhmedETAP-Platform',
-    'AKAMAI_ORIGIN_SECRET',
-    'YOUR_GENERATED_SECRET'
+    "ahmdelbaz28/AhmedETAP-Platform", "AKAMAI_ORIGIN_SECRET", "YOUR_GENERATED_SECRET"
 )
-print('Secret set. Restart the Space to apply.')
+print("Secret set. Restart the Space to apply.")
 ```
 
 After setting the secret, **restart the HF Space**. The origin will now reject any request that doesn't carry the `X-Origin-Verify` header (i.e., requests that bypassed Akamai).

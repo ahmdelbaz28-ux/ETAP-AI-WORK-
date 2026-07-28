@@ -39,6 +39,7 @@ Usage
     # Generate a presigned URL (valid for 1 hour)
     url = r2.presign("reports/study-123.pdf", expires=3600)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -105,6 +106,7 @@ def _validate_key(key: str) -> str:
 
     # Normalize and verify it doesn't escape after normalization
     import posixpath
+
     normalized = posixpath.normpath(key)
     if normalized.startswith("..") or normalized != key.replace("//", "/").rstrip("/"):
         raise ValueError("R2 object key normalizes to an unsafe path")
@@ -205,9 +207,7 @@ async def upload(
         put_kwargs["CacheControl"] = cache_control
 
     # boto3 is synchronous — run in a thread pool to not block the event loop
-    await asyncio.get_event_loop().run_in_executor(
-        None, lambda: client.put_object(**put_kwargs)
-    )
+    await asyncio.get_event_loop().run_in_executor(None, lambda: client.put_object(**put_kwargs))
     logger.info("R2 upload: %s (%d bytes, %s)", key, len(data), content_type)
     return key
 
@@ -274,12 +274,16 @@ async def list_objects(
     )
     objects = []
     for obj in response.get("Contents", []):
-        objects.append({
-            "key": obj["Key"],
-            "size": obj["Size"],
-            "last_modified": obj["LastModified"].isoformat() if obj.get("LastModified") else None,
-            "etag": obj.get("ETag", "").strip('"'),
-        })
+        objects.append(
+            {
+                "key": obj["Key"],
+                "size": obj["Size"],
+                "last_modified": obj["LastModified"].isoformat()
+                if obj.get("LastModified")
+                else None,
+                "etag": obj.get("ETag", "").strip('"'),
+            }
+        )
     return objects
 
 
@@ -298,7 +302,7 @@ async def delete_many(keys: list[str]) -> int:
     # R2 supports up to 1000 keys per delete_batch request
     deleted_total = 0
     for i in range(0, len(keys), 1000):
-        batch = keys[i:i + 1000]
+        batch = keys[i : i + 1000]
         response = await asyncio.get_event_loop().run_in_executor(
             None,
             lambda b=batch: client.delete_objects(

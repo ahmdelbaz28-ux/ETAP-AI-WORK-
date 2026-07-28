@@ -229,12 +229,16 @@ async def test_shared_context_compression_triggers_at_70_pct():
     """When spend > 70 %, compression must drop intermediate fields."""
     ctx = SharedContext(max_tokens=1000)
     record = await ctx.add_task(agent="LoadFlowAgent", study_type="load_flow")
-    await ctx.mark_completed(record, {
-        "voltage": 1.02,
-        "simulation_steps": ["a", "b", "c"],
-        "intermediate_reasoning": "because physics",
-        "debug_log": ["x", "y"],
-    }, math_guard_passed=True)
+    await ctx.mark_completed(
+        record,
+        {
+            "voltage": 1.02,
+            "simulation_steps": ["a", "b", "c"],
+            "intermediate_reasoning": "because physics",
+            "debug_log": ["x", "y"],
+        },
+        math_guard_passed=True,
+    )
 
     # Push budget past 70 %
     ctx.budget.record_spend(750)  # 75 % spent
@@ -255,10 +259,14 @@ async def test_shared_context_no_compression_below_70_pct():
     """Below 70 % spend, compression must NOT fire."""
     ctx = SharedContext(max_tokens=1000)
     record = await ctx.add_task(agent="LoadFlowAgent", study_type="load_flow")
-    await ctx.mark_completed(record, {
-        "voltage": 1.02,
-        "simulation_steps": ["a"],
-    }, math_guard_passed=True)
+    await ctx.mark_completed(
+        record,
+        {
+            "voltage": 1.02,
+            "simulation_steps": ["a"],
+        },
+        math_guard_passed=True,
+    )
     ctx.budget.record_spend(500)  # 50 % spent
 
     triggered = await ctx.compress_if_needed()
@@ -305,7 +313,7 @@ def test_math_guard_blocks_on_value_mismatch():
     """A claim that deviates > 0.01 % is blocked."""
     guard = MathGuard()
     result = guard.validate(
-        claim_value=1.05,        # 2.6 % off
+        claim_value=1.05,  # 2.6 % off
         recompute=lambda: 1.024,
         quantity_kind="voltage",
         claim_unit="pu",
@@ -425,10 +433,17 @@ def test_math_guard_never_calls_llm():
     openai, anthropic, langchain, or similar.
     """
     import agents.ahmed_etap_orchestrator as mod
+
     src = Path(mod.__file__).read_text(encoding="utf-8")
     # The module must not import any LLM SDK
-    forbidden = ["import openai", "import anthropic", "from openai",
-                 "from anthropic", "import langchain", "from langchain"]
+    forbidden = [
+        "import openai",
+        "import anthropic",
+        "from openai",
+        "from anthropic",
+        "import langchain",
+        "from langchain",
+    ]
     for token in forbidden:
         assert token not in src, f"MathGuard module must not contain '{token}'"
 
@@ -441,11 +456,21 @@ def test_math_guard_never_calls_llm():
 def test_peer_review_matrix_has_entries_for_all_critical_studies():
     """Every safety-critical study type must have a peer reviewer."""
     required = {
-        "load_flow", "short_circuit", "arc_flash",
-        "protection_coordination", "harmonic_analysis", "optimal_power_flow",
-        "motor_starting", "transient_stability", "cable_sizing",
-        "earth_grid", "renewable_integration", "battery_storage",
-        "scada", "digital_twin", "etap_expert",
+        "load_flow",
+        "short_circuit",
+        "arc_flash",
+        "protection_coordination",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "motor_starting",
+        "transient_stability",
+        "cable_sizing",
+        "earth_grid",
+        "renewable_integration",
+        "battery_storage",
+        "scada",
+        "digital_twin",
+        "etap_expert",
     }
     for study in required:
         assert study in PEER_REVIEW_MATRIX, f"missing peer reviewer for {study}"
@@ -464,7 +489,9 @@ def test_peer_review_reviewer_for_alias():
     """Aliases resolve to the canonical study before looking up the reviewer."""
     pr = PeerReview()
     assert pr.reviewer_for("fault") == "load_flow"  # alias → short_circuit → load_flow
-    assert pr.reviewer_for("coordination") == "arc_flash"  # alias → protection_coordination → arc_flash
+    assert (
+        pr.reviewer_for("coordination") == "arc_flash"
+    )  # alias → protection_coordination → arc_flash
 
 
 def test_peer_review_unknown_study_auto_approves():
@@ -535,6 +562,7 @@ def test_peer_review_empty_result_rejected():
 
 def _fake_lead_factory(status: AgentStatus = AgentStatus.COMPLETED, data: dict | None = None):
     """Build a fake lead-agent callable that returns a fixed AgentResult."""
+
     async def fake_lead(task: EngineeringTask) -> AgentResult:
         return AgentResult(
             agent_name="FakeLead",
@@ -542,6 +570,7 @@ def _fake_lead_factory(status: AgentStatus = AgentStatus.COMPLETED, data: dict |
             status=status,
             data=data or {"voltage": 1.024},
         )
+
     return fake_lead
 
 
@@ -668,6 +697,7 @@ async def test_orchestrator_unknown_study_type_fails_cleanly():
 @pytest.mark.asyncio
 async def test_orchestrator_handles_lead_agent_exception():
     """If the Lead Agent raises, the orchestrator returns FAILED, not a crash."""
+
     async def raising_lead(task: EngineeringTask) -> AgentResult:
         raise RuntimeError("engine offline")
 
@@ -863,14 +893,19 @@ def test_prompt_files_resolve():
 def test_prompts_lock_contains_skill_handle():
     """prompts-lock.json must have an entry for ahmed_etap_agent."""
     import json
+
     lock = json.loads((PROJECT_ROOT / "prompts-lock.json").read_text())
     assert "ahmed_etap_agent" in lock["prompts"]
-    assert lock["prompts"]["ahmed_etap_agent"]["materialized"] == "prompts/ahmed_etap_agent.prompt.yaml"
+    assert (
+        lock["prompts"]["ahmed_etap_agent"]["materialized"]
+        == "prompts/ahmed_etap_agent.prompt.yaml"
+    )
 
 
 def test_skills_lock_contains_skill():
     """skills-lock.json must have an entry for ahmed-etap."""
     import json
+
     lock = json.loads((PROJECT_ROOT / "skills-lock.json").read_text())
     assert "ahmed-etap" in lock["skills"]
     skill = lock["skills"]["ahmed-etap"]
@@ -883,6 +918,7 @@ def test_skills_lock_contains_skill():
 def test_shared_handlers_lists_new_study_type():
     """api.shared_handlers.STUDY_TYPES must include ahmed_etap_orchestration."""
     from api.shared_handlers import STUDY_TYPES
+
     assert "ahmed_etap_orchestration" in STUDY_TYPES
 
 
@@ -894,6 +930,7 @@ def test_shared_handlers_lists_new_study_type():
 def test_module_smoke_test_runs_without_error():
     """Running the module as a script must produce valid JSON output."""
     import subprocess
+
     result = subprocess.run(
         [sys.executable, "-m", "agents.ahmed_etap_orchestrator", "--info"],
         capture_output=True,
@@ -903,6 +940,7 @@ def test_module_smoke_test_runs_without_error():
     )
     assert result.returncode == 0, f"smoke test failed: {result.stderr}"
     import json
+
     info = json.loads(result.stdout)
     assert info["skill"] == "ahmed-etap"
     assert "shared_context" in info["principles_enforced"]

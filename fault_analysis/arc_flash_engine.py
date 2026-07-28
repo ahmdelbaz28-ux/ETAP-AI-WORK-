@@ -159,7 +159,10 @@ class ArcFlashEngine:
 
     @staticmethod
     def _validate_inputs(
-        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm,
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
     ):
         """
         Validate input parameters for arc flash calculations.
@@ -196,7 +199,9 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_arc_current(
-        voltage_kv, bolted_fault_current_ka, electrode_config=ElectrodeConfig.VCB,
+        voltage_kv,
+        bolted_fault_current_ka,
+        electrode_config=ElectrodeConfig.VCB,
     ):
         """
         Calculate the arc current using IEEE 1584-2018 equations.
@@ -245,11 +250,17 @@ class ArcFlashEngine:
             k1, k2, k3 = coeffs["high"]
 
         # Iarc formula: 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
-        log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Iarc = 10**log_Iarc  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        log_Iarc = (
+            k1 + k2 * np.log10(Ibf) + k3 * Ibf
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = (
+            10**log_Iarc
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Reduced arc current (85% multiplier for fuse reduction factor)
-        Iarc_reduced = 0.85 * Iarc  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc_reduced = (
+            0.85 * Iarc
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return Iarc, Iarc_reduced
 
@@ -286,8 +297,12 @@ class ArcFlashEngine:
         tuple: (E_final, e_full, e_reduced) in cal/cm^2.
         """
         # Calculate arc current
-        Iarc, Iarc_reduced = ArcFlashEngine.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            voltage_kv, bolted_fault_current_ka, electrode_config,
+        Iarc, Iarc_reduced = (
+            ArcFlashEngine.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                voltage_kv,
+                bolted_fault_current_ka,
+                electrode_config,
+            )
         )
 
         # Normalize keys for coefficient lookup (case/enum-identity safe)
@@ -324,9 +339,13 @@ class ArcFlashEngine:
         if enclosure_type == EnclosureType.BOX:
             # Enclosure size correction per IEEE 1584-2018
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
-            V_enc = enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm  # mm^3  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            V_enc = (
+                enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm
+            )  # mm^3  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
-            V_ref = 508.0**3  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            V_ref = (
+                508.0**3
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if V_enc > 0 and V_enc != V_ref:
                 # Simplified correction factor
                 CF = (V_ref / V_enc) ** 0.1 if V_enc > V_ref else 1.0
@@ -354,7 +373,8 @@ class ArcFlashEngine:
         # Extra hardening against parameter mixups:
         if isinstance(working_distance_mm, Enum):
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
-                enclosure_width_mm, (int, float, np.floating, np.integer),
+                enclosure_width_mm,
+                (int, float, np.floating, np.integer),
             ):
                 working_distance_mm = enclosure_width_mm
             else:
@@ -363,20 +383,20 @@ class ArcFlashEngine:
         D = max(1.0, float(working_distance_mm))
 
         # Full IEEE 1584-2018 equation
-        log_e = (k1
-                 + k2 * np.log10(Iarc)
-                 + k3 * log10_g
-                 + k4 * np.log10(Iarc) * log10_g
-                 + log10_t)  # time term: log10(t), not linear t
+        log_e = (
+            k1 + k2 * np.log10(Iarc) + k3 * log10_g + k4 * np.log10(Iarc) * log10_g + log10_t
+        )  # time term: log10(t), not linear t
 
         e_full = (10**log_e) * CF / math.pow(D, x_power)
 
         # Calculate incident energy at reduced arc current
-        log_e_reduced = (k1
-                         + k2 * np.log10(Iarc_reduced)
-                         + k3 * log10_g
-                         + k4 * np.log10(Iarc_reduced) * log10_g
-                         + log10_t)
+        log_e_reduced = (
+            k1
+            + k2 * np.log10(Iarc_reduced)
+            + k3 * log10_g
+            + k4 * np.log10(Iarc_reduced) * log10_g
+            + log10_t
+        )
 
         e_reduced = (10**log_e_reduced) * CF / math.pow(D, x_power)
 
@@ -408,7 +428,8 @@ class ArcFlashEngine:
         # validation/debug can accidentally route an Enum into working_distance_mm.
         if isinstance(working_distance_mm, Enum):
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
-                enclosure_width_mm, (int, float, np.floating, np.integer),
+                enclosure_width_mm,
+                (int, float, np.floating, np.integer),
             ):
                 working_distance_mm = enclosure_width_mm
             else:
@@ -449,23 +470,27 @@ class ArcFlashEngine:
             x_factor_num = 1.0
 
         # Compute incident energy at the given working distance
-        E_final, _, _ = ArcFlashEngine.calculate_incident_energy(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            voltage_kv=voltage_kv,
-            bolted_fault_current_ka=bolted_fault_current_ka,
-            arc_duration_sec=arc_duration_sec,
-            working_distance_mm=working_distance_mm,
-            electrode_config=electrode_config,
-            enclosure_type=enclosure_type,
-            enclosure_width_mm=enclosure_width_mm,
-            enclosure_height_mm=enclosure_height_mm,
-            enclosure_depth_mm=enclosure_depth_mm,
+        E_final, _, _ = (
+            ArcFlashEngine.calculate_incident_energy(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                voltage_kv=voltage_kv,
+                bolted_fault_current_ka=bolted_fault_current_ka,
+                arc_duration_sec=arc_duration_sec,
+                working_distance_mm=working_distance_mm,
+                electrode_config=electrode_config,
+                enclosure_type=enclosure_type,
+                enclosure_width_mm=enclosure_width_mm,
+                enclosure_height_mm=enclosure_height_mm,
+                enclosure_depth_mm=enclosure_depth_mm,
+            )
         )
 
         if E_final <= 0 or x_factor_num == 0:
             return 0.0
 
         # E scales as 1 / D^x => D_boundary = D_work * (E_work / 1.2)^(1/x)
-        D_boundary = working_distance_mm * math.pow(E_final / 1.2, 1.0 / x_factor_num)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        D_boundary = (
+            working_distance_mm * math.pow(E_final / 1.2, 1.0 / x_factor_num)
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Numerical safety + rounding expectations in validation suite
         return max(D_boundary, 0.1)
@@ -528,12 +553,19 @@ class ArcFlashEngine:
         """
         # Validate inputs
         self._validate_inputs(
-            voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm,
+            voltage_kv,
+            bolted_fault_current_ka,
+            arc_duration_sec,
+            working_distance_mm,
         )
 
         # Calculate arc current
-        Iarc, Iarc_reduced = self.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            voltage_kv, bolted_fault_current_ka, electrode_config,
+        Iarc, Iarc_reduced = (
+            self.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                voltage_kv,
+                bolted_fault_current_ka,
+                electrode_config,
+            )
         )
 
         # Calculate incident energy
@@ -586,7 +618,10 @@ class ArcFlashEngine:
 
     @staticmethod
     def ralph_lee_method(
-        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm,
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
     ):
         """
         Calculate arc flash using Ralph Lee method for voltages outside IEEE 1584 range.
@@ -611,7 +646,9 @@ class ArcFlashEngine:
         E = (5.12e5 * V * Ibf * t) / (D**2)
 
         # Arc flash boundary (mm) where incident energy = 1.2 cal/cm^2
-        D_boundary = ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        D_boundary = (
+            ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         ppe_level, ppe_description = ArcFlashEngine.determine_ppe_level(E)
 

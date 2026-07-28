@@ -8,6 +8,7 @@ Verifies that all attack types are BLOCKED (not just logged).
 Run:
     pytest tests/test_rasp_security.py -v
 """
+
 import os
 import sys
 from typing import Optional, Union
@@ -117,7 +118,9 @@ class TestRASPAttackDetection:
 
     def test_ssrf_aws_metadata_blocked(self):
         """SSRF to AWS metadata endpoint must be BLOCKED."""
-        results = self.rasp.inspect({"body": "http://169.254.169.254/latest/meta-data/"})  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        results = self.rasp.inspect(
+            {"body": "http://169.254.169.254/latest/meta-data/"}
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to AWS metadata must be BLOCKED"
         assert blocked[0].rule_name == "ssrf_basic"
@@ -130,7 +133,9 @@ class TestRASPAttackDetection:
 
     def test_ssrf_internal_ip_blocked(self):
         """SSRF to internal IP must be BLOCKED."""
-        results = self.rasp.inspect({"body": "http://10.0.0.1/internal-api"})  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        results = self.rasp.inspect(
+            {"body": "http://10.0.0.1/internal-api"}
+        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to internal IP must be BLOCKED"
 

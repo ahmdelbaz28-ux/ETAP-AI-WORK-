@@ -54,7 +54,10 @@ class TestGuard(BaseGuard):
         self._ai_detector = AIFailureModeDetector(mode)
 
     def scan(
-        self, source: str, language: str = "python", context: dict[str, Any] | None = None,
+        self,
+        source: str,
+        language: str = "python",
+        context: dict[str, Any] | None = None,
     ) -> GuardResult:
         violations: list[GuardViolation] = []
         context = context or {}
@@ -175,7 +178,11 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-03: One scenario per test
     # ------------------------------------------------------------------
-    def _check_multi_scenario(self, tree: ast.AST, source: str) -> list[GuardViolation]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _check_multi_scenario(
+        self, tree: ast.AST, source: str
+    ) -> list[
+        GuardViolation
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: multiple assert statements in a single test function."""
         violations: list[GuardViolation] = []
         for node in ast.walk(tree):
@@ -257,7 +264,10 @@ class TestGuard(BaseGuard):
         """Heuristic: test that only verifies Python built-in behavior."""
         violations: list[GuardViolation] = []
         framework_assert_patterns = [
-            (r"assert\s+(Union[type|isinstance|len|str|int|float|dict, list])\s*\(", "type/builtin check"),
+            (
+                r"assert\s+(Union[type|isinstance|len|str|int|float|dict, list])\s*\(",
+                "type/builtin check",
+            ),
         ]
         for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):

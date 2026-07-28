@@ -42,6 +42,7 @@ OTP_ISSUE_COOLDOWN_AFTER_FAILS = int(os.getenv("OTP_ISSUE_COOLDOWN_AFTER_FAILS",
 # Redis client (optional)
 # ---------------------------------------------------------------------------
 
+
 def _get_redis():
     """Return shared async redis client or None.
 
@@ -50,6 +51,7 @@ def _get_redis():
     pattern was wasteful and could exhaust connection pools under load).
     """
     from core.redis_state import get_redis_client_sync
+
     return get_redis_client_sync()
 
 
@@ -148,8 +150,13 @@ def _generate_code() -> str:
 class OtpIssueResult:
     """Result of an issue attempt."""
 
-    def __init__(self, success: bool, code: Optional[str] = None,
-                 retry_after: int = 0, error: Optional[str] = None):
+    def __init__(
+        self,
+        success: bool,
+        code: Optional[str] = None,
+        retry_after: int = 0,
+        error: Optional[str] = None,
+    ):
         self.success = success
         self.code = code
         self.retry_after = retry_after
@@ -159,8 +166,7 @@ class OtpIssueResult:
 class OtpVerifyResult:
     """Result of a verify attempt."""
 
-    def __init__(self, success: bool, error: Optional[str] = None,
-                 retry_after: int = 0):
+    def __init__(self, success: bool, error: Optional[str] = None, retry_after: int = 0):
         self.success = success
         self.error = error
         self.retry_after = retry_after

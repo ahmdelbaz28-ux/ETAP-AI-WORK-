@@ -9,6 +9,7 @@ Tests verify that:
 - S-IEC-1: iec60909_engine.py t_min defaults to None (derived from frequency)
 - S-CURVE-1: curves.py handles I == Ip singularity with epsilon nudge
 """
+
 import os
 import re
 import unittest
@@ -28,8 +29,7 @@ class TestWebSocketSecurity(unittest.TestCase):
     def test_ws_uses_hmac_compare_digest(self):
         """websocket.py must use hmac.compare_digest for API-key comparison."""
         src = self._read()
-        self.assertIn("hmac.compare_digest", src,
-                       "websocket.py must use constant-time comparison")
+        self.assertIn("hmac.compare_digest", src, "websocket.py must use constant-time comparison")
         self.assertIn("import hmac", src)
 
     def test_ws_no_plain_equality_for_api_key(self):
@@ -38,7 +38,8 @@ class TestWebSocketSecurity(unittest.TestCase):
         # Find the _validate_ws_token function
         func_match = re.search(
             r"def _validate_ws_token\(.+?(?=\n(?:async )?def |\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(func_match)
         func_body = func_match.group(0)
@@ -50,7 +51,8 @@ class TestWebSocketSecurity(unittest.TestCase):
         src = self._read()
         func_match = re.search(
             r"def _validate_ws_token\(.+?(?=\n(?:async )?def |\Z)",
-            src, re.DOTALL,
+            src,
+            re.DOTALL,
         )
         self.assertIsNotNone(func_match)
         func_body = func_match.group(0)
@@ -71,12 +73,12 @@ class TestSharedHandlersEngineError(unittest.TestCase):
     def test_engine_error_not_str_exc(self):
         """Engine error variable must not be assigned str(exc)."""
         src = self._read()
-        self.assertNotIn('engine_error = str(exc)', src)
+        self.assertNotIn("engine_error = str(exc)", src)
 
     def test_engine_error_is_generic(self):
         """Engine error must use a generic message."""
         src = self._read()
-        self.assertIn("engine_error = \"Load flow computation failed\"", src)
+        self.assertIn('engine_error = "Load flow computation failed"', src)
 
     def test_import_error_no_module_name_in_response(self):
         """ImportError handlers must not expose module names to clients."""
@@ -113,7 +115,9 @@ class TestIEC60909tMin(unittest.TestCase):
         self.assertNotIn("t_min: float = 0.02", src)
         # Count occurrences of t_min: float | None = None
         count = src.count("t_min: float | None = None")
-        self.assertGreaterEqual(count, 4, "All 4 fault methods + _calculate_mu must use None default")
+        self.assertGreaterEqual(
+            count, 4, "All 4 fault methods + _calculate_mu must use None default"
+        )
 
 
 class TestCurvesSingularity(unittest.TestCase):
@@ -154,18 +158,21 @@ class TestCurvesSingularity(unittest.TestCase):
     def test_curve_returns_finite_at_boundary(self):
         """At I == Ip, curves must return finite (not inf) value."""
         import importlib.util
+
         spec = importlib.util.spec_from_file_location("curves.curves", self.path)
         curves_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(curves_module)
         IEC60255Curves = curves_module.IEC60255Curves
 
         result = IEC60255Curves.standard_inverse(1.0, 10.0, 10.0)
-        self.assertTrue(self._isfinite(result),
-                        f"standard_inverse(I==Ip) must be finite, got {result}")
+        self.assertTrue(
+            self._isfinite(result), f"standard_inverse(I==Ip) must be finite, got {result}"
+        )
 
     @staticmethod
     def _isfinite(v):
         import math
+
         try:
             return math.isfinite(v)
         except (TypeError, ValueError):

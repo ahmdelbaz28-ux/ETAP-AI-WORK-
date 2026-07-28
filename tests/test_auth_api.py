@@ -179,7 +179,9 @@ class TestRegister:
 class TestLogin:
     """Tests for the login endpoint."""
 
-    def _register_and_login(self, client, username="logintest", password="S3cureP@ss!"):  # NOSONAR: test credential constant, not a real secret
+    def _register_and_login(
+        self, client, username="logintest", password="S3cureP@ss!"
+    ):  # NOSONAR: test credential constant, not a real secret
         """Helper: register a user then attempt login."""
         client.post(
             "/api/v1/auth/register",
@@ -248,7 +250,10 @@ class TestLogin:
         for i in range(5):
             resp = client.post(
                 "/api/v1/auth/login",
-                json={"username": username, "password": f"WrongP@ss{i}!"},  # NOSONAR: test credential constant, not a real secret
+                json={
+                    "username": username,
+                    "password": f"WrongP@ss{i}!",
+                },  # NOSONAR: test credential constant, not a real secret
             )
             assert resp.status_code == 401, f"Attempt {i + 1} should return 401"
 
@@ -571,7 +576,10 @@ class TestResetPassword:
         token = self._get_reset_token(client)
         resp = client.post(
             "/api/v1/auth/reset-password",
-            json={"token": token, "new_password": "Br4ndN3wP@ss!"},  # NOSONAR: test credential constant, not a real secret
+            json={
+                "token": token,
+                "new_password": "Br4ndN3wP@ss!",
+            },  # NOSONAR: test credential constant, not a real secret
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
 
@@ -592,7 +600,9 @@ class TestResetPassword:
         # NOTE: token uses env-var lookup so SonarCloud S6418 does not
         # flag it as a hard-coded secret. The default value is a clearly
         # fake placeholder — never a real credential.
-        expired_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
+        expired_test_token = os.environ.get(
+            "TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder"
+        )
         resp = client.post(
             "/api/v1/auth/reset-password",
             json={"token": f"{expired_test_token}_expired_12345", "new_password": "Br4ndN3wP@ss!"},
@@ -601,7 +611,9 @@ class TestResetPassword:
 
     def test_reset_password_invalid_token(self, client):
         """A completely invalid token returns 400."""
-        invalid_test_token = os.environ.get("TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder")
+        invalid_test_token = os.environ.get(
+            "TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder"
+        )
         resp = client.post(
             "/api/v1/auth/reset-password",
             json={"token": f"{invalid_test_token}_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},

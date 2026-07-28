@@ -183,7 +183,9 @@ def _check_supabase() -> None:
     # Check projects table
     try:
         r = httpx.get(
-            f"{sb_url}/rest/v1/projects?select=*&limit=10", headers=sb_headers, timeout=10,
+            f"{sb_url}/rest/v1/projects?select=*&limit=10",
+            headers=sb_headers,
+            timeout=10,
         )
         if r.status_code == 200:
             projects = r.json()
@@ -208,7 +210,9 @@ def _check_neo4j() -> None:
     try:
         from neo4j import GraphDatabase
 
-        driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=10)
+        driver = GraphDatabase.driver(
+            neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=10
+        )
         with driver.session() as session:
             result = session.run("RETURN 1 AS ok").single()
             if result and result["ok"] == 1:
@@ -258,7 +262,9 @@ def _check_hf_space() -> None:
     # Live URL
     try:
         r = httpx.get(
-            "https://ahmdelbaz28-ahmedetap-platform.hf.space/health", timeout=15, follow_redirects=True,
+            "https://ahmdelbaz28-ahmedetap-platform.hf.space/health",
+            timeout=15,
+            follow_redirects=True,
         )
         if r.status_code == 200:
             try:
@@ -276,7 +282,9 @@ def _check_hf_space() -> None:
     # Agents endpoint
     try:
         r = httpx.get(
-            "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents", timeout=15, follow_redirects=True,
+            "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents",
+            timeout=15,
+            follow_redirects=True,
         )
         if r.status_code == 200:
             data = r.json()
@@ -300,7 +308,9 @@ def _check_github_repo() -> None:
 
     try:
         r = httpx.get(
-            "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-", headers=gh_headers, timeout=10,
+            "https://api.github.com/repos/ahmdelbaz28-ux/ETAP-AI-WORK-",
+            headers=gh_headers,
+            timeout=10,
         )
         print(f"  Repo API: {r.status_code}")
         if r.status_code == 200:

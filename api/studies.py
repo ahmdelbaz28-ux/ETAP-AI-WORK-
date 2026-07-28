@@ -64,8 +64,9 @@ from core_model.transformer import Transformer
 # (see import block at the top of this file).
 
 
-
-def _to_jsonable(obj: Any) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _to_jsonable(
+    obj: Any,
+) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     import numpy as np
@@ -105,7 +106,9 @@ def _to_jsonable(obj: Any) -> Any:  # NOSONAR: cognitive complexity; scheduled f
         return str(obj)
 
 
-def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _build_system_from_spec(
+    spec: SystemSpec,
+) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     system = System(base_mva=spec.base_mva)
     bus_map: Mapping[int, Any] = {}
@@ -166,10 +169,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR: cognitive comp
             impedance={
                 "1": complex(g.r1, g.x1),
                 "2": complex(
-                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1,
+                    g.r2 if g.r2 is not None else g.r1,
+                    g.x2 if g.x2 is not None else g.x1,
                 ),
                 "0": complex(
-                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1,
+                    g.r0 if g.r0 is not None else g.r1,
+                    g.x0 if g.x0 is not None else g.x1,
                 ),
             },
         )
@@ -199,7 +204,9 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 
 def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    study_type: str, system: Optional[Any], parameters: Dict[str, Any],
+    study_type: str,
+    system: Optional[Any],
+    parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     # ---- Canonicalise study type aliases ----
@@ -381,9 +388,13 @@ def _pre_flight_lines(lines: list, bus_ids: set) -> Optional[dict]:
         if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
             return {"error": f"Line {line.get('line_id')} has zero/negative impedance"}
         if line.get("from_bus_id") not in bus_ids:
-            return {"error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"}
+            return {
+                "error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"
+            }
         if line.get("to_bus_id") not in bus_ids:
-            return {"error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"}
+            return {
+                "error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"
+            }
     return None
 
 
@@ -404,7 +415,9 @@ def _pre_flight_voltage_bounds(buses: list) -> Optional[dict]:
     for bus in buses:
         v = bus.get("voltage_magnitude")
         if v is not None and (v < 0.01 or v > 1.5):
-            return {"error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"}
+            return {
+                "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"
+            }
     return None
 
 
@@ -430,10 +443,16 @@ def pre_flight_check(system: dict) -> Optional[dict]:
     return _pre_flight_voltage_bounds(buses)
 
 
-@router.post("/run", response_model=StudyResult, responses={400: {"description": "Invalid study request parameters"}})
+@router.post(
+    "/run",
+    response_model=StudyResult,
+    responses={400: {"description": "Invalid study request parameters"}},
+)
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_api_key)):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def run_study(
+    req: Request, payload: StudyRequest, _: str = Depends(get_api_key)
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
@@ -453,7 +472,20 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
     # listed here, which caused test_arc_flash (and any caller that sent
     # arc_flash parameters without a system) to get HTTP 400.  Fixed
     # 2026-07-26.
-    _TYPES_REQUIRING_SYSTEM = {"load_flow", "short_circuit", "protection_coordination", "motor_starting", "harmonic_analysis", "optimal_power_flow", "transient_stability", "cable_sizing", "earth_grid", "renewable_integration", "battery_storage", "scada"}
+    _TYPES_REQUIRING_SYSTEM = {
+        "load_flow",
+        "short_circuit",
+        "protection_coordination",
+        "motor_starting",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "transient_stability",
+        "cable_sizing",
+        "earth_grid",
+        "renewable_integration",
+        "battery_storage",
+        "scada",
+    }
     if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
         raise HTTPException(
             status_code=400,
@@ -518,7 +550,9 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str,
+                        payload.system.model_dump(),
+                        sort_keys=True,
+                        default=str,
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if study_cache:
@@ -534,7 +568,9 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
                         )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
+                    "Cache lookup failed (non-fatal): %s",
+                    cache_err,
+                    extra={"trace_id": trace_id},
                 )
 
         if cache_hit:
@@ -573,7 +609,9 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
             from compat import to_thread
 
             data = await to_thread(
-                provider.execute_study, payload.etap_project_path, etap_study,
+                provider.execute_study,
+                payload.etap_project_path,
+                etap_study,
             )
             warnings = data.pop("warnings", [])
             errors = data.pop("errors", [])
@@ -585,7 +623,9 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+                    raise HTTPException(
+                        status_code=400, detail=f"System spec error: {ve}"
+                    ) from ve  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
@@ -596,7 +636,9 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str,
+                        payload.system.model_dump(),
+                        sort_keys=True,
+                        default=str,
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if study_cache:
@@ -605,11 +647,15 @@ async def run_study(req: Request, payload: StudyRequest, _: str = Depends(get_ap
                     # Previously we passed a pre-serialized JSON string
                     # (SonarCloud S5655: type mismatch). Pass the raw dict.
                     await study_cache.set(
-                        payload.study_type, cache_params, data,
+                        payload.study_type,
+                        cache_params,
+                        data,
                     )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
+                    "Cache store failed (non-fatal): %s",
+                    cache_err,
+                    extra={"trace_id": trace_id},
                 )
 
         _increment_counter("success")
@@ -684,4 +730,3 @@ async def get_study_types(request: Request):
         "study_types": [t for t in STUDY_TYPES if t not in disabled],
         "disabled_studies": get_disabled_studies(),
     }
-

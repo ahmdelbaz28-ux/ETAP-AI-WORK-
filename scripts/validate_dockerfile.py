@@ -23,7 +23,6 @@ def parse_dockerfile(path: Path) -> list[tuple[int, str, list[str]]]:
     """Parse Dockerfile into list of (line_number, instruction, args)."""
     instructions = []
     for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
@@ -56,7 +55,6 @@ def validate_copy_sources(instructions: list, dockerfile_dir: Path) -> list[str]
             if not src_path.exists():
                 errors.append(f"L{lineno}: COPY source '{src}' does not exist at {src_path}")
     return errors
-
 
 
 def validate_ml_is_copied(instructions: list) -> list[str]:
@@ -154,7 +152,6 @@ def main() -> int:
     print("  - Entry point app.py exists")
     print("  - EXPOSE port matches ENV PORT")
     return 0
-
 
 
 if __name__ == "__main__":

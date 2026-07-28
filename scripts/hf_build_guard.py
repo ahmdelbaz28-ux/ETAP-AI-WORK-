@@ -120,7 +120,14 @@ def check_requirements():
             line = line.strip().lower()
             if line.startswith("#") or not line:
                 continue
-            pkg_name = line.split("==")[0].split(">=")[0].split("<=")[0].split("~=")[0].split("[")[0].strip()
+            pkg_name = (
+                line.split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split("~=")[0]
+                .split("[")[0]
+                .strip()
+            )
             if pkg_name in forbidden_pkgs:
                 raise ValueError(f"Windows/forbidden package found: {pkg_name}")
     return True
@@ -135,7 +142,6 @@ def check_docker_available():
         return result.returncode == 0
     except (FileNotFoundError, subprocess.SubprocessError):
         return False
-
 
 
 def check_docker_build():
@@ -161,7 +167,13 @@ def check_docker_build():
                 shutil.copy2(src, dst)
 
         result = subprocess.run(
-            ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],  # NOSONAR: intentional repetition (audit constant)
+            [
+                "docker",
+                "build",
+                "-t",
+                "hf-guard-test:latest",
+                tmpdir,
+            ],  # NOSONAR: intentional repetition (audit constant)
             capture_output=True,
             text=True,
             timeout=300,
@@ -236,7 +248,10 @@ def check_health_endpoint():
 
         # Test root endpoint
         result = subprocess.run(
-            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10,
+            ["curl", "-s", "http://localhost:7861/"],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
 
         if "AhmedETAP" not in result.stdout:
@@ -283,12 +298,13 @@ def cleanup():
         return
     try:
         subprocess.run(
-            ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10,
+            ["docker", "rm", "-f", "hf-guard-test-container"],
+            capture_output=True,
+            timeout=10,
         )
         subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
     except Exception:
         pass
-
 
 
 def main():

@@ -55,6 +55,7 @@ def _validate_password_strength(v: str) -> str:
         raise ValueError(MSG_PASSWORD_TOO_COMMON)
     return v
 
+
 try:
     from typing import Annotated
 except ImportError:
@@ -172,7 +173,9 @@ async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
             _logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
 
     # In-memory fallback with TTL
-    expiry = time.time() + (ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400)
+    expiry = time.time() + (
+        ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400
+    )
     with _token_blacklist_lock:
         _cleanup_expired_blacklist()
         _token_blacklist_memory[jti] = expiry
@@ -311,7 +314,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
 
@@ -605,9 +609,7 @@ async def register(
         )
 
     # Check email uniqueness (case-insensitive)
-    existing = await db.execute(
-        select(User).where(func.lower(User.email) == normalised_email)
-    )
+    existing = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -631,6 +633,7 @@ async def register(
         try:
             from services.email_send_log import log_email_send
             from services.email_service import send_welcome
+
             result = await send_welcome(
                 email=user.email,
                 user_name=getattr(user, "full_name", None) or user.username,
@@ -647,6 +650,7 @@ async def register(
             )
         except Exception as exc:
             import logging as _logging
+
             _logging.getLogger(_AUTH_LOGGER_NAME).warning(
                 "welcome_email_failed email=%s err=%s", user.email, exc
             )
@@ -684,9 +688,7 @@ async def login(
     # login form collects an "email" field and sends it as `username`, so the
     # backend MUST match on email too — otherwise email-based logins always 401.
     result = await db.execute(
-        select(User).where(
-            (User.username == body.username) | (User.email == body.username)
-        )
+        select(User).where((User.username == body.username) | (User.email == body.username))
     )
     user = result.scalar_one_or_none()
 
@@ -964,6 +966,7 @@ async def change_password(
     try:
         from services.email_send_log import log_email_send
         from services.email_service import send_password_change_email
+
         result = await send_password_change_email(
             email=db_user.email,
             user_name=getattr(db_user, "full_name", None) or db_user.username,
@@ -980,6 +983,7 @@ async def change_password(
         )
     except Exception as exc:
         import logging as _logging
+
         _logging.getLogger(_AUTH_LOGGER_NAME).warning(
             "password_change_email_failed email=%s err=%s", db_user.email, exc
         )
@@ -1015,9 +1019,7 @@ async def forgot_password(
     flow (emails are stored lowercased).
     """
     normalised_email = body.email.strip().lower()
-    result = await db.execute(
-        select(User).where(func.lower(User.email) == normalised_email)
-    )
+    result = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
     user = result.scalar_one_or_none()
 
     if user is not None and user.is_active:
@@ -1035,6 +1037,7 @@ async def forgot_password(
 
             from services.email_send_log import log_email_send
             from services.email_service import send_password_reset
+
             reset_link = (
                 f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
                 f"/reset-password?token={reset_token}"
@@ -1058,6 +1061,7 @@ async def forgot_password(
         except Exception as exc:
             # Don't fail the request — token is in DB, user can retry.
             import logging as _logging
+
             _logging.getLogger(_AUTH_LOGGER_NAME).warning(
                 "password_reset_email_failed email=%s err=%s", user.email, exc
             )

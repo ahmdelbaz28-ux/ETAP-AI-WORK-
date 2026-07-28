@@ -53,7 +53,10 @@ class ETAPAdapter(ABC):
 
     @abstractmethod
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, parameters: dict[str, Any] | None = None,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         """Execute a study via ETAP."""
         pass
@@ -95,7 +98,10 @@ class ETAPProviderAdapter(ETAPAdapter):
         return self._available
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, parameters: dict[str, Any] | None = None,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         """Execute a study via ETAP provider."""
         if not self.use_etap:
@@ -135,7 +141,10 @@ class MockETAPAdapter(ETAPAdapter):
         return self._available
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, parameters: dict[str, Any] | None = None,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         """Mock execution of a study."""
         if not self.use_etap:

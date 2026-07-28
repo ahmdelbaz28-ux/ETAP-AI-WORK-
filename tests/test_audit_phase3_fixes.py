@@ -8,6 +8,7 @@ Tests verify that:
 - Helm secret.yaml supports external secret annotations
 - Helm secret.yaml does not hardcode secret values
 """
+
 import ast
 import os
 import re
@@ -35,8 +36,7 @@ class TestErrorInfoLeakS23(unittest.TestCase):
         # Find all JSONResponse content blocks that contain "errors"
         # They should use "Internal server error" not str(e)
         json_response_lines = [
-            line for line in src.splitlines()
-            if "JSONResponse" in line and "errors" in line
+            line for line in src.splitlines() if "JSONResponse" in line and "errors" in line
         ]
         for line in json_response_lines:
             self.assertNotIn(
@@ -69,10 +69,7 @@ class TestErrorInfoLeakS23(unittest.TestCase):
         """Import error messages should NOT leak str(e) to clients."""
         src = self._read(self.equipment_path)
         # Find "errors.append" lines — they should not contain str(e)
-        error_append_lines = [
-            line for line in src.splitlines()
-            if "errors.append" in line
-        ]
+        error_append_lines = [line for line in src.splitlines() if "errors.append" in line]
         for line in error_append_lines:
             self.assertNotIn(
                 "str(e)",
@@ -105,7 +102,7 @@ class TestErrorInfoLeakS23(unittest.TestCase):
         src = self._read(self.email_dash_path)
         # The detail should NOT contain the jwt_err variable
         self.assertNotIn(
-            "detail=f\"Invalid JWT token: {jwt_err}",
+            'detail=f"Invalid JWT token: {jwt_err}',
             src,
             "email_dashboard.py leaks JWT error details in response",
         )
@@ -178,7 +175,8 @@ class TestHelmPBDSecret(unittest.TestCase):
             src,
         )
         self.assertEqual(
-            len(hardcoded_b64), 0,
+            len(hardcoded_b64),
+            0,
             "secret.yaml must not contain hardcoded base64 values",
         )
 
@@ -204,7 +202,14 @@ class TestS23AllAPIModulesComprehensive(unittest.TestCase):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.api_dir = os.path.join(base, "api")
         # Files known to have exception handlers
-        self.api_files = [f for f in os.listdir(self.api_dir) if f.endswith(".py") and not f.startswith("_") and f != "__init__.py" and f != "security_audit.py"]
+        self.api_files = [
+            f
+            for f in os.listdir(self.api_dir)
+            if f.endswith(".py")
+            and not f.startswith("_")
+            and f != "__init__.py"
+            and f != "security_audit.py"
+        ]
 
     def _read(self, path):
         with open(path, encoding="utf-8", errors="replace") as f:
@@ -239,7 +244,14 @@ class TestS23AllAPIModulesComprehensive(unittest.TestCase):
 
     def test_s23_errors_use_generic_message(self):
         """API files that had str(e) should now use generic error messages."""
-        problem_files = ["ai_ml.py", "agents.py", "scada.py", "digital_twin.py", "mfa.py", "shared_handlers.py"]
+        problem_files = [
+            "ai_ml.py",
+            "agents.py",
+            "scada.py",
+            "digital_twin.py",
+            "mfa.py",
+            "shared_handlers.py",
+        ]
         for fname in problem_files:
             path = os.path.join(self.api_dir, fname)
             if not os.path.isfile(path):
@@ -265,5 +277,7 @@ class TestACPRuntimeLockfileCVE(unittest.TestCase):
     def test_acp_websockets_bumped(self):
         """websockets should be bumped from 12.0 to 13.1."""
         src = self._read()
-        self.assertIn("websockets = \"13.1\"", src, "acp_runtime pylock.toml websockets not bumped")
-        self.assertNotIn("websockets = \"12.0\"", src, "acp_runtime pylock.toml still has old websockets")
+        self.assertIn('websockets = "13.1"', src, "acp_runtime pylock.toml websockets not bumped")
+        self.assertNotIn(
+            'websockets = "12.0"', src, "acp_runtime pylock.toml still has old websockets"
+        )

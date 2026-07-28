@@ -59,6 +59,7 @@ from pathlib import Path
 
 try:
     from cryptography.fernet import Fernet
+
     _HAS_CRYPTO = True
 except ImportError:
     _HAS_CRYPTO = False
@@ -138,9 +139,9 @@ def _env_block(c: dict[str, str]) -> str:
 # =============================================================================
 # SECURITY & AUTHENTICATION
 # =============================================================================
-JWT_SECRET_KEY={c['jwt']}
-FERNET_ENCRYPTION_KEY={c['fernet']}
-ENCRYPTION_KEY={c['fernet']}
+JWT_SECRET_KEY={c["jwt"]}
+FERNET_ENCRYPTION_KEY={c["fernet"]}
+ENCRYPTION_KEY={c["fernet"]}
 ENVIRONMENT=production
 PORT=8000
 HOST=0.0.0.0
@@ -151,7 +152,7 @@ HOST=0.0.0.0
 DATABASE_URL={database_url}
 POSTGRES_DB=etap_db
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD={c.get('supabase_service_key', 'etap_secure_password_change_me')}
+POSTGRES_PASSWORD={c.get("supabase_service_key", "etap_secure_password_change_me")}
 
 # =============================================================================
 # REDIS CACHE
@@ -161,45 +162,45 @@ REDIS_URL=redis://localhost:6379/0
 # =============================================================================
 # HUGGING FACE  (production credentials)
 # =============================================================================
-HF_TOKEN={c['hf_token']}
-HF_SPACE_NAME={c['hf_space']}
-HF_REPO_URL=https://huggingface.co/spaces/{c['hf_space']}
+HF_TOKEN={c["hf_token"]}
+HF_SPACE_NAME={c["hf_space"]}
+HF_REPO_URL=https://huggingface.co/spaces/{c["hf_space"]}
 
 # =============================================================================
 # VERCEL  (production credentials)
 # =============================================================================
 VERCEL_ORG_ID=team_etap
-VERCEL_PROJECT_ID={c['vercel_project_id']}
-VERCEL_TOKEN={c['vercel_token']}
+VERCEL_PROJECT_ID={c["vercel_project_id"]}
+VERCEL_TOKEN={c["vercel_token"]}
 
 # =============================================================================
 # GITHUB  (used for CI/CD sync)
 # =============================================================================
 GITHUB_REPOSITORY=ahmdelbaz28-ux/ETAP-AI-WORK-
-GITHUB_TOKEN={c['github_pat']}
-GITHUB_PAT={c['github_pat']}
+GITHUB_TOKEN={c["github_pat"]}
+GITHUB_PAT={c["github_pat"]}
 
 # =============================================================================
 # NEO4J — Graph Database (network topology)
 # =============================================================================
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD={c.get('neo4j_password', 'your-strong-neo4j-password-here')}
+NEO4J_PASSWORD={c.get("neo4j_password", "your-strong-neo4j-password-here")}
 
 # =============================================================================
 # SUPABASE — Managed PostgreSQL + Storage + Auth  (production credentials)
 # =============================================================================
-SUPABASE_URL={c.get('supabase_url') or 'https://your-project.supabase.co'}
-SUPABASE_ANON_KEY={c.get('supabase_anon', '')}
-SUPABASE_SERVICE_ROLE_KEY={c.get('supabase_service', '')}
+SUPABASE_URL={c.get("supabase_url") or "https://your-project.supabase.co"}
+SUPABASE_ANON_KEY={c.get("supabase_anon", "")}
+SUPABASE_SERVICE_ROLE_KEY={c.get("supabase_service", "")}
 SUPABASE_AUTH_ENABLED=true
-SUPABASE_PAT={c.get('supabase_pat', '')}
+SUPABASE_PAT={c.get("supabase_pat", "")}
 
 # =============================================================================
 # LANGFUSE — Prompt management + observability  (production credentials)
 # =============================================================================
-LANGFUSE_PUBLIC_KEY={c.get('langfuse_public', '')}
-LANGFUSE_SECRET_KEY={c.get('langfuse_secret', '')}
+LANGFUSE_PUBLIC_KEY={c.get("langfuse_public", "")}
+LANGFUSE_SECRET_KEY={c.get("langfuse_secret", "")}
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
 LANGFUSE_DEFAULT_MODEL=gpt-4o
 LANGFUSE_OVERRIDE_MODE=false
@@ -213,23 +214,23 @@ LANGFUSE_ALERT_WEBHOOK_HEADERS={{}}
 # =============================================================================
 # LANGWATCH — LLM monitoring  (production credentials)
 # =============================================================================
-LANGWATCH_API_KEY={c.get('langwatch_key', '')}
+LANGWATCH_API_KEY={c.get("langwatch_key", "")}
 LANGWATCH_PROJECT=AhmedETAP-Platform
 LANGWATCH_ENDPOINT=https://app.langwatch.ai
 
 # =============================================================================
 # SMITHERY MCP — Model Context Protocol  (production credentials)
 # =============================================================================
-SMITHERY_API_KEY={c.get('smithery_key', '')}
+SMITHERY_API_KEY={c.get("smithery_key", "")}
 SMITHERY_BASE_URL=https://api.smithery.ai
 
 # =============================================================================
 # LLM PROVIDERS  (8 providers — OpenAI-compatible chat/completions API)
 # =============================================================================
-OPENAI_API_KEY={c.get('openai', 'your-openai-api-key-here')}
-ANTHROPIC_API_KEY={c.get('anthropic', 'your-anthropic-api-key-here')}
-GOOGLE_API_KEY={c.get('google', 'your-google-api-key-here')}
-GEMINI_API_KEY={c.get('gemini', 'your-gemini-api-key-here')}
+OPENAI_API_KEY={c.get("openai", "your-openai-api-key-here")}
+ANTHROPIC_API_KEY={c.get("anthropic", "your-anthropic-api-key-here")}
+GOOGLE_API_KEY={c.get("google", "your-google-api-key-here")}
+GEMINI_API_KEY={c.get("gemini", "your-gemini-api-key-here")}
 GEMINI_MODEL=gemini-2.0-flash-exp
 GEMINI_TIMEOUT=30
 GEMINI_MAX_RETRIES=3
@@ -238,38 +239,38 @@ ANTHROPIC_TIMEOUT=30
 ANTHROPIC_MAX_RETRIES=3
 
 # Render API (https://render.com)
-RENDER_API_KEY={c.get('render', '')}
+RENDER_API_KEY={c.get("render", "")}
 RENDER_BASE_URL=https://api.render.com/v1
 RENDER_MODEL=gpt-4o-mini
 
 # ZenMux (https://zenmux.ai)
-ZENMUX_API_KEY={c.get('zenmux', '')}
+ZENMUX_API_KEY={c.get("zenmux", "")}
 ZENMUX_BASE_URL=https://api.zenmux.ai/v1
 ZENMUX_MODEL=gpt-4o-mini
 
 # NVIDIA NIM (https://build.nvidia.com)
 # Note: NVIDIA supports many models including minimaxai/minimax-m3,@cf/meta/llama-3.3-70b-instruct-fp8-fast (multimodal)
-NVIDIA_API_KEY={c.get('nvidia', '')}
+NVIDIA_API_KEY={c.get("nvidia", "")}
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=meta/llama-3.1-8b-instruct
 
 # Fireworks AI (https://fireworks.ai)
-FIREWORKS_API_KEY={c.get('fireworks', '')}
+FIREWORKS_API_KEY={c.get("fireworks", "")}
 FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
 FIREWORKS_MODEL=accounts/fireworks/models/kimi-k2p7-code
 
 # GitHub Models (https://github.com/marketplace/models)
-GITHUB_MODELS_API_KEY={c.get('github_models', '')}
+GITHUB_MODELS_API_KEY={c.get("github_models", "")}
 GITHUB_MODELS_BASE_URL=https://models.inference.ai.azure.com/v1
 GITHUB_MODELS_MODEL=gpt-4o
 
 # OpenModel (https://openmodel.ai)
-OPENMODEL_API_KEY={c.get('openmodel', '')}
+OPENMODEL_API_KEY={c.get("openmodel", "")}
 OPENMODEL_BASE_URL=https://api.openmodel.ai/v1
 OPENMODEL_MODEL=gpt-4o
 
 # Modal (https://modal.com)
-MODAL_API_KEY={c.get('modal', '')}
+MODAL_API_KEY={c.get("modal", "")}
 MODAL_BASE_URL=https://api.us-west-2.modal.direct/v1
 MODAL_MODEL=zai-org/GLM-5.1-FP8
 
@@ -277,14 +278,14 @@ MODAL_MODEL=zai-org/GLM-5.1-FP8
 # Note: Bynara offers 25+ models including mimo-v2.5, kimi-k2.7-code-free,
 # glm-5.2, gpt-5.4, claude-sonnet-5, mistral-large, deepseek-v4, qwen3.7-max.
 # Account requires credits — top up at https://bynara.id
-BYNARA_API_KEY={c.get('bynara', '')}
+BYNARA_API_KEY={c.get("bynara", "")}
 BYNARA_BASE_URL=https://router.bynara.id/v1
 BYNARA_MODEL=mimo-v2.5
 
 # Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/)
 # Requires BOTH API token and account ID. Account ID goes in the URL path.
-CLOUDFLARE_API_KEY={c.get('cloudflare_api', '')}
-CLOUDFLARE_ACCOUNT_ID={c.get('cloudflare_account', '')}
+CLOUDFLARE_API_KEY={c.get("cloudflare_api", "")}
+CLOUDFLARE_ACCOUNT_ID={c.get("cloudflare_account", "")}
 CLOUDFLARE_BASE_URL=https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1
 CLOUDFLARE_MODEL=@cf/moonshotai/kimi-k2.6
 
@@ -377,7 +378,9 @@ def _gather_credentials() -> dict[str, str]:
         second = vercel_token.find("vcp_", 4)
         if second > 0:
             vercel_token = vercel_token[:second]
-            sys.stderr.write(f"  Detected double-pasted Vercel token. Trimmed to {len(vercel_token)} chars.\n")
+            sys.stderr.write(
+                f"  Detected double-pasted Vercel token. Trimmed to {len(vercel_token)} chars.\n"
+            )
 
     jwt_secret = secrets.token_hex(32)
     fernet_key = Fernet.generate_key().decode() if _HAS_CRYPTO else secrets.token_urlsafe(44) + "="
@@ -447,7 +450,9 @@ def main() -> int:
     print(f"\n  ✓ Wrote {env_file} ({len(content)} bytes)")
     print(f"  ✓ JWT_SECRET_KEY:     {creds['jwt'][:16]}... (truncated)")
     print(f"  ✓ FERNET_KEY:         {creds['fernet'][:16]}... (truncated)")
-    print(f"  ✓ VERCEL_TOKEN:       {creds['vercel_token'][:12]}... ({len(creds['vercel_token'])} chars)")
+    print(
+        f"  ✓ VERCEL_TOKEN:       {creds['vercel_token'][:12]}... ({len(creds['vercel_token'])} chars)"
+    )
     print(f"  ✓ VERCEL_PROJECT_ID:  {creds['vercel_project_id']}")
     print(f"  ✓ HF_TOKEN:           {creds['hf_token'][:12]}... (truncated)")
     print(f"  ✓ HF_SPACE_NAME:      {creds['hf_space']}")
@@ -455,30 +460,30 @@ def main() -> int:
 
     # Optional integrations status
     integrations = [
-        ("NEO4J_PASSWORD",   creds["neo4j_password"],  "Neo4j graph DB"),
-        ("SUPABASE_URL",     creds["supabase_url"],    "Supabase Postgres"),
-        ("SUPABASE_ANON",    creds["supabase_anon"],   "Supabase anon key"),
-        ("SUPABASE_SERVICE", creds["supabase_service"],"Supabase service key"),
-        ("SUPABASE_PAT",     creds["supabase_pat"],    "Supabase PAT"),
-        ("LANGFUSE_PUBLIC",  creds["langfuse_public"], "Langfuse public"),
-        ("LANGFUSE_SECRET",  creds["langfuse_secret"], "Langfuse secret"),
-        ("LANGWATCH_KEY",    creds["langwatch_key"],   "LangWatch"),
-        ("SMITHERY_KEY",     creds["smithery_key"],    "Smithery MCP"),
-        ("OPENAI",           creds["openai"],          "OpenAI"),
-        ("ANTHROPIC",        creds["anthropic"],       "Anthropic"),
-        ("GOOGLE",           creds["google"],          "Google/Gemini"),
+        ("NEO4J_PASSWORD", creds["neo4j_password"], "Neo4j graph DB"),
+        ("SUPABASE_URL", creds["supabase_url"], "Supabase Postgres"),
+        ("SUPABASE_ANON", creds["supabase_anon"], "Supabase anon key"),
+        ("SUPABASE_SERVICE", creds["supabase_service"], "Supabase service key"),
+        ("SUPABASE_PAT", creds["supabase_pat"], "Supabase PAT"),
+        ("LANGFUSE_PUBLIC", creds["langfuse_public"], "Langfuse public"),
+        ("LANGFUSE_SECRET", creds["langfuse_secret"], "Langfuse secret"),
+        ("LANGWATCH_KEY", creds["langwatch_key"], "LangWatch"),
+        ("SMITHERY_KEY", creds["smithery_key"], "Smithery MCP"),
+        ("OPENAI", creds["openai"], "OpenAI"),
+        ("ANTHROPIC", creds["anthropic"], "Anthropic"),
+        ("GOOGLE", creds["google"], "Google/Gemini"),
         # Additional LLM providers (added 2026-07-07)
-        ("RENDER",           creds["render"],          "Render API"),
-        ("ZENMUX",           creds["zenmux"],          "ZenMux"),
-        ("NVIDIA",           creds["nvidia"],          "NVIDIA NIM"),
-        ("FIREWORKS",        creds["fireworks"],       "Fireworks AI"),
-        ("GITHUB_MODELS",    creds["github_models"],   "GitHub Models"),
-        ("OPENMODEL",        creds["openmodel"],       "OpenModel"),
-        ("MODAL",            creds["modal"],           "Modal (GLM-5.1)"),
+        ("RENDER", creds["render"], "Render API"),
+        ("ZENMUX", creds["zenmux"], "ZenMux"),
+        ("NVIDIA", creds["nvidia"], "NVIDIA NIM"),
+        ("FIREWORKS", creds["fireworks"], "Fireworks AI"),
+        ("GITHUB_MODELS", creds["github_models"], "GitHub Models"),
+        ("OPENMODEL", creds["openmodel"], "OpenModel"),
+        ("MODAL", creds["modal"], "Modal (GLM-5.1)"),
         # Additional LLM providers (added 2026-07-08)
-        ("BYNARA",           creds["bynara"],          "Bynara Router"),
-        ("CLOUDFLARE_API",   creds["cloudflare_api"],  "Cloudflare Workers AI"),
-        ("CLOUDFLARE_ACCT",  creds["cloudflare_account"], "Cloudflare Account ID"),
+        ("BYNARA", creds["bynara"], "Bynara Router"),
+        ("CLOUDFLARE_API", creds["cloudflare_api"], "Cloudflare Workers AI"),
+        ("CLOUDFLARE_ACCT", creds["cloudflare_account"], "Cloudflare Account ID"),
     ]
     print("\n  Integration status:")
     for var, val, desc in integrations:

@@ -5,6 +5,7 @@ These tests exercise the functions extracted from
 integrations/anthropic_vision.py and integrations/openai_vision.py to
 eliminate code duplication (SonarCloud new_duplicated_lines_density).
 """
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -70,6 +71,7 @@ class TestImageToBase64Png:
         assert len(result) > 0
         # Verify it's valid base64 by decoding
         import base64
+
         decoded = base64.b64decode(result)
         assert len(decoded) > 0  # PNG header bytes
 
@@ -113,6 +115,7 @@ class TestImageToDataUrl:
         # The part after the prefix should be valid base64
         b64_part = result.removeprefix("data:image/png;base64,")
         import base64
+
         decoded = base64.b64decode(b64_part)
         assert len(decoded) > 0
 
@@ -254,6 +257,7 @@ class TestRetryWithBackoff:
         WHEN make_request fails
         THEN the error message mentions the provider name (via logger).
         """
+
         def make_request():
             raise RuntimeError("fail")
 

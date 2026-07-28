@@ -22,15 +22,14 @@ from unittest.mock import MagicMock, patch
 # S-06: CSRF Production Guard
 # ---------------------------------------------------------------------------
 
+
 class TestCSRFS06:
     """Verify CSRF raises RuntimeError in production if no secret is configured."""
 
     def test_s06_production_guard_in_source(self):
         """S-06: Source must contain production environment guard."""
         src = Path("api/csrf.py").read_text()
-        assert "RuntimeError" in src, (
-            "S-06: _get_secret() must raise RuntimeError in production"
-        )
+        assert "RuntimeError" in src, "S-06: _get_secret() must raise RuntimeError in production"
         assert "production" in src.lower() or "ENVIRONMENT" in src, (
             "S-06: Must check ENVIRONMENT for production guard"
         )
@@ -38,14 +37,13 @@ class TestCSRFS06:
     def test_s06_dev_fallback_with_warning(self):
         """S-06: Dev/test environments should log warning when using default."""
         src = Path("api/csrf.py").read_text()
-        assert "warning" in src.lower(), (
-            "S-06: Should log warning when using default secret in dev"
-        )
+        assert "warning" in src.lower(), "S-06: Should log warning when using default secret in dev"
 
 
 # ---------------------------------------------------------------------------
 # S-08: Rate Limiter Thread Safety
 # ---------------------------------------------------------------------------
+
 
 class TestRateLimiterS08:
     """Verify rate limiter is thread-safe and has memory cleanup."""
@@ -53,13 +51,15 @@ class TestRateLimiterS08:
     def test_s08_threading_lock_present(self):
         """S-08: RateLimiter must use threading.Lock."""
         from api._rate_limit import RateLimiter
+
         limiter = RateLimiter(max_requests=10, window_seconds=60)
-        assert hasattr(limiter, '_lock'), (
+        assert hasattr(limiter, "_lock"), (
             "S-08: RateLimiter must have a _lock attribute for thread safety"
         )
         import threading
+
         # threading.Lock() returns _thread.lock in CPython
-        assert hasattr(limiter._lock, 'acquire') and hasattr(limiter._lock, 'release'), (
+        assert hasattr(limiter._lock, "acquire") and hasattr(limiter._lock, "release"), (
             "S-08: _lock must support acquire/release (thread lock protocol)"
         )
 
@@ -89,10 +89,13 @@ class TestRateLimiterS08:
                 continue
             if reset_found:
                 # Check the reset method body for lock usage
-                if "return" in line and "self._lock" not in src[src.find("def reset"):src.find("def reset")+200]:
+                if (
+                    "return" in line
+                    and "self._lock" not in src[src.find("def reset") : src.find("def reset") + 200]
+                ):
                     break
         # Verify reset uses lock by checking source text
-        reset_section = src[src.find("def reset"):] if "def reset" in src else ""
+        reset_section = src[src.find("def reset") :] if "def reset" in src else ""
         assert "with self._lock" in reset_section or "self._lock" in reset_section, (
             "S-08: reset() must also acquire the lock for thread safety"
         )
@@ -102,6 +105,7 @@ class TestRateLimiterS08:
         import threading
 
         from api._rate_limit import RateLimiter
+
         limiter = RateLimiter(max_requests=100, window_seconds=60)
         errors = []
 
@@ -127,29 +131,24 @@ class TestRateLimiterS08:
 # S-09: JWT Bypass Token Type Check
 # ---------------------------------------------------------------------------
 
+
 class TestJWTS09:
     """Verify JWT bypass path checks token type and active status."""
 
     def test_s09_token_type_check(self):
         """S-09: Must check that token type is 'access', not 'refresh'."""
         src = Path("api/dependencies.py").read_text()
-        assert '"access"' in src or "'access'" in src, (
-            "S-09: Must verify token type is 'access'"
-        )
+        assert '"access"' in src or "'access'" in src, "S-09: Must verify token type is 'access'"
 
     def test_s09_expired_token_check(self):
         """S-09: Must reject expired tokens explicitly."""
         src = Path("api/dependencies.py").read_text()
-        assert "ExpiredSignatureError" in src, (
-            "S-09: Must handle ExpiredSignatureError explicitly"
-        )
+        assert "ExpiredSignatureError" in src, "S-09: Must handle ExpiredSignatureError explicitly"
 
     def test_s09_refresh_rejection(self):
         """S-09: Must reject refresh tokens used as access tokens."""
         src = Path("api/dependencies.py").read_text()
-        assert "refresh" in src.lower(), (
-            "S-09: Must check for and reject refresh tokens"
-        )
+        assert "refresh" in src.lower(), "S-09: Must check for and reject refresh tokens"
 
     def test_s09_blacklist_check(self):
         """S-09: Must check token JTI against blacklist."""
@@ -157,18 +156,14 @@ class TestJWTS09:
         assert "_is_token_blacklisted" in src, (
             "S-09: Must import and call _is_token_blacklisted for revoked tokens"
         )
-        assert "jti" in src, (
-            "S-09: Must extract JTI from token payload for blacklist check"
-        )
-        assert "revoked" in src.lower(), (
-            "S-09: Must reject revoked/blacklisted tokens"
-        )
+        assert "jti" in src, "S-09: Must extract JTI from token payload for blacklist check"
+        assert "revoked" in src.lower(), "S-09: Must reject revoked/blacklisted tokens"
 
     def test_s09_lazy_import_for_circular_dep(self):
         """S-09: Must use lazy import to avoid circular dependency."""
         src = Path("api/dependencies.py").read_text()
         # Should import inside the function body, not at module level
-        section = src[src.find("async def get_api_key"):]
+        section = src[src.find("async def get_api_key") :]
         assert "from api.auth import" in section, (
             "S-09: Must use lazy import inside function to avoid circular dependency"
         )
@@ -178,15 +173,14 @@ class TestJWTS09:
 # S-10: R2 Path Traversal
 # ---------------------------------------------------------------------------
 
+
 class TestR2S10:
     """Verify R2 storage has path traversal validation."""
 
     def test_s10_validation_function_exists(self):
         """S-10: Must have a key validation function."""
         src = Path("api/r2_storage.py").read_text()
-        assert "_validate_key" in src, (
-            "S-10: Must have _validate_key() function"
-        )
+        assert "_validate_key" in src, "S-10: Must have _validate_key() function"
 
     def test_s10_rejects_double_dot(self):
         """S-10: Must reject keys containing '..'."""
@@ -205,38 +199,33 @@ class TestR2S10:
     def test_s10_rejects_null_bytes(self):
         """S-10: Must reject keys containing null bytes."""
         src = Path("api/r2_storage.py").read_text()
-        assert "\\x00" in src or "null" in src.lower(), (
-            "S-10: Must reject null byte injection"
-        )
+        assert "\\x00" in src or "null" in src.lower(), "S-10: Must reject null byte injection"
 
     def test_s10_validation_called_in_upload(self):
         """S-10: upload() must call _validate_key()."""
         src = Path("api/r2_storage.py").read_text()
-        upload_section = src[src.find("async def upload"):] if "async def upload" in src else ""
-        assert "_validate_key" in upload_section, (
-            "S-10: upload() must call _validate_key(key)"
-        )
+        upload_section = src[src.find("async def upload") :] if "async def upload" in src else ""
+        assert "_validate_key" in upload_section, "S-10: upload() must call _validate_key(key)"
 
     def test_s10_validation_called_in_download(self):
         """S-10: download() must call _validate_key()."""
         src = Path("api/r2_storage.py").read_text()
-        download_section = src[src.find("async def download"):] if "async def download" in src else ""
-        assert "_validate_key" in download_section, (
-            "S-10: download() must call _validate_key(key)"
+        download_section = (
+            src[src.find("async def download") :] if "async def download" in src else ""
         )
+        assert "_validate_key" in download_section, "S-10: download() must call _validate_key(key)"
 
     def test_s10_validation_called_in_delete(self):
         """S-10: delete() must call _validate_key()."""
         src = Path("api/r2_storage.py").read_text()
-        delete_section = src[src.find("async def delete"):] if "async def delete" in src else ""
-        assert "_validate_key" in delete_section, (
-            "S-10: delete() must call _validate_key(key)"
-        )
+        delete_section = src[src.find("async def delete") :] if "async def delete" in src else ""
+        assert "_validate_key" in delete_section, "S-10: delete() must call _validate_key(key)"
 
 
 # ---------------------------------------------------------------------------
 # S-11: Assets Authorization (BOLA/IDOR)
 # ---------------------------------------------------------------------------
+
 
 class TestAssetsS11:
     """Verify asset endpoints have authorization checks."""
@@ -244,7 +233,7 @@ class TestAssetsS11:
     def test_s11_update_has_user_param(self):
         """S-11: update_asset() must require authenticated user."""
         src = Path("api/assets.py").read_text()
-        update_section = src[src.find("async def update_asset"):]
+        update_section = src[src.find("async def update_asset") :]
         # Must have user parameter with get_current_user_from_header
         assert "user:" in update_section or "CurrentUser" in update_section, (
             "S-11: update_asset() must have user parameter for authorization"
@@ -253,7 +242,7 @@ class TestAssetsS11:
     def test_s11_delete_has_user_param(self):
         """S-11: delete_asset() must require authenticated user."""
         src = Path("api/assets.py").read_text()
-        delete_section = src[src.find("async def delete_asset"):]
+        delete_section = src[src.find("async def delete_asset") :]
         assert "user:" in delete_section or "CurrentUser" in delete_section, (
             "S-11: delete_asset() must have user parameter for authorization"
         )
@@ -271,14 +260,13 @@ class TestAssetsS11:
     def test_s11_docstring_mentions_security(self):
         """S-11: Security fix should be documented."""
         src = Path("api/assets.py").read_text()
-        assert "S-11" in src, (
-            "S-11: Fix should be documented with audit reference S-11"
-        )
+        assert "S-11" in src, "S-11: Fix should be documented with audit reference S-11"
 
 
 # ---------------------------------------------------------------------------
 # S-12: Docker-Compose Port Restriction
 # ---------------------------------------------------------------------------
+
 
 class TestDockerComposeS12:
     """Verify database/infra ports are bound to 127.0.0.1 only."""
@@ -362,16 +350,15 @@ class TestDockerComposeS12:
 # S-18: LLM Temperature
 # ---------------------------------------------------------------------------
 
+
 class TestLLMS18:
     """Verify orchestrator temperature changed from 0.2 to 0.0 for safety-critical."""
 
     def test_s18_default_temperature_zero(self):
         """S-18: Default temperature must be 0.0 for deterministic engineering."""
         src = Path("agents/orchestrator.py").read_text()
-        section = src[src.find("prompt_temperature"):]
-        assert '0.0' in section[:400], (
-            "S-18: Default temperature must be 0.0, not 0.2"
-        )
+        section = src[src.find("prompt_temperature") :]
+        assert "0.0" in section[:400], "S-18: Default temperature must be 0.0, not 0.2"
 
     def test_s18_old_temperature_removed(self):
         """S-18: Old 0.2 default must be removed."""
@@ -393,6 +380,7 @@ class TestLLMS18:
 # S-19: Code Guard Agent Wiring
 # ---------------------------------------------------------------------------
 
+
 class TestCodeGuardS19:
     """Verify code guard agent logs warning instead of info on failure."""
 
@@ -400,7 +388,7 @@ class TestCodeGuardS19:
         """S-19: Code guard import failure must log WARNING, not INFO."""
         src = Path("agents/orchestrator.py").read_text()
         # Should have .warning( for the failure case
-        assert '.warning(' in src, (
+        assert ".warning(" in src, (
             "S-19: Code guard import failure must use .warning(), not .info()"
         )
         # Should mention that review is disabled
@@ -413,6 +401,7 @@ class TestCodeGuardS19:
 # S-22: Relay Boundary Consistency
 # ---------------------------------------------------------------------------
 
+
 class TestRelayBoundaryS22:
     """Verify pickup/trip boundary consistency between curves and relay."""
 
@@ -421,32 +410,21 @@ class TestRelayBoundaryS22:
         src = Path("curves/curves.py").read_text()
         # Count actual code occurrences of `Ip >= I` (not in comments)
         lines = src.splitlines()
-        code_occurrences = [
-            l for l in lines
-            if "Ip >= I" in l and not l.strip().startswith("#")
-        ]
-        assert not code_occurrences, (
-            f"S-22: Old >= pattern still in code: {code_occurrences}"
-        )
+        code_occurrences = [l for l in lines if "Ip >= I" in l and not l.strip().startswith("#")]
+        assert not code_occurrences, f"S-22: Old >= pattern still in code: {code_occurrences}"
         # Must have the strict > pattern in code
-        code_strict = [
-            l for l in lines
-            if "Ip > I" in l and not l.strip().startswith("#")
-        ]
-        assert code_strict, (
-            "S-22: Curves must use strict greater-than (Ip > I) in code"
-        )
+        code_strict = [l for l in lines if "Ip > I" in l and not l.strip().startswith("#")]
+        assert code_strict, "S-22: Curves must use strict greater-than (Ip > I) in code"
 
     def test_s22_relay_uses_gte(self):
         """S-22: Relay pickup_logic uses >= (trips at pickup boundary)."""
         src = Path("relays/relay.py").read_text()
-        assert '>= self.Ip' in src, (
-            "S-22: Relay pickup must use >= (picks up at and above pickup)"
-        )
+        assert ">= self.Ip" in src, "S-22: Relay pickup must use >= (picks up at and above pickup)"
 
     def test_s22_consistent_at_boundary(self):
         """S-22: At I==Ip: relay picks up AND curves return finite time."""
         from curves.curves import IEC60255Curves
+
         # At I == Ip: (I/Ip) == 1.0, so (1.0^0.02 - 1) = 0 → division by zero!
         # With strict >: we avoid this case (I must be > Ip for finite time)
         # With >= in curves: (I/Ip)^0.02 - 1 at I==Ip would be 0 (undefined)
@@ -460,15 +438,14 @@ class TestRelayBoundaryS22:
 # S-14: .env.example Cleanup
 # ---------------------------------------------------------------------------
 
+
 class TestEnvExampleS14:
     """Verify .env.example does not contain real identifiers."""
 
     def test_s14_no_github_username(self):
         """S-14: Must not contain real GitHub username."""
         src = Path(".env.example").read_text()
-        assert "ahmdelbaz28" not in src, (
-            "S-14: .env.example must not contain real GitHub username"
-        )
+        assert "ahmdelbaz28" not in src, "S-14: .env.example must not contain real GitHub username"
 
     def test_s14_no_real_domain(self):
         """S-14: Must not contain real production domain."""
@@ -486,6 +463,4 @@ class TestEnvExampleS14:
     def test_s14_placeholder_keywords_present(self):
         """S-14: Must contain obvious placeholder keywords."""
         src = Path(".env.example").read_text()
-        assert "your-" in src.lower() or "YOUR_" in src, (
-            "S-14: Must contain 'your-' placeholders"
-        )
+        assert "your-" in src.lower() or "YOUR_" in src, "S-14: Must contain 'your-' placeholders"

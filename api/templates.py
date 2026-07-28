@@ -66,10 +66,12 @@ class StudyTemplate(Base):
     usage_count: Mapped[int] = mapped_column(default=0)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
 
@@ -120,7 +122,9 @@ class TemplateListResponse(BaseModel):
     page_size: int
 
 
-router = APIRouter(prefix="/api/v1/templates", tags=["Study Templates"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/templates", tags=["Study Templates"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 
 
 async def _get_template(template_id: str, db: AsyncSession) -> StudyTemplate:
@@ -148,59 +152,99 @@ async def list_templates(
     count = await db.execute(select(func.count()).select_from(StudyTemplate).where(filters))
     total = count.scalar_one()
     result = await db.execute(
-        select(StudyTemplate).where(filters).order_by(StudyTemplate.usage_count.desc())
-        .offset(pagination.offset).limit(pagination.page_size)
+        select(StudyTemplate)
+        .where(filters)
+        .order_by(StudyTemplate.usage_count.desc())
+        .offset(pagination.offset)
+        .limit(pagination.page_size)
     )
     templates = result.scalars().all()
     return TemplateListResponse(
-        templates=[TemplateResponse(
-            id=str(t.id), name=t.name, description=t.description, study_type=t.study_type,
-            parameters=t.parameters, system_config=t.system_config, tags=t.tags,
-            is_public=t.is_public, usage_count=t.usage_count, created_by=t.created_by,
-            created_at=t.created_at, updated_at=t.updated_at,
-        ) for t in templates],
-        total=total, page=pagination.page, page_size=pagination.page_size,
+        templates=[
+            TemplateResponse(
+                id=str(t.id),
+                name=t.name,
+                description=t.description,
+                study_type=t.study_type,
+                parameters=t.parameters,
+                system_config=t.system_config,
+                tags=t.tags,
+                is_public=t.is_public,
+                usage_count=t.usage_count,
+                created_by=t.created_by,
+                created_at=t.created_at,
+                updated_at=t.updated_at,
+            )
+            for t in templates
+        ],
+        total=total,
+        page=pagination.page,
+        page_size=pagination.page_size,
     )
 
 
 @router.post("/", response_model=TemplateResponse, status_code=201)
 async def create_template(
-    body: TemplateCreateRequest, db,
+    body: TemplateCreateRequest,
+    db,
     user: CurrentUser = Depends(require_permission("templates", "create")),
 ):
     template = StudyTemplate(
-        id=str(uuid.uuid4()), name=body.name, description=body.description,
-        study_type=body.study_type, parameters=body.parameters,
-        system_config=body.system_config, tags=body.tags, is_public=body.is_public,
+        id=str(uuid.uuid4()),
+        name=body.name,
+        description=body.description,
+        study_type=body.study_type,
+        parameters=body.parameters,
+        system_config=body.system_config,
+        tags=body.tags,
+        is_public=body.is_public,
         created_by=user.user_id,
     )
     db.add(template)
     await db.flush()
     await db.refresh(template)
     return TemplateResponse(
-        id=str(template.id), name=template.name, description=template.description,
-        study_type=template.study_type, parameters=template.parameters,
-        system_config=template.system_config, tags=template.tags,
-        is_public=template.is_public, usage_count=0, created_by=template.created_by,
-        created_at=template.created_at, updated_at=template.updated_at,
+        id=str(template.id),
+        name=template.name,
+        description=template.description,
+        study_type=template.study_type,
+        parameters=template.parameters,
+        system_config=template.system_config,
+        tags=template.tags,
+        is_public=template.is_public,
+        usage_count=0,
+        created_by=template.created_by,
+        created_at=template.created_at,
+        updated_at=template.updated_at,
     )
 
 
 @router.get("/{template_id}", response_model=TemplateResponse)
-async def get_template(template_id: str, db, user: CurrentUser = Depends(get_current_user_from_header)):
+async def get_template(
+    template_id: str, db, user: CurrentUser = Depends(get_current_user_from_header)
+):
     template = await _get_template(template_id, db)
     return TemplateResponse(
-        id=str(template.id), name=template.name, description=template.description,
-        study_type=template.study_type, parameters=template.parameters,
-        system_config=template.system_config, tags=template.tags,
-        is_public=template.is_public, usage_count=template.usage_count,
-        created_by=template.created_by, created_at=template.created_at, updated_at=template.updated_at,
+        id=str(template.id),
+        name=template.name,
+        description=template.description,
+        study_type=template.study_type,
+        parameters=template.parameters,
+        system_config=template.system_config,
+        tags=template.tags,
+        is_public=template.is_public,
+        usage_count=template.usage_count,
+        created_by=template.created_by,
+        created_at=template.created_at,
+        updated_at=template.updated_at,
     )
 
 
 @router.put("/{template_id}", response_model=TemplateResponse)
 async def update_template(
-    template_id: str, body: TemplateUpdateRequest, db,
+    template_id: str,
+    body: TemplateUpdateRequest,
+    db,
     user: CurrentUser = Depends(require_permission("templates", "update")),
 ):
     template = await _get_template(template_id, db)
@@ -223,17 +267,25 @@ async def update_template(
     await db.flush()
     await db.refresh(template)
     return TemplateResponse(
-        id=str(template.id), name=template.name, description=template.description,
-        study_type=template.study_type, parameters=template.parameters,
-        system_config=template.system_config, tags=template.tags,
-        is_public=template.is_public, usage_count=template.usage_count,
-        created_by=template.created_by, created_at=template.created_at, updated_at=template.updated_at,
+        id=str(template.id),
+        name=template.name,
+        description=template.description,
+        study_type=template.study_type,
+        parameters=template.parameters,
+        system_config=template.system_config,
+        tags=template.tags,
+        is_public=template.is_public,
+        usage_count=template.usage_count,
+        created_by=template.created_by,
+        created_at=template.created_at,
+        updated_at=template.updated_at,
     )
 
 
 @router.delete("/{template_id}")
 async def delete_template(
-    template_id: str, db,
+    template_id: str,
+    db,
     user: CurrentUser = Depends(require_permission("templates", "delete")),
 ):
     template = await _get_template(template_id, db)
@@ -244,7 +296,8 @@ async def delete_template(
 
 @router.post("/{template_id}/apply")
 async def apply_template(
-    template_id: str, db,
+    template_id: str,
+    db,
     project_id: Optional[str] = None,
     user: CurrentUser = Depends(require_permission("templates", "update")),
 ):

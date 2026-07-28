@@ -59,7 +59,9 @@ class Server:
         self._logger = logger
         self._log = logging.getLogger("acp.server")
 
-    async def run(self) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def run(
+        self,
+    ) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run the read → parse → dispatch → write loop.
 
         The loop exits when the transport returns ``None`` (EOF) or when
@@ -75,10 +77,12 @@ class Server:
                 # Observability: record message received
                 if self._metrics is not None:
                     self._metrics.get_or_create_counter(
-                        "acp.transport.messages.received", "Messages received",
+                        "acp.transport.messages.received",
+                        "Messages received",
                     ).inc()
                     self._metrics.get_or_create_counter(
-                        "acp.transport.bytes.received", "Bytes received",
+                        "acp.transport.bytes.received",
+                        "Bytes received",
                     ).inc(len(raw.encode("utf-8")))
 
                 try:
@@ -86,7 +90,8 @@ class Server:
                 except json.JSONDecodeError as exc:
                     if self._metrics is not None:
                         self._metrics.get_or_create_counter(
-                            "acp.transport.messages.parse_errors", "Parse errors",
+                            "acp.transport.messages.parse_errors",
+                            "Parse errors",
                         ).inc()
                     await self._send_parse_error(exc)
                     continue
@@ -97,10 +102,12 @@ class Server:
                     await self._transport.write_message(resp_json)
                     if self._metrics is not None:
                         self._metrics.get_or_create_counter(
-                            "acp.transport.messages.sent", "Messages sent",
+                            "acp.transport.messages.sent",
+                            "Messages sent",
                         ).inc()
                         self._metrics.get_or_create_counter(
-                            "acp.transport.bytes.sent", "Bytes sent",
+                            "acp.transport.bytes.sent",
+                            "Bytes sent",
                         ).inc(len(resp_json.encode("utf-8")))
         except Exception as e:
             self._log.exception("server error: %s", e)

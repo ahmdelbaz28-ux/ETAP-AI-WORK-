@@ -29,7 +29,11 @@ class CodeCompressor:
         return len(text) // 4
 
     @classmethod
-    def compress_chunks(cls, chunks: list[dict], query: str, max_tokens: int = 2000) -> list[dict]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def compress_chunks(
+        cls, chunks: list[dict], query: str, max_tokens: int = 2000
+    ) -> list[
+        dict
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Compresses chunks using Jaccard lexical overlap ranking and token budget enforcement.
         Keeps highest-scoring code snippets within the max_tokens limit.
@@ -101,7 +105,8 @@ class CodeRetriever:
             try:
                 self.client = chromadb.PersistentClient(path=str(self.index_dir))
                 self.collection = self.client.get_collection(
-                    name="code_context", embedding_function=embedding_function,
+                    name="code_context",
+                    embedding_function=embedding_function,
                 )
             except Exception as e:
                 logger.exception("Failed to load Chroma collection: %s", e)
@@ -137,7 +142,10 @@ class CodeRetriever:
             return []
 
     def retrieve_and_compress(
-        self, query: str, top_k: int = 5, max_tokens: int = 2000,
+        self,
+        query: str,
+        top_k: int = 5,
+        max_tokens: int = 2000,
     ) -> list[dict]:
         """Fetches raw chunks and compresses them using Jaccard pruning."""
         raw_chunks = self.retrieve(query, top_k=top_k)
