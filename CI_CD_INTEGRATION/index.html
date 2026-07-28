@@ -598,6 +598,57 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#repository-configuration-required-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Repository Configuration (Required Settings)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Repository Configuration (Required Settings)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-dependency-graph-dependency_graph_enabledtrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Dependency Graph (DEPENDENCY_GRAPH_ENABLED=true)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-github-repository-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. GitHub Repository Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-github-repository-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. GitHub Repository Secrets
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-github-environment-protection-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. GitHub Environment Protection Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#artifact-retention" class="md-nav__link">
     <span class="md-ellipsis">
       Artifact retention
@@ -805,6 +856,137 @@
 </table>
 <p><strong>Note</strong>: Never print or log secret values. All secrets must be configured as GitHub Actions masked secrets.</p>
 <hr />
+<h2 id="repository-configuration-required-settings">Repository Configuration (Required Settings)</h2>
+<p>These GitHub repository settings MUST be configured before the CI/CD pipeline runs correctly. They are NOT code-level settings — they are configured in the GitHub repo settings UI or via the GitHub API.</p>
+<h3 id="1-dependency-graph-dependency_graph_enabledtrue">1. Dependency Graph (<code>DEPENDENCY_GRAPH_ENABLED=true</code>)</h3>
+<p><strong>Why</strong>: GitHub's dependency graph enables Dependabot alerts, dependency review in PRs, and the Supply Chain security features. Without it, the <code>dependency-review</code> job in security.yml cannot detect vulnerable dependency changes in PRs.</p>
+<p><strong>How to enable</strong>:
+1. Go to <strong>Repo Settings → Code security and analysis</strong>
+2. Set <strong>Dependency graph</strong> to <strong>Enabled</strong>
+3. Set <strong>Dependabot alerts</strong> to <strong>Enabled</strong>
+4. Set <strong>Dependabot security updates</strong> to <strong>Enabled</strong>
+5. Set <strong>Dependabot version updates</strong> to <strong>Enabled</strong> (optional, but recommended)</p>
+<p><strong>Via GitHub API</strong> (requires <code>gh</code> CLI with admin access):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>gh<span class="w"> </span>api<span class="w"> </span>--method<span class="w"> </span>PATCH<span class="w"> </span>/repos/<span class="o">{</span>owner<span class="o">}</span>/<span class="o">{</span>repo<span class="o">}</span>/code-security-configuration<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--field<span class="w"> </span><span class="nv">dependency_graphs_enabled</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>--field<span class="w"> </span><span class="nv">dependabot_alerts_enabled</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--field<span class="w"> </span><span class="nv">dependabot_security_updates_enabled</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div></p>
+<p><strong>Verification</strong>: Check that the dependency review action works on a PR that changes requirements.txt or package-lock.json.</p>
+<h3 id="2-github-repository-variables">2. GitHub Repository Variables</h3>
+<p>These are set in <strong>Repo Settings → Variables</strong> (NOT secrets — they are non-sensitive configuration IDs):</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AZURE_SUBSCRIPTION_ID</code></td>
+<td>Azure subscription for Terraform</td>
+<td><code>xxxxxxxx-xxxx-xxxx-xxxx</code></td>
+</tr>
+<tr>
+<td><code>AZURE_TENANT_ID</code></td>
+<td>Azure AD tenant for OIDC auth</td>
+<td><code>xxxxxxxx-xxxx-xxxx-xxxx</code></td>
+</tr>
+<tr>
+<td><code>AZURE_CLIENT_ID</code></td>
+<td>Azure AD app client ID for OIDC</td>
+<td><code>xxxxxxxx-xxxx-xxxx-xxxx</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-github-repository-secrets">3. GitHub Repository Secrets</h3>
+<p>Set in <strong>Repo Settings → Secrets and variables → Actions → New secret</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Used by</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SONAR_TOKEN</code></td>
+<td>ci-cd.yml → sonarcloud</td>
+<td>SonarCloud analysis token</td>
+</tr>
+<tr>
+<td><code>GITHUB_TOKEN</code></td>
+<td>All workflows</td>
+<td>Auto-provided by GitHub (no manual setup needed)</td>
+</tr>
+<tr>
+<td><code>VERCEL_TOKEN</code></td>
+<td>ci-cd.yml → deploy-vercel</td>
+<td>Vercel deployment token</td>
+</tr>
+<tr>
+<td><code>VERCEL_ORG_ID</code></td>
+<td>ci-cd.yml → deploy-vercel</td>
+<td>Vercel org ID</td>
+</tr>
+<tr>
+<td><code>VERCEL_PROJECT_ID</code></td>
+<td>ci-cd.yml → deploy-vercel</td>
+<td>Vercel project ID</td>
+</tr>
+<tr>
+<td><code>HF_TOKEN</code></td>
+<td>ci-cd.yml → deploy-hf</td>
+<td>HuggingFace Space deploy token</td>
+</tr>
+<tr>
+<td><code>LANGWATCH_API_KEY</code></td>
+<td>ci-cd.yml → python-tests</td>
+<td>LangWatch LLM observability</td>
+</tr>
+<tr>
+<td><code>SMITHERY_API_KEY</code></td>
+<td>ci-cd.yml → python-tests</td>
+<td>Smithery MCP API key</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-github-environment-protection-rules">4. GitHub Environment Protection Rules</h3>
+<p>Configure in <strong>Repo Settings → Environments</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Required reviewers</th>
+<th>Deployment branch</th>
+<th>Wait timer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dev</code></td>
+<td>None (auto-approve)</td>
+<td><code>main</code></td>
+<td>0 min</td>
+</tr>
+<tr>
+<td><code>staging</code></td>
+<td>1 reviewer (team lead)</td>
+<td><code>main</code></td>
+<td>2 min</td>
+</tr>
+<tr>
+<td><code>production</code></td>
+<td>2 reviewers</td>
+<td><code>main</code></td>
+<td>5 min</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="artifact-retention">Artifact retention</h2>
 <table>
 <thead>
@@ -856,8 +1038,8 @@
 </ul>
 <hr />
 <h2 id="status-badges">Status badges</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[<span class="nt">![Quality Gates</span>](<span class="na">https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml/badge.svg</span>)](https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml)
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>[<span class="nt">![Security</span>](<span class="na">https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml/badge.svg?event=schedule</span>)](https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>[<span class="nt">![Quality Gates</span>](<span class="na">https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml/badge.svg</span>)](https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>[<span class="nt">![Security</span>](<span class="na">https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml/badge.svg?event=schedule</span>)](https://github.com/&lt;owner&gt;/&lt;repo&gt;/actions/workflows/quality-gates.yml)
 </code></pre></div>
 
 

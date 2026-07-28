@@ -2616,7 +2616,7 @@
 </li>
 <li>
 <p>Switch solution method if using Fast Decoupled, try Newton-Raphson:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;NEWTON_RAPHSON&#39;</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;NEWTON_RAPHSON&quot;</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -2669,28 +2669,30 @@
 <li>
 <p>Verify generator data:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">core_model.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">System</span>
-<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a><span class="n">sys</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;system.json&#39;</span><span class="p">)</span>
-<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a><span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">:</span>
-<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Generator </span><span class="si">{</span><span class="n">gen</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> missing subtransient reactance&#39;</span><span class="p">)</span>
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>
+<a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a><span class="n">sys</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;system.json&quot;</span><span class="p">)</span>
+<a id="__codelineno-59-4" name="__codelineno-59-4" href="#__codelineno-59-4"></a><span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">:</span>
+<a id="__codelineno-59-5" name="__codelineno-59-5" href="#__codelineno-59-5"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gen</span><span class="o">.</span><span class="n">xd_subtransient</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-59-6" name="__codelineno-59-6" href="#__codelineno-59-6"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Generator </span><span class="si">{</span><span class="n">gen</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> missing subtransient reactance&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Check transformer grounding configuration:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">transformers</span><span class="p">:</span>
-<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_connection</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_grounded</span><span class="p">:</span>
-<a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> ungrounded wye on primary&#39;</span><span class="p">)</span>
-<a id="__codelineno-60-4" name="__codelineno-60-4" href="#__codelineno-60-4"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_connection</span> <span class="o">==</span> <span class="s1">&#39;Y&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_grounded</span><span class="p">:</span>
-<a id="__codelineno-60-5" name="__codelineno-60-5" href="#__codelineno-60-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1"> ungrounded wye on secondary&#39;</span><span class="p">)</span>
+<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_connection</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding1_grounded</span><span class="p">:</span>
+<a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> ungrounded wye on primary&quot;</span><span class="p">)</span>
+<a id="__codelineno-60-4" name="__codelineno-60-4" href="#__codelineno-60-4"></a>    <span class="k">if</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_connection</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">winding2_grounded</span><span class="p">:</span>
+<a id="__codelineno-60-5" name="__codelineno-60-5" href="#__codelineno-60-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Transformer </span><span class="si">{</span><span class="n">tx</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> ungrounded wye on secondary&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Validate zero-sequence network:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.fault</span><span class="w"> </span><span class="kn">import</span> <span class="n">FaultAnalyzer</span>
-<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">FaultAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
-<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="n">z_network</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">build_zero_sequence_network</span><span class="p">()</span>
-<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a><span class="k">if</span> <span class="n">z_network</span><span class="o">.</span><span class="n">is_singular</span><span class="p">():</span>
-<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zero-sequence network is singular - check grounding&#39;</span><span class="p">)</span>
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">FaultAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a><span class="n">z_network</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">build_zero_sequence_network</span><span class="p">()</span>
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a><span class="k">if</span> <span class="n">z_network</span><span class="o">.</span><span class="n">is_singular</span><span class="p">():</span>
+<a id="__codelineno-61-6" name="__codelineno-61-6" href="#__codelineno-61-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Zero-sequence network is singular - check grounding&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -2705,7 +2707,8 @@
 <li>
 <p>Test with a simple 3-bus system to verify the algorithm:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.test_fault_debug</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_simple_fault</span>
-<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a><span class="n">test_simple_fault</span><span class="p">()</span>
+<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>
+<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a><span class="n">test_simple_fault</span><span class="p">()</span>
 </code></pre></div></p>
 </li>
 </ol>
@@ -2740,12 +2743,13 @@
 <li>
 <p>Verify harmonic source data:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fault_analysis.harmonic_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">HarmonicAnalyzer</span>
-<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">HarmonicAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
-<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a><span class="n">sources</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_harmonic_sources</span><span class="p">()</span>
-<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a><span class="k">for</span> <span class="n">bus</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Bus </span><span class="si">{</span><span class="n">bus</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span><span class="si">}</span><span class="s1"> harmonics&#39;</span><span class="p">)</span>
-<a id="__codelineno-65-6" name="__codelineno-65-6" href="#__codelineno-65-6"></a>    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
-<a id="__codelineno-65-7" name="__codelineno-65-7" href="#__codelineno-65-7"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Warning: Only analyzing up to </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s1">th harmonic&#39;</span><span class="p">)</span>
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>
+<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">HarmonicAnalyzer</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a><span class="n">sources</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_harmonic_sources</span><span class="p">()</span>
+<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a><span class="k">for</span> <span class="n">bus</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-65-6" name="__codelineno-65-6" href="#__codelineno-65-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bus </span><span class="si">{</span><span class="n">bus</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span><span class="si">}</span><span class="s2"> harmonics&quot;</span><span class="p">)</span>
+<a id="__codelineno-65-7" name="__codelineno-65-7" href="#__codelineno-65-7"></a>    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+<a id="__codelineno-65-8" name="__codelineno-65-8" href="#__codelineno-65-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: Only analyzing up to </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">th harmonic&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -2754,7 +2758,7 @@
 <a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a><span class="n">resonances</span> <span class="o">=</span> <span class="n">impedance_scan</span><span class="o">.</span><span class="n">find_resonances</span><span class="p">()</span>
 <a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resonances</span><span class="p">:</span>
 <a id="__codelineno-66-4" name="__codelineno-66-4" href="#__codelineno-66-4"></a>    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span> <span class="o">-</span> <span class="mi">60</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
-<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;CRITICAL: Resonance near fundamental at </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s1"> Hz&#39;</span><span class="p">)</span>
+<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CRITICAL: Resonance near fundamental at </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s2"> Hz&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -2812,28 +2816,28 @@
 <p>Compare total generation capacity vs total load:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a><span class="n">total_load</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">load</span><span class="o">.</span><span class="n">p</span> <span class="k">for</span> <span class="n">bus</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
 <a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a><span class="n">total_gen</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gen</span><span class="o">.</span><span class="n">p_max</span> <span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">)</span>
-<a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Total load: </span><span class="si">{</span><span class="n">total_load</span><span class="si">}</span><span class="s1"> MW, Total gen capacity: </span><span class="si">{</span><span class="n">total_gen</span><span class="si">}</span><span class="s1"> MW&#39;</span><span class="p">)</span>
+<a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total load: </span><span class="si">{</span><span class="n">total_load</span><span class="si">}</span><span class="s2"> MW, Total gen capacity: </span><span class="si">{</span><span class="n">total_gen</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
 <a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a><span class="k">if</span> <span class="n">total_load</span> <span class="o">&gt;</span> <span class="n">total_gen</span><span class="p">:</span>
-<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ERROR: Load exceeds generation capacity&#39;</span><span class="p">)</span>
+<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Load exceeds generation capacity&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Relax constraint limits progressively:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">line_flow_limit_multiplier</span> <span class="o">=</span> <span class="mf">1.2</span>  <span class="c1"># 20% headroom</span>
-<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">voltage_limit_tolerance</span> <span class="o">=</span> <span class="mf">0.02</span>     <span class="c1"># +/- 0.02 pu tolerance</span>
+<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">voltage_limit_tolerance</span> <span class="o">=</span> <span class="mf">0.02</span>  <span class="c1"># +/- 0.02 pu tolerance</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Try AC-OPF with different initial guess:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">initialization</span> <span class="o">=</span> <span class="s1">&#39;flat_start&#39;</span>
-<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;SLSQP&#39;</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">initialization</span> <span class="o">=</span> <span class="s2">&quot;flat_start&quot;</span>
+<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;SLSQP&quot;</span>
 <a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a><span class="n">opf</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">1000</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>For non-convex cost curves, convert to piecewise linear approximation:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a><span class="k">for</span> <span class="n">gen</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">generators</span><span class="p">:</span>
-<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">cost_curve_type</span> <span class="o">==</span> <span class="s1">&#39;quadratic&#39;</span><span class="p">:</span>
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>    <span class="k">if</span> <span class="n">gen</span><span class="o">.</span><span class="n">cost_curve_type</span> <span class="o">==</span> <span class="s2">&quot;quadratic&quot;</span><span class="p">:</span>
 <a id="__codelineno-73-3" name="__codelineno-73-3" href="#__codelineno-73-3"></a>        <span class="n">gen</span><span class="o">.</span><span class="n">linearize_cost_curve</span><span class="p">(</span><span class="n">n_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 </code></pre></div></p>
 </li>
@@ -2978,13 +2982,14 @@
 <ol>
 <li>
 <p>Switch solver method for better performance:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;FAST_DECOUPLED&#39;</span>  <span class="c1"># 2-5x faster for transmission systems</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a><span class="n">engine</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;FAST_DECOUPLED&quot;</span>  <span class="c1"># 2-5x faster for transmission systems</span>
 </code></pre></div></p>
 </li>
 <li>
 <p>Enable sparse matrix solvers:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-85-1" name="__codelineno-85-1" href="#__codelineno-85-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">spsolve</span>
-<a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a><span class="n">engine</span><span class="o">.</span><span class="n">use_sparse</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a>
+<a id="__codelineno-85-3" name="__codelineno-85-3" href="#__codelineno-85-3"></a><span class="n">engine</span><span class="o">.</span><span class="n">use_sparse</span> <span class="o">=</span> <span class="kc">True</span>
 </code></pre></div></p>
 </li>
 <li>

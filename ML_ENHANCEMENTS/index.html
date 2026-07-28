@@ -1013,8 +1013,9 @@
 <h2 id="graceful-degradation">Graceful Degradation</h2>
 <p>All ML features gracefully degrade when optional dependencies are unavailable:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ml.predictive</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ml_capabilities</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">caps</span> <span class="o">=</span> <span class="n">get_ml_capabilities</span><span class="p">()</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Returns which libraries are available and the best available method</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">caps</span> <span class="o">=</span> <span class="n">get_ml_capabilities</span><span class="p">()</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Returns which libraries are available and the best available method</span>
 </code></pre></div>
 <p>This ensures the platform works in minimal environments (HF Spaces, Docker slim)
 while providing enhanced capabilities when all libraries are installed.</p>
