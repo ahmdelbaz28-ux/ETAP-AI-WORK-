@@ -25,10 +25,10 @@ terraform {
   backend "azurerm" {
     # These values are provided via -backend-config at init time
     # Do NOT hardcode them here — each environment has its own backend.hcl
-    resource_group_name  = null  # overridden by backend.hcl
-    storage_account_name = null  # overridden by backend.hcl
-    container_name       = null  # overridden by backend.hcl
-    key                  = null  # overridden by backend.hcl
-    use_azuread_auth     = true  # OIDC auth, no storage key needed
+    resource_group_name  = null # overridden by backend.hcl
+    storage_account_name = null # overridden by backend.hcl
+    container_name       = null # overridden by backend.hcl
+    key                  = null # overridden by backend.hcl
+    use_azuread_auth     = true # OIDC auth, no storage key needed
   }
 }

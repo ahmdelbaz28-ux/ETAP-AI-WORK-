@@ -1,0 +1,7 @@
+# Terraform generated files — should NOT be committed to git
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+crash.log
+crash.json

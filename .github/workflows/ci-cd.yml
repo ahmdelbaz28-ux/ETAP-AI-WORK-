@@ -22,7 +22,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
@@ -82,9 +82,13 @@ jobs:
           }
 
       - name: TypeScript type-check
+        # FIXED: Removed `|| echo "::warning::"` workaround.
+        # Per CI/CD skill Rule 6: "If a test fails, fix the code — don't skip the test."
+        # TypeScript type errors are now BLOCKING. If the UI has type errors,
+        # they must be fixed before merging.
         if: success()
         working-directory: ui
-        run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
+        run: npx tsc --noEmit
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
@@ -112,7 +116,7 @@ jobs:
     needs: [lint, python-tests]
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -139,7 +143,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: coverage-report
           path: .
@@ -214,7 +218,7 @@ jobs:
     needs: lint
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js '24'
         uses: actions/setup-node@v6
@@ -286,7 +290,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
@@ -378,7 +382,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Python '3.12'
         uses: actions/setup-python@v6
@@ -417,7 +421,11 @@ jobs:
 
       - name: Safety dependency check
         # typer==0.9.4 pinned in 'Install security tools' step above
-        run: safety check -r requirements.txt --full-report || { echo "⚠️ Safety check failed (non-blocking)"; exit 0; }
+        # FIXED: Removed `|| { echo "::warning"; exit 0; }` workaround.
+        # Per CI/CD skill Rule 6: "If a test fails, fix the code — don't skip the test."
+        # Safety check is now BLOCKING. Known accepted vulnerabilities are
+        # excluded via .safety-policy.yml or safety.ini — not by swallowing the exit code.
+        run: safety check -r requirements.txt --full-report
 
       - name: Custom security scan
         run: python scripts/security_scan.py
@@ -443,7 +451,7 @@ jobs:
     name: ⎈ Helm Chart Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Install Helm
         uses: azure/setup-helm@v5  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
@@ -482,7 +490,7 @@ jobs:
       NEO4J_PASSWORD: ci-load-test-neo4j-password
       ENVIRONMENT: testing
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Install k6
         run: |
@@ -498,6 +506,9 @@ jobs:
           }
 
       - name: Wait for service health
+        # Per CI/CD skill: "No gate can be skipped." If the service cannot
+        # reach healthy state within 120s, the pipeline MUST fail — we should
+        # NOT proceed to load testing an unhealthy service.
         run: |
           for i in $(seq 1 60); do
             if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
@@ -506,14 +517,19 @@ jobs:
             fi
             sleep 2
           done
-          # Final check — fail if not healthy
+          # Final check — MUST be healthy to proceed
           curl -sf http://localhost:8000/health || {
-            echo "::warning::Service not healthy — running k6 against whatever is available"
-            docker compose logs engineering-service --tail 30 2>&1 || true
+            echo "::error::Service not healthy after 120s — cannot proceed to load test"
+            docker compose logs engineering-service --tail 50 2>&1 || true
+            exit 1
           }
 
       - name: Run k6 smoke test
-        # Reduced VUs/duration for CI — full load tests run locally before Helm deploy
+        # Per CI/CD skill: "No gate can be skipped." k6 smoke test is now a
+        # BLOCKING check. If the service cannot handle basic load (10 VUs, 30s),
+        # it must NOT be deployed to production. Full load tests (Locust + k6
+        # with higher VUs/duration) are run locally via scripts/run-load-tests.sh
+        # before Helm deployment to Kubernetes.
         run: |
           k6 run k6-load-test.js \
             --env BASE_URL=http://localhost:8000 \
@@ -521,12 +537,7 @@ jobs:
             --env K6_DURATION=30s \
             --env API_KEY=ci-load-test-api-key \
             --out json=load-test-results/k6/ci-smoke.json \
-            --summary-output=load-test-results/k6/ci-summary.json \
-            2>&1 || {
-              echo "::warning::k6 smoke test had failures — check thresholds in ci-summary.json"
-              # Don't fail the pipeline on smoke test — full load tests are run locally
-              exit 0
-            }
+            --summary-output=load-test-results/k6/ci-summary.json
 
       - name: Upload k6 results
         uses: actions/upload-artifact@v4
@@ -547,7 +558,7 @@ jobs:
     needs: [python-tests, security-scan]
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js '24'
         uses: actions/setup-node@v6
@@ -586,14 +597,14 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Download UI build artifact
         # The Dockerfile copies ui-dist/ into the image (line 87:
         # `COPY ui-dist/ /app/ui-dist/`). The build-ui job produces this as
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -668,7 +679,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Sanitize Docker image name (must match docker-build job)
         id: sanitize
@@ -736,7 +747,7 @@ jobs:
       url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js '24'
         uses: actions/setup-node@v6
@@ -787,7 +798,7 @@ jobs:
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
@@ -913,7 +924,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
