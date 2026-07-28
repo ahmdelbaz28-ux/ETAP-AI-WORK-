@@ -15,6 +15,6 @@ if not hasattr(datetime, "UTC"):
 
 if not hasattr(typing, "Annotated"):
     from typing_extensions import Annotated
-    typing.Annotated = Annotated
-    sys.modules['typing'].Annotated = Annotated
 
+    typing.Annotated = Annotated
+    sys.modules["typing"].Annotated = Annotated

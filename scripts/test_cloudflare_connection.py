@@ -32,16 +32,18 @@ END = "\033[0m"
 
 
 def print_header(title):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"{BOLD}{title}{END}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 def _test_token_verification(headers) -> bool:
     """Test 1: Verify Cloudflare API token. Returns False on hard failure."""
     print("\n  --- Test 1: Token Verification ---")
     try:
-        r = httpx.get("https://api.cloudflare.com/client/v4/user/tokens/verify", headers=headers, timeout=10)
+        r = httpx.get(
+            "https://api.cloudflare.com/client/v4/user/tokens/verify", headers=headers, timeout=10
+        )
         if r.status_code != 200:
             print(f"  {FAIL}[FAIL]{END}  Token verify: HTTP {r.status_code} — {r.text[:200]}")
             return False
@@ -70,7 +72,8 @@ def _test_account_access(headers, cf_account_id) -> None:
     try:
         r = httpx.get(
             f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}",
-            headers=headers, timeout=10,
+            headers=headers,
+            timeout=10,
         )
         if r.status_code != 200:
             print(f"  {FAIL}[FAIL]{END}  Account: HTTP {r.status_code}")
@@ -96,7 +99,8 @@ def _test_workers_list(headers, cf_account_id) -> None:
     try:
         r = httpx.get(
             f"https://api.cloudflare.com/client/v4/accounts/{cf_account_id}/workers/scripts",
-            headers=headers, timeout=10,
+            headers=headers,
+            timeout=10,
         )
         if r.status_code != 200:
             print(f"  {FAIL}[FAIL]{END}  Workers: HTTP {r.status_code}")
@@ -122,7 +126,8 @@ def _test_r2_buckets(headers, r2_account) -> None:
     try:
         r = httpx.get(
             f"https://api.cloudflare.com/client/v4/accounts/{r2_account}/r2/buckets",
-            headers=headers, timeout=10,
+            headers=headers,
+            timeout=10,
         )
         if r.status_code != 200:
             print(f"  {FAIL}[FAIL]{END}  R2: HTTP {r.status_code}")
@@ -150,11 +155,17 @@ def test_cloudflare_api():
     cf_api_key = os.environ.get("CLOUDFLARE_API_KEY", "")
     cf_account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 
-    print(f"  API Key:     {cf_api_key[:16]}...{cf_api_key[-4:]}" if len(cf_api_key) > 20 else f"  API Key:     {cf_api_key or '(not set)'}")
+    print(
+        f"  API Key:     {cf_api_key[:16]}...{cf_api_key[-4:]}"
+        if len(cf_api_key) > 20
+        else f"  API Key:     {cf_api_key or '(not set)'}"
+    )
     print(f"  Account ID:  {cf_account_id or '(not set)'}")
 
     if not cf_api_key:
-        print(f"\n  {WARN}[WARN]{END}  CLOUDFLARE_API_KEY not set (optional — needed for Workers AI)")
+        print(
+            f"\n  {WARN}[WARN]{END}  CLOUDFLARE_API_KEY not set (optional — needed for Workers AI)"
+        )
         return None
 
     headers = {"Authorization": f"Bearer {cf_api_key}", "Content-Type": "application/json"}
@@ -227,12 +238,15 @@ def test_cloudflare_origin_secret():
     # Test the integration module
     try:
         from api.cloudflare_protection import is_cloudflare_enabled
+
         enabled = is_cloudflare_enabled()
         print("\n  Integration module:")
         print(f"    is_cloudflare_enabled(): {enabled}")
         print(f"  {OK}[OK]{END}   Module imported successfully")
     except ImportError:
-        print(f"\n  {WARN}[WARN]{END}  api.cloudflare_protection not importable (FastAPI may not be installed)")
+        print(
+            f"\n  {WARN}[WARN]{END}  api.cloudflare_protection not importable (FastAPI may not be installed)"
+        )
     except Exception as e:
         print(f"\n  {FAIL}[FAIL]{END}  Module error: {e}")
 
@@ -247,9 +261,21 @@ def test_r2_storage():
     r2_bucket = os.environ.get("R2_BUCKET_NAME", "ahmedetap-storage")
     r2_public_url = os.environ.get("R2_PUBLIC_URL_PREFIX", "")
 
-    print(f"  Account ID:   {r2_account_id[:16]}...{r2_account_id[-4:]}" if len(r2_account_id) > 20 else f"  Account ID:   {r2_account_id or '(not set)'}")
-    print(f"  Access Key:   {r2_access_key[:16]}..." if len(r2_access_key) > 20 else f"  Access Key:   {r2_access_key or '(not set)'}")
-    print(f"  Secret Key:   {'***'+r2_secret[-4:]}" if len(r2_secret) > 4 else f"  Secret Key:   {r2_secret or '(not set)'}")
+    print(
+        f"  Account ID:   {r2_account_id[:16]}...{r2_account_id[-4:]}"
+        if len(r2_account_id) > 20
+        else f"  Account ID:   {r2_account_id or '(not set)'}"
+    )
+    print(
+        f"  Access Key:   {r2_access_key[:16]}..."
+        if len(r2_access_key) > 20
+        else f"  Access Key:   {r2_access_key or '(not set)'}"
+    )
+    print(
+        f"  Secret Key:   {'***' + r2_secret[-4:]}"
+        if len(r2_secret) > 4
+        else f"  Secret Key:   {r2_secret or '(not set)'}"
+    )
     print(f"  Bucket Name:  {r2_bucket}")
     print(f"  Public URL:   {r2_public_url or '(not set)'}")
 
@@ -264,6 +290,7 @@ def test_r2_storage():
     # Test the integration module
     try:
         from api.r2_storage import R2_ENDPOINT_URL, is_r2_enabled
+
         enabled = is_r2_enabled()
         print("\n  Integration module:")
         print(f"    is_r2_enabled(): {enabled}")

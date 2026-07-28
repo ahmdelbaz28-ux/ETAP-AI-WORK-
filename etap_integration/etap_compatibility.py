@@ -5,6 +5,7 @@ Verifies that the runtime environment meets ETAP software requirements,
 including ETAP version, Windows version, .NET Framework, and availability
 of required COM modules and Python dependencies.
 """
+
 from __future__ import annotations
 
 import logging
@@ -192,7 +193,8 @@ class ETAPCompatibilityChecker:
         """Check .NET Framework 4.8+ via registry."""
         try:
             key = winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full",
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full",
             )
             release = winreg.QueryValueEx(key, "Release")[0]
             winreg.CloseKey(key)
@@ -206,7 +208,11 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-    def run_compatibility_tests(self) -> list[CheckResult]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def run_compatibility_tests(
+        self,
+    ) -> list[
+        CheckResult
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run all compatibility checks and return results."""
         checks: list[CheckResult] = []
 
@@ -239,7 +245,9 @@ class ETAPCompatibilityChecker:
 
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
-            sev = "error" if (required and not avail) else "warning" if not avail else "info"  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            sev = (
+                "error" if (required and not avail) else "warning" if not avail else "info"
+            )  # NOSONAR: nested conditional; extract to named variable (tech debt)
             checks.append(
                 CheckResult(
                     f"Package: {pkg}",

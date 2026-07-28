@@ -148,7 +148,9 @@ def upgrade() -> None:
         sa.Column(
             "created_by",
             sa.String(36),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),  # NOSONAR: intentional repetition (audit constant)
+            sa.ForeignKey(
+                "users.id", ondelete="CASCADE"
+            ),  # NOSONAR: intentional repetition (audit constant)
             nullable=False,
         ),
         sa.Column(

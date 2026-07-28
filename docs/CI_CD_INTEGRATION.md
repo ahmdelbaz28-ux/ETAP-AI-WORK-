@@ -132,6 +132,68 @@ This document explains the four quality gates enforced in the AhmedETAP pipeline
 
 ---
 
+## Repository Configuration (Required Settings)
+
+These GitHub repository settings MUST be configured before the CI/CD pipeline runs correctly. They are NOT code-level settings — they are configured in the GitHub repo settings UI or via the GitHub API.
+
+### 1. Dependency Graph (`DEPENDENCY_GRAPH_ENABLED=true`)
+
+**Why**: GitHub's dependency graph enables Dependabot alerts, dependency review in PRs, and the Supply Chain security features. Without it, the `dependency-review` job in security.yml cannot detect vulnerable dependency changes in PRs.
+
+**How to enable**:
+1. Go to **Repo Settings → Code security and analysis**
+2. Set **Dependency graph** to **Enabled**
+3. Set **Dependabot alerts** to **Enabled**
+4. Set **Dependabot security updates** to **Enabled**
+5. Set **Dependabot version updates** to **Enabled** (optional, but recommended)
+
+**Via GitHub API** (requires `gh` CLI with admin access):
+```bash
+gh api --method PATCH /repos/{owner}/{repo}/code-security-configuration \
+  --field dependency_graphs_enabled=true \
+  --field dependabot_alerts_enabled=true \
+  --field dependabot_security_updates_enabled=true
+```
+
+**Verification**: Check that the dependency review action works on a PR that changes requirements.txt or package-lock.json.
+
+### 2. GitHub Repository Variables
+
+These are set in **Repo Settings → Variables** (NOT secrets — they are non-sensitive configuration IDs):
+
+| Variable | Description | Example |
+|---|---|---|
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription for Terraform | `xxxxxxxx-xxxx-xxxx-xxxx` |
+| `AZURE_TENANT_ID` | Azure AD tenant for OIDC auth | `xxxxxxxx-xxxx-xxxx-xxxx` |
+| `AZURE_CLIENT_ID` | Azure AD app client ID for OIDC | `xxxxxxxx-xxxx-xxxx-xxxx` |
+
+### 3. GitHub Repository Secrets
+
+Set in **Repo Settings → Secrets and variables → Actions → New secret**:
+
+| Secret | Used by | Description |
+|---|---|---|
+| `SONAR_TOKEN` | ci-cd.yml → sonarcloud | SonarCloud analysis token |
+| `GITHUB_TOKEN` | All workflows | Auto-provided by GitHub (no manual setup needed) |
+| `VERCEL_TOKEN` | ci-cd.yml → deploy-vercel | Vercel deployment token |
+| `VERCEL_ORG_ID` | ci-cd.yml → deploy-vercel | Vercel org ID |
+| `VERCEL_PROJECT_ID` | ci-cd.yml → deploy-vercel | Vercel project ID |
+| `HF_TOKEN` | ci-cd.yml → deploy-hf | HuggingFace Space deploy token |
+| `LANGWATCH_API_KEY` | ci-cd.yml → python-tests | LangWatch LLM observability |
+| `SMITHERY_API_KEY` | ci-cd.yml → python-tests | Smithery MCP API key |
+
+### 4. GitHub Environment Protection Rules
+
+Configure in **Repo Settings → Environments**:
+
+| Environment | Required reviewers | Deployment branch | Wait timer |
+|---|---|---|---|
+| `dev` | None (auto-approve) | `main` | 0 min |
+| `staging` | 1 reviewer (team lead) | `main` | 2 min |
+| `production` | 2 reviewers | `main` | 5 min |
+
+---
+
 ## Artifact retention
 
 | Artifact | Retention | Uploaded by |

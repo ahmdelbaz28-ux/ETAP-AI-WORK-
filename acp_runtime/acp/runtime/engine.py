@@ -230,7 +230,8 @@ class AcpRuntime:
         if self._metrics is None:
             return
         self._metrics.get_or_create_counter(
-            "acp.runtime.calls.total", "Total capability calls",
+            "acp.runtime.calls.total",
+            "Total capability calls",
         ).inc()
         self._metrics.get_or_create_histogram(
             "acp.runtime.calls.duration_ms",
@@ -238,7 +239,8 @@ class AcpRuntime:
         ).observe(duration_ms)
         if not success:
             self._metrics.get_or_create_counter(
-                "acp.runtime.calls.errors", "Total capability errors",
+                "acp.runtime.calls.errors",
+                "Total capability errors",
             ).inc()
         self._metrics.get_or_create_counter(
             f"acp.runtime.calls.per_capability.{capability}",

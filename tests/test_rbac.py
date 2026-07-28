@@ -40,6 +40,7 @@ if os.path.exists("./data/test_rbac.db"):
 def event_loop():
     """Create a single event loop for the test session."""
     import asyncio
+
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
@@ -460,6 +461,7 @@ async def test_list_roles_api(test_engine, test_session_factory, admin_token):
             yield session
 
     from api.database import get_db
+
     app.dependency_overrides[get_db] = override_get_db
 
     transport = ASGITransport(app=app)
@@ -546,10 +548,24 @@ async def test_seed_rbac_creates_permissions(db_session: AsyncSession):
     """Test that seeding creates permissions for all resources."""
     from api.rbac import Permission
 
-    resources = ["studies", "projects", "users", "roles", "permissions",
-                 "equipment", "reports", "settings", "notifications",
-                 "dashboard", "templates", "batch", "export", "import",
-                 "logs", "audit"]
+    resources = [
+        "studies",
+        "projects",
+        "users",
+        "roles",
+        "permissions",
+        "equipment",
+        "reports",
+        "settings",
+        "notifications",
+        "dashboard",
+        "templates",
+        "batch",
+        "export",
+        "import",
+        "logs",
+        "audit",
+    ]
     actions = ["list", "read", "create", "update", "delete", "manage"]
 
     for resource in resources:
@@ -627,7 +643,5 @@ async def test_cascade_delete_role(db_session: AsyncSession, test_user: dict[str
     await db_session.flush()
 
     # User-role assignment should be gone
-    result = await db_session.execute(
-        select(UserRole).where(UserRole.role_id == role.id)
-    )
+    result = await db_session.execute(select(UserRole).where(UserRole.role_id == role.id))
     assert result.scalar_one_or_none() is None

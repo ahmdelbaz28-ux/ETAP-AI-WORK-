@@ -15,6 +15,7 @@ Standards:
 - IEEE 1584-2018: Guide for Performing Arc-Flash Hazard Calculations
 - NFPA 70E-2021: Standard for Electrical Safety in the Workplace
 """
+
 from __future__ import annotations
 
 import logging
@@ -172,7 +173,9 @@ class ArcFlashAgent(BaseAgent):
             # Low voltage model
             k1 = 0.0
             k2 = -0.041 if electrode_config == "VCB" else -0.033  # HCB
-            log_Iarc = k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            log_Iarc = (
+                k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
@@ -182,10 +185,14 @@ class ArcFlashAgent(BaseAgent):
             # High voltage (> 2.7 kV up to 15 kV)
             log_Iarc = np.log10(Ibf) * 0.978 + 0.001 * G
 
-        Iarc = float(10.0**log_Iarc)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = float(
+            10.0**log_Iarc
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
-        Iarc_reduced = 0.85 * Iarc  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc_reduced = (
+            0.85 * Iarc
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return {
             "arc_current_ka": round(Iarc, 4),
@@ -256,14 +263,18 @@ class ArcFlashAgent(BaseAgent):
         else:
             # Lee method for > 15 kV
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
-            E_lee = 2.142e6 * voltage_kv * Iarc * t / (D**2)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            E_lee = (
+                2.142e6 * voltage_kv * Iarc * t / (D**2)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
 
         # IEEE 1584-2018 empirical model
         log_E = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
         )
-        E_normalization = 10.0**log_E  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_normalization = (
+            10.0**log_E
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = E_normalization * (t / 0.2) ** x
@@ -451,7 +462,9 @@ class ArcFlashAgent(BaseAgent):
 
         arc_data = result.data.get("arc_current")
         if arc_data is not None:
-            Iarc = arc_data.get("arc_current_ka", 0.0)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Iarc = arc_data.get(
+                "arc_current_ka", 0.0
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if Iarc <= 0:
                 errors.append(f"Arc current is non-positive: {Iarc:.4f} kA")
 

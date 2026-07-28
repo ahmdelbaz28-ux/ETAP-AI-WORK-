@@ -7,7 +7,7 @@
 **Root Cause:**
 In `engineering_service.py` (line 76):
 ```python
-reload=os.environ.get("ENVIRONMENT", "development").lower() == "development",
+reload = (os.environ.get("ENVIRONMENT", "development").lower() == "development",)
 ```
 When `ENVIRONMENT=development`, uvicorn runs with auto-reload enabled. If someone accidentally sets `ENVIRONMENT=development` in production:
 - File watchers consume additional CPU/memory
@@ -23,7 +23,7 @@ When `ENVIRONMENT=development`, uvicorn runs with auto-reload enabled. If someon
 
 In `hf-space/app.py` (line 191):
 ```python
-headers={"X-Error-Type": type(exc).__name__},
+headers = ({"X-Error-Type": type(exc).__name__},)
 ```
 The global exception handler returns the exception class name in a response header. While the body message is sanitized, the header leaks information about the internal error type (e.g., `IntegrityError`, `OperationalError`, `ValueError`).
 
@@ -69,6 +69,7 @@ In `hf-space/app.py` (lines 102-105):
 ```python
 try:
     from api.database import init_db
+
     await init_db()
 except Exception:
     logger.exception("Database init failed: %s")
@@ -123,7 +124,7 @@ if isinstance(exp, (int, float)):
 
 In `api/database.py` (line 131):
 ```python
-connect_args={"check_same_thread": False},
+connect_args = ({"check_same_thread": False},)
 ```
 SQLite is configured with `check_same_thread=False`, allowing multiple threads to use the same connection. SQLite is NOT thread-safe for writes — concurrent writes can cause `database is locked` errors or data corruption.
 

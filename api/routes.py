@@ -140,7 +140,9 @@ def _require_api_key(request: Request) -> None:
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(
+            status_code=401, detail="Invalid or missing API key"
+        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
 
 # ---------------------------------------------------------------------------
@@ -246,7 +248,9 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 
 
 @app.middleware("http")
-async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def trace_middleware(
+    request: Request, call_next: Any
+) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
     trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
@@ -282,7 +286,9 @@ async def trace_middleware(request: Request, call_next: Any) -> Any:  # NOSONAR:
                 client_id = (
                     xff
                     if proxy_ip in _trusted_list and xff
-                    else (request.client.host if request.client else "unknown")  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                    else (
+                        request.client.host if request.client else "unknown"
+                    )  # NOSONAR: nested conditional; extract to named variable (tech debt)
                 )
             else:
                 client_id = request.client.host if request.client else "unknown"
@@ -356,10 +362,14 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
 
-    _, execute_engineering_study_task, _ = get_celery_components()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    _, execute_engineering_study_task, _ = (
+        get_celery_components()
+    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not execute_engineering_study_task:
-        raise HTTPException(status_code=500, detail="Celery is not available for async processing")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(
+            status_code=500, detail="Celery is not available for async processing"
+        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
@@ -382,18 +392,26 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         }
     except Exception as e:
         logger.exception("Error submitting async study: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=MSG_INTERNAL_ERROR) from e  # SECURITY AUDIT S-23
+        raise HTTPException(
+            status_code=500, detail=MSG_INTERNAL_ERROR
+        ) from e  # SECURITY AUDIT S-23
 
 
-@app.get("/api/v1/studies/task_status/{task_id}", responses={500: {"description": MSG_INTERNAL_ERROR}})
+@app.get(
+    "/api/v1/studies/task_status/{task_id}", responses={500: {"description": MSG_INTERNAL_ERROR}}
+)
 async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, _, celery_app = get_celery_components()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    CeleryAsyncResult, _, celery_app = (
+        get_celery_components()
+    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not CeleryAsyncResult or not celery_app:
-        raise HTTPException(status_code=500, detail="Celery is not available")  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(
+            status_code=500, detail="Celery is not available"
+        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Using the retrieved AsyncResult class to create an instance
@@ -414,7 +432,9 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
         return response
     except Exception as e:
         logger.exception("Error getting task status: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=MSG_INTERNAL_ERROR) from e  # SECURITY AUDIT S-23
+        raise HTTPException(
+            status_code=500, detail=MSG_INTERNAL_ERROR
+        ) from e  # SECURITY AUDIT S-23
 
 
 @app.websocket("/ws/scada/live")
@@ -476,7 +496,8 @@ if not _PRIVACY_MODE:
             logger.warning("langwatch_not_installed", extra={"trace_id": "startup"})
         except Exception as lw_exc:
             logger.warning(
-                "langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)},
+                "langwatch_init_failed",
+                extra={"trace_id": "startup", "error": str(lw_exc)},
             )
 else:
     logger.info("Privacy mode enabled - external telemetry disabled", extra={"trace_id": "startup"})
@@ -520,7 +541,17 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         allow_origins=_cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model", "x-csrf-token"],
+        allow_headers=[
+            "x-api-key",
+            "x-trace-id",
+            "content-type",
+            "authorization",
+            "x-active-provider",
+            "x-active-key",
+            "x-active-url",
+            "x-active-model",
+            "x-csrf-token",
+        ],
         expose_headers=["x-trace-id"],
     )
 else:
@@ -530,7 +561,17 @@ else:
         allow_origins=_cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization", "x-active-provider", "x-active-key", "x-active-url", "x-active-model", "x-csrf-token"],
+        allow_headers=[
+            "x-api-key",
+            "x-trace-id",
+            "content-type",
+            "authorization",
+            "x-active-provider",
+            "x-active-key",
+            "x-active-url",
+            "x-active-model",
+            "x-csrf-token",
+        ],
         expose_headers=["x-trace-id"],
     )
 
@@ -553,9 +594,7 @@ async def _security_headers_middleware(request: Request, call_next):
     # HSTS — only set when explicitly configured (avoid breakage in development)
     _hsts_env = os.environ.get("HSTS_MAX_AGE", "")
     if _hsts_env:
-        response.headers["Strict-Transport-Security"] = (
-            f"max-age={_hsts_env}; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
     return response
 
 
@@ -611,11 +650,12 @@ app.include_router(templates_router)
 app.include_router(export_router)
 app.include_router(settings_router)
 # ─── Resend email integration routers ─────────────────────────────────────
-app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
-app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
-app.include_router(email_digest_router)     # /api/v1/email-digest/*
-app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)  # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)  # /api/v1/email/webhooks/*
 app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
+
 
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/notifications")
@@ -647,6 +687,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
         if jti:
             try:
                 from api.auth import _is_token_blacklisted
+
                 if await _is_token_blacklisted(jti):
                     await websocket.close(code=1008, reason="Token has been revoked")
                     return
@@ -669,6 +710,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
             return
 
         from api.dependencies import CurrentUser
+
         current_user = CurrentUser(
             user_id=str(user.id),
             username=user.username,
@@ -692,6 +734,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 # the synthetic data with real calls to scada_etap_consumer / digital_twin /
 # benchmark modules.
 # ============================================================================
+
 
 @app.get("/api/v1/scada/live", tags=["SCADA"])
 async def scada_live(request: Request):
@@ -834,6 +877,7 @@ async def cua_kill_switch_status(request: Request):
     if active:
         try:
             import json
+
             data = json.loads(KILL_SWITCH_PATH.read_text())
             activated_at = data.get("activated_at")
             reason = data.get("reason")
@@ -889,6 +933,7 @@ async def cua_kill_switch_deactivate(request: Request):
 
 class CUARollbackRequest(BaseModel):
     """Request body for POST /admin/cua/rollback."""
+
     snapshot_id: str
     reason: str = "manual_rollback"
 

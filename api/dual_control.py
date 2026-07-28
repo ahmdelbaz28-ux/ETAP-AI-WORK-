@@ -3,6 +3,7 @@ Dual-control approval system for critical protection operations.
 Provides WebSocket-based real-time approval from a second engineer,
 QR code fallback for mobile, and auto-reject after 5-minute timeout.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,7 +26,9 @@ def _sanitize_for_log(value: str) -> str:
     # Replace newlines, carriage returns, and other control chars with safe placeholders.
     # Keep printable ASCII + common Unicode; collapse whitespace to single spaces.
     import re
+
     return re.sub(r"[\r\n\t\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "_", value)
+
 
 # In-memory store for pending approvals
 # In production this should use Redis, but for HF Space we use memory
@@ -33,6 +36,7 @@ _pending_approvals: dict[str, dict[str, Any]] = {}
 _websocket_clients: dict[str, list] = {}  # session_id -> [websocket connections]
 
 AUTO_REJECT_SECONDS = 300  # 5 minutes
+
 
 def create_approval_request(
     action: dict[str, Any],
@@ -60,12 +64,18 @@ def create_approval_request(
     _pending_approvals[request_id] = request
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
-        request_id, action.get("type", "unknown"), _sanitize_for_log(operator_id), AUTO_REJECT_SECONDS,
+        request_id,
+        action.get("type", "unknown"),
+        _sanitize_for_log(operator_id),
+        AUTO_REJECT_SECONDS,
     )
 
     return request
 
-def approve_request(request_id: str, approver_id: str, secret: Optional[str] = None) -> dict[str, Any]:
+
+def approve_request(
+    request_id: str, approver_id: str, secret: Optional[str] = None
+) -> dict[str, Any]:
     """Approve a dual-control request."""
     request = _pending_approvals.get(request_id)
     if not request:
@@ -88,13 +98,15 @@ def approve_request(request_id: str, approver_id: str, secret: Optional[str] = N
 
     logger.info(
         "Dual-control request %s APPROVED by %s",  # NOSONAR: approver_id sanitized via _sanitize_for_log() above; request_id is server-generated (apr_ prefix + token_hex)
-        request_id, _sanitize_for_log(approver_id),
+        request_id,
+        _sanitize_for_log(approver_id),
     )
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
 
     return {"success": True, "request": request}
+
 
 def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, Any]:
     """Reject a dual-control request."""
@@ -111,12 +123,15 @@ def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, 
 
     logger.info(
         "Dual-control request %s REJECTED by %s: %s",  # NOSONAR: rejector_id and reason sanitized via _sanitize_for_log(); request_id is server-generated
-        request_id, _sanitize_for_log(rejector_id), _sanitize_for_log(reason),
+        request_id,
+        _sanitize_for_log(rejector_id),
+        _sanitize_for_log(reason),
     )
 
     _notify_clients(request_id, request)
 
     return {"success": True, "request": request}
+
 
 def get_pending_approvals() -> list[dict[str, Any]]:
     """Get all pending approvals (non-expired)."""
@@ -133,11 +148,13 @@ def get_pending_approvals() -> list[dict[str, Any]]:
 
     return results
 
+
 def register_websocket(session_id: str, websocket) -> None:
     """Register a WebSocket client for real-time approval updates."""
     if session_id not in _websocket_clients:
         _websocket_clients[session_id] = []
     _websocket_clients[session_id].append(websocket)
+
 
 def _notify_clients(request_id: str, request: dict) -> None:
     """Notify all WebSocket clients about an approval update."""

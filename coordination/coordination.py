@@ -86,7 +86,11 @@ class CoordinationEngine:
         return results
 
     def suggest_tms_adjustment(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2,
+        self,
+        upstream_relay,
+        downstream_relay,
+        fault_currents,
+        target_margin=0.2,
     ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
@@ -104,9 +108,13 @@ class CoordinationEngine:
         # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
-        def _trip_time_for_tms(tms, relay, I):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        def _trip_time_for_tms(
+            tms, relay, I
+        ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Use the relay's curve type and Ip, but override TMS locally
-            I_mag = abs(I)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_mag = abs(
+                I
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if I_mag < relay.Ip:
                 return float("inf")
             if relay.curve_type == "standard_inverse":
@@ -128,7 +136,9 @@ class CoordinationEngine:
         UNCOORDINATED_PENALTY = 100.0
 
         for TMS_candidate in np.linspace(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            self.tms_search_min, self.tms_search_max, self.tms_search_steps,
+            self.tms_search_min,
+            self.tms_search_max,
+            self.tms_search_steps,
         ):
             violations = []
             for If in fault_currents:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

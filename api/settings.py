@@ -63,7 +63,6 @@ router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
 ApiKeyDep = Annotated[str, Depends(get_api_key)]
 
 
-
 # ─── Request models ────────────────────────────────────────────────────────
 
 
@@ -97,10 +96,16 @@ class ActivateKeyRequest(BaseModel):
 
     is_active: bool = Field(..., description="True to enable, False to disable")
 
+
 # ─── Endpoints ─────────────────────────────────────────────────────────────
 
+
 @router.get("/keys")
-async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def list_keys(
+    _: ApiKeyDep,
+) -> (
+    JSONResponse
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """List all stored API keys (masked — never returns plaintext)."""
     try:
         keys = api_key_store.get_all_keys()
@@ -115,11 +120,20 @@ async def list_keys(_: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depe
         logger.exception("Failed to list API keys")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": "list_failed", "message": "Failed to list API keys"},
+            content={
+                "success": False,
+                "error": "list_failed",
+                "message": "Failed to list API keys",
+            },
         )
 
+
 @router.get("/keys/{provider}")
-async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def get_key(
+    provider: str, _: ApiKeyDep
+) -> (
+    JSONResponse
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get a single API key (masked — never returns plaintext)."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
@@ -139,6 +153,7 @@ async def get_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR: Anno
         )
 
     return JSONResponse(content={"success": True, "data": config.to_masked_dict()})
+
 
 @router.post("/keys/{provider}", responses={400: {"description": "Invalid API key configuration"}})
 async def save_key(
@@ -182,8 +197,13 @@ async def save_key(
             content={"success": False, "error": "save_failed", "message": "Failed to save API key"},
         )
 
+
 @router.delete("/keys/{provider}")
-async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def delete_key(
+    provider: str, _: ApiKeyDep
+) -> (
+    JSONResponse
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Delete an API key permanently."""
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
@@ -201,6 +221,7 @@ async def delete_key(provider: str, _: ApiKeyDep) -> JSONResponse:  # NOSONAR: A
             else f"No key found for provider '{provider}'",
         },
     )
+
 
 @router.post("/keys/{provider}/activate")
 async def activate_key(
@@ -224,8 +245,13 @@ async def activate_key(
         },
     )
 
+
 @router.post("/keys/{provider}/test")
-async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def test_key(
+    provider: str, request: fastapi.Request, _: ApiKeyDep
+) -> (
+    JSONResponse
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Test an API key by making a minimal API call.
 
     For OpenAI: lists models
@@ -244,6 +270,7 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
         body = await request.json()
         if isinstance(body, dict):
             from services.api_key_store import APIKeyConfig
+
             inline_api_key = body.get("api_key")
             if isinstance(inline_api_key, str) and inline_api_key.strip():
                 inline_config = APIKeyConfig(
@@ -270,7 +297,6 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
                 },
             )
 
-
     # Test the key by making a minimal API call
     try:
         if provider == "openai":
@@ -290,12 +316,19 @@ async def test_key(provider: str, request: fastapi.Request, _: ApiKeyDep) -> JSO
             content={"success": False, "error": "test_failed", "message": "Failed to test API key"},
         )
 
+
 @router.get("/health")
-async def settings_health(_: ApiKeyDep) -> JSONResponse:  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+async def settings_health(
+    _: ApiKeyDep,
+) -> (
+    JSONResponse
+):  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     """Get the API key storage health status."""
     return JSONResponse(content={"success": True, "data": api_key_store.health_check()})
 
+
 # ─── Internal: key testing functions ───────────────────────────────────────
+
 
 def _test_openai_key(config) -> dict[str, Any]:
     """Test an OpenAI-compatible API key by listing models."""
@@ -325,6 +358,7 @@ def _test_openai_key(config) -> dict[str, Any]:
             "base_url": base_url,
         }
 
+
 def _test_gemini_key(config) -> dict[str, Any]:
     """Test a Gemini API key by listing models."""
     import httpx
@@ -349,6 +383,7 @@ def _test_gemini_key(config) -> dict[str, Any]:
             "success": False,
             "message": f"Gemini API returned HTTP {resp.status_code}: {resp.text[:200]}",
         }
+
 
 def _test_anthropic_key(config) -> dict[str, Any]:
     """Test an Anthropic API key by making a minimal messages call."""
@@ -380,5 +415,6 @@ def _test_anthropic_key(config) -> dict[str, Any]:
             "success": False,
             "message": f"Anthropic API returned HTTP {resp.status_code}: {resp.text[:200]}",
         }
+
 
 __all__ = ["router"]

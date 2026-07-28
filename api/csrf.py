@@ -95,7 +95,7 @@ def _get_secret() -> str:
             "CSRF_SECRET (or SECRET_KEY or JWT_SECRET_KEY) MUST be set in "
             "production/staging. The default placeholder secret is public "
             "and would allow CSRF token forgery. "
-            "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
         )
 
     # Development only: per-process random key (not stable across restarts,
@@ -186,9 +186,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._tolerate_expired = tolerate_expired
         self._api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-        self._auth_disabled = os.environ.get(
-            "ENGINEERING_SERVICE_AUTH_DISABLED", ""
-        ).lower() in ("1", "true", "yes")
+        self._auth_disabled = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
 
     async def dispatch(
         self,

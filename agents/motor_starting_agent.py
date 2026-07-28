@@ -156,7 +156,9 @@ class MotorStartingAgent(BaseAgent):
 
         # Get locked-rotor kVA/hp from NEMA code
         code = nema_code.upper()
-        lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
+        lr_kva_per_hp = (
+            _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
+        )
 
         # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp
@@ -456,7 +458,8 @@ class MotorStartingAgent(BaseAgent):
                 rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
                 j_total = float(task.parameters.get("j_total_kgm2", 10.0))
                 avg_torque = results.get("starting_torque", {}).get(
-                    "starting_torque_nm", rated_torque * 0.5,
+                    "starting_torque_nm",
+                    rated_torque * 0.5,
                 )
 
                 acc_result = self.calculate_acceleration_time(

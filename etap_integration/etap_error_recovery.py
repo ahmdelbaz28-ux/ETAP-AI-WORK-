@@ -6,6 +6,7 @@ for COM automation failures, study execution errors, and project I/O issues.
 Integrates with engine.resilience for RetryHandler and CircuitBreaker
 when available, with standalone fallback implementations.
 """
+
 from __future__ import annotations
 
 import logging
@@ -112,7 +113,10 @@ class ETAPErrorRecovery:
 
         if diag.category != ErrorCategory.COM_CONNECTION_LOST:
             return RecoveryAttempt(
-                False, "skip", time.monotonic() - start, f"Not a COM error: {diag.category.value}",
+                False,
+                "skip",
+                time.monotonic() - start,
+                f"Not a COM error: {diag.category.value}",
             )
 
         logger.warning("Attempting COM recovery: %s", diag.message)
@@ -137,7 +141,10 @@ class ETAPErrorRecovery:
             return RecoveryAttempt(True, "auto_restart", time.monotonic() - start)
 
         return RecoveryAttempt(
-            False, "failed", time.monotonic() - start, "No recovery method succeeded",
+            False,
+            "failed",
+            time.monotonic() - start,
+            "No recovery method succeeded",
         )
 
     def recover_from_study_error(self, error: Exception, study_type: str) -> RecoveryAttempt:
@@ -180,7 +187,10 @@ class ETAPErrorRecovery:
                 return RecoveryAttempt(False, "retry_exhausted", time.monotonic() - start, str(e))
 
         return RecoveryAttempt(
-            False, "no_retry", time.monotonic() - start, "RetryHandler not available",
+            False,
+            "no_retry",
+            time.monotonic() - start,
+            "RetryHandler not available",
         )
 
     def recover_from_project_error(self, error: Exception, project_path: str) -> RecoveryAttempt:
@@ -198,7 +208,10 @@ class ETAPErrorRecovery:
 
         if not os.path.exists(project_path):
             return RecoveryAttempt(
-                False, "file_not_found", time.monotonic() - start, f"File not found: {project_path}",
+                False,
+                "file_not_found",
+                time.monotonic() - start,
+                f"File not found: {project_path}",
             )
         if not os.access(project_path, os.R_OK):
             return RecoveryAttempt(
@@ -333,7 +346,10 @@ class ETAPErrorRecovery:
             )
 
         return ErrorDiagnosis(
-            ErrorCategory.UNKNOWN, str(error), "Check application logs for detailed context.", False,
+            ErrorCategory.UNKNOWN,
+            str(error),
+            "Check application logs for detailed context.",
+            False,
         )
 
     @property
@@ -370,7 +386,9 @@ class ETAPErrorRecovery:
     def _raise_study_retryable(error: Exception, study_type: str) -> None:
         raise RuntimeError(f"Study {study_type} failed after retry: {error}")
 
-    def _kill_etap_processes(self) -> int:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _kill_etap_processes(
+        self,
+    ) -> int:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         killed = 0
         if PSUTIL_AVAILABLE:
             for proc in psutil.process_iter(["pid", "name"]):
@@ -394,7 +412,8 @@ class ETAPErrorRecovery:
                 logger.warning("taskkill timed out while killing %s", ETAP_PROCESS_NAME)
             except FileNotFoundError:
                 logger.warning(
-                    "taskkill executable not found on PATH; cannot kill %s", ETAP_PROCESS_NAME,
+                    "taskkill executable not found on PATH; cannot kill %s",
+                    ETAP_PROCESS_NAME,
                 )
             except OSError as os_err:
                 logger.warning("OS error while running taskkill: %s", os_err)

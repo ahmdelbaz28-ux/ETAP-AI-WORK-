@@ -14,6 +14,7 @@ This module provides reusable functions + a RetryMixin that both vision
 clients can call, keeping their public API identical while removing the
 duplicated code.
 """
+
 from __future__ import annotations
 
 import base64

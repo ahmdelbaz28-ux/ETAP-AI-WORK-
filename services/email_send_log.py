@@ -47,6 +47,7 @@ def _get_redis():
     pattern was wasteful and could exhaust connection pools under load).
     """
     from core.redis_state import get_redis_client_sync
+
     return get_redis_client_sync()
 
 
@@ -208,7 +209,12 @@ def get_send_count_by_day(days: int = 7) -> list[dict]:
     buckets: dict[str, dict[str, int]] = {}
     for d in range(days):
         day = today - __import__("datetime").timedelta(days=d)
-        buckets[day.isoformat()] = {"date": day.isoformat(), "total": 0, "succeeded": 0, "failed": 0}
+        buckets[day.isoformat()] = {
+            "date": day.isoformat(),
+            "total": 0,
+            "succeeded": 0,
+            "failed": 0,
+        }
 
     for r in _buffer:
         try:

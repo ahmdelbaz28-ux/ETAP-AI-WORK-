@@ -302,7 +302,11 @@ class MetricsRegistry:
         raise NotImplementedError
 
     def get_or_create_histogram(
-        self, name: str, description: str = "", *, buckets: list[float] | None = None,
+        self,
+        name: str,
+        description: str = "",
+        *,
+        buckets: list[float] | None = None,
     ) -> Histogram:
         raise NotImplementedError
 
@@ -441,7 +445,11 @@ class InMemoryMetricsRegistry(MetricsRegistry):
             return self._counters[name]
 
     def get_or_create_histogram(
-        self, name: str, description: str = "", *, buckets: list[float] | None = None,
+        self,
+        name: str,
+        description: str = "",
+        *,
+        buckets: list[float] | None = None,
     ) -> Histogram:
         with self._lock:
             if name not in self._histograms:

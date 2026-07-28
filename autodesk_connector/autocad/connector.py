@@ -4,6 +4,7 @@ AutoCAD Connector — Python Service Layer
 Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
 Provides high-level APIs for the Engineering Copilot.
 """
+
 from __future__ import annotations
 
 import logging
@@ -140,7 +141,11 @@ class AutoCADPluginClient:
         )
 
     def create_layer(
-        self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default",
+        self,
+        name: str,
+        color: str = "7",
+        linetype: str = "Continuous",
+        lineweight: str = "Default",
     ) -> dict:
         """Create a new layer."""
         return self.send_command(
@@ -154,7 +159,10 @@ class AutoCADPluginClient:
         )
 
     def create_block(
-        self, name: str, entities: list[dict], base_point: list[float] | None = None,
+        self,
+        name: str,
+        entities: list[dict],
+        base_point: list[float] | None = None,
     ) -> dict:
         """Create a block definition."""
         return self.send_command(
@@ -196,7 +204,10 @@ class AutoCADPluginClient:
         )
 
     def draw_polyline(
-        self, vertices: list[list[float]], closed: bool = False, layer: str = "0",
+        self,
+        vertices: list[list[float]],
+        closed: bool = False,
+        layer: str = "0",
     ) -> dict:
         """Draw a polyline."""
         return self.send_command(
@@ -359,7 +370,10 @@ class AutoCADPluginClient:
         )
 
     def draw_single_line_diagram(
-        self, buses: list[dict], branches: list[dict], options: Optional[dict] = None,
+        self,
+        buses: list[dict],
+        branches: list[dict],
+        options: Optional[dict] = None,
     ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command(
@@ -665,9 +679,11 @@ class AutoCADConnector:
             id=str(uuid.uuid4()),
             name="Legend",
             annotation_type="label",
-            text=(f"Generated: {time.strftime('%Y-%m-%d %H:%M')}, "
+            text=(
+                f"Generated: {time.strftime('%Y-%m-%d %H:%M')}, "
                 f"Base: {opts.get('base_mva', 100)} MVA, "
-                f"System: {opts.get('frequency', 60)} Hz"),
+                f"System: {opts.get('frequency', 60)} Hz"
+            ),
             font_size=2.5,
             coordinates=Coordinates(x=start_x, y=start_y - bus_spacing_y),
         )
@@ -710,7 +726,11 @@ class AutoCADConnector:
     # ------------------------------------------------------------------
 
     def _log_operation(
-        self, operation: str, target: str, success: bool, details: Optional[dict] = None,
+        self,
+        operation: str,
+        target: str,
+        success: bool,
+        details: Optional[dict] = None,
     ) -> None:
         self._operation_log.append(
             {

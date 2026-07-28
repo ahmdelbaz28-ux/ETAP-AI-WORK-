@@ -416,7 +416,9 @@ class DigitalTwinAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(self, result: AgentResult) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def validate_result(
+        self, result: AgentResult
+    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Validate digital twin synchronization results.
 

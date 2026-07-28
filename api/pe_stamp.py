@@ -20,6 +20,7 @@ REQUIRES_PE_STAMP = {
     "load_flow",
 }
 
+
 def create_pe_stamp(
     engineer_id: str,
     license_number: str,
@@ -44,9 +45,13 @@ def create_pe_stamp(
 
     logger.info(
         "PE stamp created: engineer=%s license=%s study=%s sig=%s",
-        engineer_id, license_number, study_id, signature_hash[:12],
+        engineer_id,
+        license_number,
+        study_id,
+        signature_hash[:12],
     )
     return stamp
+
 
 def requires_stamp(study_type: str) -> bool:
     """Check if a study type requires PE stamp."""

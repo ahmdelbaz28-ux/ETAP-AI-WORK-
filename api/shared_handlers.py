@@ -383,6 +383,7 @@ def verify_api_key(
             import jwt
 
             from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+
             token = auth_header[7:].strip()  # Remove "Bearer " prefix
             jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
             # JWT is valid — skip API key check
@@ -557,7 +558,13 @@ def build_knowledge_info() -> dict[str, Any]:
                 "ETAP Solutions Overview",
                 "eTrax Rail",
             ],
-            "standards": [STD_IEEE_3002_7, STD_IEC_60909, STD_IEEE_1584, STD_IEC_60255, STD_IEEE_519],
+            "standards": [
+                STD_IEEE_3002_7,
+                STD_IEC_60909,
+                STD_IEEE_1584,
+                STD_IEC_60255,
+                STD_IEEE_519,
+            ],
         },
         "zenon": {
             "guides": ZENON_GUIDE_COUNT,
@@ -626,7 +633,9 @@ def sanitize_result(obj: Any) -> Any:
 
 
 def run_study_lightweight(  # NOSONAR: cognitive complexity; refactoring sprint
-    study_type: str, system: dict[str, Any], parameters: dict[str, Any],
+    study_type: str,
+    system: dict[str, Any],
+    parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.
 
@@ -908,7 +917,6 @@ def handle_ml_capabilities() -> dict[str, Any]:
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
-
 def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     # CRITICAL #5 fix (AhmedETAP_Error_Report_AR.pdf):
@@ -972,7 +980,6 @@ def handle_predict_load(body: dict[str, Any]) -> dict[str, Any]:
         # Client-side input problem — return 400 Bad Request.
         return {"success": False, "errors": [MSG_INVALID_INPUT], "_status": 400}
     except Exception:
-
         # Genuine server-side failure (ImportError, ML backend crash, etc.).
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
@@ -1001,7 +1008,6 @@ def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
         return {"success": True, "data": result}
     except Exception:
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
-
 
 
 def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
@@ -1044,7 +1050,6 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         return response
     except Exception:
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
-
 
 
 def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]:

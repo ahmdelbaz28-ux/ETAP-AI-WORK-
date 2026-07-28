@@ -158,15 +158,14 @@ env:
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-  # SECURITY: Uses secretKeyRef instead of plain value.
-  # CRITICAL FIX: Empty value caused pod startup failures.
-  # The key must be stored in a Kubernetes Secret before deployment.
-  # Create secret: kubectl create secret generic etap-api-key --from-literal=ENGINEERING_SERVICE_API_KEY=<real-key>
-  ENGINEERING_SERVICE_API_KEY:
-    valueFrom:
-      secretKeyRef:
-        name: etap-api-key
-        key: api-key
+  # SECURITY: ENGINEERING_SERVICE_API_KEY is injected via secretKeyRef.
+  # The secret "etap-api-key" is created BEFORE Helm deployment
+  # (see k8s/etap-api-key-secret.yaml). The Helm deployment template
+  # references it via secretKeyRef — the value here is ONLY used by
+  # the Helm-managed secret template for dev/testing fallback.
+  # In production, override with: --set env.ENGINEERING_SERVICE_API_KEY=<key>
+  # or provision via sealed-secrets / external-secrets-operator.
+  ENGINEERING_SERVICE_API_KEY: "changeme"
   LOG_LEVEL: "INFO"
 
 # Database Configuration

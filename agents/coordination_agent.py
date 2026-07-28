@@ -411,7 +411,9 @@ class CoordinationAgent(BaseAgent):
 
             # --- Relay operating time ---
             if analysis_type in ("relay_time", "full"):
-                fault_I = float(task.parameters.get("fault_current_a", 5000.0))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                fault_I = float(
+                    task.parameters.get("fault_current_a", 5000.0)
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 pickup = float(task.parameters.get("pickup_current_a", 800.0))
                 curve = task.parameters.get("curve_type", "standard_inverse")
                 tms = float(task.parameters.get("time_multiplier", 1.0))
@@ -487,7 +489,8 @@ class CoordinationAgent(BaseAgent):
                     ],
                 )
                 fault_currents = task.parameters.get(
-                    "fault_currents_a", [10000.0, 15000.0, 20000.0],
+                    "fault_currents_a",
+                    [10000.0, 15000.0, 20000.0],
                 )
 
                 results["selectivity"] = self.analyze_selectivity(

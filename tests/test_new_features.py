@@ -26,12 +26,12 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 # Set required env — read from process env or fall back to safe test defaults.
 # NEVER hardcode real credentials in test files. Use a local `.env` for real keys.
-os.environ.setdefault('RESEND_API_KEY', os.getenv('RESEND_API_KEY', 're_test_disabled_key'))
-os.environ.setdefault('RESEND_FROM_EMAIL', os.getenv('RESEND_FROM_EMAIL', 'onboarding@resend.dev'))
-os.environ.setdefault('RESEND_FROM_NAME', os.getenv('RESEND_FROM_NAME', 'AhmedETAP'))
-os.environ.setdefault('EMAIL_APP_URL', os.getenv('EMAIL_APP_URL', 'http://localhost:3000'))
-os.environ.setdefault('EMAIL_BRAND_NAME', os.getenv('EMAIL_BRAND_NAME', 'AhmedETAP'))
-os.environ.setdefault('EMAIL_BRAND_TAGLINE', os.getenv('EMAIL_BRAND_TAGLINE', 'Test Brand'))
+os.environ.setdefault("RESEND_API_KEY", os.getenv("RESEND_API_KEY", "re_test_disabled_key"))
+os.environ.setdefault("RESEND_FROM_EMAIL", os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev"))
+os.environ.setdefault("RESEND_FROM_NAME", os.getenv("RESEND_FROM_NAME", "AhmedETAP"))
+os.environ.setdefault("EMAIL_APP_URL", os.getenv("EMAIL_APP_URL", "http://localhost:3000"))
+os.environ.setdefault("EMAIL_BRAND_NAME", os.getenv("EMAIL_BRAND_NAME", "AhmedETAP"))
+os.environ.setdefault("EMAIL_BRAND_TAGLINE", os.getenv("EMAIL_BRAND_TAGLINE", "Test Brand"))
 
 
 async def test_1_otp():
@@ -131,7 +131,9 @@ async def test_3_email_send_log():
     assert stats["failed"] >= 1
     assert "otp" in stats["by_flow"]
     assert "welcome" in stats["by_flow"]
-    print(f"  ✅ Stats: total={stats['total']}, success_rate={stats['success_rate']}%, by_flow={list(stats['by_flow'].keys())}")
+    print(
+        f"  ✅ Stats: total={stats['total']}, success_rate={stats['success_rate']}%, by_flow={list(stats['by_flow'].keys())}"
+    )
 
     # By day
     by_day = get_send_count_by_day(days=7)
@@ -161,7 +163,7 @@ async def test_4_dashboard():
         state=SimpleNamespace(trace_id="test-trace"),
     )
 
-    with patch.dict(os.environ, {'EMAIL_DASHBOARD_DEV_OPEN': 'true'}):
+    with patch.dict(os.environ, {"EMAIL_DASHBOARD_DEV_OPEN": "true"}):
         # Get stats
         resp = await get_stats(mock_request, window_hours=24)
         assert resp.status_code == 200
@@ -233,6 +235,7 @@ async def test_6_digest():
 
     # First log some sends for a specific recipient
     from services.email_send_log import log_email_send
+
     for i in range(3):
         await log_email_send(
             recipient="digest-user@example.com",
@@ -288,6 +291,7 @@ async def test_7_live_send_with_brand():
 
     # Verify they're logged
     from services.email_send_log import get_recent_sends
+
     recent = get_recent_sends(limit=10)
     branded = [r for r in recent if r.get("recipient") == RECIPIENT]
     print(f"  ✅ All {len(branded)} sends logged to email_send_log")

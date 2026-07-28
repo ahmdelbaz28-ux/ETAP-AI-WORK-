@@ -166,13 +166,16 @@ class CodeIndexer:
         if CHROMA_AVAILABLE:
             self.client = chromadb.PersistentClient(path=str(self.output_dir))
             self.collection = self.client.get_or_create_collection(
-                name="code_context", embedding_function=embedding_function,
+                name="code_context",
+                embedding_function=embedding_function,
             )
 
     def hash_code(self, code: str) -> str:
         return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
-    def index_repo(self, repo_path: str):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def index_repo(
+        self, repo_path: str
+    ):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         repo_dir = Path(repo_path)
         total_chunks = 0
 
@@ -223,7 +226,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AI Context Engine - Indexer")
     parser.add_argument("--repo", type=str, default=".", help="Path to the repository to index")
     parser.add_argument(
-        "--output", type=str, default="./index/", help="Path to save the ChromaDB index",
+        "--output",
+        type=str,
+        default="./index/",
+        help="Path to save the ChromaDB index",
     )
     args = parser.parse_args()
 

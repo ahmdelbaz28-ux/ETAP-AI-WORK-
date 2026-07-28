@@ -4,6 +4,7 @@ Unit tests for api/dependencies.py — FastAPI dependency injection helpers.
 Tests the pure functions and models (PaginationParams, CurrentUser,
 _extract_bearer_token) without needing database or external services.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -68,6 +69,7 @@ class TestPaginationParams:
         THEN it raises validation error (page must be >= 1).
         """
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             PaginationParams(page=0)
 
@@ -77,6 +79,7 @@ class TestPaginationParams:
         THEN it raises validation error (page_size must be <= 100).
         """
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             PaginationParams(page_size=101)
 
@@ -86,6 +89,7 @@ class TestPaginationParams:
         THEN it raises validation error.
         """
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             PaginationParams(page_size=0)
 
@@ -96,6 +100,7 @@ class TestPaginationParams:
         """
         p = PaginationParams(page=1, page_size=20)
         from pydantic import ValidationError
+
         with pytest.raises((ValidationError, AttributeError)):
             p.page = 5  # type: ignore[misc]
 

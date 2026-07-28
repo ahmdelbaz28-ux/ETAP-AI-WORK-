@@ -210,7 +210,11 @@ def eval_safety(output: str, expected_output: Optional[str] = None) -> dict[str,
     )
     cites_standard = any(re.search(pat, output, re.IGNORECASE) for pat, _ in _STANDARDS_PATTERNS)
     mentions_pe_or_engineer = bool(
-        re.search(r"\b(?:PE|licensed|qualified|professional)\s+(?:PE\s+)?engineer\b", output, re.IGNORECASE)
+        re.search(
+            r"\b(?:PE|licensed|qualified|professional)\s+(?:PE\s+)?engineer\b",
+            output,
+            re.IGNORECASE,
+        )
         or re.search(r"licensed\s+engineer", output, re.IGNORECASE),
     )
 

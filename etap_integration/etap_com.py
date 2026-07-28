@@ -424,7 +424,10 @@ class ETAPProject:
         """Run arc flash study (params already validated by run_study)."""
         working_distance = kwargs.get("working_distance_mm", 610)
         working_distance = ETAPAutomation._validate_input(
-            working_distance, "numeric", min_val=WORKING_DISTANCE_MIN, max_val=WORKING_DISTANCE_MAX,
+            working_distance,
+            "numeric",
+            min_val=WORKING_DISTANCE_MIN,
+            max_val=WORKING_DISTANCE_MAX,
         )
         try:
             af_module = self._com_project.ArcFlash
@@ -791,7 +794,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
-    def _run_protection_coordination(self, **kwargs) -> dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _run_protection_coordination(
+        self, **kwargs
+    ) -> dict[
+        str, Any
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Run protection coordination study via ETAP COM.
 
@@ -873,7 +880,9 @@ class ETAPProject:
                     "type": bus.BusType,
                 }
         except pythoncom.com_error as e:
-            logger.warning("COM error retrieving bus %s (timeout=%ss): %s", bus_id, self._com_timeout, e)
+            logger.warning(
+                "COM error retrieving bus %s (timeout=%ss): %s", bus_id, self._com_timeout, e
+            )
         except Exception as e:
             logger.warning("Could not retrieve bus %s: %s", bus_id, e)
         return None
@@ -1047,7 +1056,8 @@ class ETAPAutomation:
 
     @staticmethod
     def _validate_study_parameters(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        study_type: ETAPStudyType, params: dict[str, Any],
+        study_type: ETAPStudyType,
+        params: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Validate study parameters against the per-study-type schema.
@@ -1198,7 +1208,8 @@ class ETAPAutomation:
 
     @staticmethod
     def _check_result_size(
-        result_dict: dict[str, Any], max_entries: int = MAX_RESULT_ENTRIES,
+        result_dict: dict[str, Any],
+        max_entries: int = MAX_RESULT_ENTRIES,
     ) -> dict[str, Any]:
         """
         Check that a result dictionary does not exceed maximum entry count.
@@ -1244,18 +1255,23 @@ class ETAPAutomation:
         Validates path length against configured maximum.
         """
         if not file_path or not isinstance(file_path, str):
-            logger.warning("Invalid project path type or empty: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning(
+                "Invalid project path type or empty: %s", file_path
+            )  # NOSONAR: logging injection; user input is sanitized upstream
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
                 "Project path length %d exceeds maximum %d",
-                len(file_path), MAX_PROJECT_PATH_LENGTH,
+                len(file_path),
+                MAX_PROJECT_PATH_LENGTH,
             )
             return False
 
         if not file_path.endswith(".edb"):
-            logger.warning("Invalid project file extension: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning(
+                "Invalid project file extension: %s", file_path
+            )  # NOSONAR: logging injection; user input is sanitized upstream
             return False
 
         # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
@@ -1270,7 +1286,9 @@ class ETAPAutomation:
 
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
-            logger.warning("UNC path not allowed (SMB relay risk): %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning(
+                "UNC path not allowed (SMB relay risk): %s", file_path
+            )  # NOSONAR: logging injection; user input is sanitized upstream
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
@@ -1279,7 +1297,7 @@ class ETAPAutomation:
         try:
             # Convert to absolute (still lexical) for the containment check.
             if not normalised.is_absolute():
-                normalised = (cwd / normalised)
+                normalised = cwd / normalised
             # Compute a purely-lexical "resolved" form by collapsing ".." / "."
             # without following symlinks. Python ≥ 3.6 Path.resolve(strict=False)
             # does this safely on non-existent paths.
@@ -1293,7 +1311,9 @@ class ETAPAutomation:
             # path handling for legitimate ETAP project files.
             resolved = normalised.resolve(strict=False)  # NOSONAR: see comment above
         except (ValueError, RuntimeError):
-            logger.warning("Invalid path format: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning(
+                "Invalid path format: %s", file_path
+            )  # NOSONAR: logging injection; user input is sanitized upstream
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1303,7 +1323,9 @@ class ETAPAutomation:
             try:
                 resolved.relative_to(home)
             except ValueError:
-                logger.warning("Project path escapes CWD and HOME: %s", file_path)  # NOSONAR  # S5145
+                logger.warning(
+                    "Project path escapes CWD and HOME: %s", file_path
+                )  # NOSONAR  # S5145
                 return False
 
         if self._allowed_project_dirs:
@@ -1311,7 +1333,9 @@ class ETAPAutomation:
                 str(resolved).startswith(allowed_dir) for allowed_dir in self._allowed_project_dirs
             )
             if not is_allowed:
-                logger.warning("Project path outside allowed directories: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.warning(
+                    "Project path outside allowed directories: %s", file_path
+                )  # NOSONAR: logging injection; user input is sanitized upstream
                 return False
 
         return True
@@ -1358,7 +1382,9 @@ class ETAPAutomation:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
         if not self._validate_project_path(file_path):
-            logger.error("Project path validation failed: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.error(
+                "Project path validation failed: %s", file_path
+            )  # NOSONAR: logging injection; user input is sanitized upstream
             return None
 
         try:
@@ -1367,16 +1393,22 @@ class ETAPAutomation:
             if com_project:
                 project = ETAPProject(com_project, file_path, com_timeout=self.com_timeout_seconds)
                 self._projects[file_path] = project
-                logger.info("Opened project: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.info(
+                    "Opened project: %s", file_path
+                )  # NOSONAR: logging injection; user input is sanitized upstream
                 return project
             else:
-                logger.error("Failed to open project: %s", file_path)  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.error(
+                    "Failed to open project: %s", file_path
+                )  # NOSONAR: logging injection; user input is sanitized upstream
                 return None
 
         except pythoncom.com_error as e:
             logger.exception(
                 "COM error opening project %s (timeout=%ds): %s",
-                file_path, self.com_timeout_seconds, e,
+                file_path,
+                self.com_timeout_seconds,
+                e,
             )
             return None
         except Exception as e:
@@ -1416,7 +1448,9 @@ class ETAPAutomation:
                 return None
 
         except pythoncom.com_error as e:
-            logger.exception("COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e)
+            logger.exception(
+                "COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e
+            )
             return None
         except Exception as e:
             logger.exception("Error creating project: %s", e)
@@ -1435,13 +1469,16 @@ class ETAPAutomation:
                         return proj
 
                 project = ETAPProject(
-                    com_project, "ActiveProject", com_timeout=self.com_timeout_seconds,
+                    com_project,
+                    "ActiveProject",
+                    com_timeout=self.com_timeout_seconds,
                 )
                 return project
         except pythoncom.com_error as e:
             logger.exception(
                 "COM error getting active project (timeout=%ds): %s",
-                self.com_timeout_seconds, e,
+                self.com_timeout_seconds,
+                e,
             )
         except Exception as e:
             logger.exception("Error getting active project: %s", e)
@@ -1463,7 +1500,9 @@ class ETAPAutomation:
         count = 0
         # list() creates a snapshot so we can safely del from self._projects
         # while iterating (otherwise RuntimeError: dict changed during iteration).
-        for path in list(self._projects.keys()):  # NOSONAR: snapshot needed for safe deletion during iteration
+        for path in list(
+            self._projects.keys()
+        ):  # NOSONAR: snapshot needed for safe deletion during iteration
             if self.close_project(path):
                 count += 1
         return count
@@ -1487,7 +1526,9 @@ class ETAPAutomation:
             return True
 
         except pythoncom.com_error as e:
-            logger.exception("COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e)
+            logger.exception(
+                "COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e
+            )
             return False
         except Exception as e:
             logger.exception("Error shutting down ETAP: %s", e)

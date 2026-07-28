@@ -6,6 +6,7 @@ and service restoration (FLISR) for ADMS.
 
 Reference: IEEE C37.118, IEC 61850, EPRI ADMS Guide
 """
+
 from __future__ import annotations
 
 import time
@@ -163,7 +164,11 @@ class TopologyProcessor:
             bus1, bus2 = self.switches[switch_id]
             self.add_connection(bus1, bus2, switch_id)
 
-    def find_connected_components(self) -> list[set[str]]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def find_connected_components(
+        self,
+    ) -> list[
+        set[str]
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
@@ -264,7 +269,9 @@ class ADMSControlEngine:
     # --- Feeder Switching ---
 
     def create_switching_sequence(
-        self, actions: list[tuple[str, SwitchingActionType, str]], description: str = "",
+        self,
+        actions: list[tuple[str, SwitchingActionType, str]],
+        description: str = "",
     ) -> SwitchingSequence:
         """
         Create a switching sequence from a list of actions.
@@ -277,7 +284,8 @@ class ADMSControlEngine:
         SwitchingSequence
         """
         seq = SwitchingSequence(
-            sequence_id=f"seq_{int(time.time() * 1000)}", description=description,
+            sequence_id=f"seq_{int(time.time() * 1000)}",
+            description=description,
         )
         for i, (device_id, action_type, reason) in enumerate(actions):
             action = SwitchingAction(
@@ -356,7 +364,10 @@ class ADMSControlEngine:
     # --- Load Transfer ---
 
     def plan_load_transfer(
-        self, from_feeder: str, to_feeder: str, section_id: str,
+        self,
+        from_feeder: str,
+        to_feeder: str,
+        section_id: str,
     ) -> Optional[SwitchingSequence]:
         """
         Plan a load transfer from one feeder to another.
@@ -377,7 +388,9 @@ class ADMSControlEngine:
         # Find path from target feeder to section
         path = self.topology.find_path(
             to_root,
-            next(iter(self.topology.section_buses.get(section_id, set())))  # NOSONAR: false positive — already uses next(iter(...))
+            next(
+                iter(self.topology.section_buses.get(section_id, set()))
+            )  # NOSONAR: false positive — already uses next(iter(...))
             if section_id in self.topology.section_buses
             else to_root,
         )
@@ -445,11 +458,14 @@ class ADMSControlEngine:
             return None
 
         return self.create_switching_sequence(
-            actions, description=f"Fault isolation for section {fault_section}",
+            actions,
+            description=f"Fault isolation for section {fault_section}",
         )
 
     def plan_restoration(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, fault_section: str, de_energized_sections: list[str] = None,
+        self,
+        fault_section: str,
+        de_energized_sections: list[str] = None,
     ) -> Optional[SwitchingSequence]:
         """
         Plan service restoration for de-energized sections after fault isolation.
@@ -497,10 +513,13 @@ class ADMSControlEngine:
             return None
 
         return self.create_switching_sequence(
-            actions, description=f"Service restoration for sections: {restored}",
+            actions,
+            description=f"Service restoration for sections: {restored}",
         )
 
-    def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def execute_flisr(
+        self, tripped_switch_ids: list[str], scada_db=None
+    ) -> FLISRResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Execute full FLISR sequence:
         1. Detect fault section

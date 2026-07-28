@@ -1,6 +1,7 @@
 """
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
+
 import os
 import tempfile
 from datetime import datetime, timezone
@@ -14,7 +15,7 @@ _TEST_REPORT_DIR = tempfile.mkdtemp(prefix="test_reporting_")
 # Cleanup on module unload
 import atexit
 
-atexit.register(lambda: __import__('shutil').rmtree(_TEST_REPORT_DIR, ignore_errors=True))
+atexit.register(lambda: __import__("shutil").rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
 from reporting.advanced_reports import (
     ChartGenerator,
@@ -45,7 +46,10 @@ class TestReportSection:
             order=2,
             include_charts=True,
             include_tables=True,
-            data={"chart_path": os.path.join(_TEST_REPORT_DIR, "chart.png"), "table_data": [["a", "b"]]},
+            data={
+                "chart_path": os.path.join(_TEST_REPORT_DIR, "chart.png"),
+                "table_data": [["a", "b"]],
+            },
         )
         assert s.include_charts is True
         assert s.include_tables is True

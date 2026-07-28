@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 # =============================================================================
@@ -55,11 +54,15 @@ def on_test_stop(environment, **kwargs):
             "  Min time:         %.1f ms\n"
             "  Max time:         %.1f ms\n"
             "  P95 time:         %.1f ms\n%s",
-            "=" * 60, "=" * 60,
+            "=" * 60,
+            "=" * 60,
             len(_study_execution_times),
             _study_success_count,
             _study_failure_count,
-            avg_time, min_time, max_time, p95_time,
+            avg_time,
+            min_time,
+            max_time,
+            p95_time,
             "=" * 60,
         )
 
@@ -162,7 +165,9 @@ class AuthenticatedUser(HttpUser):
     def on_start(self):
         """Authenticate on user start."""
         self.token = None
-        self.auth_headers = {"Content-Type": "application/json"}  # NOSONAR: intentional repetition (audit constant)
+        self.auth_headers = {
+            "Content-Type": "application/json"
+        }  # NOSONAR: intentional repetition (audit constant)
         self._authenticate()
 
     def _authenticate(self):
@@ -349,7 +354,9 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP Expert AI assistant."""
         import random
 
-        question = random.choice(AI_QUESTIONS)  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+        question = random.choice(
+            AI_QUESTIONS
+        )  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
             json={
@@ -364,7 +371,9 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP GUI Agent."""
         import random
 
-        question = random.choice(AI_QUESTIONS[:5])  # Shorter questions for GUI agent  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+        question = random.choice(
+            AI_QUESTIONS[:5]
+        )  # Shorter questions for GUI agent  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

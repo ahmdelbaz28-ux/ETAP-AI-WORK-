@@ -3,6 +3,14 @@
 #   - CodeQL (static analysis for multiple languages)
 #   - Dependency Review (checks for vulnerable deps)
 #   - Trivy (container/image scanning)
+#
+# ⚠️ REQUIRED REPO CONFIGURATION:
+#   The dependency-review job requires GitHub's "Dependency graph" feature
+#   to be ENABLED for this repository. Without it, the action fails with
+#   "Dependency review is not supported on this repository."
+#   Enable via: Repo Settings → Code security and analysis → Dependency graph = Enabled
+#   Or via API: DEPENDENCY_GRAPH_ENABLED=true
+#   See: docs/CI_CD_INTEGRATION.md → Repository Configuration → Dependency Graph
 name: Security Scans
 
 on:

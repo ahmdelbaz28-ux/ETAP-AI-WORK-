@@ -140,7 +140,8 @@ class Router:
         # Observability: record request count
         if self._config.metrics is not None:
             self._config.metrics.get_or_create_counter(
-                "acp.router.requests.total", "Total requests",
+                "acp.router.requests.total",
+                "Total requests",
             ).inc()
 
         # 1. Try request shape
@@ -154,10 +155,13 @@ class Router:
                 # 3. Neither — invalid envelope
                 if self._config.metrics is not None:
                     self._config.metrics.get_or_create_counter(
-                        "acp.router.requests.invalid", "Invalid requests",
+                        "acp.router.requests.invalid",
+                        "Invalid requests",
                     ).inc()
                 return self._error_response(
-                    None, JSONRPC_INVALID_REQUEST, "Invalid JSON-RPC envelope",
+                    None,
+                    JSONRPC_INVALID_REQUEST,
+                    "Invalid JSON-RPC envelope",
                 )
             return await self._handle_notification(notif)
 
@@ -165,7 +169,9 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    async def _handle_request(self, req: JsonRpcRequest) -> dict:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def _handle_request(
+        self, req: JsonRpcRequest
+    ) -> dict:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
         caller_id = ""
@@ -249,7 +255,11 @@ class Router:
                 {"capability": req.capability, "available": self._runtime.capability_names},
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
+                req,
+                caller_id,
+                outcome,
+                error_code,
+                int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "error", error_code)
             return resp
@@ -264,7 +274,11 @@ class Router:
                 "Authentication required for all capabilities",
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
+                req,
+                caller_id,
+                outcome,
+                error_code,
+                int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
@@ -280,7 +294,11 @@ class Router:
                 {"capability": req.capability, "required_scopes": meta.scopes},
             )
             await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
+                req,
+                caller_id,
+                outcome,
+                error_code,
+                int((time.perf_counter() - t0) * 1000),
             )
             await self._finish_observability(span_ctx, t0, req, "denied", error_code)
             return resp
@@ -306,7 +324,11 @@ class Router:
             resp = self._error_response(req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}")
 
         await self._audit(
-            req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000),
+            req,
+            caller_id,
+            outcome,
+            error_code,
+            int((time.perf_counter() - t0) * 1000),
         )
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
@@ -328,7 +350,8 @@ class Router:
             ).observe(duration_ms)
             if outcome != "success":
                 self._config.metrics.get_or_create_counter(
-                    "acp.router.requests.errors", "Request errors",
+                    "acp.router.requests.errors",
+                    "Request errors",
                 ).inc()
         if self._config.tracer is not None and span_ctx is not None:
             from acp.observability.tracer import SpanStatus

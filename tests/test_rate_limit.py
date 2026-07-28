@@ -5,6 +5,7 @@ These tests exercise the RateLimiter class extracted from
 api/akamai_protection.py and api/cloudflare_protection.py to eliminate
 code duplication (SonarCloud new_duplicated_lines_density).
 """
+
 from __future__ import annotations
 
 import time
@@ -24,7 +25,7 @@ class TestRateLimiter:
         """
         limiter = RateLimiter(max_requests=5, window_seconds=60)
         for i in range(3):
-            assert limiter.is_allowed("192.168.1.1") is True, f"Request {i+1} should be allowed"
+            assert limiter.is_allowed("192.168.1.1") is True, f"Request {i + 1} should be allowed"
 
     def test_blocks_requests_over_limit(self):
         """GIVEN a limiter with max=3
@@ -62,7 +63,9 @@ class TestRateLimiter:
         assert limiter.is_allowed("3.3.3.3") is False
         # Wait for window to expire
         time.sleep(1.1)
-        assert limiter.is_allowed("3.3.3.3") is True, "After window expiry, request should be allowed"
+        assert limiter.is_allowed("3.3.3.3") is True, (
+            "After window expiry, request should be allowed"
+        )
 
     def test_reset_clears_all_entries(self):
         """GIVEN a limiter at capacity

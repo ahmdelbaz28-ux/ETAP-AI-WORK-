@@ -81,16 +81,22 @@ class Neo4jClient:
             self.driver.close()
 
     def execute_query(
-        self, query: str, parameters: dict[str, Any] | None = None,
+        self,
+        query: str,
+        parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Execute a Cypher query."""
         if not self.enabled or not self.driver:
             logger.error(
                 "Neo4j execute_query called but client is disabled. "
                 "Set NEO4J_URI + NEO4J_PASSWORD and pip install neo4j. "
-                "Query was: %.200s", query,
+                "Query was: %.200s",
+                query,
             )
-            return {"error": "Neo4j is not enabled — configure NEO4J_URI/NEO4J_PASSWORD and install neo4j SDK", "data": []}
+            return {
+                "error": "Neo4j is not enabled — configure NEO4J_URI/NEO4J_PASSWORD and install neo4j SDK",
+                "data": [],
+            }
         try:
             with self.driver.session() as session:
                 result = session.run(query, parameters or {})
@@ -127,19 +133,21 @@ class NullNeo4jClient(Neo4jClient):
         self.driver = None
         self.enabled = False
         logger.warning(
-            "NullNeo4jClient active — Neo4j SDK not available. "
-            "Install with: pip install neo4j"
+            "NullNeo4jClient active — Neo4j SDK not available. Install with: pip install neo4j"
         )
 
     def close(self):
         """No-op — no driver to close."""
 
     def execute_query(
-        self, query: str, parameters: dict[str, Any] | None = None,
+        self,
+        query: str,
+        parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         logger.error(
             "Neo4j execute_query called but Neo4j SDK is not installed. "
-            "Install it with: pip install neo4j. Query was: %.200s", query,
+            "Install it with: pip install neo4j. Query was: %.200s",
+            query,
         )
         return {
             "error": _NEO4J_SDK_MISSING_MSG,
@@ -212,7 +220,11 @@ class Neo4jDB:
         )
 
     def create_line(
-        self, line_id: str, from_bus: str, to_bus: str, impedance: float,
+        self,
+        line_id: str,
+        from_bus: str,
+        to_bus: str,
+        impedance: float,
     ) -> dict[str, Any]:
         """Create a new transmission line."""
         query = """

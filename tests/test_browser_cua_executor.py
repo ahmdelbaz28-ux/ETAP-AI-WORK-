@@ -27,7 +27,7 @@ _TEST_BROWSER_CUA_DIR = tempfile.mkdtemp(prefix="test_browser_cua_")
 # Cleanup on module unload
 import atexit
 
-atexit.register(lambda: __import__('shutil').rmtree(_TEST_BROWSER_CUA_DIR, ignore_errors=True))
+atexit.register(lambda: __import__("shutil").rmtree(_TEST_BROWSER_CUA_DIR, ignore_errors=True))
 
 # ---------------------------------------------------------------------------
 # 1. Module import safety
@@ -54,6 +54,7 @@ def test_browser_cua_reuses_cua_action_dataclass():
     import agents.cua_executor as _ce_mod
     from agents.browser_cua_executor import BrowserCUAExecutor
     from agents.cua_executor import CUAAction
+
     assert hasattr(_bce_mod, "BrowserCUAExecutor")
     assert hasattr(_ce_mod, "CUAAction")
 

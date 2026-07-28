@@ -382,7 +382,9 @@ class SecurityAuditor:
     # Check 1: Missing authentication on endpoints
     # ------------------------------------------------------------------
 
-    async def _check_missing_auth(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_missing_auth(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Scan all API endpoints for missing authentication checks.
 
         Look for FastAPI route decorators that don't include
@@ -391,15 +393,21 @@ class SecurityAuditor:
         """
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),  # NOSONAR: intentional repetition (audit constant)
-            os.path.join(self.project_root, "api", "refactored_service.py"),  # NOSONAR: intentional repetition (audit constant)
+            os.path.join(
+                self.project_root, "engineering_service.py"
+            ),  # NOSONAR: intentional repetition (audit constant)
+            os.path.join(
+                self.project_root, "api", "refactored_service.py"
+            ),  # NOSONAR: intentional repetition (audit constant)
         ]
 
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
@@ -442,13 +450,17 @@ class SecurityAuditor:
                     has_auth_check = False
 
                 # Detect auth check in function body
-                if current_endpoint and not has_auth_check and any(
-                    kw in line
-                    for kw in (
-                        "_require_api_key",
-                        "get_api_key",
-                        "Depends(get_api_key)",
-                        "get_current_user",
+                if (
+                    current_endpoint
+                    and not has_auth_check
+                    and any(
+                        kw in line
+                        for kw in (
+                            "_require_api_key",
+                            "get_api_key",
+                            "Depends(get_api_key)",
+                            "get_current_user",
+                        )
                     )
                 ):
                     has_auth_check = True
@@ -472,7 +484,9 @@ class SecurityAuditor:
     # Check 2: CORS configuration
     # ------------------------------------------------------------------
 
-    async def _check_cors_configuration(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_cors_configuration(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for CORS misconfigurations."""
         service_files = [
             os.path.join(self.project_root, "engineering_service.py"),
@@ -483,7 +497,9 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 content = fh.read()
 
             # Check for wildcard origins
@@ -549,7 +565,9 @@ class SecurityAuditor:
     # Check 3: Input validation on POST/PUT endpoints
     # ------------------------------------------------------------------
 
-    async def _check_input_validation(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_input_validation(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Validate that all POST/PUT endpoints have input validation.
 
         Checks that endpoints use Pydantic models or explicit validation
@@ -564,7 +582,9 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 lines = fh.readlines()
 
             for i, line in enumerate(lines, 1):
@@ -614,7 +634,9 @@ class SecurityAuditor:
     # Check 4: Missing rate limiting
     # ------------------------------------------------------------------
 
-    async def _check_rate_limiting(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_rate_limiting(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for missing rate limiting on sensitive endpoints."""
         sensitive_paths = [
             "/api/v1/auth/mfa/totp/setup",
@@ -636,7 +658,9 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 content = fh.read()
 
             # Check if global rate limiting exists
@@ -684,7 +708,9 @@ class SecurityAuditor:
     # Check 5: Hardcoded secrets
     # ------------------------------------------------------------------
 
-    async def _scan_hardcoded_secrets(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _scan_hardcoded_secrets(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Scan all Python source files for hardcoded secrets."""
         skip_dirs = {
             ".git",
@@ -719,7 +745,9 @@ class SecurityAuditor:
                     continue
 
                 with contextlib.suppress(Exception):
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+                    with (
+                        open(file_path, encoding="utf-8", errors="replace") as fh
+                    ):  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -727,7 +755,9 @@ class SecurityAuditor:
 
                         # Skip comments and docstrings
                         if (
-                            stripped.startswith("#", '"""', "'''")  # NOSONAR: false positive — already uses tuple form
+                            stripped.startswith(
+                                "#", '"""', "'''"
+                            )  # NOSONAR: false positive — already uses tuple form
                         ):
                             continue
 
@@ -774,7 +804,9 @@ class SecurityAuditor:
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
 
-    async def _check_insecure_dependencies(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_insecure_dependencies(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for insecure dependency patterns in the codebase."""
         skip_dirs = {
             ".git",
@@ -809,7 +841,9 @@ class SecurityAuditor:
                     continue
 
                 with contextlib.suppress(Exception):
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+                    with (
+                        open(file_path, encoding="utf-8", errors="replace") as fh
+                    ):  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -840,7 +874,9 @@ class SecurityAuditor:
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             with contextlib.suppress(Exception):
-                with open(req_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+                with open(
+                    req_file, encoding="utf-8", errors="replace"
+                ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                     requirements = fh.readlines()
 
                 for line in requirements:
@@ -868,12 +904,16 @@ class SecurityAuditor:
     # Check 7: Dead code
     # ------------------------------------------------------------------
 
-    async def _check_dead_code(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_dead_code(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for dead code patterns (unreachable code, unused imports)."""
         # Check for the specific dead ConnectionManager in the original
         service_file = os.path.join(self.project_root, "engineering_service.py")
         if os.path.exists(service_file):
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 content = fh.read()
                 lines = content.split("\n")
 
@@ -936,7 +976,9 @@ class SecurityAuditor:
     # Check 8: Weak crypto
     # ------------------------------------------------------------------
 
-    async def _check_weak_crypto(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_weak_crypto(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for weak cryptographic patterns."""
         service_files = [
             os.path.join(self.project_root, "engineering_service.py"),
@@ -948,7 +990,9 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 content = fh.read()
 
             # Check for default JWT secret
@@ -992,7 +1036,9 @@ class SecurityAuditor:
     # Check 9: Information disclosure
     # ------------------------------------------------------------------
 
-    async def _check_information_disclosure(self) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def _check_information_disclosure(
+        self,
+    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
         """Check for potential information disclosure vulnerabilities."""
         service_files = [
             os.path.join(self.project_root, "engineering_service.py"),
@@ -1003,7 +1049,9 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(service_file, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            with open(
+                service_file, encoding="utf-8", errors="replace"
+            ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                 content = fh.read()
 
             # Check if stack traces are exposed in error responses
@@ -1155,7 +1203,9 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+async def _main() -> (
+    None
+):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """CLI entrypoint for running the security auditor."""
     import argparse
 
@@ -1188,8 +1238,14 @@ async def _main() -> None:  # NOSONAR: cognitive complexity; scheduled for refac
     # via a context manager, even on exception. Replaces the previous
     # try/finally + manual out.close() pattern.
     with contextlib.ExitStack() as stack:
-        out = sys.stdout if args.output == "-" else stack.enter_context(
-            open(args.output, "w", encoding="utf-8")  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+        out = (
+            sys.stdout
+            if args.output == "-"
+            else stack.enter_context(
+                open(
+                    args.output, "w", encoding="utf-8"
+                )  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+            )
         )
 
         if not args.json_only:
@@ -1198,7 +1254,8 @@ async def _main() -> None:  # NOSONAR: cognitive complexity; scheduled for refac
             print("=" * 72, file=out)
             print(f"Project Root:       {report.project_root}", file=out)
             print(
-                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out,
+                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
+                file=out,
             )
             print(f"Total Findings:     {report.total_findings}", file=out)
             print(f"  Critical:         {report.critical_count}", file=out)

@@ -131,7 +131,9 @@ class SIEMSyslogForwarder:
     Singleton pattern — one forwarder per process.
     """
 
-    def __init__(self) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def __init__(
+        self,
+    ) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self.enabled = os.getenv("SIEM_ENABLED", "false").lower() == "true"
         self.host = os.getenv("SIEM_HOST", "")
         self.port = int(os.getenv("SIEM_PORT", "514"))
@@ -204,7 +206,8 @@ class SIEMSyslogForwarder:
             if not os.getenv("SIEM_LOG_FILE"):
                 missing.append("SIEM_LOG_FILE")
             logger.info(
-                "SIEM Syslog disabled — missing: %s", ", ".join(missing) or "SIEM_ENABLED=false",
+                "SIEM Syslog disabled — missing: %s",
+                ", ".join(missing) or "SIEM_ENABLED=false",
             )
 
     # ─── Public API ───────────────────────────────────────────────────────
@@ -429,7 +432,8 @@ class SIEMSyslogForwarder:
             # UDP messages should be < 65,507 bytes
             if len(message) > 65000:
                 logger.warning(
-                    "Syslog message too large for UDP (%d bytes) — truncating", len(message),
+                    "Syslog message too large for UDP (%d bytes) — truncating",
+                    len(message),
                 )
                 message = message[:65000]
             sock.sendto(message, (self.host, self.port))

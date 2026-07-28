@@ -284,7 +284,10 @@ class OpenAIVisionClient:
         return parts
 
     def _make_request(
-        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+        self,
+        url: str,
+        headers: dict[str, str],
+        payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Make the HTTP request to the OpenAI-compatible endpoint.
 
@@ -295,7 +298,10 @@ class OpenAIVisionClient:
         return self._make_request_urllib(url, headers, payload)
 
     def _make_request_httpx(
-        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+        self,
+        url: str,
+        headers: dict[str, str],
+        payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Make request using httpx."""
         import httpx
@@ -306,7 +312,10 @@ class OpenAIVisionClient:
             return response.json()
 
     def _make_request_urllib(
-        self, url: str, headers: dict[str, str], payload: dict[str, Any],
+        self,
+        url: str,
+        headers: dict[str, str],
+        payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Fallback: make request using urllib (no external deps)."""
 

@@ -20,6 +20,7 @@ Coverage matrix:
   9. Skill knowledge base — skills/etap-expert.md loaded with >= 4000 lines
  10. Classifier accuracy — >= 90% on 20-question dataset
 """
+
 from __future__ import annotations
 
 import json

@@ -27,6 +27,7 @@ X-Origin-Verify             — Shared secret injected by Akamai property rule
                                (only the Akamai property + the origin know this value)
 True-Client-IP              — Real client IP (Akamai replaces X-Forwarded-For)
 """
+
 from __future__ import annotations
 
 import logging
@@ -57,21 +58,25 @@ BOT_SCORE_BLOCK_THRESHOLD: int = int(os.getenv("AKAMAI_BOT_SCORE_BLOCK", "80"))
 BOT_SCORE_CHALLENGE_THRESHOLD: int = int(os.getenv("AKAMAI_BOT_SCORE_CHALLENGE", "50"))
 
 # Client reputation levels that trigger blocking
-_BLOCKED_REPUTATIONS: frozenset[str] = frozenset({
-    "BAD",
-    "MALICIOUS",
-    "BOTNET",
-    "SPAM",
-    "SCANNER",
-})
+_BLOCKED_REPUTATIONS: frozenset[str] = frozenset(
+    {
+        "BAD",
+        "MALICIOUS",
+        "BOTNET",
+        "SPAM",
+        "SCANNER",
+    }
+)
 
 # Blocked bot categories
-_BLOCKED_BOT_CATEGORIES: frozenset[str] = frozenset({
-    "MALICIOUS",
-    "BOT",
-    "SCANNER",
-    "SCRAPER",
-})
+_BLOCKED_BOT_CATEGORIES: frozenset[str] = frozenset(
+    {
+        "MALICIOUS",
+        "BOT",
+        "SCANNER",
+        "SCRAPER",
+    }
+)
 
 # Rate limit: max requests per minute per client IP (origin-side defense-in-depth)
 # Akamai enforces rate limits at the edge, but this catches anything that slips through.
@@ -175,14 +180,16 @@ async def akamai_protection_middleware(request: Request, call_next):
         logger.warning(
             "akamai: origin verification failed for %s %s (client_ip=%s, "
             "user_agent=%s) — request bypassed Akamai edge",
-            request.method, path, metadata["client_ip"],
+            request.method,
+            path,
+            metadata["client_ip"],
             request.headers.get("user-agent", "")[:100],
         )
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "detail": "Direct origin access is not permitted. "
-                          "Requests must go through the CDN.",
+                "Requests must go through the CDN.",
                 "akamai_request_id": metadata["request_id"],
             },
             headers={"X-Block-Reason": "origin-verification-failed"},
@@ -191,7 +198,9 @@ async def akamai_protection_middleware(request: Request, call_next):
     # ── 2. Rate limiting (origin-side defense-in-depth) ─────────────────
     client_ip = metadata["client_ip"]
     if not _rate_limit_check(client_ip):
-        logger.warning("akamai: rate limit exceeded for %s (%s %s)", client_ip, request.method, path)
+        logger.warning(
+            "akamai: rate limit exceeded for %s (%s %s)", client_ip, request.method, path
+        )
         return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             content={
@@ -209,7 +218,10 @@ async def akamai_protection_middleware(request: Request, call_next):
     if bot_score is not None and bot_score >= BOT_SCORE_BLOCK_THRESHOLD:
         logger.warning(
             "akamai: blocking high bot score (%d) for %s (%s %s)",
-            bot_score, client_ip, request.method, path,
+            bot_score,
+            client_ip,
+            request.method,
+            path,
         )
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -229,7 +241,10 @@ async def akamai_protection_middleware(request: Request, call_next):
     if reputation and reputation in _BLOCKED_REPUTATIONS:
         logger.warning(
             "akamai: blocking bad reputation (%s) for %s (%s %s)",
-            reputation, client_ip, request.method, path,
+            reputation,
+            client_ip,
+            request.method,
+            path,
         )
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -249,7 +264,10 @@ async def akamai_protection_middleware(request: Request, call_next):
     if bot_category and bot_category in _BLOCKED_BOT_CATEGORIES:
         logger.warning(
             "akamai: blocking bot category (%s) for %s (%s %s)",
-            bot_category, client_ip, request.method, path,
+            bot_category,
+            client_ip,
+            request.method,
+            path,
         )
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -288,6 +306,7 @@ def _verify_origin_secret(request: Request) -> bool:
     identical implementation.
     """
     from api._cdn_base import verify_origin_secret
+
     return verify_origin_secret(request, AKAMAI_ORIGIN_SECRET)
 
 
@@ -297,6 +316,7 @@ def _parse_int(value: Optional[str]) -> Optional[int]:
     Delegates to ``api._cdn_base.parse_int_header``.
     """
     from api._cdn_base import parse_int_header
+
     return parse_int_header(value)
 
 
@@ -307,6 +327,7 @@ def _rate_limit_check(client_ip: str) -> bool:
     own ``_rate_limiter`` instance.
     """
     from api._cdn_base import rate_limit_check
+
     return rate_limit_check(client_ip, _rate_limiter)
 
 
@@ -328,6 +349,7 @@ def log_security_event(
     Akamai-specific metadata attribute and extra log fields.
     """
     from api._cdn_base import log_security_event as _log_cdn_event
+
     metadata = getattr(request.state, "akamai", {}) or {}
     extra = (
         f"akamai_request_id={metadata.get('request_id', '')} "
@@ -335,8 +357,10 @@ def log_security_event(
         f"reputation={metadata.get('client_reputation', '')}"
     )
     _log_cdn_event(
-        request, event_type,
-        detail=detail, severity=severity,
+        request,
+        event_type,
+        detail=detail,
+        severity=severity,
         metadata_attr="akamai",
         extra_log_fields=extra,
     )

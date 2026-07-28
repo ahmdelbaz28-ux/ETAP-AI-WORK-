@@ -73,7 +73,12 @@ spec:
             - name: ENGINEERING_SERVICE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "etap-ai.fullname" . }}-secrets
+                  # SECURITY: References the pre-created "etap-api-key" Secret
+                  # (see k8s/etap-api-key-secret.yaml). This Secret must be
+                  # provisioned BEFORE deploying the Helm chart.
+                  # Per CI/CD skill: secrets should be managed separately from
+                  # application deployment.
+                  name: etap-api-key
                   key: api-key
             - name: ENVIRONMENT
               value: "{{ .Values.env.ENVIRONMENT }}"
@@ -180,7 +185,8 @@ spec:
             - name: ENGINEERING_SERVICE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "etap-ai.fullname" . }}-secrets
+                  # SECURITY: References the pre-created "etap-api-key" Secret
+                  name: etap-api-key
                   key: api-key
             - name: ENVIRONMENT
               value: "{{ .Values.env.ENVIRONMENT }}"

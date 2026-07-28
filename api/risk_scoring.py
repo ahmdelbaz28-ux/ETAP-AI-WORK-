@@ -3,11 +3,13 @@ Risk scoring for study results.
 Evaluates study outputs against engineering thresholds and assigns
 a risk level: low | medium | high | critical.
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 RISK_LEVELS = ("low", "medium", "high", "critical")
+
 
 def score_load_flow(result: dict[str, Any]) -> dict[str, Any]:
     """Score a load flow study result."""
@@ -34,7 +36,10 @@ def score_load_flow(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": violations,
     }
 
-def _score_fault_current(bus_id: str, fault_type: str, ka: float, max_risk: str) -> tuple[str, list[str]]:
+
+def _score_fault_current(
+    bus_id: str, fault_type: str, ka: float, max_risk: str
+) -> tuple[str, list[str]]:
     """Score a single fault current against 40/50 kA thresholds.
 
     Returns the (possibly upgraded) max_risk and a list of new violations.
@@ -68,6 +73,7 @@ def score_short_circuit(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": violations,
     }
 
+
 def score_arc_flash(result: dict[str, Any]) -> dict[str, Any]:
     """Score an arc flash study result."""
     equip = result.get("equipment_results", {})
@@ -93,6 +99,7 @@ def score_arc_flash(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": violations,
     }
 
+
 def score_harmonic(result: dict[str, Any]) -> dict[str, Any]:
     """Score a harmonic analysis result against IEEE 519."""
     buses = result.get("buses", {})
@@ -115,6 +122,7 @@ def score_harmonic(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": violations,
     }
 
+
 def score_protection_coordination(result: dict[str, Any]) -> dict[str, Any]:
     """Score a protection coordination result."""
     coordinated = result.get("all_coordinated", False)
@@ -128,6 +136,7 @@ def score_protection_coordination(result: dict[str, Any]) -> dict[str, Any]:
         "risk_violations": [],
     }
 
+
 STUDY_SCORERS = {
     "load_flow": score_load_flow,
     "short_circuit": score_short_circuit,
@@ -135,6 +144,7 @@ STUDY_SCORERS = {
     "harmonic_analysis": score_harmonic,
     "protection_coordination": score_protection_coordination,
 }
+
 
 def compute_risk(study_type: str, result: dict[str, Any]) -> dict[str, Any]:
     """Compute risk score for a study result."""

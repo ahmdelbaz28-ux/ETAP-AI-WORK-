@@ -306,13 +306,12 @@ task = EngineeringTask(
     task_id="workflow_20260604_143022",
     description=user_goal,
     study_types=required_studies,
-    parameters={'system': power_system_model}
+    parameters={"system": power_system_model},
 )
 
 # 4. Execute autonomous workflow
 results = await orchestrator.execute_autonomous_workflow(
-    user_goal=user_goal,
-    system_data=power_system_model
+    user_goal=user_goal, system_data=power_system_model
 )
 
 # 5. Orchestrator executes agents in sequence:
@@ -431,14 +430,15 @@ class TestLoadFlowAgent:
             task_id="test_001",
             description="Test convergence",
             study_types=[StudyType.LOAD_FLOW],
-            parameters={'system': create_test_system()}
+            parameters={"system": create_test_system()},
         )
-        
+
         result = await agent.execute(task)
-        
+
         assert result.status == AgentStatus.COMPLETED
-        assert result.data['converged'] == True
+        assert result.data["converged"] == True
         assert result.validation_status == True
+
 
 # 34 unit tests covering:
 # - Load flow (5 tests)
@@ -458,22 +458,21 @@ class TestLoadFlowAgent:
 async def test_autonomous_optimization_workflow():
     """Test complete optimization workflow."""
     orchestrator = get_orchestrator()
-    
+
     # Create test system
     system = create_industrial_system()
-    
+
     # Execute workflow
     results = await orchestrator.execute_autonomous_workflow(
-        user_goal="Optimize this network",
-        system_data=system
+        user_goal="Optimize this network", system_data=system
     )
-    
+
     # Verify all studies completed
-    assert len(results['studies_performed']) >= 3
-    assert results['all_validated'] == True
-    
+    assert len(results["studies_performed"]) >= 3
+    assert results["all_validated"] == True
+
     # Verify reports generated
-    assert 'pdf' in results.get('report_paths', {})
+    assert "pdf" in results.get("report_paths", {})
 ```
 
 #### C. Engineering Validation (`validation_suite.py`)
@@ -785,6 +784,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="AhmedETAP", version="1.0.0")
 
+
 # Authentication dependency
 def get_current_user(token: str = Header(...)):
     auth_manager = get_auth_manager()
@@ -793,11 +793,13 @@ def get_current_user(token: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid token")
     return user
 
+
 # Request/Response Models
 class EngineeringGoal(BaseModel):
     goal: str
     system_data: Dict
     parameters: Optional[Dict] = {}
+
 
 class StudyResult(BaseModel):
     task_id: str
@@ -805,60 +807,49 @@ class StudyResult(BaseModel):
     results: List[Dict]
     report_paths: Dict[str, str]
 
+
 # Endpoints
 @app.post("/api/v1/analyze")
-async def submit_analysis(
-    request: EngineeringGoal,
-    current_user: User = Depends(get_current_user)
-):
+async def submit_analysis(request: EngineeringGoal, current_user: User = Depends(get_current_user)):
     """Submit engineering analysis goal."""
     orchestrator = get_orchestrator()
-    
+
     results = await orchestrator.execute_autonomous_workflow(
-        user_goal=request.goal,
-        system_data=request.system_data,
-        parameters=request.parameters
+        user_goal=request.goal, system_data=request.system_data, parameters=request.parameters
     )
-    
+
     return StudyResult(**results)
 
+
 @app.get("/api/v1/tasks/{task_id}")
-async def get_task_status(
-    task_id: str,
-    current_user: User = Depends(get_current_user)
-):
+async def get_task_status(task_id: str, current_user: User = Depends(get_current_user)):
     """Get status of engineering task."""
     orchestrator = get_orchestrator()
     task = await orchestrator.get_task_status(task_id)
-    
+
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     return task
 
+
 @app.post("/api/v1/etap/open-project")
-async def open_etap_project(
-    project_path: str,
-    current_user: User = Depends(get_current_user)
-):
+async def open_etap_project(project_path: str, current_user: User = Depends(get_current_user)):
     """Open ETAP project via COM automation."""
     from etap_integration.etap_com import ETAPAutomation
-    
+
     with ETAPAutomation(visible=False) as etap:
         project = etap.open_project(project_path)
         if not project:
             raise HTTPException(status_code=400, detail="Failed to open project")
-        
+
         return {"status": "success", "project_path": project_path}
+
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0"
-    }
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat(), "version": "1.0.0"}
 ```
 
 ---
@@ -930,20 +921,21 @@ Response to Client
 # Prometheus metrics
 from prometheus_client import Counter, Histogram, Gauge
 
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests')
-REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'Request latency')
-ACTIVE_WORKFLOWS = Gauge('active_workflows', 'Number of active workflows')
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests")
+REQUEST_LATENCY = Histogram("http_request_duration_seconds", "Request latency")
+ACTIVE_WORKFLOWS = Gauge("active_workflows", "Number of active workflows")
+
 
 # Example usage
 @app.middleware("http")
 async def add_metrics(request: Request, call_next):
     start_time = time.time()
-    
+
     response = await call_next(request)
-    
+
     REQUEST_COUNT.inc()
     REQUEST_LATENCY.observe(time.time() - start_time)
-    
+
     return response
 ```
 

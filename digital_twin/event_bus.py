@@ -338,7 +338,10 @@ class EventBus:
         self._lock = threading.Lock()
 
     def subscribe(
-        self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0,
+        self,
+        event_type: EventType,
+        handler: Callable[[DomainEvent], None],
+        priority: int = 0,
     ) -> str:
         """
         Subscribe a handler to an event type.

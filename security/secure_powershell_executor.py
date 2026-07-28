@@ -42,43 +42,95 @@ MAX_COMMAND_LENGTH = 10000
 # that bypass the AST validator.
 ALLOWED_CMDLETS: set[str] = {
     # File system operations
-    "get-childitem", "set-location", "write-output", "out-file",
-    "get-content", "add-content", "set-content", "remove-item",
-    "copy-item", "move-item", "new-item", "test-path",
-    "get-item", "get-itemproperty", "set-itemproperty",
-    "get-acl", "set-acl",
+    "get-childitem",
+    "set-location",
+    "write-output",
+    "out-file",
+    "get-content",
+    "add-content",
+    "set-content",
+    "remove-item",
+    "copy-item",
+    "move-item",
+    "new-item",
+    "test-path",
+    "get-item",
+    "get-itemproperty",
+    "set-itemproperty",
+    "get-acl",
+    "set-acl",
     # Process operations
-    "get-process", "start-process", "stop-process",
-    "get-service", "start-service", "stop-service",
+    "get-process",
+    "start-process",
+    "stop-process",
+    "get-service",
+    "start-service",
+    "stop-service",
     # Network operations
-    "test-connection", "resolve-dnsname",
-    "invoke-webrequest", "invoke-restmethod",
+    "test-connection",
+    "resolve-dnsname",
+    "invoke-webrequest",
+    "invoke-restmethod",
     # System information
-    "get-wmiobject", "get-ciminstance", "get-cimclass",
-    "get-date", "get-location", "get-computerinfo",
-    "get-os", # Active Directory (read-only)
-    "get-aduser", "get-adgroup", "get-adgroupmember",
-    "get-adcomputer", "get-adorganizationalunit",
+    "get-wmiobject",
+    "get-ciminstance",
+    "get-cimclass",
+    "get-date",
+    "get-location",
+    "get-computerinfo",
+    "get-os",  # Active Directory (read-only)
+    "get-aduser",
+    "get-adgroup",
+    "get-adgroupmember",
+    "get-adcomputer",
+    "get-adorganizationalunit",
     # Git operations
     "get-gitstatus",
     # Utility
-    "where-object", "select-object", "sort-object",
-    "group-object", "measure-object", "foreach-object",
-    "compare-object", "format-table", "format-list",
-    "convertto-json", "convertfrom-json", "convertto-csv",
-    "convertfrom-csv", "export-csv", "import-csv",
-    "write-host", "write-progress", "write-verbose",
-    "write-debug", "write-warning", "write-error",
-    "new-object", "add-type", "get-member",
-    "get-command", "get-help", "get-module",
-    "import-module", "export-modulemember",
-    "set-strictmode", "set-psdebug",
-    "get-variable", "set-variable", "remove-variable",
+    "where-object",
+    "select-object",
+    "sort-object",
+    "group-object",
+    "measure-object",
+    "foreach-object",
+    "compare-object",
+    "format-table",
+    "format-list",
+    "convertto-json",
+    "convertfrom-json",
+    "convertto-csv",
+    "convertfrom-csv",
+    "export-csv",
+    "import-csv",
+    "write-host",
+    "write-progress",
+    "write-verbose",
+    "write-debug",
+    "write-warning",
+    "write-error",
+    "new-object",
+    "add-type",
+    "get-member",
+    "get-command",
+    "get-help",
+    "get-module",
+    "import-module",
+    "export-modulemember",
+    "set-strictmode",
+    "set-psdebug",
+    "get-variable",
+    "set-variable",
+    "remove-variable",
     "get-childitemvariable",
-    "new-psdrive", "get-psdrive", "remove-psdrive",
-    "register-psrepository", "get-psrepository",
+    "new-psdrive",
+    "get-psdrive",
+    "remove-psdrive",
+    "register-psrepository",
+    "get-psrepository",
     # Pipeline common
-    "select-string", "out-null", "out-string",
+    "select-string",
+    "out-null",
+    "out-string",
     "tee-object",
 }
 
@@ -94,7 +146,7 @@ def _validate_cmdlet_whitelist(command: str) -> bool:
     # re.IGNORECASE makes [A-Z] equivalent to [A-Za-z], so the lower-case
     # range would be redundant (SonarCloud python:S5869).
     cmdlet_pattern = re.compile(
-        r'\b([A-Z]+)-([A-Z]+)\b',
+        r"\b([A-Z]+)-([A-Z]+)\b",
         re.IGNORECASE,
     )
     for match in cmdlet_pattern.finditer(command):
@@ -134,7 +186,7 @@ def _write_script_to_temp(command: str) -> str | None:
     """
     try:
         # Create a temp file with .ps1 extension
-        fd, script_path = tempfile.mkstemp(suffix='.ps1', prefix='etap_')
+        fd, script_path = tempfile.mkstemp(suffix=".ps1", prefix="etap_")
         os.close(fd)
 
         # Write the command with strict mode and error handling
@@ -147,36 +199,29 @@ def _write_script_to_temp(command: str) -> str | None:
         )
 
         # Write with restricted permissions (owner read/write only)
-        with open(script_path, 'w', encoding='utf-8') as f:
+        with open(script_path, "w", encoding="utf-8") as f:
             f.write(script_content)
 
         # On Windows, restrict file permissions to current user
         try:
             import ntsecuritycon as con
             import win32security
+
             user, _, _ = win32security.GetUserTokenInformation(
                 win32security.OpenProcessToken(
-                    win32security.GetCurrentProcess(),
-                    win32security.TOKEN_QUERY
+                    win32security.GetCurrentProcess(), win32security.TOKEN_QUERY
                 ),
-                win32security.TokenUser
+                win32security.TokenUser,
             )
-            sd = win32security.GetFileSecurity(
-                script_path,
-                win32security.DACL_SECURITY_INFORMATION
-            )
+            sd = win32security.GetFileSecurity(script_path, win32security.DACL_SECURITY_INFORMATION)
             dacl = win32security.ACL()
             dacl.AddAccessAllowedAce(
                 win32security.ACL_REVISION,
                 con.FILE_GENERIC_READ | con.FILE_GENERIC_WRITE | con.FILE_DELETE,
-                user
+                user,
             )
             sd.SetSecurityDescriptorDacl(1, dacl, 0)
-            win32security.SetFileSecurity(
-                script_path,
-                win32security.DACL_SECURITY_INFORMATION,
-                sd
-            )
+            win32security.SetFileSecurity(script_path, win32security.DACL_SECURITY_INFORMATION, sd)
         except ImportError:
             # win32security not available - still secure enough on HF Space
             pass
@@ -210,19 +255,25 @@ def _run_security_checks(command: str, audit, validator) -> bool:
     cmd_len = len(command)
     if not validator.validate_powershell_command(command):
         _security_violation(
-            audit, "Forbidden PowerShell pattern detected", cmd_len,
+            audit,
+            "Forbidden PowerShell pattern detected",
+            cmd_len,
             "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
         )
         return False
     if not _validate_cmdlet_whitelist(command):
         _security_violation(
-            audit, "Unauthorized cmdlet detected", cmd_len,
+            audit,
+            "Unauthorized cmdlet detected",
+            cmd_len,
             "Security Violation: Unauthorized PowerShell cmdlet detected.",
         )
         return False
     if not _validate_character_set(command):
         _security_violation(
-            audit, "Disallowed characters in command", cmd_len,
+            audit,
+            "Disallowed characters in command",
+            cmd_len,
             "Security Violation: Command contains disallowed characters.",
         )
         return False

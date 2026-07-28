@@ -17,8 +17,9 @@ if not hasattr(datetime, "UTC"):
 
 if not hasattr(typing, "Annotated"):
     from typing_extensions import Annotated
+
     typing.Annotated = Annotated
-    sys.modules['typing'].Annotated = Annotated
+    sys.modules["typing"].Annotated = Annotated
 
 import contextlib
 import os
@@ -73,17 +74,21 @@ def _require_study_models():
 
 def _build_network_from_data(raw: dict) -> dict:
     """Construct a network dict with real Pydantic model instances from raw data.
-  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    dicts keyed by component type).  Returns a dict with the same keys but  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    whose values are lists of real Pydantic model instances.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      dicts keyed by component type).  Returns a dict with the same keys but  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      whose values are lists of real Pydantic model instances.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     mod = _require_study_models()
     BusSpec = mod.BusSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
     LineSpec = mod.LineSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
-    GeneratorSpec = mod.GeneratorSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    GeneratorSpec = (
+        mod.GeneratorSpec
+    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
     LoadSpec = mod.LoadSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
-    TransformerSpec = mod.TransformerSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    TransformerSpec = (
+        mod.TransformerSpec
+    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
 
     model_map = {
         "buses": BusSpec,
@@ -94,7 +99,10 @@ def _build_network_from_data(raw: dict) -> dict:
     }
 
     result = {}
-    for key, ModelCls in model_map.items():  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    for (
+        key,
+        ModelCls,
+    ) in model_map.items():  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
         items = raw.get(key, [])
         result[key] = [ModelCls(**item) for item in items]
     return result
@@ -547,12 +555,14 @@ def temp_database():
 @pytest.fixture
 def sample_study_request(sample_3bus_network):
     """Provides a sample study request for testing.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    Uses real Pydantic models from ``services.study_service``.
-    Skips the test if that module is not importable.
+    # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      Uses real Pydantic models from ``services.study_service``.
+      Skips the test if that module is not importable.
     """
     mod = _require_study_models()
-    StudyRequest = mod.StudyRequest  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    StudyRequest = (
+        mod.StudyRequest
+    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
     SystemSpec = mod.SystemSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
 
     return StudyRequest(
@@ -624,7 +634,9 @@ def setup_test_environment():
                 loop = asyncio.get_event_loop_policy().get_event_loop()
                 running = loop.is_running()
                 closed = loop.is_closed()
-                print(f"[LOOP-DBG {worker}] {label} — loop={id(loop)} running={running} closed={closed}")
+                print(
+                    f"[LOOP-DBG {worker}] {label} — loop={id(loop)} running={running} closed={closed}"
+                )
             except RuntimeError as exc:
                 # "There is no current event loop" — happens after loop.close()
                 print(f"[LOOP-DBG {worker}] {label} — RuntimeError: {exc}")
@@ -849,7 +861,9 @@ def client(app) -> Generator[TestClient, None, None]:
     if debug_loop:
         import threading
 
-        print(f"[LOOP-DBG {worker}] client fixture ENTER — thread={threading.current_thread().name}")
+        print(
+            f"[LOOP-DBG {worker}] client fixture ENTER — thread={threading.current_thread().name}"
+        )
         _debug_loop_msg("client fixture BEFORE TestClient", worker)
 
     with TestClient(app) as c:

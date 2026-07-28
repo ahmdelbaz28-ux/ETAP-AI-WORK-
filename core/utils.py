@@ -9,6 +9,7 @@ Functions:
                                Replaces ``integrations.langfuse_integration._env_truthy``
                                and ``acp_runtime.acp.config.env_bool``.
 """
+
 from __future__ import annotations
 
 import os

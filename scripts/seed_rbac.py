@@ -150,9 +150,16 @@ async def seed_rbac() -> None:
 
             # Engineer gets read/write on studies, projects, equipment, etc.
             engineer_resources = [
-                "studies", "projects", "equipment", "reports",
-                "templates", "batch", "export", "import",
-                "dashboard", "notifications",
+                "studies",
+                "projects",
+                "equipment",
+                "reports",
+                "templates",
+                "batch",
+                "export",
+                "import",
+                "dashboard",
+                "notifications",
             ]
             engineer_actions = ["list", "read", "create", "update"]
             for resource in engineer_resources:

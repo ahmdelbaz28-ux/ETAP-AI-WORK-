@@ -9,6 +9,7 @@ Usage:
     async def my_agent_function(prompt: str) -> str:
         ...
 """
+
 import functools
 import logging
 import os

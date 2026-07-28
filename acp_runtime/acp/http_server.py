@@ -33,7 +33,9 @@ __all__ = ["start_http_server"]
 
 
 async def _handle_client(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics",
+    health_handler: Any,
+    client: anyio.abc.ByteStream,
+    metrics_path: str = "/metrics",
 ) -> None:
     """Parse a minimal HTTP request and dispatch to the health handler."""
     log = logging.getLogger("acp.http_server")
@@ -139,7 +141,10 @@ async def _handle_client(  # NOSONAR: cognitive complexity; scheduled for refact
             )
 
         await client.send(response)
-    except (anyio.EndOfStream, OSError):  # NOSONAR: ConnectionError/BrokenPipe/ConnectionReset are subclasses of OSError; kept minimal
+    except (
+        anyio.EndOfStream,
+        OSError,
+    ):  # NOSONAR: ConnectionError/BrokenPipe/ConnectionReset are subclasses of OSError; kept minimal
         # Expected when a client disconnects abruptly.
         pass
     except Exception:

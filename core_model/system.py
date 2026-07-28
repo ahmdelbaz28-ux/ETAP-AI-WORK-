@@ -67,9 +67,11 @@ class System:
         bus_ids = sorted(self.buses.keys())
         n = len(bus_ids)
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
-  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
-        Ybus = np.zeros((n, n), dtype=complex)  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+        Ybus = np.zeros(
+            (n, n), dtype=complex
+        )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
 
         # Add contributions from lines
         for line in self.lines:

@@ -76,7 +76,10 @@ class ETAPResult:
 class IEtapProvider(ABC):
     @abstractmethod
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
     ) -> ETAPResult:
         """
         Execute a study on the configured ETAP backend.
@@ -118,11 +121,18 @@ class LocalEtapProvider(IEtapProvider):
         return self._available
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
     ) -> ETAPResult:
         if not self._available:
             return ETAPResult(
-                False, {}, [], ["Local ETAP automation not available or disabled"], 0.0,
+                False,
+                {},
+                [],
+                ["Local ETAP automation not available or disabled"],
+                0.0,
             )
 
         import time
@@ -177,12 +187,16 @@ class RemoteEtapProvider(IEtapProvider):
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
             self.api_key = ""
-            self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker("etap_remote", failure_threshold=5, recovery_timeout=60.0)
+            self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker(
+                "etap_remote", failure_threshold=5, recovery_timeout=60.0
+            )
             return
 
         self.worker_url = worker_url.rstrip("/")
         self.api_key = api_key
-        self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker("etap_remote", failure_threshold=5, recovery_timeout=60.0)
+        self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker(
+            "etap_remote", failure_threshold=5, recovery_timeout=60.0
+        )
 
     def is_available(self) -> bool:
         if not self.use_etap:
@@ -194,7 +208,10 @@ class RemoteEtapProvider(IEtapProvider):
             return False
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -225,7 +242,10 @@ class RemoteEtapProvider(IEtapProvider):
         for attempt in range(self.MAX_RETRIES):
             try:
                 response = requests.post(
-                    f"{self.worker_url}/execute", json=payload, headers=headers, timeout=300,
+                    f"{self.worker_url}/execute",
+                    json=payload,
+                    headers=headers,
+                    timeout=300,
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -429,7 +449,10 @@ class MockEtapProvider(IEtapProvider):
         return self.use_etap
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -487,7 +510,10 @@ class NullEtapProvider(IEtapProvider):
         return False
 
     def execute_study(
-        self, project_path: str, study_type: ETAPStudyType, visible: bool = False,
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(

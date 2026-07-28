@@ -8,6 +8,7 @@ Tests verify that:
 - HPA is conditionally enabled
 - Swallowed exceptions have SECURITY comments explaining intent
 """
+
 import os
 import re
 import unittest
@@ -83,9 +84,7 @@ class TestHelmHPA(unittest.TestCase):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.helm_dir = os.path.join(base, "helm", "etap-ai", "templates")
         self.hpa_path = os.path.join(self.helm_dir, "hpa.yaml")
-        self.values_path = os.path.join(
-            os.path.dirname(self.helm_dir), "values.yaml"
-        )
+        self.values_path = os.path.join(os.path.dirname(self.helm_dir), "values.yaml")
 
     def _read(self, path):
         with open(path, encoding="utf-8", errors="replace") as f:

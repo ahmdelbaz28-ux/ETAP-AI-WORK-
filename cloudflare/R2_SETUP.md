@@ -100,15 +100,16 @@ wrangler deploy -c wrangler-r2.toml
 أو عبر API:
 ```python
 from huggingface_hub import HfApi
-api = HfApi(token='YOUR_HF_TOKEN')
+
+api = HfApi(token="YOUR_HF_TOKEN")
 secrets = {
-    'R2_ACCOUNT_ID': 'YOUR_CF_ACCOUNT_ID',
-    'R2_ACCESS_KEY_ID': 'YOUR_ACCESS_KEY',
-    'R2_SECRET_ACCESS_KEY': 'YOUR_SECRET_KEY',
-    'R2_BUCKET_NAME': 'ahmedetap-storage',
+    "R2_ACCOUNT_ID": "YOUR_CF_ACCOUNT_ID",
+    "R2_ACCESS_KEY_ID": "YOUR_ACCESS_KEY",
+    "R2_SECRET_ACCESS_KEY": "YOUR_SECRET_KEY",
+    "R2_BUCKET_NAME": "ahmedetap-storage",
 }
 for key, value in secrets.items():
-    api.add_space_secret('ahmdelbaz28/AhmedETAP-Platform', key, value)
+    api.add_space_secret("ahmdelbaz28/AhmedETAP-Platform", key, value)
 ```
 
 ---
@@ -138,7 +139,7 @@ if is_r2_enabled():
         pdf_bytes,
         "application/pdf",
         metadata={"project_id": "abc", "study_type": "load_flow"},
-        cache_control="private, max-age=3600"
+        cache_control="private, max-age=3600",
     )
 
     # تحميل ملف

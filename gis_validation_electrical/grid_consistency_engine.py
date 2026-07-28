@@ -27,7 +27,9 @@ class GridConsistencyReport:
     cim_model: Optional[CIMModel] = None
 
 
-def grid_consistency_engine(assets: list[ADMSAsset]) -> GridConsistencyReport:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def grid_consistency_engine(
+    assets: list[ADMSAsset],
+) -> GridConsistencyReport:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Final electrical grid consistency validation layer.
 
@@ -54,7 +56,10 @@ def grid_consistency_engine(assets: list[ADMSAsset]) -> GridConsistencyReport:  
             ),
         )
         return GridConsistencyReport(
-            ok=False, failures=failures, electrical_model=model, cim_model=None,
+            ok=False,
+            failures=failures,
+            electrical_model=model,
+            cim_model=None,
         )
 
     # Radiality compliance (electrical graph theory)

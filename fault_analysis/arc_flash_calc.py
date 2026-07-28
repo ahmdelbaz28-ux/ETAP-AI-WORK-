@@ -10,6 +10,7 @@ Callers that need richer result objects (ArcFlashResult dataclass with
 PPE descriptions, enclosure details, etc.) should import and use
 ``ArcFlashEngine`` directly.
 """
+
 from __future__ import annotations
 
 import json
@@ -101,7 +102,12 @@ def calculate_arc_flash(
 
 
 def _validate_arc_flash_input(
-    voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode,
+    voltage_kv,
+    bolted_fault_ka,
+    duration_sec,
+    distance_mm,
+    enclosure,
+    electrode,
 ):
     """Validate arc flash CLI inputs against IEEE 1584-2018 bounds."""
     import math
@@ -169,7 +175,12 @@ if __name__ == "__main__":
         electrode = args[5]
 
         validation_errors = _validate_arc_flash_input(
-            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode,
+            voltage_kv,
+            bolted_fault_ka,
+            duration_sec,
+            distance_mm,
+            enclosure,
+            electrode,
         )
         if validation_errors:
             print(
@@ -180,7 +191,12 @@ if __name__ == "__main__":
             sys.exit(1)
 
         res = calculate_arc_flash(
-            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode,
+            voltage_kv,
+            bolted_fault_ka,
+            duration_sec,
+            distance_mm,
+            enclosure,
+            electrode,
         )
         print(json.dumps(res))
     except ValueError as e:

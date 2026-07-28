@@ -103,7 +103,10 @@ class HarmonicAnalysisEngine:
         self.branch_data = {}
 
     def set_system_data(
-        self, Ybus_fundamental: np.ndarray, bus_ids: list[str], branch_data: dict = None,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self,
+        Ybus_fundamental: np.ndarray,
+        bus_ids: list[str],
+        branch_data: dict = None,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
         """
         Set system admittance matrix and topology.
@@ -122,11 +125,14 @@ class HarmonicAnalysisEngine:
         self.harmonic_sources.append(source)
         logger.info(
             "Added harmonic source: order=%d, magnitude=%s pu",
-            source.harmonic_order, source.magnitude_pu,
+            source.harmonic_order,
+            source.magnitude_pu,
         )
 
     def calculate_harmonic_impedance(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, harmonic_order: int, Ybus_fundamental: np.ndarray = None,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self,
+        harmonic_order: int,
+        Ybus_fundamental: np.ndarray = None,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> np.ndarray:
         """
         Calculate system impedance matrix at a specific harmonic order.
@@ -151,7 +157,9 @@ class HarmonicAnalysisEngine:
 
         h = harmonic_order
         n = Ybus_fundamental.shape[0]
-        Ybus_h = np.zeros((n, n), dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_h = np.zeros(
+            (n, n), dtype=complex
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # IEEE 519-2022 frequency-dependent scaling:
         #   R(h) ≈ R(1) × sqrt(h)   (skin effect)
@@ -170,21 +178,31 @@ class HarmonicAnalysisEngine:
         # Simplified approach: compute Zbus at fundamental → scale each
         # element's R and X components individually → rebuild Ybus via
         # pseudo-inversion.  This is more accurate than sign-based scaling.
-        Zbus_1 = np.linalg.inv(Ybus_fundamental)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Zbus_h = np.zeros_like(Zbus_1, dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Zbus_1 = np.linalg.inv(
+            Ybus_fundamental
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Zbus_h = np.zeros_like(
+            Zbus_1, dtype=complex
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         for i in range(n):
             for j in range(n):
-                Z_ij = Zbus_1[i, j]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Z_ij = Zbus_1[
+                    i, j
+                ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 R = Z_ij.real
                 X = Z_ij.imag
 
                 # Skin effect on resistance (approximate)
-                R_h = R * np.sqrt(h) if R != 0 else 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                R_h = (
+                    R * np.sqrt(h) if R != 0 else 0.0
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
                 # Reactance scaling: inductive X > 0, capacitive X < 0
                 if X > 0:  # Net inductive at this (i,j)
-                    X_h = X * h  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    X_h = (
+                        X * h
+                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 elif X < 0:  # Net capacitive at this (i,j)
                     X_h = X / h if h > 0 else X
                 else:
@@ -221,18 +239,24 @@ class HarmonicAnalysisEngine:
         freq = h * self.fundamental_freq
 
         # Build harmonic Ybus
-        Ybus_h = self.calculate_harmonic_impedance(h)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_h = self.calculate_harmonic_impedance(
+            h
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Compute Zbus by inversion
         try:
-            Zbus_h = np.linalg.inv(Ybus_h)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Zbus_h = np.linalg.inv(
+                Ybus_h
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         except np.linalg.LinAlgError:
             logger.warning("Singular Ybus at harmonic %s, using pseudo-inverse", h)
             Zbus_h = np.linalg.pinv(Ybus_h)
 
         # Build harmonic current injection vector
         n = len(self.bus_ids)
-        I_h = np.zeros(n, dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_h = np.zeros(
+            n, dtype=complex
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         for source in self.harmonic_sources:
             if source.harmonic_order == h and source.source_type == "current":
@@ -240,11 +264,15 @@ class HarmonicAnalysisEngine:
                     bus_idx = self.bus_ids.index(source.bus_id)
                     # Convert polar to rectangular
                     angle_rad = np.radians(source.angle_deg)
-                    I_injection = source.magnitude_pu * np.exp(1j * angle_rad)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    I_injection = (
+                        source.magnitude_pu * np.exp(1j * angle_rad)
+                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     I_h[bus_idx] += I_injection
 
         # Solve for voltages: V = Zbus * I
-        V_h = Zbus_h @ I_h  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_h = (
+            Zbus_h @ I_h
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Create result dictionaries
         bus_voltages = {}
@@ -268,7 +296,9 @@ class HarmonicAnalysisEngine:
         )
 
     def calculate_thd(
-        self, harmonic_results: list[HarmonicResult], fundamental_magnitude: dict[str, float],
+        self,
+        harmonic_results: list[HarmonicResult],
+        fundamental_magnitude: dict[str, float],
     ) -> dict[str, float]:
         """
         Calculate Total Harmonic Distortion (THD).
@@ -296,7 +326,9 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:  # Exclude fundamental
-                    V_h = abs(result.bus_voltages.get(bus_id, 0))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    V_h = abs(
+                        result.bus_voltages.get(bus_id, 0)
+                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += V_h**2
 
             # Calculate THD
@@ -305,7 +337,9 @@ class HarmonicAnalysisEngine:
         return thd
 
     def calculate_tdd(
-        self, harmonic_results: list[HarmonicResult], fundamental_current: dict[str, float],
+        self,
+        harmonic_results: list[HarmonicResult],
+        fundamental_current: dict[str, float],
     ) -> dict[str, float]:
         """
         Calculate Total Demand Distortion (TDD).
@@ -334,7 +368,9 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:
-                    I_h = abs(result.branch_currents.get(branch_id, 0))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    I_h = abs(
+                        result.branch_currents.get(branch_id, 0)
+                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += I_h**2
 
             # Calculate TDD
@@ -343,7 +379,9 @@ class HarmonicAnalysisEngine:
         return tdd
 
     def detect_resonance(
-        self, harmonic_results: list[HarmonicResult], threshold_factor: float = 10.0,
+        self,
+        harmonic_results: list[HarmonicResult],
+        threshold_factor: float = 10.0,
     ) -> tuple[bool, list[float]]:
         """
         Detect potential resonance conditions.
@@ -369,14 +407,18 @@ class HarmonicAnalysisEngine:
                 resonance_freqs.append(result.frequency_hz)
                 logger.warning(
                     "Potential resonance detected at %s Hz (harmonic %d)",
-                    result.frequency_hz, result.harmonic_order,
+                    result.frequency_hz,
+                    result.harmonic_order,
                 )
 
         resonance_detected = len(resonance_freqs) > 0
         return resonance_detected, resonance_freqs
 
     def check_ieee_519_compliance(
-        self, thd_voltage: dict[str, float], tdd_current: dict[str, float], voltage_kv: float,  # NOSONAR: unused param kept for API compatibility
+        self,
+        thd_voltage: dict[str, float],
+        tdd_current: dict[str, float],
+        voltage_kv: float,  # NOSONAR: unused param kept for API compatibility
     ) -> dict[str, bool]:
         """
         Check compliance with IEEE 519-2022 limits.
@@ -415,7 +457,9 @@ class HarmonicAnalysisEngine:
             if not compliant:
                 logger.warning(
                     "IEEE 519 violation at bus %s: THD=%.2f%% exceeds limit %s%%",
-                    bus_id, thd, vthd_limit,
+                    bus_id,
+                    thd,
+                    vthd_limit,
                 )
 
         return compliance
@@ -491,13 +535,17 @@ class HarmonicAnalysisEngine:
 
         logger.info(
             "Harmonic analysis complete. Resonance: %s, Violations: %d",
-            resonance_detected, len(violations),
+            resonance_detected,
+            len(violations),
         )
 
         return result
 
     def design_passive_filter(
-        self, target_harmonic: int, q_factor: float = 50.0, tuning_frequency_offset: float = 0.05,
+        self,
+        target_harmonic: int,
+        q_factor: float = 50.0,
+        tuning_frequency_offset: float = 0.05,
     ) -> dict[str, float]:
         """
         Design a passive harmonic filter (single-tuned).
@@ -523,7 +571,9 @@ class HarmonicAnalysisEngine:
         # Choose capacitor rating (typical values)
         Q_cap_MVAR = 1.0  # 1 MVAR capacitor bank  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V_ll = 13.8  # Line-to-line voltage in kV (example)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_phase = V_ll / np.sqrt(3)  # Phase voltage in kV  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_phase = (
+            V_ll / np.sqrt(3)
+        )  # Phase voltage in kV  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C
@@ -552,7 +602,10 @@ class HarmonicAnalysisEngine:
 
         logger.info(
             "Passive filter designed for harmonic %d: C=%.2f uF, L=%.2f mH, R=%.3f ohm",
-            h_target, C * 1e6, L * 1e3, R,
+            h_target,
+            C * 1e6,
+            L * 1e3,
+            R,
         )
 
         return filter_design

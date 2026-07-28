@@ -60,7 +60,8 @@ class ExportHistory(Base):
     file_size_bytes: Mapped[Optional[int]] = mapped_column(nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -82,13 +83,17 @@ class ExportHistoryResponse(BaseModel):
     total: int
 
 
-router = APIRouter(prefix="/api/v1/export", tags=["Export"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/export", tags=["Export"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 
 
 async def _get_project_studies(project_id: str, db: AsyncSession) -> list:
     from api.projects import StudyResult
+
     result = await db.execute(
-        select(StudyResult).where(StudyResult.project_id == project_id)
+        select(StudyResult)
+        .where(StudyResult.project_id == project_id)
         .order_by(desc(StudyResult.created_at))
     )
     return result.scalars().all()
@@ -122,7 +127,11 @@ def _generate_pdf(project_name: str, studies: list) -> bytes:
     # Title
     elements.append(Paragraph(f"Project Report: {project_name}", styles["Title"]))
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}", styles["Normal"]
+        )
+    )
     elements.append(Spacer(1, 24))
 
     # Studies table
@@ -131,23 +140,29 @@ def _generate_pdf(project_name: str, studies: list) -> bytes:
         results_summary = ""
         if s.results:
             results_summary = ", ".join(list(s.results.keys())[:3])
-        data.append([
-            s.study_type,
-            s.status,
-            s.created_at.strftime("%Y-%m-%d") if s.created_at else "",
-            results_summary,
-        ])
+        data.append(
+            [
+                s.study_type,
+                s.status,
+                s.created_at.strftime("%Y-%m-%d") if s.created_at else "",
+                results_summary,
+            ]
+        )
 
     table = Table(data, colWidths=[120, 80, 100, 200])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
-    ]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+            ]
+        )
+    )
     elements.append(table)
 
     doc.build(elements)
@@ -203,11 +218,13 @@ def _generate_excel(project_name: str, studies: list) -> bytes:
 
 @router.post("/{project_id}/pdf", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_pdf(
-    project_id: str, db,
+    project_id: str,
+    db,
     user: CurrentUser = Depends(require_permission("export", "create")),
 ):
     """Export study results as PDF."""
     from api.projects import Project
+
     project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
     if project is None:
@@ -218,8 +235,11 @@ async def export_pdf(
 
     # Record export
     export = ExportHistory(
-        id=str(uuid.uuid4()), project_id=project_id, export_type="pdf",
-        file_name=f"{project.name}_report.pdf", file_size_bytes=len(pdf_bytes),
+        id=str(uuid.uuid4()),
+        project_id=project_id,
+        export_type="pdf",
+        file_name=f"{project.name}_report.pdf",
+        file_size_bytes=len(pdf_bytes),
         created_by=user.user_id,
     )
     db.add(export)
@@ -234,11 +254,13 @@ async def export_pdf(
 
 @router.post("/{project_id}/excel", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_excel(
-    project_id: str, db,
+    project_id: str,
+    db,
     user: CurrentUser = Depends(require_permission("export", "create")),
 ):
     """Export study results as Excel."""
     from api.projects import Project
+
     project_result = await db.execute(select(Project).where(Project.id == project_id))
     project = project_result.scalar_one_or_none()
     if project is None:
@@ -248,8 +270,11 @@ async def export_excel(
     excel_bytes = _generate_excel(project.name, studies)
 
     export = ExportHistory(
-        id=str(uuid.uuid4()), project_id=project_id, export_type="excel",
-        file_name=f"{project.name}_results.xlsx", file_size_bytes=len(excel_bytes),
+        id=str(uuid.uuid4()),
+        project_id=project_id,
+        export_type="excel",
+        file_name=f"{project.name}_results.xlsx",
+        file_size_bytes=len(excel_bytes),
         created_by=user.user_id,
     )
     db.add(export)
@@ -269,22 +294,32 @@ async def export_history(
     pagination: PaginationParams = Depends(pagination_params),
 ):
     result = await db.execute(
-        select(ExportHistory).where(ExportHistory.created_by == user.user_id)
+        select(ExportHistory)
+        .where(ExportHistory.created_by == user.user_id)
         .order_by(desc(ExportHistory.created_at))
-        .offset(pagination.offset).limit(pagination.page_size)
+        .offset(pagination.offset)
+        .limit(pagination.page_size)
     )
     exports = result.scalars().all()
     count = await db.execute(
-        select(func.count()).select_from(ExportHistory)
+        select(func.count())
+        .select_from(ExportHistory)
         .where(ExportHistory.created_by == user.user_id)
     )
     total = count.scalar_one()
     return ExportHistoryResponse(
-        exports=[ExportResponse(
-            id=str(e.id), project_id=e.project_id, study_id=e.study_id,
-            export_type=e.export_type, file_name=e.file_name,
-            file_size_bytes=e.file_size_bytes, created_by=e.created_by,
-            created_at=e.created_at,
-        ) for e in exports],
+        exports=[
+            ExportResponse(
+                id=str(e.id),
+                project_id=e.project_id,
+                study_id=e.study_id,
+                export_type=e.export_type,
+                file_name=e.file_name,
+                file_size_bytes=e.file_size_bytes,
+                created_by=e.created_by,
+                created_at=e.created_at,
+            )
+            for e in exports
+        ],
         total=total,
     )

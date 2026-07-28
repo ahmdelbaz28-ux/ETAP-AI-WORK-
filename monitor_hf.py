@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Monitor HF Space build status."""
+
 import json
 import sys
 import time
@@ -7,10 +8,12 @@ import urllib.request
 
 URL = "https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform"
 
+
 def get_status():
     req = urllib.request.Request(URL)
     with urllib.request.urlopen(req) as resp:
         return json.load(resp)
+
 
 data = get_status()
 rt = data.get("runtime", {})
@@ -33,7 +36,7 @@ for i in range(60):
         data = get_status()
         stage = data.get("runtime", {}).get("stage", "N/A")
         sha = data.get("sha", "?")[:12]
-        print(f"  [{i*5}s] Stage: {stage}, SHA: {sha}")
+        print(f"  [{i * 5}s] Stage: {stage}, SHA: {sha}")
         if stage == "RUNNING":
             print()
             print("HF Space is RUNNING - build succeeded!")
@@ -44,6 +47,6 @@ for i in range(60):
             print(f"BUILD_ERROR: {str(err)[:500]}")
             sys.exit(1)
     except Exception as e:
-        print(f"  [{i*5}s] Error: {e}")
+        print(f"  [{i * 5}s] Error: {e}")
 
 print("Timeout - build still in progress")

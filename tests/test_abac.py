@@ -5,6 +5,7 @@ Tests the pure functions (ip_in_ranges, _resolve_path) and the
 ABACPolicy / ABACRule / ABACPolicyEngine classes without needing
 database or external services.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -214,9 +215,7 @@ class TestPolicyFactories:
         WHEN make_business_hours_policy is called
         THEN it returns a list of ABACPolicy.
         """
-        policies = make_business_hours_policy(
-            name="office_hours", start_hour=9, end_hour=17
-        )
+        policies = make_business_hours_policy(name="office_hours", start_hour=9, end_hour=17)
         assert policies is not None
         assert isinstance(policies, list)
         assert all(isinstance(p, ABACPolicy) for p in policies)
@@ -226,9 +225,7 @@ class TestPolicyFactories:
         WHEN make_ip_allowlist_policy is called
         THEN it returns an ABACPolicy.
         """
-        policy = make_ip_allowlist_policy(
-            name="internal_network", allowed_cidrs=["10.0.0.0/8"]
-        )
+        policy = make_ip_allowlist_policy(name="internal_network", allowed_cidrs=["10.0.0.0/8"])
         assert policy is not None
         assert isinstance(policy, ABACPolicy)
 

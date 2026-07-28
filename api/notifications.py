@@ -64,6 +64,7 @@ DbDep = Any
 
 class NotificationType(str, Enum):  # noqa: UP042 — StrEnum not used for backward compat with <3.11
     """Supported notification types."""
+
     STUDY_COMPLETED = "study_completed"
     STUDY_FAILED = "study_failed"
     STUDY_STARTED = "study_started"
@@ -82,6 +83,7 @@ class NotificationType(str, Enum):  # noqa: UP042 — StrEnum not used for backw
 
 class NotificationPriority(str, Enum):  # noqa: UP042 — StrEnum not used for backward compat with <3.11
     """Notification priority levels."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -275,13 +277,14 @@ async def create_notification(
             try:
                 # api/auth.py defines User ORM model
                 from api.auth import User
-                result = await db.execute(
-                    select(User).where(User.id == user_id)
-                )
+
+                result = await db.execute(select(User).where(User.id == user_id))
                 user_obj = result.scalar_one_or_none()
                 if user_obj is not None:
                     user_email = getattr(user_obj, "email", None)
-                    user_name = getattr(user_obj, "full_name", None) or getattr(user_obj, "username", None)
+                    user_name = getattr(user_obj, "full_name", None) or getattr(
+                        user_obj, "username", None
+                    )
             except Exception:
                 pass  # User model lookup is best-effort
 
@@ -309,6 +312,7 @@ async def create_notification(
         except Exception as exc:
             # Notification itself is still delivered via WebSocket; email is best-effort
             import logging
+
             logging.getLogger("etap.notifications").warning(
                 "notification_email_failed user=%s err=%s", user_id, exc
             )
@@ -360,7 +364,9 @@ async def list_notifications(
 
     # Unread count
     unread_result = await db.execute(
-        select(func.count()).select_from(Notification).where(
+        select(func.count())
+        .select_from(Notification)
+        .where(
             Notification.user_id == user.user_id,
             Notification.is_read == False,
         )
@@ -412,7 +418,9 @@ async def get_unread_count(
 ) -> Any:
     """Return the count of unread notifications."""
     result = await db.execute(
-        select(func.count()).select_from(Notification).where(
+        select(func.count())
+        .select_from(Notification)
+        .where(
             Notification.user_id == user.user_id,
             Notification.is_read == False,
         )

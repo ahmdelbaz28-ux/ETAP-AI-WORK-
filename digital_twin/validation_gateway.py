@@ -133,7 +133,12 @@ class ValidationGateway:
         self._custom_rules[rule] = validator
 
     def validate_all(
-        self, gis_db=None, system=None, scada_db=None, adms_engine=None, state_snapshot=None,
+        self,
+        gis_db=None,
+        system=None,
+        scada_db=None,
+        adms_engine=None,
+        state_snapshot=None,
     ) -> list[ValidationResult]:
         """
         Run all validation rules across all layers.
@@ -203,7 +208,12 @@ class ValidationGateway:
         return results
 
     def validate_pre_mutation(
-        self, event_type: str, gis_db=None, system=None, scada_db=None, adms_engine=None,  # NOSONAR: unused param kept for API compatibility
+        self,
+        event_type: str,
+        gis_db=None,
+        system=None,
+        scada_db=None,
+        adms_engine=None,  # NOSONAR: unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """
         Validate pre-conditions before a state mutation.
@@ -237,7 +247,12 @@ class ValidationGateway:
         return results
 
     def validate_post_mutation(
-        self, gis_db=None, system=None, scada_db=None, adms_engine=None, state_snapshot=None,
+        self,
+        gis_db=None,
+        system=None,
+        scada_db=None,
+        adms_engine=None,
+        state_snapshot=None,
     ) -> list[ValidationResult]:
         """
         Validate post-conditions after a state mutation.
@@ -425,7 +440,11 @@ class ValidationGateway:
     # ADMS LAYER VALIDATIONS (Operational Truth)
     # ============================================================
 
-    def _validate_adms_layer(self, scada_db, adms_engine) -> list[ValidationResult]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _validate_adms_layer(
+        self, scada_db, adms_engine
+    ) -> list[
+        ValidationResult
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Validate ADMS operational truth."""
         results = []
 
@@ -484,7 +503,11 @@ class ValidationGateway:
     # ============================================================
 
     def _validate_cross_layer_sync(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, gis_db, system, scada_db, adms_engine,  # NOSONAR: unused param kept for API compatibility
+        self,
+        gis_db,
+        system,
+        scada_db,
+        adms_engine,  # NOSONAR: unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """Validate cross-layer synchronization (Three Truths Principle)."""
         results = []

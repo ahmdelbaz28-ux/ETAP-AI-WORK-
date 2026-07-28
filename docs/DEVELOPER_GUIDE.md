@@ -120,6 +120,7 @@ from api.dependencies import get_current_user
 
 router = APIRouter(prefix="/my-feature", tags=["My Feature"])
 
+
 @router.post("/action")
 async def my_action(data: MySchema, user=Depends(get_current_user)):
     """Perform a new action."""
@@ -129,6 +130,7 @@ async def my_action(data: MySchema, user=Depends(get_current_user)):
 3. **Register in** `api/routes.py`:
 ```python
 from api.my_feature import router as my_feature_router
+
 app.include_router(my_feature_router, prefix="/api/v1")
 ```
 

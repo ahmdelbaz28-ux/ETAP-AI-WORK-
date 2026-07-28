@@ -174,7 +174,9 @@ def auth_client(auth_app: FastAPI) -> TestClient:
 # ---------------------------------------------------------------------------
 
 
-def _create_state_estimation_app() -> FastAPI:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _create_state_estimation_app() -> (
+    FastAPI
+):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """App that runs WLS state estimation on incoming SCADA data and
     returns the estimation result back to the client.
 
@@ -577,7 +579,9 @@ class TestConnectionClose:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws:  # NOSONAR: unused local kept for clarity/debugging
+            with client.websocket_connect(
+                WS_PATH
+            ) as ws:  # NOSONAR: unused local kept for clarity/debugging
                 # Connection should be tracked
                 # (within TestClient the ASGI scope is in-process)
                 pass  # exiting the context manager closes the connection
@@ -677,8 +681,12 @@ class TestMultipleConcurrentConnections:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws1:  # NOSONAR: unused local kept for clarity/debugging
-                with client.websocket_connect(WS_PATH) as ws2:  # NOSONAR: unused local kept for clarity/debugging
+            with client.websocket_connect(
+                WS_PATH
+            ) as ws1:  # NOSONAR: unused local kept for clarity/debugging
+                with client.websocket_connect(
+                    WS_PATH
+                ) as ws2:  # NOSONAR: unused local kept for clarity/debugging
                     # Both connections should be tracked
                     assert len(feed.active_connections) == 2
 
@@ -729,7 +737,9 @@ class TestMultipleConcurrentConnections:
                 feed.disconnect(websocket)
 
         with TestClient(app) as client:
-            with client.websocket_connect(WS_PATH) as ws1:  # NOSONAR: unused local kept for clarity/debugging
+            with client.websocket_connect(
+                WS_PATH
+            ) as ws1:  # NOSONAR: unused local kept for clarity/debugging
                 # ws1 is connected
                 assert len(feed.active_connections) >= 1
 
@@ -763,7 +773,9 @@ class TestAuthentication:
         """A connection without an API key is rejected with code 1008."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             # The server should close the connection immediately
             with auth_client.websocket_connect(WS_PATH) as ws:
                 ws.receive_json()
@@ -772,7 +784,9 @@ class TestAuthentication:
         """A connection with an incorrect API key is rejected."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
                 ws.receive_json()
 
@@ -780,7 +794,9 @@ class TestAuthentication:
         """An empty ``x-api-key`` header is treated as missing."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
                 ws.receive_json()
 
@@ -891,7 +907,9 @@ class TestASGITransportHTTP:
     async def test_app_responds_to_http_get(self, app: FastAPI):
         """The FastAPI app returns 404 for an undefined GET route (not crash)."""
         transport = ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as ac:  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as ac:  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             resp = await ac.get("/nonexistent")
             assert resp.status_code == 404
 
@@ -899,7 +917,9 @@ class TestASGITransportHTTP:
         """An HTTP request to the WebSocket path returns 426 Upgrade Required
         (or similar — not a server crash)."""
         transport = ASGITransport(app=app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as ac:  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as ac:  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
             resp = await ac.get(WS_PATH)
             # FastAPI returns 426 or 400 for non-upgrade requests to WS routes
             assert resp.status_code in (400, 426, 405, 404)

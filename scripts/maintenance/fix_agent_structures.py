@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 #!/usr/bin/env python3
@@ -15,7 +14,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_file_structure(filepath: str) -> list[str]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def check_agent_file_structure(
+    filepath: str,
+) -> list[
+    str
+]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Check an agent file for structural issues."""
     issues = []
 
@@ -29,8 +32,11 @@ def check_agent_file_structure(filepath: str) -> list[str]:  # NOSONAR: cognitiv
         # Check for common issues
         for node in ast.walk(tree):
             # Check for numpy imports without proper handling
-            if isinstance(node, ast.ImportFrom) and node.module == "numpy" or isinstance(node, ast.Import) and any(
-                alias.name == "numpy" for alias in node.names
+            if (
+                isinstance(node, ast.ImportFrom)
+                and node.module == "numpy"
+                or isinstance(node, ast.Import)
+                and any(alias.name == "numpy" for alias in node.names)
             ):
                 issues.append(f"Direct import of numpy: {ast.unparse(node)}")
 

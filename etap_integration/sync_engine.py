@@ -240,7 +240,9 @@ class ETAPSyncEngine:
 
         # Set bus 1 as slack
         if system.buses:
-            first = next(iter(system.buses.values()))  # NOSONAR: false positive — already uses next(iter(...))
+            first = next(
+                iter(system.buses.values())
+            )  # NOSONAR: false positive — already uses next(iter(...))
             first.bus_type = "slack"
 
         # Rebuild Ybus
@@ -251,14 +253,20 @@ class ETAPSyncEngine:
             logger.warning("Ybus rebuild after ETAP import failed: %s", exc)
 
         logger.info(
-            "ETAP sync: built model with %d buses, %d lines", len(system.buses), len(system.lines),
+            "ETAP sync: built model with %d buses, %d lines",
+            len(system.buses),
+            len(system.lines),
         )
 
     # ------------------------------------------------------------------
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(self, project_path: Optional[str] = None) -> dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def export_to_etap(
+        self, project_path: Optional[str] = None
+    ) -> dict[
+        str, Any
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Export the AhmedETAP model to an ETAP project.
 
         Parameters
@@ -393,7 +401,10 @@ class ETAPSyncEngine:
 
         # Save to file for manual import
         export_dir = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "data", "etap_exports",
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "data",
+            "etap_exports",
         )
         os.makedirs(export_dir, exist_ok=True)
         export_file = os.path.join(
@@ -522,11 +533,21 @@ class ETAPSyncEngine:
 
         for bus_data in objects["buses"]:
             self._log_sync(
-                "etap_to_ahmed", "bus", bus_data["id"], bus_data["id"], "created (mock)", True,
+                "etap_to_ahmed",
+                "bus",
+                bus_data["id"],
+                bus_data["id"],
+                "created (mock)",
+                True,
             )
         for line_data in objects["lines"]:
             self._log_sync(
-                "etap_to_ahmed", "line", line_data["id"], line_data["id"], "created (mock)", True,
+                "etap_to_ahmed",
+                "line",
+                line_data["id"],
+                line_data["id"],
+                "created (mock)",
+                True,
             )
 
         return {
@@ -553,7 +574,13 @@ class ETAPSyncEngine:
         return abs(hash(id_str)) % 99999 + 1
 
     def _log_sync(
-        self, direction: str, obj_type: str, etap_id: str, ahmed_id: str, action: str, success: bool,
+        self,
+        direction: str,
+        obj_type: str,
+        etap_id: str,
+        ahmed_id: str,
+        action: str,
+        success: bool,
     ) -> None:
         """Add a sync operation to the log."""
         self._sync_log.append(

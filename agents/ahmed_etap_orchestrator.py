@@ -162,9 +162,17 @@ class SharedContext:
     }
 
     DEFAULT_STANDARDS: list[str] = [
-        "IEEE 3002.7", "IEC 60909", "IEEE 1584", "IEEE 519",
-        "IEC 60255", "IEEE 399", "IEEE 80", "IEC 60364",
-        "IEEE 1547", "IEC 62933", "IEC 61850",
+        "IEEE 3002.7",
+        "IEC 60909",
+        "IEEE 1584",
+        "IEEE 519",
+        "IEC 60255",
+        "IEEE 399",
+        "IEEE 80",
+        "IEC 60364",
+        "IEEE 1547",
+        "IEC 62933",
+        "IEC 61850",
     ]
 
     def __init__(
@@ -207,7 +215,10 @@ class SharedContext:
             record.started_at = datetime.now(UTC)
 
     async def mark_completed(
-        self, record: TaskRecord, result: dict[str, Any], math_guard_passed: bool,
+        self,
+        record: TaskRecord,
+        result: dict[str, Any],
+        math_guard_passed: bool,
     ) -> None:
         async with self._lock:
             record.status = "completed"
@@ -216,7 +227,10 @@ class SharedContext:
             record.completed_at = datetime.now(UTC)
 
     async def mark_reviewed(
-        self, record: TaskRecord, passed: bool, reviewer_notes: str = "",
+        self,
+        record: TaskRecord,
+        passed: bool,
+        reviewer_notes: str = "",
     ) -> None:
         async with self._lock:
             record.peer_review_passed = passed
@@ -260,7 +274,8 @@ class SharedContext:
             self.budget.record_compression()
             logger.info(
                 "Context compressed: %d tasks trimmed (spend was %.1f%%)",
-                compressed_count, self.budget.fraction_spent * 100,
+                compressed_count,
+                self.budget.fraction_spent * 100,
             )
             return True
 
@@ -291,9 +306,7 @@ class SharedContext:
                 "reviewer": self.review.reviewer,
                 "verdict": self.review.verdict,
                 "notes": self.review.notes,
-                "timestamp": self.review.timestamp.isoformat()
-                if self.review.timestamp
-                else None,
+                "timestamp": self.review.timestamp.isoformat() if self.review.timestamp else None,
             },
         }
 
@@ -473,7 +486,10 @@ class MathGuard:
     # ---- Internals ------------------------------------------------------
 
     def _check_units(
-        self, kind: str, claimed: str, expected: Optional[str],
+        self,
+        kind: str,
+        claimed: str,
+        expected: Optional[str],
     ) -> tuple[bool, str]:
         if kind not in _UNIT_RULES:
             return True, f"no unit rules for kind '{kind}' (skipped)"
@@ -805,9 +821,7 @@ class AhmedETAPOrchestrator:
         reviewer_study = self.peer_review.reviewer_for(canonical) or "validation"
 
         # Estimate prompt cost of loading shared context (one-time, not per-agent)
-        ctx.budget.estimate_and_record(
-            f"{ctx.project.name} {canonical} " + " ".join(ctx.standards)
-        )
+        ctx.budget.estimate_and_record(f"{ctx.project.name} {canonical} " + " ".join(ctx.standards))
 
         # Iteration loop: lead → math_guard → peer_review (max MAX_RETRIES retries)
         last_math_guard: Optional[MathGuardResult] = None
@@ -871,7 +885,9 @@ class AhmedETAPOrchestrator:
             if not mg.passed:
                 logger.warning(
                     "MathGuard FAIL on iteration %d for %s: %s",
-                    iteration, canonical, mg.reason,
+                    iteration,
+                    canonical,
+                    mg.reason,
                 )
                 await ctx.add_error(f"math_guard iteration {iteration}: {mg.reason}")
                 last_response = {"blocked_by": "math_guard", "reason": mg.reason}
@@ -896,7 +912,9 @@ class AhmedETAPOrchestrator:
             if not pr.passed:
                 logger.warning(
                     "PeerReview FAIL on iteration %d for %s: %s",
-                    iteration, canonical, pr.notes,
+                    iteration,
+                    canonical,
+                    pr.notes,
                 )
                 await ctx.add_error(f"peer_review iteration {iteration}: {pr.notes}")
                 last_response = {"blocked_by": "peer_review", "reason": pr.notes}
@@ -926,7 +944,12 @@ class AhmedETAPOrchestrator:
             )
 
         # All iterations exhausted
-        if last_math_guard and not last_math_guard.passed and last_peer_review and not last_peer_review.passed:
+        if (
+            last_math_guard
+            and not last_math_guard.passed
+            and last_peer_review
+            and not last_peer_review.passed
+        ):
             verdict = OrchestrationVerdict.BLOCKED_BOTH
         elif last_math_guard and not last_math_guard.passed:
             verdict = OrchestrationVerdict.BLOCKED_MATH_GUARD
@@ -1001,6 +1024,7 @@ class AhmedETAPSkillAgent(BaseAgent):
         if self._orch is None:
             # Lazy-import to avoid circular import at module load time.
             from agents.orchestrator import get_orchestrator
+
             self._orch = get_orchestrator()
         return self._orch
 
@@ -1057,7 +1081,8 @@ class AhmedETAPSkillAgent(BaseAgent):
         # (no deterministic recomputation available without domain engine).
         # Real callers should pass ``recompute_fn`` explicitly.
         recompute_fn: Callable[[], float] = params.get(
-            "recompute_fn", lambda: float(params.get("claim_value", 0.0)),
+            "recompute_fn",
+            lambda: float(params.get("claim_value", 0.0)),
         )
 
         result = await self._skill_orch.run_study(
@@ -1086,7 +1111,9 @@ class AhmedETAPSkillAgent(BaseAgent):
             status=status,
             data=result.to_dict(),
             validation_status=result.verdict == OrchestrationVerdict.APPROVED,
-            validation_errors=[] if status == AgentStatus.COMPLETED else [
+            validation_errors=[]
+            if status == AgentStatus.COMPLETED
+            else [
                 f"verdict={result.verdict.value}",
             ],
             execution_time=elapsed,
@@ -1158,9 +1185,7 @@ class AhmedETAPSkillAgent(BaseAgent):
 
 
 _SKILL_PATH = Path(__file__).resolve().parent.parent / "skills" / "ahmed-etap" / "SKILL.md"
-_REFERENCE_PATH = (
-    Path(__file__).resolve().parent.parent / "skills" / "ahmed-etap" / "REFERENCE.md"
-)
+_REFERENCE_PATH = Path(__file__).resolve().parent.parent / "skills" / "ahmed-etap" / "REFERENCE.md"
 
 _skill_cache: Optional[str] = None
 _reference_cache: Optional[str] = None

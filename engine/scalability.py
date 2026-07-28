@@ -57,7 +57,9 @@ class LoadBalancer:
     def register_worker(self, worker_id: str, capacity: float, weight: float = 1.0) -> None:
         with self._lock:
             self._workers[worker_id] = WorkerNode(
-                worker_id=worker_id, capacity=capacity, weight=max(weight, 0.1),
+                worker_id=worker_id,
+                capacity=capacity,
+                weight=max(weight, 0.1),
             )
 
     def unregister_worker(self, worker_id: str) -> None:
@@ -80,7 +82,9 @@ class LoadBalancer:
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
             elif self._strategy == LoadBalancingStrategy.RANDOM:
-                return random.choice(list(healthy.keys()))  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                return random.choice(
+                    list(healthy.keys())
+                )  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = random.uniform(0, total)
@@ -90,7 +94,9 @@ class LoadBalancer:
                     if r <= cumulative:
                         return wid
                 return list(healthy.keys())[-1]
-            return next(iter(healthy.keys()))  # NOSONAR: false positive — already uses next(iter(...))
+            return next(
+                iter(healthy.keys())
+            )  # NOSONAR: false positive — already uses next(iter(...))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -195,7 +201,10 @@ class DistributedTaskQueue:
         task_id = str(uuid.uuid4())
         prio = _PRIORITY_MAP.get(TaskPriority(priority), _PRIORITY_MAP[TaskPriority.NORMAL])
         item = TaskItem(
-            priority=prio, enqueued_at=time.time(), task_id=task_id, task_data=task_data,
+            priority=prio,
+            enqueued_at=time.time(),
+            task_id=task_id,
+            task_data=task_data,
         )
         with self._lock:
             heapq.heappush(self._queue, item)
@@ -281,11 +290,18 @@ class ClusterManager:
         self._failure_handlers: list[Callable[[str], None]] = []
 
     def register_node(
-        self, node_id: str, host: str, port: int, capabilities: dict[str, Any],
+        self,
+        node_id: str,
+        host: str,
+        port: int,
+        capabilities: dict[str, Any],
     ) -> None:
         with self._lock:
             self._nodes[node_id] = ClusterNode(
-                node_id=node_id, host=host, port=port, capabilities=capabilities,
+                node_id=node_id,
+                host=host,
+                port=port,
+                capabilities=capabilities,
             )
 
     def discover_nodes(self) -> list[dict[str, Any]]:
@@ -374,7 +390,11 @@ class ClusterManager:
                 "total_load": total_load,
                 "total_capacity": total_capacity,
                 "utilization": total_load / max(total_capacity, 1e-9),
-                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                "status": "healthy"
+                if healthy == total
+                else "degraded"
+                if healthy > 0
+                else "down",  # NOSONAR: nested conditional; extract to named variable (tech debt)
             }
 
 
@@ -593,7 +613,10 @@ class PartitionManager:
         return self._bus_based(sorted(bus_ids), num)
 
     def _voltage_level(
-        self, bus_ids: list[int], num: int, system: Any,
+        self,
+        bus_ids: list[int],
+        num: int,
+        system: Any,
     ) -> list[tuple[str, list[int], list[int]]]:
         kv_groups: dict[float, list[int]] = defaultdict(list)
         for bid in bus_ids:
@@ -676,13 +699,19 @@ class DistributedOrchestrator:
         self._lock = threading.Lock()
 
     def execute_distributed_study(
-        self, study_type: str, system: Any, params: dict[str, Any],
+        self,
+        study_type: str,
+        system: Any,
+        params: dict[str, Any],
     ) -> str:
         system_size = self._estimate_system_size(system)
         plan = self._build_plan(study_type, system_size, params)
         task_id = str(uuid.uuid4())
         execution = Execution(
-            task_id=task_id, study_type=study_type, status=ExecutionStatus.RUNNING, plan=plan,
+            task_id=task_id,
+            study_type=study_type,
+            status=ExecutionStatus.RUNNING,
+            plan=plan,
         )
         with self._lock:
             self._executions[task_id] = execution
@@ -734,7 +763,10 @@ class DistributedOrchestrator:
             return True
 
     def _build_plan(
-        self, study_type: str, system_size: float, params: dict[str, Any],
+        self,
+        study_type: str,
+        system_size: float,
+        params: dict[str, Any],
     ) -> ExecutionPlan:
         num_nodes = params.get("num_nodes", 2)
         num_partitions = params.get("num_partitions", min(int(system_size / 10) + 1, 8))

@@ -285,7 +285,9 @@ UserDep = CurrentUserDep
 async def list_projects(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: DbDep,
-    status_filter: Annotated[Optional[ProjectStatus], Query(alias="status", description="Filter by status")] = None,
+    status_filter: Annotated[
+        Optional[ProjectStatus], Query(alias="status", description="Filter by status")
+    ] = None,
 ) -> Any:
     """Return a paginated, filterable list of power-system projects."""
     base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
@@ -474,7 +476,9 @@ async def list_project_studies(
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
-    count_query = select(func.count()).select_from(StudyResult).where(StudyResult.project_id == project_id)
+    count_query = (
+        select(func.count()).select_from(StudyResult).where(StudyResult.project_id == project_id)
+    )
     count_result = await db.execute(count_query)
     total = count_result.scalar_one()
 

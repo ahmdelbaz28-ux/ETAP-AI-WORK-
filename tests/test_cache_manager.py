@@ -4,6 +4,7 @@ Unit tests for engine/cache_manager.py — CalculationCache LRU cache.
 Tests the pure cache operations (get, set, invalidate, invalidate_by_tag,
 clear, get_stats, exists, _estimate_size) without needing Redis.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -261,4 +262,8 @@ class TestCacheStrategy:
     def test_cache_strategy_values(self):
         """GIVEN the CacheStrategy enum
         THEN it has the expected members (LRU, LFU, etc.)."""
-        assert hasattr(CacheStrategy, "LRU") or hasattr(CacheStrategy, "FIFO") or len(list(CacheStrategy)) > 0
+        assert (
+            hasattr(CacheStrategy, "LRU")
+            or hasattr(CacheStrategy, "FIFO")
+            or len(list(CacheStrategy)) > 0
+        )

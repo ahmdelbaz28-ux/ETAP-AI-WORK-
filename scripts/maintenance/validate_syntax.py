@@ -5,7 +5,16 @@ import os
 import sys
 
 # SonarCloud S1192: Avoid magic string duplication
-EXCLUDED_DIRS = ("node_modules", "__pycache__", "skills", "venv", "temp_repo", ".temp_repo", "AhmedETAP-Platform", "ETAP-AI-WORK-")
+EXCLUDED_DIRS = (
+    "node_modules",
+    "__pycache__",
+    "skills",
+    "venv",
+    "temp_repo",
+    ".temp_repo",
+    "AhmedETAP-Platform",
+    "ETAP-AI-WORK-",
+)
 
 
 def _filter_dirs(dirs):

@@ -152,7 +152,10 @@ class BaseGuard:
         self.mode = mode
 
     def scan(
-        self, source: str, language: str = "python", context: dict[str, Any] | None = None,
+        self,
+        source: str,
+        language: str = "python",
+        context: dict[str, Any] | None = None,
     ) -> GuardResult:
         """Run the guard against *source* text.
 
@@ -172,7 +175,9 @@ class BaseGuard:
         raise NotImplementedError("Subclasses must implement scan()")
 
     def _make_result(
-        self, violations: list[GuardViolation] | None = None, **meta: Any,
+        self,
+        violations: list[GuardViolation] | None = None,
+        **meta: Any,
     ) -> GuardResult:
         """Convenience to build a GuardResult with the current guard name/mode."""
         return GuardResult(

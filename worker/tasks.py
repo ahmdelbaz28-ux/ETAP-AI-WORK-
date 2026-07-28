@@ -90,7 +90,7 @@ def execute_etap_integration_task(self, etap_command: dict):
         if not use_etap:
             return {"error": "ETAP integration is disabled", "result": None}
 
-        logger.info("Starting ETAP integration: %s", etap_command.get('command', 'Unknown'))
+        logger.info("Starting ETAP integration: %s", etap_command.get("command", "Unknown"))
 
         from etap_integration.etap_provider import get_etap_provider
 
@@ -114,7 +114,7 @@ def execute_etap_integration_task(self, etap_command: dict):
                 "errors": res.errors,
             }
 
-        logger.info("Completed ETAP integration: %s", etap_command.get('command', 'Unknown'))
+        logger.info("Completed ETAP integration: %s", etap_command.get("command", "Unknown"))
 
         current_task.update_state(
             state="SUCCESS",
@@ -147,9 +147,11 @@ def process_large_calculation_task(self, calculation_data: dict):
     """
     try:
         # Update task progress
-        current_task.update_state(state="PROGRESS", meta={"status": "Starting large calculation..."})
+        current_task.update_state(
+            state="PROGRESS", meta={"status": "Starting large calculation..."}
+        )
 
-        logger.info("Starting large calculation: %s", calculation_data.get('type', 'Unknown'))
+        logger.info("Starting large calculation: %s", calculation_data.get("type", "Unknown"))
 
         # Simulate a heavy calculation
         # In real implementation, this would contain the actual computational logic
@@ -164,11 +166,14 @@ def process_large_calculation_task(self, calculation_data: dict):
             if i % 10 == 0:
                 progress = (i / iterations) * 100
                 current_task.update_state(
-                    state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"},
+                    state="PROGRESS",
+                    meta={"status": f"Calculation in progress: {progress:.1f}%"},
                 )
 
             # Perform some heavy computation
-            matrix = np.random.rand(size, size)  # NOSONAR: numpy.random.Generator migration; API change required
+            matrix = np.random.rand(
+                size, size
+            )  # NOSONAR: numpy.random.Generator migration; API change required
             result_matrix = np.linalg.inv(matrix + np.eye(size))
 
         result = {
@@ -179,10 +184,11 @@ def process_large_calculation_task(self, calculation_data: dict):
             "message": "Large calculation completed successfully",
         }
 
-        logger.info("Completed large calculation: %s", calculation_data.get('type', 'Unknown'))
+        logger.info("Completed large calculation: %s", calculation_data.get("type", "Unknown"))
 
         current_task.update_state(
-            state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result},
+            state="SUCCESS",
+            meta={"status": "Calculation completed successfully", "result": result},
         )
 
         return result

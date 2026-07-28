@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 #!/usr/bin/env python3
@@ -85,7 +84,11 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def validate_prompt_file(
+    filepath: Path,
+) -> tuple[
+    bool, list[str]
+]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Validate a single YAML prompt file.
 
@@ -166,7 +169,14 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR: 
                 for std in ENGINEERING_STANDARDS:
                     if std.lower() in content_str.lower():
                         found_standards.add(std)
-        if not found_standards and filepath.name not in ("sample_prompt.yaml", "fallback_agent.prompt.yaml", "weather_activity_planner.prompt.yaml", "goal_planner_agent.yaml", "etap_gui_agent.prompt.yaml", "code_guard_agent.prompt.yaml"):
+        if not found_standards and filepath.name not in (
+            "sample_prompt.yaml",
+            "fallback_agent.prompt.yaml",
+            "weather_activity_planner.prompt.yaml",
+            "goal_planner_agent.yaml",
+            "etap_gui_agent.prompt.yaml",
+            "code_guard_agent.prompt.yaml",
+        ):
             issues.append("INFO: No engineering standard reference found in system prompt")
 
     # Check for excessive token length (rough estimate)
@@ -176,11 +186,12 @@ def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:  # NOSONAR: 
 
     return len(
         [i for i in issues if i.startswith(("CRITICAL:", "ERROR:"))],
-
     ) == 0, issues
 
 
-def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def validate_all_prompts(
+    strict: bool = False,
+) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate all YAML prompt files in the prompts directory."""
     yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
     if not yaml_files:
@@ -213,7 +224,6 @@ def validate_all_prompts(strict: bool = False) -> bool:  # NOSONAR: cognitive co
                 elif issue.startswith("INFO:"):
                     total_info += 1
                     print(f"{prefix}[INFO] {issue}")
-
 
     print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{len(yaml_files)} files passed")

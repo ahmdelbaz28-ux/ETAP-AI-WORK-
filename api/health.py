@@ -103,12 +103,24 @@ async def platform_info(request: Request) -> Dict[str, object]:
         "agent_count": AGENT_COUNT,
         "active_agents": sum(1 for a in AGENTS if a.get("status") == "active"),
         "beta_agents": sum(1 for a in AGENTS if a.get("status") == "beta"),
-        "supported_standards": list(SUPPORTED_STANDARDS) if hasattr(SUPPORTED_STANDARDS, "__iter__") else SUPPORTED_STANDARDS,
+        "supported_standards": list(SUPPORTED_STANDARDS)
+        if hasattr(SUPPORTED_STANDARDS, "__iter__")
+        else SUPPORTED_STANDARDS,
         "modules": [
-            "arcflash", "motorstarting", "stability", "cable-sizing",
-            "earth-grid", "renewable", "battery-storage", "scada",
-            "digital-twin", "predictive", "anomaly", "coordination",
-            "goal-planner", "weather",
+            "arcflash",
+            "motorstarting",
+            "stability",
+            "cable-sizing",
+            "earth-grid",
+            "renewable",
+            "battery-storage",
+            "scada",
+            "digital-twin",
+            "predictive",
+            "anomaly",
+            "coordination",
+            "goal-planner",
+            "weather",
         ],
         "trace_id": request.state.trace_id,
     }
@@ -118,6 +130,7 @@ async def platform_info(request: Request) -> Dict[str, object]:
 async def knowledge_info():
     """Get knowledge base info (skills, RAG context metadata)."""
     from api.shared_handlers import build_knowledge_info
+
     return build_knowledge_info()
 
 

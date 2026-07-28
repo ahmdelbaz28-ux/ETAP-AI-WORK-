@@ -80,7 +80,9 @@ class GeminiVisionClient:
     - API error → returns error dict, never raises
     """
 
-    def __init__(self) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def __init__(
+        self,
+    ) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self.api_key = os.getenv("GEMINI_API_KEY", "")
         self.model_name = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
         self.timeout = int(os.getenv("GEMINI_TIMEOUT", str(DEFAULT_TIMEOUT)))

@@ -44,6 +44,7 @@ _DECODE_WARNING = "File was not valid UTF-8; decoded as Latin-1."
 # Response models
 # ---------------------------------------------------------------------------
 
+
 class SupportedFormat(BaseModel):
     """A supported import format."""
 
@@ -171,6 +172,7 @@ def _detect_format(filename: str) -> SupportedFormat:
 # Shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _decode_text(content: bytes) -> tuple[str, list[str]]:
     """Decode bytes to str, trying UTF-8 BOM first, falling back to Latin-1."""
     warnings: list[str] = []
@@ -241,7 +243,9 @@ def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> Op
         voltage = float(parts[2]) if parts[2] else None
         type_code = int(parts[3]) if len(parts) > 3 and parts[3] else 1
         return BusRecord(
-            id=bus_id, name=name or None, voltage_kv=voltage,
+            id=bus_id,
+            name=name or None,
+            voltage_kv=voltage,
             type=_BUS_TYPE_MAP.get(type_code, "PQ"),
         )
     except (ValueError, IndexError):
@@ -269,7 +273,10 @@ def _extract_child_text(elem: Any, local_tag: str) -> Optional[str]:
 # Parsers
 # ---------------------------------------------------------------------------
 
-def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+
+def _parse_csv(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a CSV file. Expects either a bus table or a branch table.
 
     Bus CSV columns: id, name, voltage_kv, type
@@ -282,7 +289,9 @@ def _parse_csv(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dic
         raise ValueError("CSV file has no header row")
 
     fields = {f.lower().strip() for f in reader.fieldnames}
-    is_bus = {"id"} <= fields and any(v in fields for v in {"voltage_kv", "voltage", "type", "name"})
+    is_bus = {"id"} <= fields and any(
+        v in fields for v in {"voltage_kv", "voltage", "type", "name"}
+    )
     is_branch = {"from_bus", "to_bus"} <= fields or {"from", "to"} <= fields
 
     if is_bus:
@@ -320,7 +329,9 @@ def _parse_csv_branches(reader: csv.DictReader, warnings: list[str]) -> list[Bra
     return branches
 
 
-def _parse_json(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_json(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format."""
     text, warnings = _decode_text(content)
     try:
@@ -340,7 +351,9 @@ def _parse_json(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], di
     return buses, branches, {"key_count": len(data)}, warnings
 
 
-def _parse_psse_raw(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_psse_raw(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a PSS/E .raw file. Extracts bus data (first section) and branch data (third section)."""
     text, warnings = _decode_text(content)
     lines = text.splitlines()
@@ -388,7 +401,9 @@ def _parse_psse_buses(lines: list[str], warnings: list[str]) -> list[BusRecord]:
     return buses
 
 
-def _parse_matpower(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_matpower(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a MATPOWER .m case file. Extracts mpc.bus and mpc.branch matrices."""
     text, warnings = _decode_text(content)
 
@@ -396,7 +411,12 @@ def _parse_matpower(content: bytes) -> tuple[list[BusRecord], list[BranchRecord]
     buses = _parse_matpower_buses(text)
     branches = _parse_matpower_branches(text)
 
-    return buses, branches, {"base_mva": base_mva, "bus_count": len(buses), "branch_count": len(branches)}, warnings
+    return (
+        buses,
+        branches,
+        {"base_mva": base_mva, "bus_count": len(buses), "branch_count": len(branches)},
+        warnings,
+    )
 
 
 def _parse_matpower_base_mva(text: str) -> float:
@@ -423,11 +443,13 @@ def _parse_matpower_buses(text: str) -> list[BusRecord]:
         parts = re.split(r"\s+", line)
         try:
             if len(parts) >= 3:
-                buses.append(BusRecord(
-                    id=parts[0],
-                    type=_BUS_TYPE_MAP.get(int(parts[1]), "PQ"),
-                    voltage_kv=float(parts[2]) if parts[2] else None,
-                ))
+                buses.append(
+                    BusRecord(
+                        id=parts[0],
+                        type=_BUS_TYPE_MAP.get(int(parts[1]), "PQ"),
+                        voltage_kv=float(parts[2]) if parts[2] else None,
+                    )
+                )
         except (ValueError, IndexError):
             continue
     return buses
@@ -446,19 +468,23 @@ def _parse_matpower_branches(text: str) -> list[BranchRecord]:
         parts = re.split(r"\s+", line)
         try:
             if len(parts) >= 4:
-                branches.append(BranchRecord(
-                    id=str(uuid.uuid4().hex[:8]),
-                    from_bus=parts[0],
-                    to_bus=parts[1],
-                    r_pu=float(parts[2]),
-                    x_pu=float(parts[3]),
-                ))
+                branches.append(
+                    BranchRecord(
+                        id=str(uuid.uuid4().hex[:8]),
+                        from_bus=parts[0],
+                        to_bus=parts[1],
+                        r_pu=float(parts[2]),
+                        x_pu=float(parts[3]),
+                    )
+                )
         except (ValueError, IndexError):
             continue
     return branches
 
 
-def _parse_cim_xml(content: bytes) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+def _parse_cim_xml(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a CIM/XML file. Extracts TopologicalNode and ACLineSegment elements."""
     text, warnings = _decode_text(content)
 
@@ -492,12 +518,15 @@ def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]
     name = _extract_child_text(elem, "IdentifiedObject.name")
     branches.append(BranchRecord(id=line_id or "", from_bus="", to_bus="", type="LINE"))
     if name:
-        warnings.append(f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)")
+        warnings.append(
+            f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)"
+        )
 
 
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.get(
     "/formats",

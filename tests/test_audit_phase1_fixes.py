@@ -29,12 +29,14 @@ from unittest.mock import MagicMock, patch
 # E-01 & E-02: Arc Flash Engine
 # ---------------------------------------------------------------------------
 
+
 class TestArcFlashE01E02:
     """Verify arc flash incident energy formula and distance exponent fixes."""
 
     def test_e01_simplified_flag_present(self):
         """E-01: ENGINE_IS_SIMPLIFIED flag must be True."""
         from fault_analysis.arc_flash_engine import ENGINE_IS_SIMPLIFIED
+
         assert ENGINE_IS_SIMPLIFIED is True
 
     def test_e01_non_compliance_warning_in_source(self):
@@ -51,9 +53,7 @@ class TestArcFlashE01E02:
             "E-01: Formula must include gap distance G term"
         )
         # Must include K4 interaction term
-        assert "k4" in src.lower(), (
-            "E-01: Formula must include K4 interaction term"
-        )
+        assert "k4" in src.lower(), "E-01: Formula must include K4 interaction term"
 
     def test_e02_x_factor_from_table(self):
         """E-02: x_factor must be unpacked from coefficients (not discarded)."""
@@ -70,7 +70,8 @@ class TestArcFlashE01E02:
         # It should reference x_factor, not be a literal 1.0
         lines = src.splitlines()
         x_power_lines = [
-            i for i, line in enumerate(lines)
+            i
+            for i, line in enumerate(lines)
             if "x_power" in line and "=" in line and "#" not in line.split("x_power")[0]
         ]
         for line_num in x_power_lines:
@@ -78,13 +79,13 @@ class TestArcFlashE01E02:
             # Should NOT be a bare `x_power = 1.0`
             if re.match(r"x_power\s*=\s*1\.0\s*$", line):
                 raise AssertionError(
-                    f"Line {line_num+1}: x_power is still hardcoded to 1.0 "
-                    f"(E-02 fix not applied)"
+                    f"Line {line_num + 1}: x_power is still hardcoded to 1.0 (E-02 fix not applied)"
                 )
 
     def test_e02_x_factor_values_differ(self):
         """E-02: x_factor values should differ across configurations."""
         from fault_analysis.arc_flash_engine import INCIDENT_ENERGY_COEFFICIENTS
+
         x_values = set()
         for config, enclosures in INCIDENT_ENERGY_COEFFICIENTS.items():
             for enc, coeffs in enclosures.items():
@@ -114,20 +115,17 @@ class TestArcFlashE01E02:
         lines = src.splitlines()
         for line in lines:
             if "E_full" in line and "* arc_duration_sec" in line and "log10" not in line:
-                raise AssertionError(
-                    f"E-01: Found linear t multiplication: {line.strip()}"
-                )
+                raise AssertionError(f"E-01: Found linear t multiplication: {line.strip()}")
 
     def test_e01_gap_distance_parameter(self):
         """E-01: calculate_incident_energy must accept arc_gap_mm parameter."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text()
-        assert "arc_gap_mm" in src, (
-            "E-01: arc_gap_mm parameter must exist"
-        )
+        assert "arc_gap_mm" in src, "E-01: arc_gap_mm parameter must exist"
 
     def test_e01_k4_in_coefficients(self):
         """E-01: Coefficients must be 5-tuples with K4 element."""
         from fault_analysis.arc_flash_engine import INCIDENT_ENERGY_COEFFICIENTS
+
         for config, enclosures in INCIDENT_ENERGY_COEFFICIENTS.items():
             for enc, coeffs in enclosures.items():
                 assert len(coeffs) == 5, (
@@ -137,9 +135,7 @@ class TestArcFlashE01E02:
     def test_e20_frequency_parameter(self):
         """S-20: IEC 60909 engine must have configurable frequency."""
         src = Path("fault_analysis/iec60909_engine.py").read_text()
-        assert "frequency_hz" in src, (
-            "S-20: frequency_hz parameter must exist in __init__"
-        )
+        assert "frequency_hz" in src, "S-20: frequency_hz parameter must exist in __init__"
         assert "self.frequency_hz" in src, (
             "S-20: self.frequency_hz must be stored as instance attribute"
         )
@@ -147,9 +143,7 @@ class TestArcFlashE01E02:
         lines = src.splitlines()
         for line in lines:
             if "50.0" in line and "Hz" in line and "default" in line.lower():
-                raise AssertionError(
-                    f"S-20: Found hardcoded 50 Hz: {line.strip()}"
-                )
+                raise AssertionError(f"S-20: Found hardcoded 50 Hz: {line.strip()}")
 
     def test_e21_no_abs_imag(self):
         """S-21: IEC 60909 must use z_pos.imag, not abs(z_pos.imag)."""
@@ -159,14 +153,13 @@ class TestArcFlashE01E02:
             "S-21: R/X ratio must use z_pos.imag (not abs), per IEC 60909"
         )
         # Should use z_pos.imag directly
-        assert "z_pos.imag" in src, (
-            "S-21: Must use z_pos.imag for R/X ratio"
-        )
+        assert "z_pos.imag" in src, "S-21: Must use z_pos.imag for R/X ratio"
 
 
 # ---------------------------------------------------------------------------
 # E-03: Load Flow Non-Convergence
 # ---------------------------------------------------------------------------
+
 
 class TestLoadFlowE03:
     """Verify non-converged load flow does NOT write back voltages."""
@@ -182,7 +175,7 @@ class TestLoadFlowE03:
             if "return False" in line and i > 400:  # Near the solver loop end
                 found_return_false = True
                 # Check preceding 20 lines for writeback
-                preceding = "\n".join(lines[max(0,i-20):i+1])
+                preceding = "\n".join(lines[max(0, i - 20) : i + 1])
                 assert "bus.voltage" not in preceding or "logger.warning" in preceding, (
                     "Non-convergence path should NOT silently write bus voltages"
                 )
@@ -196,6 +189,7 @@ class TestLoadFlowE03:
 # ---------------------------------------------------------------------------
 # S-01: CSRF Bypass
 # ---------------------------------------------------------------------------
+
 
 class TestCSRFS01:
     """Verify CSRF bypass value has been removed."""
@@ -229,6 +223,7 @@ class TestCSRFS01:
 # S-02: Admin Self-Assign
 # ---------------------------------------------------------------------------
 
+
 class TestAuthS02:
     """Verify registration no longer accepts user-supplied role."""
 
@@ -254,6 +249,7 @@ class TestAuthS02:
 # S-03: WebSocket Authentication
 # ---------------------------------------------------------------------------
 
+
 class TestWebSocketS03:
     """Verify WebSocket requires authentication."""
 
@@ -263,9 +259,7 @@ class TestWebSocketS03:
         assert "token" in src.lower(), (
             "S-03: WebSocket endpoint should accept token for authentication"
         )
-        assert "Query" in src or "token:" in src, (
-            "S-03: token should be a query parameter"
-        )
+        assert "Query" in src or "token:" in src, "S-03: token should be a query parameter"
 
     def test_s03_auth_validation_exists(self):
         """S-03: Token validation function should exist."""
@@ -286,15 +280,14 @@ class TestWebSocketS03:
 # S-05: Test Mode Role
 # ---------------------------------------------------------------------------
 
+
 class TestTestModeS05:
     """Verify test mode grants 'service' role, not 'admin'."""
 
     def test_s05_service_role(self):
         """S-05: Test mode API key should return 'service' role."""
         src = Path("api/_test_mode.py").read_text()
-        assert '"service"' in src, (
-            "S-05: Test mode should grant 'service' role"
-        )
+        assert '"service"' in src, "S-05: Test mode should grant 'service' role"
         # Should NOT have role: "admin"
         lines = src.splitlines()
         for line in lines:
@@ -304,15 +297,18 @@ class TestTestModeS05:
                 if '"admin"' in stripped or "'admin'" in stripped:
                     # Allow if it's a comment or a different context
                     # Allow comments (including "was admin" changelog notes)
-                    if not stripped.startswith("#") and "not" not in stripped.lower() and "was" not in stripped.lower():
-                        raise AssertionError(
-                            f"S-05: Found admin role in test mode: {stripped}"
-                        )
+                    if (
+                        not stripped.startswith("#")
+                        and "not" not in stripped.lower()
+                        and "was" not in stripped.lower()
+                    ):
+                        raise AssertionError(f"S-05: Found admin role in test mode: {stripped}")
 
 
 # ---------------------------------------------------------------------------
 # S-07: AI/ML Authentication
 # ---------------------------------------------------------------------------
+
 
 class TestAIMLS07:
     """Verify AI/ML endpoints require authentication."""
@@ -320,24 +316,19 @@ class TestAIMLS07:
     def test_s07_auth_dependency_present(self):
         """S-07: AI/ML endpoints should have auth dependencies."""
         src = Path("api/ai_ml.py").read_text()
-        assert "Depends(" in src, (
-            "S-07: AI/ML endpoints should use Depends() for authentication"
-        )
+        assert "Depends(" in src, "S-07: AI/ML endpoints should use Depends() for authentication"
 
     def test_s07_all_endpoints_protected(self):
         """S-07: Every @router decorator should have dependencies."""
         src = Path("api/ai_ml.py").read_text()
         lines = src.splitlines()
-        router_lines = [
-            i for i, line in enumerate(lines)
-            if "@router." in line
-        ]
+        router_lines = [i for i, line in enumerate(lines) if "@router." in line]
         for line_num in router_lines:
             # Check the next few lines for dependencies
-            chunk = "\n".join(lines[line_num:min(line_num+5, len(lines))])
+            chunk = "\n".join(lines[line_num : min(line_num + 5, len(lines))])
             if "dependencies=" not in chunk:
                 raise AssertionError(
-                    f"S-07: Endpoint at line {line_num+1} missing dependencies= "
+                    f"S-07: Endpoint at line {line_num + 1} missing dependencies= "
                     f"(authentication not enforced)"
                 )
 
@@ -345,6 +336,7 @@ class TestAIMLS07:
 # ---------------------------------------------------------------------------
 # S-18: nginx H2C Smuggling
 # ---------------------------------------------------------------------------
+
 
 class TestNginxS18:
     """Verify nginx uses $connection_upgrade instead of literal 'upgrade'."""
@@ -365,9 +357,9 @@ class TestNginxS18:
                 continue
             # Literal "upgrade" is the H2C smuggling vulnerability
             if '"upgrade"' in stripped or "'upgrade'" in stripped:
-                context = "\n".join(lines[max(0,i-10):i+1])
+                context = "\n".join(lines[max(0, i - 10) : i + 1])
                 raise AssertionError(
-                    f"S-18: Line {i+1} uses literal 'upgrade' in Connection header "
+                    f"S-18: Line {i + 1} uses literal 'upgrade' in Connection header "
                     f"(H2C smuggling risk). Use $connection_upgrade variable instead. "
                     f"Context:\n{context}"
                 )

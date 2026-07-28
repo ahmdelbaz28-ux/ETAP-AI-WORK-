@@ -37,7 +37,14 @@ SECRET_PATTERNS = [
 ]
 
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
-EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md", "worklog.md", ".gitleaks.toml"}
+EXCLUDED_FILES = {
+    ".env.example",
+    "security_scan.py",
+    "README.md",
+    "SECURITY.md",
+    "worklog.md",
+    ".gitleaks.toml",
+}
 
 # Files where weak passwords / test secrets are intentional and audited.
 # Each entry is a path relative to repo root.
@@ -80,7 +87,9 @@ EXCLUDED_PATHS = {
 ALLOWLIST_MARKERS = ("# pragma: allowlist secret", "# security: intentional", "# nosec")
 
 
-def scan_file(filepath):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def scan_file(
+    filepath,
+):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     issues = []
     try:
         with open(filepath, encoding="utf-8", errors="ignore") as f:

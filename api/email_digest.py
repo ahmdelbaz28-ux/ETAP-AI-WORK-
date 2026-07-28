@@ -43,7 +43,9 @@ from services.email_send_log import get_recent_sends
 
 logger = logging.getLogger("etap.api.email_digest")
 
-router = APIRouter(prefix="/api/v1/email-digest", tags=["email", "digest"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/email-digest", tags=["email", "digest"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 _DIGEST_TEMPLATE = "digest.html"
 
 
@@ -87,7 +89,9 @@ def _build_digest_context(
     if period == "weekly":
         window_hours = 24 * 7
         period_label = "Weekly"
-        period_dates = f"{(now - timedelta(days=7)).strftime('%b %d')} – {now.strftime('%b %d, %Y')}"
+        period_dates = (
+            f"{(now - timedelta(days=7)).strftime('%b %d')} – {now.strftime('%b %d, %Y')}"
+        )
     else:
         window_hours = 24
         period_label = "Daily"
@@ -97,7 +101,8 @@ def _build_digest_context(
     recent = get_recent_sends(limit=500)
     user_sends = [r for r in recent if r.get("recipient", "").lower() == email.lower()]
     user_in_window = [
-        r for r in user_sends
+        r
+        for r in user_sends
         if _parse_iso(r.get("timestamp", "")) >= (now - timedelta(hours=window_hours))
     ]
 
@@ -185,28 +190,38 @@ async def generate_digest(
         from services.email_service import _load_template, _render
 
         template = _load_template(_DIGEST_TEMPLATE)
-        html = _render(template, **ctx) if template else (
-            f"<h2>{ctx['period_label']} Digest</h2>"
-            f"<p>{ctx['total_count']} emails sent to you in the last period.</p>"
+        html = (
+            _render(template, **ctx)
+            if template
+            else (
+                f"<h2>{ctx['period_label']} Digest</h2>"
+                f"<p>{ctx['total_count']} emails sent to you in the last period.</p>"
+            )
         )
-        subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest ({ctx['total_count']} updates)"
+        subject = (
+            f"{ctx['brand_name']} — {ctx['period_label']} Digest ({ctx['total_count']} updates)"
+        )
 
-        result = await resend_client.send(EmailParams(
-            to=body.email,
-            subject=subject,
-            html=html,
-            text=f"{ctx['period_label']} Digest: {ctx['total_count']} updates. Visit {ctx['app_url']}",
-            tags=[{"name": "flow", "value": f"digest_{body.period}"}],
-        ))
+        result = await resend_client.send(
+            EmailParams(
+                to=body.email,
+                subject=subject,
+                html=html,
+                text=f"{ctx['period_label']} Digest: {ctx['total_count']} updates. Visit {ctx['app_url']}",
+                tags=[{"name": "flow", "value": f"digest_{body.period}"}],
+            )
+        )
 
-        return JSONResponse(content={
-            "success": result.success,
-            "message_id": result.message_id,
-            "error": result.error,
-            "total_count": ctx["total_count"],
-            "by_flow": ctx["by_flow"],
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": result.success,
+                "message_id": result.message_id,
+                "error": result.error,
+                "total_count": ctx["total_count"],
+                "by_flow": ctx["by_flow"],
+                "trace_id": trace_id,
+            }
+        )
     except Exception:
         logger.exception("digest_send_failed")
         return JSONResponse(
@@ -220,6 +235,7 @@ async def preview_digest(email: str, period: str = "daily") -> str:
     """Render the digest HTML without sending it (admin/debug)."""
     ctx = await _build_digest_context(email, period)
     from services.email_service import _load_template, _render
+
     template = _load_template(_DIGEST_TEMPLATE)
     if not template:
         return "<h2>Digest template not found</h2>"
@@ -245,13 +261,18 @@ async def _send_digest_to_recipient(email: str, period: str) -> bool:
             return True  # skip — no activity
         from integrations.resend_email import EmailParams, resend_client
         from services.email_service import _load_template, _render
+
         template = _load_template(_DIGEST_TEMPLATE)
         html = _render(template, **ctx) if template else ""
         subject = f"{ctx['brand_name']} — {ctx['period_label']} Digest"
-        result = await resend_client.send(EmailParams(
-            to=email, subject=subject, html=html,
-            tags=[{"name": "flow", "value": f"digest_{period}"}],
-        ))
+        result = await resend_client.send(
+            EmailParams(
+                to=email,
+                subject=subject,
+                html=html,
+                tags=[{"name": "flow", "value": f"digest_{period}"}],
+            )
+        )
         return result.success
     except Exception as exc:
         logger.warning("digest_send_failed email=%s err=%s", email, exc)
@@ -271,13 +292,15 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
     is_daily_run, is_weekly_run = _is_scheduled_time(now, daily_hour, daily_minute)
 
     if not (is_daily_run or is_weekly_run):
-        return JSONResponse(content={
-            "success": True,
-            "message": "Not scheduled time — skipping.",
-            "now": now.isoformat(),
-            "daily_time": cfg["daily_schedule"],
-            "trace_id": trace_id,
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": "Not scheduled time — skipping.",
+                "now": now.isoformat(),
+                "daily_time": cfg["daily_schedule"],
+                "trace_id": trace_id,
+            }
+        )
 
     # Find unique recipients
     window_hours = 24 * 7 if is_weekly_run else 24
@@ -285,7 +308,8 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
     recent = get_recent_sends(limit=2000)
     cutoff = now - timedelta(hours=window_hours)
     recipients = {
-        r["recipient"] for r in recent
+        r["recipient"]
+        for r in recent
         if r.get("recipient") and _parse_iso(r.get("timestamp", "")) >= cutoff
     }
 
@@ -293,14 +317,16 @@ async def run_scheduled_digests(request: Request) -> JSONResponse:
     sent = sum(1 for email in recipients if await _send_digest_to_recipient(email, period))
     failed = len(recipients) - sent
 
-    return JSONResponse(content={
-        "success": True,
-        "period": period,
-        "recipients_count": len(recipients),
-        "sent": sent,
-        "failed": failed,
-        "trace_id": trace_id,
-    })
+    return JSONResponse(
+        content={
+            "success": True,
+            "period": period,
+            "recipients_count": len(recipients),
+            "sent": sent,
+            "failed": failed,
+            "trace_id": trace_id,
+        }
+    )
 
 
 __all__ = ["router"]

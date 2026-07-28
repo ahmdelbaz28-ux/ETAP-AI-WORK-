@@ -177,7 +177,9 @@ class AsyncExecutor:
                 continue
             self._execute_task(task)
 
-    def _execute_task(self, task: AsyncTask) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _execute_task(
+        self, task: AsyncTask
+    ) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         with self._lock:
             if task.status == TaskStatus.CANCELLED:
                 return

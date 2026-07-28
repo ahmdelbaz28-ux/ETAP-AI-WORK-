@@ -161,7 +161,9 @@ class TestETAPSchemaValidation:
     def test_non_dict_params_rejected(self):
         """Test that non-dict params are rejected."""
         with pytest.raises(ValueError, match="must be a dict"):
-            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, "not_a_dict")  # NOSONAR: intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._validate_study_parameters(
+                ETAPStudyType.LOAD_FLOW, "not_a_dict"
+            )  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
     def test_invalid_study_type_rejected(self):
         """Test that non-ETAPStudyType is rejected."""
@@ -231,7 +233,9 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-rbac-secret_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")  # 49 bytes — RFC 7518 §3.2 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test-rbac-secret_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        )  # 49 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@test.com", "password123", UserRole.ENGINEER)
@@ -252,7 +256,9 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-viewer-secret_cccccccccccccccccccccccccccccccc")  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test-viewer-secret_cccccccccccccccccccccccccccccccc"
+        )  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("viewer", "viewer@test.com", "password123", UserRole.VIEWER)
@@ -273,7 +279,9 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-guest-secret_dddddddddddddddddddddddddddddddd")  # 50 bytes — RFC 7518 §3.2 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test-guest-secret_dddddddddddddddddddddddddddddddd"
+        )  # 50 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("guest", "guest@test.com", "password123", UserRole.GUEST)
@@ -288,7 +296,9 @@ class TestWorkerRBAC:
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
         from security.security_framework import AuthenticationManager, AuthorizationManager
 
-        auth = AuthenticationManager(secret_key="test-invalid-secret_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")  # 52 bytes — RFC 7518 §3.2 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test-invalid-secret_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        )  # 52 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         fake_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake"
@@ -306,14 +316,18 @@ class TestWorkerRBAC:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test-logout-secret_ffffffffffffffffffffffffffffffff")  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test-logout-secret_ffffffffffffffffffffffffffffffff"
+        )  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("temp_user", "temp@test.com", "password123", UserRole.ENGINEER)
         token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
-        first_perm = next(iter(STUDY_TYPE_TO_PERMISSION.values()))  # NOSONAR: replaced list(...)[0] with next(iter(...))
+        first_perm = next(
+            iter(STUDY_TYPE_TO_PERMISSION.values())
+        )  # NOSONAR: replaced list(...)[0] with next(iter(...))
         assert authz.check_permission(token, first_perm)
 
         # After logout, permissions should be denied
@@ -400,7 +414,9 @@ class TestLoadFlow:
 
     def test_ybus_symmetry(self, simple_2bus_system):
         """Test that Ybus matrix is symmetric."""
-        Ybus = simple_2bus_system.build_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = simple_2bus_system.build_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Ybus for passive networks is symmetric (Y == Y^T), not Hermitian
         assert np.allclose(Ybus, Ybus.T), "Ybus should be symmetric"
 
@@ -443,9 +459,15 @@ class TestShortCircuit:
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(
+            seq="2"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(
+            seq="0"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
@@ -500,12 +522,16 @@ class TestArcFlash:
         """Test arc current calculation per IEEE 1584."""
         engine = ArcFlashEngine()
 
-        Iarc, Iarc_reduced = engine.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
+        Iarc, Iarc_reduced = (
+            engine.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
+            )
         )
 
         assert Iarc > 0, "Arc current should be positive"
-        assert Iarc_reduced == pytest.approx(0.85 * Iarc), "Reduced arc current should be 85% of full"
+        assert Iarc_reduced == pytest.approx(0.85 * Iarc), (
+            "Reduced arc current should be 85% of full"
+        )
 
     def test_incident_energy_positive(self):
         """Test that incident energy is always positive."""
@@ -675,7 +701,9 @@ class TestHarmonicAnalysis:
         engine.set_system_data(Ybus, ["bus1", "bus2"])
 
         # Calculate harmonic impedance at 5th harmonic
-        Ybus_5th = engine.calculate_harmonic_impedance(5)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_5th = engine.calculate_harmonic_impedance(
+            5
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Impedance should scale with harmonic order
         assert Ybus_5th.shape == Ybus.shape, "Ybus shape should be preserved"
@@ -832,8 +860,12 @@ class TestSecurityFramework:
         """Test user account creation."""
         from security.security_framework import AuthenticationManager, UserRole
 
-        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
-        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)  # NOSONAR: intentional repetition (audit constant)
+        auth = AuthenticationManager(
+            secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+        user = auth.create_user(
+            "testuser", "test@example.com", "password123", UserRole.ENGINEER
+        )  # NOSONAR: intentional repetition (audit constant)
 
         assert user is not None, "User should be created"
         assert user.username == "testuser"
@@ -843,7 +875,9 @@ class TestSecurityFramework:
         """Test successful authentication."""
         from security.security_framework import AuthenticationManager, UserRole
 
-        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)
 
         token = auth.authenticate("testuser", "password123")
@@ -854,7 +888,9 @@ class TestSecurityFramework:
         """Test failed authentication."""
         from security.security_framework import AuthenticationManager
 
-        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         auth.create_user("testuser", "test@example.com", "password123")
 
         token = auth.authenticate("testuser", "wrong_password")
@@ -870,7 +906,9 @@ class TestSecurityFramework:
             UserRole,
         )
 
-        auth = AuthenticationManager(secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+        auth = AuthenticationManager(
+            secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@example.com", "password123", UserRole.ENGINEER)
@@ -994,9 +1032,15 @@ class TestIntegration:
 
         system.build_sequence_networks()
 
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(
+            seq="2"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(
+            seq="0"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
@@ -1026,7 +1070,9 @@ class TestSecretsManager:
         mgr = VaultSecretsManager(use_mock_if_unavailable=True)
         # When Vault is unavailable, falls back to LocalSecretsManager
         assert mgr._fallback_store._cipher is not None
-        ok = mgr.set_secret("test/path", "test_key", "secret_value")  # NOSONAR: intentional repetition (audit constant)
+        ok = mgr.set_secret(
+            "test/path", "test_key", "secret_value"
+        )  # NOSONAR: intentional repetition (audit constant)
         assert ok
         val = mgr.get_secret("test/path", "test_key")
         assert val == "secret_value"
@@ -1298,7 +1344,9 @@ class TestNumericalSafety:
         cleaned = guard.validate_matrix(mat, expected_shape=(2, 2))
         assert not np.any(np.isnan(cleaned))
         assert not np.any(np.isinf(cleaned))
-        with pytest.raises(ValueError):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ValueError
+        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             guard.validate_matrix(np.eye(3), expected_shape=(2, 2))
         cn = guard.condition_number(np.eye(3))
         assert np.isfinite(cn)
@@ -1537,7 +1585,9 @@ class TestLoadFlowExpansion:
         system.add_generator(gen)
         load = Load(load_id=1, bus=bus2, load_power=complex(0.4, 0.15))
         system.add_load(load)
-        Ybus = system.build_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus = system.build_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Off-diagonal should reflect tap ratio and phase shift
         assert Ybus[0, 1] != Ybus[1, 0], "Tap-changing transformer should break Ybus symmetry"
         solver = LoadFlowSolver(system)
@@ -1610,9 +1660,15 @@ class TestShortCircuitExpansion:
             )
             system.add_line(line)
         system.build_sequence_networks(for_fault=True)
-        Ybus_pos = system.get_ybus(seq="1")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(seq="2")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(seq="0")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_pos = system.get_ybus(
+            seq="1"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = system.get_ybus(
+            seq="2"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = system.get_ybus(
+            seq="0"
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_fault_at_different_buses(self, multi_bus_fault_system):
@@ -1682,7 +1738,9 @@ class TestETAPAutomation:
         assert "<script>" not in sanitized
         assert sanitized == "alert('xss')nullbyte"
         with pytest.raises(ValueError):
-            ETAPAutomation._sanitize_string_input(123, max_length=100)  # NOSONAR: intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._sanitize_string_input(
+                123, max_length=100
+            )  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
     def test_input_validation_engineering_ranges(self):
         validated = ETAPAutomation._validate_input(13.8, "numeric", min_val=0.1, max_val=1200.0)
@@ -1708,7 +1766,9 @@ class TestETAPAutomation:
                 max_entries=2,
             )
         with pytest.raises(TypeError):
-            ETAPAutomation._check_result_size("not_a_dict")  # NOSONAR: intentional wrong-type arg to verify validation rejects it
+            ETAPAutomation._check_result_size(
+                "not_a_dict"
+            )  # NOSONAR: intentional wrong-type arg to verify validation rejects it
 
 
 # ============================================================================

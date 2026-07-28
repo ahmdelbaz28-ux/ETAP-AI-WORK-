@@ -13,6 +13,7 @@ code duplication. The helpers are:
 Also tests:
   - core.utils.env_truthy (centralized env boolean reader)
 """
+
 from __future__ import annotations
 
 import logging
@@ -158,7 +159,8 @@ class TestLogSecurityEvent:
 
         with caplog.at_level(logging.INFO):
             log_security_event(
-                request, "test_event",
+                request,
+                "test_event",
                 detail="something happened",
                 severity="info",
                 metadata_attr="cloudflare",
@@ -177,7 +179,8 @@ class TestLogSecurityEvent:
 
         with caplog.at_level(logging.WARNING):
             log_security_event(
-                request, "unauthorized_access",
+                request,
+                "unauthorized_access",
                 detail="user tried to access another's data",
                 severity="warning",
                 metadata_attr="akamai",
@@ -193,7 +196,8 @@ class TestLogSecurityEvent:
         # No CDN metadata attribute set
         with caplog.at_level(logging.INFO):
             log_security_event(
-                request, "generic_event",
+                request,
+                "generic_event",
                 severity="info",
                 metadata_attr="nonexistent",
             )
@@ -275,7 +279,9 @@ class TestFallbackHtmlShell:
     def test_shell_with_border_style(self):
         from services.email_service import _fallback_html_shell
 
-        result = _fallback_html_shell("<p>Critical</p>", border_style="border-left:4px solid #dc2626;")
+        result = _fallback_html_shell(
+            "<p>Critical</p>", border_style="border-left:4px solid #dc2626;"
+        )
         assert "border-left:4px solid #dc2626;" in result
 
     def test_otp_html_uses_shell(self):

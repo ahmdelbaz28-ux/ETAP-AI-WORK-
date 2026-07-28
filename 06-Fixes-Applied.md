@@ -54,7 +54,9 @@ The `/healthz` endpoint should include a lightweight database connectivity check
 async def healthz():
     db_health = await check_db_health()
     if db_health.get("status") == "unhealthy":
-        return JSONResponse(content={"status": "degraded", "detail": "Database unavailable"}, status_code=503)
+        return JSONResponse(
+            content={"status": "degraded", "detail": "Database unavailable"}, status_code=503
+        )
     return JSONResponse(content={"status": "ok"}, status_code=200)
 ```
 
@@ -104,12 +106,14 @@ The JWT secret key fallback to a deterministic hash is dangerous in production. 
 
 Replace wildcard CORS origins with pinned origin:
 ```python
-allow_origins=[
-    "https://huggingface.co",
-    "https://ahmdelbaz28-ahmedetap-platform.hf.space",
-    "http://localhost:3000",
-    "http://localhost:5173",
-],
+allow_origins = (
+    [
+        "https://huggingface.co",
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+)
 ```
 
 ### Fix-10: Remove X-Error-Type Header in Production
@@ -126,7 +130,7 @@ Wrap `asyncio.to_thread()` in timeout:
 ```python
 result = await asyncio.wait_for(
     asyncio.to_thread(agent.execute_cua_loop, ...),
-    timeout=300  # 5 minutes max
+    timeout=300,  # 5 minutes max
 )
 ```
 

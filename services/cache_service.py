@@ -93,7 +93,11 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> dict[str, Any] | None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def get(
+        self, key: str, *args: Any, **kwargs: Any
+    ) -> (
+        dict[str, Any] | None
+    ):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Get cached value by key.
 
@@ -168,7 +172,9 @@ class StudyCache:
             try:
                 payload = json.dumps(value)
                 await self._redis_client.set(
-                    key, payload, ex=effective_ttl if effective_ttl > 0 else None,
+                    key,
+                    payload,
+                    ex=effective_ttl if effective_ttl > 0 else None,
                 )
                 return True
             except Exception as e:
@@ -181,7 +187,9 @@ class StudyCache:
             return True
         except (TypeError, ValueError) as e:
             # Unhashable key or value that breaks dict storage
-            logger.error("In-memory cache SET failed for key %r: %s", key, e)  # NOSONAR: logger.error in except — see existing exception() calls
+            logger.error(
+                "In-memory cache SET failed for key %r: %s", key, e
+            )  # NOSONAR: logger.error in except — see existing exception() calls
             return False
 
     async def clear(self) -> None:

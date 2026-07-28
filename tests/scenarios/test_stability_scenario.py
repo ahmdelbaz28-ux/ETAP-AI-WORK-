@@ -47,13 +47,19 @@ def multimachine_data():
     """3-machine test system data for transient stability."""
     n_gen = 3
     np.random.seed(42)
-    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+    G = np.random.uniform(
+        2.0, 8.0, (n_gen, n_gen)
+    )  # NOSONAR: numpy.random.Generator migration; API change required
     G = (G + G.T) / 2.0
-    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+    B = np.random.uniform(
+        -12.0, -3.0, (n_gen, n_gen)
+    )  # NOSONAR: numpy.random.Generator migration; API change required
     B = (B + B.T) / 2.0
     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-    Ybus_red = G + 1j * B  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    Ybus_red = (
+        G + 1j * B
+    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     return {
         "H": np.array([3.0, 4.0, 5.0]),
@@ -76,10 +82,14 @@ class TestStabilityScenario:
     def test_transient_stability_analysis(self, agent, multimachine_data):
         """Test 2: Transient stability via RK4 swing equation integration."""
         d = multimachine_data
-        fault_Ybus = d["Ybus_red"].copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        fault_Ybus = d[
+            "Ybus_red"
+        ].copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         fault_Ybus[0, 0] += 1.0 / 1e-6  # Three-phase fault at bus 0
 
-        post_fault_Ybus = d["Ybus_red"].copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        post_fault_Ybus = d[
+            "Ybus_red"
+        ].copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         result = agent.analyze_transient_stability(
             H=d["H"],

@@ -11,7 +11,9 @@ from fastapi.responses import JSONResponse
 from api._messages import MSG_INTERNAL_ERROR
 from api.dependencies import get_api_key
 
-router = APIRouter(prefix="/api/v1/digital-twin", tags=["digital_twin"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/digital-twin", tags=["digital_twin"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 
 # Global state stores for digital twin
 _shared_state_store = None
@@ -62,7 +64,10 @@ async def get_digital_twin_status(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-        logger.exception("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
+        logger.exception(
+            "digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id}
+        )
         return JSONResponse(
-            status_code=500, content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )

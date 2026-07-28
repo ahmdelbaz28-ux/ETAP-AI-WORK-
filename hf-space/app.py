@@ -96,7 +96,9 @@ def _utc_now_iso() -> str:
 async def lifespan(_app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
     logger.info(
-        "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT,
+        "Knowledge base: %d ETAP manuals + %d Zenon guides",
+        ETAP_MANUAL_COUNT,
+        ZENON_GUIDE_COUNT,
     )
     logger.info("Active agents: %d", AGENT_COUNT)
 
@@ -104,6 +106,7 @@ async def lifespan(_app: FastAPI):
     # and /login fail with 500 because the `users` table doesn't exist.
     try:
         from api.database import init_db
+
         await init_db()
     except Exception:
         logger.exception("Database init failed: %s")
@@ -155,10 +158,10 @@ app.include_router(data_import_router)
 app.include_router(assets_router)
 app.include_router(notifications_router)
 # Email integration routers
-app.include_router(email_otp_router)        # /api/v1/auth/email-otp/*
-app.include_router(magic_links_router)      # /api/v1/auth/magic-link/*
-app.include_router(email_digest_router)     # /api/v1/email-digest/*
-app.include_router(email_webhooks_router)   # /api/v1/email/webhooks/*
+app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
+app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*
+app.include_router(email_digest_router)  # /api/v1/email-digest/*
+app.include_router(email_webhooks_router)  # /api/v1/email/webhooks/*
 app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 
 
@@ -175,6 +178,7 @@ app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 async def unhandled_exception_handler(request: Request, exc: Exception):
     # Import here to avoid circular imports at module load.
     import logging as _logging
+
     _log = _logging.getLogger("etap-ai")
     _log.exception("Unhandled exception on %s %s", request.method, request.url.path)
 
@@ -184,11 +188,14 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     if isinstance(exc, PermissionError):
         safe_message = "File permission error — the service cannot write to a required directory. Check HOME and CUA_AUDIT_DIR env vars."
     elif isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
-        safe_message = "Database connection timed out. The service is degraded — please retry in a moment."
+        safe_message = (
+            "Database connection timed out. The service is degraded — please retry in a moment."
+        )
     elif isinstance(exc, OSError):
         safe_message = "Network or database connection error. Please retry."
 
     from fastapi.responses import JSONResponse
+
     # SECURITY (2026-07-21): The previous response included a `type` field
     # containing the exception class name and an `X-Error-Type` header —
     # both leak internal implementation details (e.g. "SQLAlchemyError",
@@ -362,7 +369,9 @@ from api.cloudflare_protection import (  # noqa: E402
 if is_cloudflare_enabled():
     logger.info("Cloudflare origin protection ENABLED — direct origin access will be rejected")
 else:
-    logger.info("Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode")
+    logger.info(
+        "Cloudflare origin protection DISABLED (CLOUDFLARE_ORIGIN_SECRET not set) — dev mode"
+    )
 
 app.middleware("http")(cloudflare_protection_middleware)
 
@@ -558,7 +567,11 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     return result
 
 
-@app.post("/api/v1/agents/etap-gui/execute", tags=["Agents"], responses={504: {"description": "CUA Loop timed out"}})
+@app.post(
+    "/api/v1/agents/etap-gui/execute",
+    tags=["Agents"],
+    responses={504: {"description": "CUA Loop timed out"}},
+)
 async def etap_gui_execute(request: Request):
     """Execute the REAL CUA Loop (Computer Use Agent).
 
@@ -613,10 +626,15 @@ async def etap_gui_execute(request: Request):
     if not isinstance(question, str) or not question.strip():
         return JSONResponse(
             status_code=400,
-            content={"success": False, "error": "Field 'question' (or alias 'message') is required and must be a non-empty string."},
+            content={
+                "success": False,
+                "error": "Field 'question' (or alias 'message') is required and must be a non-empty string.",
+            },
         )
 
-    max_steps = max(1, min(int(body.get("max_steps", 15)), 50))  # SECURITY: bounded to prevent resource exhaustion
+    max_steps = max(
+        1, min(int(body.get("max_steps", 15)), 50)
+    )  # SECURITY: bounded to prevent resource exhaustion
     require_confirmation = bool(body.get("require_confirmation", True))
     audit_dir = body.get("audit_dir")
     start_url = body.get("start_url")
@@ -624,16 +642,23 @@ async def etap_gui_execute(request: Request):
     # SECURITY: SSRF prevention — validate start_url scheme and reject private IPs
     if start_url:
         from urllib.parse import urlparse
+
         parsed = urlparse(start_url)
         if parsed.scheme not in ("https", "http"):
-            return JSONResponse(status_code=400, content={"success": False, "error": "Invalid URL scheme"})
+            return JSONResponse(
+                status_code=400, content={"success": False, "error": "Invalid URL scheme"}
+            )
         hostname = parsed.hostname or ""
         # Reject private/reserved IP ranges per RFC 1918, RFC 5737, RFC 3927
         import ipaddress
+
         try:
             ip = ipaddress.ip_address(hostname)
             if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                return JSONResponse(status_code=400, content={"success": False, "error": "Private/internal URLs are not allowed"})
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "error": "Private/internal URLs are not allowed"},
+                )
         except ValueError:
             pass  # hostname is a domain, not an IP — proceed
 
@@ -655,16 +680,18 @@ async def etap_gui_execute(request: Request):
     # conservatively (substring on the host portion) to avoid surprising
     # real users who happen to have "example" in their URL.
     _PLACEHOLDER_HOSTS = ("example.com", "example.org", "example.net")
-    is_placeholder_url = (
-        isinstance(start_url, str)
-        and any(host in start_url for host in _PLACEHOLDER_HOSTS)
+    is_placeholder_url = isinstance(start_url, str) and any(
+        host in start_url for host in _PLACEHOLDER_HOSTS
     )
     # Server-wide override: setting ETAP_GUI_QUICK_MODE=1 forces fast path
     # for ALL requests — useful when a deployment is intentionally used
     # only for smoke tests (e.g. CI HF Space) and the browser CUA loop
     # should never run.
     quick_mode_env = os.environ.get("ETAP_GUI_QUICK_MODE", "").lower() in (
-        "1", "true", "yes", "on",
+        "1",
+        "true",
+        "yes",
+        "on",
     )
 
     if dry_run_requested or is_placeholder_url or quick_mode_env:
@@ -1019,9 +1046,13 @@ async def dual_control_qr(request_id: str):
 
     req = _pending_approvals.get(request_id)
     if not req:
-        return JSONResponse(status_code=404, content={"success": False, "error": "Request not found"})
+        return JSONResponse(
+            status_code=404, content={"success": False, "error": "Request not found"}
+        )
     if req["status"] != "pending":
-        return JSONResponse(status_code=400, content={"success": False, "error": f"Request is {req['status']}"})
+        return JSONResponse(
+            status_code=400, content={"success": False, "error": f"Request is {req['status']}"}
+        )
     return {"success": True, "data": {"request_id": request_id, "qr_secret": req["qr_secret"]}}
 
 
@@ -1050,7 +1081,9 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+        with open(
+            log_path, encoding="utf-8"
+        ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()
@@ -1083,6 +1116,7 @@ async def study_types():
 # curl examples in README.hf.md) but missing from hf-space/app.py, causing HTTP 404
 # on HF Space. They delegate to shared handlers / lightweight in-process logic so
 # they work on cpu-basic HF hardware without external dependencies.
+
 
 @app.get("/api/v1/scada/live", tags=["SCADA"])
 async def scada_live():
@@ -1144,6 +1178,7 @@ async def benchmark():
     the elapsed time. Does NOT require ETAP or GPU.
     """
     import json as _json
+
     # Numpy is available in the HF image (it's in requirements.hf.txt).
     try:
         import numpy as np
@@ -1190,6 +1225,7 @@ async def websocket_cua_confirmation(websocket: WebSocket):
     """
     # SECURITY AUDIT R7-2: API key authentication required for life-safety endpoint
     import hmac as _hmac
+
     _hf_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     if _hf_api_key:
         api_key = websocket.headers.get("x-api-key") or websocket.query_params.get("token", "")
@@ -1216,7 +1252,9 @@ async def run_study(request: SharedStudyRequest):
 async def retrieve_context(request: SharedContextRetrieveRequest):
     """Retrieve and compress matching code snippets for a given query."""
     result = handle_context_retrieval(
-        query=request.query, top_k=request.top_k, max_tokens=request.max_tokens,
+        query=request.query,
+        top_k=request.top_k,
+        max_tokens=request.max_tokens,
     )
     status = result.pop("_status", None)
     if status:
@@ -1256,9 +1294,7 @@ async def settings_list_keys():
     # providers that are in the SUPPORTED_PROVIDERS whitelist. This
     # prevents unsanitized/stale provider names from leaking into the
     # response.
-    sanitized_keys = {
-        p: v for p, v in keys.items() if p in api_key_store.SUPPORTED_PROVIDERS
-    }
+    sanitized_keys = {p: v for p, v in keys.items() if p in api_key_store.SUPPORTED_PROVIDERS}
     return {"success": True, "data": sanitized_keys, "providers": list(sanitized_keys.keys())}
 
 
@@ -1527,7 +1563,12 @@ _UI_DIST = Path(__file__).parent / "ui-dist"
 _UI_INDEX = _UI_DIST / "index.html"
 
 
-@app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False, responses={404: {"description": "Path not found"}})
+@app.get(
+    "/{full_path:path}",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+    responses={404: {"description": "Path not found"}},
+)
 async def ui_catch_all(full_path: str):
     """Serve static UI files with SPA fallback to index.html."""
     # Skip API paths — they should have been handled by routes above
@@ -1570,5 +1611,3 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True,
     )
-
-

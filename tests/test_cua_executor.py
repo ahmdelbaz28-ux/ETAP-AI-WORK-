@@ -31,7 +31,7 @@ _TEST_CUA_AUDIT_DIR = tempfile.mkdtemp(prefix="test_cua_audit_")
 # Cleanup on module unload
 import atexit
 
-atexit.register(lambda: __import__('shutil').rmtree(_TEST_CUA_AUDIT_DIR, ignore_errors=True))
+atexit.register(lambda: __import__("shutil").rmtree(_TEST_CUA_AUDIT_DIR, ignore_errors=True))
 
 # ---------------------------------------------------------------------------
 # 1. Module import safety — must not crash on headless servers

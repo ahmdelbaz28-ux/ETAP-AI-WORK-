@@ -103,8 +103,10 @@ class Equipment(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     category_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("equipment_categories.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        String(36),
+        ForeignKey("equipment_categories.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     manufacturer: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -119,7 +121,9 @@ class Equipment(Base):
     dimensions: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # "LxWxH"
 
     # Standards compliance
-    standards: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # {"IEEE": "C57.12.00", "IEC": "60076"}
+    standards: Mapped[Optional[dict]] = mapped_column(
+        JSON, nullable=True
+    )  # {"IEEE": "C57.12.00", "IEC": "60076"}
 
     # Metadata
     tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
@@ -163,7 +167,9 @@ class CategoryUpdateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: Optional[str] = Field(default=None, min_length=1, max_length=128)
-    slug: Optional[str] = Field(default=None, min_length=1, max_length=128, pattern=r"^[a-z0-9_-]+$")
+    slug: Optional[str] = Field(
+        default=None, min_length=1, max_length=128, pattern=r"^[a-z0-9_-]+$"
+    )
     description: Optional[str] = Field(default=None, max_length=500)
     icon: Optional[str] = Field(default=None, max_length=64)
     display_order: Optional[int] = Field(default=None, ge=0)
@@ -275,7 +281,9 @@ class EquipmentListResponse(BaseModel):
 # Router
 # ---------------------------------------------------------------------------
 
-router = APIRouter(prefix="/api/v1/equipment", tags=["Equipment"], dependencies=[Depends(get_api_key)])  # SECURITY AUDIT R7-1
+router = APIRouter(
+    prefix="/api/v1/equipment", tags=["Equipment"], dependencies=[Depends(get_api_key)]
+)  # SECURITY AUDIT R7-1
 
 
 # ---------------------------------------------------------------------------
@@ -285,9 +293,7 @@ router = APIRouter(prefix="/api/v1/equipment", tags=["Equipment"], dependencies=
 
 async def _get_category_by_id(db: AsyncSession, category_id: str) -> EquipmentCategory:
     """Fetch a category by ID or raise 404."""
-    result = await db.execute(
-        select(EquipmentCategory).where(EquipmentCategory.id == category_id)
-    )
+    result = await db.execute(select(EquipmentCategory).where(EquipmentCategory.id == category_id))
     category = result.scalar_one_or_none()
     if category is None:
         raise HTTPException(
@@ -299,9 +305,7 @@ async def _get_category_by_id(db: AsyncSession, category_id: str) -> EquipmentCa
 
 async def _get_equipment_by_id(db: AsyncSession, equipment_id: str) -> Equipment:
     """Fetch equipment by ID or raise 404."""
-    result = await db.execute(
-        select(Equipment).where(Equipment.id == equipment_id)
-    )
+    result = await db.execute(select(Equipment).where(Equipment.id == equipment_id))
     equipment = result.scalar_one_or_none()
     if equipment is None:
         raise HTTPException(
@@ -312,7 +316,8 @@ async def _get_equipment_by_id(db: AsyncSession, equipment_id: str) -> Equipment
 
 
 async def _build_equipment_response(
-    db: AsyncSession, equipment: Equipment,
+    db: AsyncSession,
+    equipment: Equipment,
 ) -> EquipmentResponse:
     """Build an EquipmentResponse with category name."""
     category_name = ""
@@ -362,24 +367,28 @@ async def list_categories(
     response_categories = []
     for cat in categories:
         count_result = await db.execute(
-            select(func.count()).select_from(Equipment).where(
+            select(func.count())
+            .select_from(Equipment)
+            .where(
                 Equipment.category_id == cat.id,
                 Equipment.is_active == True,
             )
         )
         count = count_result.scalar_one()
 
-        response_categories.append(CategoryResponse(
-            id=str(cat.id),
-            name=cat.name,
-            slug=cat.slug,
-            description=cat.description,
-            icon=cat.icon,
-            display_order=cat.display_order,
-            equipment_count=count,
-            created_at=cat.created_at,
-            updated_at=cat.updated_at,
-        ))
+        response_categories.append(
+            CategoryResponse(
+                id=str(cat.id),
+                name=cat.name,
+                slug=cat.slug,
+                description=cat.description,
+                icon=cat.icon,
+                display_order=cat.display_order,
+                equipment_count=count,
+                created_at=cat.created_at,
+                updated_at=cat.updated_at,
+            )
+        )
 
     return CategoryListResponse(
         categories=response_categories,
@@ -521,9 +530,7 @@ async def delete_category(
 
     # Check if category has equipment
     count_result = await db.execute(
-        select(func.count()).select_from(Equipment).where(
-            Equipment.category_id == category_id
-        )
+        select(func.count()).select_from(Equipment).where(Equipment.category_id == category_id)
     )
     if count_result.scalar_one() > 0:
         raise HTTPException(
@@ -588,9 +595,7 @@ async def list_equipment(
 
     # Paginated query
     result = await db.execute(
-        query.order_by(Equipment.name.asc())
-        .offset(pagination.offset)
-        .limit(pagination.page_size)
+        query.order_by(Equipment.name.asc()).offset(pagination.offset).limit(pagination.page_size)
     )
     equipment_list = result.scalars().all()
 
@@ -810,9 +815,7 @@ async def import_equipment(
 
                 # Find or create category
                 cat_result = await db.execute(
-                    select(EquipmentCategory).where(
-                        EquipmentCategory.name == category_name
-                    )
+                    select(EquipmentCategory).where(EquipmentCategory.name == category_name)
                 )
                 category = cat_result.scalar_one_or_none()
                 if category is None:
@@ -856,9 +859,7 @@ async def import_equipment(
                         continue
 
                     cat_result = await db.execute(
-                        select(EquipmentCategory).where(
-                            EquipmentCategory.name == category_name
-                        )
+                        select(EquipmentCategory).where(EquipmentCategory.name == category_name)
                     )
                     category = cat_result.scalar_one_or_none()
                     if category is None:
@@ -888,8 +889,12 @@ async def import_equipment(
                     db.add(equipment)
                     imported += 1
                 except Exception as e:
-                    errors.append(f"Error importing item {item.get('name', 'unknown')}: import error")
-                    logger.warning("equipment_import_item_failed name=%s error=%s", item.get('name'), str(e))
+                    errors.append(
+                        f"Error importing item {item.get('name', 'unknown')}: import error"
+                    )
+                    logger.warning(
+                        "equipment_import_item_failed name=%s error=%s", item.get("name"), str(e)
+                    )
 
         except json.JSONDecodeError as e:
             raise HTTPException(

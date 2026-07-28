@@ -34,8 +34,8 @@ from typing import Any, Union
 
 # Business-hours window (local time) used by ABAC policies.
 # Module-level so they can be tuned without code changes.
-BUSINESS_HOURS_START = 8   # 8 AM local time
-BUSINESS_HOURS_END = 18    # 6 PM local time
+BUSINESS_HOURS_START = 8  # 8 AM local time
+BUSINESS_HOURS_END = 18  # 6 PM local time
 
 from compat import StrEnum
 
@@ -214,7 +214,11 @@ class ABACPolicyEngine:
 
     @staticmethod
     def _evaluate_rule(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict,
+        rule: ABACRule,
+        subject: dict,
+        action: str,
+        resource: dict,
+        environment: dict,
     ) -> bool:
         """Evaluate a single rule against the request context.
 
@@ -332,7 +336,9 @@ class ABACPolicyEngine:
             t: datetime = env["time"]
             env.setdefault("hour", t.hour)
             env.setdefault("day_of_week", t.weekday())
-            env.setdefault("is_business_hours", BUSINESS_HOURS_START <= t.hour <= BUSINESS_HOURS_END)
+            env.setdefault(
+                "is_business_hours", BUSINESS_HOURS_START <= t.hour <= BUSINESS_HOURS_END
+            )
 
         # Evaluate policies in priority order
         allow_matched = False
@@ -806,7 +812,11 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     engine.add_policy(
         make_ip_allowlist_policy(
             name="internal_network",
-            allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+            allowed_cidrs=[
+                "10.0.0.0/8",
+                "172.16.0.0/12",
+                "192.168.0.0/16",
+            ],  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
             priority=30,
         ),
     )

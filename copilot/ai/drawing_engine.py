@@ -289,7 +289,11 @@ class IntentParser:
         confidence = min(best_score, 1.0)
         return best_type, confidence
 
-    def _extract_parameters(self, text: str) -> dict[str, Any]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _extract_parameters(
+        self, text: str
+    ) -> dict[
+        str, Any
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Extract numerical and categorical parameters from text."""
         import re
 
@@ -330,7 +334,11 @@ class IntentParser:
 
         return params
 
-    def _extract_entities(self, text: str) -> list[dict]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _extract_entities(
+        self, text: str
+    ) -> list[
+        dict
+    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Extract named entities from the request."""
         entities = []
 
@@ -399,7 +407,9 @@ class IntentParser:
 class GraphBuilder:
     """Builds an engineering knowledge graph from parsed intents."""
 
-    def build(self, intent: EngineeringIntent) -> EngineeringGraph:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def build(
+        self, intent: EngineeringIntent
+    ) -> EngineeringGraph:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Build an engineering graph from a parsed intent.
 
         Creates nodes for each entity and edges for their relationships.
@@ -555,7 +565,10 @@ class ModelGenerator:
         return model
 
     def _create_panel_from_node(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Panel entity from a graph node, linking Intent Parameters.
 
@@ -643,7 +656,10 @@ class ModelGenerator:
             model.project.panels.append(panel)
 
     def _create_transformer_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Transformer entity from a graph node."""
         power = node.get("power", 1.0)
@@ -675,7 +691,10 @@ class ModelGenerator:
         model.metadata.setdefault("transformers", []).append(xf.model_dump(mode="json"))
 
     def _create_bus_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Bus entity from a graph node."""
         voltage = node.get("voltage", 11000)
@@ -695,7 +714,10 @@ class ModelGenerator:
         model.metadata.setdefault("buses", []).append(bus.model_dump(mode="json"))
 
     def _create_cable_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Cable entity from a graph node."""
         cable = Cable(
@@ -710,7 +732,10 @@ class ModelGenerator:
         model.metadata.setdefault("cables", []).append(cable.model_dump(mode="json"))
 
     def _create_motor_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Motor entity from a graph node."""
         voltage = node.get("voltage", 400)
@@ -732,7 +757,10 @@ class ModelGenerator:
         model.metadata.setdefault("motors", []).append(motor.model_dump(mode="json"))
 
     def _create_generator_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Generator entity from a graph node."""
         power_kw = node.get("power", 500)
@@ -758,7 +786,10 @@ class ModelGenerator:
         model.metadata.setdefault("generators", []).append(gen.model_dump(mode="json"))
 
     def _create_load_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph,
+        self,
+        model: UnifiedEngineeringModel,
+        node: dict,
+        graph: EngineeringGraph,
     ) -> None:
         """Create a Load entity from a graph node."""
         power = node.get("power", 10)
@@ -814,7 +845,9 @@ class AIDrawingEngine:
 
         self._history: list[dict] = []
 
-    def process(self, natural_language_request: str) -> dict:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def process(
+        self, natural_language_request: str
+    ) -> dict:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Process a natural language engineering request end-to-end.
 
         Parameters

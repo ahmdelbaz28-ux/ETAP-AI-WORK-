@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
+
 class AgentMetaResponse(BaseModel):
     id: str
     name: str
@@ -29,6 +30,7 @@ class AgentMetaResponse(BaseModel):
     capabilities: List[str] = []
     model: str = ""
     provider: str = ""
+
 
 @router.get("")
 async def get_agents_list(request: Request):
@@ -73,16 +75,18 @@ async def get_agents_list(request: Request):
         }
         agents_list = []
         for a in AGENTS:
-            agents_list.append({
-                "id": a["id"],
-                "name": a["name"],
-                "description": a.get("description", ""),
-                "standard": a.get("standard", ""),
-                "status": a.get("status", "active"),
-                "capabilities": capability_map.get(a["id"], []),
-                "model": "gpt-4o",
-                "provider": "openai",
-            })
+            agents_list.append(
+                {
+                    "id": a["id"],
+                    "name": a["name"],
+                    "description": a.get("description", ""),
+                    "standard": a.get("standard", ""),
+                    "status": a.get("status", "active"),
+                    "capabilities": capability_map.get(a["id"], []),
+                    "model": "gpt-4o",
+                    "provider": "openai",
+                }
+            )
 
         return JSONResponse(content={"success": True, "agents": agents_list, "trace_id": trace_id})
     except Exception as e:
@@ -92,8 +96,10 @@ async def get_agents_list(request: Request):
         logger.exception("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
-            content={"success": False, "agents": [], "trace_id": trace_id}, status_code=500,
+            content={"success": False, "agents": [], "trace_id": trace_id},
+            status_code=500,
         )
+
 
 @router.get("/{agent_id}")
 async def get_agent_by_id(agent_id: str, request: Request):
@@ -101,6 +107,7 @@ async def get_agent_by_id(agent_id: str, request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         from api.shared_handlers import AGENTS
+
         # Find agent by ID
         agent = None
         for a in AGENTS:
@@ -110,7 +117,7 @@ async def get_agent_by_id(agent_id: str, request: Request):
         if agent is None:
             return JSONResponse(
                 status_code=404,
-                content={"success": False, "error": "Agent not found", "trace_id": trace_id}
+                content={"success": False, "error": "Agent not found", "trace_id": trace_id},
             )
 
         # Capability map (same as get_agents_list)
@@ -155,17 +162,19 @@ async def get_agent_by_id(agent_id: str, request: Request):
                     "model": "gpt-4o",
                     "provider": "openai",
                 },
-                "trace_id": trace_id
+                "trace_id": trace_id,
             }
         )
     except Exception as e:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.exception("get_agent_by_id_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id}
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
+
 
 @router.get("/info")
 async def get_agents_info(request: Request):
@@ -207,9 +216,11 @@ async def get_agents_info(request: Request):
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
+
 # ---------------------------------------------------------------------------
 # ETAP Expert Skill chat endpoint
 # ---------------------------------------------------------------------------
+
 
 class ETAPExpertChatRequest(BaseModel):
     """Request body for the ETAP Expert chat endpoint."""
@@ -223,14 +234,18 @@ class ETAPExpertChatRequest(BaseModel):
         description="The ETAP-related question to ask the expert agent",
     )
     context: Any = Field(
-        default=None, description="Optional additional context (voltages, currents, etc.)",
+        default=None,
+        description="Optional additional context (voltages, currents, etc.)",
     )
+
 
 @router.post("/etap-expert/chat")
 async def etap_expert_chat(
     request: Request,
     payload: ETAPExpertChatRequest,
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP Expert skill agent.
 
@@ -268,9 +283,11 @@ async def etap_expert_chat(
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
+
 # ---------------------------------------------------------------------------
 # ETAP GUI Agent chat endpoint
 # ---------------------------------------------------------------------------
+
 
 class ETAPGUIChatRequest(BaseModel):
     """Request body for the ETAP GUI Agent chat endpoint."""
@@ -284,14 +301,18 @@ class ETAPGUIChatRequest(BaseModel):
         description="The GUI automation question to ask the agent",
     )
     context: Any = Field(
-        default=None, description="Optional additional context (app name, etc.)",
+        default=None,
+        description="Optional additional context (app name, etc.)",
     )
+
 
 @router.post("/etap-gui/chat")
 async def etap_gui_chat(
     request: Request,
     payload: ETAPGUIChatRequest,
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP GUI Agent (Computer Use Agent).
 
@@ -330,6 +351,7 @@ async def etap_gui_chat(
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
+
 class ETAPGUIExecuteRequest(BaseModel):
     """Request body for the ETAP GUI Agent REAL CUA execution endpoint."""
 
@@ -365,11 +387,14 @@ class ETAPGUIExecuteRequest(BaseModel):
         ),
     )
 
+
 @router.post("/etap-gui/execute")
 async def etap_gui_execute(
     request: Request,
     payload: ETAPGUIExecuteRequest,
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
@@ -399,7 +424,6 @@ async def etap_gui_execute(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-
         from agents.etap_gui_agent import ETAPGUIAgent
         from compat import to_thread
 
@@ -432,9 +456,12 @@ async def etap_gui_execute(
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
+
 @router.get("/etap-gui/health")
 async def etap_gui_health(
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Health check for the ETAP GUI Agent CUA execution capabilities.
 
@@ -466,9 +493,11 @@ async def etap_gui_health(
         },
     )
 
+
 # ─── Life Safety endpoints ──────────────────────────────────────────────────
 # These endpoints expose the EMERGENCY STOP (kill switch) and the safety
 # audit trail. They are critical for life-safety compliance.
+
 
 def _get_life_safety_status() -> dict:
     """Get the current life safety system status."""
@@ -476,11 +505,14 @@ def _get_life_safety_status() -> dict:
 
     return life_safety_guard.health_check()
 
+
 @router.post("/etap-gui/kill-switch/activate", tags=["Agents", "Safety"])
 async def etap_gui_activate_kill_switch(
     request: Request,
     reason: str = "manual_api_call",
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """🚨 EMERGENCY STOP — Activate the CUA kill switch.
 
@@ -512,9 +544,12 @@ async def etap_gui_activate_kill_switch(
         },
     )
 
+
 @router.post("/etap-gui/kill-switch/deactivate", tags=["Agents", "Safety"])
 async def etap_gui_deactivate_kill_switch(
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Deactivate the CUA kill switch.
 
@@ -537,9 +572,12 @@ async def etap_gui_deactivate_kill_switch(
         },
     )
 
+
 @router.get("/etap-gui/safety/health", tags=["Agents", "Safety"])
 async def etap_gui_safety_health(
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the life safety system status.
 
@@ -554,9 +592,12 @@ async def etap_gui_safety_health(
     """
     return JSONResponse(content={"success": True, "data": _get_life_safety_status()})
 
+
 @router.get("/etap-gui/safety/audit/verify", tags=["Agents", "Safety"])
 async def etap_gui_safety_audit_verify(
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Verify the integrity of the tamper-evident audit log.
 
@@ -584,11 +625,15 @@ async def etap_gui_safety_audit_verify(
         },
     )
 
+
 # ─── SIEM endpoints ─────────────────────────────────────────────────────────
+
 
 @router.get("/etap-gui/siem/health", tags=["Agents", "Safety"])
 async def etap_gui_siem_health(
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the SIEM Syslog forwarder status.
 
@@ -599,10 +644,13 @@ async def etap_gui_siem_health(
 
     return JSONResponse(content={"success": True, "data": siem_forwarder.health_check()})
 
+
 @router.get("/etap-gui/siem/events", tags=["Agents", "Safety"])
 async def etap_gui_siem_events(
     limit: int = 50,
-    _: str = Depends(get_api_key),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Read recent SIEM events from the logging-only JSONL file.
 
@@ -634,7 +682,9 @@ async def etap_gui_siem_events(
     limit = min(max(limit, 1), 200)
     events: list = []
     try:
-        with open(log_path, encoding="utf-8") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+        with open(
+            log_path, encoding="utf-8"
+        ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         # Take the last N lines
         for line in lines[-limit:]:
@@ -648,7 +698,11 @@ async def etap_gui_siem_events(
     except OSError:
         logger.exception("agent_events_read_failed")
         return JSONResponse(
-            content={"success": False, "error": "read_failed", "message": "Failed to read agent events"},
+            content={
+                "success": False,
+                "error": "read_failed",
+                "message": "Failed to read agent events",
+            },
             status_code=500,
         )
 
@@ -668,6 +722,7 @@ async def etap_gui_siem_events(
 # AhmedETAP Orchestration Skill — /api/v1/agents/ahmed-etap/*
 # ---------------------------------------------------------------------------
 
+
 class AhmedETAPOrchestrateRequest(BaseModel):
     """Request body for the AhmedETAP skill orchestration endpoint.
 
@@ -683,10 +738,11 @@ class AhmedETAPOrchestrateRequest(BaseModel):
     study_type: str = Field(
         ...,
         description="Canonical study type (load_flow, short_circuit, arc_flash, ...). "
-                    "Aliases are normalised: fault→short_circuit, coordination→protection_coordination.",
+        "Aliases are normalised: fault→short_circuit, coordination→protection_coordination.",
     )
     project_name: str = Field(
-        default="default", description="Project reference name (for SharedContext.project).",
+        default="default",
+        description="Project reference name (for SharedContext.project).",
     )
     base_mva: float = Field(default=100.0, description="Per-unit base MVA for the project.")
     base_kv: float = Field(default=115.0, description="Per-unit base kV for the project.")
@@ -697,7 +753,7 @@ class AhmedETAPOrchestrateRequest(BaseModel):
     claim_value: float = Field(
         ...,
         description="The numerical value the Lead Agent claims as the answer. "
-                    "MathGuard recomputes this and compares within 0.01 % tolerance.",
+        "MathGuard recomputes this and compares within 0.01 % tolerance.",
     )
     claim_unit: str = Field(
         default="pu",
@@ -718,7 +774,7 @@ class AhmedETAPOrchestrateRequest(BaseModel):
     lead_agent: Optional[str] = Field(
         default=None,
         description="Override the default Lead Agent (e.g. 'load_flow'). "
-                    "If omitted, derived from study_type.",
+        "If omitted, derived from study_type.",
     )
 
 
@@ -726,7 +782,9 @@ class AhmedETAPOrchestrateRequest(BaseModel):
 async def ahmed_etap_orchestrate(
     request: Request,
     payload: AhmedETAPOrchestrateRequest,
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Run a study through the AhmedETAP orchestration skill pipeline.
 
@@ -763,6 +821,7 @@ async def ahmed_etap_orchestrate(
         from agents.orchestrator import (
             get_orchestrator,
         )
+
         canonical = canonicalize_study_type(payload.study_type)
         try:
             st_enum = _ST(canonical)
@@ -809,7 +868,9 @@ async def ahmed_etap_orchestrate(
         from logging import getLogger
 
         getLogger("engineering_service").exception(
-            "ahmed_etap_orchestrate_failed error=%s", str(e), extra={"trace_id": trace_id},
+            "ahmed_etap_orchestrate_failed error=%s",
+            str(e),
+            extra={"trace_id": trace_id},
         )
         return JSONResponse(
             status_code=500,
@@ -819,7 +880,9 @@ async def ahmed_etap_orchestrate(
 
 @router.get("/ahmed-etap/info")
 async def ahmed_etap_info(
-    _: str = Depends(get_api_key),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Return metadata about the AhmedETAP orchestration skill.
 
@@ -849,4 +912,3 @@ async def ahmed_etap_info(
             },
         },
     )
-

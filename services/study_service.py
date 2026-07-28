@@ -51,7 +51,9 @@ __all__ = [
 
 
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
-def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _build_system_from_spec(
+    spec: SystemSpec,
+) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     from core_model.bus import Bus
     from core_model.generator import Generator
@@ -158,10 +160,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR: cognitive comp
             impedance={
                 "1": complex(g.r1, g.x1),
                 "2": complex(
-                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1,
+                    g.r2 if g.r2 is not None else g.r1,
+                    g.x2 if g.x2 is not None else g.x1,
                 ),
                 "0": complex(
-                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1,
+                    g.r0 if g.r0 is not None else g.r1,
+                    g.x0 if g.x0 is not None else g.x1,
                 ),
             },
         )
@@ -170,7 +174,9 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:  # NOSONAR: cognitive comp
     for ld in spec.loads:
         if ld.bus_id not in bus_map:
             logger.warning(
-                "Load %s references unknown bus %s, creating default PQ bus", ld.load_id, ld.bus_id,
+                "Load %s references unknown bus %s, creating default PQ bus",
+                ld.load_id,
+                ld.bus_id,
             )
             bus = Bus(bus_id=ld.bus_id, bus_type="pq")
             system.add_bus(bus)
@@ -223,7 +229,9 @@ def _run_async(coro: Coroutine[Any, Any, T]) -> T:
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    study_type: str, system: Optional[Any], parameters: dict[str, Any],
+    study_type: str,
+    system: Optional[Any],
+    parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
@@ -275,7 +283,9 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
 def _run_etap_study(
-    study_type: str, project_path: str, parameters: dict[str, Any],
+    study_type: str,
+    project_path: str,
+    parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a study via the ETAP provider."""
     # Check if ETAP is enabled
@@ -323,7 +333,9 @@ def _run_etap_study(
     }
 
 
-def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float) -> StudyResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def execute_study_logic(
+    payload: StudyRequest, trace_id: str, start_time: float
+) -> StudyResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Execute study logic with caching and proper error handling."""
     from core.bootstrap import _add_execution_time, _increment_counter, _study_cache
     from utils.language_detection import normalize_input
@@ -367,7 +379,9 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str,
+                        payload.system.model_dump(),
+                        sort_keys=True,
+                        default=str,
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
@@ -383,7 +397,9 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                         )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
+                    "Cache lookup failed (non-fatal): %s",
+                    cache_err,
+                    extra={"trace_id": trace_id},
                 )
 
         if cache_hit:
@@ -426,18 +442,24 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str,
+                        payload.system.model_dump(),
+                        sort_keys=True,
+                        default=str,
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
                     _run_async(
                         _study_cache.set(
-                            payload.study_type, cache_params, json.dumps(data, default=str),
+                            payload.study_type,
+                            cache_params,
+                            json.dumps(data, default=str),
                         ),
                     )
             except Exception as cache_err:
                 logger.debug(
-                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id},
+                    "Cache store failed (non-fatal): %s",
+                    cache_err,
+                    extra={"trace_id": trace_id},
                 )
 
         _increment_counter("success")

@@ -141,8 +141,12 @@ class StabilityAgent(BaseAgent):
 
         def electrical_power(d: np.ndarray, Y: np.ndarray) -> np.ndarray:
             """Calculate electrical power output for each machine."""
-            Pe = np.zeros(n_gen)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            E_complex = E * np.exp(1j * d)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Pe = np.zeros(
+                n_gen
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            E_complex = (
+                E * np.exp(1j * d)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             I = Y @ E_complex
             for i in range(n_gen):
                 Pe[i] = np.real(E_complex[i] * np.conj(I[i]))
@@ -161,9 +165,13 @@ class StabilityAgent(BaseAgent):
 
             # RK4 integration
             def derivatives(
-                d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                d: np.ndarray,
+                w: np.ndarray,
+                _Y: np.ndarray = Y,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ) -> tuple[np.ndarray, np.ndarray]:
-                Pe = electrical_power(d, _Y)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Pe = electrical_power(
+                    d, _Y
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
                 return ddelta, domega
@@ -251,14 +259,26 @@ class StabilityAgent(BaseAgent):
             delta_pert = delta0.copy()
             delta_pert[j] += eps
 
-            E_plus = E * np.exp(1j * delta_pert)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            I_plus = Ybus_red @ E_plus  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Pe_plus = np.real(E_plus * np.conj(I_plus))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            E_plus = (
+                E * np.exp(1j * delta_pert)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_plus = (
+                Ybus_red @ E_plus
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Pe_plus = np.real(
+                E_plus * np.conj(I_plus)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             delta_pert[j] = delta0[j] - eps
-            E_minus = E * np.exp(1j * delta_pert)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            I_minus = Ybus_red @ E_minus  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Pe_minus = np.real(E_minus * np.conj(I_minus))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            E_minus = (
+                E * np.exp(1j * delta_pert)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            I_minus = (
+                Ybus_red @ E_minus
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Pe_minus = np.real(
+                E_minus * np.conj(I_minus)
+            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             K_S[:, j] = (Pe_plus - Pe_minus) / (2.0 * eps)
 
@@ -272,7 +292,9 @@ class StabilityAgent(BaseAgent):
         # Lower-left block: -M^{-1} K_S (synchronizing)
         # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
         # so the synchronizing-coefficient block carries a negative sign.
-        M_inv = np.diag(1.0 / M)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        M_inv = np.diag(
+            1.0 / M
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         A[n_gen:, :n_gen] = -M_inv @ K_S
 
         # Lower-right block: M^{-1} D (damping)
@@ -392,8 +414,12 @@ class StabilityAgent(BaseAgent):
         omega_s = self.omega_synchronous
 
         # Maximum power transfer pre-fault and during fault
-        Pmax_pre = E_gen * V_inf / X_total  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Pmax_fault = E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Pmax_pre = (
+            E_gen * V_inf / X_total
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Pmax_fault = (
+            E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0
+        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Post-fault max (assume same as pre-fault for reclosing)
         Pmax_post = Pmax_pre  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -479,25 +505,37 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("transient", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                Pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Pm = np.array(
+                    task.parameters.get("mechanical_power", [0.8, 0.6, 0.5])
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 n_gen = len(H)
 
                 # Build reduced Ybus from provided data or use defaults
-                Y_data = task.parameters.get("Ybus_reduced")  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                Y_data = task.parameters.get(
+                    "Ybus_reduced"
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 if Y_data is not None:
-                    Ybus_red = np.array(Y_data, dtype=complex)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    Ybus_red = np.array(
+                        Y_data, dtype=complex
+                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+                    G = np.random.uniform(
+                        2.0, 8.0, (n_gen, n_gen)
+                    )  # NOSONAR: numpy.random.Generator migration; API change required
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+                    B = np.random.uniform(
+                        -12.0, -3.0, (n_gen, n_gen)
+                    )  # NOSONAR: numpy.random.Generator migration; API change required
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
                     Ybus_red = G + 1j * B
 
-                E_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                E_mag = np.array(
+                    task.parameters.get("internal_voltages", [1.1, 1.0, 1.05])
+                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
                 E = E_mag * np.exp(1j * delta0)
 
@@ -547,9 +585,13 @@ class StabilityAgent(BaseAgent):
                     Ybus_red = np.array(Y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+                    G = np.random.uniform(
+                        2.0, 8.0, (n_gen, n_gen)
+                    )  # NOSONAR: numpy.random.Generator migration; API change required
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))  # NOSONAR: numpy.random.Generator migration; API change required
+                    B = np.random.uniform(
+                        -12.0, -3.0, (n_gen, n_gen)
+                    )  # NOSONAR: numpy.random.Generator migration; API change required
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
@@ -560,7 +602,12 @@ class StabilityAgent(BaseAgent):
                 E = E_mag * np.exp(1j * delta0)
 
                 ss_result = self.analyze_small_signal_stability(
-                    H=H, D=D, Pm=Pm, Ybus_red=Ybus_red, E=E, delta0=delta0,
+                    H=H,
+                    D=D,
+                    Pm=Pm,
+                    Ybus_red=Ybus_red,
+                    E=E,
+                    delta0=delta0,
                 )
                 results["small_signal_stability"] = ss_result
 
@@ -609,7 +656,9 @@ class StabilityAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(self, result: AgentResult) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def validate_result(
+        self, result: AgentResult
+    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Validate stability analysis results.
 

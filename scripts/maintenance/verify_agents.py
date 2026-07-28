@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 #!/usr/bin/env python3
@@ -15,7 +14,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_class_structure(filepath: str) -> list[str]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def check_agent_class_structure(
+    filepath: str,
+) -> list[
+    str
+]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Check if an agent file has a properly structured agent class."""
     issues = []
 
@@ -39,7 +42,12 @@ def check_agent_class_structure(filepath: str) -> list[str]:  # NOSONAR: cogniti
             # Check if the class inherits from BaseAgent
             inherits_from_base = False
             for base in agent_class.bases:
-                if isinstance(base, ast.Name) and base.id == "BaseAgent" or isinstance(base, ast.Attribute) and base.attr == "BaseAgent":
+                if (
+                    isinstance(base, ast.Name)
+                    and base.id == "BaseAgent"
+                    or isinstance(base, ast.Attribute)
+                    and base.attr == "BaseAgent"
+                ):
                     inherits_from_base = True
 
             if not inherits_from_base:

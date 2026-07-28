@@ -243,7 +243,9 @@ class AlertManager:
         return list(matched) if matched else ["console"]
 
     def _alert_console(self, error: EngineSystemError) -> None:
-        msg = f"[{error.severity.value}] Union[{error.component}, {error.error_id}] | {error.message}"
+        msg = (
+            f"[{error.severity.value}] Union[{error.component}, {error.error_id}] | {error.message}"
+        )
         level = getattr(logging, error.severity.value, logging.ERROR)
         self._logger.log(level, msg)
 
@@ -532,7 +534,8 @@ class ErrorHandler:
             )
         except Exception:
             logging.getLogger(__name__).debug(
-                "Audit log write skipped for error %s", error.error_id,
+                "Audit log write skipped for error %s",
+                error.error_id,
             )
 
     def _dispatch_alert(self, error: EngineSystemError) -> None:

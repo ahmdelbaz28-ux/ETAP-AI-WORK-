@@ -15,6 +15,7 @@ Tests every critical user flow:
 
 Reports PASS/FAIL for each test with details.
 """
+
 from __future__ import annotations
 
 import os
@@ -75,7 +76,9 @@ def _health_check(client: httpx.Client) -> None:
     report("GET /health → 200", r.status_code == 200, f"HTTP {r.status_code}")
     if r.status_code == 200:
         data = r.json()
-        report("  status == healthy", data.get("status") == "healthy", f"status={data.get('status')}")
+        report(
+            "  status == healthy", data.get("status") == "healthy", f"status={data.get('status')}"
+        )
 
     r = client.get("/healthz")
     report("GET /healthz → 200", r.status_code == 200, f"HTTP {r.status_code}")
@@ -84,12 +87,24 @@ def _health_check(client: httpx.Client) -> None:
     report("GET /readyz → 200", r.status_code == 200, f"HTTP {r.status_code}")
 
     r = client.get("/info")
-    report("GET /info → 200", r.status_code == 200, f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:200]}")
+    report(
+        "GET /info → 200",
+        r.status_code == 200,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:200]}",
+    )
     if r.status_code == 200:
         data = r.json()
-        report("  agent_count == 25", data.get("agent_count") == 25, f"agent_count={data.get('agent_count')}")
+        report(
+            "  agent_count == 25",
+            data.get("agent_count") == 25,
+            f"agent_count={data.get('agent_count')}",
+        )
         report("  0 beta agents", data.get("beta_agents") == 0, f"beta={data.get('beta_agents')}")
-        report("  14 modules listed", len(data.get("modules", [])) == 14, f"modules={len(data.get('modules', []))}")
+        report(
+            "  14 modules listed",
+            len(data.get("modules", [])) == 14,
+            f"modules={len(data.get('modules', []))}",
+        )
 
 
 def _agents_check(client: httpx.Client) -> None:
@@ -119,29 +134,44 @@ def _auth_flow(client: httpx.Client) -> Optional[dict]:
     email = f"{username}@test.com"
     password = os.environ.get("ETAP_DEV_PASSWORD") or f"TestPass_{int(time.time())}!"
 
-    r = client.post("/api/v1/auth/register", json={
-        "username": username,
-        "email": email,
-        "password": password,
-    })
-    report("POST /auth/register → 201", r.status_code in (200, 201),
-           f"HTTP {r.status_code} — {'OK' if r.status_code in (200, 201) else r.text[:200]}")
+    r = client.post(
+        "/api/v1/auth/register",
+        json={
+            "username": username,
+            "email": email,
+            "password": password,
+        },
+    )
+    report(
+        "POST /auth/register → 201",
+        r.status_code in (200, 201),
+        f"HTTP {r.status_code} — {'OK' if r.status_code in (200, 201) else r.text[:200]}",
+    )
 
-    r = client.post("/api/v1/auth/login", json={
-        "username": username,
-        "password": password,
-    })
+    r = client.post(
+        "/api/v1/auth/login",
+        json={
+            "username": username,
+            "password": password,
+        },
+    )
     report("POST /auth/login → 200", r.status_code == 200, f"HTTP {r.status_code}")
     token = None
     if r.status_code == 200:
         data = r.json()
         token = data.get("access_token") or data.get("token")
-        report("  JWT token returned", token is not None, f"token={'present' if token else 'MISSING'}")
+        report(
+            "  JWT token returned", token is not None, f"token={'present' if token else 'MISSING'}"
+        )
 
-    return {
-        "Authorization": f"Bearer {token}",
-        "X-API-Key": API_KEY,
-    } if token else {"X-API-Key": API_KEY}
+    return (
+        {
+            "Authorization": f"Bearer {token}",
+            "X-API-Key": API_KEY,
+        }
+        if token
+        else {"X-API-Key": API_KEY}
+    )
 
 
 def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
@@ -155,13 +185,20 @@ def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     initial_count = r.json().get("total", 0) if r.status_code == 200 else 0
 
     project_name = f"Test Project {int(time.time())}"
-    r = client.post(PROJECTS_URL, headers=auth_headers, json={
-        "name": project_name,
-        "description": "E2E test project — 2-bus industrial system",
-        "system_config": {"buses": [{"id": "BUS1", "nominal_kv": 13.8, "type": "swing"}]},
-    })
-    report("POST /projects/ → 201", r.status_code == 201,
-           f"HTTP {r.status_code} — {'OK' if r.status_code == 201 else r.text[:200]}")
+    r = client.post(
+        PROJECTS_URL,
+        headers=auth_headers,
+        json={
+            "name": project_name,
+            "description": "E2E test project — 2-bus industrial system",
+            "system_config": {"buses": [{"id": "BUS1", "nominal_kv": 13.8, "type": "swing"}]},
+        },
+    )
+    report(
+        "POST /projects/ → 201",
+        r.status_code == 201,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 201 else r.text[:200]}",
+    )
     if r.status_code != 201:
         return None
 
@@ -173,16 +210,23 @@ def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
 
     r = client.get(PROJECTS_URL, headers=auth_headers)
     if r.status_code == 200:
-        report("  list count increased", r.json().get("total", 0) >= initial_count,
-               f"total={r.json().get('total')}")
+        report(
+            "  list count increased",
+            r.json().get("total", 0) >= initial_count,
+            f"total={r.json().get('total')}",
+        )
 
     r = client.get(f"{PROJECTS_URL}{project_id}", headers=auth_headers)
     report("GET /projects/{id} → 200", r.status_code == 200, f"HTTP {r.status_code}")
 
-    r = client.put(f"{PROJECTS_URL}{project_id}", headers=auth_headers, json={
-        "name": f"{project_name} (UPDATED)",
-        "status": "archived",
-    })
+    r = client.put(
+        f"{PROJECTS_URL}{project_id}",
+        headers=auth_headers,
+        json={
+            "name": f"{project_name} (UPDATED)",
+            "status": "archived",
+        },
+    )
     report("PUT /projects/{id} → 200", r.status_code == 200, f"HTTP {r.status_code}")
 
     r = client.delete(f"{PROJECTS_URL}{project_id}", headers=auth_headers)
@@ -198,19 +242,29 @@ def _assets_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     print("=" * 70)
 
     r = client.get(ASSETS_URL, headers=auth_headers)
-    report("GET /assets → 200", r.status_code == 200,
-           f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:200]}")
+    report(
+        "GET /assets → 200",
+        r.status_code == 200,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:200]}",
+    )
 
-    r = client.post(ASSETS_URL, headers=auth_headers, json={
-        "name": "Main Transformer T1",
-        "type": "Transformer",
-        "rating": "10 MVA",
-        "voltage": "13.8 kV",
-        "status": "active",
-        "notes": "E2E test asset",
-    })
-    report("POST /assets → 201", r.status_code == 201,
-           f"HTTP {r.status_code} — {'OK' if r.status_code == 201 else r.text[:200]}")
+    r = client.post(
+        ASSETS_URL,
+        headers=auth_headers,
+        json={
+            "name": "Main Transformer T1",
+            "type": "Transformer",
+            "rating": "10 MVA",
+            "voltage": "13.8 kV",
+            "status": "active",
+            "notes": "E2E test asset",
+        },
+    )
+    report(
+        "POST /assets → 201",
+        r.status_code == 201,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 201 else r.text[:200]}",
+    )
     if r.status_code != 201:
         return None
 
@@ -223,10 +277,14 @@ def _assets_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     r = client.get(f"{ASSETS_URL}/{asset_id}", headers=auth_headers)
     report("GET /assets/{id} → 200", r.status_code == 200, f"HTTP {r.status_code}")
 
-    r = client.put(f"{ASSETS_URL}/{asset_id}", headers=auth_headers, json={
-        "status": "maintenance",
-        "notes": "Updated during E2E test",
-    })
+    r = client.put(
+        f"{ASSETS_URL}/{asset_id}",
+        headers=auth_headers,
+        json={
+            "status": "maintenance",
+            "notes": "Updated during E2E test",
+        },
+    )
     report("PUT /assets/{id} → 200", r.status_code == 200, f"HTTP {r.status_code}")
 
     r = client.delete(f"{ASSETS_URL}/{asset_id}", headers=auth_headers)
@@ -244,8 +302,11 @@ def _data_import(client: httpx.Client, auth_headers: dict) -> None:
     r = client.get("/api/v1/import/formats", headers={"X-API-Key": API_KEY})
     report("GET /import/formats → 200", r.status_code == 200, f"HTTP {r.status_code}")
     if r.status_code == 200:
-        report("  6 formats available", len(r.json().get("formats", [])) == 6,
-               f"count={len(r.json().get('formats', []))}")
+        report(
+            "  6 formats available",
+            len(r.json().get("formats", [])) == 6,
+            f"count={len(r.json().get('formats', []))}",
+        )
 
     csv_content = "id,name,voltage_kv,type\nBUS1,Main Bus,13.8,SLACK\nBUS2,Load Bus,0.48,PQ\n"
     r = client.post(
@@ -253,12 +314,17 @@ def _data_import(client: httpx.Client, auth_headers: dict) -> None:
         headers=auth_headers,
         files={"file": ("test_buses.csv", csv_content.encode(), "text/csv")},
     )
-    report("POST /import/upload (CSV) → 200", r.status_code == 200,
-           f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:300]}")
+    report(
+        "POST /import/upload (CSV) → 200",
+        r.status_code == 200,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:300]}",
+    )
     if r.status_code == 200:
         data = r.json()
         report("  import success", data.get("success") is True, f"success={data.get('success')}")
-        report("  buses parsed", len(data.get("buses", [])) == 2, f"buses={len(data.get('buses', []))}")
+        report(
+            "  buses parsed", len(data.get("buses", [])) == 2, f"buses={len(data.get('buses', []))}"
+        )
 
 
 def _study_run(client: httpx.Client, auth_headers: dict) -> None:
@@ -267,29 +333,39 @@ def _study_run(client: httpx.Client, auth_headers: dict) -> None:
     print("7. STUDY RUN (Load Flow)")
     print("=" * 70)
 
-    r = client.post("/api/v1/studies/run", headers=auth_headers, json={
-        "study_type": "load_flow",
-        "config": {
-            "max_iterations": 100,
-            "tolerance": 1e-6,
-            "algorithm": "newton_raphson",
+    r = client.post(
+        "/api/v1/studies/run",
+        headers=auth_headers,
+        json={
+            "study_type": "load_flow",
+            "config": {
+                "max_iterations": 100,
+                "tolerance": 1e-6,
+                "algorithm": "newton_raphson",
+            },
+            "system": {
+                "buses": [
+                    {"bus_id": 1, "nominal_kv": 13.8, "type": "swing"},
+                    {"bus_id": 2, "nominal_kv": 13.8, "type": "pq"},
+                ],
+                "branches": [
+                    {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r_pu": 0.01, "x_pu": 0.05},
+                ],
+            },
         },
-        "system": {
-            "buses": [
-                {"bus_id": 1, "nominal_kv": 13.8, "type": "swing"},
-                {"bus_id": 2, "nominal_kv": 13.8, "type": "pq"},
-            ],
-            "branches": [
-                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r_pu": 0.01, "x_pu": 0.05},
-            ],
-        },
-    })
-    report("POST /studies/run (load_flow) → 200", r.status_code == 200,
-           f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:300]}")
+    )
+    report(
+        "POST /studies/run (load_flow) → 200",
+        r.status_code == 200,
+        f"HTTP {r.status_code} — {'OK' if r.status_code == 200 else r.text[:300]}",
+    )
     if r.status_code == 200:
         data = r.json()
-        report("  study returned result", "result" in data or "data" in data,
-               f"keys={list(data.keys())[:5]}")
+        report(
+            "  study returned result",
+            "result" in data or "data" in data,
+            f"keys={list(data.keys())[:5]}",
+        )
 
 
 def _homepage_check(client: httpx.Client) -> None:

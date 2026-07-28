@@ -76,7 +76,9 @@ except Exception:  # numpy is normally present, but be defensive
     np: _Any = None  # type: ignore
 
 
-def _to_jsonable(obj: Any) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _to_jsonable(
+    obj: Any,
+) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     if obj is None or isinstance(obj, (str, bool)):
@@ -142,7 +144,9 @@ class _TraceFilter:
 _trace_filter = _TraceFilter()
 
 
-def _structlog_processor_wrapper(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _structlog_processor_wrapper(
+    logger: Any, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Wrapper to add trace_id from thread-local storage to structlog events."""
     trace_id = getattr(_trace_filter.local, "current_trace_id", "unknown")
     event_dict["trace_id"] = trace_id
@@ -283,7 +287,9 @@ try:  # pragma: no cover
         ),
     )
     _active_requests = Gauge(
-        "active_requests", "Number of active requests", labelnames=["endpoint", "method"],
+        "active_requests",
+        "Number of active requests",
+        labelnames=["endpoint", "method"],
     )
     _service_info = Info("service", "Service information")
 except Exception:  # pragma: no cover
@@ -416,7 +422,10 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                 return cache
         except Exception as e:
             logger.warning(
-                "Cache initialization failed (attempt %s): %s", attempt + 1, e, exc_info=True,
+                "Cache initialization failed (attempt %s): %s",
+                attempt + 1,
+                e,
+                exc_info=True,
             )
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")

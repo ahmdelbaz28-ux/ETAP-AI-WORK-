@@ -21,7 +21,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def create_test_system() -> Any:  # NOSONAR: async function uses sync I/O for compatibility reasons
+async def create_test_system() -> (
+    Any
+):  # NOSONAR: async function uses sync I/O for compatibility reasons
     """
     Create a minimal test system for agent testing.
     This creates a simple power system with minimal components to allow
@@ -89,7 +91,9 @@ async def test_individual_agents():
                 result = await asyncio.wait_for(agent.execute(task), timeout=10.0)
 
                 # Log the result status
-                logger.info("✓ %s executed successfully - Status: %s", agent_name, result.status.value)
+                logger.info(
+                    "✓ %s executed successfully - Status: %s", agent_name, result.status.value
+                )
 
                 results[agent_name] = {
                     "status": "SUCCESS",
@@ -127,7 +131,9 @@ async def test_orchestrator():
             raise RuntimeError("Orchestrator missing get_agents_info method")
 
         agent_info = orchestrator.get_agents_info()
-        logger.info("✓ Orchestrator retrieved info for %s agents", len(agent_info.get('agents', [])))
+        logger.info(
+            "✓ Orchestrator retrieved info for %s agents", len(agent_info.get("agents", []))
+        )
 
         test_system = await create_test_system()
         parameters = {"test_mode": True}
@@ -202,7 +208,8 @@ async def main():
         return 0
     else:
         logger.warning(
-            "⚠ %s agents failed basic functionality tests", total_agents - successful_agents)
+            "⚠ %s agents failed basic functionality tests", total_agents - successful_agents
+        )
         return 1
 
 

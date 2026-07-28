@@ -5,6 +5,7 @@ Tests the pure calculation methods (calculate_relay_operating_time,
 verify_coordination, generate_tcc_data, analyze_selectivity) without
 needing the full agent runtime.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -72,7 +73,9 @@ class TestCalculateRelayOperatingTime:
             time_multiplier=0.5,
             curve_type="standard_inverse",
         )
-        assert slow["operating_time_s"] > fast["operating_time_s"], "Higher TMS should yield longer operating time"
+        assert slow["operating_time_s"] > fast["operating_time_s"], (
+            "Higher TMS should yield longer operating time"
+        )
 
     def test_fault_below_pickup_returns_inf_or_large(self):
         """GIVEN a fault current below pickup
@@ -87,7 +90,9 @@ class TestCalculateRelayOperatingTime:
             curve_type="standard_inverse",
         )
         # Relay should not operate — result should be inf or very large
-        assert result["operating_time_s"] == float("inf") or result["operating_time_s"] > 1000, f"Below-pickup fault should not trip, got {result}"
+        assert result["operating_time_s"] == float("inf") or result["operating_time_s"] > 1000, (
+            f"Below-pickup fault should not trip, got {result}"
+        )
 
 
 class TestVerifyCoordination:
@@ -193,8 +198,18 @@ class TestAnalyzeSelectivity:
         """
         agent = CoordinationAgent()
         relay_chain = [
-            {"name": "R1", "pickup_current_a": 100.0, "time_multiplier": 0.1, "curve_type": "standard_inverse"},
-            {"name": "R2", "pickup_current_a": 200.0, "time_multiplier": 0.2, "curve_type": "standard_inverse"},
+            {
+                "name": "R1",
+                "pickup_current_a": 100.0,
+                "time_multiplier": 0.1,
+                "curve_type": "standard_inverse",
+            },
+            {
+                "name": "R2",
+                "pickup_current_a": 200.0,
+                "time_multiplier": 0.2,
+                "curve_type": "standard_inverse",
+            },
         ]
         result = agent.analyze_selectivity(
             relay_chain=relay_chain,

@@ -617,7 +617,8 @@ vault kv put secret/etap-platform jwt_secret_key=...
 2. **Use multiprocessing for parallel calculations:**
    ```python
    from multiprocessing import Pool
-   
+
+
    def parallel_load_flow(systems):
        with Pool(processes=4) as pool:
            results = pool.map(run_load_flow, systems)

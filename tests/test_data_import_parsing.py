@@ -6,6 +6,7 @@ _decode_text, _make_bus_record, _make_branch_record, _json_bus_record,
 _json_branch_record, _parse_csv, _parse_json) that don't require
 database or external services.
 """
+
 from __future__ import annotations
 
 import json
@@ -67,6 +68,7 @@ class TestDetectFormat:
         THEN it raises HTTPException with 422.
         """
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             _detect_format("unknown.txt")
         assert exc_info.value.status_code == 422
@@ -216,7 +218,9 @@ BUS2,Secondary,138.0,PV
         WHEN _parse_csv is called
         THEN it skips the bad row and logs a warning.
         """
-        csv_content = b"id,name,voltage_kv,type\nBUS1,Good Bus,13.8,PQ\nBUS2,Bad Bus,invalid-voltage,PV\n"
+        csv_content = (
+            b"id,name,voltage_kv,type\nBUS1,Good Bus,13.8,PQ\nBUS2,Bad Bus,invalid-voltage,PV\n"
+        )
         buses, branches, metadata, warnings = _parse_csv(csv_content)
         assert len(buses) == 1
         assert buses[0].id == "BUS1"

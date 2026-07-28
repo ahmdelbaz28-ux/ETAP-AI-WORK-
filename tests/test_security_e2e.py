@@ -364,7 +364,10 @@ class TestRateLimitEnforcement:
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
-                json={"username": "rl_user1", "password": f"Wrong{i}!"},  # NOSONAR: test credential constant, not a real secret
+                json={
+                    "username": "rl_user1",
+                    "password": f"Wrong{i}!",
+                },  # NOSONAR: test credential constant, not a real secret
             )
 
         # 6th attempt for user1 should be rate-limited
@@ -398,7 +401,10 @@ class TestRateLimitEnforcement:
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
-                json={"username": "isolated_user", "password": f"Wrong{i}!"},  # NOSONAR: test credential constant, not a real secret
+                json={
+                    "username": "isolated_user",
+                    "password": f"Wrong{i}!",
+                },  # NOSONAR: test credential constant, not a real secret
             )
 
         # Should be rate limited
@@ -673,7 +679,9 @@ class TestSIEMEventSubmission:
             siem_type="loki",
         )
         assert forwarder.siem_type == "loki"
-        assert forwarder.endpoint == "http://loki:3100/loki/api/v1/push"  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+        assert (
+            forwarder.endpoint == "http://loki:3100/loki/api/v1/push"
+        )  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
         assert forwarder.retry_attempts == 3
 
     def test_siem_forwarder_elk_mode(self):
