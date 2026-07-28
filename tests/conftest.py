@@ -592,6 +592,10 @@ def setup_test_environment():
     """Sets up the test environment automatically for all tests."""
     # Set environment variables for testing
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+    # Ensure ENVIRONMENT=testing for CSRF middleware skip (see api/csrf.py).
+    # Without this, if CI sets ENVIRONMENT=production globally, the CSRF
+    # middleware would block all mutating test requests with 403.
+    os.environ["ENVIRONMENT"] = "testing"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
     # Disable Redis cache during tests — avoids the 7-second retry delay
@@ -602,6 +606,11 @@ def setup_test_environment():
     # easily exceeds the default 100 req/60s limit and triggers spurious
     # 429s. Allow 10,000 req/60s in tests.
     os.environ["ENGINEERING_SERVICE_RATE_LIMIT_MAX"] = "10000"
+    # S-02 security fix: forgot-password endpoint hides reset_token unless
+    # AUTH_RETURN_RESET_TOKEN=true.  Set it here so that tests that rely on
+    # the reset_token (e.g. TestResetPassword._get_reset_token) can still
+    # retrieve it via the API response.
+    os.environ["AUTH_RETURN_RESET_TOKEN"] = "true"
 
     # Clear API key env vars so verify_api_key() returns early (open access).
     # Without this, tests that use hf_app_client (which calls verify_api_key)
@@ -652,6 +661,8 @@ def setup_test_environment():
         "PRIVACY_MODE",
         "ENGINEERING_SERVICE_CACHE_DISABLED",
         "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
+        "AUTH_RETURN_RESET_TOKEN",
+        "ENVIRONMENT",
     ):
         os.environ.pop(_key, None)
 
@@ -933,13 +944,45 @@ def auth_headers(client, registered_user: dict) -> dict:
 
 @pytest.fixture
 def admin_headers(client) -> dict:
-    """Register an admin user and return Authorization headers."""
+    """Register an admin user and return Authorization headers.
+
+    Since S-02 security fix forces role="viewer" on all registrations,
+    we cannot create an admin via the /register endpoint. Instead, we
+    register a user (who will have role="viewer"), then use a direct
+    SQL UPDATE via the TestClient's event loop to promote them to
+    "admin", and finally log in to obtain the JWT token.
+    """
+    # Step 1: Register via the API (gets role="viewer" due to S-02)
     _register_user(
         client,
         username="admin_user",
         email="admin@example.com",
-        role="admin",
+        role="admin",  # Will be ignored by the API (S-02 forces "viewer")
     )
+
+    # Step 2: Promote the user to "admin" via a direct SQL UPDATE.
+    # We use the TestClient to make a lightweight request that triggers
+    # the DB session, then update the role via raw SQL.
+    import asyncio
+
+    from sqlalchemy import text
+
+    async def _promote_admin():
+        async with _TestSessionLocal() as session:
+            await session.execute(
+                text("UPDATE users SET role = 'admin' WHERE username = 'admin_user'")
+            )
+            await session.commit()
+
+    # Use a separate thread to avoid event-loop conflicts with the
+    # TestClient's anyio portal.  The StaticPool-backed connection
+    # allows cross-thread access.
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        pool.submit(asyncio.run, _promote_admin()).result()
+
+    # Step 3: Log in to get the JWT token
     login_data = _login_user(client, username="admin_user")
     return _auth_headers(login_data["access_token"])
 

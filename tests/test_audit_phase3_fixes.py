@@ -189,10 +189,23 @@ class TestHelmPBDSecret(unittest.TestCase):
             "secret.yaml should support external secret annotations for vault/sealed-secrets",
         )
 
-    def test_secret_conditional_api_key(self):
-        """Secret should conditionally include api-key only if value provided."""
+    def test_secret_no_api_key_block(self):
+        """Secret template must NOT contain the API key block.
+
+        Phase-4 Helm refactor: ENGINEERING_SERVICE_API_KEY was moved to a
+        pre-created Secret (k8s/etap-api-key-secret.yaml) and removed from
+        the Helm template to prevent accidental exposure.  The string may
+        still appear in comments explaining the migration, but the actual
+        conditional block (``if .Values.env.ENGINEERING_SERVICE_API_KEY``)
+        must be gone.
+        """
         src = self._read(self.secret_path)
-        self.assertIn("if .Values.env.ENGINEERING_SERVICE_API_KEY", src)
+        self.assertNotIn(
+            "if .Values.env.ENGINEERING_SERVICE_API_KEY",
+            src,
+            "secret.yaml must NOT contain the conditional API key block — "
+            "moved to pre-created Secret (k8s/etap-api-key-secret.yaml)",
+        )
 
 
 class TestS23AllAPIModulesComprehensive(unittest.TestCase):

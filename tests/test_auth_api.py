@@ -75,7 +75,7 @@ class TestRegister:
         data = resp.json()
         assert data["username"] == "newuser", "Username should match"
         assert data["email"] == "newuser@example.com", "Email should match"
-        assert data["role"] == "engineer", "Default role should be engineer"
+        assert data["role"] == "viewer", "Default role should be viewer (S-02 security fix)"
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"
