@@ -164,15 +164,15 @@ async def test_4_dashboard():
     )
 
     with patch.dict(os.environ, {"EMAIL_DASHBOARD_DEV_OPEN": "true"}):
-        # Get stats
-        resp = await get_stats(mock_request, window_hours=24)
+        # Get stats — the second positional arg is the injected admin dependency
+        resp = await get_stats(mock_request, {}, window_hours=24)
         assert resp.status_code == 200
         body = json.loads(resp.body)
         assert body["success"]
         print(f"  ✅ get_stats OK (total={body['stats']['total']})")
 
-        # Get recent
-        resp = await get_recent(mock_request, limit=10)
+        # Get recent — same pattern: second arg is admin dependency injection
+        resp = await get_recent(mock_request, {}, limit=10)
         body = json.loads(resp.body)
         assert body["success"]
         print(f"  ✅ get_recent OK (count={len(body['records'])})")
@@ -208,21 +208,21 @@ async def test_5_webhooks():
         events=["email.sent", "email.delivered", "email.bounced"],
         secret="test_secret_at_least_16_chars",
     )
-    resp = await register_endpoint(body)
+    resp = register_endpoint(body)
     assert resp.status_code == 201
     data = json.loads(resp.body)
     ep_id = data["id"]
     print(f"  ✅ Registered endpoint: {ep_id[:8]}... → {data['url']}")
 
     # List
-    resp = await list_endpoints()
+    resp = list_endpoints()
     data = json.loads(resp.body)
     assert data["success"]
     assert len(data["endpoints"]) >= 1
     print(f"  ✅ list_endpoints OK ({len(data['endpoints'])} endpoint(s))")
 
     # Delete
-    resp = await delete_endpoint(ep_id)
+    resp = delete_endpoint(ep_id)
     data = json.loads(resp.body)
     assert data["success"]
     print(f"  ✅ Deleted endpoint {ep_id[:8]}...")
@@ -244,7 +244,7 @@ async def test_6_digest():
             success=True,
         )
 
-    ctx = await _build_digest_context(
+    ctx = _build_digest_context(
         email="digest-user@example.com",
         period="daily",
         user_name="Digest User",

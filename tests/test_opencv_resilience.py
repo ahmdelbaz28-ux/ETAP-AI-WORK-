@@ -348,9 +348,9 @@ def test_cua_execution_result_has_resilience_fields():
 
 
 def test_cua_executor_uses_hybrid_vision():
-    """CUAExecutor.execute_loop must use HybridVisionRouter (not direct gemini_vision)."""
-    # Read the source and verify the import
-    p = Path(__file__).resolve().parent.parent / "agents" / "cua_executor.py"
+    """CUAExecutor.execute_loop must use HybridVisionRouter (not direct gemini_vision).
+    The import lives in cua_base_executor.py (the parent class)."""
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "from integrations.resilience import" in content
     assert "hybrid_vision" in content
@@ -359,8 +359,9 @@ def test_cua_executor_uses_hybrid_vision():
 
 
 def test_browser_cua_executor_uses_hybrid_vision():
-    """BrowserCUAExecutor.execute_loop must use HybridVisionRouter."""
-    p = Path(__file__).resolve().parent.parent / "agents" / "browser_cua_executor.py"
+    """BrowserCUAExecutor.execute_loop must use HybridVisionRouter.
+    The import lives in cua_base_executor.py (the parent class)."""
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "from integrations.resilience import" in content
     assert "hybrid_vision" in content

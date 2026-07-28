@@ -68,7 +68,6 @@ class TestRegister:
                 "username": "newuser",
                 "email": "newuser@example.com",
                 "password": TEST_USER_PASSWORD,
-                "role": "engineer",
             },
         )
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
@@ -79,6 +78,31 @@ class TestRegister:
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"
+
+    def test_register_ignores_role_field(self, client):
+        """S-02 security: the register endpoint must ignore any 'role' field
+        in the request body.  Even if a caller sends role='admin', the
+        created user must have role='viewer'.
+
+        This test sends a role='admin' payload to verify the API enforces
+        the S-02 fix — the role field is removed from RegisterRequest and
+        the server hardcodes role='viewer' for all new users.
+        """
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "roleinjector",
+                "email": "roleinjector@example.com",
+                "password": TEST_USER_PASSWORD,
+                "role": "admin",  # S-02: must be ignored
+            },
+        )
+        assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
+        data = resp.json()
+        assert data["role"] == "viewer", (
+            "S-02 security: role='admin' in request body must be ignored — "
+            "all new users must get role='viewer'"
+        )
 
     def test_register_duplicate_username(self, client):
         """Registering with an existing username returns 409."""

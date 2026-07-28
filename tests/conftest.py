@@ -894,16 +894,19 @@ def _register_user(
     username: str = "testuser",
     email: str = "testuser@example.com",
     password: str = _TEST_DEFAULT_PASSWORD,
-    role: str = "engineer",
 ) -> dict:
-    """Call POST /api/v1/auth/register and return the JSON response."""
+    """Call POST /api/v1/auth/register and return the JSON response.
+
+    NOTE: The register endpoint no longer accepts a ``role`` field (S-02
+    security fix).  All new users receive ``role="viewer"`` automatically.
+    Admin promotion must be done via a separate SQL UPDATE or admin API.
+    """
     resp = client.post(
         "/api/v1/auth/register",
         json={
             "username": username,
             "email": email,
             "password": password,
-            "role": role,
         },
     )
     assert resp.status_code in (200, 201), f"Registration failed: {resp.status_code} {resp.text}"
@@ -986,12 +989,14 @@ def admin_headers(client) -> dict:
 
 @pytest.fixture
 def viewer_headers(client) -> dict:
-    """Register a viewer user and return Authorization headers."""
+    """Register a viewer user and return Authorization headers.
+
+    S-02 forces role="viewer" on all registrations, so no role param needed.
+    """
     _register_user(
         client,
         username="viewer_user",
         email="viewer@example.com",
-        role="viewer",
     )
     login_data = _login_user(client, username="viewer_user")
     return _auth_headers(login_data["access_token"])

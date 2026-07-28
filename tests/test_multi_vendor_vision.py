@@ -161,19 +161,18 @@ def test_hybrid_vision_router_priority_order():
 
 
 def test_cua_executor_uses_hybrid_vision_with_multi_vendor():
-    """CUAExecutor must use HybridVisionRouter (which now has multi-vendor)."""
-    p = Path(__file__).resolve().parent.parent / "agents" / "cua_executor.py"
+    """CUAExecutor (via BaseCUAExecutor) must use HybridVisionRouter."""
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "hybrid_vision" in content
     assert "from integrations.resilience import" in content
 
 
 def test_browser_cua_executor_uses_hybrid_vision_with_multi_vendor():
-    """BrowserCUAExecutor must use HybridVisionRouter (which now has multi-vendor)."""
-    p = Path(__file__).resolve().parent.parent / "agents" / "browser_cua_executor.py"
+    """BrowserCUAExecutor (via BaseCUAExecutor) must use HybridVisionRouter."""
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "hybrid_vision" in content
-    assert "from integrations.resilience import" in content
 
 
 # ---------------------------------------------------------------------------

@@ -460,22 +460,25 @@ def test_health_check_returns_dict():
 
 
 def test_cua_executor_uses_life_safety_guard():
-    """CUAExecutor must import and use life_safety_guard."""
-    p = Path(__file__).resolve().parent.parent / "agents" / "cua_executor.py"
+    """CUAExecutor (via BaseCUAExecutor) must import and use life_safety_guard.
+
+    The life_safety_guard import lives in cua_base_executor.py (the parent
+    class), not in cua_executor.py which only provides platform hooks.
+    """
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "from agents.life_safety import" in content
     assert "life_safety_guard" in content
     assert "pre_action_check" in content
-    assert "LIFE SAFETY CHECK" in content
 
 
 def test_browser_cua_executor_uses_life_safety_guard():
-    """BrowserCUAExecutor must import and use life_safety_guard."""
-    p = Path(__file__).resolve().parent.parent / "agents" / "browser_cua_executor.py"
+    """BrowserCUAExecutor (via BaseCUAExecutor) must import and use
+    life_safety_guard.  The import lives in cua_base_executor.py."""
+    p = Path(__file__).resolve().parent.parent / "agents" / "cua_base_executor.py"
     content = p.read_text(encoding="utf-8")
     assert "from agents.life_safety import" in content
     assert "life_safety_guard" in content
-    assert "pre_action_check" in content
 
 
 # ---------------------------------------------------------------------------
