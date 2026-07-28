@@ -67,6 +67,12 @@ EXPECTED_REGISTERED_AGENTS = {
     "etap_execution",
     "validation",
     "report",
+    # Backward-compat aliases (orchestrator.py lines 1421-1423)
+    # These short aliases map to the long-form agent instances for
+    # pre-SonarCloud-sweep callers.
+    "harmonic",
+    "opf",
+    "protection",
     # Standalone specialist agents (per AGENTS.md §"Python Agents" #10-#24)
     "arc_flash",
     "motor_starting",
