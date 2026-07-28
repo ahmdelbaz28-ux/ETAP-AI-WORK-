@@ -602,6 +602,11 @@ def setup_test_environment():
     # easily exceeds the default 100 req/60s limit and triggers spurious
     # 429s. Allow 10,000 req/60s in tests.
     os.environ["ENGINEERING_SERVICE_RATE_LIMIT_MAX"] = "10000"
+    # S-02 security fix: forgot-password endpoint hides reset_token unless
+    # AUTH_RETURN_RESET_TOKEN=true.  Set it here so that tests that rely on
+    # the reset_token (e.g. TestResetPassword._get_reset_token) can still
+    # retrieve it via the API response.
+    os.environ["AUTH_RETURN_RESET_TOKEN"] = "true"
 
     # Clear API key env vars so verify_api_key() returns early (open access).
     # Without this, tests that use hf_app_client (which calls verify_api_key)
@@ -933,13 +938,37 @@ def auth_headers(client, registered_user: dict) -> dict:
 
 @pytest.fixture
 def admin_headers(client) -> dict:
-    """Register an admin user and return Authorization headers."""
-    _register_user(
-        client,
-        username="admin_user",
-        email="admin@example.com",
-        role="admin",
-    )
+    """Register an admin user and return Authorization headers.
+
+    Since S-02 security fix forces role="viewer" on all registrations,
+    we cannot create an admin via the /register endpoint. Instead, we
+    insert the user directly into the test DB with role="admin" and then
+    log in to obtain the JWT token.
+    """
+    import asyncio
+
+    from api.auth import User, _hash_password
+
+    async def _insert_admin():
+        async with _TestSessionLocal() as session:
+            admin_user = User(
+                username="admin_user",
+                email="admin@example.com",
+                password_hash=_hash_password(_TEST_DEFAULT_PASSWORD),
+                role="admin",
+                is_active=True,
+            )
+            session.add(admin_user)
+            await session.commit()
+
+    # Run the async insert — TestClient runs its own event loop in a
+    # background thread, so we run ours in a separate thread to avoid
+    # "cannot run the event loop while another loop is running".
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        pool.submit(asyncio.run, _insert_admin()).result()
+
     login_data = _login_user(client, username="admin_user")
     return _auth_headers(login_data["access_token"])
 
