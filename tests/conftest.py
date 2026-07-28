@@ -592,6 +592,10 @@ def setup_test_environment():
     """Sets up the test environment automatically for all tests."""
     # Set environment variables for testing
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+    # Ensure ENVIRONMENT=testing for CSRF middleware skip (see api/csrf.py).
+    # Without this, if CI sets ENVIRONMENT=production globally, the CSRF
+    # middleware would block all mutating test requests with 403.
+    os.environ["ENVIRONMENT"] = "testing"
     os.environ["USE_ETAP"] = "false"
     os.environ["PRIVACY_MODE"] = "true"
     # Disable Redis cache during tests — avoids the 7-second retry delay
@@ -657,6 +661,8 @@ def setup_test_environment():
         "PRIVACY_MODE",
         "ENGINEERING_SERVICE_CACHE_DISABLED",
         "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
+        "AUTH_RETURN_RESET_TOKEN",
+        "ENVIRONMENT",
     ):
         os.environ.pop(_key, None)
 
@@ -944,6 +950,12 @@ def admin_headers(client) -> dict:
     we cannot create an admin via the /register endpoint. Instead, we
     insert the user directly into the test DB with role="admin" and then
     log in to obtain the JWT token.
+
+    NOTE: asyncio.run() is used here because the TestClient manages its
+    own event loop in a background thread.  The StaticPool-backed aiosqlite
+    connection (check_same_thread=False) allows cross-thread access, and
+    the fresh engine's session factory (_TestSessionLocal) is bound to the
+    same in-memory DB that the TestClient uses via get_db override.
     """
     import asyncio
 
@@ -961,13 +973,9 @@ def admin_headers(client) -> dict:
             session.add(admin_user)
             await session.commit()
 
-    # Run the async insert — TestClient runs its own event loop in a
-    # background thread, so we run ours in a separate thread to avoid
-    # "cannot run the event loop while another loop is running".
-    import concurrent.futures
-
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        pool.submit(asyncio.run, _insert_admin()).result()
+    # The TestClient runs its ASGI app in anyio's portal thread; the main
+    # thread has no running event loop, so asyncio.run() is safe here.
+    asyncio.run(_insert_admin())
 
     login_data = _login_user(client, username="admin_user")
     return _auth_headers(login_data["access_token"])
