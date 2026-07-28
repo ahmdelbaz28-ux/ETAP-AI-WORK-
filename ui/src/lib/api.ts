@@ -13,9 +13,7 @@ import { API_BASE_URL, getCachedSettings } from "./api-config";
 // Forward user's active provider key/model to backend dynamically.
 // Extracted to a helper to keep request() below SonarCloud's cognitive
 // complexity threshold (S3776).
-function buildProviderHeaders(
-  settings: Record<string, string>,
-): Record<string, string> {
+function buildProviderHeaders(settings: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {};
   const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
   headers["x-active-provider"] = activeProviderId;
@@ -23,7 +21,8 @@ function buildProviderHeaders(
   if (activeProviderId === "custom_openai") {
     if (settings.CUSTOM_OPENAI_API_KEY) headers["x-active-key"] = settings.CUSTOM_OPENAI_API_KEY;
     if (settings.CUSTOM_OPENAI_BASE_URL) headers["x-active-url"] = settings.CUSTOM_OPENAI_BASE_URL;
-    if (settings.CUSTOM_OPENAI_MODEL_ID) headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
+    if (settings.CUSTOM_OPENAI_MODEL_ID)
+      headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
     return headers;
   }
 
@@ -408,6 +407,111 @@ export async function deleteProject(projectId: string): Promise<void> {
   await request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
     method: "DELETE",
   });
+}
+
+// ============ Dual Control (Condition A — life-safety 4-eyes principle) ============
+//
+// All 5 endpoints require `admin` or `engineer` role (enforced server-side
+// via `Depends(require_role("admin","engineer"))` — see hf-space/app.py:999-1113).
+// Operator/approver/rejector identity is derived from the JWT, NOT the request
+// body, to prevent impersonation attacks on life-safety operations.
+//
+// The dual-control flow:
+//   1. Operator calls createDualControlRequest({action}) → server creates a
+//      pending request with a 5-minute auto-reject timeout + QR secret.
+//   2. A second engineer (the "approver") sees the pending request in the UI.
+//   3. Approver can either:
+//      a. Approve via REST (POST /approve/{id}) — optionally with QR secret
+//         for mobile 2FA.
+//      b. Reject via REST (POST /reject/{id}) — with a reason.
+//   4. If 5 minutes elapse with no action, the request auto-expires.
+//
+// UI: pages/DualControl.tsx
+
+export interface DualControlAction {
+  type: string;
+  target?: string;
+  params?: Record<string, unknown>;
+  description?: string;
+}
+
+export interface DualControlRequest {
+  request_id: string;
+  action: DualControlAction;
+  requested_by: string;
+  status: "pending" | "approved" | "rejected" | "expired";
+  approved_by: string | null;
+  approved_at: string | null;
+  rejected_by: string | null;
+  rejected_reason: string | null;
+  created_at: string;
+  expires_at: number; // unix epoch seconds
+  qr_secret: string;
+}
+
+export interface DualControlCreateInput {
+  action: DualControlAction;
+}
+
+export interface DualControlCreateResponse {
+  success: boolean;
+  data: DualControlRequest;
+}
+
+export interface DualControlPendingResponse {
+  success: boolean;
+  data: DualControlRequest[];
+}
+
+export interface DualControlQrResponse {
+  success: boolean;
+  data: {
+    request_id: string;
+    qr_secret: string;
+  };
+}
+
+export interface DualControlApproveRejectResponse {
+  success: boolean;
+  error?: string;
+  request?: DualControlRequest;
+}
+
+export async function createDualControlRequest(
+  input: DualControlCreateInput,
+): Promise<DualControlCreateResponse> {
+  return request("/api/v1/dual-control/request", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function approveDualControlRequest(
+  requestId: string,
+  secret?: string,
+): Promise<DualControlApproveRejectResponse> {
+  return request(`/api/v1/dual-control/approve/${encodeURIComponent(requestId)}`, {
+    method: "POST",
+    body: JSON.stringify(secret ? { secret } : {}),
+  });
+}
+
+export async function rejectDualControlRequest(
+  requestId: string,
+  reason = "",
+): Promise<DualControlApproveRejectResponse> {
+  return request(`/api/v1/dual-control/reject/${encodeURIComponent(requestId)}`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function listPendingDualControlRequests(): Promise<DualControlPendingResponse> {
+  return request("/api/v1/dual-control/pending");
+}
+
+export async function getDualControlQrSecret(requestId: string): Promise<DualControlQrResponse> {
+  return request(`/api/v1/dual-control/qr/${encodeURIComponent(requestId)}`);
 }
 
 // ============ End of API client ============

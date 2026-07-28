@@ -18,6 +18,7 @@ const routeLabels: Record<string, string> = {
   diagnostics: "sidebar.diagnostics",
   logs: "sidebar.logs",
   "code-guard": "sidebar.codeGuard",
+  "dual-control": "sidebar.dualControl",
 };
 
 export function Breadcrumbs({ path }: { readonly path: string }) {
@@ -36,8 +37,12 @@ export function Breadcrumbs({ path }: { readonly path: string }) {
       {segments.map((segment, i) => {
         const isLast = i === segments.length - 1;
         const labelKey = routeLabels[segment];
+        // Use the full path prefix up to this segment as a stable key —
+        // guaranteed unique even with duplicate segment names, and does
+        // NOT use the array index (which would break if the list reorders).
+        const key = segments.slice(0, i + 1).join("/");
         return (
-          <span key={`${segment}-${i}`} className="flex items-center gap-1.5">
+          <span key={key} className="flex items-center gap-1.5">
             <span className={isLast ? "text-[var(--text-secondary)] font-medium" : ""}>
               {labelKey ? t(labelKey) : segment.replaceAll("-", " ")}
             </span>

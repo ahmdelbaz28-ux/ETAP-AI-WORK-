@@ -13,7 +13,7 @@ import {
   Grid,
   Layers,
   LayoutDashboard,
-  Map,
+  Map as MapIcon,
   Moon,
   Network,
   Plug,
@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Sun,
   Upload,
+  UserCheck,
   Wrench,
   X,
 } from "lucide-react";
@@ -57,7 +58,7 @@ const navItems: NavItem[] = [
     section: "engineering",
   },
   { to: "/etap", icon: Plug, labelKey: "sidebar.etapIntegration", section: "integration" },
-  { to: "/gis", icon: Map, labelKey: "sidebar.gisIntegration", section: "integration" },
+  { to: "/gis", icon: MapIcon, labelKey: "sidebar.gisIntegration", section: "integration" },
   { to: "/scada", icon: Activity, labelKey: "sidebar.scadaIntegration", section: "integration" },
   { to: "/digital-twin", icon: Layers, labelKey: "sidebar.digitalTwin", section: "integration" },
   { to: "/reports", icon: FileText, labelKey: "sidebar.reports" },
@@ -65,7 +66,13 @@ const navItems: NavItem[] = [
   { to: "/data-export", icon: Download, labelKey: "sidebar.dataExport", section: "system" },
   { to: "/settings", icon: Settings, labelKey: "sidebar.settings", section: "system" },
   { to: "/admin", icon: ShieldCheck, labelKey: "sidebar.administration", section: "system" },
-  { to: "/admin/cua-monitor", icon: ShieldAlert, labelKey: "sidebar.cuaMonitor", section: "system" },
+  {
+    to: "/admin/cua-monitor",
+    icon: ShieldAlert,
+    labelKey: "sidebar.cuaMonitor",
+    section: "system",
+  },
+  { to: "/dual-control", icon: UserCheck, labelKey: "sidebar.dualControl", section: "system" },
   { to: "/diagnostics", icon: Bug, labelKey: "sidebar.diagnostics", section: "system" },
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
   { to: "/logs", icon: ScrollText, labelKey: "sidebar.logs", section: "system" },
@@ -93,19 +100,20 @@ function healthDotColor(status: "online" | "offline" | "checking"): string {
 }
 
 // Partition navItems into top-level items and items grouped by section.
-function partitionNavItems(
-  items: readonly NavItem[],
-): { topLevel: NavItem[]; grouped: Record<string, NavItem[]> } {
+function partitionNavItems(items: readonly NavItem[]): {
+  topLevel: NavItem[];
+  grouped: Record<string, NavItem[]>;
+} {
   const grouped: Record<string, NavItem[]> = {};
   const topLevel: NavItem[] = [];
-  items.forEach((item) => {
+  for (const item of items) {
     if (item.section) {
       if (!grouped[item.section]) grouped[item.section] = [];
       grouped[item.section].push(item);
     } else {
       topLevel.push(item);
     }
-  });
+  }
   return { topLevel, grouped };
 }
 
@@ -135,12 +143,13 @@ function MobileSidebarDrawer({
 }) {
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — rendered as <button> so it's keyboard-accessible (Esc/Enter closes) */}
       {mobileSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
+        <button
+          type="button"
+          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90] cursor-default"
           onClick={() => setMobileSidebarOpen(false)}
-          aria-hidden="true"
+          aria-label="Close sidebar"
         />
       )}
 
@@ -181,7 +190,8 @@ function MobileSidebarDrawer({
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="Close menu"
             className="p-2 -mr-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors shrink-0"
-           type="button">
+            type="button"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -247,7 +257,8 @@ function MobileSidebarDrawer({
             onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-           type="button">
+            type="button"
+          >
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (
@@ -265,7 +276,8 @@ function MobileSidebarDrawer({
   );
 }
 
-export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from role-based filtering + active route matching; decomposition tracked as separate refactor
+export function Sidebar() {
+  // NOSONAR(S3776): Sidebar nav — complexity from role-based filtering + active route matching; decomposition tracked as separate refactor
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -275,7 +287,8 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
 
   const isRtl = i18n.language === "ar";
 
-  // Close mobile drawer on route change
+  // Close mobile drawer on route change.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: location.pathname is intentionally in the dep array — we WANT this effect to re-run on every route change so the mobile drawer auto-closes when the user navigates. The body doesn't read location.pathname, but the dependency is what triggers the side effect.
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [location.pathname, setMobileSidebarOpen]);
@@ -421,7 +434,8 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
               sidebarCollapsed && "justify-center px-0",
             )}
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-           type="button">
+            type="button"
+          >
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (
@@ -440,7 +454,8 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
             )}
             title={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
             aria-label={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-           type="button">
+            type="button"
+          >
             {sidebarCollapsed ? (
               <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? "rotate-180" : ""}`} />
             ) : (

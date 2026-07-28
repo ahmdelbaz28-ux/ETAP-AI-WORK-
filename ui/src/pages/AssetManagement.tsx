@@ -4,8 +4,10 @@ import {
   AlertCircle,
   Cable,
   Cpu,
+  Eye,
   Filter,
   Loader2,
+  Pencil,
   Plus,
   Search,
   Settings2,
@@ -13,7 +15,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ModalBackdrop from "../components/ModalBackdrop";
 import ModalHeader from "../components/ModalHeader";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
@@ -111,10 +113,21 @@ export default function AssetManagement() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [viewAsset, setViewAsset] = useState<Asset | null>(null);
+  const [editAsset, setEditAsset] = useState<Asset | null>(null);
   const [form, setForm] = useState<AssetFormState>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const { notify } = useNotify();
+
+  // Ref mirror of viewAsset.id so the async View-fetch handler can detect
+  // if the user closed the View modal while the fetch was in-flight. Without
+  // this guard, the modal would RE-OPEN unexpectedly when the stale fetch
+  // completes and calls setViewAsset(freshAsset) on a now-closed modal.
+  const viewAssetIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    viewAssetIdRef.current = viewAsset?.id ?? null;
+  }, [viewAsset]);
 
   const fetchAssets = useCallback(async () => {
     setLoading(true);
@@ -138,7 +151,7 @@ export default function AssetManagement() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -182,7 +195,7 @@ export default function AssetManagement() {
     } finally {
       setSubmitting(false);
     }
-  }, [form, notify, fetchAssets, API_BASE_URL]);
+  }, [form, notify, fetchAssets]);
 
   const handleDelete = useCallback(
     async (asset: Asset) => {
@@ -208,8 +221,95 @@ export default function AssetManagement() {
         setActionInProgress(null);
       }
     },
-    [notify, fetchAssets, API_BASE_URL],
+    [notify, fetchAssets],
   );
+
+  // Gap-fill: Read (GET /api/v1/assets/{id}) — fetch full asset detail.
+  // The list endpoint already returns all fields, but this gives us a
+  // server-side authoritative view (in case the asset changed between
+  // list-load and view-click).
+  const handleView = useCallback(async (asset: Asset) => {
+    setViewAsset(asset); // optimistic — show list data immediately
+    setActionInProgress(asset.id);
+    try {
+      const token = localStorage.getItem("authToken");
+      const r = await fetch(`${API_BASE_URL}/api/v1/assets/${encodeURIComponent(asset.id)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        signal: AbortSignal.timeout(8000),
+      });
+      // Guard: if the user closed the View modal while the fetch was in-flight,
+      // don't update state (would re-open the modal unexpectedly).
+      if (viewAssetIdRef.current !== asset.id) return;
+      if (r.ok) {
+        const fresh: Asset = await r.json();
+        // Re-check after await r.json() — the user might have closed during JSON parse.
+        if (viewAssetIdRef.current !== asset.id) return;
+        setViewAsset(fresh);
+      }
+      // If r not ok, keep the optimistic list data — view modal still useful.
+    } catch {
+      // Network/timeout — keep optimistic data, don't surface error to user.
+    } finally {
+      // Only clear actionInProgress if we're still the active view.
+      if (viewAssetIdRef.current === asset.id) {
+        setActionInProgress(null);
+      }
+    }
+  }, []);
+
+  // Gap-fill: Update (PUT /api/v1/assets/{id}) — pre-fill form + open edit modal.
+  const handleEditClick = useCallback((asset: Asset) => {
+    setEditAsset(asset);
+    setForm({
+      name: asset.name,
+      type: asset.type,
+      rating: asset.rating ?? "",
+      voltage: asset.voltage ?? "",
+      status: asset.status,
+      notes: asset.notes ?? "",
+    });
+  }, []);
+
+  const handleUpdate = useCallback(async () => {
+    if (!editAsset) return;
+    if (!form.name.trim()) {
+      notify("error", "Asset name is required");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const r = await fetch(`${API_BASE_URL}/api/v1/assets/${encodeURIComponent(editAsset.id)}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          type: form.type,
+          rating: form.rating.trim() || null,
+          voltage: form.voltage.trim() || null,
+          status: form.status,
+          notes: form.notes.trim() || null,
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok) {
+        const text = await r.text().catch(() => "Unknown error");
+        throw new Error(`API ${r.status}: ${text.substring(0, 100)}`);
+      }
+      notify("success", `Asset "${form.name.trim()}" updated`);
+      setEditAsset(null);
+      setForm(EMPTY_FORM);
+      await fetchAssets();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      notify("error", `Failed to update asset: ${msg}`);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [editAsset, form, notify, fetchAssets]);
 
   const summaryCards = [
     {
@@ -326,7 +426,8 @@ export default function AssetManagement() {
                       ? "bg-[var(--color-brand-500)] text-white"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
                   )}
-                 type="button">
+                  type="button"
+                >
                   {status}
                 </button>
               ))}
@@ -406,14 +507,38 @@ export default function AssetManagement() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDelete(asset)}
-                        disabled={actionInProgress === asset.id}
-                        title="Delete asset"
-                        className="ml-2 p-1.5 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                       type="button">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="ml-2 flex items-center gap-1">
+                        <button
+                          onClick={() => handleView(asset)}
+                          disabled={actionInProgress === asset.id}
+                          title="View asset details"
+                          className="p-1.5 rounded text-[var(--text-muted)] hover:text-brand-400 hover:bg-brand-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          type="button"
+                          aria-label={`View ${asset.name}`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(asset)}
+                          disabled={actionInProgress === asset.id}
+                          title="Edit asset"
+                          className="p-1.5 rounded text-[var(--text-muted)] hover:text-brand-300 hover:bg-brand-300/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          type="button"
+                          aria-label={`Edit ${asset.name}`}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(asset)}
+                          disabled={actionInProgress === asset.id}
+                          title="Delete asset"
+                          className="p-1.5 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          type="button"
+                          aria-label={`Delete ${asset.name}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </CardSection>
                 </Card>
@@ -616,6 +741,280 @@ export default function AssetManagement() {
                 className={submitting ? "animate-pulse" : ""}
               >
                 {submitting ? "Adding..." : "Add Asset"}
+              </Button>
+            </div>
+          </motion.div>
+        </ModalBackdrop>
+      )}
+
+      {/* View Asset Modal (gap-fill: Read endpoint) */}
+      {viewAsset && (
+        <ModalBackdrop
+          onClose={() => setViewAsset(null)}
+          disabled={actionInProgress === viewAsset.id}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl w-full max-w-lg p-6 shadow-2xl"
+          >
+            <ModalHeader
+              title="Asset Details"
+              onClose={() => setViewAsset(null)}
+              disabled={actionInProgress === viewAsset.id}
+              icon={Eye}
+            />
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 pb-3 border-b border-[var(--border-secondary)]">
+                <div className="p-2 rounded-lg bg-brand-500/10 text-brand-400">
+                  {typeIcons[viewAsset.type] || <Cpu className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                    {viewAsset.name}
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] font-mono">{viewAsset.id}</p>
+                </div>
+                <Badge
+                  variant={statusConfig[viewAsset.status]?.variant ?? "default"}
+                  dot
+                  size="sm"
+                  className="ml-auto"
+                >
+                  {statusConfig[viewAsset.status]?.label ?? viewAsset.status}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <p className="text-[var(--text-muted)]">Type</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5">{viewAsset.type}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-muted)]">Rating</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5 mono-engineering">
+                    {viewAsset.rating || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-muted)]">Voltage</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5 mono-engineering">
+                    {viewAsset.voltage || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-muted)]">Project ID</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5 font-mono">
+                    {viewAsset.project_id || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-muted)]">Created</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5">
+                    {viewAsset.created_at}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-muted)]">Updated</p>
+                  <p className="text-[var(--text-primary)] font-medium mt-0.5">
+                    {viewAsset.updated_at}
+                  </p>
+                </div>
+                {viewAsset.notes && (
+                  <div className="col-span-2">
+                    <p className="text-[var(--text-muted)]">Notes</p>
+                    <p className="text-[var(--text-primary)] mt-0.5 text-sm">{viewAsset.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={Pencil}
+                onClick={() => {
+                  const a = viewAsset;
+                  setViewAsset(null);
+                  handleEditClick(a);
+                }}
+              >
+                Edit
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setViewAsset(null)}>
+                Close
+              </Button>
+            </div>
+          </motion.div>
+        </ModalBackdrop>
+      )}
+
+      {/* Edit Asset Modal (gap-fill: Update endpoint) */}
+      {editAsset && (
+        <ModalBackdrop
+          onClose={() => {
+            setEditAsset(null);
+            setForm(EMPTY_FORM);
+          }}
+          disabled={submitting}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl w-full max-w-md p-6 shadow-2xl"
+          >
+            <ModalHeader
+              title="Edit Asset"
+              onClose={() => {
+                setEditAsset(null);
+                setForm(EMPTY_FORM);
+              }}
+              disabled={submitting}
+              icon={Pencil}
+            />
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="edit-asset-name"
+                  className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                >
+                  Asset Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="edit-asset-name"
+                  type="text"
+                  aria-label="Asset Name"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  disabled={submitting}
+                  className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="edit-asset-type"
+                    className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                  >
+                    Type
+                  </label>
+                  <select
+                    id="edit-asset-type"
+                    aria-label="Type"
+                    value={form.type}
+                    onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                    disabled={submitting}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50"
+                  >
+                    {ASSET_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="edit-asset-status"
+                    className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="edit-asset-status"
+                    aria-label="Status"
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                    disabled={submitting}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50 capitalize"
+                  >
+                    {ASSET_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="edit-asset-rating"
+                    className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                  >
+                    Rating
+                  </label>
+                  <input
+                    id="edit-asset-rating"
+                    type="text"
+                    aria-label="Rating"
+                    value={form.rating}
+                    onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value }))}
+                    placeholder="e.g., 10 MVA"
+                    disabled={submitting}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="edit-asset-voltage"
+                    className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                  >
+                    Voltage
+                  </label>
+                  <input
+                    id="edit-asset-voltage"
+                    type="text"
+                    aria-label="Voltage"
+                    value={form.voltage}
+                    onChange={(e) => setForm((f) => ({ ...f, voltage: e.target.value }))}
+                    placeholder="e.g., 13.8 kV"
+                    disabled={submitting}
+                    className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="edit-asset-notes"
+                  className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+                >
+                  Notes
+                </label>
+                <textarea
+                  id="edit-asset-notes"
+                  aria-label="Notes"
+                  value={form.notes}
+                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                  placeholder="Optional notes about this asset"
+                  rows={2}
+                  disabled={submitting}
+                  className="w-full px-3 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all disabled:opacity-50 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditAsset(null);
+                  setForm(EMPTY_FORM);
+                }}
+                disabled={submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={submitting ? Loader2 : Pencil}
+                onClick={handleUpdate}
+                disabled={submitting || !form.name.trim()}
+                className={submitting ? "animate-pulse" : ""}
+              >
+                {submitting ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </motion.div>

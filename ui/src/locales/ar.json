@@ -25,6 +25,8 @@
     "dataExport": "تصدير البيانات",
     "logs": "السجلات",
     "codeGuard": "حارس الكود",
+    "cuaMonitor": "مراقب CUA",
+    "dualControl": "التحكم المزدوج",
     "darkMode": "الوضع الداكن",
     "lightMode": "الوضع الفاتح",
     "logout": "تسجيل الخروج",

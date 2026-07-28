@@ -50,6 +50,7 @@ const DataExportPage = lazy(() => import("./pages/DataExport"));
 const LogsPage = lazy(() => import("./pages/Logs"));
 const CuaMonitorPage = lazy(() => import("./pages/CuaMonitor"));
 const CodeGuardPage = lazy(() => import("./pages/CodeGuard"));
+const DualControlPage = lazy(() => import("./pages/DualControl"));
 const LoginPage = lazy(() => import("./pages/Login"));
 const RegisterPage = lazy(() => import("./pages/Register"));
 
@@ -343,6 +344,14 @@ export default function App() {
                   element={
                     <LazyPage>
                       <CuaMonitorPage />
+                    </LazyPage>
+                  }
+                />
+                <Route
+                  path="/dual-control"
+                  element={
+                    <LazyPage>
+                      <DualControlPage />
                     </LazyPage>
                   }
                 />
