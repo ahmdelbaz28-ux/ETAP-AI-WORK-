@@ -207,10 +207,12 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             if hmac.compare_digest(provided_key, self._api_key):
                 return await call_next(request)
 
-        # Skip when auth is disabled (local development only)
+        # Skip when auth is disabled (local development & test environments)
+        # In CI, ENVIRONMENT=testing with auth disabled — CSRF tokens are
+        # unnecessary because the test client does not use browser cookies.
         if self._auth_disabled:
             _env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development"))
-            if _env.lower() in ("development", "dev"):
+            if _env.lower() in ("development", "dev", "testing"):
                 return await call_next(request)
 
         # Validate CSRF token
