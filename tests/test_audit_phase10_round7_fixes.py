@@ -72,27 +72,86 @@ class TestRouterAuthentication:
 
 
 class TestHFSpaceCUAWebSocketAuth:
-    """Verify hf-space CUA confirmation WebSocket requires API key."""
+    """Verify hf-space CUA confirmation WebSocket requires API key.
+
+    REVISED (Phase-2 P0 / Condition E): Auth logic has been refactored
+    from inline checks in ``hf-space/app.py`` to the shared helper
+    ``api.cua_confirmation_ws.authenticate_cua_confirmation_ws`` (same
+    helper used by ``api/routes.py``). The tests now verify:
+      1. ``hf-space/app.py`` delegates to the shared helper.
+      2. The shared helper has all the required auth properties.
+      3. The previous silent-skip fail-open branch (``if _hf_api_key:``)
+         has been removed.
+    """
 
     @pytest.fixture(scope="class")
     def hf_source(self) -> str:
         return _read_file("hf-space/app.py")
 
-    def test_cua_ws_has_auth_check(self, hf_source: str) -> None:
-        """CUA WebSocket must check API key before accepting."""
+    @pytest.fixture(scope="class")
+    def cua_ws_source(self) -> str:
+        """Source of the shared auth helper module."""
+        return _read_file("api/cua_confirmation_ws.py")
+
+    def test_hf_space_delegates_to_shared_helper(self, hf_source: str) -> None:
+        """hf-space/app.py /ws/cua/confirmation must call the shared helper."""
         ws_pos = hf_source.index("websocket_cua_confirmation")
         ws_body = hf_source[ws_pos : ws_pos + 1500]
-        assert "compare_digest" in ws_body, (
-            "hf-space CUA WebSocket must use compare_digest for auth"
+        assert "authenticate_cua_confirmation_ws" in ws_body, (
+            "hf-space/app.py /ws/cua/confirmation must call authenticate_cua_confirmation_ws "
+            "(shared helper). Inline auth was removed in Condition E refactor."
         )
-        assert "x-api-key" in ws_body or "token" in ws_body, (
-            "hf-space CUA WebSocket must check API key"
-        )
-        assert "code=1008" in ws_body, "hf-space CUA WebSocket must close with 1008 on auth failure"
 
-    def test_cua_ws_imports_hmac(self, hf_source: str) -> None:
-        """hf-space/app.py must import hmac at module level."""
-        assert "import hmac" in hf_source, "hf-space/app.py must import hmac"
+    def test_no_silent_skip_fail_open(self, hf_source: str) -> None:
+        """The `if _hf_api_key:` silent-skip fail-open branch must be GONE.
+
+        We use AST parsing to check for the actual `if` statement (not just
+        the substring, which can legitimately appear in a comment documenting
+        the bug fix).
+        """
+        import ast as _ast
+
+        tree = _ast.parse(hf_source)
+        for node in _ast.walk(tree):
+            if (
+                isinstance(node, _ast.AsyncFunctionDef)
+                and node.name == "websocket_cua_confirmation"
+            ):
+                for child in _ast.walk(node):
+                    if isinstance(child, _ast.If):
+                        for name_node in _ast.walk(child.test):
+                            if isinstance(name_node, _ast.Name) and name_node.id == "_hf_api_key":
+                                pytest.fail(
+                                    "hf-space/app.py websocket_cua_confirmation must NOT "
+                                    "contain an `if _hf_api_key:` statement — this was the "
+                                    "silent-skip fail-open bug. Auth is now delegated to the "
+                                    "shared fail-closed helper."
+                                )
+                return
+        pytest.fail("websocket_cua_confirmation function not found in hf-space/app.py")
+
+    def test_shared_helper_has_compare_digest(self, cua_ws_source: str) -> None:
+        """Shared helper must use hmac.compare_digest for constant-time comparison."""
+        marker = "async def authenticate_cua_confirmation_ws"
+        assert marker in cua_ws_source
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "compare_digest" in helper_body, "Shared helper must use hmac.compare_digest"
+
+    def test_shared_helper_checks_x_api_key_or_token(self, cua_ws_source: str) -> None:
+        """Shared helper must accept x-api-key header OR ?token= query param."""
+        marker = "async def authenticate_cua_confirmation_ws"
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "x-api-key" in helper_body, "Shared helper must check x-api-key header"
+        assert "token" in helper_body, "Shared helper must check ?token= query param"
+
+    def test_shared_helper_closes_with_1008(self, cua_ws_source: str) -> None:
+        """Shared helper must close with code 1008 on auth failure."""
+        marker = "async def authenticate_cua_confirmation_ws"
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "1008" in helper_body, "Shared helper must close with code=1008 on auth failure"
 
 
 # ---------------------------------------------------------------------------
@@ -144,8 +203,26 @@ class TestCIPinning:
         )
 
     def test_trivy_pinned_to_tag(self, ci_cd_source: str) -> None:
-        """trivy-action must be pinned to a specific version tag."""
-        assert "trivy-action@0.9.2" in ci_cd_source, "trivy-action should be pinned to v0.9.2"
+        """trivy-action must be pinned to a specific version tag OR commit SHA.
+
+        Updated R7-C2: pinning to a commit SHA is actually MORE secure than
+        a version tag (tags can be moved by repo maintainers; commit SHAs
+        are immutable). The CI/CD file was updated to use SHA pinning —
+        this test now accepts either form.
+        """
+        # Accept either:
+        #   trivy-action@0.9.2          (version tag — original R7-C2 form)
+        #   trivy-action@<40-char SHA>  (commit SHA — stricter, current form)
+        import re
+
+        # Match `trivy-action@` followed by either:
+        #   - a version tag like `0.9.2` (digits and dots)
+        #   - a 40-char commit SHA (hex)
+        pattern = r"trivy-action@(?:[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{40})"
+        assert re.search(pattern, ci_cd_source), (
+            "trivy-action must be pinned to a version tag or commit SHA — "
+            "must NOT use @master or @main (mutable refs)."
+        )
 
 
 # ---------------------------------------------------------------------------

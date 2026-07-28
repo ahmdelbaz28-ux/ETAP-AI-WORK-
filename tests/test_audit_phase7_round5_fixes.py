@@ -100,33 +100,78 @@ class TestAdminEndpointAuthentication:
 
 
 class TestCUAWebSocketAuthentication:
-    """Verify /ws/cua/confirmation WebSocket requires API key."""
+    """Verify /ws/cua/confirmation WebSocket requires API key.
+
+    REVISED (Phase-2 P0 / Condition E): Auth logic has been refactored
+    from inline checks in ``api/routes.py`` to a shared helper,
+    ``api.cua_confirmation_ws.authenticate_cua_confirmation_ws``. The
+    tests now verify:
+      1. ``api/routes.py`` delegates to the shared helper.
+      2. The shared helper has the required auth properties
+         (x-api-key check, hmac.compare_digest, close-on-failure).
+    """
 
     @pytest.fixture(scope="class")
     def routes_source(self) -> str:
         return _read_file("api/routes.py")
 
-    def test_cua_websocket_has_api_key_check(self, routes_source: str) -> None:
-        """CUA confirmation WebSocket must validate x-api-key header."""
-        assert 'websocket.headers.get("x-api-key")' in routes_source
-        # Check hmac.compare_digest is used
+    @pytest.fixture(scope="class")
+    def cua_ws_source(self) -> str:
+        """Source of the shared auth helper module."""
+        return _read_file("api/cua_confirmation_ws.py")
+
+    def test_routes_py_delegates_to_shared_helper(self, routes_source: str) -> None:
+        """api/routes.py /ws/cua/confirmation handler must call the shared helper."""
         ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "hmac.compare_digest" in ws_section[:1000], (
-            "CUA WebSocket must use hmac.compare_digest for constant-time comparison"
-        )
-        assert "code=1008" in ws_section[:1000], (
-            "CUA WebSocket must close with code 1008 on auth failure"
+        # Slice to next @app decorator to scope the search to this handler only
+        next_dec = ws_section.find("\n@app.", 1)
+        if next_dec != -1:
+            ws_section = ws_section[:next_dec]
+        assert "authenticate_cua_confirmation_ws" in ws_section, (
+            "api/routes.py /ws/cua/confirmation must call authenticate_cua_confirmation_ws "
+            "(shared helper). Inline auth was removed in Condition E refactor."
         )
 
-    def test_cua_websocket_closes_on_missing_key(self, routes_source: str) -> None:
-        """CUA WebSocket must close connection if API key is missing."""
-        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "await websocket.close(" in ws_section[:1500]
+    def test_cua_websocket_has_api_key_check(self, cua_ws_source: str) -> None:
+        """CUA confirmation WebSocket must validate x-api-key header (in shared helper)."""
+        assert 'websocket.headers.get("x-api-key")' in cua_ws_source, (
+            "Shared helper must check x-api-key header"
+        )
 
-    def test_cua_websocket_closes_on_exception(self, routes_source: str) -> None:
-        """CUA WebSocket must close on any auth exception."""
-        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "except Exception:" in ws_section[:1500]
+    def test_cua_websocket_uses_hmac_compare_digest(self, cua_ws_source: str) -> None:
+        """Shared helper must use hmac.compare_digest (constant-time comparison)."""
+        # Slice to the helper function
+        marker = "async def authenticate_cua_confirmation_ws"
+        assert marker in cua_ws_source
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "hmac.compare_digest" in helper_body, (
+            "authenticate_cua_confirmation_ws must use hmac.compare_digest"
+        )
+
+    def test_cua_websocket_closes_with_1008(self, cua_ws_source: str) -> None:
+        """Shared helper must close with code 1008 (Policy Violation) on auth failure."""
+        marker = "async def authenticate_cua_confirmation_ws"
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "1008" in helper_body, "Shared helper must close with code=1008 on auth failure"
+        assert "await websocket.close(" in helper_body, (
+            "Shared helper must call await websocket.close() on auth failure"
+        )
+
+    def test_cua_websocket_fails_closed_when_env_unset(self, cua_ws_source: str) -> None:
+        """Shared helper must close with 1011 when ENGINEERING_SERVICE_API_KEY is unset.
+
+        This is the fail-closed behavior that fixes the silent-skip bug
+        that previously existed in hf-space/app.py.
+        """
+        marker = "async def authenticate_cua_confirmation_ws"
+        start = cua_ws_source.index(marker)
+        helper_body = cua_ws_source[start : start + 4000]
+        assert "1011" in helper_body, (
+            "Shared helper must close with code=1011 when env var is unset — "
+            "fail-closed for life-safety endpoint"
+        )
 
 
 # ---------------------------------------------------------------------------

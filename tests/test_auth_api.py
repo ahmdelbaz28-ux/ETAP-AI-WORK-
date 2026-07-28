@@ -61,21 +61,31 @@ class TestRegister:
     """Tests for the user registration endpoint."""
 
     def test_register_success(self, client):
-        """Registering with valid data returns 201 and the user profile."""
+        """Registering with valid data returns 201 and the user profile.
+
+        SECURITY (S-02): The `role` field in the request body is IGNORED —
+        all newly registered users are assigned the `viewer` role by default.
+        This prevents privilege escalation via self-registration (e.g., a
+        malicious user sending `role: "admin"`). Admin/engineer roles must
+        be granted out-of-band (DB seed, CLI command, or admin promotion
+        endpoint), never via the public registration endpoint.
+        """
         resp = client.post(
             "/api/v1/auth/register",
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
                 "password": TEST_USER_PASSWORD,
-                "role": "engineer",
+                "role": "engineer",  # request asks for engineer — must be IGNORED
             },
         )
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
         data = resp.json()
         assert data["username"] == "newuser", "Username should match"
         assert data["email"] == "newuser@example.com", "Email should match"
-        assert data["role"] == "engineer", "Default role should be engineer"
+        assert data["role"] == "viewer", (
+            "Default role must be 'viewer' (S-02: prevent privilege escalation via registration)"
+        )
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"

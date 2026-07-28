@@ -86,6 +86,17 @@ EXPECTED_REGISTERED_AGENTS = {
     "etap_expert",
     "etap_gui",
     "ahmed_etap",
+    # Backward-compat aliases (registered in orchestrator.py lines 1421-1423).
+    # These point to the same agent instances as their long-form counterparts:
+    #   "harmonic"    → self.agents["harmonic_analysis"]
+    #   "opf"         → self.agents["optimal_power_flow"]
+    #   "protection"  → self.agents["protection_coordination"]
+    # They exist so pre-sonarcloud-sweep callers (and tests/test_backward_compatibility.py)
+    # that used the short names keep working. Removing them would break backward
+    # compatibility; adding them here keeps the regression test accurate.
+    "harmonic",
+    "opf",
+    "protection",
 }
 
 # Optional agents that may be missing if their dependencies aren't installed.

@@ -98,7 +98,15 @@ def test_browser_cua_executor_falls_back_when_deps_missing():
     if not deps["all_available"]:
         assert result.success is False
         assert result.aborted_reason is not None
-        assert "deps unavailable" in result.aborted_reason.lower()
+        # The actual aborted_reason format is:
+        #   "Dependencies unavailable: ['google-generativeai-or-GEMINI_API_KEY']"
+        # The previous assertion checked for the SHORT substring "deps unavailable",
+        # which does NOT appear in "dependencies unavailable" (different prefix).
+        # Use the full word "dependencies unavailable" (or just "unavailable")
+        # to match the actual message produced by BrowserCUAExecutor.check_dependencies.
+        assert "dependencies unavailable" in result.aborted_reason.lower(), (
+            f"Expected 'dependencies unavailable' in aborted_reason, got: {result.aborted_reason!r}"
+        )
         assert len(result.steps) == 0  # no steps executed
     else:
         # If deps are available (e.g., on a CI runner with Playwright),

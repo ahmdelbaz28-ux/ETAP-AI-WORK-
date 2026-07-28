@@ -189,10 +189,91 @@ class TestHelmPBDSecret(unittest.TestCase):
             "secret.yaml should support external secret annotations for vault/sealed-secrets",
         )
 
-    def test_secret_conditional_api_key(self):
-        """Secret should conditionally include api-key only if value provided."""
+    def test_secret_does_not_contain_api_key(self):
+        """Helm-managed secret must NOT contain a conditional api-key block.
+
+        SECURITY REFACTOR (2026-07-28, commit 2917e42b): The API key was moved
+        OUT of the Helm-managed secret template and into a pre-created K8s Secret
+        (`k8s/etap-api-key-secret.yaml`). The Helm `deployment.yaml` references
+        this pre-created Secret via `secretKeyRef`. This pattern is more secure
+        because:
+
+        1. The API key is NEVER baked into Helm values (which are typically
+           committed to git, even though they shouldn't be).
+        2. The pre-created Secret can be provisioned out-of-band via sealed-secrets,
+           external-secrets-operator, or Vault — without re-deploying the chart.
+        3. Helm upgrades do not risk overwriting the API key.
+
+        This test enforces the new design. The OLD test
+        (`test_secret_conditional_api_key`) checked for the now-removed pattern
+        `{{- if .Values.env.ENGINEERING_SERVICE_API_KEY }}` and was failing
+        because the conditional was correctly removed.
+
+        NOTE: The string "ENGINEERING_SERVICE_API_KEY" MAY appear in the file's
+        explanatory header comment (documenting that the key was moved OUT).
+        That is correct and expected — what matters is that no Helm template
+        directive references it (i.e., no `{{- if .Values.env.ENGINEERING_SERVICE_API_KEY }}`
+        and no `{{ .Values.env.ENGINEERING_SERVICE_API_KEY | b64enc }}`).
+        """
         src = self._read(self.secret_path)
-        self.assertIn("if .Values.env.ENGINEERING_SERVICE_API_KEY", src)
+        # The conditional block (the security-relevant pattern) must be GONE.
+        self.assertNotIn(
+            "{{- if .Values.env.ENGINEERING_SERVICE_API_KEY }}",
+            src,
+            "Helm-managed secret.yaml must NOT contain "
+            "'{{- if .Values.env.ENGINEERING_SERVICE_API_KEY }}' conditional block "
+            "(API key was moved to pre-created etap-api-key Secret)",
+        )
+        # The b64enc of the API key must also be GONE.
+        self.assertNotIn(
+            ".Values.env.ENGINEERING_SERVICE_API_KEY | b64enc",
+            src,
+            "Helm-managed secret.yaml must NOT b64enc the API key "
+            "(API key was moved to pre-created etap-api-key Secret)",
+        )
+
+    def test_deployment_references_precreated_api_key_secret(self):
+        """Deployment template must reference the pre-created etap-api-key Secret.
+
+        Verifies the second half of the security refactor: the deployment
+        template must wire the `ENGINEERING_SERVICE_API_KEY` env var from the
+        pre-created `etap-api-key` Secret via `secretKeyRef`.
+        """
+        deployment_path = os.path.join(self.helm_dir, "deployment.yaml")
+        src = self._read(deployment_path)
+        self.assertIn(
+            "name: etap-api-key",
+            src,
+            "deployment.yaml must reference the pre-created 'etap-api-key' Secret",
+        )
+        self.assertIn(
+            "secretKeyRef",
+            src,
+            "deployment.yaml must use secretKeyRef to wire ENGINEERING_SERVICE_API_KEY",
+        )
+
+    def test_precreated_api_key_secret_manifest_exists(self):
+        """The pre-created etap-api-key Secret manifest must exist.
+
+        Verifies the third part of the security refactor: the manifest that
+        operators apply BEFORE Helm deployment (documented in
+        `k8s/etap-api-key-secret.yaml`) must exist.
+        """
+        # self.helm_dir = <repo>/helm/etap-ai/templates — go up 3 levels to repo root.
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(self.helm_dir)))
+        manifest_path = os.path.join(repo_root, "k8s", "etap-api-key-secret.yaml")
+        self.assertTrue(
+            os.path.isfile(manifest_path),
+            f"k8s/etap-api-key-secret.yaml must exist (pre-created Secret manifest) "
+            f"— looked at: {manifest_path}",
+        )
+        src = self._read(manifest_path)
+        self.assertIn("name: etap-api-key", src, "Manifest must define the etap-api-key Secret")
+        self.assertIn(
+            "api-key:",
+            src,
+            "Manifest must define the api-key data key inside the Secret",
+        )
 
 
 class TestS23AllAPIModulesComprehensive(unittest.TestCase):

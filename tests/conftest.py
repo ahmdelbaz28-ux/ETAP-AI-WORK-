@@ -602,6 +602,12 @@ def setup_test_environment():
     # easily exceeds the default 100 req/60s limit and triggers spurious
     # 429s. Allow 10,000 req/60s in tests.
     os.environ["ENGINEERING_SERVICE_RATE_LIMIT_MAX"] = "10000"
+    # SECURITY: The forgot-password endpoint hides the reset_token from the
+    # response by default (prevents token leakage via proxies/APM tools).
+    # Tests need the token to validate the reset flow end-to-end without
+    # intercepting email. Set AUTH_RETURN_RESET_TOKEN=true for the test
+    # suite only — NEVER set this in production.
+    os.environ["AUTH_RETURN_RESET_TOKEN"] = "true"
 
     # Clear API key env vars so verify_api_key() returns early (open access).
     # Without this, tests that use hf_app_client (which calls verify_api_key)
@@ -652,6 +658,7 @@ def setup_test_environment():
         "PRIVACY_MODE",
         "ENGINEERING_SERVICE_CACHE_DISABLED",
         "ENGINEERING_SERVICE_RATE_LIMIT_MAX",
+        "AUTH_RETURN_RESET_TOKEN",
     ):
         os.environ.pop(_key, None)
 
@@ -932,15 +939,67 @@ def auth_headers(client, registered_user: dict) -> dict:
 
 
 @pytest.fixture
-def admin_headers(client) -> dict:
-    """Register an admin user and return Authorization headers."""
-    _register_user(
-        client,
-        username="admin_user",
-        email="admin@example.com",
-        role="admin",
-    )
-    login_data = _login_user(client, username="admin_user")
+def admin_headers(client, db_engine) -> dict:
+    """Register an admin user and return Authorization headers.
+
+    SECURITY (S-02): The public `/api/v1/auth/register` endpoint forces
+    `role="viewer"` for ALL new registrations to prevent privilege escalation.
+    Therefore, to create an admin user for tests, we bypass the registration
+    endpoint and insert the user directly into the in-memory test DB via
+    SQLAlchemy. This mirrors the production pattern where admins are
+    provisioned out-of-band (DB seed, CLI command, or admin promotion
+    endpoint) — never via the public registration endpoint.
+
+    IMPLEMENTATION NOTE: We use ``asyncio.run()`` to execute the async DB
+    insert because:
+      1. ``client`` (Starlette TestClient) runs the app's event loop in a
+         separate portal thread — the main thread (where this fixture runs)
+         has no running loop.
+      2. ``asyncio.run()`` creates a fresh loop, runs the coroutine, and
+         closes the loop cleanly. This is the standard pattern for invoking
+         async code from a sync context.
+    The previous version had a fragile ``try/except`` that fell back to
+    ``asyncio.run()`` on ANY exception, which could mask real errors. This
+    version uses ``asyncio.run()`` directly — if the DB insert fails, we
+    want the test to fail loudly, not silently fall through to a login
+    that returns a 401.
+    """
+    import asyncio as _asyncio
+    import uuid as _uuid
+
+    import api.auth as _auth_module
+
+    admin_user_id = str(_uuid.uuid4())
+    admin_username = "admin_user"
+    admin_email = "admin@example.com"
+    admin_password_hash = _auth_module._hash_password(_TEST_DEFAULT_PASSWORD)
+
+    async def _seed_admin() -> None:
+        from sqlalchemy import select
+
+        from api.auth import User
+
+        async with _TestSessionLocal() as session:
+            # Idempotent: if the admin already exists (e.g., fixture invoked
+            # twice in the same test), do nothing.
+            existing = await session.execute(select(User).where(User.username == admin_username))
+            if existing.scalar_one_or_none() is not None:
+                return
+            session.add(
+                User(
+                    id=admin_user_id,
+                    username=admin_username,
+                    email=admin_email,
+                    password_hash=admin_password_hash,
+                    role="admin",  # Direct DB insert — bypasses S-02 viewer enforcement
+                    is_active=True,
+                )
+            )
+            await session.commit()
+
+    _asyncio.run(_seed_admin())
+
+    login_data = _login_user(client, username=admin_username)
     return _auth_headers(login_data["access_token"])
 
 

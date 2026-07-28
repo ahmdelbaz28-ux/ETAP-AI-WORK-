@@ -461,20 +461,23 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     Used by the CUA Loop to request two-human approval before executing
     life-safety-critical actions (protection setting changes, breaker ops).
 
-    SECURITY: API key required — same pattern as /ws/scada/live.
+    SECURITY: Auth is delegated to :func:`authenticate_cua_confirmation_ws`
+    in :mod:`api.cua_confirmation_ws` — a shared helper that's also used by
+    the HF Space FastAPI app. This eliminates the previous divergence
+    (header-only vs header+query-param; hard-fail vs silent-skip) and
+    fixes the duplicate-registration audit finding (Condition E).
     See: api/cua_confirmation_ws.py for the protocol.
     """
-    # SECURITY AUDIT S-15: API key authentication required for life-safety endpoint
-    try:
-        api_key = websocket.headers.get("x-api-key")
-        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
-            return
-    except Exception:
-        await websocket.close(code=1008, reason="Authentication error")
-        return
+    # SECURITY AUDIT S-15 (revised Phase-2 P0 / Condition E):
+    # Auth moved to shared helper to ensure identical behavior across
+    # engineering-service and HF Space deployments.
+    from api.cua_confirmation_ws import (
+        authenticate_cua_confirmation_ws,
+        cua_confirmation_ws,
+    )
 
-    from api.cua_confirmation_ws import cua_confirmation_ws
+    if not await authenticate_cua_confirmation_ws(websocket):
+        return
 
     await cua_confirmation_ws(websocket)
 
