@@ -77,7 +77,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -250,7 +250,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -430,14 +430,14 @@ jobs:
 
     steps:
       - name: Download k6 results
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: k6-results
         continue-on-error: true
 
       - name: Download Locust results
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: locust-stress-test-results-${{ github.sha }}
           path: locust-results

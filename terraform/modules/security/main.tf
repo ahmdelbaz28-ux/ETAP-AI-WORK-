@@ -68,7 +68,10 @@ resource "azurerm_key_vault" "this" {
   # Azure RBAC role assignments (Key Vault Administrator, Reader, etc.)
   # instead of access policies. This is the recommended approach for new
   # Key Vaults per Azure security baseline.
-  rbac_authorization_enabled = true
+  # FIXED: Renamed from rbac_authorization_enabled (azurerm v2.x) to
+  # enable_rbac_authorization (azurerm v3.x). The provider version is pinned
+  # to ~> 3.0 in versions.tf, so the v3 argument name is required.
+  enable_rbac_authorization = true
 
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true

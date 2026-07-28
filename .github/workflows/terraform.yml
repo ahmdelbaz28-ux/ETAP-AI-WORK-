@@ -46,7 +46,7 @@ jobs:
     name: Terraform fmt + validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -88,7 +88,7 @@ jobs:
     needs: tf-quality
     environment: dev
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
         uses: azure/login@v2
@@ -122,7 +122,9 @@ jobs:
             -input=false \
             -out=tfplan
           # Show the plan in a parseable format for the PR comment
-          terraform show -no-color tfplan > $GITHUB_WORKSPACE/tfplan.txt
+          # FIXED: Use ${{ github.workspace }} instead of $GITHUB_WORKSPACE for
+          # consistency with the github-script step below.
+          terraform show -no-color tfplan > ${{ github.workspace }}/tfplan.txt
         continue-on-error: false  # Per CI/CD skill: no gate can be skipped
 
       - name: Comment PR with Plan
@@ -132,7 +134,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('${{ env.GITHUB_WORKSPACE }}/tfplan.txt', 'utf8');
+            // FIXED: Use github.workspace (workflow context) instead of env.GITHUB_WORKSPACE.
+            // env.GITHUB_WORKSPACE is undefined — it's a runner env var, not a workflow env.
+            const plan = fs.readFileSync('${{ github.workspace }}/tfplan.txt', 'utf8');
             const maxLen = 65535;  // GitHub comment body limit
             const truncated = plan.length > maxLen ? plan.substring(0, maxLen) + "\n\n⚠️ Plan truncated (too long for comment)" : plan;
 
@@ -170,7 +174,7 @@ jobs:
     needs: tf-quality
     environment: dev
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
         uses: azure/login@v2
@@ -223,7 +227,7 @@ jobs:
     needs: tf-quality
     environment: staging  # Requires manual approval via GitHub environment protection rules
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
         uses: azure/login@v2
@@ -274,7 +278,7 @@ jobs:
     needs: tf-quality
     environment: production  # Requires manual approval + restricted branch
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
         uses: azure/login@v2
