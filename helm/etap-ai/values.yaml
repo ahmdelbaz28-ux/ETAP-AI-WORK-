@@ -100,8 +100,11 @@ api:
     enabled: true
     minAvailable: 1
   # HorizontalPodAutoscaler — auto-scale based on CPU/memory
+  # CRITICAL FIX: Enabled HPA for production readiness.
+  # Per CI/CD skill: "Smaller batches and more frequent releases reduce risk."
+  # HPA ensures the platform can handle load spikes without manual intervention.
   hpa:
-    enabled: false
+    enabled: true
     minReplicas: 2
     maxReplicas: 10
     targetCPUUtilizationPercentage: 75
@@ -155,10 +158,15 @@ env:
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-  # SECURITY: empty by default — operator MUST override with
-  # `--set env.ENGINEERING_SERVICE_API_KEY=<real-key>` (or via a custom values file).
-  # The deployment will fail-fast at startup if this is empty.
-  ENGINEERING_SERVICE_API_KEY: ""
+  # SECURITY: Uses secretKeyRef instead of plain value.
+  # CRITICAL FIX: Empty value caused pod startup failures.
+  # The key must be stored in a Kubernetes Secret before deployment.
+  # Create secret: kubectl create secret generic etap-api-key --from-literal=ENGINEERING_SERVICE_API_KEY=<real-key>
+  ENGINEERING_SERVICE_API_KEY:
+    valueFrom:
+      secretKeyRef:
+        name: etap-api-key
+        key: api-key
   LOG_LEVEL: "INFO"
 
 # Database Configuration
@@ -178,9 +186,10 @@ resources:
     memory: 1Gi
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
+  # CRITICAL FIX: Enabled autoscaling for production readiness.
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 

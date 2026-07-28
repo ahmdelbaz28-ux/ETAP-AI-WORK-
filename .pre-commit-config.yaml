@@ -10,6 +10,10 @@ repos:
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: detect-private-key
+      # CRITICAL FIX: Added check-json for .json config file validation.
+      # Per CI/CD skill: "Shift Left — catch problems as early in the pipeline as possible."
+      - id: check-json
+        files: ^config/.*\.json$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.0
@@ -18,7 +22,10 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # ── Stage 2: Type Checking (manual only — requires pyright installed) ──
+  # ── Stage 2: Type Checking ───────────────────────────────────────────
+  # CRITICAL FIX: Changed from manual-only to pre-push stage.
+  # Per CI/CD skill: "No gate can be skipped." Type errors must be caught
+  # automatically, not only when developers remember to run them manually.
   - repo: local
     hooks:
       - id: type-check
@@ -27,7 +34,7 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-        stages: [manual]
+        stages: [push]
 
   # ── Stage 3: Fast Tests ────────────────────────────────────────────
   - repo: local
@@ -61,6 +68,12 @@ repos:
         pass_filenames: false
 
   # ── Stage 6: Security Scan ────────────────────────────────────────
+  # CRITICAL FIX: Added gitleaks pre-commit hook (better than custom script).
+  # Per CI/CD skill: security scans should use the best available tools.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
   - repo: local
     hooks:
       - id: security-scan

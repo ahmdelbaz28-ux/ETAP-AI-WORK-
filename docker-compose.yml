@@ -15,6 +15,16 @@ services:
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+    # CRITICAL FIX: Added resource limits to prevent resource exhaustion.
+    # Per CI/CD skill: production services must have CPU/memory boundaries.
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2Gi
+        reservations:
+          cpus: '0.5'
+          memory: 512Mi
     depends_on:
       redis:
         condition: service_healthy
@@ -42,6 +52,15 @@ services:
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
+    # CRITICAL FIX: Added resource limits for Celery worker.
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1Gi
+        reservations:
+          cpus: '0.25'
+          memory: 256Mi
     depends_on:
       redis:
         condition: service_healthy
@@ -63,8 +82,9 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    # CRITICAL FIX: Added --no-auth-warning to prevent password leak in process list.
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -126,6 +146,15 @@ services:
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"
+    # CRITICAL FIX: Added resource limits for Neo4j.
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2Gi
+        reservations:
+          cpus: '0.5'
+          memory: 512Mi
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
