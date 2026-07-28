@@ -546,6 +546,37 @@ class TestForgotPassword:
         data = resp.json()
         assert "reset_token" not in data, "Non-existent email must NOT return a reset token"
 
+    def test_forgot_password_hides_reset_token_by_default(self, client, registered_user):
+        """S-02 security: reset_token must NOT appear in response when
+        AUTH_RETURN_RESET_TOKEN is unset or 'false'.
+
+        The default (production) behaviour is to omit the token from the
+        API response and deliver it only via email.  The conftest
+        autouse fixture sets AUTH_RETURN_RESET_TOKEN=true so that other
+        tests can retrieve the token; this test temporarily overrides
+        that to verify the secure default path.
+        """
+        # Temporarily disable token return to test production behaviour
+        saved = os.environ.get("AUTH_RETURN_RESET_TOKEN")
+        os.environ["AUTH_RETURN_RESET_TOKEN"] = "false"
+        try:
+            resp = client.post(
+                "/api/v1/auth/forgot-password",
+                json={"email": "testuser@example.com"},
+            )
+            assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
+            data = resp.json()
+            assert "reset_token" not in data, (
+                "S-02 security: reset_token must NOT be in the response when "
+                "AUTH_RETURN_RESET_TOKEN=false — it should only be sent via email"
+            )
+        finally:
+            # Restore the original value for other tests
+            if saved is None:
+                os.environ.pop("AUTH_RETURN_RESET_TOKEN", None)
+            else:
+                os.environ["AUTH_RETURN_RESET_TOKEN"] = saved
+
 
 # ===========================================================================
 # 9. POST /api/v1/auth/reset-password

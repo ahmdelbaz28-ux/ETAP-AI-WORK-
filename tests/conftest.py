@@ -948,21 +948,24 @@ def admin_headers(client) -> dict:
 
     Since S-02 security fix forces role="viewer" on all registrations,
     we cannot create an admin via the /register endpoint. Instead, we
-    register a user (who will have role="viewer"), then use a direct
-    SQL UPDATE via the TestClient's event loop to promote them to
-    "admin", and finally log in to obtain the JWT token.
+    register a user (who will have role="viewer"), then promote them
+    to "admin" via a direct SQL UPDATE, and finally log in to obtain
+    the JWT token.
+
+    The SQL UPDATE runs via asyncio.run() on the main thread.  This
+    is safe because the TestClient runs the ASGI app in an anyio
+    portal thread, so the main thread has no running event loop.
+    StaticPool (check_same_thread=False) allows the shared in-memory
+    connection to be accessed from any thread.
     """
     # Step 1: Register via the API (gets role="viewer" due to S-02)
     _register_user(
         client,
         username="admin_user",
         email="admin@example.com",
-        role="admin",  # Will be ignored by the API (S-02 forces "viewer")
     )
 
     # Step 2: Promote the user to "admin" via a direct SQL UPDATE.
-    # We use the TestClient to make a lightweight request that triggers
-    # the DB session, then update the role via raw SQL.
     import asyncio
 
     from sqlalchemy import text
@@ -974,13 +977,7 @@ def admin_headers(client) -> dict:
             )
             await session.commit()
 
-    # Use a separate thread to avoid event-loop conflicts with the
-    # TestClient's anyio portal.  The StaticPool-backed connection
-    # allows cross-thread access.
-    import concurrent.futures
-
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        pool.submit(asyncio.run, _promote_admin()).result()
+    asyncio.run(_promote_admin())
 
     # Step 3: Log in to get the JWT token
     login_data = _login_user(client, username="admin_user")
