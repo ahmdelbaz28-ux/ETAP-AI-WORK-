@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: "./tests",
   timeout: 60000,
   retries: 0,
+  fullyParallel: false,
   use: {
     baseURL: "http://localhost:5173",
     headless: true,
