@@ -82,9 +82,13 @@ jobs:
           }
 
       - name: TypeScript type-check
+        # FIXED: Removed `|| echo "::warning::"` workaround.
+        # Per CI/CD skill Rule 6: "If a test fails, fix the code — don't skip the test."
+        # TypeScript type errors are now BLOCKING. If the UI has type errors,
+        # they must be fixed before merging.
         if: success()
         working-directory: ui
-        run: npx tsc --noEmit 2>&1 || echo "::warning::TypeScript check failed but continuing"
+        run: npx tsc --noEmit
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
@@ -417,7 +421,11 @@ jobs:
 
       - name: Safety dependency check
         # typer==0.9.4 pinned in 'Install security tools' step above
-        run: safety check -r requirements.txt --full-report || { echo "⚠️ Safety check failed (non-blocking)"; exit 0; }
+        # FIXED: Removed `|| { echo "::warning"; exit 0; }` workaround.
+        # Per CI/CD skill Rule 6: "If a test fails, fix the code — don't skip the test."
+        # Safety check is now BLOCKING. Known accepted vulnerabilities are
+        # excluded via .safety-policy.yml or safety.ini — not by swallowing the exit code.
+        run: safety check -r requirements.txt --full-report
 
       - name: Custom security scan
         run: python scripts/security_scan.py
