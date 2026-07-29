@@ -23,6 +23,7 @@ on:
     paths:
       - "terraform/**"
       - ".github/workflows/terraform.yml"
+  workflow_dispatch:  # Manual trigger for re-running after fixes
 
 concurrency:
   group: terraform-${{ github.ref }}

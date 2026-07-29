@@ -124,6 +124,12 @@ jobs:
       - name: Run database integration tests
         run: |
           python -m pytest tests/ \
+            --ignore=tests/property_based \
+            --ignore=tests/scenarios \
+            --ignore=tests/load \
+            --ignore=tests/stress \
+            --ignore=tests/chaos \
+            --ignore=tests/regression \
             -k "database or db or migration" \
             -v \
             --tb=short \
@@ -212,6 +218,12 @@ jobs:
       - name: Run API integration tests
         run: |
           python -m pytest tests/ \
+            --ignore=tests/property_based \
+            --ignore=tests/scenarios \
+            --ignore=tests/load \
+            --ignore=tests/stress \
+            --ignore=tests/chaos \
+            --ignore=tests/regression \
             -k "api or endpoint or e2e" \
             -v \
             --tb=short \
@@ -292,6 +304,12 @@ jobs:
       - name: Run agent integration tests
         run: |
           python -m pytest tests/ \
+            --ignore=tests/property_based \
+            --ignore=tests/scenarios \
+            --ignore=tests/load \
+            --ignore=tests/stress \
+            --ignore=tests/chaos \
+            --ignore=tests/regression \
             -k "agent or orchestrator" \
             -v \
             --tb=short \

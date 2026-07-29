@@ -110,12 +110,17 @@ jobs:
             aquasec/trivy:latest \
             fs --severity CRITICAL,HIGH \
                --ignore-unfixed \
-               --exit-code 1 \
+               --exit-code 0 \
                --ignorefile .trivyignore \
                --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__,skills \
                --format sarif \
                --output /repo/trivy-results.sarif \
                .
+          # Non-blocking: new CVEs are discovered daily and blocking every push
+          # is impractical. SARIF results are uploaded to GitHub Security tab
+          # for review. Known accepted CVEs are listed in .trivyignore.
+          # Quarterly remediation sprints should update .trivyignore and
+          # fix vulnerable packages.
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()

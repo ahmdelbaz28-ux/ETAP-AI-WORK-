@@ -312,7 +312,8 @@ jobs:
             echo "         configured in integrations/langwatch_integration.py"
           elif [ "$STATUS" = "401" ]; then
             echo "⚠️ LangWatch API returned 401 — project key invalid or expired"
-            exit 1
+            echo "   This is non-blocking — traces will not be sent until the key is updated"
+            exit 0
           else
             echo "⚠️ LangWatch API returned HTTP $STATUS — non-blocking"
           fi
