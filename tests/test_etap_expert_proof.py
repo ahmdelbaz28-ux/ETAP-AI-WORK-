@@ -217,7 +217,9 @@ def test_study_endpoint_rejects_missing_question(fastapi_client):
     # detail (see api/studies.py line 675) to avoid leaking internal messages.
     # The original ValueError ("'question' field is required") is logged but
     # not returned to the client.
-    assert "invalid" in str(body).lower(), f"Error message must indicate invalid request, got: {body}"
+    assert "invalid" in str(body).lower(), (
+        f"Error message must indicate invalid request, got: {body}"
+    )
 
 
 # ---------------------------------------------------------------------------
