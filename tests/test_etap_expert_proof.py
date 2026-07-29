@@ -213,7 +213,11 @@ def test_study_endpoint_rejects_missing_question(fastapi_client):
         f"Returning 200 with success=False hides the error from API clients."
     )
     body = r.json()
-    assert "question" in str(body).lower(), f"Error message must mention 'question', got: {body}"
+    # The API wraps ValueError in a generic "Invalid study request parameters"
+    # detail (see api/studies.py line 675) to avoid leaking internal messages.
+    # The original ValueError ("'question' field is required") is logged but
+    # not returned to the client.
+    assert "invalid" in str(body).lower(), f"Error message must indicate invalid request, got: {body}"
 
 
 # ---------------------------------------------------------------------------

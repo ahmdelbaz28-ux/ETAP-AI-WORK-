@@ -68,7 +68,6 @@ class TestRegister:
                 "username": "newuser",
                 "email": "newuser@example.com",
                 "password": TEST_USER_PASSWORD,
-                "role": "engineer",
             },
         )
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
@@ -79,6 +78,31 @@ class TestRegister:
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"
+
+    def test_register_ignores_role_field(self, client):
+        """S-02 security: the register endpoint must ignore any 'role' field
+        in the request body.  Even if a caller sends role='admin', the
+        created user must have role='viewer'.
+
+        This test sends a role='admin' payload to verify the API enforces
+        the S-02 fix — the role field is removed from RegisterRequest and
+        the server hardcodes role='viewer' for all new users.
+        """
+        resp = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "roleinjector",
+                "email": "roleinjector@example.com",
+                "password": TEST_USER_PASSWORD,
+                "role": "admin",  # S-02: must be ignored
+            },
+        )
+        assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
+        data = resp.json()
+        assert data["role"] == "viewer", (
+            "S-02 security: role='admin' in request body must be ignored — "
+            "all new users must get role='viewer'"
+        )
 
     def test_register_duplicate_username(self, client):
         """Registering with an existing username returns 409."""
@@ -545,6 +569,37 @@ class TestForgotPassword:
         )
         data = resp.json()
         assert "reset_token" not in data, "Non-existent email must NOT return a reset token"
+
+    def test_forgot_password_hides_reset_token_by_default(self, client, registered_user):
+        """S-02 security: reset_token must NOT appear in response when
+        AUTH_RETURN_RESET_TOKEN is unset or 'false'.
+
+        The default (production) behaviour is to omit the token from the
+        API response and deliver it only via email.  The conftest
+        autouse fixture sets AUTH_RETURN_RESET_TOKEN=true so that other
+        tests can retrieve the token; this test temporarily overrides
+        that to verify the secure default path.
+        """
+        # Temporarily disable token return to test production behaviour
+        saved = os.environ.get("AUTH_RETURN_RESET_TOKEN")
+        os.environ["AUTH_RETURN_RESET_TOKEN"] = "false"
+        try:
+            resp = client.post(
+                "/api/v1/auth/forgot-password",
+                json={"email": "testuser@example.com"},
+            )
+            assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
+            data = resp.json()
+            assert "reset_token" not in data, (
+                "S-02 security: reset_token must NOT be in the response when "
+                "AUTH_RETURN_RESET_TOKEN=false — it should only be sent via email"
+            )
+        finally:
+            # Restore the original value for other tests
+            if saved is None:
+                os.environ.pop("AUTH_RETURN_RESET_TOKEN", None)
+            else:
+                os.environ["AUTH_RETURN_RESET_TOKEN"] = saved
 
 
 # ===========================================================================

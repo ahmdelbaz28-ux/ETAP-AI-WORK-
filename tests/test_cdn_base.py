@@ -157,7 +157,7 @@ class TestLogSecurityEvent:
         request.state = MagicMock()
         request.state.cloudflare = {"client_ip": "1.2.3.4"}
 
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.INFO, logger="api._cdn_base"):
             log_security_event(
                 request,
                 "test_event",
@@ -177,7 +177,7 @@ class TestLogSecurityEvent:
         request.state = MagicMock()
         request.state.akamai = {"client_ip": "5.6.7.8"}
 
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.WARNING, logger="api._cdn_base"):
             log_security_event(
                 request,
                 "unauthorized_access",
@@ -194,7 +194,7 @@ class TestLogSecurityEvent:
         request = MagicMock()
         request.state = MagicMock()
         # No CDN metadata attribute set
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.INFO, logger="api._cdn_base"):
             log_security_event(
                 request,
                 "generic_event",
