@@ -39,4 +39,8 @@ jobs:
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com' }}
         run: |
+          if [ -z "$LANGFUSE_PUBLIC_KEY" ] || [ -z "$LANGFUSE_SECRET_KEY" ]; then
+            echo "⚠️ LANGFUSE secrets not configured — skipping prompt sync"
+            exit 0
+          fi
           python scripts/sync_to_langfuse.py
