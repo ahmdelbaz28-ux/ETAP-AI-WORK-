@@ -353,7 +353,9 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
             <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[9px] font-bold tracking-wider uppercase">
               <Terminal className="w-3.5 h-3.5 text-blue-500" />
               <span>
-                {isRtl ? "سجل العمليات الكهربائي" : "Real-time Electrical Operations Log"}
+                {isRtl
+                  ? "سجل العمليات الكهربائي"
+                  : "Real-time Electrical Operations Log"}
               </span>
             </div>
             <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
@@ -467,7 +469,8 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
                       setForgotEmail("");
                     }}
                     className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-                   type="button">
+                    type="button"
+                  >
                     {t("auth.backToLogin")}
                   </button>
                 </div>
@@ -537,10 +540,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="login-password"
-                className="block text-xs font-semibold text-slate-400"
-              >
+              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-400">
                 {t("auth.passwordLabel")}
               </label>
               <div className="relative">
@@ -613,13 +613,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
           {/* Footer Navigation */}
           <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
             <span className="text-slate-500 font-sans">
-              {t("auth.noAccount")}{" "}
-              <Link
-                to="/register"
-                className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
-              >
-                {t("auth.registerLink")}
-              </Link>
+              {t("auth.noAccount")} <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">{t("auth.registerLink")}</Link>
             </span>
             <div className="flex items-center gap-2">
               <span className="text-[9px] text-slate-700 font-mono">{backendVersion !== null ? `v${backendVersion}` : "—"}</span>

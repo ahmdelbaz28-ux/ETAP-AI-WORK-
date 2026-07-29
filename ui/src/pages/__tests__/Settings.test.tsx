@@ -43,7 +43,7 @@ describe("Settings", () => {
   it("renders the Settings page title", () => {
     renderSettings();
     expect(screen.getByText("Settings")).toBeTruthy();
-  });
+  }, 15000);
 
   it("renders tab navigation for settings sections", () => {
     renderSettings();

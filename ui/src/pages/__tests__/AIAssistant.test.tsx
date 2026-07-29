@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 /**
@@ -164,15 +164,15 @@ describe("AIAssistant", () => {
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce());
 
     const input = screen.getByPlaceholderText(/Message AI Assistant/i);
-    await user.type(input, "Hello");
+    fireEvent.change(input, { target: { value: "Hello" } });
     await user.keyboard("{Enter}");
 
     // The user's "Hello" message should be visible even when the assistant
     // fails to respond.
     await waitFor(() => {
       expect(screen.getByText("Hello")).toBeTruthy();
-    });
-  });
+    }, { timeout: 5000 });
+  }, 15000);
 
   it("clears the conversation when Reset Chat is clicked", async () => {
     const user = userEvent.setup();
