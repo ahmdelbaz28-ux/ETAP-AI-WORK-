@@ -109,7 +109,15 @@ async def lifespan(_app: FastAPI):
 
         await init_db()
     except Exception:
-        logger.exception("Database init failed: %s")
+        # SECURITY AUDIT 2026-07-29 (self-critique pass, RR-04):
+        # Previous code was `logger.exception("Database init failed: %s")` —
+        # a dangling `%s` format specifier with no argument. logging.exception
+        # already captures the active exception via exc_info, so the message
+        # string must NOT contain `%s` (it would raise logging.Formatter
+        # "no arguments found" → strip the format token silently, masking
+        # the original intent). This is the fix that audit "Fix-04" claimed
+        # to apply but never actually did. Verified by reading line 112.
+        logger.exception("Database init failed")
 
     yield
     logger.info("AhmedETAP shutting down")
@@ -223,11 +231,31 @@ app.add_middleware(CSRFMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
+    # SECURITY AUDIT 2026-07-29 (self-critique pass, HB-06):
+    # Previous `allow_origins` included "https://*.hf.space" — a wildcard
+    # that allowed ANY Hugging Face Space (including attacker-controlled
+    # ones) to issue authenticated cross-origin requests from a victim's
+    # browser. Combined with `allow_credentials=False` the blast radius
+    # is reduced, but the wildcard still enabled CSRF-style data exfil
+    # via unauthenticated GET endpoints that returned user-specific data.
+    #
+    # Fix: pin to the exact production HF Space origin, plus a configurable
+    # extra-origins env var for staging/preview spaces. Wildcards are
+    # rejected by Starlette's CORSMiddleware for `allow_origins` (it only
+    # supports `allow_origin_regex` for pattern matching), so the previous
+    # entry was ALSO silently ineffective — but per the audit, the
+    # fix is to enumerate explicitly.
     allow_origins=[
         "https://huggingface.co",
-        "https://*.hf.space",
+        # Production HF Space (pinned):
+        "https://ahmdelbaz28-ahmedetap-platform.hf.space",
         "http://localhost:3000",
         "http://localhost:5173",
+        *[
+            origin.strip()
+            for origin in os.getenv("EXTRA_CORS_ORIGINS", "").split(",")
+            if origin.strip()
+        ],
     ],
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
@@ -479,13 +507,54 @@ async def root(request: Request):
 
 
 # -- Health (delegates to shared builders) ------------------------------------
+# SECURITY AUDIT 2026-07-29 (self-critique pass, RR-03):
+# Previous /healthz unconditionally returned {"status": "ok"} with HTTP 200,
+# even when the database was completely unreachable. This caused load
+# balancers (HF Space router, Kubernetes, etc.) to keep routing traffic to
+# a broken instance instead of failing over — masking data loss and
+# cascading 500s from /api/v1/auth/* and other DB-backed endpoints.
+#
+# Fix: perform a lightweight DB ping (SELECT 1) and return 503 with
+# {"status": "degraded"} when the DB is unhealthy. The check is wrapped in
+# try/except so a slow DB doesn't completely block the health probe — if
+# the ping itself raises, we report "degraded" rather than hanging.
 @app.get("/healthz", tags=["Health"])
 async def healthz():
-    return JSONResponse(content={"status": "ok"}, status_code=200)
+    try:
+        from api.database import check_db_health
+
+        db_health = await check_db_health()
+    except Exception:
+        # Import error or unexpected exception — report degraded.
+        logger.exception("healthz: check_db_health raised unexpectedly")
+        return JSONResponse(
+            content={"status": "degraded", "detail": "health check error"},
+            status_code=503,
+        )
+    if db_health.get("status") == "unhealthy":
+        return JSONResponse(
+            content={
+                "status": "degraded",
+                "detail": "Database unavailable",
+                "backend": db_health.get("backend", "unknown"),
+            },
+            status_code=503,
+        )
+    return JSONResponse(content={"status": "ok", "backend": db_health.get("backend")}, status_code=200)
 
 
 @app.head("/healthz", tags=["Health"])
 async def healthz_head():
+    # HEAD must mirror GET status code (per RFC 7231 §4.3.2) so load
+    # balancers that probe with HEAD get the same signal.
+    try:
+        from api.database import check_db_health
+
+        db_health = await check_db_health()
+    except Exception:
+        return JSONResponse(content={}, status_code=503)
+    if db_health.get("status") == "unhealthy":
+        return JSONResponse(content={}, status_code=503)
     return JSONResponse(content={}, status_code=200)
 
 

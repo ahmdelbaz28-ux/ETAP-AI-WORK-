@@ -61,11 +61,18 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256Mi
+    # SECURITY AUDIT 2026-07-29 (self-critique pass, HB-11):
+    # Previous depends_on included `engineering-service: service_started`,
+    # which created an unnecessary coupling: if engineering-service crashed
+    # or was slow to start, Celery was blocked from starting too. Celery
+    # only needs Redis (as its broker) and the code (mounted via volumes)
+    # — it does NOT call the engineering-service HTTP API. The dependency
+    # was leftover from when tasks shared state via the API service.
+    # Fix: depend only on Redis. Celery now starts as soon as Redis is
+    # healthy, independent of the API service state.
     depends_on:
       redis:
         condition: service_healthy
-      engineering-service:
-        condition: service_started
     volumes:
       - ./worker:/app/worker
       - ./core:/app/core

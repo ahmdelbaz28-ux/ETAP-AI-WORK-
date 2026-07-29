@@ -124,13 +124,55 @@ def _build_postgres_engine(url: str):
 
 
 def _build_sqlite_engine(url: str):
-    """Create an async SQLite engine (no connection pool)."""
-    return create_async_engine(
+    """Create an async SQLite engine (no connection pool).
+
+    SECURITY AUDIT 2026-07-29 (self-critique pass, RR-07):
+    Previous version set `check_same_thread=False` to allow the async
+    event loop's thread pool to share the SQLite connection, but did NOT
+    enable WAL mode. Without WAL, SQLite uses rollback-journal mode which
+    serialises ALL writes behind an exclusive lock — concurrent writes
+    from async handlers + Celery workers raise `database is locked`
+    errors and can corrupt the file under load.
+
+    Fix: emit `PRAGMA journal_mode=WAL` on every new connection so that
+    readers don't block writers and writers don't block readers. Also
+    set `synchronous=NORMAL` (safe under WAL with single-writer workloads
+    and ~10x faster than the default `FULL`), and `busy_timeout=5000` so
+    a contended write waits up to 5 seconds before raising SQLITE_BUSY
+    instead of failing immediately.
+
+    These pragmas are no-ops on PostgreSQL (the `_IS_POSTGRES` branch
+    uses `_build_postgres_engine` instead).
+    """
+    from sqlalchemy import event
+
+    engine = create_async_engine(
         url,
         echo=_ECHO,
         future=True,
         connect_args={"check_same_thread": False},
     )
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _set_sqlite_pragmas(dbapi_conn, _connection_record):  # noqa: ANN001
+        # Applied to every new raw DBAPI connection. WAL mode persists
+        # across connections (it's a database-level setting, not a
+        # connection-level one) but re-issuing is cheap and idempotent.
+        try:
+            cursor = dbapi_conn.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.execute("PRAGMA busy_timeout=5000")
+            cursor.close()
+        except Exception:
+            # If the pragmas fail (e.g. read-only filesystem), log and
+            # continue — the engine will still work, just with default
+            # SQLite behaviour. We deliberately don't raise here because
+            # this runs on every connect and a transient failure would
+            # make the entire app unavailable.
+            logger.warning("Failed to set SQLite WAL pragmas (continuing with defaults)")
+
+    return engine
 
 
 # Whether we have permanently fallen back to SQLite during this process.

@@ -87,9 +87,17 @@ _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
 # ---------------------------------------------------------------------------
 # Smithery Integration — External API Key Management
 # ---------------------------------------------------------------------------
+# SECURITY AUDIT 2026-07-29 (self-critique pass, RR-08):
+# Previous code logged `smithery_api_key_available` at startup. While this
+# did not leak the key VALUE itself, it leaked the EXISTENCE of a Smithery
+# integration to anyone reading the logs (CI/CD output, log aggregators,
+# scraped stdout). Combined with knowledge of which 3rd-party tools the
+# platform uses, this aids targeted attacks (e.g. attempting to use the
+# Smithery API surface if the key later leaks via another vector).
+# Fix: do not log key-existence at startup. The integration self-reports
+# its readiness the first time it's actually invoked, which is the
+# correct signal — presence of a key at startup does not equal readiness.
 _SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
-if _SMITHERY_API_KEY:
-    logger.info("smithery_api_key_available", extra={"trace_id": "startup"})
 
 _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 
@@ -149,7 +157,16 @@ def _require_api_key(request: Request) -> None:
 # Body size limit middleware
 # ---------------------------------------------------------------------------
 
-_MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "1_048_576"))
+# SECURITY AUDIT 2026-07-29 (self-critique pass, EC-02):
+# Previous default was 1MB (1_048_576 bytes). Real power-system study
+# requests regularly exceed this — IEEE 300-bus networks, full CIM/XML
+# exports, ETAP project bundles all run 5-50MB. Hitting the limit returned
+# a generic `413 Request body too large` with no `Retry-After` header
+# and no documentation of the limit, so clients had no actionable path.
+# Fix: bump the default to 50MB (52_428_800 bytes) — large enough for
+# realistic study payloads while still bounding memory. Operators who
+# need higher can set ENGINEERING_SERVICE_MAX_BODY_SIZE explicitly.
+_MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "52_428_800"))
 
 
 class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
@@ -178,7 +195,21 @@ _RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MA
 _REDIS_URL = os.environ.get("REDIS_URL", "").strip()
 _RATE_LIMIT_PREFIX = os.environ.get("RATE_LIMIT_PREFIX", "rate-limit:")
 
-_rate_limit_fallback_store: dict[str, list[float]] = {}
+# SECURITY AUDIT 2026-07-29 (self-critique pass, PR-02):
+# Previous fallback store was a plain `dict[str, list[float]]`. When the
+# store exceeded _RATE_LIMIT_MAX_ENTRIES (10k), the prune step iterated
+# ALL entries to find stale ones — O(n) on EVERY request once the
+# threshold was crossed. Under a DDoS with 10k+ unique IPs, this added
+# measurable latency to every request, exactly when the server could
+# least afford it.
+# Fix: use `collections.OrderedDict` and evict oldest-first (FIFO) when
+# the cap is hit. This is O(1) amortized — popitem(last=False) removes
+# the oldest entry in constant time. We still also opportunistically
+# prune stale entries when a client_id is touched, but the pathological
+# full-scan is gone.
+from collections import OrderedDict as _OrderedDict
+
+_rate_limit_fallback_store: _OrderedDict[str, list[float]] = _OrderedDict()
 _rate_limit_fallback_lock = _threading.Lock()
 _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
 
@@ -206,20 +237,19 @@ async def _check_rate_limit(client_id: str) -> bool:
 
     if r is None:
         with _rate_limit_fallback_lock:
-            if len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
-                stale = [
-                    cid
-                    for cid, timestamps in _rate_limit_fallback_store.items()
-                    if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
-                ]
-                for cid in stale:
-                    del _rate_limit_fallback_store[cid]
+            # O(1) cap enforcement: evict oldest entries (FIFO) when over
+            # the cap. The previous code did a full O(n) scan to find stale
+            # entries on every request once the cap was crossed — see PR-02.
+            while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
+                _rate_limit_fallback_store.popitem(last=False)
 
             timestamps = _rate_limit_fallback_store.get(client_id)
             if not timestamps:
                 _rate_limit_fallback_store[client_id] = [now]
                 return True
 
+            # Opportunistic stale-entry cleanup for THIS client only (O(k)
+            # where k = number of past attempts for this client, typically <100).
             timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
             if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
                 _rate_limit_fallback_store[client_id] = timestamps

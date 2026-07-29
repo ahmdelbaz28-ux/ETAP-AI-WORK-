@@ -170,11 +170,21 @@ async def get_current_user(
     user_id: Optional[str] = payload.get("sub")
     token_type: Optional[str] = payload.get("type")
 
-    if user_id is None or token_type != "access":
+    # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-03):
+    # Previous check was `if user_id is None or token_type != "access"`.
+    # This rejects None but accepts the empty string `""`. An empty `sub`
+    # would pass this check, then flow into `select(User).where(User.id == "")`
+    # which on PostgreSQL matches no row (returns None → 401) but on
+    # SQLite with no constraints could match unexpected rows. Even on
+    # PostgreSQL, accepting `sub=""` is a defence-in-depth failure — the
+    # JWT should never have been minted with an empty subject.
+    # Fix: reject both None AND empty/whitespace-only strings.
+    if not user_id or not user_id.strip() or token_type != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
+    user_id = user_id.strip()
 
     # SECURITY (S-09): Check token blacklist (revoked tokens).
     # Lazy import to avoid circular dependency (auth.py imports dependencies.py).

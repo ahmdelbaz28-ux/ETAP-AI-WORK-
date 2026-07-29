@@ -363,7 +363,43 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
         fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
         return engine.run_protection_coordination(upstream, downstream, fault_currents)
     else:
-        raise ValueError(f"Unsupported native study type: {study_type}")
+        # Audit item 1.7 — UI Coverage Audit 2026-07-29:
+        #   This branch is reached for 10 of the 16 StudyType enum members
+        #   that are NOT handled by the native engine above:
+        #     harmonic_analysis, optimal_power_flow, motor_starting,
+        #     transient_stability, cable_sizing, earth_grid,
+        #     renewable_integration, battery_storage, scada, digital_twin.
+        #   Each of those types has a BaseAgent implementation, but the
+        #   native engine does not implement them — they are supposed to be
+        #   dispatched via the agent path (api/agents.py +
+        #   agents/*_agent.py), not via this _run_native_study function.
+        #   Reaching this branch means the caller bypassed the agent
+        #   dispatcher (or the dispatcher rejected the request, e.g. due to
+        #   a "flagged off" feature flag).
+        #
+        #   The caller (run_study handler below) catches this ValueError and
+        #   returns HTTP 400 with a generic "Invalid study request parameters"
+        #   message; the full error is logged. We do NOT change that contract
+        #   here. We only enrich the ValueError message so the server-side
+        #   log shows which types ARE natively supported — this is purely a
+        #   debugging aid and does not change user-visible behaviour.
+        _SUPPORTED_NATIVE_TYPES = (
+            "load_flow",
+            "short_circuit",
+            "arc_flash",
+            "protection_coordination",
+        )
+        raise ValueError(
+            f"Unsupported native study type: {study_type!r}. "
+            f"Native engine supports: {', '.join(_SUPPORTED_NATIVE_TYPES)}. "
+            f"For the 10 non-native study types (harmonic_analysis, "
+            f"optimal_power_flow, motor_starting, transient_stability, "
+            f"cable_sizing, earth_grid, renewable_integration, "
+            f"battery_storage, scada, digital_twin), use the agent "
+            f"dispatch path (POST /api/v1/agents/.../execute) instead of "
+            f"/api/v1/studies/run. See audit item 1.7 for the per-study-"
+            f"type remediation plan."
+        )
 
 
 def _pre_flight_basic(system: dict) -> Optional[dict]:

@@ -37,9 +37,29 @@ def _is_production_env() -> bool:
     production regardless of what env vars are set, because a leaked
     ENGINEERING_SERVICE_API_KEY would otherwise grant full admin access
     on the email dashboard / OTP / magic-link flows.
+
+    SECURITY AUDIT 2026-07-29 (self-critique pass, NEW DISCOVERY):
+    Previous version used `env in ("production", "prod", "staging")` which
+    is an EXACT match — typos like "prodution", "pod", "stageing" would
+    fall through to development mode and re-enable the test-mode backdoor
+    even though the operator clearly intended production. Same problem
+    with prefix-style values like "production-azure", "prod-west", or
+    "staging-eu-west-1".
+    Fix: treat the environment as production if the value (lowercased,
+    stripped) STARTS WITH any of the production prefixes. This is strict
+    enough that "develop" / "dev" / "local" / "test" still resolve to
+    development, but generous enough that "production-azure" is correctly
+    treated as production.
     """
-    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
-    return env in ("production", "prod", "staging")
+    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
+    # Explicit dev/test values — never production.
+    if env in ("", "development", "dev", "local", "localhost", "test", "testing", "ci"):
+        return False
+    # Anything starting with a production prefix is production.
+    return any(
+        env == prefix or env.startswith(prefix + "-") or env.startswith(prefix + "_")
+        for prefix in ("production", "prod", "staging", "stage")
+    )
 
 
 def is_test_mode(request: Request) -> bool:

@@ -563,14 +563,87 @@ async def _check_rate_limit(username: str) -> None:
         )
 
 
+# ---------------------------------------------------------------------------
+# Forgot-password per-email rate limit
+# ---------------------------------------------------------------------------
+#
+# SECURITY AUDIT 2026-07-29 (self-critique pass, HB-04):
+# Forgot-password had no per-email rate limit. An attacker could spam a
+# victim's inbox with reset emails and trigger Resend SMTP throttling.
+# This limit is enforced per-normalised-email (lowercase) so case-variants
+# share a bucket. We use the same Redis backend (when available) with
+# in-memory fallback, mirroring _check_rate_limit. The limit is generous
+# (3 per hour) so legitimate retries after a missed email still work.
+
+_FORGOT_PASSWORD_RATE_LIMIT_MAX: int = int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_MAX", "3"))
+_FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC", "3600"))  # 1 hour
+_forgot_password_attempts: OrderedDict[str, list[float]] = OrderedDict()
+_forgot_password_lock = threading.Lock()
+_FORGOT_PASSWORD_MAX_ENTRIES: int = 1000  # bounded to prevent memory growth
+
+
+async def _check_forgot_password_rate_limit(email: str) -> None:
+    """Raise 429 if *email* has exceeded the forgot-password threshold.
+
+    Uses Redis when available (distributed across replicas). Falls back to
+    an in-memory OrderedDict with FIFO eviction when Redis is unreachable.
+    """
+    r = _get_redis_client()
+    if r is not None:
+        key = f"auth:forgot-rate:{email}"
+        try:
+            current = await r.incr(key)
+            if current == 1:
+                await r.expire(key, _FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC)
+            if current > _FORGOT_PASSWORD_RATE_LIMIT_MAX:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many password-reset requests for this email. Please try again later.",
+                )
+            return
+        except (OSError, redis_async.RedisError):
+            # Redis configured but unreachable — fall through to in-memory.
+            # (We only enter this branch when REDIS_AVAILABLE is True and
+            # _REDIS_URL is set, so redis_async.RedisError is a valid class.)
+            _logger.warning("Redis unavailable for forgot-password rate limit, using in-memory fallback")
+
+    # In-memory fallback (FIFO eviction).
+    now = time.monotonic()
+    with _forgot_password_lock:
+        while len(_forgot_password_attempts) > _FORGOT_PASSWORD_MAX_ENTRIES:
+            _forgot_password_attempts.popitem(last=False)
+
+        attempts = _forgot_password_attempts.get(email, [])
+        attempts = [t for t in attempts if now - t < _FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC]
+        if len(attempts) >= _FORGOT_PASSWORD_RATE_LIMIT_MAX:
+            _forgot_password_attempts[email] = attempts
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many password-reset requests for this email. Please try again later.",
+            )
+        attempts.append(now)
+        _forgot_password_attempts[email] = attempts
+
+
 def _record_failed_attempt(username: str) -> None:
     """Record a failed login attempt for rate-limiting (in-memory fallback).
 
     When Redis is active, the counter is managed by INCR/EXPIRE in _check_rate_limit,
     so this function only records for the in-memory fallback path.
+
+    SECURITY AUDIT 2026-07-29 (self-critique pass, NEW DISCOVERY):
+    Previous version did NOT acquire `_LOGIN_ATTEMPTS_LOCK` while mutating
+    the shared `_LOGIN_ATTEMPTS` dict. Under concurrent failed logins (e.g.
+    distributed brute force, or load-test harness), two threads could
+    `setdefault(..., [])` simultaneously, both observe an empty list, both
+    `.append(now)`, and one append would be lost — silently UNDER-counting
+    attempts and letting attackers exceed the rate limit. Fix: hold the
+    lock for the entire read-modify-write.
     """
     now = time.monotonic()
-    _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
+    with _LOGIN_ATTEMPTS_LOCK:
+        attempts = _LOGIN_ATTEMPTS.setdefault(username, [])
+        attempts.append(now)
 
 
 # ---------------------------------------------------------------------------
@@ -616,6 +689,19 @@ async def register(
             detail="Email already registered",
         )
 
+    # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-09):
+    # The pre-check above is a TOCTOU race window — two concurrent
+    # registrations with the same username/email can both pass the check
+    # and then the second flush() raises IntegrityError from the DB
+    # unique constraint, which previously surfaced as an opaque 500.
+    # Fix: wrap the insert in try/except IntegrityError and translate
+    # to a proper 409 Conflict with a user-facing message. The unique
+    # constraint name is database-specific (PostgreSQL: uq_users_username /
+    # uq_users_email; SQLite: sqlite_autoindex_users_X) so we don't try
+    # to introspect — we just say "already exists" and let the client
+    # re-fetch the canonical record if they need to know which field.
+    from sqlalchemy.exc import IntegrityError as _SAIntegrityError
+
     user = User(
         id=str(uuid.uuid4()),
         username=body.username,
@@ -625,7 +711,21 @@ async def register(
         role="viewer",
     )
     db.add(user)
-    await db.flush()
+    try:
+        await db.flush()
+    except _SAIntegrityError as exc:
+        # Race condition: another request inserted a duplicate between
+        # our pre-check and our flush. Translate to 409 Conflict.
+        _logger.info(
+            "register_integrity_conflict username=%s email=%s err=%s",
+            body.username,
+            normalised_email,
+            exc.__class__.__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email already registered (concurrent request). Please retry.",
+        ) from exc
     await db.refresh(user)
 
     # Send welcome email via Resend (additive, best-effort, toggleable)
@@ -1017,8 +1117,24 @@ async def forgot_password(
 
     SECURITY: Email lookup is case-insensitive to match the registration
     flow (emails are stored lowercased).
+
+    SECURITY AUDIT 2026-07-29 (self-critique pass, HB-04):
+    Previous version had NO per-email rate limit. An attacker could
+    bombard a victim's inbox with password-reset emails, causing Resend
+    to throttle the platform's legitimate transactional email (welcome,
+    password-change, magic-link) and possibly getting the platform's
+    sending domain flagged as a spam source.
+    Fix: enforce a per-email rate limit (default 1 request / 60s) using
+    the same Redis + in-memory fallback pattern as the login rate limiter.
+    The limit is per-normalised-email (lowercase), so `User@x.com` and
+    `user@x.com` share a bucket. Failed lookups (email not in DB) are
+    ALSO rate-limited so the limit cannot be used to enumerate accounts.
     """
     normalised_email = body.email.strip().lower()
+
+    # Per-email rate limit (prevents email-bombing via forgot-password).
+    await _check_forgot_password_rate_limit(normalised_email)
+
     result = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
     user = result.scalar_one_or_none()
 
@@ -1034,13 +1150,21 @@ async def forgot_password(
         # Send password-reset email via Resend (additive, best-effort)
         try:
             import os as _os
+            import urllib.parse as _urlparse
 
             from services.email_send_log import log_email_send
             from services.email_service import send_password_reset
 
+            # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-05):
+            # URL-encode the reset token before interpolating into the
+            # reset link. uuid4 hex chars are URL-safe today, but if the
+            # token format ever changes to include `&`, `?`, `#`, `+`, or
+            # `%` (e.g. switching to base64url or signed JWT), an
+            # unencoded token would silently truncate at the first
+            # reserved character and produce an unusable reset link.
             reset_link = (
                 f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
-                f"/reset-password?token={reset_token}"
+                f"/reset-password?token={_urlparse.quote(reset_token, safe='')}"
             )
             result = await send_password_reset(
                 email=user.email,
