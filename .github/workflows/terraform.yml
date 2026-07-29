@@ -149,7 +149,7 @@ jobs:
             });
             const botComment = comments.find(c => c.user.type === 'Bot' && c.body.startsWith('## Terraform Plan'));
 
-            const body = `## Terraform Plan Results\n\n${{ steps.plan.outcome === 'success' ? '✅' : '❌' }} Plan status: **${{ steps.plan.outcome }}**\n\n<details><summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>\n\n---\n*Triggered by @${{ github.actor }} — [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})*`;
+            const body = `## Terraform Plan Results\n\n${{ steps.plan.outcome == 'success' && '✅' || '❌' }} Plan status: **${{ steps.plan.outcome }}**\n\n<details><summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>\n\n---\n*Triggered by @${{ github.actor }} — [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})*`;
 
             if (botComment) {
               await github.rest.issues.updateComment({
