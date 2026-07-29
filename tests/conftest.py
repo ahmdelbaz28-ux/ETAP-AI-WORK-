@@ -619,6 +619,14 @@ def setup_test_environment():
     _api_key_vars = ("HF_API_KEY", "ENGINEERING_SERVICE_API_KEY")
     _saved_keys = {k: os.environ.pop(k, None) for k in _api_key_vars}
 
+    # Also patch the module-level API_KEY cached at import time.
+    # os.environ.pop() clears the env var, but api.dependencies.API_KEY
+    # was already set when the module was imported. Without this patch,
+    # get_api_key() still enforces X-API-Key → 401 on test requests.
+    import api.dependencies as _dep
+    _original_api_key = _dep.API_KEY
+    _dep.API_KEY = ""
+
     # Set logging to debug level for tests
     try:
         logger.setLevel("DEBUG")
@@ -653,6 +661,9 @@ def setup_test_environment():
         _loop_status("BEFORE test")
 
     yield
+
+    # Restore API_KEY after test
+    _dep.API_KEY = _original_api_key
 
     # Clean up environment variables after tests
     for _key in (
