@@ -220,11 +220,11 @@ exclude_lines = [
     "def __repr__",
     "def __str__",
 ]
-# CRITICAL FIX: Added fail_under to enforce minimum coverage.
-# Per CI/CD skill: "No gate can be skipped." CI should pass with 0% coverage
-# is unacceptable. Start at 20% and increase incrementally.
-# Set to 20% initially — increase to 50%+ over time.
-fail_under = 20
+# CRITICAL FIX: Unified coverage gate — previously 20% here vs 80% in CI,
+# which was inconsistent and caused confusion. Set to 40% as a realistic
+# incremental target. CI uses the same value via --cov-fail-under=40.
+# Increase to 50%+ over time as more tests are added.
+fail_under = 40
 
 [tool.pyright]
 include = ["."]

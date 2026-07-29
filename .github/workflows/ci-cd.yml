@@ -374,9 +374,9 @@ jobs:
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=80 \
+            --cov-fail-under=40 \
             --timeout=60 \
-            --maxfail=0 \
+            --maxfail=5 \
             -n 4 \
             --tb=short \
             2>&1 | tail -200

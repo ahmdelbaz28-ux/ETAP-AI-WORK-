@@ -82,9 +82,12 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
-    # CRITICAL FIX: Added --no-auth-warning to prevent password leak in process list.
+    # SECURITY: Uses REDISCLI_AUTH env var instead of -a flag to avoid
+    # leaking the password in the process list (/proc/<pid>/cmdline).
+    # The --no-auth-warning flag suppresses the Redis warning but the
+    # password was still visible in /proc — REDISCLI_AUTH is the safe method.
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping"]
       interval: 10s
       timeout: 5s
       retries: 5

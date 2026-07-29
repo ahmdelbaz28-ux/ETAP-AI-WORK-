@@ -3,6 +3,10 @@
 # Full stack deployment for the Engineering Copilot platform.
 # Includes: Copilot API, Engineering Service, ETAP Worker, Prometheus, Jaeger, Grafana.
 #
+# SECURITY AUDIT 2026-07-29 — All infra ports bound to 127.0.0.1 to prevent
+# external access. Previously Redis, Postgres, Prometheus, and Jaeger were
+# exposed on all interfaces, contradicting the S-12 fix in docker-compose.yml.
+#
 # Usage:
 #   # Start the full copilot stack:
 #   docker compose -f docker-compose.yml -f docker-compose.copilot.yml up -d
@@ -125,7 +129,7 @@ services:
     container_name: etap-redis
     profiles: ["copilot", "full", "monitoring"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -145,7 +149,7 @@ services:
     container_name: etap-postgres
     profiles: ["copilot", "full"]
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-etap}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -169,7 +173,7 @@ services:
     container_name: etap-prometheus
     profiles: ["copilot", "full", "monitoring"]
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -191,9 +195,9 @@ services:
     container_name: etap-jaeger
     profiles: ["copilot", "full", "monitoring", "tracing"]
     ports:
-      - "16686:16686"  # UI
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
+      - "127.0.0.1:16686:16686"  # UI
+      - "127.0.0.1:4317:4317"    # OTLP gRPC
+      - "127.0.0.1:4318:4318"    # OTLP HTTP
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     logging: *default-logging
@@ -208,7 +212,7 @@ services:
     container_name: etap-grafana
     profiles: ["copilot", "full", "monitoring"]
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:?GRAFANA_USER is required}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}

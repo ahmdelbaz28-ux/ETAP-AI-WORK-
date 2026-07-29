@@ -165,7 +165,9 @@ env:
   # the Helm-managed secret template for dev/testing fallback.
   # In production, override with: --set env.ENGINEERING_SERVICE_API_KEY=<key>
   # or provision via sealed-secrets / external-secrets-operator.
-  ENGINEERING_SERVICE_API_KEY: "changeme"
+  # The empty string ensures Helm won't render a valid-looking default key.
+  # A startup check in the app will refuse to start if the key is empty.
+  ENGINEERING_SERVICE_API_KEY: ""
   LOG_LEVEL: "INFO"
 
 # Database Configuration

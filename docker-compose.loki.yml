@@ -1,4 +1,7 @@
 # Grafana Loki + Promtail for SIEM Integration
+# SECURITY AUDIT 2026-07-29 — Loki port bound to 127.0.0.1; anonymous Grafana
+# disabled (was GF_AUTH_ANONYMOUS_ENABLED=true, allowing unauthenticated access
+# to logs and dashboards from any network interface).
 # Usage: docker compose -f docker-compose.loki.yml up -d
 version: "3.8"
 
@@ -7,7 +10,7 @@ services:
     image: grafana/loki:2.9.0
     container_name: etap-loki
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki-data:/loki
@@ -34,11 +37,13 @@ services:
     image: grafana/grafana:10.2.0
     container_name: etap-grafana
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
-      - GF_AUTH_ANONYMOUS_ENABLED=true
+      # SECURITY: Anonymous access disabled — previously allowed unauthenticated
+      # users to view all logs and dashboards. Use admin credentials instead.
+      - GF_AUTH_ANONYMOUS_ENABLED=false
     volumes:
       - grafana-data:/var/lib/grafana
       - ./config/grafana-datasources:/etc/grafana/provisioning/datasources
