@@ -744,7 +744,6 @@ class SecurityAuditor:
                 ):
                     continue
 
-                with contextlib.suppress(Exception):
                     with (
                         open(file_path, encoding="utf-8", errors="replace") as fh
                     ):  # NOSONAR: sync file I/O in async function; compatibility with sync lib

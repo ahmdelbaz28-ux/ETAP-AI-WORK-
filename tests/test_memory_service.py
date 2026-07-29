@@ -209,14 +209,14 @@ class TestQdrantIntegrationMocked:
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = False
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore") as MockVS,
-        ):
-            MockVS.return_value = MagicMock()
-            svc = AIMemoryService()
-            svc.initialize_qdrant()
-            result = svc.save_to_vector_memory("T1 transformer rated 50MVA", index_name="test_col")
+        with patch("services.memory_service.QdrantClient", return_value=mock_client):
+            with patch("services.memory_service.QdrantVectorStore") as MockVS:
+                MockVS.return_value = MagicMock()
+                svc = AIMemoryService()
+                svc.initialize_qdrant()
+                result = svc.save_to_vector_memory(
+                    "T1 transformer rated 50MVA", index_name="test_col"
+                )
 
         assert result is True
         mock_client.collection_exists.assert_called_once_with(collection_name="test_col")
@@ -228,14 +228,12 @@ class TestQdrantIntegrationMocked:
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = True
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore") as MockVS,
-        ):
-            MockVS.return_value = MagicMock()
-            svc = AIMemoryService()
-            svc.initialize_qdrant()
-            svc.save_to_vector_memory("Line 1 impedance 0.07+j0.28 Ω/km", index_name="test_col")
+        with patch("services.memory_service.QdrantClient", return_value=mock_client):
+            with patch("services.memory_service.QdrantVectorStore") as MockVS:
+                MockVS.return_value = MagicMock()
+                svc = AIMemoryService()
+                svc.initialize_qdrant()
+                svc.save_to_vector_memory("Line 1 impedance 0.07+j0.28 Ω/km", index_name="test_col")
 
         mock_client.create_collection.assert_not_called()
 
@@ -260,14 +258,12 @@ class TestQdrantIntegrationMocked:
         mock_llm = MagicMock()
         mock_llm.predict.return_value = "T1 transformer rating is 50MVA."
 
-        with (
-            patch("services.memory_service.QdrantClient", return_value=mock_client),
-            patch("services.memory_service.QdrantVectorStore", return_value=mock_vs),
-            patch("services.memory_service.ChatOpenAI", return_value=mock_llm),
-        ):
-            svc = AIMemoryService()
-            svc.initialize_qdrant()
-            answer = svc.query_vector_memory("What is T1 rating?", index_name="test_col")
+        with patch("services.memory_service.QdrantClient", return_value=mock_client):
+            with patch("services.memory_service.QdrantVectorStore", return_value=mock_vs):
+                with patch("services.memory_service.ChatOpenAI", return_value=mock_llm):
+                    svc = AIMemoryService()
+                    svc.initialize_qdrant()
+                    answer = svc.query_vector_memory("What is T1 rating?", index_name="test_col")
 
         assert answer == "T1 transformer rating is 50MVA."
         mock_llm.predict.assert_called_once()
@@ -320,22 +316,21 @@ class TestNeo4jIntegrationMocked:
     @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_add_knowledge_transforms_text_to_graph(self):
         """add_knowledge_to_graph() must call LLMGraphTransformer and add_graph_documents."""
-        with (
-            patch("services.memory_service.Neo4jGraph") as MockGraph,
-            patch("services.memory_service.LLMGraphTransformer") as MockTransformer,
-            patch("services.memory_service.ChatOpenAI"),
-        ):
-            mock_graph = MagicMock()
-            MockGraph.return_value = mock_graph
-            mock_transformer = MagicMock()
-            mock_transformer.convert_to_graph_documents.return_value = ["g_doc"]
-            MockTransformer.return_value = mock_transformer
+        with patch("services.memory_service.Neo4jGraph") as MockGraph:
+            with patch("services.memory_service.LLMGraphTransformer") as MockTransformer:
+                with patch("services.memory_service.ChatOpenAI"):
+                    mock_graph = MagicMock()
+                    MockGraph.return_value = mock_graph
+                    mock_transformer = MagicMock()
+                    mock_transformer.convert_to_graph_documents.return_value = ["g_doc"]
+                    MockTransformer.return_value = mock_transformer
 
-            svc = AIMemoryService()
-            svc.initialize_neo4j()
-            result = svc.add_knowledge_to_graph(
-                "Bus 1 is connected to Bus 2 via Line 10", allowed_nodes=["Bus", "Line"]
-            )
+                    svc = AIMemoryService()
+                    svc.initialize_neo4j()
+                    result = svc.add_knowledge_to_graph(
+                        "Bus 1 is connected to Bus 2 via Line 10",
+                        allowed_nodes=["Bus", "Line"],
+                    )
 
         assert result is True
         mock_transformer.convert_to_graph_documents.assert_called_once()
@@ -344,19 +339,17 @@ class TestNeo4jIntegrationMocked:
     @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_query_graph_invokes_cypher_chain(self):
         """query_graph() must route the question through GraphCypherQAChain."""
-        with (
-            patch("services.memory_service.Neo4jGraph") as MockGraph,
-            patch("services.memory_service.GraphCypherQAChain") as MockChain,
-            patch("services.memory_service.ChatOpenAI"),
-        ):
-            MockGraph.return_value = MagicMock()
-            mock_chain = MagicMock()
-            mock_chain.run.return_value = "Bus 1 and Bus 2 are connected via Line 10."
-            MockChain.from_llm.return_value = mock_chain
+        with patch("services.memory_service.Neo4jGraph") as MockGraph:
+            with patch("services.memory_service.GraphCypherQAChain") as MockChain:
+                with patch("services.memory_service.ChatOpenAI"):
+                    MockGraph.return_value = MagicMock()
+                    mock_chain = MagicMock()
+                    mock_chain.run.return_value = "Bus 1 and Bus 2 are connected via Line 10."
+                    MockChain.from_llm.return_value = mock_chain
 
-            svc = AIMemoryService()
-            svc.initialize_neo4j()
-            answer = svc.query_graph("Are Bus 1 and Bus 2 connected?")
+                    svc = AIMemoryService()
+                    svc.initialize_neo4j()
+                    answer = svc.query_graph("Are Bus 1 and Bus 2 connected?")
 
         assert answer == "Bus 1 and Bus 2 are connected via Line 10."
         mock_chain.run.assert_called_once_with("Are Bus 1 and Bus 2 connected?")

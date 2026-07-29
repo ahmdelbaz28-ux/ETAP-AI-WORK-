@@ -5,6 +5,8 @@ Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

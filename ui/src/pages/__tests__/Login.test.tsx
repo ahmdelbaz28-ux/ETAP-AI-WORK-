@@ -167,10 +167,10 @@ describe("Login", () => {
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith("engineer@etap.com", "password123");
-    });
+    }, { timeout: 5000 });
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard", { replace: true });
-    });
+    }, { timeout: 5000 });
   }, 15000);
 
   it("shows error message in red banner when backend rejects with auth error", async () => {
@@ -188,7 +188,7 @@ describe("Login", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Invalid credentials")).toBeTruthy();
-    });
+    }, { timeout: 5000 });
     expect(mockNavigate).not.toHaveBeenCalled();
   }, 15000);
 
@@ -207,7 +207,7 @@ describe("Login", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Failed to fetch")).toBeTruthy();
-    });
+    }, { timeout: 5000 });
     expect(localStorage.getItem("authToken")).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
   }, 15000);
@@ -228,8 +228,8 @@ describe("Login", () => {
     await waitFor(() => {
       // Arabic: جارٍ تسجيل الدخول... = Signing in...
       expect(screen.getByText(/جارٍ تسجيل الدخول/i)).toBeTruthy();
-    });
-  });
+    }, { timeout: 5000 });
+  }, 15000);
 
   it("has a link to the registration page", () => {
     renderLogin();

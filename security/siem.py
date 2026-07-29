@@ -592,14 +592,12 @@ class SIEMForwarder:
                     resp = await client.get(self.endpoint.rsplit("/", 1)[0] + "/ready", timeout=5.0)
                     healthy = resp.status_code < HTTP_ERROR_THRESHOLD
             elif _HAS_AIOHTTP:
-                async with (
-                    aiohttp.ClientSession() as session,
-                    session.get(
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
                         self.endpoint.rsplit("/", 1)[0] + "/ready",
                         timeout=aiohttp.ClientTimeout(total=5),
-                    ) as resp,
-                ):
-                    healthy = resp.status < HTTP_ERROR_THRESHOLD
+                    ) as resp:
+                        healthy = resp.status < HTTP_ERROR_THRESHOLD
             else:
                 healthy = True  # no way to check; assume OK
         except Exception:
