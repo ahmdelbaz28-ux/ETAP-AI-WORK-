@@ -76,7 +76,7 @@ Pillow>=10.2.0
 # (network down, API quota exceeded). Provides degraded but functional
 # screen analysis via contour detection + OCR.
 opencv-python-headless>=5.0.0.93
-pytesseract>=0.3.10
+pytesseract>=0.3.13
 
 # httpx — HTTP client for OpenAI-compatible + Anthropic Vision APIs
 # Used by integrations/openai_vision.py and integrations/anthropic_vision.py
