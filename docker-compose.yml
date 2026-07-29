@@ -82,12 +82,15 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
-    # SECURITY: Uses REDISCLI_AUTH env var instead of -a flag to avoid
-    # leaking the password in the process list (/proc/<pid>/cmdline).
-    # The --no-auth-warning flag suppresses the Redis warning but the
-    # password was still visible in /proc — REDISCLI_AUTH is the safe method.
+    # SECURITY: REDISCLI_AUTH is the official way to pass Redis auth to
+    # redis-cli without exposing the password on the command line (which
+    # leaks it into /proc/<pid>/cmdline). We pass REDISCLI_AUTH as an
+    # environment variable so the healthcheck shell inherits it directly —
+    # no $$-escaping needed, no Compose substitution pitfalls.
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     healthcheck:
-      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping"]
+      test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
       timeout: 5s
       retries: 5
