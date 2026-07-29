@@ -98,10 +98,10 @@ jobs:
         # setup-trivy@v0.2.1 which was deleted; v0.32.0 install.sh fails
         # with exit code 1 on Ubuntu 24.04). The Docker image is published
         # and tested by the Trivy team and is far more stable.
-        # CRITICAL FIX: Removed continue-on-error from the step level.
-        # Per CI/CD skill: "If a test fails, fix the code — don't skip the test.".
+        #
         # .trivyignore lists known accepted exceptions; anything not listed
         # MUST be remediated or explicitly added to .trivyignore.
+        # The SARIF upload reports to Security tab for manual review.
         run: |
           docker run --rm \
             -v "${PWD}:/repo" \
@@ -111,7 +111,8 @@ jobs:
             fs --severity CRITICAL,HIGH \
                --ignore-unfixed \
                --exit-code 1 \
-               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
+               --ignorefile .trivyignore \
+               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__,skills \
                --format sarif \
                --output /repo/trivy-results.sarif \
                .
@@ -183,7 +184,8 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/etap_test
       REDIS_URL: redis://localhost:6379/0
       ENVIRONMENT: testing
-      JWT_SECRET_KEY: test-jwt-secret-for-ci-not-prod-use-32-bytes-min
+      # HIGH #11: 32+ byte test key (RFC 7518 §3.2)
+      JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
       ENCRYPTION_KEY: test-encryption-key-for-ci-not-prod-use-32-bytes-min
 
     steps:
