@@ -576,7 +576,9 @@ async def _check_rate_limit(username: str) -> None:
 # (3 per hour) so legitimate retries after a missed email still work.
 
 _FORGOT_PASSWORD_RATE_LIMIT_MAX: int = int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_MAX", "3"))
-_FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC", "3600"))  # 1 hour
+_FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC: int = int(
+    os.getenv("FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC", "3600")
+)  # 1 hour
 _forgot_password_attempts: OrderedDict[str, list[float]] = OrderedDict()
 _forgot_password_lock = threading.Lock()
 _FORGOT_PASSWORD_MAX_ENTRIES: int = 1000  # bounded to prevent memory growth
@@ -605,7 +607,9 @@ async def _check_forgot_password_rate_limit(email: str) -> None:
             # Redis configured but unreachable — fall through to in-memory.
             # (We only enter this branch when REDIS_AVAILABLE is True and
             # _REDIS_URL is set, so redis_async.RedisError is a valid class.)
-            _logger.warning("Redis unavailable for forgot-password rate limit, using in-memory fallback")
+            _logger.warning(
+                "Redis unavailable for forgot-password rate limit, using in-memory fallback"
+            )
 
     # In-memory fallback (FIFO eviction).
     now = time.monotonic()

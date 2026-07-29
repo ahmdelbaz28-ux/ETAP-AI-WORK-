@@ -540,7 +540,9 @@ async def healthz():
             },
             status_code=503,
         )
-    return JSONResponse(content={"status": "ok", "backend": db_health.get("backend")}, status_code=200)
+    return JSONResponse(
+        content={"status": "ok", "backend": db_health.get("backend")}, status_code=200
+    )
 
 
 @app.head("/healthz", tags=["Health"])
