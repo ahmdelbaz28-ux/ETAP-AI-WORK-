@@ -606,6 +606,7 @@ def setup_test_environment():
     # was already set when the module was imported. Without this patch,
     # get_api_key() still enforces X-API-Key → 401 on test requests.
     import api.dependencies as _dep
+
     _original_api_key = _dep.API_KEY
     _dep.API_KEY = ""
 
