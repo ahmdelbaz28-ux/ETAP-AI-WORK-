@@ -171,7 +171,8 @@ jobs:
   tf-apply-dev:
     name: Terraform Apply (dev)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: dev
     steps:
@@ -224,7 +225,8 @@ jobs:
   tf-apply-staging:
     name: Terraform Apply (staging)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: staging  # Requires manual approval via GitHub environment protection rules
     steps:
@@ -275,7 +277,8 @@ jobs:
   tf-apply-prod:
     name: Terraform Apply (prod)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: production  # Requires manual approval + restricted branch
     steps:
