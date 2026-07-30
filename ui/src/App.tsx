@@ -1,4 +1,4 @@
-import { type ReactNode, Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState, type ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
@@ -16,7 +16,6 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useAppStore } from "./store";
 import "./i18n";
 
-// Lazy-loaded page components — loaded on demand
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
     <div className="flex flex-col items-center gap-3">
@@ -26,34 +25,40 @@ const LoadingFallback = () => (
   </div>
 );
 
-const LazyPage = ({ children }: { children: ReactNode }) => (
-  <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
-);
+function lazyLoad(importFn: () => Promise<{ default: ComponentType<Record<string, unknown>> }>) {
+  const Component = lazy(importFn);
+  return function LazyLoaded(props: Record<string, unknown>) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  };
+}
 
-const DashboardPage = lazy(() => import("./pages/Dashboard"));
-const StudiesPage = lazy(() => import("./pages/Studies"));
-const GridEditorPage = lazy(() => import("./pages/GridEditor"));
-const StudyRunPage = lazy(() => import("./pages/StudyRun"));
-const AssetManagementPage = lazy(() => import("./pages/AssetManagement"));
-const AIAssistantPage = lazy(() => import("./pages/AIAssistant"));
-const ProjectsPage = lazy(() => import("./pages/Projects"));
-const EtapIntegrationPage = lazy(() => import("./pages/EtapIntegration"));
-const GisIntegrationPage = lazy(() => import("./pages/GisIntegration"));
-const ScadaIntegrationPage = lazy(() => import("./pages/ScadaIntegration"));
-const ReportsPage = lazy(() => import("./pages/Reports"));
-const SettingsPage = lazy(() => import("./pages/Settings"));
-const AdministrationPage = lazy(() => import("./pages/Administration"));
-const DiagnosticsPage = lazy(() => import("./pages/Diagnostics"));
-const DigitalTwinPage = lazy(() => import("./pages/DigitalTwin"));
-const DataImportPage = lazy(() => import("./pages/DataImport"));
-const DataExportPage = lazy(() => import("./pages/DataExport"));
-const LogsPage = lazy(() => import("./pages/Logs"));
-const CuaMonitorPage = lazy(() => import("./pages/CuaMonitor"));
-const CodeGuardPage = lazy(() => import("./pages/CodeGuard"));
-const LoginPage = lazy(() => import("./pages/Login"));
-const RegisterPage = lazy(() => import("./pages/Register"));
+const DashboardPage = lazyLoad(() => import("./pages/Dashboard"));
+const StudiesPage = lazyLoad(() => import("./pages/Studies"));
+const GridEditorPage = lazyLoad(() => import("./pages/GridEditor"));
+const StudyRunPage = lazyLoad(() => import("./pages/StudyRun"));
+const AssetManagementPage = lazyLoad(() => import("./pages/AssetManagement"));
+const AIAssistantPage = lazyLoad(() => import("./pages/AIAssistant"));
+const ProjectsPage = lazyLoad(() => import("./pages/Projects"));
+const EtapIntegrationPage = lazyLoad(() => import("./pages/EtapIntegration"));
+const GisIntegrationPage = lazyLoad(() => import("./pages/GisIntegration"));
+const ScadaIntegrationPage = lazyLoad(() => import("./pages/ScadaIntegration"));
+const ReportsPage = lazyLoad(() => import("./pages/Reports"));
+const SettingsPage = lazyLoad(() => import("./pages/Settings"));
+const AdministrationPage = lazyLoad(() => import("./pages/Administration"));
+const DiagnosticsPage = lazyLoad(() => import("./pages/Diagnostics"));
+const DigitalTwinPage = lazyLoad(() => import("./pages/DigitalTwin"));
+const DataImportPage = lazyLoad(() => import("./pages/DataImport"));
+const DataExportPage = lazyLoad(() => import("./pages/DataExport"));
+const LogsPage = lazyLoad(() => import("./pages/Logs"));
+const CuaMonitorPage = lazyLoad(() => import("./pages/CuaMonitor"));
+const CodeGuardPage = lazyLoad(() => import("./pages/CodeGuard"));
+const LoginPage = lazyLoad(() => import("./pages/Login"));
+const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
-// Inner component that activates keyboard shortcuts inside the Router context
 function KeyboardShortcutsHandler() {
   useKeyboardShortcuts();
   return null;
@@ -71,7 +76,6 @@ export default function App() {
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
-  // Electron menu navigation
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onNavigate((path: string) => {
@@ -80,7 +84,6 @@ export default function App() {
     }
   }, []);
 
-  // F1 / Ctrl+H for Smart Help
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "F1") {
@@ -98,14 +101,12 @@ export default function App() {
     return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Listen for toggle-shortcuts-panel events (from the Navbar shortcuts button)
   useEffect(() => {
     const handler = () => setShortcutsOpen((prev) => !prev);
     globalThis.addEventListener("toggle-shortcuts-panel", handler);
     return () => globalThis.removeEventListener("toggle-shortcuts-panel", handler);
   }, []);
 
-  // Listen for toggle-theme events
   useEffect(() => {
     const handler = () => {
       const current = document.documentElement.classList.contains("dark") ? "dark" : "light";
@@ -118,7 +119,6 @@ export default function App() {
     return () => globalThis.removeEventListener("toggle-theme", handler);
   }, []);
 
-  // Listen for toggle-language events
   useEffect(() => {
     const handler = () => {
       const newLang = i18n.language === "ar" ? "en" : "ar";
@@ -130,7 +130,6 @@ export default function App() {
     return () => globalThis.removeEventListener("toggle-language", handler);
   }, [i18n]);
 
-  // Listen for help context events from other components
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -143,7 +142,6 @@ export default function App() {
     return () => globalThis.removeEventListener("open-smart-help", handler);
   }, []);
 
-  // Listen for toggle-smart-help events (from the Help button in the navbar)
   useEffect(() => {
     const handler = () => {
       setHelpOpen((prev) => !prev);
@@ -159,25 +157,9 @@ export default function App() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
-              {/* Auth routes - no Layout */}
-              <Route
-                path="/login"
-                element={
-                  <LazyPage>
-                    <LoginPage />
-                  </LazyPage>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <LazyPage>
-                    <RegisterPage />
-                  </LazyPage>
-                }
-              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-              {/* App routes - protected (require login) - with Layout */}
               <Route
                 element={
                   <ProtectedRoute>
@@ -186,172 +168,30 @@ export default function App() {
                 }
               >
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <LazyPage>
-                      <DashboardPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/studies"
-                  element={
-                    <LazyPage>
-                      <StudiesPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/grid-editor"
-                  element={
-                    <LazyPage>
-                      <GridEditorPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/studies/:studyType"
-                  element={
-                    <LazyPage>
-                      <StudyRunPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/asset-management"
-                  element={
-                    <LazyPage>
-                      <AssetManagementPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/assistant"
-                  element={
-                    <LazyPage>
-                      <AIAssistantPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/projects"
-                  element={
-                    <LazyPage>
-                      <ProjectsPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/etap"
-                  element={
-                    <LazyPage>
-                      <EtapIntegrationPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/gis"
-                  element={
-                    <LazyPage>
-                      <GisIntegrationPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/scada"
-                  element={
-                    <LazyPage>
-                      <ScadaIntegrationPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/reports"
-                  element={
-                    <LazyPage>
-                      <ReportsPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <LazyPage>
-                      <SettingsPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <LazyPage>
-                      <AdministrationPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/diagnostics"
-                  element={
-                    <LazyPage>
-                      <DiagnosticsPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/digital-twin"
-                  element={
-                    <LazyPage>
-                      <DigitalTwinPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/data-import"
-                  element={
-                    <LazyPage>
-                      <DataImportPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/data-export"
-                  element={
-                    <LazyPage>
-                      <DataExportPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/logs"
-                  element={
-                    <LazyPage>
-                      <LogsPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/code-guard"
-                  element={
-                    <LazyPage>
-                      <CodeGuardPage />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="/admin/cua-monitor"
-                  element={
-                    <LazyPage>
-                      <CuaMonitorPage />
-                    </LazyPage>
-                  }
-                />
-                {/* Fallback */}
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/studies" element={<StudiesPage />} />
+                <Route path="/grid-editor" element={<GridEditorPage />} />
+                <Route path="/studies/:studyType" element={<StudyRunPage />} />
+                <Route path="/asset-management" element={<AssetManagementPage />} />
+                <Route path="/assistant" element={<AIAssistantPage />} />
+                <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/etap" element={<EtapIntegrationPage />} />
+                <Route path="/gis" element={<GisIntegrationPage />} />
+                <Route path="/scada" element={<ScadaIntegrationPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin" element={<AdministrationPage />} />
+                <Route path="/diagnostics" element={<DiagnosticsPage />} />
+                <Route path="/digital-twin" element={<DigitalTwinPage />} />
+                <Route path="/data-import" element={<DataImportPage />} />
+                <Route path="/data-export" element={<DataExportPage />} />
+                <Route path="/logs" element={<LogsPage />} />
+                <Route path="/code-guard" element={<CodeGuardPage />} />
+                <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>
 
-            {/* Global Overlays inside Router context */}
             <KeyboardShortcutsHandler />
             <CommandPalette />
             <OnboardingTour />
