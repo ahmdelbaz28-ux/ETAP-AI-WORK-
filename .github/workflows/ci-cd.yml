@@ -34,11 +34,11 @@ jobs:
       - name: Install linting tools
         # ruff >=0.7.0 added UP045/UP047 rule selectors referenced in ruff.toml;
         # ruff 0.6.9 doesn't recognize them and fails at config parse time.
-        # Use latest ruff which supports all selectors in ruff.toml.
-        run: "pip install --only-binary :all: ruff mypy"  # NOSONAR: latest ruff required for UP045/UP047 selectors in ruff.toml
+        # Use specific version of ruff which supports all selectors in ruff.toml.
+        run: "pip install --only-binary :all: ruff==0.7.0 mypy==1.11.0"
 
       - name: Install pre-commit hooks
-        run: "pip install --only-binary :all: pre-commit==4.0.1 && pre-commit install --hook-type pre-commit --hook-type pre-push"  # NOSONAR: pre-commit hook with pinned version
+        run: "pip install --only-binary :all: pre-commit==4.0.1 && pre-commit install --hook-type pre-commit --hook-type pre-push"
 
       - name: Ruff lint
         # On push to main/develop: check ALL files for complete coverage.
@@ -77,9 +77,9 @@ jobs:
         # npm install. Fallback to npm install only if npm ci fails (e.g. lockfile
         # drift on a branch that hasn't merged main yet).
         run: |
-          npm ci --ignore-scripts 2>&1 || {
+          npm ci --ignore-scripts --omit=optional@^6.14.15 2>&1 || {
             echo "::warning::npm ci failed. Retrying with npm install..."
-            npm install --ignore-scripts --no-optional 2>&1 || echo "::warning::UI dependencies partially installed — skipping UI checks"  # NOSONAR: fallback only when npm ci fails (lockfile drift)
+            npm install --ignore-scripts --no-optional 2>&1 || echo "::warning::UI dependencies partially installed — skipping UI checks"
           }
 
       - name: TypeScript type-check
@@ -89,7 +89,7 @@ jobs:
         # they must be fixed before merging.
         if: success()
         working-directory: ui
-        run: npx tsc --noEmit
+        run: npx tsc@5.5.3 --noEmit
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
@@ -99,7 +99,7 @@ jobs:
       - name: Install root dependencies
         # SonarCloud S8544: use --frozen-lockfile is temporarily disabled due to lockfile drift issues
         # See PR #255 - fallback to regular install to ensure CI passes
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
       - name: Run scenario tests
         env:
@@ -123,8 +123,10 @@ jobs:
     steps:
       - name: Check SONAR_TOKEN availability
         id: has_token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
+          if [ -n "$SONAR_TOKEN" ]; then
             echo "has_token=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_token=false" >> "$GITHUB_OUTPUT"
@@ -153,8 +155,8 @@ jobs:
       - name: Install Python dependencies
         if: steps.has_token.outputs.has_token == 'true'
         run: |
-          pip install -r requirements-minimal.txt  # NOSONAR: requirements-minimal.txt pins versions in-repo
-          pip install --only-binary :all: httpx==0.28.1 pytest==8.3.5 pytest-cov==6.0.0 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 2>/dev/null || true  # NOSONAR: versions pinned inline; best-effort install for coverage report
+          pip install --only-binary :all: -r requirements-minimal.txt
+          pip install --only-binary :all: httpx==0.28.1 pytest==8.3.5 pytest-cov==6.0.0 pytest-asyncio==0.25.3 pytest-timeout==2.3.1
 
       - name: Download coverage report from python-tests job
         if: steps.has_token.outputs.has_token == 'true'
@@ -256,12 +258,12 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ui
-        run: npx playwright install chromium
+        run: npx playwright@1.45.0 install chromium
 
       - name: Start Vite dev server
         working-directory: ui
         run: |
-          npx vite --port 5173 &
+          npx vite@5.3.1 --port 5173 &
           echo "PID=$!"
           for i in $(seq 1 30); do
             if curl -s http://localhost:5173 > /dev/null 2>&1; then
@@ -273,7 +275,7 @@ jobs:
 
       - name: Run Playwright E2E tests
         working-directory: ui
-        run: npx playwright test --config=playwright.config.ts
+        run: npx playwright@1.45.0 test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
         uses: actions/upload-artifact@v4
@@ -324,12 +326,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          # --only-binary :all: speeds up CI but packages without binary wheels
-          # (e.g. langdetect has no cp312 wheel) would fail the whole job.
-          # Try binary-only first; fall back to source build if needed.
-          # NOSONAR(githubactions:S8544): requirements.txt is audited separately and pins versions in-repo.
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR(githubactions:S8541): binary-first with source fallback for unwheeled packages; langdetect has no cp312 wheel, needs source fallback
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1 || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1  # NOSONAR(githubactions:S8541): versions pinned inline; binary-first with fallback
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Validate Python syntax
         run: python -c "import ast; ast.parse(open('engineering_service.py').read()); print('✅ Syntax OK')"
@@ -418,7 +416,7 @@ jobs:
         # subcommand). The only known-working version is typer 0.9.4 (last 0.9.x).
         # Pin all three to known-working versions to keep the Safety step stable.
         # Also add a fallback to unpinned install in case any wheel is unavailable.
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7 typer==0.9.4 || pip install bandit==1.7.10 safety==3.2.7 typer==0.9.4'  # NOSONAR: single-use security scanner tools with pinned versions; typer pinned for safety compat
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7 typer==0.9.4 || pip install bandit==1.7.10 safety==3.2.7 typer==0.9.4'
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
@@ -537,7 +535,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
 
       - name: Install k6
         run: |
@@ -795,7 +793,7 @@ jobs:
           node-version: '24'
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest  # NOSONAR: single CLI tool install, not an app dependency; @latest ensures deploy uses current Vercel API
+        run: npm install -g vercel@37.2.3
 
       - name: Deploy to Vercel Production
         # Non-blocking: Vercel free tier limits deployments to 100/day.
@@ -849,7 +847,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install huggingface_hub
-        run: 'pip install --only-binary :all: huggingface_hub==0.26.5'  # NOSONAR: single pinned package for HF Space sync
+        run: 'pip install --only-binary :all: huggingface_hub==0.26.5'
 
       - name: Update HF Space Secrets
         env:

@@ -45,6 +45,9 @@ from acp.observability import (
     InMemoryMetricsRegistry,
     JsonTracer,
     LogLevel,
+
+
+_DEFAULT_METRICS_PATH = "/metrics"
 )
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
@@ -132,14 +135,15 @@ def _build_observability(
             default_labels["transport"] = transport_name
         metrics = InMemoryMetricsRegistry(default_labels=default_labels)
 
+    _ACP_CLI_LOGGER = "acp.cli"
     if args.verbose:
         logger = ConsoleStructuredLogger(
-            "acp.cli", min_level=LogLevel.DEBUG
-        )  # NOSONAR: intentional repetition (audit constant)
+            _ACP_CLI_LOGGER, min_level=LogLevel.DEBUG
+        )  # NOSONAR
     elif args.quiet:
-        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.ERROR)
+        logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.ERROR)
     else:
-        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.INFO)
+        logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.INFO)
 
     return tracer, metrics, logger
 
@@ -243,8 +247,8 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
         logger.info("ACP stdio server started")
     http_port = getattr(args, "http_port", None)
     metrics_path = getattr(
-        args, "metrics_path", "/metrics"
-    )  # NOSONAR: intentional repetition (audit constant)
+        args, "metrics_path", _DEFAULT_METRICS_PATH
+    )  # NOSONAR
     if http_port is not None and health_handler is not None:
         async with anyio.create_task_group() as tg:
             tg.start_soon(start_http_server, health_handler, http_port, metrics_path)
@@ -272,7 +276,7 @@ async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: 
     if logger is not None:
         logger.info("ACP UDS server started", path=path)
     http_port = getattr(args, "http_port", None)
-    metrics_path = getattr(args, "metrics_path", "/metrics")
+    metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)
     try:
         if http_port is not None and health_handler is not None:
             async with anyio.create_task_group() as tg:
@@ -302,7 +306,7 @@ async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, lo
     if logger is not None:
         logger.info("ACP WebSocket server started", host=host, port=port)
     http_port = getattr(args, "http_port", None)
-    metrics_path = getattr(args, "metrics_path", "/metrics")
+    metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)
     try:
         if http_port is not None and health_handler is not None:
             async with anyio.create_task_group() as tg:
@@ -388,7 +392,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     common.add_argument(
         "--metrics-path",
-        default="/metrics",
+        default=_DEFAULT_METRICS_PATH,
         help="HTTP path for the metrics endpoint (default /metrics)",
     )
     common.add_argument(

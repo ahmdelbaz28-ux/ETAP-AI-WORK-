@@ -572,7 +572,7 @@ async def test_router_auth_async_validator():
 
     async def async_validator(
         token: str,
-    ) -> CallerIdentity:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> CallerIdentity:  # NOSONAR
         if token == "async-token":
             return CallerIdentity("async-user", {"math.read"})
         raise AuthenticationRequired("Bad async token")

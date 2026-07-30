@@ -191,8 +191,8 @@ class WeatherAgent(BaseAgent):
             Dictionary with 'dynamic_rating_a', 'static_rating_a',
             'rating_increase_percent', 'wind_speed_ms'.
         """
-        T_c = conductor_max_temp_c  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        T_a = ambient_temp_c  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        T_c = conductor_max_temp_c  # NOSONAR
+        T_a = ambient_temp_c  # NOSONAR
         D = conductor_diameter_m
         R = conductor_resistance_per_m
 
@@ -203,20 +203,20 @@ class WeatherAgent(BaseAgent):
         # Air properties at film temperature
         T_film = (
             (T_c + T_a) / 2.0 + 273.15
-        )  # K  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # K  # NOSONAR
         k_air = 0.0242 + 7.0e-5 * (T_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (T_film - 300.0)  # Kinematic viscosity m²/s
 
         # Reynolds number
         Re = (
             wind_speed_ms * D / nu_air if nu_air > 0 else 0.0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Forced convection coefficient (simplified IEEE 738)
         if Re > 0:
             Nu = (
                 0.3 + 0.62 * Re** 0.5 * 0.71 ** (1.0 / 3.0)
-            )  # Simplified  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # Simplified  # NOSONAR
             h_conv = Nu * k_air / D
         else:
             # Natural convection (no wind)
@@ -228,10 +228,10 @@ class WeatherAgent(BaseAgent):
         sigma_sb = 5.67e-8  # Stefan-Boltzmann constant
         T_c_K = (
             T_c + 273.15
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         T_a_K = (
             T_a + 273.15
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K**4 - T_a_K**4)
 
         # Solar heat gain
@@ -246,7 +246,7 @@ class WeatherAgent(BaseAgent):
 
         I_dynamic = (
             float(np.sqrt(q_joule / R)) if q_joule > 0 and R > 0 else 0.0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Rating increase vs static
         rating_increase = (
@@ -260,7 +260,7 @@ class WeatherAgent(BaseAgent):
         )
         I_dlr_simple = (
             static_rating_a * dlr_factor
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "dynamic_rating_a": round(I_dynamic, 1),

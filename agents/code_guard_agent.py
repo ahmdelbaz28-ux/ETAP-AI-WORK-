@@ -146,7 +146,7 @@ class CodeGuardAgent(BaseAgent):
 
     async def review_code(
         self, source: str, language: str = "python"
-    ) -> dict[str, Any]:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> dict[str, Any]:  # NOSONAR
         """Convenience method for quick code reviews without a full EngineeringTask.
 
         Returns a dict with guard results suitable for API responses.
@@ -159,7 +159,7 @@ class CodeGuardAgent(BaseAgent):
 
     async def detect_ai_failure_modes(
         self, source: str
-    ) -> dict[str, Any]:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> dict[str, Any]:  # NOSONAR
         """Run only the AI failure mode detector on the given source."""
         if not self._ai_detector:
             return {"error": "AI failure mode detector not initialized", "passed": False}

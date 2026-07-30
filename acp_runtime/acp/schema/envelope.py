@@ -25,6 +25,8 @@ __all__ = [
     "JsonRpcNotification",
 ]
 
+_JSONRPC_VERSION_PATTERN = r"^2\.0$"
+
 
 # ------------------------------------------------------------------ Error
 
@@ -54,8 +56,8 @@ class JsonRpcRequest(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     jsonrpc: str = Field(
-        default="2.0", pattern=r"^2\.0$"
-    )  # NOSONAR: intentional repetition (audit constant)
+        default="2.0", pattern=_JSONRPC_VERSION_PATTERN
+    )  # NOSONAR
     id: RequestId
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
@@ -76,7 +78,7 @@ class JsonRpcResponse(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
+    jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
     id: Optional[RequestId] = None
     result: Optional[Any] = None
     error: Optional[JsonRpcError] = None
@@ -106,7 +108,7 @@ class JsonRpcNotification(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
+    jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
     capability: Optional[str] = Field(default=None, max_length=128)

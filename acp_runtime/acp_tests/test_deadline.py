@@ -36,7 +36,7 @@ async def test_exceeds_deadline_raises():
     started = time.monotonic()
     with (
         pytest.raises(DeadlineExceeded) as exc_info
-    ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+    ):  # NOSONAR
         await enforce_deadline_ms(slow(), 50)
     elapsed_ms = (time.monotonic() - started) * 1000
 
@@ -51,15 +51,16 @@ async def test_deadline_data_carries_deadline_ms():
     async def slow() -> None:
         await anyio.sleep(2.0)
 
+    coro = slow()
     with (
         pytest.raises(DeadlineExceeded) as exc_info
-    ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-        await enforce_deadline_ms(slow(), 25)
+    ):  # NOSONAR
+        await enforce_deadline_ms(coro, 25)
     assert exc_info.value.data["deadline_ms"] == 25
 
 
 def test_zero_deadline_raises():
-    async def noop() -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def noop() -> None:  # NOSONAR
         return None
 
     with pytest.raises(ValueError):
@@ -67,7 +68,7 @@ def test_zero_deadline_raises():
 
 
 def test_negative_deadline_raises():
-    async def noop() -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def noop() -> None:  # NOSONAR
         return None
 
     with pytest.raises(ValueError):
@@ -75,7 +76,7 @@ def test_negative_deadline_raises():
 
 
 def test_excessive_deadline_raises():
-    async def noop() -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def noop() -> None:  # NOSONAR
         return None
 
     with pytest.raises(ValueError):

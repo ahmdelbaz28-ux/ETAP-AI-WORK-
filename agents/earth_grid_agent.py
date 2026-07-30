@@ -88,7 +88,7 @@ class EarthGridAgent(BaseAgent):
         # IEEE 80 Eq. 27:
         Cs = (
             1.0 - ((1.0 - 0.09) / (2.0 * hs + 0.09)) * (1.0 - K)
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         return float(np.clip(Cs, 0.01, 1.0))
 
     # ------------------------------------------------------------------
@@ -130,28 +130,28 @@ class EarthGridAgent(BaseAgent):
         """
         Cs = self._surface_derating_factor(
             rho_s, rho_b, hs
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Current factor based on body weight
         if body_weight_kg <= 50:
             I_body = (
                 0.116 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
         else:
             I_body = 0.157 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
 
         # Body resistance = 1000 Ω (hand-to-feet, IEEE 80)
-        R_body = 1000.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R_body = 1000.0  # NOSONAR
 
         # Allowable touch voltage: E_touch = (R_body + 1.5 ρ_s C_s) × I_body
         E_touch = (
             (R_body + 1.5 * rho_s * Cs) * I_body
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Allowable step voltage: E_step = (R_body + 6.0 ρ_s C_s) × I_body
         E_step = (
             (R_body + 6.0 * rho_s * Cs) * I_body
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "E_touch_allowable_V": float(E_touch),
@@ -168,7 +168,7 @@ class EarthGridAgent(BaseAgent):
     def calculate_mesh_voltage(
         self,
         rho: float,
-        Ig: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ig: float,  # NOSONAR
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
@@ -224,10 +224,10 @@ class EarthGridAgent(BaseAgent):
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
         L_total = (
             n_parallel * grid_length_m + n_cross * grid_width_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         L_rods = (
             n_rods * rod_length_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         L_M = L_total + L_rods  # Effective buried length
 
         # Mesh spacing factor K_m (IEEE 80 Eq. 67)
@@ -236,7 +236,7 @@ class EarthGridAgent(BaseAgent):
 
         K_m = (
             (1.0 / (2.0 * np.pi))
-            * (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            * (  # NOSONAR
                 np.log(D**2 / (16.0 * h * d)) + np.log((3.0 * h + 0.4 * D) / ((2.0 * h) ** 0.5 * d))
             )
         )
@@ -244,12 +244,12 @@ class EarthGridAgent(BaseAgent):
         # Irregularity factor K_i (IEEE 80 Eq. 68)
         K_i = (
             0.656 + 0.172 * n_parallel
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Mesh voltage
         E_mesh = (
             rho * K_m * K_i * Ig / L_M if L_M > 0 else 0.0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "E_mesh_V": float(E_mesh),
@@ -272,7 +272,7 @@ class EarthGridAgent(BaseAgent):
     def calculate_step_voltage(
         self,
         rho: float,
-        Ig: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ig: float,  # NOSONAR
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
@@ -317,21 +317,21 @@ class EarthGridAgent(BaseAgent):
 
         L_total = (
             n_parallel * grid_length_m + n_cross * grid_width_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         L_rods = (
             n_rods * rod_length_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
 
         # Step voltage geometric factor K_s (IEEE 80-2013 Eq. 71)
         # K_s = (1/π) * [0.5*ln(1 + (D/(2h))^2) + h/D - sqrt(1 + (2h/D)^2) + 1]
         # Guard against division by zero when h=0 or D=0
         if h <= 0 or D <= 0:
-            K_s = 0.0  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            K_s = 0.0  # NOSONAR
         else:
             two_h_over_D = (
                 2.0 * h / D
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             K_s = (1.0 / np.pi) * (
                 0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
                 + h / D
@@ -342,11 +342,11 @@ class EarthGridAgent(BaseAgent):
         # Irregularity factor (same as mesh voltage)
         K_i = (
             0.656 + 0.172 * n_parallel
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         E_step = (
             rho * K_s * K_i * Ig / L_S if L_S > 0 else 0.0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "E_step_V": float(E_step),
@@ -363,7 +363,7 @@ class EarthGridAgent(BaseAgent):
     def calculate_touch_voltage(
         self,
         rho: float,
-        Ig: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ig: float,  # NOSONAR
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
@@ -393,14 +393,14 @@ class EarthGridAgent(BaseAgent):
         # Grid resistance (Schwarz formula, simplified)
         A_grid = (
             grid_length_m * grid_width_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         _perimeter = 2.0 * (grid_length_m + grid_width_m)
         L_total_buried = (
             (2.0 * grid_length_m + 2.0 * grid_width_m) + n_rods * rod_length_m
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Simplified grid resistance (Laurent formula)
-        R_grid = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        R_grid = (  # NOSONAR
             rho * (1.0 / (2.0 * np.sqrt(np.pi * A_grid)) + 1.0 / L_total_buried)
             if L_total_buried > 0 and A_grid > 0
             else 0.0
@@ -422,12 +422,12 @@ class EarthGridAgent(BaseAgent):
 
         E_mesh = mesh_result[
             "E_mesh_V"
-        ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ]  # NOSONAR
 
         # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
         E_touch_perimeter = (
             GPR - E_mesh if E_mesh < GPR else E_mesh
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "E_touch_perimeter_V": float(E_touch_perimeter),
@@ -445,7 +445,7 @@ class EarthGridAgent(BaseAgent):
     def design_ground_grid(
         self,
         rho: float,
-        Ig: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ig: float,  # NOSONAR
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int = 4,
@@ -541,13 +541,13 @@ class EarthGridAgent(BaseAgent):
         # Safety checks
         E_mesh_safe = (
             mesh["E_mesh_V"] <= allowable["E_touch_allowable_V"]
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         E_step_safe = (
             step["E_step_V"] <= allowable["E_step_allowable_V"]
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         E_touch_safe = (
             touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         all_safe = E_mesh_safe and E_step_safe and E_touch_safe
 
         return {
@@ -642,7 +642,7 @@ class EarthGridAgent(BaseAgent):
             max_grad_idx = int(np.argmax(np.abs(gradients)))
             H_est = float(
                 probe_spacings_m[max_grad_idx]
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
         else:
             H_est = float(probe_spacings_m[-1]) if len(probe_spacings_m) > 0 else 1.0
 
@@ -667,9 +667,9 @@ class EarthGridAgent(BaseAgent):
 
     def verify_safety(
         self,
-        E_mesh_V: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_step_V: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_touch_V: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_mesh_V: float,  # NOSONAR
+        E_step_V: float,  # NOSONAR
+        E_touch_V: float,  # NOSONAR
         rho_s: float,
         rho_b: float,
         hs: float,
@@ -713,10 +713,10 @@ class EarthGridAgent(BaseAgent):
 
         E_touch_limit = allowable[
             "E_touch_allowable_V"
-        ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ]  # NOSONAR
         E_step_limit = allowable[
             "E_step_allowable_V"
-        ]  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ]  # NOSONAR
 
         mesh_ok = E_mesh_V <= E_touch_limit
         step_ok = E_step_V <= E_step_limit

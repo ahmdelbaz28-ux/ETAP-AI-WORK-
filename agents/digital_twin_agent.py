@@ -84,7 +84,7 @@ class DigitalTwinAgent(BaseAgent):
     # Core computation methods
     # ------------------------------------------------------------------
 
-    def compute_model_deviation_index(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def compute_model_deviation_index(  # NOSONAR
         self,
         predicted: np.ndarray,
         measured: np.ndarray,
@@ -169,7 +169,7 @@ class DigitalTwinAgent(BaseAgent):
             "status": status,
         }
 
-    def compute_data_quality_index(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def compute_data_quality_index(  # NOSONAR
         self,
         measurements: list[dict[str, Any]],
     ) -> dict[str, Any]:
@@ -418,7 +418,7 @@ class DigitalTwinAgent(BaseAgent):
 
     def validate_result(
         self, result: AgentResult
-    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> bool:  # NOSONAR
         """
         Validate digital twin synchronization results.
 

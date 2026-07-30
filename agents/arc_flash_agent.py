@@ -159,7 +159,7 @@ class ArcFlashAgent(BaseAgent):
             Dictionary with 'arc_current_ka', 'reduced_arc_current_ka',
             'voltage_kv', 'bolted_fault_current_ka', 'electrode_config'.
         """
-        Ibf = bolted_fault_current_ka  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ibf = bolted_fault_current_ka  # NOSONAR
         G = gap_mm
 
         # Simplified IEEE 1584-2018 model coefficients for VCB / HCB
@@ -175,7 +175,7 @@ class ArcFlashAgent(BaseAgent):
             k2 = -0.041 if electrode_config == "VCB" else -0.033  # HCB
             log_Iarc = (
                 k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
@@ -187,12 +187,12 @@ class ArcFlashAgent(BaseAgent):
 
         Iarc = float(
             10.0**log_Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
         Iarc_reduced = (
             0.85 * Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         return {
             "arc_current_ka": round(Iarc, 4),
@@ -237,7 +237,7 @@ class ArcFlashAgent(BaseAgent):
             'arc_flash_boundary_mm', 'arc_flash_boundary_in',
             'ppe_category', 'ppe_description', 'working_distance_mm'.
         """
-        Iarc = arc_current_ka  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = arc_current_ka  # NOSONAR
         t = arc_duration_s
         D = working_distance_mm
         G = gap_mm
@@ -265,16 +265,16 @@ class ArcFlashAgent(BaseAgent):
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
             E_lee = (
                 2.142e6 * voltage_kv * Iarc * t / (D**2)
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
 
         # IEEE 1584-2018 empirical model
-        log_E = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        log_E = (  # NOSONAR
             c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
         )
         E_normalization = (
             10.0**log_E
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = E_normalization * (t / 0.2) ** x
@@ -283,7 +283,7 @@ class ArcFlashAgent(BaseAgent):
 
     def _format_ie_result(
         self,
-        E_cal_cm2: float,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_cal_cm2: float,  # NOSONAR
         working_distance_mm: float,
         arc_current_ka: float,
         voltage_kv: float,
@@ -464,7 +464,7 @@ class ArcFlashAgent(BaseAgent):
         if arc_data is not None:
             Iarc = arc_data.get(
                 "arc_current_ka", 0.0
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             if Iarc <= 0:
                 errors.append(f"Arc current is non-positive: {Iarc:.4f} kA")
 

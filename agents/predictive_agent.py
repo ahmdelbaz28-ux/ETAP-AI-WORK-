@@ -142,10 +142,10 @@ class PredictiveAgent(BaseAgent):
         for t in range(season_length, n):
             L_new = (
                 alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             T_new = (
                 beta * (L_new - L) + (1 - beta) * T
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             S[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S[t % season_length]
             L = L_new
             T = T_new
@@ -160,16 +160,16 @@ class PredictiveAgent(BaseAgent):
         fitted = []
         L_f = np.mean(
             y[:season_length]
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         T_f = (
-            (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            (  # NOSONAR
                 np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
             )
             / season_length
         )
         S_f = (
             y[:season_length] - L_f
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         for t in range(season_length, n):
             f_val = L_f + T_f + S_f[t % season_length]
             fitted.append(f_val)
@@ -496,7 +496,7 @@ class PredictiveAgent(BaseAgent):
 
     async def execute(
         self, task: EngineeringTask
-    ) -> AgentResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> AgentResult:  # NOSONAR
         """
         Execute predictive analytics task.
 
@@ -528,7 +528,7 @@ class PredictiveAgent(BaseAgent):
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
                         + 5.0
-                        * np.random.randn()  # NOSONAR: numpy.random.Generator migration; API change required
+                        * np.random.randn()  # NOSONAR
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -606,7 +606,7 @@ class PredictiveAgent(BaseAgent):
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
                         + 5.0
-                        * np.random.randn()  # NOSONAR: numpy.random.Generator migration; API change required
+                        * np.random.randn()  # NOSONAR
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")

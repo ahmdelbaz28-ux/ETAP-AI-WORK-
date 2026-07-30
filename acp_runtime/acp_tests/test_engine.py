@@ -130,7 +130,7 @@ def test_duplicate_capability_raises_on_construct():
 
     with (
         pytest.raises(ValueError) as exc_info
-    ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+    ):  # NOSONAR
         AcpRuntime([H1(), H2()])
     assert "Duplicate capability" in str(exc_info.value)
     assert "'dup.x'" in str(exc_info.value)

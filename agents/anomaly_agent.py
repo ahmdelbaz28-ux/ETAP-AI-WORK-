@@ -461,7 +461,7 @@ class AnomalyAgent(BaseAgent):
 
     async def execute(
         self, task: EngineeringTask
-    ) -> AgentResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> AgentResult:  # NOSONAR
         """
         Execute anomaly detection task.
 

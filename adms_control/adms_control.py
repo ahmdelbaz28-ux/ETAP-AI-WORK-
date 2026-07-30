@@ -168,7 +168,7 @@ class TopologyProcessor:
         self,
     ) -> list[
         set[str]
-    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ]:  # NOSONAR
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
@@ -390,7 +390,7 @@ class ADMSControlEngine:
             to_root,
             next(
                 iter(self.topology.section_buses.get(section_id, set()))
-            )  # NOSONAR: false positive — already uses next(iter(...))
+            )  # NOSONAR
             if section_id in self.topology.section_buses
             else to_root,
         )
@@ -462,7 +462,7 @@ class ADMSControlEngine:
             description=f"Fault isolation for section {fault_section}",
         )
 
-    def plan_restoration(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def plan_restoration(  # NOSONAR
         self,
         fault_section: str,
         de_energized_sections: list[str] = None,
@@ -519,7 +519,7 @@ class ADMSControlEngine:
 
     def execute_flisr(
         self, tripped_switch_ids: list[str], scada_db=None
-    ) -> FLISRResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> FLISRResult:  # NOSONAR
         """
         Execute full FLISR sequence:
         1. Detect fault section

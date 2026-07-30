@@ -99,7 +99,7 @@ class AcpRuntime:
 
     # -------------------------------------------------------------- execution
 
-    async def execute(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def execute(  # NOSONAR
         self,
         capability: str,
         input: dict[str, Any] | None = None,
@@ -157,7 +157,7 @@ class AcpRuntime:
             from acp.observability.tracer import TraceContext
 
             span_ctx = self._tracer.start_span(
-                "capability.execute",  # NOSONAR: intentional repetition (audit constant)
+                "capability.execute",  # NOSONAR
                 TraceContext.from_trace_id(trace_id) if trace_id else None,
             )
 

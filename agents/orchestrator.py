@@ -432,20 +432,20 @@ class ShortCircuitAgent(BaseAgent):
             if not system_data:
                 raise ValueError(
                     "System data not provided"
-                )  # NOSONAR: intentional repetition (audit constant)
+                )  # NOSONAR
 
             # Build sequence networks
             system_data.build_sequence_networks()
 
             Ybus_pos = system_data.get_ybus(
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             Ybus_neg = system_data.get_ybus(
                 seq="2"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             Ybus_zero = system_data.get_ybus(
                 seq="0"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
 
             # Create fault analyzer
             base_mva = system_data.base_mva
@@ -577,7 +577,7 @@ class HarmonicAnalysisAgent(BaseAgent):
             # Set system data
             Ybus = system_data.get_ybus(
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
             engine.set_system_data(Ybus, bus_ids)
 
@@ -680,7 +680,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             # Create OPF engine
             Ybus = system_data.get_ybus(
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
@@ -747,13 +747,13 @@ class OptimalPowerFlowAgent(BaseAgent):
         # Check power balance
         P_gen = result.data.get(
             "total_generation_mw", 0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         P_load = result.data.get(
             "total_load_mw", 0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         P_losses = result.data.get(
             "total_losses_mw", 0
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         balance_error = abs(P_gen - P_load - P_losses)
         if balance_error > 1.0:  # Allow 1 MW tolerance
@@ -1297,12 +1297,12 @@ class ReportGenerationAgent(BaseAgent):
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
                     "title", "Engineering Report"
-                ),  # NOSONAR: intentional repetition (audit constant)
+                ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
                 ReportSection(title="Analysis Results", content=str(content), order=1)
-            ]  # NOSONAR: intentional repetition (audit constant)
+            ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
             generator.generate_report(metadata, sections, file_path)
@@ -1554,7 +1554,7 @@ class ChiefEngineeringOrchestrator:
 
     async def submit_task(
         self, task: EngineeringTask
-    ) -> None:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> None:  # NOSONAR
         """Submit engineering task for execution."""
         self.task_queue.append(task)
         self.logger.info("Task submitted: %s - %s", task.task_id, task.description)
@@ -1640,7 +1640,7 @@ class ChiefEngineeringOrchestrator:
         self, task: EngineeringTask
     ) -> list[
         AgentResult
-    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ]:  # NOSONAR
         """Execute workflow by coordinating agents with parallel execution."""
         results = []
 
@@ -1828,7 +1828,7 @@ class ChiefEngineeringOrchestrator:
         }
 
     @trace_operation("execute_parallel_studies", attributes={"component": "orchestrator"})
-    async def execute_parallel_studies(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def execute_parallel_studies(  # NOSONAR
         self,
         study_types: list[str],
         system_data: Any,
@@ -2055,7 +2055,7 @@ class ChiefEngineeringOrchestrator:
         self, task_id: str
     ) -> Optional[
         EngineeringTask
-    ]:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ]:  # NOSONAR
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

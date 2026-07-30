@@ -177,7 +177,7 @@ class Tracer:
         """Generate a short unique span id."""
         import random
 
-        return f"{random.getrandbits(64):016x}"  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+        return f"{random.getrandbits(64):016x}"  # NOSONAR
 
 
 # ------------------------------------------------------------------ NullTracer
@@ -187,7 +187,7 @@ class NullTracer(Tracer):
     """No-op tracer."""
 
     def record_span(self, span: Span) -> None:
-        pass  # NOSONAR: intentional no-op (Null Object pattern)
+        pass  # NOSONAR
 
 
 # ------------------------------------------------------------------ InMemoryTracer

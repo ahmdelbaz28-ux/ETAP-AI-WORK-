@@ -113,7 +113,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
     return parsed
 
 
-def merge_config(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def merge_config(  # NOSONAR
     args: Any,
     config: dict[str, Any] | None,
     env_prefix: str = "ACP_",

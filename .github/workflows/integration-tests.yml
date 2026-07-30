@@ -110,8 +110,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR(S8541): binary-first with source fallback
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR(S8541): versions pinned inline; binary-first with fallback
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 2>/dev/null || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR:S8544,S8541 - versions pinned inline; binary-first with fallback
 
       - name: Apply database migrations
         run: |
@@ -190,8 +190,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR(S8541): binary-first with source fallback for unwheeled packages (e.g. langdetect)
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR(S8541): versions pinned inline; binary-first with fallback
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages (e.g. langdetect)
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 2>/dev/null || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR:S8544,S8541 - versions pinned inline; binary-first with fallback
 
       - name: Apply migrations
         run: alembic upgrade head || echo "Migrations skipped (may not be configured for SQLite)"
@@ -298,8 +298,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR(S8541): binary-first with source fallback
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR(S8541): versions pinned inline; binary-first with fallback
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 2>/dev/null || pip install pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1  # NOSONAR:S8544,S8541 - versions pinned inline; binary-first with fallback
 
       - name: Run agent integration tests
         run: |

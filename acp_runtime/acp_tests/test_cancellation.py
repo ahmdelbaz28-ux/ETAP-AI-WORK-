@@ -36,7 +36,7 @@ async def test_cancellation_propagates_into_handler():
 
     with pytest.raises(
         DeadlineExceeded
-    ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+    ):  # NOSONAR
         await enforce_deadline_ms(handler(), deadline_ms=30)
 
     assert handler_observed_cancel, "handler should have observed cancellation"
@@ -63,7 +63,7 @@ async def test_cancellation_via_external_cancel_scope():
 
     async with (
         anyio.create_task_group() as tg
-    ):  # NOSONAR: TaskGroup needed for cancellation semantics
+    ):  # NOSONAR
         tg.start_soon(handler)
         await anyio.sleep(0.05)
         tg.cancel_scope.cancel()
@@ -100,10 +100,11 @@ async def test_handler_that_ignores_cancellation_still_bails():
                 if isinstance(inner_exc, (SystemExit, KeyboardInterrupt)):
                     raise
 
+    coro = rogue_handler()
     with pytest.raises(
         DeadlineExceeded
-    ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-        await enforce_deadline_ms(rogue_handler(), deadline_ms=30)
+    ):  # NOSONAR
+        await enforce_deadline_ms(coro, deadline_ms=30)
 
 
 # --------------------------------------------------- cancellable() helper
@@ -126,11 +127,11 @@ async def test_cancellable_with_deadline_fires():
 
 @pytest.mark.anyio
 async def test_cancellable_without_deadline_requires_external_cancel():
-    # NOSONAR: TaskGroup with one task is intentional —
+    # NOSONAR
     # we need the task group to test cancellation propagation semantics.
     async with (
         anyio.create_task_group() as tg
-    ):  # NOSONAR: TaskGroup needed for cancellation semantics
+    ):  # NOSONAR
         runner_scope = None
 
         async def runner():
@@ -143,7 +144,7 @@ async def test_cancellable_without_deadline_requires_external_cancel():
         await anyio.sleep(0.02)
         assert (
             runner_scope is not None
-        )  # NOSONAR: Sonar can't track nonlocal assignment in async closure; this check verifies the cancellable() context actually started
+        )  # NOSONAR
         runner_scope.cancel()
         # Give the cancellation scope time to propagate; move_on_after ensures
         # we don't hang indefinitely if cancellation is broken.

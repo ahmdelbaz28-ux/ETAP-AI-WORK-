@@ -39,9 +39,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-log_info()  { echo -e "${BLUE}[INFO]${NC}  $1"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}    $1"; }
-log_fail()  { echo -e "${RED}[FAIL]${NC}  $1"; }
+log_info()  { local msg="$1"; echo -e "${BLUE}[INFO]${NC}  $msg"; }
+log_ok()    { local msg="$1"; echo -e "${GREEN}[OK]${NC}    $msg"; }
+log_fail()  { local msg="$1"; echo -e "${RED}[FAIL]${NC}  $msg"; }
 
 # ── Check prerequisites ──────────────────────────────────────────────────────
 if ! command -v gh &> /dev/null; then

@@ -406,7 +406,7 @@ class TestUdsIntegration:
 
         async with (
             anyio.create_task_group() as tg
-        ):  # NOSONAR: TaskGroup needed for async cancellation semantics
+        ):  # NOSONAR
             tg.start_soon(client)
             # Server runs with a short timeout so it doesn't block forever
             with anyio.move_on_after(1):
@@ -446,7 +446,7 @@ class TestUdsIntegration:
 
         async with (
             anyio.create_task_group() as tg
-        ):  # NOSONAR: TaskGroup needed for async cancellation semantics
+        ):  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(1):
                 try:
@@ -498,7 +498,7 @@ class TestUdsIntegration:
 
         async with (
             anyio.create_task_group() as tg
-        ):  # NOSONAR: TaskGroup needed for async cancellation semantics
+        ):  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(1):
                 try:
@@ -551,7 +551,7 @@ class TestWebSocketIntegration:
 
         async with (
             anyio.create_task_group() as tg
-        ):  # NOSONAR: TaskGroup needed for async cancellation semantics
+        ):  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(2):
                 await listener.serve(router)
@@ -599,7 +599,7 @@ class TestWebSocketIntegration:
 
         async with (
             anyio.create_task_group() as tg
-        ):  # NOSONAR: TaskGroup needed for async cancellation semantics
+        ):  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(2):
                 await listener.serve(router)

@@ -67,26 +67,28 @@ metrics: true
         path = tmp_path / "missing.json"
         with (
             pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # NOSONAR
             load_config(str(path))
         assert "not found" in str(exc_info.value)
 
     def test_unknown_format(self, tmp_path):
         path = tmp_path / "config.toml"
         path.write_text("[section]\nkey = value\n")
+        path_str = str(path)
         with (
             pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-            load_config(str(path))
+        ):  # NOSONAR
+            load_config(path_str)
         assert "Unsupported config file format" in str(exc_info.value)
 
     def test_invalid_json(self, tmp_path):
         path = tmp_path / "config.json"
         path.write_text("{not json")
+        path_str = str(path)
         with (
             pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-            load_config(str(path))
+        ):  # NOSONAR
+            load_config(path_str)
         assert "Failed to parse" in str(exc_info.value)
 
     def test_invalid_yaml(self, tmp_path):
@@ -97,10 +99,11 @@ metrics: true
         path = tmp_path / "config.yaml"
         # This is actually valid YAML (just a string), but not a dict
         path.write_text("just a string\n")
+        path_str = str(path)
         with (
             pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-            load_config(str(path))
+        ):  # NOSONAR
+            load_config(path_str)
         assert "must contain a top-level mapping" in str(exc_info.value)
 
     def test_yaml_not_installed(self, tmp_path, monkeypatch):
@@ -112,10 +115,11 @@ metrics: true
         monkeypatch.setitem(__import__("sys").modules, "yaml", None)
         path = tmp_path / "config.yaml"
         path.write_text("handlers: myapp.handlers\n")
+        path_str = str(path)
         with (
             pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-            load_config(str(path))
+        ):  # NOSONAR
+            load_config(path_str)
         assert "PyYAML" in str(exc_info.value)
 
 
@@ -339,7 +343,7 @@ class TestConfigCliIntegration:
 
         async def _noop_run_stdio(
             args, tracer, metrics, logger
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR
             assert args.handlers == "tests.test_cli"
             assert args.scopes == "math.read"
 

@@ -160,7 +160,7 @@ class GoalPlannerAgent(BaseAgent):
             "total_estimated_hours": round(total_hours, 1),
         }
 
-    def prioritize_tasks(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def prioritize_tasks(  # NOSONAR
         self,
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
@@ -394,7 +394,7 @@ class GoalPlannerAgent(BaseAgent):
             if len(risks) > 3
             else "medium"
             if len(risks) > 1
-            else "low",  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            else "low",  # NOSONAR
         }
 
     # ------------------------------------------------------------------

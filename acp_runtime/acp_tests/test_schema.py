@@ -133,7 +133,7 @@ class TestJsonRpcResponse:
     def test_both_result_and_error_rejected(self):
         with (
             pytest.raises(ValidationError) as exc_info
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # NOSONAR
             JsonRpcResponse(
                 id="resp-3", result={"ok": True}, error=JsonRpcError(code=-1, message="boom")
             )

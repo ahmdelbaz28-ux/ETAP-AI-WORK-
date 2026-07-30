@@ -489,9 +489,9 @@ def _format_d_adms(question: str) -> str:
 # ---------------------------------------------------------------------------
 
 _CABLE_SIZING_RE = re.compile(
-    # NOSONAR: lazy .*? quantifiers are bounded by short
+    # NOSONAR
     # user query strings (max ~500 chars); no catastrophic backtracking.
-    r"cable\s*siz.*?(?P<current>\d+)\s*a.*?(?P<length>\d+)\s*ft.*?(?P<voltage>\d+)\s*v",  # NOSONAR: bounded by short user queries
+    r"cable\s*siz.*?(?P<current>\d+)\s*a.*?(?P<length>\d+)\s*ft.*?(?P<voltage>\d+)\s*v",  # NOSONAR
     re.IGNORECASE,
 )
 

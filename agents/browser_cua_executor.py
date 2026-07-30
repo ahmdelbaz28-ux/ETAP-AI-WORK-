@@ -291,7 +291,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
 
     def _execute_action_hook(
         self, action: CUAAction, **kwargs
-    ) -> Optional[str]:  # NOSONAR  # S3776
+    ) -> Optional[str]:  # NOSONAR:S3776
         """Execute a single browser action. Returns error string or None."""
         if self._page is None:
             return "browser page not available"

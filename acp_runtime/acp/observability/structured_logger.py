@@ -156,7 +156,7 @@ class NullStructuredLogger(StructuredLogger):
     """No-op structured logger."""
 
     def write(self, entry: LogEntry) -> None:
-        pass  # NOSONAR: intentional no-op (Null Object pattern)
+        pass  # NOSONAR
 
 
 # ------------------------------------------------------------------ InMemoryStructuredLogger

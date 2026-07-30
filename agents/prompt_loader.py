@@ -224,7 +224,7 @@ def _load_from_yaml(
     handle: str,
 ) -> Optional[
     str
-]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+]:  # NOSONAR
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -443,7 +443,7 @@ def get_system_prompt(handle: str) -> str:
 
 async def get_system_prompt_async(
     handle: str,
-) -> str:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> str:  # NOSONAR
     """Load a system prompt by handle, async (supports remote override).
 
     Resolution order (async):

@@ -61,7 +61,7 @@ class Server:
 
     async def run(
         self,
-    ) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> None:  # NOSONAR
         """Run the read → parse → dispatch → write loop.
 
         The loop exits when the transport returns ``None`` (EOF) or when
