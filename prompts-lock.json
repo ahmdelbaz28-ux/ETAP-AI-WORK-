@@ -154,6 +154,12 @@
       "versionId": "local",
       "materialized": "prompts/fallback_agent.prompt.yaml"
     },
+    "qgis_agent": {
+      "version": 0,
+      "versionId": "local",
+      "materialized": "prompts/qgis_agent.prompt.yaml",
+      "_note": "GIS & Geospatial Power System Integration Agent — ArcGIS Pro (arcpy), ArcGIS Server/Online (REST), QGIS/PyQGIS"
+    },
     "arcflash_agent_prompt": {
       "version": 0,
       "versionId": "local",

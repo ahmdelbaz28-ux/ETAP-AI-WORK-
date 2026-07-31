@@ -31,6 +31,7 @@
     "coordination_agent": "prompts/coordination_agent.prompt.yaml",
     "code_guard_agent": "prompts/code_guard_agent.prompt.yaml",
     "ahmed_etap_agent": "prompts/ahmed_etap_agent.prompt.yaml",
+    "qgis_agent": "prompts/qgis_agent.prompt.yaml",
     "fallback_agent": "prompts/fallback_agent.prompt.yaml"
   },
   "_aliases": {

@@ -69,6 +69,7 @@ messages:
 | `report_agent.prompt.yaml` | Report | 0.3 |
 | `predictive_agent.prompt.yaml` | Predictive | 0.2 |
 | `code_guard_agent.prompt.yaml` | Code Guard | 0.1 |
+| `qgis_agent.prompt.yaml` | GIS & Geospatial Integration (ArcGIS Pro / ArcGIS Online / QGIS) | 0.2 |
 | `fallback_agent.prompt.yaml` | Safety-net fallback | 0.2 |
 
 ---
