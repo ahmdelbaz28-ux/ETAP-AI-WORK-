@@ -289,73 +289,91 @@ class BrowserCUAExecutor(BaseCUAExecutor):
             logger.exception("Browser screenshot failed: %s", exc)
             return None
 
+    def _action_click(self, page, action: CUAAction) -> Optional[str]:
+        """Perform a left-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return f"click action missing x/y: {action}"
+        page.mouse.click(action.x, action.y)
+        logger.info("browser click(%d, %d) — %s", action.x, action.y, action.target)
+        return None
+
+    def _action_double_click(self, page, action: CUAAction) -> Optional[str]:
+        """Perform a double-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return "double_click missing x/y"
+        page.mouse.dblclick(action.x, action.y)
+        return None
+
+    def _action_right_click(self, page, action: CUAAction) -> Optional[str]:
+        """Perform a right-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return "right_click missing x/y"
+        page.mouse.click(action.x, action.y, button="right")
+        return None
+
+    def _action_type(self, page, action: CUAAction) -> Optional[str]:
+        """Type text, clicking to focus first when coordinates are given."""
+        if action.text is None:
+            return "type action missing text"
+        # If x,y given, click first to focus the input field
+        if action.x is not None and action.y is not None:
+            page.mouse.click(action.x, action.y)
+            page.wait_for_timeout(200)
+        page.keyboard.type(action.text)
+        logger.info("browser type(%d chars)", len(action.text))
+        return None
+
+    def _action_hotkey(self, page, action: CUAAction) -> Optional[str]:
+        """Press a key combination, mapping pyautogui names to Playwright."""
+        if not action.keys:
+            return "hotkey missing keys"
+        # Playwright uses different key names than pyautogui
+        key_map = {
+            "ctrl": "Control",
+            "control": "Control",
+            "alt": "Alt",
+            "shift": "Shift",
+            "enter": "Enter",
+            "escape": "Escape",
+            "tab": "Tab",
+            "backspace": "Backspace",
+            "delete": "Delete",
+            "f4": "F4",
+            "f5": "F5",
+        }
+        mapped = [key_map.get(k.lower(), k) for k in action.keys]
+        combo = "+".join(mapped)
+        page.keyboard.press(combo)
+        logger.info("browser hotkey(%s)", combo)
+        return None
+
+    def _action_wait(self, page, action: CUAAction) -> Optional[str]:
+        """Wait for the requested duration."""
+        seconds = action.seconds or 1.0
+        page.wait_for_timeout(int(seconds * 1000))
+        logger.info("browser wait(%.1fs)", seconds)
+        return None
+
     def _execute_action_hook(
         self, action: CUAAction, **kwargs
-    ) -> Optional[str]:  # NOSONAR:S3776
+    ) -> Optional[str]:
         """Execute a single browser action. Returns error string or None."""
         if self._page is None:
             return "browser page not available"
         try:
             page = self._page
-
-            if action.type == "click":
-                if action.x is None or action.y is None:
-                    return f"click action missing x/y: {action}"
-                page.mouse.click(action.x, action.y)
-                logger.info("browser click(%d, %d) — %s", action.x, action.y, action.target)
-
-            elif action.type == "double_click":
-                if action.x is None or action.y is None:
-                    return "double_click missing x/y"
-                page.mouse.dblclick(action.x, action.y)
-
-            elif action.type == "right_click":
-                if action.x is None or action.y is None:
-                    return "right_click missing x/y"
-                page.mouse.click(action.x, action.y, button="right")
-
-            elif action.type == "type":
-                if action.text is None:
-                    return "type action missing text"
-                # If x,y given, click first to focus the input field
-                if action.x is not None and action.y is not None:
-                    page.mouse.click(action.x, action.y)
-                    page.wait_for_timeout(200)
-                page.keyboard.type(action.text)
-                logger.info("browser type(%d chars)", len(action.text))
-
-            elif action.type == "hotkey":
-                if not action.keys:
-                    return "hotkey missing keys"
-                # Playwright uses different key names than pyautogui
-                key_map = {
-                    "ctrl": "Control",
-                    "control": "Control",
-                    "alt": "Alt",
-                    "shift": "Shift",
-                    "enter": "Enter",
-                    "escape": "Escape",
-                    "tab": "Tab",
-                    "backspace": "Backspace",
-                    "delete": "Delete",
-                    "f4": "F4",
-                    "f5": "F5",
-                }
-                mapped = [key_map.get(k.lower(), k) for k in action.keys]
-                combo = "+".join(mapped)
-                page.keyboard.press(combo)
-                logger.info("browser hotkey(%s)", combo)
-
-            elif action.type == "wait":
-                seconds = action.seconds or 1.0
-                page.wait_for_timeout(int(seconds * 1000))
-                logger.info("browser wait(%.1fs)", seconds)
-
-            else:
+            handlers = {
+                "click": self._action_click,
+                "double_click": self._action_double_click,
+                "right_click": self._action_right_click,
+                "type": self._action_type,
+                "hotkey": self._action_hotkey,
+                "wait": self._action_wait,
+            }
+            handler = handlers.get(action.type)
+            if handler is None:
                 return f"unsupported action type: {action.type}"
-
-            return None
-
+            return handler(page, action)
         except Exception as exc:  # noqa: BLE001
             return f"{type(exc).__name__}: {exc}"
 

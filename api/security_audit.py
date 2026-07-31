@@ -744,60 +744,58 @@ class SecurityAuditor:
                 ):
                     continue
 
-                    with (
-                        open(file_path, encoding="utf-8", errors="replace") as fh
-                    ):  # NOSONAR: sync file I/O in async function; compatibility with sync lib
-                        lines = fh.readlines()
+                with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+                    lines = fh.readlines()
 
-                    for i, line in enumerate(lines, 1):
-                        stripped = line.strip()
+                for i, line in enumerate(lines, 1):
+                    stripped = line.strip()
 
-                        # Skip comments and docstrings
-                        if (
-                            stripped.startswith(
-                                "#", '"""', "'''"
-                            )  # NOSONAR: false positive — already uses tuple form
-                        ):
-                            continue
+                    # Skip comments and docstrings
+                    if (
+                        stripped.startswith(
+                            "#", '"""', "'''"
+                        )  # NOSONAR: false positive — already uses tuple form
+                    ):
+                        continue
 
-                        # Skip lines that are clearly safe context
-                        line_lower = stripped.lower()
-                        if any(re.search(pat, line_lower) for pat in _SAFE_CONTEXT_PATTERNS):
-                            continue
+                    # Skip lines that are clearly safe context
+                    line_lower = stripped.lower()
+                    if any(re.search(pat, line_lower) for pat in _SAFE_CONTEXT_PATTERNS):
+                        continue
 
-                        # Check against secret patterns
-                        for pattern, description, severity in _SECRET_PATTERNS:
-                            if re.search(pattern, stripped, re.IGNORECASE):
-                                # Additional check: skip env var lookups
-                                if "os.environ" in stripped or "os.getenv" in stripped:
-                                    continue
-                                # Skip if value is empty or placeholder
-                                if '""' in stripped or "''" in stripped:
-                                    continue
+                    # Check against secret patterns
+                    for pattern, description, severity in _SECRET_PATTERNS:
+                        if re.search(pattern, stripped, re.IGNORECASE):
+                            # Additional check: skip env var lookups
+                            if "os.environ" in stripped or "os.getenv" in stripped:
+                                continue
+                            # Skip if value is empty or placeholder
+                            if '""' in stripped or "''" in stripped:
+                                continue
 
-                                self._add_finding(
-                                    category=FindingCategory.HARDCODED_SECRET,
-                                    severity=severity,
-                                    title=description,
-                                    description=(
-                                        f"A potential hardcoded secret was detected in "
-                                        f"``{rel_path}`` at line {i}. Hardcoded secrets "
-                                        f"in source code are a critical security risk."
-                                    ),
-                                    file_path=rel_path,
-                                    line_number=i,
-                                    remediation=(
-                                        "Move the secret to an environment variable or "
-                                        "a secrets manager (e.g., HashiCorp Vault, AWS "
-                                        "Secrets Manager)."
-                                    ),
-                                    references=[
-                                        "OWASP API7:2023 Server Side Request Forgery",
-                                        "CWE-798",
-                                    ],
-                                    cwe_id="CWE-798",
-                                )
-                                break  # Only report once per line
+                            self._add_finding(
+                                category=FindingCategory.HARDCODED_SECRET,
+                                severity=severity,
+                                title=description,
+                                description=(
+                                    f"A potential hardcoded secret was detected in "
+                                    f"``{rel_path}`` at line {i}. Hardcoded secrets "
+                                    f"in source code are a critical security risk."
+                                ),
+                                file_path=rel_path,
+                                line_number=i,
+                                remediation=(
+                                    "Move the secret to an environment variable or "
+                                    "a secrets manager (e.g., HashiCorp Vault, AWS "
+                                    "Secrets Manager)."
+                                ),
+                                references=[
+                                    "OWASP API7:2023 Server Side Request Forgery",
+                                    "CWE-798",
+                                ],
+                                cwe_id="CWE-798",
+                            )
+                            break  # Only report once per line
 
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
@@ -840,9 +838,7 @@ class SecurityAuditor:
                     continue
 
                 with contextlib.suppress(Exception):
-                    with (
-                        open(file_path, encoding="utf-8", errors="replace") as fh
-                    ):  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):

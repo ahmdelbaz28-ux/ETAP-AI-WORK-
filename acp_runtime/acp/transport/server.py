@@ -59,9 +59,43 @@ class Server:
         self._logger = logger
         self._log = logging.getLogger("acp.server")
 
+    def _record_received(self, raw: str) -> None:
+        """Record message-received metrics, if configured."""
+        if self._metrics is not None:
+            self._metrics.get_or_create_counter(
+                "acp.transport.messages.received",
+                "Messages received",
+            ).inc()
+            self._metrics.get_or_create_counter(
+                "acp.transport.bytes.received",
+                "Bytes received",
+            ).inc(len(raw.encode("utf-8")))
+
+    def _record_parse_error(self) -> None:
+        """Record a parse-error metric, if configured."""
+        if self._metrics is not None:
+            self._metrics.get_or_create_counter(
+                "acp.transport.messages.parse_errors",
+                "Parse errors",
+            ).inc()
+
+    async def _send_response(self, response: dict) -> None:
+        """Serialize and write a response; record sent metrics, if configured."""
+        resp_json = json.dumps(response)
+        await self._transport.write_message(resp_json)
+        if self._metrics is not None:
+            self._metrics.get_or_create_counter(
+                "acp.transport.messages.sent",
+                "Messages sent",
+            ).inc()
+            self._metrics.get_or_create_counter(
+                "acp.transport.bytes.sent",
+                "Bytes sent",
+            ).inc(len(resp_json.encode("utf-8")))
+
     async def run(
         self,
-    ) -> None:  # NOSONAR
+    ) -> None:
         """Run the read → parse → dispatch → write loop.
 
         The loop exits when the transport returns ``None`` (EOF) or when
@@ -75,40 +109,18 @@ class Server:
                     break
 
                 # Observability: record message received
-                if self._metrics is not None:
-                    self._metrics.get_or_create_counter(
-                        "acp.transport.messages.received",
-                        "Messages received",
-                    ).inc()
-                    self._metrics.get_or_create_counter(
-                        "acp.transport.bytes.received",
-                        "Bytes received",
-                    ).inc(len(raw.encode("utf-8")))
+                self._record_received(raw)
 
                 try:
                     envelope = json.loads(raw)
                 except json.JSONDecodeError as exc:
-                    if self._metrics is not None:
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.messages.parse_errors",
-                            "Parse errors",
-                        ).inc()
+                    self._record_parse_error()
                     await self._send_parse_error(exc)
                     continue
 
                 response = await self._router.handle(envelope)
                 if response is not None:
-                    resp_json = json.dumps(response)
-                    await self._transport.write_message(resp_json)
-                    if self._metrics is not None:
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.messages.sent",
-                            "Messages sent",
-                        ).inc()
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.bytes.sent",
-                            "Bytes sent",
-                        ).inc(len(resp_json.encode("utf-8")))
+                    await self._send_response(response)
         except Exception as e:
             self._log.exception("server error: %s", e)
         finally:

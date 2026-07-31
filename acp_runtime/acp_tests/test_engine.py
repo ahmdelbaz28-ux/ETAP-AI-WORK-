@@ -128,9 +128,7 @@ def test_duplicate_capability_raises_on_construct():
         async def x(self) -> int:
             return 2
 
-    with (
-        pytest.raises(ValueError) as exc_info
-    ):  # NOSONAR
+    with pytest.raises(ValueError) as exc_info:  # NOSONAR
         AcpRuntime([H1(), H2()])
     assert "Duplicate capability" in str(exc_info.value)
     assert "'dup.x'" in str(exc_info.value)

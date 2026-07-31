@@ -169,141 +169,82 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    async def _handle_request(
+    def _start_span(self, req: JsonRpcRequest) -> Optional[Any]:
+        """Start an observability span for the request, if a tracer is configured."""
+        if self._config.tracer is None:
+            return None
+        from acp.observability.tracer import TraceContext
+
+        return self._config.tracer.start_span(
+            "router.handle",
+            TraceContext.from_trace_id(req.trace_id) if req.trace_id else None,
+        )
+
+    async def _authenticate(
         self, req: JsonRpcRequest
-    ) -> dict:  # NOSONAR
-        """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
-        t0 = time.perf_counter()
-        caller_id = ""
-        outcome = "success"
-        error_code = 0
+    ) -> tuple[str, ScopeValidator, Optional[tuple[int, str, Optional[Any]]]]:
+        """Authenticate the request.
 
-        # Observability: start span
-        span_ctx = None
-        if self._config.tracer is not None:
-            from acp.observability.tracer import TraceContext
+        Returns ``(caller_id, scope_validator, failure)`` where ``failure``
+        is ``(code, message, data)`` or ``None`` when authentication
+        succeeded (or no auth validator is configured).
+        """
+        if self._config.auth_validator is None:
+            return "", self._scope_validator, None
+        try:
+            identity = self._config.auth_validator(req.trace_id)
+            if hasattr(identity, "__await__"):
+                identity = await identity  # type: ignore[operator]
+            caller_id = identity.caller_id
+            # Merge caller scopes from token with config scopes
+            scope_validator = ScopeValidator(Union[self._config.caller_scopes, identity.scopes])
+        except AuthenticationRequired as e:
+            return "", self._scope_validator, (AuthenticationRequired.code, e.message, e.data)
+        except Exception as e:
+            self._log.exception("auth validator failed for %s", req.id)
+            return "", self._scope_validator, (AuthenticationRequired.code, f"Authentication failed: {e}", None)
+        return caller_id, scope_validator, None
 
-            span_ctx = self._config.tracer.start_span(
-                "router.handle",
-                TraceContext.from_trace_id(req.trace_id) if req.trace_id else None,
-            )
+    async def _fail_request(
+        self,
+        req: JsonRpcRequest,
+        span_ctx: Optional[Any],
+        t0: float,
+        code: int,
+        message: str,
+        data: Optional[Any] = None,
+        *,
+        caller_id: str = "",
+        outcome: str = "error",
+        audit_duration_ms: Optional[int] = None,
+    ) -> dict:
+        """Build an error response and finish observability.
 
-        # ---- params type check
-        if req.params is not None and not isinstance(req.params, dict):
-            resp = self._error_response(
-                req.id,
-                JSONRPC_INVALID_PARAMS,
-                "ACP params must be a dict (keyword arguments)",
-            )
-            await self._finish_observability(span_ctx, t0, req, "error", JSONRPC_INVALID_PARAMS)
-            return resp
-
-        # ---- authentication
-        scope_validator = self._scope_validator
-        if self._config.auth_validator is not None:
-            try:
-                identity = self._config.auth_validator(req.trace_id)
-                if hasattr(identity, "__await__"):
-                    identity = await identity  # type: ignore[operator]
-                caller_id = identity.caller_id
-                # Merge caller scopes from token with config scopes
-                scope_validator = ScopeValidator(Union[self._config.caller_scopes, identity.scopes])
-            except AuthenticationRequired as e:
-                outcome = "denied"
-                error_code = AuthenticationRequired.code
-                await self._audit(
-                    req,
-                    caller_id="",
-                    outcome=outcome,
-                    error_code=error_code,
-                    duration_ms=0,
-                )
-                await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-                return self._error_response(
-                    req.id,
-                    AuthenticationRequired.code,
-                    e.message,
-                    e.data,
-                )
-            except Exception as e:
-                self._log.exception("auth validator failed for %s", req.id)
-                outcome = "denied"
-                error_code = AuthenticationRequired.code
-                await self._audit(
-                    req,
-                    caller_id="",
-                    outcome=outcome,
-                    error_code=error_code,
-                    duration_ms=0,
-                )
-                await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-                return self._error_response(
-                    req.id,
-                    AuthenticationRequired.code,
-                    f"Authentication failed: {e}",
-                )
-
-        # ---- capability exists
-        meta = self._runtime.get_meta(req.capability)
-        if meta is None:
-            outcome = "error"
-            error_code = CapabilityNotFound.code
-            resp = self._error_response(
-                req.id,
-                CapabilityNotFound.code,
-                f"Capability {req.capability!r} is not registered",
-                {"capability": req.capability, "available": self._runtime.capability_names},
-            )
+        When ``audit_duration_ms`` is given the request is also audited
+        with ``outcome``; ``0`` reproduces the auth-failure audit
+        behaviour where no execution time is recorded.
+        """
+        resp = self._error_response(req.id, code, message, data)
+        if audit_duration_ms is None:
+            await self._finish_observability(span_ctx, t0, req, "error", code)
+        else:
             await self._audit(
                 req,
-                caller_id,
-                outcome,
-                error_code,
-                int((time.perf_counter() - t0) * 1000),
+                caller_id=caller_id,
+                outcome=outcome,
+                error_code=code,
+                duration_ms=audit_duration_ms,
             )
-            await self._finish_observability(span_ctx, t0, req, "error", error_code)
-            return resp
+            await self._finish_observability(span_ctx, t0, req, outcome, code)
+        return resp
 
-        # ---- auth required for public?
-        if self._config.require_auth_for_public and not caller_id:
-            outcome = "denied"
-            error_code = AuthenticationRequired.code
-            resp = self._error_response(
-                req.id,
-                AuthenticationRequired.code,
-                "Authentication required for all capabilities",
-            )
-            await self._audit(
-                req,
-                caller_id,
-                outcome,
-                error_code,
-                int((time.perf_counter() - t0) * 1000),
-            )
-            await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-            return resp
-
-        # ---- scope permission
-        if not scope_validator.is_permitted(meta.scopes):
-            outcome = "denied"
-            error_code = ScopeNotPermitted.code
-            resp = self._error_response(
-                req.id,
-                ScopeNotPermitted.code,
-                f"Scope not permitted for {req.capability!r}",
-                {"capability": req.capability, "required_scopes": meta.scopes},
-            )
-            await self._audit(
-                req,
-                caller_id,
-                outcome,
-                error_code,
-                int((time.perf_counter() - t0) * 1000),
-            )
-            await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-            return resp
-
-        # ---- execute
+    async def _execute_capability(
+        self,
+        req: JsonRpcRequest,
+        span_ctx: Optional[Any],
+        t0: float,
+    ) -> tuple[dict, str, int]:
+        """Dispatch the request; returns ``(response, outcome, error_code)``."""
         try:
             result = await self._runtime.execute(
                 req.capability,
@@ -312,16 +253,98 @@ class Router:
                 deadline_ms=req.deadline_ms,
             )
             resp = self._success_response(req.id, result)
+            outcome, error_code = "success", 0
         except AcpError as e:
             self._log.warning("acp error for %s: %s", req.id, e)
-            outcome = "error"
-            error_code = e.code
             resp = self._error_response(req.id, e.code, e.message, e.data)
+            outcome, error_code = "error", e.code
         except Exception as e:
             self._log.exception("unexpected error for request %s", req.id)
-            outcome = "error"
-            error_code = JSONRPC_INTERNAL_ERROR
             resp = self._error_response(req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}")
+            outcome, error_code = "error", JSONRPC_INTERNAL_ERROR
+        return resp, outcome, error_code
+
+    async def _handle_request(
+        self, req: JsonRpcRequest
+    ) -> dict:
+        """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
+        t0 = time.perf_counter()
+        caller_id = ""
+        outcome = "success"
+        error_code = 0
+
+        # Observability: start span
+        span_ctx = self._start_span(req)
+
+        # ---- params type check
+        if req.params is not None and not isinstance(req.params, dict):
+            return await self._fail_request(
+                req,
+                span_ctx,
+                t0,
+                JSONRPC_INVALID_PARAMS,
+                "ACP params must be a dict (keyword arguments)",
+            )
+
+        # ---- authentication
+        caller_id, scope_validator, auth_failure = await self._authenticate(req)
+        if auth_failure is not None:
+            code, message, data = auth_failure
+            return await self._fail_request(
+                req,
+                span_ctx,
+                t0,
+                code,
+                message,
+                data,
+                outcome="denied",
+                audit_duration_ms=0,
+            )
+
+        # ---- capability exists
+        meta = self._runtime.get_meta(req.capability)
+        if meta is None:
+            return await self._fail_request(
+                req,
+                span_ctx,
+                t0,
+                CapabilityNotFound.code,
+                f"Capability {req.capability!r} is not registered",
+                {"capability": req.capability, "available": self._runtime.capability_names},
+                caller_id=caller_id,
+                outcome="error",
+                audit_duration_ms=int((time.perf_counter() - t0) * 1000),
+            )
+
+        # ---- auth required for public?
+        if self._config.require_auth_for_public and not caller_id:
+            return await self._fail_request(
+                req,
+                span_ctx,
+                t0,
+                AuthenticationRequired.code,
+                "Authentication required for all capabilities",
+                caller_id=caller_id,
+                outcome="denied",
+                audit_duration_ms=int((time.perf_counter() - t0) * 1000),
+            )
+
+        # ---- scope permission
+        if not scope_validator.is_permitted(meta.scopes):
+            return await self._fail_request(
+                req,
+                span_ctx,
+                t0,
+                ScopeNotPermitted.code,
+                f"Scope not permitted for {req.capability!r}",
+                {"capability": req.capability, "required_scopes": meta.scopes},
+                caller_id=caller_id,
+                outcome="denied",
+                audit_duration_ms=int((time.perf_counter() - t0) * 1000),
+            )
+
+        # ---- execute
+        resp, outcome, error_code = await self._execute_capability(req, span_ctx, t0)
 
         await self._audit(
             req,
@@ -333,7 +356,7 @@ class Router:
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-    async def _finish_observability(  # NOSONAR
+    async def _finish_observability(
         self,
         span_ctx: Optional[Any],
         t0: float,

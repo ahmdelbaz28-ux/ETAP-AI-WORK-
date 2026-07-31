@@ -154,64 +154,81 @@ class CUAExecutor(BaseCUAExecutor):
             logger.exception("Screenshot capture failed: %s", exc)
             return None
 
-    def _execute_action_hook(self, action: CUAAction, **kwargs) -> str | None:  # NOSONAR:S3776
+    def _action_click(self, pa, action: CUAAction) -> str | None:
+        """Perform a left-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return f"click action missing x/y: {action}"
+        pa.click(action.x, action.y, timeout=self.action_timeout)
+        logger.info("click(%d, %d) — %s", action.x, action.y, action.target)
+        return None
+
+    def _action_double_click(self, pa, action: CUAAction) -> str | None:
+        """Perform a double-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return "double_click missing x/y"
+        pa.doubleClick(action.x, action.y)
+        return None
+
+    def _action_right_click(self, pa, action: CUAAction) -> str | None:
+        """Perform a right-click at the given coordinates."""
+        if action.x is None or action.y is None:
+            return "right_click missing x/y"
+        pa.rightClick(action.x, action.y)
+        return None
+
+    def _action_type(self, pa, action: CUAAction) -> str | None:
+        """Type text, clicking to focus first when coordinates are given."""
+        if action.text is None:
+            return "type action missing text"
+        # If x,y given, click first to focus the input field
+        if action.x is not None and action.y is not None:
+            pa.click(action.x, action.y)
+            time.sleep(0.2)
+        # pyautogui.typewrite only supports ASCII; use write for unicode
+        try:
+            pa.write(action.text, interval=0.02)
+        except Exception:  # noqa: BLE001
+            # Fallback for non-ASCII — pyperclip via pyautogui
+            pa.hotkey("ctrl", "a")
+            pa.typewrite(action.text, interval=0.02)
+        logger.info("type(%d chars) at (%s,%s)", len(action.text), action.x, action.y)
+        return None
+
+    def _action_hotkey(self, pa, action: CUAAction) -> str | None:
+        """Press a key combination."""
+        if not action.keys:
+            return "hotkey missing keys"
+        pa.hotkey(*action.keys)
+        logger.info("hotkey(%s)", "+".join(action.keys))
+        return None
+
+    def _action_wait(self, pa, action: CUAAction) -> str | None:
+        """Wait, using a poll-based wait so the failsafe stays responsive."""
+        seconds = action.seconds or 1.0
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            time.sleep(0.1)
+        logger.info("wait(%.1fs)", seconds)
+        return None
+
+    def _execute_action_hook(self, action: CUAAction, **kwargs) -> str | None:
         """Execute a single pyautogui action. Returns error string or None."""
         if not self._pyautogui:
             return "pyautogui not available"
         try:
             pa = self._pyautogui
-
-            if action.type == "click":
-                if action.x is None or action.y is None:
-                    return f"click action missing x/y: {action}"
-                pa.click(action.x, action.y, timeout=self.action_timeout)
-                logger.info("click(%d, %d) — %s", action.x, action.y, action.target)
-
-            elif action.type == "double_click":
-                if action.x is None or action.y is None:
-                    return "double_click missing x/y"
-                pa.doubleClick(action.x, action.y)
-
-            elif action.type == "right_click":
-                if action.x is None or action.y is None:
-                    return "right_click missing x/y"
-                pa.rightClick(action.x, action.y)
-
-            elif action.type == "type":
-                if action.text is None:
-                    return "type action missing text"
-                # If x,y given, click first to focus the input field
-                if action.x is not None and action.y is not None:
-                    pa.click(action.x, action.y)
-                    time.sleep(0.2)
-                # pyautogui.typewrite only supports ASCII; use write for unicode
-                try:
-                    pa.write(action.text, interval=0.02)
-                except Exception:
-                    # Fallback for non-ASCII — pyperclip via pyautogui
-                    pa.hotkey("ctrl", "a")
-                    pa.typewrite(action.text, interval=0.02)
-                logger.info("type(%d chars) at (%s,%s)", len(action.text), action.x, action.y)
-
-            elif action.type == "hotkey":
-                if not action.keys:
-                    return "hotkey missing keys"
-                pa.hotkey(*action.keys)
-                logger.info("hotkey(%s)", "+".join(action.keys))
-
-            elif action.type == "wait":
-                seconds = action.seconds or 1.0
-                # Use poll-based wait so failsafe stays responsive
-                deadline = time.monotonic() + seconds
-                while time.monotonic() < deadline:
-                    time.sleep(0.1)
-                logger.info("wait(%.1fs)", seconds)
-
-            else:
+            handlers = {
+                "click": self._action_click,
+                "double_click": self._action_double_click,
+                "right_click": self._action_right_click,
+                "type": self._action_type,
+                "hotkey": self._action_hotkey,
+                "wait": self._action_wait,
+            }
+            handler = handlers.get(action.type)
+            if handler is None:
                 return f"unsupported action type: {action.type}"
-
-            return None
-
+            return handler(pa, action)
         except Exception as exc:  # noqa: BLE001
             return f"{type(exc).__name__}: {exc}"
 

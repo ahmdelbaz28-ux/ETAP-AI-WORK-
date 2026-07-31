@@ -65,9 +65,7 @@ metrics: true
 
     def test_missing_file(self, tmp_path):
         path = tmp_path / "missing.json"
-        with (
-            pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(SystemExit) as exc_info:  # NOSONAR
             load_config(str(path))
         assert "not found" in str(exc_info.value)
 
@@ -75,9 +73,7 @@ metrics: true
         path = tmp_path / "config.toml"
         path.write_text("[section]\nkey = value\n")
         path_str = str(path)
-        with (
-            pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(SystemExit) as exc_info:  # NOSONAR
             load_config(path_str)
         assert "Unsupported config file format" in str(exc_info.value)
 
@@ -85,9 +81,7 @@ metrics: true
         path = tmp_path / "config.json"
         path.write_text("{not json")
         path_str = str(path)
-        with (
-            pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(SystemExit) as exc_info:  # NOSONAR
             load_config(path_str)
         assert "Failed to parse" in str(exc_info.value)
 
@@ -100,9 +94,7 @@ metrics: true
         # This is actually valid YAML (just a string), but not a dict
         path.write_text("just a string\n")
         path_str = str(path)
-        with (
-            pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(SystemExit) as exc_info:  # NOSONAR
             load_config(path_str)
         assert "must contain a top-level mapping" in str(exc_info.value)
 
@@ -116,9 +108,7 @@ metrics: true
         path = tmp_path / "config.yaml"
         path.write_text("handlers: myapp.handlers\n")
         path_str = str(path)
-        with (
-            pytest.raises(SystemExit) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(SystemExit) as exc_info:  # NOSONAR
             load_config(path_str)
         assert "PyYAML" in str(exc_info.value)
 

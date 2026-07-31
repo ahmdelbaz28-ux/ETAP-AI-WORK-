@@ -634,6 +634,52 @@ class PeerReview:
     # ---- Default sanity checks -----------------------------------------
 
     @staticmethod
+    def _check_load_flow(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+        """Plausibility check for load_flow results; returns a failure message or None."""
+        buses = result.get("buses") or result.get("bus_results") or {}
+        for bus_id, bdata in buses.items():
+            v = bdata.get("voltage_magnitude_pu") or bdata.get("voltage_pu")
+            if v is not None and (v < 0.5 or v > 1.5):
+                return f"bus {bus_id} voltage {v} pu is physically implausible"
+        notes_parts.append("load_flow voltages within plausible range")
+        return None
+
+    @staticmethod
+    def _check_short_circuit(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+        """Plausibility check for short_circuit results; returns a failure message or None."""
+        fr = result.get("fault_results") or {}
+        for bus_id, faults in fr.items():
+            for ftype, fdata in faults.items():
+                if isinstance(fdata, dict):
+                    cur = fdata.get("fault_current")
+                    if cur is not None and abs(float(cur)) <= 0:
+                        return f"bus {bus_id} {ftype}: non-positive fault current"
+        notes_parts.append("short_circuit currents are positive")
+        return None
+
+    @staticmethod
+    def _check_arc_flash(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+        """Plausibility check for arc_flash results; returns a failure message or None."""
+        ie = result.get("incident_energy") or result.get("incident_energy_cal_cm2")
+        if ie is not None and float(ie) > 100.0:
+            return f"incident energy {ie} cal/cm² is implausibly high"
+        notes_parts.append("arc_flash incident energy within plausible range")
+        return None
+
+    @staticmethod
+    def _check_protection_coordination(
+        result: dict[str, Any], notes_parts: list[str]
+    ) -> Optional[str]:
+        """Plausibility check for protection_coordination results (never fails hard)."""
+        cr = result.get("coordination_results") or result.get("results") or []
+        for entry in cr:
+            if isinstance(entry, dict) and entry.get("coordinated") is False:
+                notes_parts.append(
+                    f"coordination not achieved at fault_current={entry.get('fault_current')}"
+                )
+        return None
+
+    @staticmethod
     def _default_review(study_type: str, result: dict[str, Any]) -> tuple[bool, str]:
         """Deterministic sanity checks applied when no custom reviewer is given.
 
@@ -649,37 +695,17 @@ class PeerReview:
             return False, "result dict is empty"
 
         # Check 2 — domain-specific plausibility
-        if st == "load_flow":
-            buses = result.get("buses") or result.get("bus_results") or {}
-            for bus_id, bdata in buses.items():
-                v = bdata.get("voltage_magnitude_pu") or bdata.get("voltage_pu")
-                if v is not None and (v < 0.5 or v > 1.5):
-                    return False, f"bus {bus_id} voltage {v} pu is physically implausible"
-            notes_parts.append("load_flow voltages within plausible range")
-
-        elif st == "short_circuit":
-            fr = result.get("fault_results") or {}
-            for bus_id, faults in fr.items():
-                for ftype, fdata in faults.items():
-                    if isinstance(fdata, dict):
-                        cur = fdata.get("fault_current")
-                        if cur is not None and abs(float(cur)) <= 0:
-                            return False, f"bus {bus_id} {ftype}: non-positive fault current"
-            notes_parts.append("short_circuit currents are positive")
-
-        elif st == "arc_flash":
-            ie = result.get("incident_energy") or result.get("incident_energy_cal_cm2")
-            if ie is not None and float(ie) > 100.0:
-                return False, f"incident energy {ie} cal/cm² is implausibly high"
-            notes_parts.append("arc_flash incident energy within plausible range")
-
-        elif st == "protection_coordination":
-            cr = result.get("coordination_results") or result.get("results") or []
-            for entry in cr:
-                if isinstance(entry, dict) and entry.get("coordinated") is False:
-                    notes_parts.append(
-                        f"coordination not achieved at fault_current={entry.get('fault_current')}"
-                    )
+        checkers = {
+            "load_flow": PeerReview._check_load_flow,
+            "short_circuit": PeerReview._check_short_circuit,
+            "arc_flash": PeerReview._check_arc_flash,
+            "protection_coordination": PeerReview._check_protection_coordination,
+        }
+        checker = checkers.get(st)
+        if checker is not None:
+            failure = checker(result, notes_parts)
+            if failure is not None:
+                return False, failure
 
         return True, "; ".join(notes_parts) if notes_parts else "default sanity check passed"
 
@@ -774,6 +800,50 @@ class AhmedETAPOrchestrator:
         self.math_guard = math_guard or MathGuard()
         self.peer_review = peer_review or PeerReview()
 
+    @staticmethod
+    def _final_verdict(
+        last_math_guard: Optional[MathGuardResult],
+        last_peer_review: Optional[PeerReviewResult],
+    ) -> OrchestrationVerdict:
+        """Derive the terminal verdict from the last guard results."""
+        if (
+            last_math_guard
+            and not last_math_guard.passed
+            and last_peer_review
+            and not last_peer_review.passed
+        ):
+            return OrchestrationVerdict.BLOCKED_BOTH
+        if last_math_guard and not last_math_guard.passed:
+            return OrchestrationVerdict.BLOCKED_MATH_GUARD
+        if last_peer_review and not last_peer_review.passed:
+            return OrchestrationVerdict.BLOCKED_PEER_REVIEW
+        return OrchestrationVerdict.FAILED
+
+    def _failed_result(
+        self,
+        study_type: str,
+        error: str,
+        *,
+        start: float,
+        lead_agent: str = "",
+        peer_reviewer: str = "",
+        ctx: Optional[SharedContext] = None,
+        iterations: int = 0,
+    ) -> OrchestrationResult:
+        """Build a FAILED :class:`OrchestrationResult` with the given error."""
+        return OrchestrationResult(
+            verdict=OrchestrationVerdict.FAILED,
+            study_type=study_type,
+            lead_agent=lead_agent,
+            peer_reviewer=peer_reviewer,
+            math_guard=None,
+            peer_review=None,
+            shared_context_snapshot=ctx.to_dict() if ctx else {},
+            response={"error": error},
+            iterations=iterations,
+            elapsed_seconds=time.perf_counter() - start,
+        )
+
     async def run_study(
         self,
         study_type: str,
@@ -800,17 +870,10 @@ class AhmedETAPOrchestrator:
         start = time.perf_counter()
         canonical = canonicalize_study_type(study_type)
         if not canonical:
-            return OrchestrationResult(
-                verdict=OrchestrationVerdict.FAILED,
-                study_type=study_type,
-                lead_agent="",
-                peer_reviewer="",
-                math_guard=None,
-                peer_review=None,
-                shared_context_snapshot={},
-                response={"error": f"cannot canonicalize study_type='{study_type}'"},
-                iterations=0,
-                elapsed_seconds=time.perf_counter() - start,
+            return self._failed_result(
+                study_type,
+                f"cannot canonicalize study_type='{study_type}'",
+                start=start,
             )
 
         ctx = SharedContext(
@@ -850,17 +913,14 @@ class AhmedETAPOrchestrator:
             except Exception as exc:
                 await ctx.add_error(f"lead agent raised: {exc!r}")
                 await ctx.mark_completed(task_record, {"error": str(exc)}, math_guard_passed=False)
-                return OrchestrationResult(
-                    verdict=OrchestrationVerdict.FAILED,
-                    study_type=canonical,
+                return self._failed_result(
+                    canonical,
+                    str(exc),
+                    start=start,
                     lead_agent="lead",
                     peer_reviewer=reviewer_study,
-                    math_guard=None,
-                    peer_review=None,
-                    shared_context_snapshot=ctx.to_dict(),
-                    response={"error": str(exc)},
+                    ctx=ctx,
                     iterations=iteration,
-                    elapsed_seconds=time.perf_counter() - start,
                 )
 
             # --- 2. MathGuard -------------------------------------------
@@ -944,19 +1004,7 @@ class AhmedETAPOrchestrator:
             )
 
         # All iterations exhausted
-        if (
-            last_math_guard
-            and not last_math_guard.passed
-            and last_peer_review
-            and not last_peer_review.passed
-        ):
-            verdict = OrchestrationVerdict.BLOCKED_BOTH
-        elif last_math_guard and not last_math_guard.passed:
-            verdict = OrchestrationVerdict.BLOCKED_MATH_GUARD
-        elif last_peer_review and not last_peer_review.passed:
-            verdict = OrchestrationVerdict.BLOCKED_PEER_REVIEW
-        else:
-            verdict = OrchestrationVerdict.FAILED
+        verdict = self._final_verdict(last_math_guard, last_peer_review)
 
         return OrchestrationResult(
             verdict=verdict,

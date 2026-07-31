@@ -34,9 +34,7 @@ async def test_exceeds_deadline_raises():
         return "should not get here"
 
     started = time.monotonic()
-    with (
-        pytest.raises(DeadlineExceeded) as exc_info
-    ):  # NOSONAR
+    with pytest.raises(DeadlineExceeded) as exc_info:  # NOSONAR
         await enforce_deadline_ms(slow(), 50)
     elapsed_ms = (time.monotonic() - started) * 1000
 
@@ -52,9 +50,7 @@ async def test_deadline_data_carries_deadline_ms():
         await anyio.sleep(2.0)
 
     coro = slow()
-    with (
-        pytest.raises(DeadlineExceeded) as exc_info
-    ):  # NOSONAR
+    with pytest.raises(DeadlineExceeded) as exc_info:  # NOSONAR
         await enforce_deadline_ms(coro, 25)
     assert exc_info.value.data["deadline_ms"] == 25
 

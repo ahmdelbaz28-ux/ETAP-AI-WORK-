@@ -459,9 +459,114 @@ class AnomalyAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
+    def _run_spc(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+        """Run SPC anomaly detection when selected."""
+        if method in ("spc", "full"):
+            sigma_threshold = float(task.parameters.get("sigma_threshold", 3.0))
+            results["spc"] = self.detect_spc_anomalies(
+                data=data,
+                sigma_threshold=sigma_threshold,
+            )
+
+    def _run_cusum(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+        """Run CUSUM shift detection when selected."""
+        if method in ("cusum", "full"):
+            target = task.parameters.get("target")
+            target_val = float(target) if target is not None else None
+            k = float(task.parameters.get("cusum_k", 0.5))
+            h = float(task.parameters.get("cusum_h", 5.0))
+            results["cusum"] = self.detect_cusum(
+                data=data,
+                target=target_val,
+                k=k,
+                h=h,
+            )
+
+    def _run_ewma(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+        """Run EWMA detection when selected."""
+        if method in ("ewma", "full"):
+            lam = float(task.parameters.get("ewma_lambda", 0.1))
+            l_factor = float(task.parameters.get("ewma_l_factor", 2.7))
+            results["ewma"] = self.detect_ewma(
+                data=data,
+                lam=lam,
+                l_factor=l_factor,
+            )
+
+    def _run_threshold(
+        self, method: str, data: np.ndarray, task: EngineeringTask, results: dict
+    ) -> None:
+        """Run threshold violation detection when limits are explicitly provided."""
+        if method not in ("threshold", "full"):
+            return
+        upper_limit = (
+            float(task.parameters.get("upper_limit", np.max(data) * 1.1))
+            if "upper_limit" in task.parameters
+            else None
+        )
+        lower_limit = (
+            float(task.parameters.get("lower_limit", np.min(data) * 0.9))
+            if "lower_limit" in task.parameters
+            else None
+        )
+        if upper_limit is None or lower_limit is None:
+            # Skip threshold detection if limits not explicitly provided
+            self.log_execution(
+                "Threshold detection skipped: upper_limit and lower_limit must be explicitly provided",
+                "WARNING",
+            )
+        else:
+            results["threshold"] = self.detect_threshold_violations(
+                data=data,
+                upper_limit=upper_limit,
+                lower_limit=lower_limit,
+            )
+
+    def _run_cross_correlation(
+        self, method: str, data: np.ndarray, task: EngineeringTask, results: dict
+    ) -> None:
+        """Run cross-correlation analysis when selected."""
+        if method != "cross_correlation":
+            return
+        secondary = task.parameters.get("secondary_measurements")
+        if secondary is None:
+            raise ValueError(
+                "'secondary_measurements' required for cross_correlation method",
+            )
+        data_b = np.array(secondary, dtype=float)
+        corr_threshold = float(task.parameters.get("correlation_threshold", 0.7))
+        results["cross_correlation"] = self.cross_correlation_analysis(
+            data_a=data,
+            data_b=data_b,
+            correlation_threshold=corr_threshold,
+        )
+
+    def _run_ml(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+        """Run ML-based anomaly detection (PyOD) when selected."""
+        if method not in ("ml", "full"):
+            return
+        ml_method = task.parameters.get("ml_method", "iforest")
+        contamination = float(task.parameters.get("contamination", 0.05))
+        ml_data = data.reshape(-1, 1) if data.ndim == 1 else data
+        results["ml_anomaly"] = self.detect_ml_anomaly(
+            data=ml_data,
+            method=ml_method,
+            contamination=contamination,
+        )
+
+    def _worst_severity(self, results: dict) -> str:
+        """Determine overall severity (worst case)."""
+        severity_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
+        overall_severity = "LOW"
+        for _key, val in results.items():
+            sev = val.get("severity", "LOW")
+            if severity_order.get(sev, 0) > severity_order.get(overall_severity, 0):
+                overall_severity = sev
+        return overall_severity
+
     async def execute(
         self, task: EngineeringTask
-    ) -> AgentResult:  # NOSONAR
+    ) -> AgentResult:
         """
         Execute anomaly detection task.
 
@@ -485,95 +590,15 @@ class AnomalyAgent(BaseAgent):
 
             data = np.array(measurements, dtype=float)
 
-            # --- SPC anomaly detection ---
-            if method in ("spc", "full"):
-                sigma_threshold = float(task.parameters.get("sigma_threshold", 3.0))
-                results["spc"] = self.detect_spc_anomalies(
-                    data=data,
-                    sigma_threshold=sigma_threshold,
-                )
-
-            # --- CUSUM shift detection ---
-            if method in ("cusum", "full"):
-                target = task.parameters.get("target")
-                target_val = float(target) if target is not None else None
-                k = float(task.parameters.get("cusum_k", 0.5))
-                h = float(task.parameters.get("cusum_h", 5.0))
-                results["cusum"] = self.detect_cusum(
-                    data=data,
-                    target=target_val,
-                    k=k,
-                    h=h,
-                )
-
-            # --- EWMA detection ---
-            if method in ("ewma", "full"):
-                lam = float(task.parameters.get("ewma_lambda", 0.1))
-                l_factor = float(task.parameters.get("ewma_l_factor", 2.7))
-                results["ewma"] = self.detect_ewma(
-                    data=data,
-                    lam=lam,
-                    l_factor=l_factor,
-                )
-
-            # --- Threshold violation detection ---
-            if method in ("threshold", "full"):
-                upper_limit = (
-                    float(task.parameters.get("upper_limit", np.max(data) * 1.1))
-                    if "upper_limit" in task.parameters
-                    else None
-                )
-                lower_limit = (
-                    float(task.parameters.get("lower_limit", np.min(data) * 0.9))
-                    if "lower_limit" in task.parameters
-                    else None
-                )
-                if upper_limit is None or lower_limit is None:
-                    # Skip threshold detection if limits not explicitly provided
-                    self.log_execution(
-                        "Threshold detection skipped: upper_limit and lower_limit must be explicitly provided",
-                        "WARNING",
-                    )
-                else:
-                    results["threshold"] = self.detect_threshold_violations(
-                        data=data,
-                        upper_limit=upper_limit,
-                        lower_limit=lower_limit,
-                    )
-
-            # --- Cross-correlation analysis ---
-            if method == "cross_correlation":
-                secondary = task.parameters.get("secondary_measurements")
-                if secondary is None:
-                    raise ValueError(
-                        "'secondary_measurements' required for cross_correlation method",
-                    )
-                data_b = np.array(secondary, dtype=float)
-                corr_threshold = float(task.parameters.get("correlation_threshold", 0.7))
-                results["cross_correlation"] = self.cross_correlation_analysis(
-                    data_a=data,
-                    data_b=data_b,
-                    correlation_threshold=corr_threshold,
-                )
-
-            # --- ML-based anomaly detection (PyOD) ---
-            if method in ("ml", "full"):
-                ml_method = task.parameters.get("ml_method", "iforest")
-                contamination = float(task.parameters.get("contamination", 0.05))
-                ml_data = data.reshape(-1, 1) if data.ndim == 1 else data
-                results["ml_anomaly"] = self.detect_ml_anomaly(
-                    data=ml_data,
-                    method=ml_method,
-                    contamination=contamination,
-                )
+            self._run_spc(method, data, task, results)
+            self._run_cusum(method, data, task, results)
+            self._run_ewma(method, data, task, results)
+            self._run_threshold(method, data, task, results)
+            self._run_cross_correlation(method, data, task, results)
+            self._run_ml(method, data, task, results)
 
             # Determine overall severity (worst case)
-            severity_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
-            overall_severity = "LOW"
-            for _key, val in results.items():
-                sev = val.get("severity", "LOW")
-                if severity_order.get(sev, 0) > severity_order.get(overall_severity, 0):
-                    overall_severity = sev
+            overall_severity = self._worst_severity(results)
 
             result = AgentResult(
                 agent_name=self.agent_name,

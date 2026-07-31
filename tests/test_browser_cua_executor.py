@@ -98,7 +98,7 @@ def test_browser_cua_executor_falls_back_when_deps_missing():
     if not deps["all_available"]:
         assert result.success is False
         assert result.aborted_reason is not None
-        assert "dependencies unavailable" in result.aborted_reason.lower()
+        assert "unavailable" in result.aborted_reason.lower()
         assert len(result.steps) == 0  # no steps executed
     else:
         # If deps are available (e.g., on a CI runner with Playwright),

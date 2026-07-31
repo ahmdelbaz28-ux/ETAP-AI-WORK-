@@ -220,11 +220,41 @@ def _extract_system_message(parsed: Any) -> Optional[str]:
     return None
 
 
+def _read_yaml_system_message(filepath: Path) -> Optional[str]:
+    """Read a YAML file and return its system message, if any."""
+    try:
+        content = filepath.read_text(encoding="utf-8")
+        parsed = yaml.safe_load(content)
+        return _extract_system_message(parsed)
+    except Exception as exc:
+        logger.warning("Error loading YAML prompt '%s': %s", filepath, exc)
+        return None
+
+
+def _resolve_prompts_json_path(handle: str) -> Optional[Path]:
+    """Resolve the prompt path from prompts.json, if present."""
+    prompts_json_path = _PROMPTS_DIR.parent / "prompts.json"
+    if not prompts_json_path.is_file():
+        return None
+    try:
+        import json
+
+        prompts_json = json.loads(prompts_json_path.read_text(encoding="utf-8"))
+        prompt_path = prompts_json.get("prompts", {}).get(handle)
+        if prompt_path and isinstance(prompt_path, str):
+            actual_path = prompt_path[5:] if prompt_path.startswith("file:") else prompt_path
+            full_path = _PROMPTS_DIR.parent / actual_path
+            if full_path.is_file():
+                return full_path
+        return None
+    except Exception as exc:
+        logger.debug("Error reading prompts.json: %s", exc)
+        return None
+
+
 def _load_from_yaml(
     handle: str,
-) -> Optional[
-    str
-]:  # NOSONAR
+) -> Optional[str]:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -237,34 +267,16 @@ def _load_from_yaml(
     for filename in possible_files:
         filepath = _PROMPTS_DIR / filename
         if filepath.is_file():
-            try:
-                content = filepath.read_text(encoding="utf-8")
-                parsed = yaml.safe_load(content)
-                system_msg = _extract_system_message(parsed)
-                if system_msg:
-                    return system_msg
-            except Exception as exc:
-                logger.warning("Error loading YAML prompt '%s': %s", filepath, exc)
+            system_msg = _read_yaml_system_message(filepath)
+            if system_msg:
+                return system_msg
 
     # Try prompts.json mapping for exact path resolution
-    prompts_json_path = _PROMPTS_DIR.parent / "prompts.json"
-    if prompts_json_path.is_file():
-        try:
-            import json
-
-            prompts_json = json.loads(prompts_json_path.read_text(encoding="utf-8"))
-            prompt_path = prompts_json.get("prompts", {}).get(handle)
-            if prompt_path and isinstance(prompt_path, str):
-                actual_path = prompt_path[5:] if prompt_path.startswith("file:") else prompt_path
-                full_path = _PROMPTS_DIR.parent / actual_path
-                if full_path.is_file():
-                    content = full_path.read_text(encoding="utf-8")
-                    parsed = yaml.safe_load(content)
-                    system_msg = _extract_system_message(parsed)
-                    if system_msg:
-                        return system_msg
-        except Exception as exc:
-            logger.debug("Error reading prompts.json: %s", exc)
+    full_path = _resolve_prompts_json_path(handle)
+    if full_path:
+        system_msg = _read_yaml_system_message(full_path)
+        if system_msg:
+            return system_msg
 
     return None
 
@@ -441,9 +453,87 @@ def get_system_prompt(handle: str) -> str:
     return _FALLBACK_PROMPT
 
 
+def _read_cache(handle: str) -> tuple[Optional[str], bool]:
+    """Return (content, is_valid) from the in-memory cache within TTL."""
+    with _cache_lock:
+        cached = _prompt_cache.get(handle)
+        if cached is None:
+            return None, False
+        content, fetched_at, _ = cached
+        # SAFETY: cache only valid within TTL
+        if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
+            return content or _FALLBACK_PROMPT, True
+        return None, False
+
+
+def _cache_prompt(handle: str, content: Optional[str], source: str) -> None:
+    """Store a prompt in the in-memory cache."""
+    with _cache_lock:
+        _prompt_cache[handle] = (content, time.monotonic(), source)
+
+
+def _apply_remote_override(
+    handle: str,
+    remote_name: str,
+    remote_prompt: str,
+    yaml_prompt: Optional[str],
+    yaml_hash: Optional[str],
+) -> Optional[str]:
+    """Apply an integrity-checked remote override; returns the prompt to use.
+
+    When the remote hash differs from the local YAML hash, the local YAML
+    wins (CRITICAL log) and ``None`` is returned so callers can fall
+    through to the local baseline.
+    """
+    remote_hash = _hash_prompt(remote_prompt)
+    if yaml_hash and remote_hash != yaml_hash:
+        # CRITICAL: integrity mismatch. Use local YAML, log loudly.
+        logger.critical(
+            "⚠️ SAFETY: %s prompt '%s' hash mismatch! "
+            "Local YAML hash=%s... but %s hash=%s... "
+            "Using LOCAL YAML (deterministic, code-reviewed). "
+            "Investigate the %s dashboard for unauthorised prompt changes.",
+            remote_name,
+            handle,
+            yaml_hash[:16],
+            remote_name,
+            remote_hash[:16],
+            remote_name,
+        )
+        if yaml_prompt:
+            _cache_prompt(handle, yaml_prompt, "yaml_integrity_mismatch")
+            return yaml_prompt
+        return None
+
+    # Hashes match (or no local YAML to compare against)
+    _cache_prompt(handle, remote_prompt, f"{remote_name.lower()}_override")
+    logger.info("Prompt '%s' loaded from %s (integrity OK)", handle, remote_name)
+    return remote_prompt
+
+
+def _resolve_yaml_fallback(handle: str, yaml_prompt: Optional[str]) -> str:
+    """Tier 4-6: local YAML baseline, fallback agent prompt, then safety-net."""
+    if yaml_prompt:
+        _cache_prompt(handle, yaml_prompt, "yaml")
+        return yaml_prompt
+
+    # Tier 5: Fallback agent prompt
+    if handle != "fallback_agent":
+        result = _load_from_yaml("fallback_agent")
+        if result:
+            _cache_prompt(handle, result, "fallback_yaml")
+            logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)
+            return result
+
+    # Tier 6: Hardcoded safety-net
+    _cache_prompt(handle, None, "safety_net")
+    logger.error("Prompt '%s' not found anywhere — using hardcoded safety-net.", handle)
+    return _FALLBACK_PROMPT
+
+
 async def get_system_prompt_async(
     handle: str,
-) -> str:  # NOSONAR
+) -> str:
     """Load a system prompt by handle, async (supports remote override).
 
     Resolution order (async):
@@ -473,25 +563,21 @@ async def get_system_prompt_async(
         The system prompt content. Never returns ``None``.
     """
     # Check cache
-    with _cache_lock:
-        cached = _prompt_cache.get(handle)
-        if cached is not None:
-            content, fetched_at, _ = cached
-            if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
-                return content or _FALLBACK_PROMPT
+    cached_content, cached_valid = _read_cache(handle)
+    if cached_valid:
+        return cached_content
 
     # ALWAYS load the YAML baseline first (safety-critical)
     yaml_prompt = _load_from_yaml(handle)
-    if not yaml_prompt:
+    if not yaml_prompt and handle != "fallback_agent":
         # No local YAML — fall through to remote / fallback / safety-net.
         # Note: a missing YAML for a safety-critical agent is itself a
         # problem; we log an error.
-        if handle != "fallback_agent":
-            logger.error(
-                "Local YAML prompt '%s' not found — remote override will "
-                "be attempted but this is a deployment risk.",
-                handle,
-            )
+        logger.error(
+            "Local YAML prompt '%s' not found — remote override will "
+            "be attempted but this is a deployment risk.",
+            handle,
+        )
 
     yaml_hash = _hash_prompt(yaml_prompt) if yaml_prompt else None
 
@@ -499,88 +585,37 @@ async def get_system_prompt_async(
     if _LANGFUSE_OVERRIDE_MODE and _LANGFUSE_ENABLED:
         remote_prompt = await _load_from_langfuse_async(handle)
         if remote_prompt:
-            remote_hash = _hash_prompt(remote_prompt)
-            if yaml_hash and remote_hash != yaml_hash:
-                # CRITICAL: integrity mismatch. Use local YAML, log loudly.
-                logger.critical(
-                    "⚠️ SAFETY: Langfuse prompt '%s' hash mismatch! "
-                    "Local YAML hash=%s... but Langfuse hash=%s... "
-                    "Using LOCAL YAML (deterministic, code-reviewed). "
-                    "Investigate the Langfuse dashboard for unauthorised "
-                    "prompt changes.",
-                    handle,
-                    yaml_hash[:16],
-                    remote_hash[:16],
-                )
-                # Use local YAML, do NOT cache remote
-                if yaml_prompt:
-                    with _cache_lock:
-                        _prompt_cache[handle] = (
-                            yaml_prompt,
-                            time.monotonic(),
-                            "yaml_integrity_mismatch",
-                        )
-                    return yaml_prompt
-            else:
-                # Hashes match (or no local YAML to compare against)
-                with _cache_lock:
-                    _prompt_cache[handle] = (
-                        remote_prompt,
-                        time.monotonic(),
-                        "langfuse_override",
-                    )
-                logger.info("Prompt '%s' loaded from Langfuse (integrity OK)", handle)
-                return remote_prompt
+            overridden = _apply_remote_override(
+                handle, "Langfuse", remote_prompt, yaml_prompt, yaml_hash
+            )
+            if overridden:
+                return overridden
 
     # Tier 3: LangWatch remote (legacy)
     if _LANGWATCH_OVERRIDE_MODE and _LANGWATCH_API_KEY:
         remote_prompt = await _load_from_langwatch_async(handle)
         if remote_prompt:
-            remote_hash = _hash_prompt(remote_prompt)
-            if yaml_hash and remote_hash != yaml_hash:
-                logger.critical(
-                    "⚠️ SAFETY: LangWatch prompt '%s' hash mismatch! "
-                    "Local=%s... Remote=%s... Using LOCAL.",
-                    handle,
-                    yaml_hash[:16],
-                    remote_hash[:16],
-                )
-                if yaml_prompt:
-                    with _cache_lock:
-                        _prompt_cache[handle] = (
-                            yaml_prompt,
-                            time.monotonic(),
-                            "yaml_integrity_mismatch",
-                        )
-                    return yaml_prompt
-            else:
-                with _cache_lock:
-                    _prompt_cache[handle] = (
-                        remote_prompt,
-                        time.monotonic(),
-                        "langwatch_override",
-                    )
-                logger.info("Prompt '%s' loaded from LangWatch (integrity OK)", handle)
-                return remote_prompt
+            overridden = _apply_remote_override(
+                handle, "LangWatch", remote_prompt, yaml_prompt, yaml_hash
+            )
+            if overridden:
+                return overridden
 
     # Tier 4: Local YAML (fallback to baseline)
     if yaml_prompt:
-        with _cache_lock:
-            _prompt_cache[handle] = (yaml_prompt, time.monotonic(), "yaml")
+        _cache_prompt(handle, yaml_prompt, "yaml")
         return yaml_prompt
 
     # Tier 5: Fallback agent prompt
     if handle != "fallback_agent":
         result = _load_from_yaml("fallback_agent")
         if result:
-            with _cache_lock:
-                _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
+            _cache_prompt(handle, result, "fallback_yaml")
             logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)
             return result
 
     # Tier 6: Hardcoded safety-net
-    with _cache_lock:
-        _prompt_cache[handle] = (None, time.monotonic(), "safety_net")
+    _cache_prompt(handle, None, "safety_net")
     logger.error("Prompt '%s' not found anywhere — using hardcoded safety-net.", handle)
     return _FALLBACK_PROMPT
 

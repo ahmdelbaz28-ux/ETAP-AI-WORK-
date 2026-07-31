@@ -45,10 +45,9 @@ from acp.observability import (
     InMemoryMetricsRegistry,
     JsonTracer,
     LogLevel,
-
+)
 
 _DEFAULT_METRICS_PATH = "/metrics"
-)
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
 from acp.runtime.handler import discover_capabilities

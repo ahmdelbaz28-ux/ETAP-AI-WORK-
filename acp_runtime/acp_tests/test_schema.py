@@ -131,9 +131,7 @@ class TestJsonRpcResponse:
         _assert_json_roundtrip(resp)
 
     def test_both_result_and_error_rejected(self):
-        with (
-            pytest.raises(ValidationError) as exc_info
-        ):  # NOSONAR
+        with pytest.raises(ValidationError) as exc_info:  # NOSONAR
             JsonRpcResponse(
                 id="resp-3", result={"ok": True}, error=JsonRpcError(code=-1, message="boom")
             )

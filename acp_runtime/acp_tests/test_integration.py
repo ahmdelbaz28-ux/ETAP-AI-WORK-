@@ -404,9 +404,7 @@ class TestUdsIntegration:
                 data = await client_stream.receive(4096)
                 response_lines.append(data.decode())
 
-        async with (
-            anyio.create_task_group() as tg
-        ):  # NOSONAR
+        async with anyio.create_task_group() as tg:  # NOSONAR
             tg.start_soon(client)
             # Server runs with a short timeout so it doesn't block forever
             with anyio.move_on_after(1):
@@ -444,9 +442,7 @@ class TestUdsIntegration:
                 data = await client_stream.receive(4096)
                 response_data.append(data)
 
-        async with (
-            anyio.create_task_group() as tg
-        ):  # NOSONAR
+        async with anyio.create_task_group() as tg:  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(1):
                 try:
@@ -496,9 +492,7 @@ class TestUdsIntegration:
                 data = await client_stream.receive(4096)
                 response_lines.append(data.decode())
 
-        async with (
-            anyio.create_task_group() as tg
-        ):  # NOSONAR
+        async with anyio.create_task_group() as tg:  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(1):
                 try:
@@ -549,9 +543,7 @@ class TestWebSocketIntegration:
             finally:
                 await ws.close()
 
-        async with (
-            anyio.create_task_group() as tg
-        ):  # NOSONAR
+        async with anyio.create_task_group() as tg:  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(2):
                 await listener.serve(router)
@@ -597,9 +589,7 @@ class TestWebSocketIntegration:
             finally:
                 await ws.close()
 
-        async with (
-            anyio.create_task_group() as tg
-        ):  # NOSONAR
+        async with anyio.create_task_group() as tg:  # NOSONAR
             tg.start_soon(client)
             with anyio.move_on_after(2):
                 await listener.serve(router)

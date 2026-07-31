@@ -164,28 +164,32 @@ class TopologyProcessor:
             bus1, bus2 = self.switches[switch_id]
             self.add_connection(bus1, bus2, switch_id)
 
+    def _collect_component(self, start_bus: str, visited: set[str]) -> set[str]:
+        """BFS from ``start_bus`` collecting one connected component."""
+        component = set()
+        queue = deque([start_bus])
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+            component.add(current)
+            for neighbor in self.bus_connections.get(current, set()):
+                if neighbor not in visited:
+                    queue.append(neighbor)
+        return component
+
     def find_connected_components(
         self,
     ) -> list[
         set[str]
-    ]:  # NOSONAR
+    ]:
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
         for bus in self.bus_connections:
             if bus not in visited:
-                component = set()
-                queue = deque([bus])
-                while queue:
-                    current = queue.popleft()
-                    if current in visited:
-                        continue
-                    visited.add(current)
-                    component.add(current)
-                    for neighbor in self.bus_connections.get(current, set()):
-                        if neighbor not in visited:
-                            queue.append(neighbor)
-                components.append(component)
+                components.append(self._collect_component(bus, visited))
         return components
 
     def find_path(self, start: str, end: str) -> list[str] | None:
@@ -462,7 +466,33 @@ class ADMSControlEngine:
             description=f"Fault isolation for section {fault_section}",
         )
 
-    def plan_restoration(  # NOSONAR
+    def _find_restoration_action(
+        self, section_id: str, fault_section: str
+    ) -> Optional[tuple[str, SwitchingActionType, str]]:
+        """Find a tie switch re-energizing ``section_id``; returns an action or None."""
+        section_buses = self.topology.section_buses.get(section_id, set())
+        if not section_buses:
+            return None
+
+        for switch_id, (bus1, bus2) in self.topology.switches.items():
+            if bus1 in section_buses and bus2 not in section_buses:
+                # Check if bus2's section is energized (connected to source)
+                bus2_section = self.topology.bus_section.get(bus2)
+                if bus2_section and bus2_section != fault_section:
+                    bus2_buses = self.topology.section_buses.get(bus2_section, set())
+                    if bus2_buses & self.source_buses or any(
+                        self.topology.find_path(bus, src)
+                        for bus in bus2_buses
+                        for src in self.source_buses
+                    ):
+                        return (
+                            switch_id,
+                            SwitchingActionType.CLOSE,
+                            f"Restoration: close tie switch for section {section_id}",
+                        )
+        return None
+
+    def plan_restoration(
         self,
         fault_section: str,
         de_energized_sections: list[str] = None,
@@ -483,31 +513,10 @@ class ADMSControlEngine:
             if section_id == fault_section:
                 continue
 
-            section_buses = self.topology.section_buses.get(section_id, set())
-            if not section_buses:
-                continue
-
-            # Find tie switches connecting to energized sections
-            for switch_id, (bus1, bus2) in self.topology.switches.items():
-                if bus1 in section_buses and bus2 not in section_buses:
-                    # Check if bus2's section is energized (connected to source)
-                    bus2_section = self.topology.bus_section.get(bus2)
-                    if bus2_section and bus2_section != fault_section:
-                        bus2_buses = self.topology.section_buses.get(bus2_section, set())
-                        if bus2_buses & self.source_buses or any(
-                            self.topology.find_path(bus, src)
-                            for bus in bus2_buses
-                            for src in self.source_buses
-                        ):
-                            actions.append(
-                                (
-                                    switch_id,
-                                    SwitchingActionType.CLOSE,
-                                    f"Restoration: close tie switch for section {section_id}",
-                                ),
-                            )
-                            restored.append(section_id)
-                            break
+            action = self._find_restoration_action(section_id, fault_section)
+            if action is not None:
+                actions.append(action)
+                restored.append(section_id)
 
         if not actions:
             return None
@@ -517,9 +526,56 @@ class ADMSControlEngine:
             description=f"Service restoration for sections: {restored}",
         )
 
+    def _isolate_fault(self, fault_section: str, scada_db, result: FLISRResult) -> bool:
+        """Isolate the fault; returns True when the FLISR run must abort (failed)."""
+        isolation_seq = self.isolate_fault(fault_section)
+        if not isolation_seq:
+            return False
+        success = self.execute_switching_sequence(isolation_seq, scada_db)
+        if not success:
+            result.stage = FLISRStage.FAILED
+            return True
+        result.isolated_sections.append(fault_section)
+        return False
+
+    def _find_de_energized_sections(self, fault_section: str) -> list[str]:
+        """Find sections that lost power (not connected to any source)."""
+        de_energized = []
+        for section_id, buses in self.topology.section_buses.items():
+            if section_id == fault_section:
+                continue
+            is_energized = any(
+                self.topology.find_path(bus, src) for bus in buses for src in self.source_buses
+            )
+            if not is_energized:
+                de_energized.append(section_id)
+        return de_energized
+
+    def _restore_service(
+        self,
+        fault_section: str,
+        de_energized: list[str],
+        scada_db,
+        result: FLISRResult,
+    ) -> None:
+        """Restore service to healthy sections after fault isolation."""
+        if not de_energized:
+            return
+        restoration_seq = self.plan_restoration(fault_section, de_energized)
+        if not restoration_seq:
+            result.unrestored_sections = de_energized
+            return
+        success = self.execute_switching_sequence(restoration_seq, scada_db)
+        if success:
+            result.restored_sections = de_energized
+            for sec in de_energized:
+                result.customers_restored += self.section_customers.get(sec, 0)
+        else:
+            result.unrestored_sections = de_energized
+
     def execute_flisr(
         self, tripped_switch_ids: list[str], scada_db=None
-    ) -> FLISRResult:  # NOSONAR
+    ) -> FLISRResult:
         """
         Execute full FLISR sequence:
         1. Detect fault section
@@ -546,42 +602,18 @@ class ADMSControlEngine:
 
         # Stage 2: Fault Isolation
         result.stage = FLISRStage.FAULT_ISOLATION
-        isolation_seq = self.isolate_fault(fault_section)
-        if isolation_seq:
-            success = self.execute_switching_sequence(isolation_seq, scada_db)
-            if not success:
-                result.stage = FLISRStage.FAILED
-                return result
-            result.isolated_sections.append(fault_section)
+        if self._isolate_fault(fault_section, scada_db, result):
+            return result
 
         # Update topology after isolation
         self.topology.identify_sections()
 
         # Find de-energized sections (not connected to any source)
-        de_energized = []
-        for section_id, buses in self.topology.section_buses.items():
-            if section_id == fault_section:
-                continue
-            is_energized = any(
-                self.topology.find_path(bus, src) for bus in buses for src in self.source_buses
-            )
-            if not is_energized:
-                de_energized.append(section_id)
+        de_energized = self._find_de_energized_sections(fault_section)
 
         # Stage 3: Service Restoration
         result.stage = FLISRStage.SERVICE_RESTORATION
-        if de_energized:
-            restoration_seq = self.plan_restoration(fault_section, de_energized)
-            if restoration_seq:
-                success = self.execute_switching_sequence(restoration_seq, scada_db)
-                if success:
-                    result.restored_sections = de_energized
-                    for sec in de_energized:
-                        result.customers_restored += self.section_customers.get(sec, 0)
-                else:
-                    result.unrestored_sections = de_energized
-            else:
-                result.unrestored_sections = de_energized
+        self._restore_service(fault_section, de_energized, scada_db, result)
 
         for sec in result.unrestored_sections:
             result.customers_affected += self.section_customers.get(sec, 0)

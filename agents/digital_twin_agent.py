@@ -416,9 +416,45 @@ class DigitalTwinAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
+    def _validate_model_deviation(self, md_data, errors: list[str]) -> None:
+        """Check MDI is non-negative, finite, and the sync status is valid."""
+        if md_data is None:
+            return
+        mdi = md_data.get("mdi", 0.0)
+        if mdi < 0:
+            errors.append(f"MDI is negative: {mdi:.6f}")
+        if not np.isfinite(mdi):
+            errors.append(f"MDI is not finite: {mdi}")
+        status = md_data.get("status", "")
+        valid_statuses = {
+            "synchronized",
+            "minor_drift",
+            "moderate_drift",
+            "significant_drift",
+            "critical_drift",
+        }
+        if status and status not in valid_statuses:
+            errors.append(f"Invalid synchronization status: {status}")
+
+    def _validate_data_quality(self, dq_data, errors: list[str]) -> None:
+        """Check DQI is between 0 and 100."""
+        if dq_data is None:
+            return
+        dqi = dq_data.get("dqi_percent", 0.0)
+        if dqi < 0 or dqi > 100:
+            errors.append(f"DQI out of range: {dqi:.2f}%")
+
+    def _validate_predictive_confidence(self, pcl_data, errors: list[str]) -> None:
+        """Check PCL is between 0 and 100."""
+        if pcl_data is None:
+            return
+        pcl = pcl_data.get("pcl_percent", 0.0)
+        if pcl < 0 or pcl > 100:
+            errors.append(f"PCL out of range: {pcl:.2f}%")
+
     def validate_result(
         self, result: AgentResult
-    ) -> bool:  # NOSONAR
+    ) -> bool:
         """
         Validate digital twin synchronization results.
 
@@ -430,35 +466,9 @@ class DigitalTwinAgent(BaseAgent):
         """
         errors: list[str] = []
 
-        md_data = result.data.get("model_deviation")
-        if md_data is not None:
-            mdi = md_data.get("mdi", 0.0)
-            if mdi < 0:
-                errors.append(f"MDI is negative: {mdi:.6f}")
-            if not np.isfinite(mdi):
-                errors.append(f"MDI is not finite: {mdi}")
-            status = md_data.get("status", "")
-            valid_statuses = {
-                "synchronized",
-                "minor_drift",
-                "moderate_drift",
-                "significant_drift",
-                "critical_drift",
-            }
-            if status and status not in valid_statuses:
-                errors.append(f"Invalid synchronization status: {status}")
-
-        dq_data = result.data.get("data_quality")
-        if dq_data is not None:
-            dqi = dq_data.get("dqi_percent", 0.0)
-            if dqi < 0 or dqi > 100:
-                errors.append(f"DQI out of range: {dqi:.2f}%")
-
-        pcl_data = result.data.get("predictive_confidence")
-        if pcl_data is not None:
-            pcl = pcl_data.get("pcl_percent", 0.0)
-            if pcl < 0 or pcl > 100:
-                errors.append(f"PCL out of range: {pcl:.2f}%")
+        self._validate_model_deviation(result.data.get("model_deviation"), errors)
+        self._validate_data_quality(result.data.get("data_quality"), errors)
+        self._validate_predictive_confidence(result.data.get("predictive_confidence"), errors)
 
         result.validation_errors.extend(errors)
         return len(errors) == 0
