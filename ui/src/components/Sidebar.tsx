@@ -2,6 +2,7 @@
 import {
   Activity,
   Bot,
+  Brain,
   Bug,
   ChevronLeft,
   ChevronRight,
@@ -68,6 +69,8 @@ const navItems: NavItem[] = [
   { to: "/admin/cua-monitor", icon: ShieldAlert, labelKey: "sidebar.cuaMonitor", section: "system" },
   { to: "/diagnostics", icon: Bug, labelKey: "sidebar.diagnostics", section: "system" },
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
+  { to: "/context-engine", icon: Brain, labelKey: "sidebar.contextEngine", section: "system" },
+  { to: "/templates", icon: FileText, labelKey: "sidebar.templates", section: "system" },
   { to: "/logs", icon: ScrollText, labelKey: "sidebar.logs", section: "system" },
 ];
 
