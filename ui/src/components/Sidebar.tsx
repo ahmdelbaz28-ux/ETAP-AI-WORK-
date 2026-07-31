@@ -17,6 +17,7 @@ import {
   Map,
   Moon,
   Network,
+  Package,
   Plug,
   ScrollText,
   Settings,
@@ -71,6 +72,7 @@ const navItems: NavItem[] = [
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
   { to: "/context-engine", icon: Brain, labelKey: "sidebar.contextEngine", section: "system" },
   { to: "/templates", icon: FileText, labelKey: "sidebar.templates", section: "system" },
+  { to: "/asset-library", icon: Package, labelKey: "sidebar.assetLibrary", section: "system" },
   { to: "/logs", icon: ScrollText, labelKey: "sidebar.logs", section: "system" },
 ];
 

@@ -58,6 +58,7 @@ const CuaMonitorPage = lazyLoad(() => import("./pages/CuaMonitor"));
 const CodeGuardPage = lazyLoad(() => import("./pages/CodeGuard"));
 const ContextEnginePage = lazyLoad(() => import("./pages/ContextEngine"));
 const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
+const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
@@ -191,6 +192,7 @@ export default function App() {
                 <Route path="/code-guard" element={<CodeGuardPage />} />
                 <Route path="/context-engine" element={<ContextEnginePage />} />
                 <Route path="/templates" element={<TemplatesPage />} />
+                <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
