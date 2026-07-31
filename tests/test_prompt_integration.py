@@ -290,6 +290,7 @@ class TestPromptHandleMapping:
             "predictive_agent": "PredictiveAgent (future ML)",
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
+            "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
         }
 
         prompts = list_available_prompts()

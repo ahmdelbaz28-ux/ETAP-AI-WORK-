@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import io
 import json
+import sys
 from typing import Any, Optional
 
 import anyio
@@ -376,6 +377,7 @@ def uds_path(tmp_path):
     return str(tmp_path / "acp_test.sock")
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="UDS is not supported on Windows")
 class TestUdsIntegration:
     """End-to-end tests using UDSListener with real socket connections."""
 

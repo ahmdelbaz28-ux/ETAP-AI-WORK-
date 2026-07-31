@@ -798,7 +798,7 @@ class ETAPProject:
         self, **kwargs
     ) -> dict[
         str, Any
-    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Run protection coordination study via ETAP COM.
 
@@ -967,7 +967,7 @@ class ETAPAutomation:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _validate_input(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _validate_input(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         value,
         value_type: str,
         min_val: Optional[float] = None,
@@ -1055,7 +1055,7 @@ class ETAPAutomation:
         return sanitized
 
     @staticmethod
-    def _validate_study_parameters(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _validate_study_parameters(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         study_type: ETAPStudyType,
         params: dict[str, Any],
     ) -> dict[str, Any]:
@@ -1255,9 +1255,7 @@ class ETAPAutomation:
         Validates path length against configured maximum.
         """
         if not file_path or not isinstance(file_path, str):
-            logger.warning(
-                "Invalid project path type or empty: %s", file_path
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning("Invalid project path type or empty: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
@@ -1269,9 +1267,7 @@ class ETAPAutomation:
             return False
 
         if not file_path.endswith(".edb"):
-            logger.warning(
-                "Invalid project file extension: %s", file_path
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning("Invalid project file extension: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
@@ -1286,9 +1282,7 @@ class ETAPAutomation:
 
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
-            logger.warning(
-                "UNC path not allowed (SMB relay risk): %s", file_path
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning("UNC path not allowed (SMB relay risk): %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
@@ -1301,7 +1295,7 @@ class ETAPAutomation:
             # Compute a purely-lexical "resolved" form by collapsing ".." / "."
             # without following symlinks. Python ≥ 3.6 Path.resolve(strict=False)
             # does this safely on non-existent paths.
-            # NOSONAR: file_path IS user-controlled, but
+            # NOSONAR file_path IS user-controlled, but
             # we LEXICALLY normalise via os.path.normpath BEFORE this resolve()
             # call, AND we enforce a strict containment check (resolved must be
             # inside cwd or home) AFTER it. The resolve() itself is non-strict
@@ -1309,11 +1303,9 @@ class ETAPAutomation:
             # filesystem write happens only inside the ETAP COM process which
             # validates the path again. Removing resolve() would break relative
             # path handling for legitimate ETAP project files.
-            resolved = normalised.resolve(strict=False)  # NOSONAR: see comment above
+            resolved = normalised.resolve(strict=False)  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
         except (ValueError, RuntimeError):
-            logger.warning(
-                "Invalid path format: %s", file_path
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.warning("Invalid path format: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1323,9 +1315,7 @@ class ETAPAutomation:
             try:
                 resolved.relative_to(home)
             except ValueError:
-                logger.warning(
-                    "Project path escapes CWD and HOME: %s", file_path
-                )  # NOSONAR  # S5145
+                logger.warning("Project path escapes CWD and HOME: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         if self._allowed_project_dirs:
@@ -1333,9 +1323,7 @@ class ETAPAutomation:
                 str(resolved).startswith(allowed_dir) for allowed_dir in self._allowed_project_dirs
             )
             if not is_allowed:
-                logger.warning(
-                    "Project path outside allowed directories: %s", file_path
-                )  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.warning("Project path outside allowed directories: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         return True
@@ -1382,9 +1370,7 @@ class ETAPAutomation:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
         if not self._validate_project_path(file_path):
-            logger.error(
-                "Project path validation failed: %s", file_path
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            logger.error("Project path validation failed: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return None
 
         try:
@@ -1393,14 +1379,10 @@ class ETAPAutomation:
             if com_project:
                 project = ETAPProject(com_project, file_path, com_timeout=self.com_timeout_seconds)
                 self._projects[file_path] = project
-                logger.info(
-                    "Opened project: %s", file_path
-                )  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.info("Opened project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return project
             else:
-                logger.error(
-                    "Failed to open project: %s", file_path
-                )  # NOSONAR: logging injection; user input is sanitized upstream
+                logger.error("Failed to open project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return None
 
         except pythoncom.com_error as e:
@@ -1500,9 +1482,9 @@ class ETAPAutomation:
         count = 0
         # list() creates a snapshot so we can safely del from self._projects
         # while iterating (otherwise RuntimeError: dict changed during iteration).
-        for path in list(
+        for path in list(  # NOSONAR S7504: snapshot needed for safe deletion during iteration
             self._projects.keys()
-        ):  # NOSONAR: snapshot needed for safe deletion during iteration
+        ):  # NOSONAR snapshot needed for safe deletion during iteration
             if self.close_project(path):
                 count += 1
         return count

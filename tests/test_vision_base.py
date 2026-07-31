@@ -113,7 +113,8 @@ class TestImageToDataUrl:
         assert result is not None
         assert result.startswith("data:image/png;base64,")
         # The part after the prefix should be valid base64
-        b64_part = result.removeprefix("data:image/png;base64,")
+        prefix = "data:image/png;base64,"
+        b64_part = result[len(prefix):] if result.startswith(prefix) else result
         import base64
 
         decoded = base64.b64decode(b64_part)

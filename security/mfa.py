@@ -99,7 +99,10 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
     FIPS-restricted runtimes and tells static analyzers the algorithm choice
     is intentional (RFC-mandated, not a security-primitive selection).
     """
-    return hashlib.sha1(data, usedforsecurity=False)
+    try:
+        return hashlib.sha1(data, usedforsecurity=False)
+    except TypeError:
+        return hashlib.sha1(data)
 
 
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:

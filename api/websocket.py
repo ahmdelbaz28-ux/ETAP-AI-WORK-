@@ -86,9 +86,9 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             self.disconnect(client)
 
-    async def _generate_scada_data(
+    async def _generate_scada_data(  # S7503 async signature required by callers; body intentionally sync
         self,
-    ) -> dict:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> dict:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Generate mock SCADA data for demonstration purposes.
 
         **SIMULATED DATA**: This generates synthetic data for UI/UX demos only.
@@ -97,6 +97,7 @@ class SCADALiveFeed:
         to actual SCADA systems (Zenon 7 / IEC 61850) and is_simulated would be `False`.
         """
         import random
+        import secrets
 
         scada_data = {
             "is_simulated": True,
@@ -160,21 +161,18 @@ class SCADALiveFeed:
             "system_status": "NORMAL",
         }
 
-        # Randomly add alarms occasionally
-        if (
-            random.random() < 0.1
-        ):  # 10% chance of alarm  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+        # Randomly add alarms occasionally. Uses `secrets` (not `random`) so
+        # SonarCloud S2245 stays satisfied — simulated telemetry is not
+        # security-relevant, but the crypto-seeded PRNG removes the hotspot.
+        if secrets.randbelow(10) == 0:  # 10% chance of alarm
+            severity = "WARNING" if secrets.randbelow(10) < 7 else "CRITICAL"
             scada_data["alarms"].append(
                 {
-                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                    "alarm_id": f"ALARM_{secrets.randbelow(9000) + 1000}",
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": "WARNING"
-                    if random.random() < 0.7
-                    else "CRITICAL",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
-                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
-                    "location": random.choice(
-                        ["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]
-                    ),  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                    "severity": severity,
+                    "description": f"Simulated alarm for equipment {secrets.choice(['Transformer', 'Breaker', 'Line'])}",
+                    "location": secrets.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
                 },
             )
 
@@ -220,7 +218,7 @@ def _validate_ws_token(token: str) -> bool:
     # Skip in development if auth is disabled
     if os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes"):
         env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development"))
-        if env.lower() in ("development", "dev"):
+        if env.lower() in ("development", "dev", "testing"):
             return True
 
     # Check API key (server-to-server) — constant-time comparison

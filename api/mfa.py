@@ -5,6 +5,8 @@ Handles all multi-factor authentication endpoints.
 Separated from main engineering service for better modularity.
 """
 
+from __future__ import annotations
+
 import threading
 import time
 from collections import defaultdict
@@ -34,11 +36,11 @@ async def setup_totp(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        user_id = body.get("user_id")
+        user_id = body.get("user_id")  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
         if not user_id:
             raise HTTPException(
                 status_code=400, detail="user_id is required"
-            )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
         from security.mfa import TOTPProvider
 

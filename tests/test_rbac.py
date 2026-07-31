@@ -36,17 +36,7 @@ if os.path.exists("./data/test_rbac.db"):
     os.remove("./data/test_rbac.db")
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a single event loop for the test session."""
-    import asyncio
-
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture()
 async def test_engine():
     """Create a test database engine."""
     engine = create_async_engine(TEST_DB_URL, echo=False)
@@ -54,7 +44,7 @@ async def test_engine():
     await engine.dispose()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 async def test_session_factory(test_engine):
     """Create a test session factory."""
     factory = async_sessionmaker(

@@ -197,7 +197,7 @@ class Router:
                 identity = await identity  # type: ignore[operator]
             caller_id = identity.caller_id
             # Merge caller scopes from token with config scopes
-            scope_validator = ScopeValidator(Union[self._config.caller_scopes, identity.scopes])
+            scope_validator = ScopeValidator(self._config.caller_scopes.union(identity.scopes))
         except AuthenticationRequired as e:
             return "", self._scope_validator, (AuthenticationRequired.code, e.message, e.data)
         except Exception as e:
@@ -241,8 +241,8 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        span_ctx: Optional[Any],
-        t0: float,
+        span_ctx: Optional[Any],  # S1172 param retained for interface consistency
+        t0: float,  # S1172 param retained for interface consistency
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
         try:
@@ -270,8 +270,6 @@ class Router:
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
         caller_id = ""
-        outcome = "success"
-        error_code = 0
 
         # Observability: start span
         span_ctx = self._start_span(req)
@@ -356,7 +354,7 @@ class Router:
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-    async def _finish_observability(
+    async def _finish_observability(  # S7503 async signature required by callers; body intentionally sync
         self,
         span_ctx: Optional[Any],
         t0: float,
