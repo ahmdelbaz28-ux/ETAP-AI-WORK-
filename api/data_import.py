@@ -354,7 +354,12 @@ def _parse_csv_branches(reader: csv.DictReader, warnings: list[str]) -> list[Bra
 def _parse_json(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format."""
+    """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format.
+
+    V-52 FIX: Added JSON depth limit (max 20 levels) and key count limit
+    (max 10,000 keys) to prevent JSON bomb attacks (deeply nested or
+    excessively wide JSON objects that exhaust memory/CPU during parsing).
+    """
     text, warnings = _decode_text(content)
     try:
         data = json.loads(text)
@@ -363,6 +368,28 @@ def _parse_json(
 
     if not isinstance(data, dict):
         raise ValueError("JSON root must be an object")
+
+    # V-52: Validate JSON depth and key count to prevent JSON bomb attacks
+    _MAX_JSON_DEPTH = 20
+    _MAX_JSON_KEYS = 10000
+
+    def _check_depth(obj: Any, depth: int = 0) -> int:
+        """Recursively check JSON depth and count keys. Returns key count."""
+        if depth > _MAX_JSON_DEPTH:
+            raise ValueError(f"JSON nesting exceeds maximum depth of {_MAX_JSON_DEPTH}")
+        key_count = 0
+        if isinstance(obj, dict):
+            key_count = len(obj)
+            for v in obj.values():
+                key_count += _check_depth(v, depth + 1)
+        elif isinstance(obj, list):
+            for item in obj:
+                key_count += _check_depth(item, depth + 1)
+        if key_count > _MAX_JSON_KEYS:
+            raise ValueError(f"JSON key count exceeds maximum of {_MAX_JSON_KEYS}")
+        return key_count
+
+    _check_depth(data)
 
     buses_raw = data.get("buses") or data.get("nodes") or data.get("bus_list") or []
     branches_raw = data.get("branches") or data.get("lines") or data.get("branch_list") or []

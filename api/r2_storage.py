@@ -110,6 +110,24 @@ BLOCKED_MIME_TYPES: set[str] = {
     "application/x-msdownload",  # Windows download
 }
 
+# V-53: Dangerous file extensions that are ALWAYS blocked
+BLOCKED_EXTENSIONS: set[str] = {
+    ".html", ".htm",          # XSS vector
+    ".js", ".mjs",            # JavaScript — can execute in browser
+    ".vbs", ".vbe",           # VBScript
+    ".wsf", ".wsh",           # Windows Script Host
+    ".bat", ".cmd",           # Windows batch
+    ".ps1", ".psm1",          # PowerShell
+    ".sh", ".bash",           # Shell scripts
+    ".py", ".pyw",            # Python
+    ".exe", ".dll",           # Windows executables
+    ".msi", ".msp",           # Windows installers
+    ".scr", ".com",           # Screensaver / DOS executable
+    ".hta",                   # HTML Application (IE)
+    ".lnk",                   # Windows shortcut
+    ".svg",                   # SVG can contain JavaScript (XSS)
+}
+
 # V-27: Maximum upload size (100 MB by default)
 MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")) * 1024 * 1024
 
@@ -246,6 +264,15 @@ async def upload(
         raise RuntimeError("R2 is not configured")
 
     key = _validate_key(key)  # SECURITY S-10: path traversal validation
+
+    # V-53: Validate file extension — reject dangerous extensions
+    key_lower = key.lower()
+    for ext in BLOCKED_EXTENSIONS:
+        if key_lower.endswith(ext):
+            raise ValueError(
+                f"Blocked file extension: {ext}. "
+                f"This file type is not allowed for security reasons."
+            )
 
     # V-26: Validate MIME type — reject dangerous content types
     content_type_lower = content_type.lower().strip()
