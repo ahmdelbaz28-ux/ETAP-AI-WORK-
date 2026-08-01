@@ -278,10 +278,15 @@ jobs:
   health-check:
     name: 🩺 Post-rollback health check
     runs-on: ubuntu-latest
-    needs: [rollback-vercel, rollback-hf]
+    # `validate` MUST be in needs so we can read needs.validate.outputs.do_vercel
+    # (GitHub Actions only exposes outputs of jobs listed in `needs`, not
+    # transitively-reachable jobs). rollback-vercel and rollback-hf already
+    # depend on validate, so adding it here is a no-op for ordering.
+    needs: [validate, rollback-vercel, rollback-hf]
     if: ${{ !cancelled() && github.event.inputs.skip_health_check != 'true' }}
     steps:
       - name: Check HF Space health
+        if: needs.validate.outputs.do_hf == 'true'
         env:
           HF_SPACE_URL: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
         run: |
