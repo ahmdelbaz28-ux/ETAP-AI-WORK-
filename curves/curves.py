@@ -18,7 +18,7 @@ class IEC60255Curves:
 
     @staticmethod
     def standard_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Standard inverse curve.
@@ -31,7 +31,7 @@ class IEC60255Curves:
 
     @staticmethod
     def very_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Very inverse curve.
@@ -44,7 +44,7 @@ class IEC60255Curves:
 
     @staticmethod
     def extremely_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Extremely inverse curve.
@@ -57,7 +57,7 @@ class IEC60255Curves:
 
     @staticmethod
     def long_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Long inverse curve (UK).

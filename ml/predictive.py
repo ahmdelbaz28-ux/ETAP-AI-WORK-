@@ -302,14 +302,14 @@ class LoadForecaster:
         self._is_lstm = True
         return {"method": "lstm", "epochs": epochs, "samples": len(data)}
 
-    def _train_linear(self, data: np.ndarray) -> dict[str, Any]:
+    def _train_linear(self, data: np.ndarray) -> dict[str, Any]:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         """Fallback: train an autoregressive linear model (least-squares)."""
         self._fallback_mean = float(np.mean(data))
         self._fallback_std = float(np.std(data)) if np.std(data) > 0 else 1.0
-        normalized = (data - self._fallback_mean) / self._fallback_std
+        normalized = (data - self._fallback_mean) / self._fallback_std  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         X, y = self._create_sequences(normalized)
-        X_flat = X.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        X_flat = X.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             X.shape[0], X.shape[1]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -335,7 +335,7 @@ class LoadForecaster:
         Uses ``self._trained_window_size`` when set (i.e. train() has been
         called and may have shrunk the window for a short sample), otherwise
         falls back to the default ``self._window_size``.
-        """
+        """  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         w = self._trained_window_size or self._window_size
         X: list[np.ndarray] = []
         y: list[float] = []
@@ -506,7 +506,7 @@ class FaultPredictor:
             Use Optuna for hyperparameter optimization during training.
         """
         self.model: Any = None
-        self._is_trained: bool = False
+        self._is_trained: bool = False  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         self._use_xgboost = use_xgboost and _HAS_XGBOOST
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP

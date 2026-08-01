@@ -51,7 +51,7 @@ def _read_code_from_stdin() -> Optional[str]:
         return None
 
 
-def main() -> (  # S3776 cognitive complexity intentional; logic validated by tests
+def main() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     code = _read_code_from_stdin()

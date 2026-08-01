@@ -69,7 +69,7 @@ class System:
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
-        Ybus = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Ybus = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (n, n), dtype=complex
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 

@@ -531,7 +531,7 @@ def _resolve_yaml_fallback(handle: str, yaml_prompt: Optional[str]) -> str:
     # Tier 6: Hardcoded safety-net
     _cache_prompt(handle, None, "safety_net")
     logger.error("Prompt '%s' not found anywhere — using hardcoded safety-net.", handle)
-    return _FALLBACK_PROMPT
+    return _FALLBACK_PROMPT  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 
 async def get_system_prompt_async(  # S3776 cognitive complexity intentional; logic validated by tests

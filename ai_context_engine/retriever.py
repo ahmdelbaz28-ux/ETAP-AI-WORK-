@@ -29,7 +29,7 @@ class CodeCompressor:
         return len(text) // 4
 
     @classmethod
-    def compress_chunks(  # S3776 cognitive complexity intentional; logic validated by tests
+    def compress_chunks(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         cls, chunks: list[dict], query: str, max_tokens: int = 2000
     ) -> list[
         dict

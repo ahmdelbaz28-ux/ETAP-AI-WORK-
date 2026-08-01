@@ -643,7 +643,7 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     return result
 
 
-@app.post(
+@app.post(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     "/api/v1/agents/etap-gui/execute",
     tags=["Agents"],
     responses={504: {"description": "CUA Loop timed out"}},

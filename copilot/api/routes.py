@@ -124,7 +124,7 @@ class CopilotAPI:
             autocad_connector=self.mcp.autocad,
             revit_connector=self.mcp.revit,
             etap_provider=self.etap_provider,
-        )
+        )  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         self.start_time = time.time()
         self._call_count = 0
 

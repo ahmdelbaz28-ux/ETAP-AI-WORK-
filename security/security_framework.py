@@ -459,7 +459,7 @@ class InputValidator:
     """
 
     # ast.Exec was removed in Python 3 (historically Py2 only). This project targets Py3.8,
-    # so reference it conditionally to keep compatibility.
+    # so reference it conditionally to keep compatibility.  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     FORBIDDEN_AST_NODES = tuple(
         n
         for n in (

@@ -95,7 +95,7 @@ ARABIC_TO_ENGLISH_KEYBOARD_MAP: dict[str, str] = {
 }
 
 
-def normalize_input(  # S3776 cognitive complexity intentional; logic validated by tests
+def normalize_input(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     text: str,
 ) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """

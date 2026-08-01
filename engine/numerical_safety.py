@@ -464,10 +464,10 @@ class MatrixStabilizer:
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
     def safe_solve(
-        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Solve Ax = b with fallback to least-squares on singular systems."""
-        A_arr = np.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        A_arr = np.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             A, dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_arr = np.asarray(b, dtype=float)

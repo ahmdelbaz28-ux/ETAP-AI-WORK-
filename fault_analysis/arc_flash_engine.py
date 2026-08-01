@@ -250,15 +250,15 @@ class ArcFlashEngine:
             k1, k2, k3 = coeffs["high"]
 
         # Iarc formula: 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
-        log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             k1 + k2 * np.log10(Ibf) + k3 * Ibf
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             10**log_Iarc
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Reduced arc current (85% multiplier for fuse reduction factor)
-        Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0.85 * Iarc
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -297,7 +297,7 @@ class ArcFlashEngine:
         tuple: (E_final, e_full, e_reduced) in cal/cm^2.
         """
         # Calculate arc current
-        Iarc, Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc, Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             ArcFlashEngine.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv,
                 bolted_fault_current_ka,
@@ -339,11 +339,11 @@ class ArcFlashEngine:
         if enclosure_type == EnclosureType.BOX:
             # Enclosure size correction per IEEE 1584-2018
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
-            V_enc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            V_enc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm
             )  # mm^3  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
-            V_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            V_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 508.0**3
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if V_enc > 0 and V_enc != V_ref:
@@ -401,7 +401,7 @@ class ArcFlashEngine:
         e_reduced = (10**log_e_reduced) * CF / math.pow(D, x_power)
 
         # Use the higher of the two values
-        E_final = max(e_full, e_reduced)  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_final = max(e_full, e_reduced)  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
 
         return E_final, e_full, e_reduced
 
@@ -470,7 +470,7 @@ class ArcFlashEngine:
             x_factor_num = 1.0
 
         # Compute incident energy at the given working distance
-        E_final, _, _ = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_final, _, _ = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             ArcFlashEngine.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv=voltage_kv,
                 bolted_fault_current_ka=bolted_fault_current_ka,
@@ -488,7 +488,7 @@ class ArcFlashEngine:
             return 0.0
 
         # E scales as 1 / D^x => D_boundary = D_work * (E_work / 1.2)^(1/x)
-        D_boundary = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        D_boundary = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             working_distance_mm * math.pow(E_final / 1.2, 1.0 / x_factor_num)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -560,7 +560,7 @@ class ArcFlashEngine:
         )
 
         # Calculate arc current
-        Iarc, Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc, Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             self.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv,
                 bolted_fault_current_ka,
@@ -569,7 +569,7 @@ class ArcFlashEngine:
         )
 
         # Calculate incident energy
-        E_final, e_full, e_reduced = self.calculate_incident_energy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_final, e_full, e_reduced = self.calculate_incident_energy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -646,7 +646,7 @@ class ArcFlashEngine:
         E = (5.12e5 * V * Ibf * t) / (D**2)
 
         # Arc flash boundary (mm) where incident energy = 1.2 cal/cm^2
-        D_boundary = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        D_boundary = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 

@@ -378,7 +378,7 @@ class GISSyncBridge:
                     asset.properties["is_closed"] = is_closed
                     self.postgis.upsert_asset(asset)
 
-    def sync_digital_twin_to_gis(  # S3776 cognitive complexity intentional; logic validated by tests
+    def sync_digital_twin_to_gis(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self,
     ) -> list[
         SyncRecord

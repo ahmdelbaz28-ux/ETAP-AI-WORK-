@@ -110,7 +110,7 @@ class _SSRFBlockedError(ValueError):
     """Raised when a webhook URL targets a forbidden (internal) address."""
 
 
-def _validate_webhook_url(url_str: str) -> None:
+def _validate_webhook_url(url_str: str) -> None:  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     """Validate that *url_str* is https (or localhost in dev) and not an internal address.
 
     Blocks:

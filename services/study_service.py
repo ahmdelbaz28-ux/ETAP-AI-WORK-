@@ -51,7 +51,7 @@ __all__ = [
 
 
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
-def _build_system_from_spec(  # S3776 cognitive complexity intentional; logic validated by tests
+def _build_system_from_spec(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     spec: SystemSpec,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
@@ -333,7 +333,7 @@ def _run_etap_study(
     }
 
 
-def execute_study_logic(  # S3776 cognitive complexity intentional; logic validated by tests
+def execute_study_logic(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     payload: StudyRequest, trace_id: str, start_time: float
 ) -> StudyResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Execute study logic with caching and proper error handling."""

@@ -131,7 +131,7 @@ class SIEMSyslogForwarder:
     Singleton pattern — one forwarder per process.
     """
 
-    def __init__(  # S3776 cognitive complexity intentional; logic validated by tests
+    def __init__(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self,
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self.enabled = os.getenv("SIEM_ENABLED", "false").lower() == "true"

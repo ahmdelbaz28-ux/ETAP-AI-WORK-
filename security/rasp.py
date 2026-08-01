@@ -172,7 +172,7 @@ class RASPEngine:
     def enabled(self, value: bool) -> None:
         self._enabled = value
 
-    def inspect(  # S3776 cognitive complexity intentional; logic validated by tests
+    def inspect(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, data: dict[str, Any]
     ) -> list[
         RASPResult

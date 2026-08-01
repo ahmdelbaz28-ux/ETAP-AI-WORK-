@@ -178,7 +178,7 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-03: One scenario per test
     # ------------------------------------------------------------------
-    def _check_multi_scenario(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _check_multi_scenario(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: ast.AST, source: str
     ) -> list[
         GuardViolation

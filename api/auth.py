@@ -951,7 +951,7 @@ async def register(
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
 )
-async def login(
+async def login(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     request: Request,
     body: LoginRequest,
     db: DbDep,

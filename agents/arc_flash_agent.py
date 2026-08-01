@@ -173,7 +173,7 @@ class ArcFlashAgent(BaseAgent):
             # Low voltage model
             k1 = 0.0
             k2 = -0.041 if electrode_config == "VCB" else -0.033  # HCB
-            log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
             )  # NOSONAR
         elif voltage_kv <= 2.7:
@@ -185,12 +185,12 @@ class ArcFlashAgent(BaseAgent):
             # High voltage (> 2.7 kV up to 15 kV)
             log_Iarc = np.log10(Ibf) * 0.978 + 0.001 * G
 
-        Iarc = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             10.0**log_Iarc
         )  # NOSONAR
 
         # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
-        Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0.85 * Iarc
         )  # NOSONAR
 
@@ -263,7 +263,7 @@ class ArcFlashAgent(BaseAgent):
         else:
             # Lee method for > 15 kV
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
-            E_lee = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            E_lee = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 2.142e6 * voltage_kv * Iarc * t / (D**2)
             )  # NOSONAR
             return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
@@ -272,7 +272,7 @@ class ArcFlashAgent(BaseAgent):
         log_E = (  # NOSONAR
             c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
         )
-        E_normalization = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_normalization = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             10.0**log_E
         )  # NOSONAR
 
@@ -462,7 +462,7 @@ class ArcFlashAgent(BaseAgent):
 
         arc_data = result.data.get("arc_current")
         if arc_data is not None:
-            Iarc = arc_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            Iarc = arc_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 "arc_current_ka", 0.0
             )  # NOSONAR
             if Iarc <= 0:

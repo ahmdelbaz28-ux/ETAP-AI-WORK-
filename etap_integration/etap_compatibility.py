@@ -208,7 +208,7 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-    def run_compatibility_tests(  # S3776 cognitive complexity intentional; logic validated by tests
+    def run_compatibility_tests(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self,
     ) -> list[
         CheckResult

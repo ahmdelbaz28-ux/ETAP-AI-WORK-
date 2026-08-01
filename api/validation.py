@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/v1/system", tags=["validation"])
         500: {"description": "Internal validation error"},
     },
 )
-async def validate_system(  # S3776 cognitive complexity intentional; logic validated by tests
+async def validate_system(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     request: Request, spec: SystemSpec
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.

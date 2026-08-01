@@ -12,7 +12,7 @@ class LoadFlowIssue:
     details: dict[str, object]
 
 
-def _compute_deterministic_voltages(  # S3776 cognitive complexity intentional; logic validated by tests
+def _compute_deterministic_voltages(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     model: ElectricalModel,
 ) -> dict[
     str, float

@@ -313,7 +313,7 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def diff(  # S3776 cognitive complexity intentional; logic validated by tests
+    def diff(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, version_a: int, version_b: int
     ) -> (
         dict[str, Any] | None

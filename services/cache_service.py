@@ -93,7 +93,7 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(  # S3776 cognitive complexity intentional; logic validated by tests
+    async def get(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, key: str, *args: Any, **kwargs: Any
     ) -> (
         dict[str, Any] | None

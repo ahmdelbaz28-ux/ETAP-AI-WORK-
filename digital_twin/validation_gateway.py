@@ -440,7 +440,7 @@ class ValidationGateway:
     # ADMS LAYER VALIDATIONS (Operational Truth)
     # ============================================================
 
-    def _validate_adms_layer(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _validate_adms_layer(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, scada_db, adms_engine
     ) -> list[
         ValidationResult

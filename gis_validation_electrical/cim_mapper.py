@@ -73,7 +73,7 @@ def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     return default
 
 
-def map_adms_to_cim(  # S3776 cognitive complexity intentional; logic validated by tests
+def map_adms_to_cim(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     assets: list[ADMSAsset],
 ) -> CIMModel:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """

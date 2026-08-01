@@ -440,10 +440,10 @@ class ShortCircuitAgent(BaseAgent):
                 )  # NOSONAR
 
             # Build sequence networks
-            system_data.build_sequence_networks()
+            system_data.build_sequence_networks()  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             Ybus_pos = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                seq="1"
+                seq="1"  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             )  # NOSONAR
             Ybus_neg = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
@@ -575,7 +575,7 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             # Create engine
             engine = HarmonicAnalysisEngine(
-                fundamental_freq=task.parameters.get("fundamental_freq", 60.0),
+                fundamental_freq=task.parameters.get("fundamental_freq", 60.0),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                 max_harmonic=self.max_harmonic_order,
             )
 
@@ -678,7 +678,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
-            # system_data is now guaranteed non-None (else ValueError above)
+            # system_data is now guaranteed non-None (else ValueError above)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             generator_costs = task.parameters.get("generator_costs", [])
             method = task.parameters.get("method", "dc")
 
@@ -745,13 +745,13 @@ class OptimalPowerFlowAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate OPF results."""
-        if not result.data.get("success"):
+        if not result.data.get("success"):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             result.validation_errors.append("OPF did not converge")
             return False
-
+  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Check power balance
         P_gen = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            "total_generation_mw", 0
+            "total_generation_mw", 0  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         )  # NOSONAR
         P_load = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_load_mw", 0

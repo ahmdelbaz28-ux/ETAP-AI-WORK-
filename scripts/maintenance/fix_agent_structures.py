@@ -14,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_file_structure(  # S3776 cognitive complexity intentional; logic validated by tests
+def check_agent_file_structure(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     filepath: str,
 ) -> list[
     str

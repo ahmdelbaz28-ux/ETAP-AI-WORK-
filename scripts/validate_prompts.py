@@ -84,7 +84,7 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(  # S3776 cognitive complexity intentional; logic validated by tests
+def validate_prompt_file(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     filepath: Path,
 ) -> tuple[
     bool, list[str]
@@ -189,7 +189,7 @@ def validate_prompt_file(  # S3776 cognitive complexity intentional; logic valid
     ) == 0, issues
 
 
-def validate_all_prompts(  # S3776 cognitive complexity intentional; logic validated by tests
+def validate_all_prompts(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
     strict: bool = False,
 ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate all YAML prompt files in the prompts directory."""

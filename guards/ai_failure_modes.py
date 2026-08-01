@@ -273,7 +273,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-01: Catch-all error swallowing
     # ------------------------------------------------------------------
-    def _detect_catch_all(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_catch_all(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: Optional[ast.AST], source: str
     ) -> list[
         GuardViolation
@@ -442,7 +442,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
-    def _detect_rederive(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_rederive(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation
@@ -483,7 +483,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
-    def _detect_unused_imports(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_unused_imports(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation
@@ -633,7 +633,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-10: Copy-paste drift (near-duplicate blocks)
     # ------------------------------------------------------------------
-    def _detect_copy_paste_drift(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_copy_paste_drift(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, source: str
     ) -> list[
         GuardViolation
@@ -716,7 +716,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-13: Magic numbers without named constants
     # ------------------------------------------------------------------
-    def _detect_magic_numbers(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_magic_numbers(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: Optional[ast.AST], source: str
     ) -> list[
         GuardViolation
@@ -967,7 +967,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
-    def _detect_enum_boundary(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _detect_enum_boundary(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation

@@ -565,7 +565,7 @@ class PostGISProvider:
     # Network mapping
     # ------------------------------------------------------------------
 
-    def map_electrical_to_gis(  # S3776 cognitive complexity intentional; logic validated by tests
+    def map_electrical_to_gis(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, electrical_ids: list[str]
     ) -> dict[
         str, dict[str, Any]

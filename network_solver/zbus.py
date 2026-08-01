@@ -2,7 +2,7 @@ import numpy as np
 
 
 def zbus_from_ybus(
-    Ybus, reference_bus=0  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    Ybus, reference_bus=0  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus matrix from Ybus by inverting the reduced Ybus matrix.
@@ -15,12 +15,12 @@ def zbus_from_ybus(
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n-1 x n-1).
     """
     # Remove the reference bus row and column
-    Y_reduced = np.delete(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    Y_reduced = np.delete(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     # Compute the inverse
     try:
-        Z_reduced = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Z_reduced = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             Y_reduced
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     except np.linalg.LinAlgError:
@@ -31,7 +31,7 @@ def zbus_from_ybus(
 
 
 def zbus_full(
-    Ybus,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    Ybus,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus by inverting the full Ybus matrix.

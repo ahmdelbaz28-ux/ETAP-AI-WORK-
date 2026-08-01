@@ -411,7 +411,7 @@ class CoordinationAgent(BaseAgent):
 
             # --- Relay operating time ---
             if analysis_type in ("relay_time", "full"):
-                fault_I = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                fault_I = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     task.parameters.get("fault_current_a", 5000.0)
                 )  # NOSONAR
                 pickup = float(task.parameters.get("pickup_current_a", 800.0))

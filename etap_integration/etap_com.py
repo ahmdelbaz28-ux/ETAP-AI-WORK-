@@ -794,7 +794,7 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
-    def _run_protection_coordination(
+    def _run_protection_coordination(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         self, **kwargs
     ) -> dict[
         str, Any

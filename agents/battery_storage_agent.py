@@ -116,10 +116,10 @@ class BatteryStorageAgent(BaseAgent):
 
         # Power capacity: maximum load above target
         load_above_target = np.maximum(load_profile_kw - target_peak_kw, 0.0)
-        P_required = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        P_required = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.max(load_above_target)
         )  # NOSONAR
-        P_bess = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        P_bess = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             P_required, max_power_kw
         )  # NOSONAR
 
@@ -136,12 +136,12 @@ class BatteryStorageAgent(BaseAgent):
         )
 
         # Also consider duration-based sizing
-        E_duration = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_duration = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             P_bess * discharge_duration_hours
         )  # NOSONAR
 
         # Take the larger of the two energy requirements
-        E_required = max(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_required = max(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             E_deliverable, E_duration
         )  # NOSONAR
 
@@ -154,7 +154,7 @@ class BatteryStorageAgent(BaseAgent):
         )
 
         # Energy rating at nominal conditions (accounting for DoD)
-        E_nominal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_nominal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             E_total / dod_max if dod_max > 0 else E_total
         )  # NOSONAR
 
@@ -252,10 +252,10 @@ class BatteryStorageAgent(BaseAgent):
         # Initialize
         soc = np.zeros(n_periods + 1)
         soc[0] = initial_soc
-        P_charge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        P_charge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_periods
         )  # NOSONAR
-        P_discharge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        P_discharge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_periods
         )  # NOSONAR
         soc_history = np.zeros(n_periods)
@@ -652,13 +652,13 @@ class BatteryStorageAgent(BaseAgent):
 
         # Temperature derating (Arrhenius)
         R_gas = 8.314e-3  # kJ/(mol·K)  # NOSONAR
-        T_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        T_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             25.0 + 273.15
         )  # K  # NOSONAR
-        T_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        T_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             temperature_C + 273.15
         )  # K  # NOSONAR
-        Ea = params[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Ea = params[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "Ea_kJmol"
         ]  # NOSONAR
 

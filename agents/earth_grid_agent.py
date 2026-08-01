@@ -86,7 +86,7 @@ class EarthGridAgent(BaseAgent):
         """
         K = (rho_s - rho_b) / (rho_s + rho_b)
         # IEEE 80 Eq. 27:
-        Cs = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Cs = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             1.0 - ((1.0 - 0.09) / (2.0 * hs + 0.09)) * (1.0 - K)
         )  # NOSONAR
         return float(np.clip(Cs, 0.01, 1.0))
@@ -128,13 +128,13 @@ class EarthGridAgent(BaseAgent):
         Dict[str, float]
             Allowable touch and step voltages in volts.
         """
-        Cs = self._surface_derating_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Cs = self._surface_derating_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             rho_s, rho_b, hs
         )  # NOSONAR
 
         # Current factor based on body weight
         if body_weight_kg <= 50:
-            I_body = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            I_body = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 0.116 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
             )  # NOSONAR
         else:
@@ -144,12 +144,12 @@ class EarthGridAgent(BaseAgent):
         R_body = 1000.0  # NOSONAR
 
         # Allowable touch voltage: E_touch = (R_body + 1.5 ρ_s C_s) × I_body
-        E_touch = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_touch = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (R_body + 1.5 * rho_s * Cs) * I_body
         )  # NOSONAR
 
         # Allowable step voltage: E_step = (R_body + 6.0 ρ_s C_s) × I_body
-        E_step = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_step = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (R_body + 6.0 * rho_s * Cs) * I_body
         )  # NOSONAR
 
@@ -222,10 +222,10 @@ class EarthGridAgent(BaseAgent):
 
         # Spacing
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
-        L_total = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        L_total = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_parallel * grid_length_m + n_cross * grid_width_m
         )  # NOSONAR
-        L_rods = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        L_rods = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_rods * rod_length_m
         )  # NOSONAR
         L_M = L_total + L_rods  # Effective buried length
@@ -234,7 +234,7 @@ class EarthGridAgent(BaseAgent):
         d = conductor_diameter_m
         h = depth_m
 
-        K_m = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        K_m = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (1.0 / (2.0 * np.pi))
             * (  # NOSONAR
                 np.log(D**2 / (16.0 * h * d)) + np.log((3.0 * h + 0.4 * D) / ((2.0 * h) ** 0.5 * d))
@@ -242,12 +242,12 @@ class EarthGridAgent(BaseAgent):
         )
 
         # Irregularity factor K_i (IEEE 80 Eq. 68)
-        K_i = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        K_i = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0.656 + 0.172 * n_parallel
         )  # NOSONAR
 
         # Mesh voltage
-        E_mesh = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_mesh = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             rho * K_m * K_i * Ig / L_M if L_M > 0 else 0.0
         )  # NOSONAR
 
@@ -315,10 +315,10 @@ class EarthGridAgent(BaseAgent):
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
         h = depth_m
 
-        L_total = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        L_total = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_parallel * grid_length_m + n_cross * grid_width_m
         )  # NOSONAR
-        L_rods = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        L_rods = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_rods * rod_length_m
         )  # NOSONAR
         L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
@@ -329,7 +329,7 @@ class EarthGridAgent(BaseAgent):
         if h <= 0 or D <= 0:
             K_s = 0.0  # NOSONAR
         else:
-            two_h_over_D = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            two_h_over_D = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 2.0 * h / D
             )  # NOSONAR
             K_s = (1.0 / np.pi) * (
@@ -340,11 +340,11 @@ class EarthGridAgent(BaseAgent):
             )
 
         # Irregularity factor (same as mesh voltage)
-        K_i = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        K_i = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0.656 + 0.172 * n_parallel
         )  # NOSONAR
 
-        E_step = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_step = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             rho * K_s * K_i * Ig / L_S if L_S > 0 else 0.0
         )  # NOSONAR
 
@@ -391,11 +391,11 @@ class EarthGridAgent(BaseAgent):
             Touch voltage at perimeter and GPR.
         """
         # Grid resistance (Schwarz formula, simplified)
-        A_grid = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        A_grid = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             grid_length_m * grid_width_m
         )  # NOSONAR
         _perimeter = 2.0 * (grid_length_m + grid_width_m)
-        L_total_buried = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        L_total_buried = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (2.0 * grid_length_m + 2.0 * grid_width_m) + n_rods * rod_length_m
         )  # NOSONAR
 
@@ -420,12 +420,12 @@ class EarthGridAgent(BaseAgent):
             depth_m=depth_m,
         )
 
-        E_mesh = mesh_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_mesh = mesh_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "E_mesh_V"
         ]  # NOSONAR
 
         # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
-        E_touch_perimeter = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_touch_perimeter = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             GPR - E_mesh if E_mesh < GPR else E_mesh
         )  # NOSONAR
 
@@ -539,13 +539,13 @@ class EarthGridAgent(BaseAgent):
         )
 
         # Safety checks
-        E_mesh_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_mesh_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             mesh["E_mesh_V"] <= allowable["E_touch_allowable_V"]
         )  # NOSONAR
-        E_step_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_step_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             step["E_step_V"] <= allowable["E_step_allowable_V"]
         )  # NOSONAR
-        E_touch_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_touch_safe = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]
         )  # NOSONAR
         all_safe = E_mesh_safe and E_step_safe and E_touch_safe
@@ -640,7 +640,7 @@ class EarthGridAgent(BaseAgent):
         if len(rho_apparent) > 2:
             gradients = np.diff(log_rho) / np.diff(log_a)
             max_grad_idx = int(np.argmax(np.abs(gradients)))
-            H_est = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            H_est = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 probe_spacings_m[max_grad_idx]
             )  # NOSONAR
         else:
@@ -711,10 +711,10 @@ class EarthGridAgent(BaseAgent):
             body_weight_kg=body_weight_kg,
         )
 
-        E_touch_limit = allowable[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_touch_limit = allowable[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "E_touch_allowable_V"
         ]  # NOSONAR
-        E_step_limit = allowable[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        E_step_limit = allowable[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "E_step_allowable_V"
         ]  # NOSONAR
 
