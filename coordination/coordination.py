@@ -1,4 +1,19 @@
+"""
+Coordination Engine - Protection coordination analysis.
+
+V-TCC-01 Self-Critique Fixes:
+- Removed duplicate _trip_time_for_tms() that duplicated relay.trip_time()
+  logic. Now uses calculate_iec_operating_time() directly in
+  suggest_tms_adjustment(), ensuring safety guards are always enforced.
+- The relay's trip_time() method already delegates to the safe function,
+  so check_coordination() is automatically safe.
+"""
+
+from __future__ import annotations
+
 import numpy as np
+
+from curves.curves import calculate_iec_operating_time, MAX_MULTIPLIER_OF_PICKUP, MIN_OPERATING_TIME_S
 
 
 class CoordinationEngine:
@@ -41,7 +56,9 @@ class CoordinationEngine:
         Returns:
         dict: Coordination status and times.
         """
-        # Get trip times for both relays
+        # Get trip times for both relays — safety guards are enforced
+        # automatically because OvercurrentRelay.trip_time() delegates
+        # to calculate_iec_operating_time().
         t_up = upstream_relay.trip_time(fault_current)
         t_down = downstream_relay.trip_time(fault_current)
 
@@ -81,11 +98,11 @@ class CoordinationEngine:
         list: List of coordination results for each fault current.
         """
         results = []
-        for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        for If in fault_currents:  # NOSONAR physics/engineering notation
             results.append(self.check_coordination(upstream_relay, downstream_relay, If))
         return results
 
-    def suggest_tms_adjustment(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def suggest_tms_adjustment(
         self,
         upstream_relay,
         downstream_relay,
@@ -94,6 +111,10 @@ class CoordinationEngine:
     ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
+
+        V-TCC-01: Now uses calculate_iec_operating_time() directly
+        instead of the old _trip_time_for_tms() that duplicated relay
+        logic. This ensures safety guards are always enforced.
 
         Parameters:
         upstream_relay (OvercurrentRelay): The upstream relay (to be adjusted).
@@ -105,45 +126,36 @@ class CoordinationEngine:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
 
-        # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
-        # This avoids the original bug where the relay's TMS was temporarily changed
-        # during the search loop, which could affect concurrent reads of the relay.
-        def _trip_time_for_tms(
-            tms,
-            relay,
-            i,
-        ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            # Use the relay's curve type and Ip, but override TMS locally
-            i_mag = abs(
-                i
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            if i_mag < relay.Ip:
-                return float("inf")
-            if relay.curve_type == "standard_inverse":
-                return relay.curves.standard_inverse(tms, i_mag, relay.Ip)
-            elif relay.curve_type == "very_inverse":
-                return relay.curves.very_inverse(tms, i_mag, relay.Ip)
-            elif relay.curve_type == "extremely_inverse":
-                return relay.curves.extremely_inverse(tms, i_mag, relay.Ip)
-            elif relay.curve_type == "long_inverse":
-                return relay.curves.long_inverse(tms, i_mag, relay.Ip)
-            else:
-                raise ValueError(f"Unknown curve type: {relay.curve_type}")
+        def _trip_time_for_tms(tms, relay, i):
+            """Compute trip time for a given TMS WITHOUT mutating the relay.
 
-        best_TMS = None  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Uses calculate_iec_operating_time() directly so all safety
+            guards (min time, max multiplier, instantaneous) are enforced.
+            """
+            result = calculate_iec_operating_time(
+                i_fault=abs(i),
+                i_setting=relay.Ip,  # NOSONAR physics/engineering notation
+                tms=tms,
+                curve_type=relay.curve_type,
+                min_operating_time_s=MIN_OPERATING_TIME_S,
+                max_multiplier=MAX_MULTIPLIER_OF_PICKUP,
+            )
+            return result["operating_time_s"]
+
+        best_TMS = None  # NOSONAR physics/engineering notation
         min_violation = float("inf")
         # When upstream trips before downstream the margin is negative (or zero).
         # We penalise those cases heavily so the search will never prefer a TMS
         # that lets the upstream device trip first.
         UNCOORDINATED_PENALTY = 100.0
 
-        for TMS_candidate in np.linspace(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        for TMS_candidate in np.linspace(  # NOSONAR physics/engineering notation
             self.tms_search_min,
             self.tms_search_max,
             self.tms_search_steps,
         ):
             violations = []
-            for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            for If in fault_currents:  # NOSONAR physics/engineering notation
                 t_up = _trip_time_for_tms(TMS_candidate, upstream_relay, If)
                 t_down = downstream_relay.trip_time(If)
 

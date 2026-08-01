@@ -134,11 +134,9 @@ class TestCoordinationEngine:
         assert abs(result["margin"] - expected_margin) < 1e-10
 
     def test_unknown_curve_in_suggest(self):
-        up = OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
-        down = OvercurrentRelay(relay_id=2, curve_type="standard_inverse", TMS=0.2, Ip=1.0)
-        engine = CoordinationEngine()
+        # V-TCC-01: Validation now happens in __init__ (earlier detection)
         with pytest.raises(ValueError, match="Unknown curve type"):
-            engine.suggest_tms_adjustment(up, down, fault_currents=[5.0], target_margin=0.2)
+            OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
 
     def test_different_pickup_currents(self):
         up = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=2.0)

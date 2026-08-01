@@ -103,9 +103,9 @@ class TestOvercurrentRelay:
         assert r2.trip_time(5.0) > r1.trip_time(5.0)
 
     def test_unknown_curve_raises(self):
-        r = OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
+        # V-TCC-01: Validation now happens in __init__ (earlier detection)
         with pytest.raises(ValueError, match="Unknown curve type"):
-            r.trip_time(5.0)
+            OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
 
     def test_operate_doesnt_trip_without_enough_time(self):
         r = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0)
