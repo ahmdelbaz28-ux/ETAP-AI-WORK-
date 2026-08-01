@@ -35,7 +35,12 @@ import resource
 import sys
 from typing import Any, Optional
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# V-69 FIX: Removed sys.path.insert(0, ...) — it added the project root
+# with highest priority, allowing sandbox code to import project modules
+# like api.auth or security.security_framework, potentially leaking
+# credentials or bypassing the sandbox. The security_framework import
+# below works when the script is run from the project root directory.
+# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from security.security_framework import get_audit_logger, get_validator

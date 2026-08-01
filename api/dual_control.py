@@ -94,8 +94,11 @@ def _cleanup_expired_approvals() -> int:
         if req["status"] != "pending" or now > req["expires_at"]:
             to_remove.append(req_id)
     for req_id in to_remove:
-        if _pending_approvals[req_id]["status"] == "pending":
-            _pending_approvals[req_id]["status"] = "expired"
+        req = _pending_approvals[req_id]
+        if req["status"] == "pending":
+            req["status"] = "expired"
+            # V-65 FIX: Record expiry in audit trail before deletion
+            _add_audit_entry("request_expired", req_id, req.get("requested_by", "unknown"))
         del _pending_approvals[req_id]
     return len(to_remove)
 
@@ -323,9 +326,13 @@ def get_pending_approvals() -> list[dict[str, Any]]:
 
 
 def get_audit_trail(limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
-    """V-19: Retrieve the audit trail for dual-control actions."""
+    """V-19: Retrieve the audit trail for dual-control actions.
+
+    V-66 FIX: Use forward pagination (oldest first, offset-based) instead of
+    the previous reverse pagination which was counterintuitive for audit trails.
+    """
     with _audit_lock:
-        return list(_audit_trail[-(limit + offset) :][offset:]) if _audit_trail else []
+        return list(_audit_trail[offset : offset + limit]) if _audit_trail else []
 
 
 def register_websocket(session_id: str, websocket) -> None:

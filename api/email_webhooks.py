@@ -439,22 +439,27 @@ async def resend_webhook(
 # ---------------------------------------------------------------------------
 
 
+# V-67 FIX: Add thread-safe lock for _events list mutations.
+# Previously, concurrent requests could race past the _EVENTS_MAX check
+# or cause list corruption under high concurrency.
 _events: list[dict[str, Any]] = []
 _EVENTS_MAX = 1000
+_events_lock = threading.Lock()
 
 
 def _record_event(message_id: str, event_type: str, data: dict) -> None:
-    _events.append(
-        {
-            "id": str(uuid.uuid4()),
-            "message_id": message_id,
-            "event_type": event_type,
-            "data": data,
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
-    )
-    if len(_events) > _EVENTS_MAX:
-        del _events[: len(_events) - _EVENTS_MAX]
+    with _events_lock:
+        _events.append(
+            {
+                "id": str(uuid.uuid4()),
+                "message_id": message_id,
+                "event_type": event_type,
+                "data": data,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
+        if len(_events) > _EVENTS_MAX:
+            del _events[: len(_events) - _EVENTS_MAX]
 
 
 # ---------------------------------------------------------------------------

@@ -66,7 +66,10 @@ RUN playwright install chromium 2>&1 || \
 # prevents a compromised app process from rewriting its own source code.
 COPY --chown=root:root --chmod=go-w hf-space/app.py /app/app.py
 COPY --chown=root:root --chmod=go-w compat.py /app/compat.py
-COPY --chown=user:user agents/ /app/agents/
+# V-70 FIX: agents/ directory is now owned by root (read-only) for consistency
+# with the security posture on lines 64-66. Previously it was writable by the
+# non-root user, which violated the principle of least privilege.
+COPY --chown=root:root --chmod=go-w agents/ /app/agents/
 # NOTE: skills/ is NOT copied to the HF Space Docker image.
 # The skills/ directory contains large HTML templates that exceed HF's file
 # size limit (causing push rejection). The HF Space loads skills at runtime
