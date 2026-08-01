@@ -110,9 +110,19 @@ jobs:
           // We match exceptions by GHSA ID (extracted from `url`), NOT by
           // `source` (numeric ID), because GHSA IDs are stable across npm
           // advisory database versions while numeric IDs are not.
+          //
+          // SEVERITY FILTER (CRITICAL):
+          // `npm audit --audit-level=high` only affects the EXIT CODE of the
+          // `npm audit` command, NOT the JSON content. The JSON contains ALL
+          // vulnerabilities (low, moderate, high, critical). We must filter
+          // by severity ourselves to honor the audit-level intent — otherwise
+          // a future moderate advisory with a GHSA url would block the gate.
+          const BLOCKING_LEVELS = new Set(['high', 'critical']);
           const vulns = report.vulnerabilities || {};
           const blocking = [];
           const excepted = [];
+          const skippedBelowLevel = [];
+          const skippedNoGhsa = [];
 
           function ghsaFromUrl(url) {
             if (!url || typeof url !== 'string') return null;
@@ -124,12 +134,23 @@ jobs:
             const via = Array.isArray(info.via) ? info.via : [];
             for (const v of via) {
               if (typeof v === 'string') continue;
+              const sev = v && typeof v.severity === 'string' ? v.severity.toLowerCase() : 'unknown';
+              if (!BLOCKING_LEVELS.has(sev)) {
+                skippedBelowLevel.push({ pkg, severity: sev, title: v && v.title });
+                continue;
+              }
               const ghsa = ghsaFromUrl(v && v.url);
-              if (!ghsa) continue;
+              if (!ghsa) {
+                // Advisory has no GHSA url — we cannot match it against the
+                // exception list. Log it so it is visible, but do NOT block
+                // (we cannot reliably tell if it should be excepted).
+                skippedNoGhsa.push({ pkg, severity: sev, title: v && v.title, source: v && v.source });
+                continue;
+              }
               const entry = {
                 pkg,
                 ghsa,
-                severity: v.severity,
+                severity: sev,
                 name: v.name,
                 title: v.title,
                 url: v.url,
@@ -143,10 +164,30 @@ jobs:
           }
 
           console.log('--- npm audit summary ---');
-          console.log('Total advisories found:', excepted.length + blocking.length);
-          console.log('Excepted (documented):', excepted.length);
-          console.log('Blocking (must fix):   ', blocking.length);
+          console.log('Total advisories found:', excepted.length + blocking.length + skippedBelowLevel.length + skippedNoGhsa.length);
+          console.log('Blocking (must fix):    ', blocking.length);
+          console.log('Excepted (documented):  ', excepted.length);
+          console.log('Skipped (below high):    ', skippedBelowLevel.length);
+          console.log('Skipped (no GHSA url):   ', skippedNoGhsa.length);
           console.log('');
+
+          if (skippedBelowLevel.length > 0) {
+            console.log('Advisories below audit level (informational, not blocking):');
+            for (const s of skippedBelowLevel) {
+              console.log(`  - ${s.pkg} [${s.severity}] ${s.title}`);
+            }
+            console.log('');
+          }
+
+          if (skippedNoGhsa.length > 0) {
+            console.warn('::warning::Advisories with no GHSA url (cannot match against exception list):');
+            for (const s of skippedNoGhsa) {
+              console.warn(`  - ${s.pkg} [${s.severity}] ${s.title} (source: ${s.source})`);
+            }
+            console.warn('  These were NOT blocked. If any of these is high/critical,');
+            console.warn('  file an issue to add manual exception handling.');
+            console.log('');
+          }
 
           if (excepted.length > 0) {
             console.log('Excepted advisories (see .github/npm-audit-exceptions.txt for rationale):');

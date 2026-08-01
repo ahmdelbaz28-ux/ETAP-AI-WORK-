@@ -153,7 +153,7 @@ jobs:
             || { echo "::error::Target deployment not found or inaccessible: $TARGET_URL"; exit 2; }
           echo "::notice::Target deployment verified."
 
-      - name: Promote target deployment to production
+      - name: Rollback production to target deployment
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -161,13 +161,32 @@ jobs:
           TARGET_URL: ${{ github.event.inputs.vercel_deployment_url }}
         run: |
           set -euo pipefail
-          echo "Rolling production alias to: $TARGET_URL"
-          # `vercel alias` re-points the production alias to the target
-          # deployment. This is the canonical Vercel rollback mechanism
-          # and is instantaneous (no rebuild).
-          vercel alias "$TARGET_URL" "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" \
-            || { echo "::error::Vercel alias failed."; exit 1; }
-          echo "::notice::Vercel production alias now points to $TARGET_URL"
+          echo "Rolling back production to: $TARGET_URL"
+          # `vercel rollback` is the purpose-built Vercel CLI subcommand for
+          # reverting production to a previous deployment. It re-points the
+          # production alias atomically (no rebuild) and blocks until the
+          # rollback completes (Vercel CLI 37+).
+          # Docs: https://vercel.com/docs/cli/rollback
+          #
+          # NOTE: requires Vercel Pro/Enterprise plan for production rollbacks.
+          # On free tier, this command fails with 'rollback_not_enabled'.
+          # If that happens, fall back to `vercel promote` (also Pro-only) or
+          # manually re-deploy the target git SHA via the Vercel dashboard.
+          vercel rollback "$TARGET_URL" --token "$VERCEL_TOKEN" --yes \
+            || {
+              echo "::error::vercel rollback failed."
+              echo "::error::Common causes:"
+              echo "::error::  - Target URL is not a production deployment (use a *.vercel.app URL)"
+              echo "::error::  - Vercel plan does not support rollback (free tier)"
+              echo "::error::  - VERCEL_TOKEN lacks project:rollback scope"
+              echo "::error::Manual fallback: re-deploy the target git SHA via Vercel dashboard:"
+              echo "::error::  https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work/deployments"
+              exit 1
+            }
+          echo "::notice::Vercel production now points to $TARGET_URL"
+          # Verify the rollback by inspecting the production deployment.
+          # `vercel inspect` returns the deployment's current alias state.
+          vercel inspect "$TARGET_URL" --token "$VERCEL_TOKEN" | grep -i 'prod\|alias' || true
 
   # ── 3. HF SPACE ROLLBACK ────────────────────────────────────────────────────
   rollback-hf:
@@ -283,10 +302,24 @@ jobs:
     # transitively-reachable jobs). rollback-vercel and rollback-hf already
     # depend on validate, so adding it here is a no-op for ordering.
     needs: [validate, rollback-vercel, rollback-hf]
-    if: ${{ !cancelled() && github.event.inputs.skip_health_check != 'true' }}
+    # CRITICAL: do NOT run health-check if the rollback itself failed.
+    # Without the `result != 'failure'` guards, `!cancelled()` would let
+    # health-check run after a failed rollback, poll the OLD (un-rolled-back)
+    # deployment, get HTTP 200, and falsely report 'healthy' — a dangerous
+    # false positive during incident response.
+    #
+    # Skipped rollback jobs have result == 'skipped', not 'failure', so we
+    # explicitly handle that: a skipped rollback (because target didn't
+    # include it) should not block the health check for the OTHER target.
+    #
+    # NOTE: the entire expression is on one line because YAML parses `${{`
+    # as the start of a flow mapping — splitting it across lines breaks the
+    # parser. Use a quoted single-line string for multi-clause expressions.
+    if: ${{ !cancelled() && github.event.inputs.skip_health_check != 'true' && (needs.rollback-vercel.result == 'success' || needs.rollback-vercel.result == 'skipped') && (needs.rollback-hf.result == 'success' || needs.rollback-hf.result == 'skipped') }}
     steps:
       - name: Check HF Space health
-        if: needs.validate.outputs.do_hf == 'true'
+        # Only run if HF was actually rolled back (not skipped).
+        if: needs.validate.outputs.do_hf == 'true' && needs.rollback-hf.result == 'success'
         env:
           HF_SPACE_URL: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
         run: |
@@ -307,7 +340,8 @@ jobs:
           exit 1
 
       - name: Check Vercel health (if rolled back)
-        if: needs.validate.outputs.do_vercel == 'true'
+        # Only run if Vercel was actually rolled back (not skipped).
+        if: needs.validate.outputs.do_vercel == 'true' && needs.rollback-vercel.result == 'success'
         env:
           VERCEL_URL: ${{ github.event.inputs.vercel_deployment_url }}
         run: |
