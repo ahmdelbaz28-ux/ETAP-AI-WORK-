@@ -52,6 +52,13 @@ from engine.caching import StudyCache
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
 
+# ─── CRUD coverage note (audit 2026-08-01) ─────────────────────────────────
+# Routes registered: POST /api/v1/studies (run), GET /api/v1/studies/types.
+# Status: PARTIAL — read/list endpoints (GET /, GET /{id}, DELETE /{id}) are
+# served by the engineering service upstream (api ENGINEERING_SERVICE_URL)
+# and intentionally NOT mirrored here to avoid a dual-ownership surface.
+# Audit action: documented; no code change required.
+
 # Import from core models
 from core_model.bus import Bus
 from core_model.generator import Generator

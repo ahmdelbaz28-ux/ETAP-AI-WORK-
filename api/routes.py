@@ -33,6 +33,7 @@ from api.auth import router as auth_router
 from api.context_engine import router as context_engine_router
 from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
+from api.digital_twin import router as digital_twin_router
 from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
@@ -41,10 +42,12 @@ from api.equipment import router as equipment_router
 from api.export import router as export_router
 from api.health import router as health_router
 from api.magic_links import router as magic_links_router
+from api.mfa import router as mfa_router
 from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
+from api.scada import router as scada_router
 from api.settings import router as settings_router
 from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
@@ -679,12 +682,19 @@ app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
 app.include_router(settings_router)
+app.include_router(mfa_router)  # /api/v1/auth/mfa/* — was orphaned, registered 2026-08-01
 # ─── Resend email integration routers ─────────────────────────────────────
 app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
 app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*
 app.include_router(email_digest_router)  # /api/v1/email-digest/*
 app.include_router(email_webhooks_router)  # /api/v1/email/webhooks/*
 app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
+# ─── Digital Twin & SCADA routers ──────────────────────────────────────────
+# Previously defined but never registered via include_router (only their
+# websocket endpoints were wired). Registering here so their REST endpoints
+# (/api/v1/digital-twin/*, /api/v1/scada/*) are reachable from the UI.
+app.include_router(digital_twin_router)  # /api/v1/digital-twin/*
+app.include_router(scada_router)  # /api/v1/scada/*
 
 
 # WebSocket endpoint for real-time notifications

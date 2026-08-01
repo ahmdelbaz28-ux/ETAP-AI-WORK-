@@ -1,6 +1,19 @@
 import { motion } from "framer-motion";
-import { Activity, Clock, Key, RefreshCw, Shield, TrendingUp, Users, Zap } from "lucide-react";
+import {
+  Activity,
+  Clock,
+  Database,
+  Key,
+  Layers,
+  Mail,
+  RefreshCw,
+  Shield,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { type AgentMeta, type MetricsResponse, fetchAgents, fetchMetrics } from "../lib/api";
 
 // Legacy backend metrics format (pre-v2). Kept here so the Administration page
@@ -27,6 +40,7 @@ export default function Administration() {
   const [agents, setAgents] = useState<AgentMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const { notify } = useNotify();
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -143,6 +157,80 @@ export default function Administration() {
           </motion.div>
         ))}
       </div>
+
+      {/* Admin Quick Actions — audit 2026-08-01
+          Six one-click shortcuts to admin sub-surfaces that were previously
+          only reachable via URL or deep navigation. Each button navigates to
+          the target route via react-router (no full page reload). */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <Card padding="md">
+          <CardHeader
+            title="Admin Quick Actions"
+            subtitle="One-click access to operational surfaces"
+            icon={<Shield className="w-4 h-4" />}
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Shield}
+              onClick={() => navigate("/administration/rbac")}
+              title="Role-Based Access Control — roles, permissions, assignments"
+            >
+              RBAC
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Key}
+              onClick={() => navigate("/administration/mfa")}
+              title="Multi-Factor Authentication settings"
+            >
+              MFA
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Mail}
+              onClick={() => navigate("/administration/email-dashboard")}
+              title="Resend email dashboard — delivery logs and bounce stats"
+            >
+              Email Dashboard
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Layers}
+              onClick={() => navigate("/administration/email-digest")}
+              title="Scheduled email digest configuration"
+            >
+              Email Digest
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Zap}
+              onClick={() => navigate("/administration/ai-ml")}
+              title="AI/ML model registry, providers, and routing"
+            >
+              AI / ML
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Database}
+              onClick={() => navigate("/administration/study-versions")}
+              title="Study version snapshots and rollback history"
+            >
+              Study Versions
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
 
       {/* API Metrics & Provider Latency */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

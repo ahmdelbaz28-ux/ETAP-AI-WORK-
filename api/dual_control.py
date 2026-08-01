@@ -3,6 +3,11 @@ Dual-control approval system for critical protection operations.
 Provides WebSocket-based real-time approval from a second engineer,
 QR code fallback for mobile, and auto-reject after 5-minute timeout.
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 

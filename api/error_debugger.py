@@ -18,6 +18,11 @@ Integration with the engineering service::
         StructuredFormatter,
     )
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 

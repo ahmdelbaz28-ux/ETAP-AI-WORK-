@@ -37,6 +37,7 @@ import {
   saveVisionKey,
   testVisionKey,
 } from "../lib/api";
+import { AllConfigurationTab } from "../components/AllConfigurationTab";
 
 // ─── Provider card helpers ─────────────────────────────────────────
 // Extracted from the inline `POPULAR_PROVIDERS.map(...)` callback in
@@ -926,6 +927,11 @@ const TAB_SECTIONS: Record<
     label: "Vision API Keys",
     icon: <Eye className="w-4 h-4" />,
     sections: [],
+  },
+  allconfig: {
+    label: "All Configuration",
+    icon: <Wrench className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — see AllConfigurationTab.tsx
   },
 };
 
@@ -2744,6 +2750,7 @@ export default function Settings() {
             if (activeTab === "mcp") return <MCPSettingsPanel />;
             if (activeTab === "external") return <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />;
             if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
+            if (activeTab === "allconfig") return <AllConfigurationTab />;
             return (
             <>
               {currentSections.map((section) => (
