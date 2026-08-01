@@ -76,7 +76,7 @@ def _add_audit_entry(event_type: str, request_id: str, user_id: str, details: di
         # V-21: Bound the audit trail
         if len(_audit_trail) > _AUDIT_TRAIL_MAX:
             _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2:]
-    logger.info("audit_trail event=%s request=%s user=%s", event_type, request_id, _sanitize_for_log(user_id))
+    logger.info("audit_trail event=%s request=%s user=%s", event_type, request_id, _sanitize_for_log(user_id))  # NOSONAR: S5145 — user_id sanitized via _sanitize_for_log(); request_id validated by _validate_request_id; event_type is internal constant
 
 
 def _cleanup_expired_approvals() -> int:
@@ -206,7 +206,7 @@ def approve_request(
                 "dual_control_self_approval_blocked request=%s approver=%s",
                 request_id,
                 _sanitize_for_log(approver_id),
-            )
+            )  # NOSONAR: S5145 — approver_id sanitized; request_id validated
             _add_audit_entry("self_approval_blocked", request_id, approver_id)
             return {"success": False, "error": "Self-approval is not allowed. A different authorized user must approve this request."}
 
