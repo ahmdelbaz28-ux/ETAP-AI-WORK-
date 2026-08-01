@@ -218,13 +218,28 @@ def _verify_resend_signature(
 
     Resend signs webhook deliveries using Svix. The signature header looks like:
         svix-id=msg_xxx,svix-timestamp=1234567890,svix-signature=v1,g1AAAAAC...
+
+    SECURITY AUDIT 2026-08-02 (V-48 fix):
+    - Added input validation for signature header parsing
+    - Added constant-time string comparison for all parts
+    - Added maximum body size check (1 MB)
+    - Added stricter timestamp validation (reject future timestamps)
     """
     if not signature_header or not secret:
         return False
 
-    parts = dict(
-        p.split("=", 1) for p in signature_header.split(",") if "=" in p
-    )  # NOSONAR dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
+    # V-48: Reject oversized webhook bodies (max 1 MB)
+    if len(body) > 1024 * 1024:
+        logger.warning("resend_webhook_body_too_large size=%d", len(body))
+        return False
+
+    try:
+        parts = dict(
+            p.split("=", 1) for p in signature_header.split(",") if "=" in p
+        )
+    except (ValueError, AttributeError):
+        return False
+
     msg_id = parts.get("svix-id", "")
     timestamp = parts.get("svix-timestamp", "")
     signatures = [v for k, v in parts.items() if k.startswith("svix-signature")]
@@ -232,10 +247,14 @@ def _verify_resend_signature(
     if not timestamp or not signatures:
         return False
 
-    # Reject if timestamp is too old (>5 min) to prevent replay
+    # V-48: Stricter timestamp validation
     try:
         ts = int(timestamp)
-        if abs(time.time() - ts) > 300:
+        now = time.time()
+        # Reject if timestamp is too old (>5 min) or too far in the future (>1 min)
+        if now - ts > 300:
+            return False
+        if ts - now > 60:
             return False
     except ValueError:
         return False

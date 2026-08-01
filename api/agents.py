@@ -3,6 +3,11 @@ Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
+
+SECURITY AUDIT 2026-08-02 (V-49 fix):
+- Added prompt injection sanitization for all user-supplied text
+  before passing to AI agents. This prevents common injection patterns
+  like "ignore previous instructions", "system:", etc.
 """
 
 from __future__ import annotations
@@ -10,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from datetime import UTC, datetime
 from typing import Any, List, Optional
 
@@ -24,6 +30,65 @@ from api.dependencies import get_api_key
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
+
+
+# V-49: Prompt injection sanitization — strips common injection patterns
+# from user-supplied text before passing to AI agents.
+_PROMPT_INJECTION_PATTERNS: list[tuple[str, str]] = [
+    # System role impersonation
+    (r"(?i)\bsystem\s*:", "[filtered]"),
+    (r"(?i)\bassistant\s*:", "[filtered]"),
+    (r"(?i)\badmin\s*:", "[filtered]"),
+    # Instruction override attempts
+    (r"(?i)\bignore\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
+    (r"(?i)\bforget\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
+    (r"(?i)\bdisregard\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
+    (r"(?i)\bnew\s+instructions?\s*:", "[filtered]"),
+    (r"(?i)\boverride\s+(previous|all|default)\s+(instructions?|rules?|settings?)", "[filtered]"),
+    (r"(?i)\byou\s+are\s+now\s+", "[filtered]"),
+    (r"(?i)\bpretend\s+(you\s+are|to\s+be)\s+", "[filtered]"),
+    (r"(?i)\bact\s+as\s+(if\s+you\s+are|a)\s+", "[filtered]"),
+    # Data exfiltration
+    (r"(?i)\b(reveal|show|display|print|dump|expose)\s+(the\s+)?(system\s+)?prompt", "[filtered]"),
+    (r"(?i)\b(reveal|show|display|print|dump|expose)\s+(your|the)\s+(instructions?|rules?)", "[filtered]"),
+    (r"(?i)\bwhat\s+(is|are)\s+your\s+(instructions?|rules?|prompt)", "[filtered]"),
+    # Escape attempts
+    (r"(?i)\bexec\s*\(", "[filtered]"),
+    (r"(?i)\beval\s*\(", "[filtered]"),
+    (r"(?i)\b__import__\s*\(", "[filtered]"),
+    (r"(?i)\bos\.system\s*\(", "[filtered]"),
+    (r"(?i)\bsubprocess\s*\.", "[filtered]"),
+]
+
+_MAX_USER_INPUT_LENGTH = 4000
+
+
+def _sanitize_agent_input(text: str) -> str:
+    """V-49: Sanitize user input to prevent prompt injection attacks.
+
+    Strips common injection patterns from user-supplied text before
+    passing to AI agents. This is a defense-in-depth measure — the
+    LLM should also be instructed to ignore injection attempts, but
+    we filter at the API layer to reduce the attack surface.
+
+    Returns the sanitized text, or raises ValueError if the text is
+    too long or appears to be a pure injection attempt.
+    """
+    if not text or not text.strip():
+        raise ValueError("Input must not be empty")
+
+    if len(text) > _MAX_USER_INPUT_LENGTH:
+        raise ValueError(f"Input must not exceed {_MAX_USER_INPUT_LENGTH} characters")
+
+    sanitized = text
+    for pattern, replacement in _PROMPT_INJECTION_PATTERNS:
+        sanitized = re.sub(pattern, replacement, sanitized)
+
+    # If more than 50% of the input was filtered, reject entirely
+    if len(sanitized) < len(text) * 0.5:
+        raise ValueError("Input appears to be a prompt injection attempt")
+
+    return sanitized
 
 
 class AgentMetaResponse(BaseModel):
@@ -264,10 +329,13 @@ async def etap_expert_chat(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
+        # V-49: Sanitize user input to prevent prompt injection
+        safe_question = _sanitize_agent_input(payload.question)
+
         from agents.etap_expert_agent import ETAPExpertAgent
 
         agent = ETAPExpertAgent()
-        result = agent.answer(payload.question)
+        result = agent.answer(safe_question)
 
         return JSONResponse(
             content={
@@ -332,10 +400,13 @@ async def etap_gui_chat(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
+        # V-49: Sanitize user input to prevent prompt injection
+        safe_question = _sanitize_agent_input(payload.question)
+
         from agents.etap_gui_agent import ETAPGUIAgent
 
         agent = ETAPGUIAgent()
-        result = agent.answer(payload.question)
+        result = agent.answer(safe_question)
 
         return JSONResponse(
             content={

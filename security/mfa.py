@@ -300,13 +300,19 @@ class TOTPProvider:
 
     # -- code verification ---------------------------------------------------
 
-    def verify_code(self, secret: str, code: str) -> bool:
+    def verify_code(self, user_id_or_secret: str, code: str) -> bool:
         """Verify a TOTP code with a ±1 window for clock drift.
+
+        V-50 FIX: Accepts either a user_id (looked up in self._secrets)
+        or a raw Base32 secret string. This fixes a compatibility issue
+        where api/mfa.py passes user_id but the old signature expected
+        a secret — causing verification to always fail.
 
         Parameters
         ----------
-        secret : str
-            Base32-encoded TOTP secret.
+        user_id_or_secret : str
+            User identifier (looked up in the credential store) OR
+            a Base32-encoded TOTP secret string.
         code : str
             User-supplied TOTP code.
 
@@ -315,6 +321,12 @@ class TOTPProvider:
         bool
             ``True`` if the code is valid within the window.
         """
+        # V-50: Try to look up the secret by user_id first
+        secret = user_id_or_secret
+        entry = self._secrets.get(user_id_or_secret)
+        if entry and entry.secret:
+            secret = entry.secret
+
         if HAS_PYOTP:
             totp = _pyotp.TOTP(secret)
             return totp.verify(code, valid_window=self.window)
@@ -337,6 +349,10 @@ class TOTPProvider:
     def generate_backup_codes(self, user_id: str, count: int = 10) -> list[str]:
         """Generate one-time backup codes for a user.
 
+        V-9 FIX: Backup codes are now stored as SHA-256 hashes.
+        The plaintext codes are only returned once so the user can
+        save them. The stored hashes are compared during verification.
+
         Parameters
         ----------
         user_id : str
@@ -347,26 +363,32 @@ class TOTPProvider:
         Returns
         -------
         list[str]
-            List of backup code strings.
+            List of plaintext backup code strings (shown ONCE to the user).
         """
         codes = [secrets.token_hex(4).upper() for _ in range(count)]
+        # V-9: Store SHA-256 hashes instead of plaintext
+        code_hashes = [hashlib.sha256(c.encode()).hexdigest() for c in codes]
         entry = self._secrets.get(user_id)
         if entry:
-            entry.backup_codes = codes
+            entry.backup_codes = code_hashes
         else:
-            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=codes)
+            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=code_hashes)
         logger.info("Generated %d backup codes for user %s", count, user_id)
         return codes
 
     def verify_backup_code(self, user_id: str, code: str) -> bool:
         """Verify and consume a backup code (one-time use).
 
+        V-9 FIX: The code parameter is now expected to be a SHA-256 hash
+        of the plaintext backup code. The api/mfa.py layer hashes the
+        user-supplied code before passing it here.
+
         Parameters
         ----------
         user_id : str
             User identifier.
         code : str
-            Backup code to verify.
+            SHA-256 hash of the backup code to verify.
 
         Returns
         -------

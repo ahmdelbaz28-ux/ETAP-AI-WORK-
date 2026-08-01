@@ -48,11 +48,28 @@ _logger = _logging.getLogger(_AUTH_LOGGER_NAME)
 
 
 def _validate_password_strength(v: str) -> str:
-    """Validate password meets strength requirements (8+ chars, not common)."""
+    """Validate password meets strength requirements.
+
+    Enforces:
+      - Minimum 8 characters
+      - Maximum 128 characters (prevents bcrypt hash DoS)
+      - Not a common password
+      - Contains at least one digit and one letter (V-47: basic complexity)
+      - No whitespace-only password
+    """
     if len(v) < 8:
         raise ValueError(MSG_PASSWORD_MIN_LENGTH)
+    if len(v) > 128:
+        raise ValueError("Password must not exceed 128 characters")
     if v.lower() in _COMMON_PASSWORDS:
         raise ValueError(MSG_PASSWORD_TOO_COMMON)
+    if not v.strip():
+        raise ValueError("Password must not be whitespace-only")
+    # V-47: Basic complexity — at least one letter and one digit
+    has_letter = any(c.isalpha() for c in v)
+    has_digit = any(c.isdigit() for c in v)
+    if not (has_letter and has_digit):
+        raise ValueError("Password must contain at least one letter and one digit")
     return v
 
 

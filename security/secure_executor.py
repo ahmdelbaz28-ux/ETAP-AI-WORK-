@@ -107,6 +107,23 @@ def _sandbox_escape_pre_scan(code: str) -> tuple[bool, str]:
         (r"\bsignal\s*\.", "Signal module access"),
         (r"\bsocket\s*\.", "Socket module access"),
         (r"\bopen\s*\(", "File open (should use restricted builtins)"),
+        # V-46: exec/eval inside the sandbox code itself — the sandbox uses exec()
+        # but the user code should NOT be able to call exec() again to escape.
+        # These patterns are already covered above but adding explicit comments.
+        (r"\b__name__\s*==\s*['\"]__main__['\"]", "Main guard bypass attempt"),
+        (r"\bthreading\b", "Threading module access"),
+        (r"\bmultiprocessing\b", "Multiprocessing module access"),
+        (r"\bconcurrent\b", "Concurrent module access"),
+        (r"\bimportlib\b", "Importlib module access"),
+        (r"\bpkgutil\b", "Pkgutil module access"),
+        (r"\bzipimport\b", "Zipimport module access"),
+        (r"\bcodecs\b", "Codecs module access (can bypass encoding restrictions)"),
+        (r"\btempfile\b", "Tempfile module access"),
+        (r"\bshutil\b", "Shutil module access"),
+        (r"\bpathlib\b", "Pathlib module access"),
+        (r"\bos\s*\.\s*path\b", "os.path access"),
+        (r"\bsys\s*\.\s*modules\b", "sys.modules access (can inject code)"),
+        (r"\bsys\s*\.\s*path\b", "sys.path access (can add import paths)"),
     ]
 
     import re
@@ -456,6 +473,7 @@ except Exception as e:
         allowed_imports_json=json.dumps(["numpy", "scipy", "math", "json", "time", "core_model", "engine", "load_flow", "fault_analysis", "relays", "coordination"]),
     )
 
+    wrapper_path = None  # V-45: Initialize before try to prevent UnboundLocalError in finally
     try:
         # Write wrapper to temp file
         fd, wrapper_path = tempfile.mkstemp(suffix=".py", prefix="etap_exec_")
@@ -514,7 +532,7 @@ except Exception as e:
             }))
 
     finally:
-        # Cleanup temp files
+        # Cleanup temp files — V-45: wrapper_path is always defined now
         try:
             if wrapper_path and os.path.exists(wrapper_path):
                 os.remove(wrapper_path)
