@@ -75,8 +75,8 @@ class StabilityAgent(BaseAgent):
         self,
         H: np.ndarray,  # NOSONAR
         D: np.ndarray,  # NOSONAR
-        Pm: np.ndarray,  # NOSONAR
-        Ybus_red: np.ndarray,  # NOSONAR
+        pm: np.ndarray,  # NOSONAR
+        ybus_red: np.ndarray,  # NOSONAR
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
         fault_bus: int,
@@ -145,23 +145,23 @@ class StabilityAgent(BaseAgent):
 
         def electrical_power(d: np.ndarray, Y: np.ndarray) -> np.ndarray:
             """Calculate electrical power output for each machine."""  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-            Pe = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            pe = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 n_gen
             )  # NOSONAR
-            E_complex = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            e_complex = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * d)
             )  # NOSONAR
-            I = Y @ E_complex
+            I = Y @ e_complex
             for i in range(n_gen):
-                Pe[i] = np.real(E_complex[i] * np.conj(I[i]))
-            return Pe
+                pe[i] = np.real(e_complex[i] * np.conj(I[i]))
+            return pe
 
         for step in range(1, n_steps):
             t = time_array[step]
 
             # Select appropriate Ybus based on time period
             if t < t_fault:
-                Y = Ybus_red
+                Y = ybus_red
             elif t < t_clear:
                 Y = fault_Ybus
             else:
@@ -173,11 +173,11 @@ class StabilityAgent(BaseAgent):
                 w: np.ndarray,
                 _Y: np.ndarray = Y,  # NOSONAR
             ) -> tuple[np.ndarray, np.ndarray]:
-                Pe = electrical_power(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                pe = electrical_power(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     d, _Y
                 )  # NOSONAR
                 ddelta = w - self.omega_synchronous
-                domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
+                domega = (self.omega_synchronous / (2.0 * H)) * (pm - pe - D * ddelta)
                 return ddelta, domega
 
             k1_d, k1_w = derivatives(delta, omega)
@@ -210,8 +210,8 @@ class StabilityAgent(BaseAgent):
         self,
         H: np.ndarray,  # NOSONAR
         D: np.ndarray,  # NOSONAR
-        Pm: np.ndarray,  # NOSONAR
-        Ybus_red: np.ndarray,  # NOSONAR
+        pm: np.ndarray,  # NOSONAR
+        ybus_red: np.ndarray,  # NOSONAR
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
     ) -> dict[str, Any]:
@@ -263,28 +263,28 @@ class StabilityAgent(BaseAgent):
             delta_pert = delta0.copy()
             delta_pert[j] += eps
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-            E_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            e_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
-            I_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                Ybus_red @ E_plus
+            i_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                ybus_red @ e_plus
             )  # NOSONAR
-            Pe_plus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                E_plus * np.conj(I_plus)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            pe_plus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                e_plus * np.conj(i_plus)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             )  # NOSONAR
 
             delta_pert[j] = delta0[j] - eps  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-            E_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            e_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
-            I_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                Ybus_red @ E_minus
+            i_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                ybus_red @ e_minus
             )  # NOSONAR
-            Pe_minus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                E_minus * np.conj(I_minus)
+            pe_minus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                e_minus * np.conj(i_minus)
             )  # NOSONAR
 
-            K_S[:, j] = (Pe_plus - Pe_minus) / (2.0 * eps)
+            K_S[:, j] = (pe_plus - pe_minus) / (2.0 * eps)
 
         # Build state matrix A (2n x 2n)
         # State vector: [delta_1, ..., delta_n, omega_1, ..., omega_n]
@@ -296,13 +296,13 @@ class StabilityAgent(BaseAgent):
         # Lower-left block: -M^{-1} K_S (synchronizing)
         # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
         # so the synchronizing-coefficient block carries a negative sign.
-        M_inv = np.diag(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        m_inv = np.diag(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / M
         )  # NOSONAR
-        A[n_gen:, :n_gen] = -M_inv @ K_S
+        A[n_gen:, :n_gen] = -m_inv @ K_S
 
         # Lower-right block: M^{-1} D (damping)
-        A[n_gen:, n_gen:] = -M_inv @ np.diag(D)
+        A[n_gen:, n_gen:] = -m_inv @ np.diag(D)
 
         # Compute eigenvalues AND eigenvectors in a single call (avoids
         # ordering inconsistencies between eigvals() and eig()).
@@ -372,7 +372,7 @@ class StabilityAgent(BaseAgent):
     def critical_clearing_time(
         self,
         H: float,  # NOSONAR
-        Pm: float,  # NOSONAR
+        pm: float,  # NOSONAR
         E_gen: float,  # NOSONAR
         V_inf: float,  # NOSONAR
         X_total: float,  # NOSONAR
@@ -418,43 +418,43 @@ class StabilityAgent(BaseAgent):
         omega_s = self.omega_synchronous
 
         # Maximum power transfer pre-fault and during fault  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-        Pmax_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        pmax_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_total
         )  # NOSONAR
-        Pmax_fault = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        pmax_fault = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0
         )  # NOSONAR
 
         # Post-fault max (assume same as pre-fault for reclosing)
-        Pmax_post = Pmax_pre  # NOSONAR
+        Pmax_post = pmax_pre  # NOSONAR
 
         # Initial angle where Pm = Pmax_pre * sin(delta0)
         # delta0 is given; verify Pm <= Pmax_pre
-        if Pm > Pmax_pre:
+        if pm > pmax_pre:
             return {
                 "critical_clearing_angle_rad": float(delta0),
                 "critical_clearing_angle_deg": float(np.degrees(delta0)),
                 "critical_clearing_time_s": 0.0,
                 "equal_area_method": "infeasible",
                 "stable": False,
-                "error": f"Pm ({Pm:.3f}) > Pmax_pre ({Pmax_pre:.3f}): operating point invalid",
+                "error": f"Pm ({pm:.3f}) > Pmax_pre ({pmax_pre:.3f}): operating point invalid",
             }
 
         # Find delta_max: angle where Pm = Pmax_post * sin(delta_max)
         # delta_max = pi - arcsin(Pm / Pmax_post)
-        delta_max = np.pi - np.arcsin(min(Pm / Pmax_post, 1.0))
+        delta_max = np.pi - np.arcsin(min(pm / Pmax_post, 1.0))
 
         # Critical clearing angle from equal area criterion:
         # cos(delta_cr) = [Pm*(delta_max - delta0) + Pmax_post*cos(delta_max)
         #                   - Pmax_fault*cos(delta0)] / (Pmax_post - Pmax_fault)
-        if abs(Pmax_post - Pmax_fault) < 1e-10:
+        if abs(Pmax_post - pmax_fault) < 1e-10:
             # Three-phase fault at generator terminals: Pmax_fault ≈ 0
-            Pmax_fault = 0.0
+            pmax_fault = 0.0
 
         numerator = (
-            Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - Pmax_fault * np.cos(delta0)
+            pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - pmax_fault * np.cos(delta0)
         )
-        denominator = Pmax_post - Pmax_fault
+        denominator = Pmax_post - pmax_fault
 
         cos_delta_cr = numerator / denominator if abs(denominator) > 1e-12 else 0.0
         cos_delta_cr = np.clip(cos_delta_cr, -1.0, 1.0)
@@ -463,8 +463,8 @@ class StabilityAgent(BaseAgent):
         # Critical clearing time
         # From the swing equation with Pmax_fault = 0 during fault:
         # t_cr = sqrt(2H * (delta_cr - delta0) / (omega_s * Pm))
-        if delta_cr > delta0 and Pm > 0:
-            t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * Pm))
+        if delta_cr > delta0 and pm > 0:
+            t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * pm))
         else:
             t_cr = 0.0
 
@@ -476,8 +476,8 @@ class StabilityAgent(BaseAgent):
             "initial_angle_deg": float(np.degrees(delta0)),
             "maximum_angle_rad": float(delta_max),
             "maximum_angle_deg": float(np.degrees(delta_max)),
-            "Pmax_pre_fault_pu": float(Pmax_pre),
-            "Pmax_during_fault_pu": float(Pmax_fault),
+            "Pmax_pre_fault_pu": float(pmax_pre),
+            "Pmax_during_fault_pu": float(pmax_fault),
             "Pmax_post_fault_pu": float(Pmax_post),
             "equal_area_method": "solved",
             "stable": bool(delta_cr > delta0),
@@ -509,18 +509,18 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("transient", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                Pm = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                pm = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     task.parameters.get("mechanical_power", [0.8, 0.6, 0.5])
                 )  # NOSONAR
                 n_gen = len(H)
 
                 # Build reduced Ybus from provided data or use defaults
-                Y_data = task.parameters.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                y_data = task.parameters.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     "Ybus_reduced"
                 )  # NOSONAR
-                if Y_data is not None:
-                    Ybus_red = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                        Y_data, dtype=complex
+                if y_data is not None:
+                    ybus_red = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                        y_data, dtype=complex
                     )  # NOSONAR
                 else:
                     # Default 3-machine test system
@@ -535,22 +535,22 @@ class StabilityAgent(BaseAgent):
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    Ybus_red = G + 1j * B
+                    ybus_red = G + 1j * B
 
-                E_mag = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                e_mag = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     task.parameters.get("internal_voltages", [1.1, 1.0, 1.05])
                 )  # NOSONAR
                 delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = E_mag * np.exp(1j * delta0)
+                E = e_mag * np.exp(1j * delta0)
 
                 # Fault Ybus: add large shunt at fault_bus
                 fault_bus = task.parameters.get("fault_bus", 0)
-                fault_Ybus = Ybus_red.copy()  # NOSONAR
+                fault_Ybus = ybus_red.copy()  # NOSONAR
                 fault_impedance = task.parameters.get("fault_impedance_pu", 1e-6)
                 fault_Ybus[fault_bus, fault_bus] += 1.0 / fault_impedance
 
                 # Post-fault Ybus: slightly modified
-                post_fault_Ybus = Ybus_red.copy()  # NOSONAR
+                post_fault_Ybus = ybus_red.copy()  # NOSONAR
                 line_out = task.parameters.get("tripped_line_from_bus", None)
                 if line_out is not None and line_out < n_gen:
                     post_fault_Ybus[line_out, line_out] += 1j * 2.0
@@ -563,8 +563,8 @@ class StabilityAgent(BaseAgent):
                 transient_result = self.analyze_transient_stability(
                     H=H,
                     D=D,
-                    Pm=Pm,
-                    Ybus_red=Ybus_red,
+                    pm=pm,
+                    ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
                     fault_bus=fault_bus,
@@ -581,12 +581,12 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("small_signal", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                Pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
+                pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
                 n_gen = len(H)
 
-                Y_data = task.parameters.get("Ybus_reduced")
-                if Y_data is not None:  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
-                    Ybus_red = np.array(Y_data, dtype=complex)
+                y_data = task.parameters.get("Ybus_reduced")
+                if y_data is not None:  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                    ybus_red = np.array(y_data, dtype=complex)
                 else:
                     np.random.seed(42)
                     G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
@@ -599,17 +599,17 @@ class StabilityAgent(BaseAgent):
                     B = (B + B.T) / 2.0
                     np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    Ybus_red = G + 1j * B
+                    ybus_red = G + 1j * B
 
-                E_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))
+                e_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))
                 delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = E_mag * np.exp(1j * delta0)
+                E = e_mag * np.exp(1j * delta0)
 
                 ss_result = self.analyze_small_signal_stability(
                     H=H,
                     D=D,
-                    Pm=Pm,
-                    Ybus_red=Ybus_red,
+                    pm=pm,
+                    ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
                 )
@@ -619,7 +619,7 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("critical_clearing_time", "full"):
                 cct_result = self.critical_clearing_time(
                     H=float(task.parameters.get("smib_H", 5.0)),
-                    Pm=float(task.parameters.get("smib_Pm", 0.8)),
+                    pm=float(task.parameters.get("smib_Pm", 0.8)),
                     E_gen=float(task.parameters.get("smib_E", 1.1)),
                     V_inf=float(task.parameters.get("smib_V_inf", 1.0)),
                     X_total=float(task.parameters.get("smib_X_total", 0.5)),

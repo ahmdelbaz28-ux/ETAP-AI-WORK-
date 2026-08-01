@@ -109,22 +109,22 @@ class CoordinationEngine:
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
         def _trip_time_for_tms(
-            tms, relay, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            tms, relay, i  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Use the relay's curve type and Ip, but override TMS locally
-            I_mag = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                I
+            i_mag = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                i
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            if I_mag < relay.Ip:
+            if i_mag < relay.Ip:
                 return float("inf")
             if relay.curve_type == "standard_inverse":
-                return relay.curves.standard_inverse(tms, I_mag, relay.Ip)
+                return relay.curves.standard_inverse(tms, i_mag, relay.Ip)
             elif relay.curve_type == "very_inverse":
-                return relay.curves.very_inverse(tms, I_mag, relay.Ip)
+                return relay.curves.very_inverse(tms, i_mag, relay.Ip)
             elif relay.curve_type == "extremely_inverse":
-                return relay.curves.extremely_inverse(tms, I_mag, relay.Ip)
+                return relay.curves.extremely_inverse(tms, i_mag, relay.Ip)
             elif relay.curve_type == "long_inverse":
-                return relay.curves.long_inverse(tms, I_mag, relay.Ip)
+                return relay.curves.long_inverse(tms, i_mag, relay.Ip)
             else:
                 raise ValueError(f"Unknown curve type: {relay.curve_type}")
 

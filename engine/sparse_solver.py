@@ -359,10 +359,10 @@ class SparseYBus:
             V[i] = self._buses[i].v_scheduled * np.exp(1j * np.angle(V[i]))
 
         # Scheduled power  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.p_generation - b.p_load for b in self._buses], dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        q_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.q_generation - b.q_load for b in self._buses], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -371,29 +371,29 @@ class SparseYBus:
 
         # Convert Ybus to dense for power calculations (necessary for
         # vectorised V * conj(Y*V) but Jacobian is kept sparse).  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             ybus.toarray() if issparse(ybus) else np.asarray(ybus)
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
         for iteration in range(max_iter):
             # --- Power calculations ---
-            I = Ybus_dense @ V
+            I = ybus_dense @ V
             S = V * np.conj(I)
             P = S.real
             Q = S.imag
 
             # --- Mismatch ---  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaP = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                P_sch - P
+            deltap = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                p_sch - P
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaQ = Q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+            deltaQ = q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
             # Build mismatch vector: [ΔP_pv, ΔP_pq, ΔQ_pq] Union[/, V|]
             mismatch = np.zeros(n_unknowns)
             for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
+                mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
+                mismatch[n_pv + k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -417,17 +417,17 @@ class SparseYBus:
             # mismatch = [\u0394P, \u0394Q] = [P_sch - P_calc, Q_sch - Q_calc].
             # The Newton-Raphson step is J * \u0394x = -mismatch, so
             # we negate the RHS to match the d(mismatch)/dx formulation.
-            J = self._build_sparse_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
+            J = self._build_sparse_jacobian(V, ybus_dense, pv_idx, pq_idx, n_unknowns)
 
             # --- Solve linear system ---
             try:
                 dx = spsolve(J.tocsr(), -mismatch)
             except Exception:
                 # Fallback to least-squares  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                J_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                j_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     J.toarray() if issparse(J) else np.asarray(J)
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-                dx = np.linalg.lstsq(J_dense, mismatch, rcond=None)[0]
+                dx = np.linalg.lstsq(j_dense, mismatch, rcond=None)[0]
 
             # --- Update voltages ---
             # θ corrections for PV buses
@@ -453,11 +453,11 @@ class SparseYBus:
                 V[i] = vmag * np.exp(1j * np.angle(V[i]))
 
         # Recompute final power  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ybus_dense @ V
+        i_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_dense @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        S_final = V * np.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            I_final
+        s_final = V * np.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_final
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
         elapsed = time.perf_counter() - t0
@@ -469,8 +469,8 @@ class SparseYBus:
             voltages=V,
             angles=np.angle(V),
             magnitudes=np.abs(V),
-            active_power=S_final.real,
-            reactive_power=S_final.imag,
+            active_power=s_final.real,
+            reactive_power=s_final.imag,
             iteration_log=iteration_log,
             solver_type="sparse",
             solve_time_seconds=elapsed,
@@ -527,7 +527,7 @@ class SparseYBus:
         J = lil_matrix((n_unknowns, n_unknowns), dtype=float)
 
         # Precompute intermediates for the analytical formulas  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Vmag = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vmag = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = np.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -540,14 +540,14 @@ class SparseYBus:
         cos_theta = np.cos(theta)
 
         # Voltage products  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_i = Vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_i = vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             :, np.newaxis
         ]  # (n, 1)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_j = Vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_j = vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.newaxis, :
         ]  # (1, n)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_i_V_j = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            V_i * V_j
+        v_i_v_j = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            v_i * v_j
         )  # (n, n)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
         # Current power injections
@@ -563,20 +563,20 @@ class SparseYBus:
         vm_col_buses = pq_idx  # Union[\u0394|V, columns]
 
         # Precomputed products (vectorised, no Python loops over n\u00b2)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        GS_minus_BC = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        gs_minus_bc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             G * sin_theta - B * cos_theta
         )  # G_ij sin theta_ij - B_ij cos theta_ij  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-        GS_minus_BC[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
+        gs_minus_bc[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        GC_plus_BS = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        gc_plus_bs = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             G * cos_theta + B * sin_theta
         )  # G_ij cos theta_ij + B_ij sin theta_ij  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-        GC_plus_BS[np.arange(n), np.arange(n)] = 0.0
+        gc_plus_bs[np.arange(n), np.arange(n)] = 0.0
 
         # Diagonals  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         G_diag = G.diagonal()  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-        V2 = Vmag**2
+        V2 = vmag**2
 
         # ---- J1: d\u0394P/d\u03b8 ----
         # Row indices: 0..n_pv+n_pq-1  (all \u0394P rows)
@@ -586,7 +586,7 @@ class SparseYBus:
                 if bus_i == bus_k:
                     J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
                 else:
-                    J[ri, ci] = -V_i_V_j[bus_i, bus_k] * GS_minus_BC[bus_i, bus_k]
+                    J[ri, ci] = -v_i_v_j[bus_i, bus_k] * gs_minus_bc[bus_i, bus_k]
 
         # ---- J2: Union[d\u0394P/d|V, ----]
         # Col offset: n_pv + n_pq
@@ -594,9 +594,9 @@ class SparseYBus:
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
-                    J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
+                    J[ri, col] = -P[bus_i] / vmag[bus_i] - G_diag[bus_i] * vmag[bus_i]
                 else:
-                    J[ri, col] = -V_i[bus_i, 0] * GC_plus_BS[bus_i, bus_k]
+                    J[ri, col] = -v_i[bus_i, 0] * gc_plus_bs[bus_i, bus_k]
 
         # ---- J3: d\u0394Q/d\u03b8 ----
         # Row offset: n_pv + n_pq
@@ -607,7 +607,7 @@ class SparseYBus:
                 if bus_i == bus_k:
                     J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
                 else:
-                    J[row, ci] = V_i_V_j[bus_i, bus_k] * GC_plus_BS[bus_i, bus_k]
+                    J[row, ci] = v_i_v_j[bus_i, bus_k] * gc_plus_bs[bus_i, bus_k]
 
         # ---- J4: Union[d\u0394Q/d|V, ----]
         for ri, bus_i in enumerate(pq_idx):
@@ -615,9 +615,9 @@ class SparseYBus:
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
-                    J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
+                    J[row, col] = -Q[bus_i] / vmag[bus_i] + B_diag[bus_i] * vmag[bus_i]
                 else:
-                    J[row, col] = -V_i[bus_i, 0] * GS_minus_BC[bus_i, bus_k]
+                    J[row, col] = -v_i[bus_i, 0] * gs_minus_bc[bus_i, bus_k]
 
         return J
 
@@ -718,11 +718,11 @@ class SparseYBus:
             speedup = None
             if n <= 300:
                 try:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    Ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                         ybus.toarray()
                     )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                     t0 = time.perf_counter()
-                    self._dense_newton_raphson(Ybus_dense, buses, max_iter=20, tol=1e-6)
+                    self._dense_newton_raphson(ybus_dense, buses, max_iter=20, tol=1e-6)
                     t_solve_dense = (time.perf_counter() - t0) * 1000
                     if t_solve_sparse > 0:
                         speedup = round(t_solve_dense / t_solve_sparse, 2)
@@ -768,10 +768,10 @@ class SparseYBus:
             [b.voltage_magnitude * np.exp(1j * b.voltage_angle) for b in bus_data],
             dtype=complex,
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.p_generation - b.p_load for b in bus_data], dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        q_sch = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -782,16 +782,16 @@ class SparseYBus:
             P = S.real
             Q = S.imag
             # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaP = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                P_sch - P
+            deltap = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                p_sch - P
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaQ = Q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+            deltaQ = q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
             mismatch = np.zeros(n_unknowns)
             for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
+                mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
+                mismatch[n_pv + k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -816,11 +816,11 @@ class SparseYBus:
                 vmag = np.clip(vmag, 0.5, 1.5)
                 V[i] = vmag * np.exp(1j * np.angle(V[i]))
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             Ybus @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        S_final = V * np.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            I_final
+        s_final = V * np.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_final
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         return SparseConvergenceResult(
             converged=converged,
@@ -829,8 +829,8 @@ class SparseYBus:
             voltages=V,
             angles=np.angle(V),
             magnitudes=np.abs(V),
-            active_power=S_final.real,
-            reactive_power=S_final.imag,
+            active_power=s_final.real,
+            reactive_power=s_final.imag,
             solver_type="dense",
         )
 
@@ -952,7 +952,7 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
     n_pq = len(pq_idx)
     J = np.zeros((n_unknowns, n_unknowns), dtype=float)
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    Vmag = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+    vmag = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         V
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     Vang = np.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -972,11 +972,11 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
         # H: ∂P_i/∂θ_j  (column over θ unknowns)
         for col_k, j in enumerate(unknown_buses_theta):
             if i == j:
-                J[row_k, col_k] = -Q[i] - B[i, i] * Vmag[i] ** 2
+                J[row_k, col_k] = -Q[i] - B[i, i] * vmag[i] ** 2
             else:
                 J[row_k, col_k] = (
-                    Vmag[i]
-                    * Vmag[j]
+                    vmag[i]
+                    * vmag[j]
                     * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 
@@ -984,11 +984,11 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
         for col_k, j in enumerate(unknown_buses_v):
             col = n_pv + n_pq + col_k
             if i == j:
-                J[row_k, col] = P[i] + G[i, i] * Vmag[i] ** 2
+                J[row_k, col] = P[i] + G[i, i] * vmag[i] ** 2
             else:
                 J[row_k, col] = (
-                    Vmag[i]
-                    * Vmag[j]
+                    vmag[i]
+                    * vmag[j]
                     * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
@@ -997,11 +997,11 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
         # M: ∂Q_i/∂θ_j
         for col_k, j in enumerate(unknown_buses_theta):
             if i == j:
-                J[row, col_k] = P[i] - G[i, i] * Vmag[i] ** 2
+                J[row, col_k] = P[i] - G[i, i] * vmag[i] ** 2
             else:
                 J[row, col_k] = (
-                    -Vmag[i]
-                    * Vmag[j]
+                    -vmag[i]
+                    * vmag[j]
                     * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
@@ -1009,11 +1009,11 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
         for col_k, j in enumerate(unknown_buses_v):
             col = n_pv + n_pq + col_k
             if i == j:
-                J[row, col] = Q[i] - B[i, i] * Vmag[i] ** 2
+                J[row, col] = Q[i] - B[i, i] * vmag[i] ** 2
             else:
                 J[row, col] = (
-                    Vmag[i]
-                    * Vmag[j]
+                    vmag[i]
+                    * vmag[j]
                     * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 

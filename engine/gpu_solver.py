@@ -201,22 +201,22 @@ class GPUSolver:
             if sp_issparse(
                 ybus
             ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Ybus_dense = _cp.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                ybus_dense = _cp.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     ybus.toarray()
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             else:
-                Ybus_dense = _cp.asarray(np.asarray(ybus))
+                ybus_dense = _cp.asarray(np.asarray(ybus))
         else:
             V = np.array(
                 [b.voltage_magnitude * np.exp(1j * b.voltage_angle) for b in bus_data],
                 dtype=complex,
             )
-            Ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
+            ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        P_sch = xp.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_sch = xp.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.p_generation - b.p_load for b in bus_data], dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = xp.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        q_sch = xp.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -230,22 +230,22 @@ class GPUSolver:
 
         for iteration in range(max_iter):
             # Power calculations (on device)
-            I = Ybus_dense @ V
+            I = ybus_dense @ V
             S = V * xp.conj(I)
             P = S.real
             Q = S.imag
 
             # Mismatch  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaP = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                P_sch - P
+            deltap = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                p_sch - P
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltaQ = Q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+            deltaQ = q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
             mismatch = xp.zeros(n_unknowns)
             for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
+                mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
+                mismatch[n_pv + k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -265,12 +265,12 @@ class GPUSolver:
                 break
 
             # --- Build sparse Jacobian ---  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            J_sparse = self._build_jacobian(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                V, Ybus_dense, pv_idx, pq_idx, n_unknowns
+            j_sparse = self._build_jacobian(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                V, ybus_dense, pv_idx, pq_idx, n_unknowns
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
             # --- Solve linear system ---
-            dx = self._solve_linear(J_sparse, mismatch, n_unknowns)
+            dx = self._solve_linear(j_sparse, mismatch, n_unknowns)
 
             # --- Update voltages ---
             for k, i in enumerate(pv_idx):
@@ -287,26 +287,26 @@ class GPUSolver:
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
         # --- Copy results back to host ---  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_host = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_host = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ybus_dense @ V
+        i_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_dense @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        S_final = V * xp.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            I_final
+        s_final = V * xp.conj(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_final
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if self._gpu_available:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            P_final = _cp.asnumpy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                S_final.real
+            p_final = _cp.asnumpy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                s_final.real
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Q_final = _cp.asnumpy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                S_final.imag
+            q_final = _cp.asnumpy(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                s_final.imag
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         else:
-            P_final = np.asarray(S_final.real)
-            Q_final = np.asarray(S_final.imag)
+            p_final = np.asarray(s_final.real)
+            q_final = np.asarray(s_final.imag)
 
         elapsed = time.perf_counter() - t0
 
@@ -315,11 +315,11 @@ class GPUSolver:
             converged=converged,
             iterations=iteration + 1 if iteration_log else 0,
             max_mismatch=float(max_mismatch),
-            voltages=V_host,
-            angles=np.angle(V_host),
-            magnitudes=np.abs(V_host),
-            active_power=P_final,
-            reactive_power=Q_final,
+            voltages=v_host,
+            angles=np.angle(v_host),
+            magnitudes=np.abs(v_host),
+            active_power=p_final,
+            reactive_power=q_final,
             iteration_log=iteration_log,
             solver_type=solver_tag,
             solve_time_seconds=elapsed,
@@ -361,7 +361,7 @@ class GPUSolver:
         xp = self._xp
         len(V)
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Vmag = xp.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vmag = xp.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = xp.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -393,15 +393,15 @@ class GPUSolver:
             for col_k, j in enumerate(theta_cols):
                 if i == j:
                     val = (
-                        float(-Q[i] - B[i, i] * Vmag[i] ** 2)
+                        float(-Q[i] - B[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
-                        else float(xp.asnumpy(-Q[i] - B[i, i] * Vmag[i] ** 2))
+                        else float(xp.asnumpy(-Q[i] - B[i, i] * vmag[i] ** 2))
                     )
                 else:
                     val = (
                         float(
-                            Vmag[i]
-                            * Vmag[j]
+                            vmag[i]
+                            * vmag[j]
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
@@ -410,8 +410,8 @@ class GPUSolver:
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
-                                Vmag[i]
-                                * Vmag[j]
+                                vmag[i]
+                                * vmag[j]
                                 * (
                                     G[i, j] * xp.sin(Vang[i] - Vang[j])
                                     - B[i, j] * xp.cos(Vang[i] - Vang[j])
@@ -433,15 +433,15 @@ class GPUSolver:
                 col = n_pv + n_pq + col_k
                 if i == j:
                     val = (
-                        float(P[i] + G[i, i] * Vmag[i] ** 2)
+                        float(P[i] + G[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
-                        else float(xp.asnumpy(P[i] + G[i, i] * Vmag[i] ** 2))
+                        else float(xp.asnumpy(P[i] + G[i, i] * vmag[i] ** 2))
                     )
                 else:
                     val = (
                         float(
-                            Vmag[i]
-                            * Vmag[j]
+                            vmag[i]
+                            * vmag[j]
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
@@ -450,8 +450,8 @@ class GPUSolver:
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
-                                Vmag[i]
-                                * Vmag[j]
+                                vmag[i]
+                                * vmag[j]
                                 * (
                                     G[i, j] * xp.cos(Vang[i] - Vang[j])
                                     + B[i, j] * xp.sin(Vang[i] - Vang[j])
@@ -474,15 +474,15 @@ class GPUSolver:
             for col_k, j in enumerate(theta_cols):
                 if i == j:
                     val = (
-                        float(P[i] - G[i, i] * Vmag[i] ** 2)
+                        float(P[i] - G[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
-                        else float(xp.asnumpy(P[i] - G[i, i] * Vmag[i] ** 2))
+                        else float(xp.asnumpy(P[i] - G[i, i] * vmag[i] ** 2))
                     )
                 else:
                     val = (
                         float(
-                            -Vmag[i]
-                            * Vmag[j]
+                            -vmag[i]
+                            * vmag[j]
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
@@ -491,8 +491,8 @@ class GPUSolver:
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
-                                -Vmag[i]
-                                * Vmag[j]
+                                -vmag[i]
+                                * vmag[j]
                                 * (
                                     G[i, j] * xp.cos(Vang[i] - Vang[j])
                                     + B[i, j] * xp.sin(Vang[i] - Vang[j])
@@ -514,15 +514,15 @@ class GPUSolver:
                 col = n_pv + n_pq + col_k
                 if i == j:
                     val = (
-                        float(Q[i] - B[i, i] * Vmag[i] ** 2)
+                        float(Q[i] - B[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
-                        else float(xp.asnumpy(Q[i] - B[i, i] * Vmag[i] ** 2))
+                        else float(xp.asnumpy(Q[i] - B[i, i] * vmag[i] ** 2))
                     )
                 else:
                     val = (
                         float(
-                            Vmag[i]
-                            * Vmag[j]
+                            vmag[i]
+                            * vmag[j]
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
@@ -531,8 +531,8 @@ class GPUSolver:
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
-                                Vmag[i]
-                                * Vmag[j]
+                                vmag[i]
+                                * vmag[j]
                                 * (
                                     G[i, j] * xp.sin(Vang[i] - Vang[j])
                                     - B[i, j] * xp.cos(Vang[i] - Vang[j])
@@ -599,11 +599,11 @@ class GPUSolver:
                 b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
                 # Ensure A is a CuPy sparse matrix  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                A_gpu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                a_gpu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     _cp.sparse.csr_matrix(_cp.asarray(A)) if not _cp.sparse.issparse(A) else A
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
-                x = _cp_spsolve(A_gpu, b_gpu)
+                x = _cp_spsolve(a_gpu, b_gpu)
                 return x
             except Exception as exc:
                 logger.warning(
@@ -611,14 +611,14 @@ class GPUSolver:
                     exc,
                 )
                 # Fallback: transfer to CPU, solve, transfer back  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                A_cpu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                a_cpu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                 b_cpu = _cp.asnumpy(b) if isinstance(b, _cp.ndarray) else np.asarray(b)
-                if sp_issparse(A_cpu):
-                    x_cpu = scipy_spsolve(A_cpu.tocsr(), b_cpu)
+                if sp_issparse(a_cpu):
+                    x_cpu = scipy_spsolve(a_cpu.tocsr(), b_cpu)
                 else:
-                    x_cpu = np.linalg.solve(np.asarray(A_cpu), b_cpu)
+                    x_cpu = np.linalg.solve(np.asarray(a_cpu), b_cpu)
                 return _cp.asarray(x_cpu)
         else:
             # CPU path
@@ -672,7 +672,7 @@ class GPUSolver:
             ybus = builder.build_sparse_ybus(
                 buses, branches
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_dense = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 ybus.toarray()
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -684,7 +684,7 @@ class GPUSolver:
 
             t0 = time.perf_counter()
             result_cpu = solver_cpu.newton_raphson_gpu(
-                Ybus_dense,
+                ybus_dense,
                 buses,
                 max_iter=20,
                 tol=1e-6,
@@ -697,7 +697,7 @@ class GPUSolver:
             if self._gpu_available:
                 t0 = time.perf_counter()
                 self.newton_raphson_gpu(
-                    Ybus_dense,
+                    ybus_dense,
                     buses,
                     max_iter=20,
                     tol=1e-6,

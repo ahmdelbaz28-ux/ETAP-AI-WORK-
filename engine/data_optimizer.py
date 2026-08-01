@@ -89,19 +89,19 @@ class SparseMatrixManager:
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_lu_solve(
-        self, A: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, a: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-        if not issparse(A):
-            A = csr_matrix(A)
-        if A.shape[0] <= self.size_threshold:
-            return np.linalg.solve(A.toarray(), b)
-        return splu(A).solve(b)
+        if not issparse(a):
+            a = csr_matrix(a)
+        if a.shape[0] <= self.size_threshold:
+            return np.linalg.solve(a.toarray(), b)
+        return splu(a).solve(b)
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_factored_solve(
-        self, A_factor: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, a_factor: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-        return A_factor.solve(b)
+        return a_factor.solve(b)
 
     def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> dict[str, Any]:
         if dense_size == 0:

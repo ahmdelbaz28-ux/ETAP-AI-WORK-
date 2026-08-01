@@ -199,7 +199,7 @@ class CableSizingAgent(BaseAgent):
                 "ampacity_A": 0.0,
             }
 
-        I_base = base_table[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_base = base_table[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             cross_section_mm2
         ]  # NOSONAR
 
@@ -241,21 +241,21 @@ class CableSizingAgent(BaseAgent):
             # Interpolate
             rho_values = np.array(sorted(Cs_lookup.keys()))
             cs_values = np.array([Cs_lookup[r] for r in rho_values])
-            Cs = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            cs = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 np.interp(soil_resistivity_KmW, rho_values, cs_values)
             )  # NOSONAR
 
             # Installation method base factor (buried rating ≈ 0.85 of in-air)
             method_factor = 0.85
         elif installation_method == "in_conduit":
-            Cs = 1.0
+            cs = 1.0
             method_factor = 0.78  # Conduit reduces ampacity
         else:
-            Cs = 1.0
+            cs = 1.0
             method_factor = 1.0
 
-        I_derated = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            I_base * method_factor * Ca * Cg * Cs
+        i_derated = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_base * method_factor * Ca * Cg * cs
         )  # NOSONAR
 
         return {
@@ -263,15 +263,15 @@ class CableSizingAgent(BaseAgent):
             "conductor_material": conductor_material,
             "insulation": insulation,
             "installation_method": installation_method,
-            "base_ampacity_A": I_base,
+            "base_ampacity_A": i_base,
             "temperature_correction_Ca": float(Ca),
             "grouping_correction_Cg": Cg,
-            "soil_correction_Cs": Cs,
+            "soil_correction_Cs": cs,
             "method_factor": method_factor,
             "ambient_temp_C": ambient_temp_C,
             "max_conductor_temp_C": max_temp,
             "n_circuits": n_circuits,
-            "derated_ampacity_A": float(I_derated),
+            "derated_ampacity_A": float(i_derated),
         }
 
     # ------------------------------------------------------------------
@@ -336,7 +336,7 @@ class CableSizingAgent(BaseAgent):
         # Adjust resistance to operating temperature (≈ 80 °C for XLPE)
         alpha = 0.00393 if conductor_material == "Cu" else 0.00403  # temperature coefficient
         T_op = 80.0  # NOSONAR
-        R_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        r_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             R20 * (1.0 + alpha * (T_op - 20.0))
         )  # Ω/km  # NOSONAR
 
@@ -344,48 +344,48 @@ class CableSizingAgent(BaseAgent):
         # X ≈ 0.08 Ω/km for cables up to 300 mm² (conservative)
         X = 0.08  # Ω/km
 
-        L_km = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        l_km = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             cable_length_m / 1000.0
         )  # NOSONAR
         sin_phi = np.sqrt(1.0 - power_factor**2)
 
         if n_phases == 3:
-            delta_V = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                np.sqrt(3) * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
+            delta_v = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                np.sqrt(3) * load_current_A * l_km * (r_op * power_factor + X * sin_phi)
             )  # NOSONAR
             reference_V = system_voltage_V  # NOSONAR
         elif n_phases == 1:
-            delta_V = 2.0 * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
+            delta_v = 2.0 * load_current_A * l_km * (r_op * power_factor + X * sin_phi)
             reference_V = (
                 system_voltage_V / np.sqrt(3) if system_voltage_V > 250 else system_voltage_V
             )
         else:
             # DC
-            delta_V = 2.0 * load_current_A * L_km * R_op
+            delta_v = 2.0 * load_current_A * l_km * r_op
             reference_V = system_voltage_V
 
-        delta_V_percent = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            (delta_V / reference_V) * 100.0 if reference_V > 0 else 0.0
+        delta_v_percent = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            (delta_v / reference_V) * 100.0 if reference_V > 0 else 0.0
         )  # NOSONAR
 
         # Voltage at load end
-        V_load = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            reference_V - delta_V
+        v_load = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            reference_V - delta_v
         )  # NOSONAR
 
         return {
-            "voltage_drop_V": float(delta_V),
-            "voltage_drop_percent": float(delta_V_percent),
-            "voltage_at_load_V": float(V_load),
-            "resistance_per_km_ohm": R_op,
+            "voltage_drop_V": float(delta_v),
+            "voltage_drop_percent": float(delta_v_percent),
+            "voltage_at_load_V": float(v_load),
+            "resistance_per_km_ohm": r_op,
             "reactance_per_km_ohm": X,
             "cable_length_m": cable_length_m,
             "load_current_A": load_current_A,
             "power_factor": power_factor,
             "n_phases": n_phases,
             "system_voltage_V": system_voltage_V,
-            "compliant_5pct": bool(delta_V_percent <= 5.0),
-            "compliant_4pct": bool(delta_V_percent <= 4.0),
+            "compliant_5pct": bool(delta_v_percent <= 5.0),
+            "compliant_4pct": bool(delta_v_percent <= 4.0),
         }
 
     # ------------------------------------------------------------------
@@ -449,27 +449,27 @@ class CableSizingAgent(BaseAgent):
             theta_f = 160.0
 
         S = cross_section_mm2
-        I_fault = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_fault = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             fault_current_kA * 1000.0
         )  # Convert to A  # NOSONAR
         t = fault_duration_s
 
         # Permissible short-circuit energy (I²t)
-        I2t_permissible = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i2t_permissible = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             K**2 * S**2 * np.log((theta_f + beta) / (theta_i + beta))
         )  # NOSONAR
 
         # Actual short-circuit energy
-        I2t_actual = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            I_fault**2 * t
+        i2t_actual = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_fault**2 * t
         )  # NOSONAR
 
         # Permissible short-circuit current for the given duration
-        I_permissible = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            np.sqrt(I2t_permissible / t) if t > 0 else float("inf")
+        i_permissible = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            np.sqrt(i2t_permissible / t) if t > 0 else float("inf")
         )  # NOSONAR
 
-        adequate = I2t_actual <= I2t_permissible
+        adequate = i2t_actual <= i2t_permissible
 
         return {
             "cross_section_mm2": cross_section_mm2,
@@ -477,13 +477,13 @@ class CableSizingAgent(BaseAgent):
             "insulation": insulation,
             "fault_current_kA": fault_current_kA,
             "fault_duration_s": fault_duration_s,
-            "actual_I2t_A2s": I2t_actual,
-            "permissible_I2t_A2s": float(I2t_permissible),
-            "permissible_fault_current_kA": float(I_permissible / 1000.0),
+            "actual_I2t_A2s": i2t_actual,
+            "permissible_I2t_A2s": float(i2t_permissible),
+            "permissible_fault_current_kA": float(i_permissible / 1000.0),
             "initial_temp_C": theta_i,
             "final_temp_limit_C": theta_f,
-            "utilization_ratio": float(I2t_actual / I2t_permissible)
-            if I2t_permissible > 0
+            "utilization_ratio": float(i2t_actual / i2t_permissible)
+            if i2t_permissible > 0
             else float("inf"),
             "adequate": bool(adequate),
         }

@@ -290,10 +290,10 @@ class StateEstimationHandler(PropagationHandler):
                 if pq is not None:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
-            Ybus = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
+            result = estimator.estimate(ybus, measurements, [str(bid) for bid in bus_ids])
 
             ctx.record_step(
                 "state_estimation",
@@ -387,20 +387,20 @@ class ArcFlashRefreshHandler(PropagationHandler):
             from fault_analysis.fault import FaultAnalyzer  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos,
-                Ybus_neg,
-                Ybus_zero,
+                ybus_pos,
+                ybus_neg,
+                ybus_zero,
                 base_mva=ctx.dt_state.system.base_mva,
             )
 
@@ -531,20 +531,20 @@ class ProtectionRefreshHandler(PropagationHandler):
             from relays.relay import OvercurrentRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
-                Ybus_pos,
-                Ybus_neg,
-                Ybus_zero,
+                ybus_pos,
+                ybus_neg,
+                ybus_zero,
                 base_mva=ctx.dt_state.system.base_mva,
             )
 

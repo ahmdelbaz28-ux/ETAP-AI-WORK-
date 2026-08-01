@@ -68,8 +68,8 @@ class ZIPLoadModel:
 
     def __init__(
         self,
-        P0: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-        Q0: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p0: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        q0: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         coefficients: ZIPCoefficients = None,
         preset: str = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
@@ -82,8 +82,8 @@ class ZIPLoadModel:
         coefficients (ZIPCoefficients): Custom ZIP coefficients.
         preset (str): Name of a preset ZIP model.
         """
-        self.P0 = P0
-        self.Q0 = Q0
+        self.P0 = p0
+        self.Q0 = q0
 
         if preset is not None and preset in ZIP_PRESETS:
             self.coefficients = ZIP_PRESETS[preset]
@@ -93,7 +93,7 @@ class ZIPLoadModel:
             self.coefficients = ZIP_PRESETS["constant_power"]
 
     def calculate_power(
-        self, V: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, v: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -110,12 +110,12 @@ class ZIPLoadModel:
         tuple: (P, Q) active and reactive power at voltage V.
         """
         c = self.coefficients
-        P = self.P0 * (c.aZ * V**2 + c.aI * V + c.aP)
-        Q = self.Q0 * (c.bZ * V**2 + c.bI * V + c.bP)
+        P = self.P0 * (c.aZ * v**2 + c.aI * v + c.aP)
+        Q = self.Q0 * (c.bZ * v**2 + c.bI * v + c.bP)
         return P, Q
 
     def calculate_admittance(
-        self, V: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, v: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> complex:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Calculate the equivalent admittance of the ZIP load at voltage V.
@@ -133,17 +133,17 @@ class ZIPLoadModel:
         Returns:
         complex: Equivalent admittance.
         """
-        if V < 0.01:
+        if v < 0.01:
             return complex(0, 0)
-        P, Q = self.calculate_power(V)
+        P, Q = self.calculate_power(v)
         S = complex(P, Q)
-        Y_eq = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            np.conj(S) / (V**2)
+        y_eq = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            np.conj(S) / (v**2)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        return Y_eq
+        return y_eq
 
     def get_impedance_component(
-        self, V: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, v: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> complex:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Get only the constant-impedance component admittance.
@@ -155,18 +155,18 @@ class ZIPLoadModel:
         complex: Admittance of constant-impedance portion.
         """
         c = self.coefficients
-        P_z = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_z = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             self.P0 * c.aZ
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_z = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        q_z = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             self.Q0 * c.bZ
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        if V < 0.01:
+        if v < 0.01:
             return complex(0, 0)
-        return complex(P_z, -Q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
+        return complex(p_z, -q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
 
     def voltage_sensitivity(
-        self, V: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, v: float  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -183,13 +183,13 @@ class ZIPLoadModel:
         tuple: (dP/dV, dQ/dV)
         """
         c = self.coefficients
-        dPdV = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            self.P0 * (2 * c.aZ * V + c.aI)
+        dpdv = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            self.P0 * (2 * c.aZ * v + c.aI)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        dQdV = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            self.Q0 * (2 * c.bZ * V + c.bI)
+        dqdv = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            self.Q0 * (2 * c.bZ * v + c.bI)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        return dPdV, dQdV
+        return dpdv, dqdv
 
     def to_dict(self) -> dict:
         """Convert to dictionary representation."""
@@ -215,4 +215,4 @@ class ZIPLoadModel:
             bI=data.get("bI", 0.0),
             bP=data.get("bP", 1.0),
         )
-        return ZIPLoadModel(P0=data["P0"], Q0=data["Q0"], coefficients=coeffs)
+        return ZIPLoadModel(p0=data["P0"], q0=data["Q0"], coefficients=coeffs)

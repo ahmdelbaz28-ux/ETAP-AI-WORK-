@@ -85,7 +85,7 @@ class WLSEstimator:
 
     def estimate(
         self,
-        Ybus: np.ndarray,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus: np.ndarray,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         measurements: dict,
         bus_ids: list[str],
         slack_bus_idx: int = 0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -145,21 +145,21 @@ class WLSEstimator:
 
         for iteration in range(1, self.max_iterations + 1):
             # Compute estimated measurements and Jacobian
-            h_x = self._compute_h(x, Ybus, h_indices, n)
-            H = self._compute_jacobian(x, Ybus, h_indices, n)
+            h_x = self._compute_h(x, ybus, h_indices, n)
+            H = self._compute_jacobian(x, ybus, h_indices, n)
 
             # Residual
             r = z - h_x
 
             # Remove slack bus theta column from H to avoid singular gain matrix
-            H_reduced = H[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            h_reduced = H[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             # Gain matrix G = H^T W H
             try:
-                G = H_reduced.T @ W @ H_reduced
-                G_inv = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                G = h_reduced.T @ W @ h_reduced
+                g_inv = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     G
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             except np.linalg.LinAlgError:
@@ -171,7 +171,7 @@ class WLSEstimator:
                 )
 
             # State update: dx = G^{-1} H^T W r
-            dx_reduced = G_inv @ H_reduced.T @ W @ r
+            dx_reduced = g_inv @ h_reduced.T @ W @ r
 
             # Expand dx to full dimension by inserting 0 at slack bus position
             dx = np.zeros(2 * n)
@@ -193,25 +193,25 @@ class WLSEstimator:
             )
 
         # Compute final residuals and bad data detection
-        h_x_final = self._compute_h(x, Ybus, h_indices, n)
-        H_final = self._compute_jacobian(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            x, Ybus, h_indices, n
+        h_x_final = self._compute_h(x, ybus, h_indices, n)
+        h_final = self._compute_jacobian(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            x, ybus, h_indices, n
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         r_final = z - h_x_final
         objective = float(r_final.T @ W @ r_final)
 
         # Covariance matrix (use reduced Jacobian to avoid singularity)
         try:
-            H_final_reduced = H_final[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            h_final_reduced = h_final[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            G_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                H_final_reduced.T @ W @ H_final_reduced
+            g_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                h_final_reduced.T @ W @ h_final_reduced
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            G_inv_final = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                G_final
+            g_inv_final = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                g_final
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            covariance = G_inv_final
+            covariance = g_inv_final
         except np.linalg.LinAlgError:
             covariance = None
 
@@ -219,15 +219,15 @@ class WLSEstimator:
         bad_data = []
         norm_residuals = None
         if covariance is not None:
-            S = H_final_reduced @ G_inv_final @ H_final_reduced.T @ W
-            Omega = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            S = h_final_reduced @ g_inv_final @ h_final_reduced.T @ W
+            omega = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 np.eye(m) - S
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             try:
-                Omega_inv = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                    np.diag(np.diag(Omega)) + np.eye(m) * 1e-10
+                omega_inv = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    np.diag(np.diag(omega)) + np.eye(m) * 1e-10
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                norm_residuals = np.abs(Omega_inv @ r_final) / (np.sqrt(np.diag(Omega_inv)) + 1e-10)
+                norm_residuals = np.abs(omega_inv @ r_final) / (np.sqrt(np.diag(omega_inv)) + 1e-10)
                 bad_data = [int(i) for i in range(m) if norm_residuals[i] > self.bad_data_threshold]
             except np.linalg.LinAlgError:
                 norm_residuals = np.abs(r_final)
@@ -262,30 +262,30 @@ class WLSEstimator:
             w_list.append(1.0 / (sigma**2) if sigma > 0 else 1e6)
 
         # Power injection measurements
-        for bus_idx, (P, Q, sigma_P, sigma_Q) in measurements.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        for bus_idx, (P, Q, sigma_p, sigma_q) in measurements.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "power_injection", {}
         ).items():  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if bus_idx != slack_idx:
                 z_list.append(P)
                 h_indices.append(("P", bus_idx))
-                w_list.append(1.0 / (sigma_P**2) if sigma_P > 0 else 1e6)
+                w_list.append(1.0 / (sigma_p**2) if sigma_p > 0 else 1e6)
             z_list.append(Q)
             h_indices.append(("Q", bus_idx))
-            w_list.append(1.0 / (sigma_Q**2) if sigma_Q > 0 else 1e6)
+            w_list.append(1.0 / (sigma_q**2) if sigma_q > 0 else 1e6)
 
         # Power flow measurements
-        for (i, j), (P, Q, sigma_P, sigma_Q) in measurements.get("power_flow", {}).items():
+        for (i, j), (P, Q, sigma_p, sigma_q) in measurements.get("power_flow", {}).items():
             z_list.append(P)
             h_indices.append(("Pij", i, j))
-            w_list.append(1.0 / (sigma_P**2) if sigma_P > 0 else 1e6)
+            w_list.append(1.0 / (sigma_p**2) if sigma_p > 0 else 1e6)
             z_list.append(Q)
             h_indices.append(("Qij", i, j))
-            w_list.append(1.0 / (sigma_Q**2) if sigma_Q > 0 else 1e6)
+            w_list.append(1.0 / (sigma_q**2) if sigma_q > 0 else 1e6)
 
         return np.array(z_list), h_indices, np.array(w_list)
 
     def _compute_h(
-        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, x: np.ndarray, ybus: np.ndarray, h_indices: list, n: int  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]
@@ -304,8 +304,8 @@ class WLSEstimator:
                         V[i]
                         * V[j]
                         * (
-                            Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                            + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
+                            ybus[i, j].real * np.cos(theta[i] - theta[j])
+                            + ybus[i, j].imag * np.sin(theta[i] - theta[j])
                         )
                     )
                 h[k] = Pi
@@ -317,47 +317,47 @@ class WLSEstimator:
                         V[i]
                         * V[j]
                         * (
-                            Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                            - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
+                            ybus[i, j].real * np.sin(theta[i] - theta[j])
+                            - ybus[i, j].imag * np.cos(theta[i] - theta[j])
                         )
                     )
                 h[k] = Qi
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-                Gij = Ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                gij = ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     i, j
                 ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Bij = Ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                bij = ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     i, j
                 ].imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Pij = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                    V[i] ** 2 * Gij
+                pij = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    V[i] ** 2 * gij
                     - V[i]
                     * V[j]
                     * (  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                        Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
+                        gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j])
                     )
                 )
-                h[k] = Pij
+                h[k] = pij
             elif idx_info[0] == "Qij":
                 _, i, j = idx_info
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                Qij = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                    -(V[i] ** 2) * Bij
+                gij = ybus[i, j].real
+                bij = ybus[i, j].imag
+                qij = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    -(V[i] ** 2) * bij
                     - V[i]
                     * V[j]
                     * (  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                        Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
+                        gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j])
                     )
                 )
-                h[k] = Qij
+                h[k] = qij
         return h
 
     def _compute_jacobian(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         x: np.ndarray,
-        Ybus: np.ndarray,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus: np.ndarray,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         h_indices: list,
         n: int,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> np.ndarray:
@@ -377,25 +377,25 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-                    Gij = Ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    gij = ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                         i, j
                     ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    Bij = Ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    bij = ybus[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                         i, j
                     ].imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     # dPi/dtheta_j
                     H[k, j] = (
                         V[i]
                         * V[j]
-                        * (Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j]))
+                        * (gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j]))
                     )
                 # dPi/dtheta_i
                 H[k, i] = -sum(
                     V[i]
                     * V[j]
                     * (
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
+                        ybus[i, j].real * np.sin(theta[i] - theta[j])
+                        - ybus[i, j].imag * np.cos(theta[i] - theta[j])
                     )
                     for j in range(n)
                     if j != i
@@ -404,8 +404,8 @@ class WLSEstimator:
                 H[k, n + i] = sum(
                     V[j]
                     * (
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
+                        ybus[i, j].real * np.cos(theta[i] - theta[j])
+                        + ybus[i, j].imag * np.sin(theta[i] - theta[j])
                     )
                     for j in range(n)
                 )
@@ -414,8 +414,8 @@ class WLSEstimator:
                     if i == j:
                         continue
                     H[k, n + j] = V[i] * (
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
+                        ybus[i, j].real * np.cos(theta[i] - theta[j])
+                        + ybus[i, j].imag * np.sin(theta[i] - theta[j])
                     )
 
             elif idx_info[0] == "Q":
@@ -423,19 +423,19 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-                    Gij = Ybus[i, j].real
-                    Bij = Ybus[i, j].imag
+                    gij = ybus[i, j].real
+                    bij = ybus[i, j].imag
                     H[k, j] = (
                         -V[i]
                         * V[j]
-                        * (Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j]))
+                        * (gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j]))
                     )
                 H[k, i] = sum(
                     V[i]
                     * V[j]
                     * (
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
+                        ybus[i, j].real * np.cos(theta[i] - theta[j])
+                        + ybus[i, j].imag * np.sin(theta[i] - theta[j])
                     )
                     for j in range(n)
                     if j != i
@@ -443,8 +443,8 @@ class WLSEstimator:
                 H[k, n + i] = sum(
                     V[j]
                     * (
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
+                        ybus[i, j].real * np.sin(theta[i] - theta[j])
+                        - ybus[i, j].imag * np.cos(theta[i] - theta[j])
                     )
                     for j in range(n)
                 )
@@ -452,50 +452,50 @@ class WLSEstimator:
                     if i == j:
                         continue
                     H[k, n + j] = V[i] * (
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
+                        ybus[i, j].real * np.sin(theta[i] - theta[j])
+                        - ybus[i, j].imag * np.cos(theta[i] - theta[j])
                     )
 
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
+                gij = ybus[i, j].real
+                bij = ybus[i, j].imag
                 H[k, i] = (
                     V[i]
                     * V[j]
-                    * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
+                    * (gij * np.sin(theta[i] - theta[j]) + bij * np.cos(theta[i] - theta[j]))
                 )
                 H[k, j] = (
                     -V[i]
                     * V[j]
-                    * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
+                    * (gij * np.sin(theta[i] - theta[j]) + bij * np.cos(theta[i] - theta[j]))
                 )
-                H[k, n + i] = 2 * V[i] * Gij - V[j] * (
-                    Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
+                H[k, n + i] = 2 * V[i] * gij - V[j] * (
+                    gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j])
                 )
                 H[k, n + j] = -V[i] * (
-                    Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
+                    gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j])
                 )
 
             elif idx_info[0] == "Qij":
                 _, i, j = idx_info
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
+                gij = ybus[i, j].real
+                bij = ybus[i, j].imag
                 H[k, i] = (
                     -V[i]
                     * V[j]
-                    * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
+                    * (gij * np.cos(theta[i] - theta[j]) - bij * np.sin(theta[i] - theta[j]))
                 )
                 H[k, j] = (
                     V[i]
                     * V[j]
-                    * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
+                    * (gij * np.cos(theta[i] - theta[j]) - bij * np.sin(theta[i] - theta[j]))
                 )
-                H[k, n + i] = -2 * V[i] * Bij - V[j] * (
-                    Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
+                H[k, n + i] = -2 * V[i] * bij - V[j] * (
+                    gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j])
                 )
                 H[k, n + j] = -V[i] * (
-                    Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
+                    gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j])
                 )
 
         return H
@@ -557,7 +557,7 @@ class GNNStateEstimator:
 
     def estimate_with_gnn(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        Ybus: np.ndarray,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ybus: np.ndarray,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements: dict,
         bus_ids: list[str],
         edge_list: list[tuple[int, int]] | None = None,
@@ -590,7 +590,7 @@ class GNNStateEstimator:
             Enhanced state estimation result.
         """
         # Step 1: Run traditional WLS
-        wls_result = self._wls_estimator.estimate(Ybus, measurements, bus_ids, slack_bus_idx)
+        wls_result = self._wls_estimator.estimate(ybus, measurements, bus_ids, slack_bus_idx)
 
         # Step 2: If GNN is not trained, return WLS result
         if not self._is_trained or not _HAS_TORCH_GEOMETRIC:
@@ -604,7 +604,7 @@ class GNNStateEstimator:
                 edge_list = []
                 for i in range(n):
                     for j in range(n):
-                        if i != j and abs(Ybus[i, j]) > 1e-10:
+                        if i != j and abs(ybus[i, j]) > 1e-10:
                             edge_list.append((i, j))
 
             # Build node features: WLS estimates

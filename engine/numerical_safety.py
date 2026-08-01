@@ -464,18 +464,18 @@ class MatrixStabilizer:
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
     def safe_solve(
-        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, a: np.ndarray, b: np.ndarray, _method: str = "lu"  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Solve Ax = b with fallback to least-squares on singular systems."""
-        A_arr = np.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            A, dtype=float
+        a_arr = np.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            a, dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_arr = np.asarray(b, dtype=float)
         try:
-            return solve(A_arr, b_arr)
+            return solve(a_arr, b_arr)
         except LinAlgError:
             self.log.warning("Linear solve failed — falling back to least-squares")
-            return lstsq(A_arr, b_arr, rcond=self.default_tolerance)[0]
+            return lstsq(a_arr, b_arr, rcond=self.default_tolerance)[0]
 
     def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
         """Check if matrix is square Union[and, |A] - Union[A^T|, _inf] <= tolerance."""

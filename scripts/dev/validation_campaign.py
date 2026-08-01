@@ -133,14 +133,14 @@ class ValidationCampaign:
             total_load = sum(b.load_power.real for b in system.buses.values())  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             total_gen = sum(b.generation_power.real for b in system.buses.values())
             # Slack bus picks up the difference
-            P_loss = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            p_loss = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 total_gen - total_load
             )  # should be positive (losses)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self._record(
                 _STUDY_TYPE_3BUS_LF,
                 "Power Balance",
                 True,
-                f"Total Load={total_load:.4f}, Total Gen={total_gen:.4f}, Losses={P_loss:.4f} pu",
+                f"Total Load={total_load:.4f}, Total Gen={total_gen:.4f}, Losses={p_loss:.4f} pu",
             )
 
             # Ybus symmetry check
@@ -502,75 +502,75 @@ class ValidationCampaign:
         system.build_sequence_networks()  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         # Three-phase fault at bus 2
-        Ybus_pos = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_pos = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_neg = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             seq="2"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ybus_zero = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
+        analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
         bus_idx = 1  # bus 2 index
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Three-phase fault
         result_3ph = analyzer.three_phase_fault(bus_idx)
-        If_3ph = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        if_3ph = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_3ph["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        self._record("SC", "3-Phase Fault Current > 0", If_3ph > 0, f"Ik''={If_3ph:.4f} pu")
+        self._record("SC", "3-Phase Fault Current > 0", if_3ph > 0, f"Ik''={if_3ph:.4f} pu")
 
         # Peak current ip = kappa * sqrt(2) * Ik'' (IEC 60909, kappa ~ 1.8 for LV)
         kappa = 1.8
-        ip = kappa * np.sqrt(2) * If_3ph
+        ip = kappa * np.sqrt(2) * if_3ph
         self._record(
             "SC",
             "Peak Current Calculation",
-            ip > If_3ph,
+            ip > if_3ph,
             f"ip={ip:.4f} pu (kappa={kappa})",
         )
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
-        Ith = If_3ph  # Simplified  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ith = if_3ph  # Simplified  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("SC", "Thermal Current", Ith > 0, f"Ith={Ith:.4f} pu")
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # SLG fault
         result_slg = analyzer.line_to_ground_fault(bus_idx)
-        If_slg = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        if_slg = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_slg["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        self._record("SC", "SLG Fault Current > 0", If_slg > 0, f"I_SLG={If_slg:.4f} pu")
+        self._record("SC", "SLG Fault Current > 0", if_slg > 0, f"I_SLG={if_slg:.4f} pu")
 
         # SLG should be different from 3-phase
         self._record(
             "SC",
             "SLG != 3-Phase",
-            abs(If_slg - If_3ph) > 0.01,
-            f"SLG={If_slg:.4f}, 3ph={If_3ph:.4f}",
+            abs(if_slg - if_3ph) > 0.01,
+            f"SLG={if_slg:.4f}, 3ph={if_3ph:.4f}",
         )
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Line-to-line fault
         result_ll = analyzer.line_to_line_fault(bus_idx)
-        If_ll = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        if_ll = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_ll["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        self._record("SC", "LL Fault Current > 0", If_ll > 0, f"I_LL={If_ll:.4f} pu")
+        self._record("SC", "LL Fault Current > 0", if_ll > 0, f"I_LL={if_ll:.4f} pu")
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Double line-to-ground
         result_dlg = analyzer.double_line_to_ground_fault(bus_idx)
-        Ib = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             result_dlg["fault_current_b"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ic = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_dlg["fault_current_c"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record(
             "SC",
             "DLG Fault Currents > 0",
-            Ib > 0 and Ic > 0,
-            f"Ib={Ib:.4f}, Ic={Ic:.4f} pu",
+            ib > 0 and ic > 0,
+            f"Ib={ib:.4f}, Ic={ic:.4f} pu",
         )
 
     # =========================================================================
@@ -586,19 +586,19 @@ class ValidationCampaign:
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Test Case 1: IEEE 1584 example - 4.16 kV, 20 kA, VCB, Box
         try:
-            Iarc, Iarc_red = engine.calculate_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            iarc, iarc_red = engine.calculate_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 4.16, 20.0, ElectrodeConfig.VCB
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self._record(
                 "ArcFlash",
                 "Arc Current > 0 (4.16kV, 20kA)",
-                Iarc > 0,
-                f"Iarc={Iarc:.4f} kA, Iarc_red={Iarc_red:.4f} kA",
+                iarc > 0,
+                f"Iarc={iarc:.4f} kA, Iarc_red={iarc_red:.4f} kA",
             )
             # Arc current should be less than bolted fault current
-            self._record("ArcFlash", "Iarc < Ibf", Iarc < 20.0, f"Iarc={Iarc:.4f} < Ibf=20.0 kA")
+            self._record("ArcFlash", "Iarc < Ibf", iarc < 20.0, f"Iarc={iarc:.4f} < Ibf=20.0 kA")
             # Reduced should be 85% of full
-            ratio = Iarc_red / Iarc if Iarc > 0 else 0
+            ratio = iarc_red / iarc if iarc > 0 else 0
             self._record(
                 "ArcFlash",
                 "Reduced = 85% of Full",
@@ -610,7 +610,7 @@ class ValidationCampaign:
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Test Case 2: Incident Energy
         try:
-            E_final, E_full, E_red = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            e_final, e_full, e_red = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 engine.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     4.16,
                     20.0,
@@ -620,12 +620,12 @@ class ValidationCampaign:
                     EnclosureType.BOX,
                 )
             )
-            self._record("ArcFlash", "Incident Energy > 0", E_final > 0, f"E={E_final:.4f} cal/cm2")
+            self._record("ArcFlash", "Incident Energy > 0", e_final > 0, f"E={e_final:.4f} cal/cm2")
             self._record(
                 "ArcFlash",
                 "E_full > 0 and E_red > 0",
-                E_full > 0 and E_red > 0,
-                f"E_full={E_full:.4f}, E_red={E_red:.4f}",
+                e_full > 0 and e_red > 0,
+                f"E_full={e_full:.4f}, E_red={e_red:.4f}",
             )
         except Exception as e:
             self._record("ArcFlash", "Incident Energy Calculation", False, f"Error: {e}")
@@ -682,12 +682,12 @@ class ValidationCampaign:
         # Test Case 6: Different electrode configurations
         for config in ElectrodeConfig:
             try:
-                Iarc, _ = engine.calculate_arc_current(4.16, 20.0, config)
+                iarc, _ = engine.calculate_arc_current(4.16, 20.0, config)
                 self._record(
                     "ArcFlash",
                     f"Arc Current {config.value}",
-                    Iarc > 0,
-                    f"Iarc={Iarc:.4f} kA",
+                    iarc > 0,
+                    f"Iarc={iarc:.4f} kA",
                 )
             except Exception as e:
                 self._record("ArcFlash", f"Arc Current {config.value}", False, f"Error: {e}")
@@ -789,13 +789,13 @@ class ValidationCampaign:
             voltage_threshold=0.1,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             angle_offset=30,
         )
-        V_forward = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_forward = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             complex(1.0, 0) * np.exp(1j * 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_forward = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        i_forward = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             complex(0.5, 0) * np.exp(1j * np.radians(-30))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        picked_up = dir_relay.pickup_logic(V_forward, I_forward)
+        picked_up = dir_relay.pickup_logic(v_forward, i_forward)
         self._record(
             "ProtCoord",
             "67 Relay Forward Direction",
@@ -807,21 +807,21 @@ class ValidationCampaign:
         from relays.relay import DistanceRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         dist_relay = DistanceRelay(relay_id=4, name="Dist-21", impedance_setting=0.5)
-        V_fault = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_fault = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0.8, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_fault = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_fault = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             2.0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Z_measured = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            V_fault / I_fault
+        z_measured = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            v_fault / i_fault
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        picked_up_dist = dist_relay.pickup_logic(V_fault, I_fault)
+        picked_up_dist = dist_relay.pickup_logic(v_fault, i_fault)
         self._record(
             "ProtCoord",
             "21 Relay Impedance Check",
-            picked_up_dist == (abs(Z_measured) < 0.5),
-            f"Z={abs(Z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
+            picked_up_dist == (abs(z_measured) < 0.5),
+            f"Z={abs(z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
         )
 
         # Test 87 Relay (Differential)

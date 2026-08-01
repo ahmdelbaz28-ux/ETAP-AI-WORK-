@@ -84,7 +84,7 @@ class RenewableAgent(BaseAgent):
         dc_capacity_kw: float,
         ac_capacity_kw: float,
         irradiance_kw_m2: Optional[np.ndarray] = None,
-        temperature_C: Optional[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        temperature_c: Optional[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.ndarray
         ] = None,  # NOSONAR
         noct_C: float = 45.0,  # NOSONAR
@@ -158,36 +158,36 @@ class RenewableAgent(BaseAgent):
             irradiance_kw_m2 = np.asarray(irradiance_kw_m2, dtype=float)
             hours = len(irradiance_kw_m2)
 
-        if temperature_C is None:
+        if temperature_c is None:
             # Synthetic temperature: sinusoidal daily pattern
-            temperature_C = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
+            temperature_c = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
         else:
-            temperature_C = np.asarray(temperature_C, dtype=float)
+            temperature_c = np.asarray(temperature_c, dtype=float)
 
         G_stc = 1.0  # kW/m² (STC)  # NOSONAR
         T_stc = 25.0  # °C  # NOSONAR
 
         # Cell temperature per NOCT method (IEEE 1547 / IEC 61215)
         # T_cell = T_amb + (NOCT - 20) × G / 800
-        T_cell = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            temperature_C + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0
+        t_cell = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            temperature_c + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0
         )  # NOSONAR
 
         # DC power output (kW)
         gamma = temp_coeff_power_pctK / 100.0  # Convert %/°C to per-unit/°C
-        P_dc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (T_cell - T_stc))
+        p_dc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (t_cell - T_stc))
         )  # NOSONAR
-        P_dc = np.maximum(P_dc, 0.0)
+        p_dc = np.maximum(p_dc, 0.0)
 
         # Inverter clipping  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-        P_ac_pre_loss = P_dc * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_ac_pre_loss = p_dc * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             losses.inverter_efficiency_pct / 100.0
         )  # NOSONAR
-        P_ac_clipped = np.minimum(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            P_ac_pre_loss, ac_capacity_kw
+        p_ac_clipped = np.minimum(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            p_ac_pre_loss, ac_capacity_kw
         )  # NOSONAR
-        clipping_loss_kw = P_ac_pre_loss - P_ac_clipped
+        clipping_loss_kw = p_ac_pre_loss - p_ac_clipped
 
         # System losses
         loss_factor = (
@@ -197,12 +197,12 @@ class RenewableAgent(BaseAgent):
             * (losses.availability_pct / 100.0)
         )
 
-        P_ac_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            P_ac_clipped * loss_factor
+        p_ac_final = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            p_ac_clipped * loss_factor
         )  # NOSONAR
 
         # Annual energy
-        annual_energy_kwh = float(np.sum(P_ac_final))
+        annual_energy_kwh = float(np.sum(p_ac_final))
         capacity_factor = annual_energy_kwh / (dc_capacity_kw * hours) * 100.0
 
         # Inverter loading ratio (DC/AC)
@@ -212,10 +212,10 @@ class RenewableAgent(BaseAgent):
         specific_yield = annual_energy_kwh / dc_capacity_kw if dc_capacity_kw > 0 else 0.0
 
         # Loss breakdown
-        total_dc_energy = float(np.sum(P_dc))
-        inverter_loss = total_dc_energy - float(np.sum(P_ac_pre_loss))
+        total_dc_energy = float(np.sum(p_dc))
+        inverter_loss = total_dc_energy - float(np.sum(p_ac_pre_loss))
         clipping_energy = float(np.sum(clipping_loss_kw))
-        system_losses = float(np.sum(P_ac_clipped)) - annual_energy_kwh
+        system_losses = float(np.sum(p_ac_clipped)) - annual_energy_kwh
 
         return {
             "dc_capacity_kw": dc_capacity_kw,
@@ -224,8 +224,8 @@ class RenewableAgent(BaseAgent):
             "annual_energy_kwh": annual_energy_kwh,
             "capacity_factor_pct": float(capacity_factor),
             "specific_yield_kwh_kw": float(specific_yield),
-            "peak_output_kw": float(np.max(P_ac_final)),
-            "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
+            "peak_output_kw": float(np.max(p_ac_final)),
+            "hours_at_peak": int(np.sum(p_ac_final >= 0.99 * np.max(p_ac_final))),
             "losses": {
                 "temperature_loss_kwh": float(
                     total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc)),
@@ -240,7 +240,7 @@ class RenewableAgent(BaseAgent):
                 "availability_pct": losses.availability_pct,
             },
             "monthly_energy_kwh": [
-                float(np.sum(P_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
+                float(np.sum(p_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
             ],
         }
 
@@ -398,11 +398,11 @@ class RenewableAgent(BaseAgent):
         weibull_pdf = weibull_pdf / (np.sum(weibull_pdf) * dv)
 
         # Annual energy production (AEP)
-        P_avg = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_avg = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.sum(P * weibull_pdf) * dv
         )  # Average power in kW  # NOSONAR
         hours_per_year = 8760.0
-        aep_gross = P_avg * hours_per_year
+        aep_gross = p_avg * hours_per_year
 
         # Apply losses and availability
         loss_factor = (availability_pct / 100.0) * (1.0 - losses_pct / 100.0)
@@ -419,7 +419,7 @@ class RenewableAgent(BaseAgent):
         mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
 
         # Theoretical max power (Betz limit)
-        P_betz = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_betz = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0
         )  # NOSONAR
 
@@ -438,9 +438,9 @@ class RenewableAgent(BaseAgent):
             "aep_gross_kwh": float(aep_gross),
             "aep_net_kwh": float(aep_net),
             "capacity_factor_pct": float(capacity_factor),
-            "average_power_kw": float(P_avg),
-            "betz_limit_power_kw": float(P_betz),
-            "power_coefficient": float(P_avg / P_betz) if P_betz > 0 else 0.0,
+            "average_power_kw": float(p_avg),
+            "betz_limit_power_kw": float(p_betz),
+            "power_coefficient": float(p_avg / p_betz) if p_betz > 0 else 0.0,
             "availability_pct": availability_pct,
             "losses_pct": losses_pct,
             "power_curve": {
@@ -693,58 +693,58 @@ class RenewableAgent(BaseAgent):
         # 1. Voltage-limited hosting capacity
         voltage_rise_budget = (max_voltage_pu - 1.0) * 100.0  # % above nominal
         if max_voltage_rise_pct_per_kw > 0:
-            HC_voltage = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            hc_voltage = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 voltage_rise_budget / max_voltage_rise_pct_per_kw
             )  # kW  # NOSONAR
         else:
-            HC_voltage = float("inf")  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            hc_voltage = float("inf")  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         # 2. Thermal-limited hosting capacity
         thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-        HC_thermal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        hc_thermal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             feeder_head_kva * (thermal_headroom_pct / 100.0)
         )  # kVA  # NOSONAR
-        HC_thermal_kw = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            HC_thermal * pf_der
+        hc_thermal_kw = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            hc_thermal * pf_der
         )  # Convert to kW at DER PF  # NOSONAR
 
         # 3. Reverse power constraint
         if reverse_power_allowed:
-            HC_reverse = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            hc_reverse = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 "inf"
             )  # NOSONAR
         else:
             # DER can't exceed current load (no reverse flow)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-            HC_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
+            hc_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
 
         # 4. Protection coordination margin (conservative 80% of thermal)
-        HC_protection = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            HC_thermal_kw * 0.80
+        hc_protection = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            hc_thermal_kw * 0.80
         )  # NOSONAR
 
         # Overall hosting capacity = minimum of all constraints
         constraints = {
-            "voltage_limit_kw": float(HC_voltage),
-            "thermal_limit_kw": float(HC_thermal_kw),
-            "reverse_power_limit_kw": float(HC_reverse),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
-            "protection_limit_kw": float(HC_protection),
+            "voltage_limit_kw": float(hc_voltage),
+            "thermal_limit_kw": float(hc_thermal_kw),
+            "reverse_power_limit_kw": float(hc_reverse),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            "protection_limit_kw": float(hc_protection),
         }
 
-        HC_overall = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            HC_voltage, HC_thermal_kw, HC_reverse, HC_protection  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        hc_overall = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            hc_voltage, hc_thermal_kw, hc_reverse, hc_protection  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         )  # NOSONAR
         limiting_constraint = min(constraints, key=lambda k: constraints[k])
 
-        penetration_at_HC = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0
+        penetration_at_hc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            (hc_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0
         )  # NOSONAR
 
         return {
-            "hosting_capacity_kw": float(HC_overall),
-            "hosting_capacity_kva": float(HC_overall / pf_der) if pf_der > 0 else 0.0,
+            "hosting_capacity_kw": float(hc_overall),
+            "hosting_capacity_kva": float(hc_overall / pf_der) if pf_der > 0 else 0.0,
             "limiting_constraint": limiting_constraint,
             "constraints": constraints,
-            "penetration_at_HC_pct": float(penetration_at_HC),
+            "penetration_at_HC_pct": float(penetration_at_hc),
             "feeder_head_kva": feeder_head_kva,
             "voltage_range_pu": {"min": min_voltage_pu, "max": max_voltage_pu},
             "current_loading_pct": current_loading_pct,
@@ -788,7 +788,7 @@ class RenewableAgent(BaseAgent):
                     dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
                     ac_capacity_kw=float(p.get("pv_ac_capacity_kw", 400)),
                     irradiance_kw_m2=p.get("irradiance_profile"),  # type: ignore[reportArgumentType]
-                    temperature_C=p.get("temperature_profile"),  # type: ignore[reportArgumentType]
+                    temperature_c=p.get("temperature_profile"),  # type: ignore[reportArgumentType]
                     noct_C=float(p.get("noct_C", 45.0)),
                     temp_coeff_power_pctK=float(p.get("temp_coeff_pctK", -0.40)),
                     losses=pv_losses,

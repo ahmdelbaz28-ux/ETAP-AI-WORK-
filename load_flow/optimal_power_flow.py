@@ -97,7 +97,7 @@ class OptimalPowerFlowEngine:
     """
 
     def __init__(
-        self, Ybus: np.ndarray, bus_ids: list[int], generator_costs: list[GeneratorCost]  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, ybus: np.ndarray, bus_ids: list[int], generator_costs: list[GeneratorCost]  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Initialize OPF engine.
@@ -107,7 +107,7 @@ class OptimalPowerFlowEngine:
         bus_ids: List of bus IDs
         generator_costs: Generator cost data
         """
-        self.Ybus = Ybus  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus = ybus  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.bus_ids = bus_ids
         self.n_buses = len(bus_ids)
         self.generator_costs = {gc.generator_id: gc for gc in generator_costs}
@@ -150,12 +150,12 @@ class OptimalPowerFlowEngine:
 
         # Form B' matrix (remove reference bus row/column)
         # Assume bus 0 is slack/reference
-        B_prime = B[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        b_prime = B[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             1:, 1:
         ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate net power injections
-        P_injection = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_injection = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             self.n_buses - 1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         for i, bus_id in enumerate(self.bus_ids[1:], start=0):
@@ -166,12 +166,12 @@ class OptimalPowerFlowEngine:
                 if bid == bus_id
             )
             # Load
-            P_load = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            p_load = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 self.load_data.get(bus_id, 0).real if bus_id in self.load_data else 0
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            P_injection[i] = P_gen - P_load
+            p_injection[i] = P_gen - p_load
 
-        return B_prime, P_injection
+        return b_prime, p_injection
 
     def solve_dc_opf(self) -> OPFResult:
         """
@@ -239,7 +239,7 @@ class OptimalPowerFlowEngine:
             gen_col_map[gid] = i
 
         # Single system-wide power balance constraint: sum(gen) = sum(load)
-        A_eq_row = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        a_eq_row = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             len(gen_ids)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_eq_val = 0.0
@@ -248,15 +248,15 @@ class OptimalPowerFlowEngine:
             b_eq_val += load_val
         for gid, _bus_id in self.gen_buses.items():
             gen_col = gen_col_map[gid]
-            A_eq_row[gen_col] = 1.0
-        A_eq = A_eq_row.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            a_eq_row[gen_col] = 1.0
+        a_eq = a_eq_row.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             1, -1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_eq = np.array([b_eq_val])
 
         # Solve LP
         try:
-            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
+            result = linprog(c, A_ub=A_ub, b_ub=b_ub, a_eq=a_eq, b_eq=b_eq, method="highs")
 
             if result.success:
                 # Extract solution
@@ -379,10 +379,10 @@ class OptimalPowerFlowEngine:
                 P_gen_bus = sum(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     x[i] for i, gid in enumerate(gen_ids) if self.gen_buses.get(gid) == bus_id
                 )
-                P_load = self.load_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                p_load = self.load_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     bus_id, 0
                 ).real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                return P_gen_bus - P_load
+                return P_gen_bus - p_load
 
             constraints.append({"type": "eq", "fun": active_power_constraint})
 
@@ -393,10 +393,10 @@ class OptimalPowerFlowEngine:
                     for i, gid in enumerate(gen_ids)
                     if self.gen_buses.get(gid) == bus_id
                 )
-                Q_load = self.load_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                q_load = self.load_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     bus_id, 0
                 ).imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                return Q_gen_bus - Q_load
+                return Q_gen_bus - q_load
 
             constraints.append({"type": "eq", "fun": reactive_power_constraint})
 

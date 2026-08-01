@@ -50,7 +50,7 @@ class ShortCircuitResult:
 
     fault_type: str
     fault_bus_index: int
-    Ik_initial: complex  # Initial symmetrical current (kA)  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    ik_initial: complex  # Initial symmetrical current (kA)  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     Ik_initial_magnitude: float  # magnitude of initial symmetrical current (kA)  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     ip_peak: float  # Peak current (kA)
     Ib_breaking: float  # Breaking current (kA)  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
@@ -59,23 +59,23 @@ class ShortCircuitResult:
     voltage_factor_c: float  # Voltage factor used
     fault_location: str = ""
     # Sequence currents
-    I_positive: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    i_positive: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    I_negative: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    i_negative: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    I_zero: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    i_zero: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     # Phase currents
-    Ia: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    ia: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ib: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    ib: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ic: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+    ic: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
 
@@ -93,13 +93,13 @@ class IEC60909Engine:
 
     def __init__(
         self,
-        Ybus_pos: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_pos: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.complexfloating
         ],  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_neg: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.complexfloating
         ],  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_zero: npt.NDArray[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.complexfloating
         ],  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         base_mva: float = 100.0,
@@ -120,10 +120,10 @@ class IEC60909Engine:
         generators (list): List of generator objects with impedance info.
         r_override (dict): Override R/X ratios for specific buses.
         """
-        self.Ybus_pos = Ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_neg = Ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_zero = Ybus_zero  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.n_buses = Ybus_pos.shape[0]
+        self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_neg = ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_zero = ybus_zero  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.n_buses = ybus_pos.shape[0]
         self.base_mva = base_mva
         self.base_kv = base_kv
         self.generators = generators or []
@@ -211,7 +211,7 @@ class IEC60909Engine:
         return min(kappa, 2.0)  # kappa max is 2.0
 
     def _calculate_mu(
-        self, Ik_initial_pu: float, t_min: float | None = None  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, ik_initial_pu: float, t_min: float | None = None  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ) -> float:  # NOSONAR physics/engineering notation
         """
         Calculate the factor mu for breaking current per IEC 60909.
@@ -235,16 +235,16 @@ class IEC60909Engine:
         # For t_min = 0.02s (50Hz): mu = 0.84 + 0.26 * exp(-0.26 * Ikg/IrG)
         # For t_min = 0.05s: mu = 0.71 + 0.51 * exp(-0.3 * Ikg/IrG)
         if t_min <= 0.02:
-            mu = 0.84 + 0.26 * np.exp(-0.26 * min(Ik_initial_pu, 20.0))
+            mu = 0.84 + 0.26 * np.exp(-0.26 * min(ik_initial_pu, 20.0))
         elif t_min <= 0.05:
-            mu = 0.71 + 0.51 * np.exp(-0.30 * min(Ik_initial_pu, 20.0))
+            mu = 0.71 + 0.51 * np.exp(-0.30 * min(ik_initial_pu, 20.0))
         else:
-            mu = 0.62 + 0.72 * np.exp(-0.32 * min(Ik_initial_pu, 20.0))
+            mu = 0.62 + 0.72 * np.exp(-0.32 * min(ik_initial_pu, 20.0))
         return min(mu, 1.0)
 
     def _calculate_thermal_factor(
         self,
-        Ik_initial: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ik_initial: float,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
         ip: float,
         t_k: float = 1.0,
         m_factor: float = 1.0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -272,8 +272,8 @@ class IEC60909Engine:
             f = self.frequency_hz  # SECURITY AUDIT 2026-07-25 — Fix S-20: was hardcoded 50 Hz
             n = 2.0 * (1.0 / (4.0 * f * t_k)) * (1.0 - np.exp(-2.0 * f * t_k))
             # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
-            if Ik_initial > 0:
-                n_simplified = (ip / Ik_initial - 1.0) ** 2
+            if ik_initial > 0:
+                n_simplified = (ip / ik_initial - 1.0) ** 2
                 n = min(n, n_simplified)
         else:
             n = 0.0
@@ -281,10 +281,10 @@ class IEC60909Engine:
         # Factor m
         m = m_factor
 
-        Ith = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_initial * np.sqrt(m + n)
+        ith = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_initial * np.sqrt(m + n)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        return Ith
+        return ith
 
     def calculate_three_phase_fault(
         self,
@@ -315,7 +315,7 @@ class IEC60909Engine:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
         # Pre-fault voltage (per-unit)
-        V_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             c_factor * 1.0
         )  # c * Un/Un = c in per-unit  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -323,58 +323,58 @@ class IEC60909Engine:
         Z1 = self.Zbus_pos[bus_index, bus_index]
 
         # Initial symmetrical short-circuit current (per-unit)
-        Ik_pu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            V_pre / Z1
+        ik_pu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            v_pre / Z1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Convert to kA
-        Ik_kA = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            abs(Ik_pu) * self.base_i / 1000.0
+        ik_ka = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            abs(ik_pu) * self.base_i / 1000.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Peak current
         kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
+        ip = np.sqrt(2) * kappa * ik_ka
 
         # Breaking current
-        mu = self._calculate_mu(abs(Ik_pu), t_min)
-        Ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            mu * Ik_kA
+        mu = self._calculate_mu(abs(ik_pu), t_min)
+        ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            mu * ik_ka
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state current (simplified: Ik = Ik" for far-from-generator faults)
-        Ik_steady = Ik_kA  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Thermal current
-        Ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_kA, ip, t_k
+        ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Phase currents (balanced three-phase fault)
-        Ia = Ik_pu  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_pu * np.exp(1j * (-2 * np.pi / 3))
+        ia = ik_pu  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_pu * np.exp(1j * (-2 * np.pi / 3))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_pu * np.exp(1j * (2 * np.pi / 3))
+        ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_pu * np.exp(1j * (2 * np.pi / 3))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return ShortCircuitResult(
             fault_type=FaultType.THREE_PHASE.value,
             fault_bus_index=bus_index,
-            Ik_initial=Ik_pu,
-            Ik_initial_magnitude=Ik_kA,
+            ik_initial=ik_pu,
+            Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
-            Ib_breaking=Ib,
+            Ib_breaking=ib,
             Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
+            Ith_thermal=ith,
             voltage_factor_c=c_factor,
-            I_positive=Ik_pu,
-            I_negative=complex(0, 0),
-            I_zero=complex(0, 0),
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
+            i_positive=ik_pu,
+            i_negative=complex(0, 0),
+            i_zero=complex(0, 0),
+            ia=ia,
+            ib=ib_phase,
+            ic=ic_phase,
         )
 
     def calculate_line_to_ground_fault(
@@ -405,7 +405,7 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-        V_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -414,62 +414,62 @@ class IEC60909Engine:
         Z0 = self.Zbus_zero[bus_index, bus_index]
 
         # Sequence currents for SLG fault: I0 = I1 = I2 (series connection)
-        I1 = V_pre / (Z1 + Z2 + Z0)
+        I1 = v_pre / (Z1 + Z2 + Z0)
         I2 = I1
         I0 = I1
 
         # Phase A current = 3 * I1 (for SLG fault)
-        Ia = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ia = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             3 * I1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Convert to kA
-        Ik_kA = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            abs(Ia) * self.base_i / 1000.0
+        ik_ka = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            abs(ia) * self.base_i / 1000.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Peak current (use positive sequence impedance for kappa)
         kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
+        ip = np.sqrt(2) * kappa * ik_ka
 
         # Breaking current
         mu = self._calculate_mu(abs(I1), t_min)
-        Ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            mu * Ik_kA
+        ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            mu * ik_ka
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = Ik_kA  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Thermal
-        Ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_kA, ip, t_k
+        ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Phase currents
-        Ib_phase = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib_phase = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic_phase = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ic_phase = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
-            Ik_initial=Ia,
-            Ik_initial_magnitude=Ik_kA,
+            ik_initial=ia,
+            Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
-            Ib_breaking=Ib,
+            Ib_breaking=ib,
             Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
+            Ith_thermal=ith,
             voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
+            i_positive=I1,
+            i_negative=I2,
+            i_zero=I0,
+            ia=ia,
+            ib=ib_phase,
+            ic=ic_phase,
         )
 
     def calculate_line_to_line_fault(
@@ -500,7 +500,7 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-        V_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -508,66 +508,66 @@ class IEC60909Engine:
         Z2 = self.Zbus_neg[bus_index, bus_index]
 
         # Sequence currents
-        I1 = V_pre / (Z1 + Z2)
+        I1 = v_pre / (Z1 + Z2)
         I2 = -I1
         I0 = complex(0, 0)
 
         # Phase currents for LL fault (B-C fault)
         # I2 = -I1, I0 = 0 for line-to-line fault
-        Ia = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ia = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         a_op = np.exp(1j * 2 * np.pi / 3)
         a2_op = np.exp(-1j * 2 * np.pi / 3)
-        Ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             a2_op * I1 + a_op * I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             a_op * I1 + a2_op * I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Magnitude of fault current
-        Ik_pu = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ib_phase
+        ik_pu = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ib_phase
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ik_kA = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_pu * self.base_i / 1000.0
+        ik_ka = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_pu * self.base_i / 1000.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Peak current
         kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
+        ip = np.sqrt(2) * kappa * ik_ka
 
         # Breaking current
         mu = self._calculate_mu(abs(I1), t_min)
-        Ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            mu * Ik_kA
+        ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            mu * ik_ka
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = Ik_kA  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Thermal
-        Ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_kA, ip, t_k
+        ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_LINE.value,
             fault_bus_index=bus_index,
-            Ik_initial=Ib_phase,
-            Ik_initial_magnitude=Ik_kA,
+            ik_initial=ib_phase,
+            Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
-            Ib_breaking=Ib,
+            Ib_breaking=ib,
             Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
+            Ith_thermal=ith,
             voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
+            i_positive=I1,
+            i_negative=I2,
+            i_zero=I0,
+            ia=ia,
+            ib=ib_phase,
+            ic=ic_phase,
         )
 
     def calculate_double_line_to_ground_fault(
@@ -598,7 +598,7 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-        V_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -607,65 +607,65 @@ class IEC60909Engine:
         Z0 = self.Zbus_zero[bus_index, bus_index]
 
         # Sequence currents
-        Z2_Z0_parallel = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        z2_z0_parallel = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (Z2 * Z0) / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I1 = V_pre / (Z1 + Z2_Z0_parallel)
+        I1 = v_pre / (Z1 + z2_z0_parallel)
         I2 = -I1 * Z0 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
         I0 = -I1 * Z2 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
 
         # Phase currents using symmetrical component transformation
         a = np.exp(1j * 2 * np.pi / 3)
         a2 = np.exp(-1j * 2 * np.pi / 3)
-        Ia = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ia = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             I1 + I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             a2 * I1 + a * I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ic_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             a * I1 + a2 * I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Use the larger of Ib and Ic for magnitude
-        Ik_kA = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            max(abs(Ib_phase), abs(Ic_phase)) * self.base_i / 1000.0
+        ik_ka = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            max(abs(ib_phase), abs(ic_phase)) * self.base_i / 1000.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Peak current
         kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
+        ip = np.sqrt(2) * kappa * ik_ka
 
         # Breaking current
         mu = self._calculate_mu(abs(I1), t_min)
-        Ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            mu * Ik_kA
+        ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            mu * ik_ka
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = Ik_kA  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Thermal
-        Ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Ik_kA, ip, t_k
+        ith = self._calculate_thermal_factor(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return ShortCircuitResult(
             fault_type=FaultType.DOUBLE_LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
-            Ik_initial=max(Ib_phase, Ic_phase, key=abs),
-            Ik_initial_magnitude=Ik_kA,
+            ik_initial=max(ib_phase, ic_phase, key=abs),
+            Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
-            Ib_breaking=Ib,
+            Ib_breaking=ib,
             Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
+            Ith_thermal=ith,
             voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
+            i_positive=I1,
+            i_negative=I2,
+            i_zero=I0,
+            ia=ia,
+            ib=ib_phase,
+            ic=ic_phase,
         )
 
     def calculate(

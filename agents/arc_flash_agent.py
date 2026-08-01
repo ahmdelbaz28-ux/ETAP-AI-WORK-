@@ -173,30 +173,30 @@ class ArcFlashAgent(BaseAgent):
             # Low voltage model
             k1 = 0.0
             k2 = -0.041 if electrode_config == "VCB" else -0.033  # HCB
-            log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            log_iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
             )  # NOSONAR
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
             k2 = 0.016 if electrode_config == "VCB" else 0.017
-            log_Iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
+            log_iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         else:
             # High voltage (> 2.7 kV up to 15 kV)
-            log_Iarc = np.log10(Ibf) * 0.978 + 0.001 * G
+            log_iarc = np.log10(Ibf) * 0.978 + 0.001 * G
 
-        Iarc = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            10.0**log_Iarc
+        iarc = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            10.0**log_iarc
         )  # NOSONAR
 
         # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
-        Iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            0.85 * Iarc
+        iarc_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            0.85 * iarc
         )  # NOSONAR
 
         return {
-            "arc_current_ka": round(Iarc, 4),
-            "reduced_arc_current_ka": round(Iarc_reduced, 4),
+            "arc_current_ka": round(iarc, 4),
+            "reduced_arc_current_ka": round(iarc_reduced, 4),
             "voltage_kv": voltage_kv,
             "bolted_fault_current_ka": bolted_fault_current_ka,
             "electrode_config": electrode_config,
@@ -237,7 +237,7 @@ class ArcFlashAgent(BaseAgent):
             'arc_flash_boundary_mm', 'arc_flash_boundary_in',
             'ppe_category', 'ppe_description', 'working_distance_mm'.
         """
-        Iarc = arc_current_ka  # NOSONAR
+        iarc = arc_current_ka  # NOSONAR
         t = arc_duration_s
         D = working_distance_mm
         G = gap_mm
@@ -263,21 +263,21 @@ class ArcFlashAgent(BaseAgent):
         else:
             # Lee method for > 15 kV
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
-            E_lee = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                2.142e6 * voltage_kv * Iarc * t / (D**2)
+            e_lee = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                2.142e6 * voltage_kv * iarc * t / (D**2)
             )  # NOSONAR
-            return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
+            return self._format_ie_result(e_lee, D, arc_current_ka, voltage_kv, "Lee")
 
         # IEEE 1584-2018 empirical model
         log_E = (  # NOSONAR
-            c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
+            c1 + c2 * np.log10(iarc) + c3 * np.log10(G) + c4 * np.log10(iarc) * G + c5 * np.log10(D)
         )
-        E_normalization = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        e_normalization = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             10.0**log_E
         )  # NOSONAR
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
-        E = E_normalization * (t / 0.2) ** x
+        E = e_normalization * (t / 0.2) ** x
 
         return self._format_ie_result(E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018")
 
@@ -462,11 +462,11 @@ class ArcFlashAgent(BaseAgent):
 
         arc_data = result.data.get("arc_current")
         if arc_data is not None:
-            Iarc = arc_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            iarc = arc_data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 "arc_current_ka", 0.0
             )  # NOSONAR
-            if Iarc <= 0:
-                errors.append(f"Arc current is non-positive: {Iarc:.4f} kA")
+            if iarc <= 0:
+                errors.append(f"Arc current is non-positive: {iarc:.4f} kA")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

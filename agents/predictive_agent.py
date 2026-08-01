@@ -140,15 +140,15 @@ class PredictiveAgent(BaseAgent):
 
         # Holt-Winters iteration
         for t in range(season_length, n):
-            L_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            l_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
             )  # NOSONAR
-            T_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-                beta * (L_new - L) + (1 - beta) * T
+            t_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                beta * (l_new - L) + (1 - beta) * T
             )  # NOSONAR
-            S[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S[t % season_length]
-            L = L_new
-            T = T_new
+            S[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * S[t % season_length]
+            L = l_new
+            T = t_new
 
         # Generate forecast
         forecast = []
@@ -158,26 +158,26 @@ class PredictiveAgent(BaseAgent):
 
         # Calculate in-sample error for confidence bounds
         fitted = []
-        L_f = np.mean(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        l_f = np.mean(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             y[:season_length]
         )  # NOSONAR
-        T_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (  # NOSONAR
                 np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
             )
             / season_length
         )
-        S_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            y[:season_length] - L_f
+        s_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            y[:season_length] - l_f
         )  # NOSONAR
         for t in range(season_length, n):
-            f_val = L_f + T_f + S_f[t % season_length]
+            f_val = l_f + t_f + s_f[t % season_length]
             fitted.append(f_val)
-            L_new = alpha * (y[t] - S_f[t % season_length]) + (1 - alpha) * (L_f + T_f)
-            T_new = beta * (L_new - L_f) + (1 - beta) * T_f
-            S_f[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S_f[t % season_length]
-            L_f = L_new
-            T_f = T_new
+            l_new = alpha * (y[t] - s_f[t % season_length]) + (1 - alpha) * (l_f + t_f)
+            t_new = beta * (l_new - l_f) + (1 - beta) * t_f
+            s_f[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * s_f[t % season_length]
+            l_f = l_new
+            t_f = t_new
 
         errors = y[season_length:n] - np.array(fitted)
         sigma = float(np.std(errors, ddof=1)) if len(errors) > 1 else 0.0

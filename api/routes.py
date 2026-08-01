@@ -437,18 +437,18 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, _, celery_app = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    celeryasyncresult, _, celery_app = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         get_celery_components()
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-    if not CeleryAsyncResult or not celery_app:
+    if not celeryasyncresult or not celery_app:
         raise HTTPException(
             status_code=500, detail="Celery is not available"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Using the retrieved AsyncResult class to create an instance
-        task_result = CeleryAsyncResult(task_id, app=celery_app)
+        task_result = celeryasyncresult(task_id, app=celery_app)
 
         response = {"task_id": task_id, "status": task_result.status, "result": None}
 

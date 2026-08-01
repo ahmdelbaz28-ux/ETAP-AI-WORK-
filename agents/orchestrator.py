@@ -442,13 +442,13 @@ class ShortCircuitAgent(BaseAgent):
             # Build sequence networks
             system_data.build_sequence_networks()  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
-            Ybus_pos = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_pos = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             )  # NOSONAR
-            Ybus_neg = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_neg = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR
-            Ybus_zero = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_zero = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
             )  # NOSONAR
 
@@ -457,9 +457,9 @@ class ShortCircuitAgent(BaseAgent):
             base_kv = task.parameters.get("base_kv", 115.0)
 
             analyzer = FaultAnalyzer(
-                Ybus_pos,
-                Ybus_neg,
-                Ybus_zero,
+                ybus_pos,
+                ybus_neg,
+                ybus_zero,
                 base_mva=base_mva,
                 base_kv=base_kv,
             )
@@ -580,11 +580,11 @@ class HarmonicAnalysisAgent(BaseAgent):
             )
 
             # Set system data
-            Ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
-            engine.set_system_data(Ybus, bus_ids)
+            engine.set_system_data(ybus, bus_ids)
 
             # Add harmonic sources
             for source_data in harmonic_sources:
@@ -683,13 +683,13 @@ class OptimalPowerFlowAgent(BaseAgent):
             method = task.parameters.get("method", "dc")
 
             # Create OPF engine
-            Ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
-            opf = OptimalPowerFlowEngine(Ybus, bus_ids, costs)
+            opf = OptimalPowerFlowEngine(ybus, bus_ids, costs)
 
             # Set load data
             load_data = {}
@@ -750,17 +750,17 @@ class OptimalPowerFlowAgent(BaseAgent):
             return False
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Check power balance
-        P_gen = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_gen = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_generation_mw", 0  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         )  # NOSONAR
-        P_load = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_load = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_load_mw", 0
         )  # NOSONAR
-        P_losses = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_losses = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_losses_mw", 0
         )  # NOSONAR
 
-        balance_error = abs(P_gen - P_load - P_losses)
+        balance_error = abs(p_gen - p_load - p_losses)
         if balance_error > 1.0:  # Allow 1 MW tolerance
             result.validation_errors.append(f"Power balance error: {balance_error:.2f} MW")
             return False

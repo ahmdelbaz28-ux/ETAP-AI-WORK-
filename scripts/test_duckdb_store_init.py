@@ -106,10 +106,10 @@ def main() -> int:
 
     for spec in candidates:
         try:
-            DuckDBStore = _try_import(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            duckdbstore = _try_import(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                 spec
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            store = _instantiate(DuckDBStore)
+            store = _instantiate(duckdbstore)
 
             # Accessibility checks: accept any of these, depending on implementation.
             ok = False
@@ -124,7 +124,7 @@ def main() -> int:
                     {
                         "success": True,
                         "import_spec": spec,
-                        "store_type": getattr(DuckDBStore, "__name__", str(DuckDBStore)),
+                        "store_type": getattr(duckdbstore, "__name__", str(duckdbstore)),
                         "store_repr": repr(store)[:500],
                         "accessibility_checked": ok,
                         "error": None,

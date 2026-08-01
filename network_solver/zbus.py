@@ -2,7 +2,7 @@ import numpy as np
 
 
 def zbus_from_ybus(
-    Ybus, reference_bus=0  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+    ybus, reference_bus=0  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus matrix from Ybus by inverting the reduced Ybus matrix.
@@ -15,23 +15,23 @@ def zbus_from_ybus(
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n-1 x n-1).
     """
     # Remove the reference bus row and column
-    Y_reduced = np.delete(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-        np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1
+    y_reduced = np.delete(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        np.delete(ybus, reference_bus, axis=0), reference_bus, axis=1
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     # Compute the inverse
     try:
-        Z_reduced = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            Y_reduced
+        z_reduced = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            y_reduced
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     except np.linalg.LinAlgError:
         # If singular, use pseudo-inverse
-        Z_reduced = np.linalg.pinv(Y_reduced)
+        z_reduced = np.linalg.pinv(y_reduced)
     # Expand back to full size if needed, but we return reduced for now
-    return Z_reduced
+    return z_reduced
 
 
 def zbus_full(
-    Ybus,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+    ybus,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus by inverting the full Ybus matrix.
@@ -45,6 +45,6 @@ def zbus_full(
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n x n) or pseudo-inverse.
     """
     try:
-        return np.linalg.inv(Ybus)
+        return np.linalg.inv(ybus)
     except np.linalg.LinAlgError:
-        return np.linalg.pinv(Ybus)
+        return np.linalg.pinv(ybus)

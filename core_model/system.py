@@ -69,7 +69,7 @@ class System:
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
-        Ybus = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             (n, n), dtype=complex
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -82,12 +82,12 @@ class System:
             # Shunt susceptance/2 at each end
             y_shunt = line.get_shunt_admittance(seq) / 2.0
 
-            Ybus[i, i] += y + y_shunt
-            Ybus[j, j] += y + y_shunt
+            ybus[i, i] += y + y_shunt
+            ybus[j, j] += y + y_shunt
             # Off-diagonal elements: Ybus[i,j] = Ybus[j,i] = -y (symmetric for real y)
             # For complex y (e.g., from complex impedance), both off-diagonals are -y
-            Ybus[i, j] -= y
-            Ybus[j, i] -= y
+            ybus[i, j] -= y
+            ybus[j, i] -= y
 
         # Add contributions from transformers
         for xf in self.transformers:
@@ -110,16 +110,16 @@ class System:
 
                 # Ybus entries for tap-changing transformer (standard formulation)
                 # Shunt on tapped side (bus i) must be referred Union[through, a|²]
-                Ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
-                Ybus[j, j] += y + y_shunt_half
-                Ybus[i, j] -= y / np.conj(a)
-                Ybus[j, i] -= y / a
+                ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
+                ybus[j, j] += y + y_shunt_half
+                ybus[i, j] -= y / np.conj(a)
+                ybus[j, i] -= y / a
             else:
                 # Standard transformer (tap = 1.0, no phase shift)
-                Ybus[i, i] += y + y_shunt_half
-                Ybus[j, j] += y + y_shunt_half
-                Ybus[i, j] -= y
-                Ybus[j, i] -= y
+                ybus[i, i] += y + y_shunt_half
+                ybus[j, j] += y + y_shunt_half
+                ybus[i, j] -= y
+                ybus[j, i] -= y
 
         # Add generator impedance contributions to Ybus diagonal
         # For positive sequence with include_gen_impedance=True (fault analysis),
@@ -132,7 +132,7 @@ class System:
                 zg = gen.get_impedance(seq)
                 if abs(zg) > 1e-12:
                     yg = 1.0 / zg
-                    Ybus[i, i] += yg
+                    ybus[i, i] += yg
 
         # Add load contributions to Ybus for constant-impedance loads
         # For constant power loads (default), no Ybus modification is needed
@@ -144,10 +144,10 @@ class System:
                 z_load = load.get_impedance(seq)
                 if abs(z_load) > 1e-12 and abs(z_load) < 1e8:
                     y_load = 1.0 / z_load
-                    Ybus[i, i] += y_load
+                    ybus[i, i] += y_load
 
-        self.Ybus_seq[seq] = Ybus
-        return Ybus
+        self.Ybus_seq[seq] = ybus
+        return ybus
 
     def get_ybus(self, seq="1"):
         """

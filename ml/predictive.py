@@ -309,20 +309,20 @@ class LoadForecaster:
         normalized = (data - self._fallback_mean) / self._fallback_std  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         X, y = self._create_sequences(normalized)
-        X_flat = X.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        x_flat = X.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             X.shape[0], X.shape[1]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        XtX = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            X_flat.T @ X_flat
+        xtx = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            x_flat.T @ x_flat
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Xty = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            X_flat.T @ y
+        xty = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            x_flat.T @ y
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         try:
-            self._fallback_weights = np.linalg.solve(XtX, Xty)
+            self._fallback_weights = np.linalg.solve(xtx, xty)
         except np.linalg.LinAlgError:
-            self._fallback_weights = np.linalg.lstsq(X_flat, y, rcond=None)[0]
+            self._fallback_weights = np.linalg.lstsq(x_flat, y, rcond=None)[0]
         self._fallback_bias = 0.0
         self._is_lstm = False
         self._is_prophet = False
@@ -342,13 +342,13 @@ class LoadForecaster:
         for i in range(len(data) - w):
             X.append(data[i : i + w])
             y.append(data[i + w])
-        X_arr = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        x_arr = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             X
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         y_arr = np.array(y)
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
-            X_arr = X_arr.reshape(X_arr.shape[0], X_arr.shape[1], 1)
-        return X_arr, y_arr
+            x_arr = x_arr.reshape(x_arr.shape[0], x_arr.shape[1], 1)
+        return x_arr, y_arr
 
     # ------------------------------------------------------------------
     # Prediction

@@ -140,19 +140,19 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             print(f"   {fault_type.replace('_', ' ').title()}:")
             if "fault_current" in fault_result:
-                If = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                if_ = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     "fault_current"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                print(f"     Fault Current: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
+                print(f"     Fault Current: {abs(if_):.4f} angle {np.angle(if_, deg=True):.2f}° pu")
             elif "fault_current_b" in fault_result:
-                Ib = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                ib = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     "fault_current_b"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                Ic = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                ic = fault_result[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     "fault_current_c"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                print(f"     Fault Current B: {abs(Ib):.4f} angle {np.angle(Ib, deg=True):.2f}° pu")
-                print(f"     Fault Current C: {abs(Ic):.4f} angle {np.angle(Ic, deg=True):.2f}° pu")
+                print(f"     Fault Current B: {abs(ib):.4f} angle {np.angle(ib, deg=True):.2f}° pu")
+                print(f"     Fault Current C: {abs(ic):.4f} angle {np.angle(ic, deg=True):.2f}° pu")
             print(f"     Affected Bus Index: {fault_result.get('affected_bus_index', 'N/A')}")
         except Exception as e:
             print(f"   Error in {fault_type}: {e}")
@@ -200,9 +200,9 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
         try:
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             if "fault_current" in fault_result:
-                If = fault_result["fault_current"]
+                if_ = fault_result["fault_current"]
                 report_lines.append(
-                    f"  {fault_type.replace('_', ' ').title()}: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu",
+                    f"  {fault_type.replace('_', ' ').title()}: {abs(if_):.4f} angle {np.angle(if_, deg=True):.2f}° pu",
                 )
             else:
                 report_lines.append(f"  {fault_type.replace('_', ' ').title()}: See details above")

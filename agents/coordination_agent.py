@@ -411,7 +411,7 @@ class CoordinationAgent(BaseAgent):
 
             # --- Relay operating time ---
             if analysis_type in ("relay_time", "full"):
-                fault_I = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                fault_i = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
                     task.parameters.get("fault_current_a", 5000.0)
                 )  # NOSONAR
                 pickup = float(task.parameters.get("pickup_current_a", 800.0))
@@ -419,7 +419,7 @@ class CoordinationAgent(BaseAgent):
                 tms = float(task.parameters.get("time_multiplier", 1.0))
 
                 results["relay_operating_time"] = self.calculate_relay_operating_time(
-                    fault_current_a=fault_I,
+                    fault_current_a=fault_i,
                     pickup_current_a=pickup,
                     curve_type=curve,
                     time_multiplier=tms,
@@ -443,12 +443,12 @@ class CoordinationAgent(BaseAgent):
                         "time_multiplier": 0.3,
                     },
                 )
-                fault_I = float(task.parameters.get("fault_current_a", 10000.0))
+                fault_i = float(task.parameters.get("fault_current_a", 10000.0))
 
                 results["coordination_check"] = self.verify_coordination(
                     upstream_relay=upstream,
                     downstream_relay=downstream,
-                    fault_current_a=fault_I,
+                    fault_current_a=fault_i,
                 )
 
             # --- TCC data ---

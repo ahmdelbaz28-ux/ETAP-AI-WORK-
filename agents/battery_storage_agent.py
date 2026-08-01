@@ -116,11 +116,11 @@ class BatteryStorageAgent(BaseAgent):
 
         # Power capacity: maximum load above target
         load_above_target = np.maximum(load_profile_kw - target_peak_kw, 0.0)
-        P_required = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_required = float(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             np.max(load_above_target)
         )  # NOSONAR
-        P_bess = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            P_required, max_power_kw
+        p_bess = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            p_required, max_power_kw
         )  # NOSONAR
 
         # Energy capacity: total energy above target per day
@@ -136,30 +136,30 @@ class BatteryStorageAgent(BaseAgent):
         )
 
         # Also consider duration-based sizing
-        E_duration = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            P_bess * discharge_duration_hours
+        e_duration = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            p_bess * discharge_duration_hours
         )  # NOSONAR
 
         # Take the larger of the two energy requirements
-        E_required = max(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
-            E_deliverable, E_duration
+        e_required = max(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            E_deliverable, e_duration
         )  # NOSONAR
 
         # Apply SOC limits and reserve
         soc_range = usable_soc_range[1] - usable_soc_range[0]
         E_total = (  # NOSONAR
-            E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
+            e_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
             if soc_range > 0
-            else E_required
+            else e_required
         )
 
         # Energy rating at nominal conditions (accounting for DoD)
-        E_nominal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        e_nominal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             E_total / dod_max if dod_max > 0 else E_total
         )  # NOSONAR
 
         # Peak shaving result simulation
-        shaved_profile = np.maximum(load_profile_kw - P_bess, target_peak_kw)
+        shaved_profile = np.maximum(load_profile_kw - p_bess, target_peak_kw)
         # Where load is below target, BESS may charge
         _charge_available = np.maximum(target_peak_kw - load_profile_kw, 0.0)
         original_peak = float(np.max(load_profile_kw))
@@ -172,10 +172,10 @@ class BatteryStorageAgent(BaseAgent):
         daily_cycles = daily_energy_shifted / E_total if E_total > 0 else 0.0
 
         return {
-            "power_capacity_kw": P_bess,
+            "power_capacity_kw": p_bess,
             "energy_capacity_kwh": E_total,
-            "energy_nominal_kwh": E_nominal,
-            "discharge_duration_h": (E_total / P_bess) if P_bess > 0 else 0.0,
+            "energy_nominal_kwh": e_nominal,
+            "discharge_duration_h": (E_total / p_bess) if p_bess > 0 else 0.0,
             "round_trip_efficiency": round_trip_efficiency,
             "usable_soc_range": list(usable_soc_range),
             "max_dod": dod_max,
@@ -252,10 +252,10 @@ class BatteryStorageAgent(BaseAgent):
         # Initialize
         soc = np.zeros(n_periods + 1)
         soc[0] = initial_soc
-        P_charge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_charge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_periods
         )  # NOSONAR
-        P_discharge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        p_discharge = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             n_periods
         )  # NOSONAR
         soc_history = np.zeros(n_periods)
@@ -281,14 +281,14 @@ class BatteryStorageAgent(BaseAgent):
                 if t in discharge_periods and available_energy > 0:
                     # Discharge
                     P = min(bess_power_kw, available_energy / dt)
-                    P_discharge[t] = P
+                    p_discharge[t] = P
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
 
                 elif t in charge_periods and available_capacity > 0:
                     # Charge
                     P = min(bess_power_kw, available_capacity / dt)
-                    P_charge[t] = P
+                    p_charge[t] = P
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -312,13 +312,13 @@ class BatteryStorageAgent(BaseAgent):
                         load_profile_kw[t] - peak_threshold,
                         available_energy / dt,
                     )
-                    P_discharge[t] = P
+                    p_discharge[t] = P
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
                 elif load_profile_kw[t] < peak_threshold * 0.6 and available_capacity > 0:
                     # Charge during low-load periods
                     P = min(bess_power_kw, available_capacity / dt)
-                    P_charge[t] = P
+                    p_charge[t] = P
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -351,13 +351,13 @@ class BatteryStorageAgent(BaseAgent):
                 if signal > 0 and available_energy > 0:
                     # Regulation up (discharge)
                     P = min(bess_power_kw * signal, available_energy / dt)
-                    P_discharge[t] = P
+                    p_discharge[t] = P
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
                 elif signal < 0 and available_capacity > 0:
                     # Regulation down (charge)
                     P = min(bess_power_kw * abs(signal), available_capacity / dt)
-                    P_charge[t] = P
+                    p_charge[t] = P
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -367,19 +367,19 @@ class BatteryStorageAgent(BaseAgent):
                 soc_history[t] = soc[t]
 
         # Financial analysis
-        revenue_discharge = np.sum(P_discharge * dt * energy_prices)
-        cost_charge = np.sum(P_charge * dt * energy_prices)
+        revenue_discharge = np.sum(p_discharge * dt * energy_prices)
+        cost_charge = np.sum(p_charge * dt * energy_prices)
         net_revenue = revenue_discharge - cost_charge
 
-        total_charged = float(np.sum(P_charge * dt))
-        total_discharged = float(np.sum(P_discharge * dt))
+        total_charged = float(np.sum(p_charge * dt))
+        total_discharged = float(np.sum(p_discharge * dt))
         equivalent_cycles = total_discharged / bess_energy_kwh if bess_energy_kwh > 0 else 0.0
 
         return {
             "strategy": strategy,
             "schedule": {
-                "P_charge_kw": P_charge.tolist(),
-                "P_discharge_kw": P_discharge.tolist(),
+                "P_charge_kw": p_charge.tolist(),
+                "P_discharge_kw": p_discharge.tolist(),
                 "soc": soc_history.tolist(),
             },
             "financial": {
@@ -652,17 +652,17 @@ class BatteryStorageAgent(BaseAgent):
 
         # Temperature derating (Arrhenius)
         R_gas = 8.314e-3  # kJ/(mol·K)  # NOSONAR
-        T_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_ref = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             25.0 + 273.15
         )  # K  # NOSONAR
-        T_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_op = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             temperature_C + 273.15
         )  # K  # NOSONAR
-        Ea = params[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ea = params[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
             "Ea_kJmol"
         ]  # NOSONAR
 
-        temp_factor = np.exp(Ea / R_gas * (1.0 / T_ref - 1.0 / T_op))
+        temp_factor = np.exp(ea / R_gas * (1.0 / t_ref - 1.0 / t_op))
         # Higher temperature → faster degradation → temp_factor < 1 means reduced life
         temp_factor_life = 1.0 / temp_factor if temp_factor > 0 else 1.0
 

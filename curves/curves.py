@@ -18,52 +18,52 @@ class IEC60255Curves:
 
     @staticmethod
     def standard_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        tms, i, ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
         """
-        if Ip > I:
+        if ip > i:
             return float("inf")
-        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
-        return TMS * (0.14 / (M**0.02 - 1))
+        M = i / ip if ip != i else _IEC_CURVE_EPSILON
+        return tms * (0.14 / (M**0.02 - 1))
 
     @staticmethod
     def very_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        tms, i, ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
-        if Ip > I:
+        if ip > i:
             return float("inf")
-        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
-        return TMS * (13.5 / (M - 1))
+        M = i / ip if ip != i else _IEC_CURVE_EPSILON
+        return tms * (13.5 / (M - 1))
 
     @staticmethod
     def extremely_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        tms, i, ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
-        if Ip > I:
+        if ip > i:
             return float("inf")
-        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
-        return TMS * (80 / (M**2 - 1))
+        M = i / ip if ip != i else _IEC_CURVE_EPSILON
+        return tms * (80 / (M**2 - 1))
 
     @staticmethod
     def long_inverse(
-        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        tms, i, ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
         """
-        if Ip > I:
+        if ip > i:
             return float("inf")
-        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON
-        return TMS * (120 / (M - 1))
+        M = i / ip if ip != i else _IEC_CURVE_EPSILON
+        return tms * (120 / (M - 1))
