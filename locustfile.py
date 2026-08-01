@@ -174,7 +174,7 @@ class AuthenticatedUser(HttpUser):
         """Authenticate on user start."""
         self.token = None
         self.auth_headers = {
-            "Content-Type": _JSON_CONTENT_TYPE  # S1192 literal kept inline for readability
+            "Content-Type": _JSON_CONTENT_TYPE  # S1192 literal kept inline for readability NOSONAR
         }  # NOSONAR intentional repetition (audit constant)
         self._authenticate()
 

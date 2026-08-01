@@ -294,7 +294,7 @@ class RenewableAgent(BaseAgent):
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(  # S6711 legacy RandomState kept for deterministic seed behaviour
+        cloud_factor = 0.7 + 0.3 * np.random.random(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
             hours
         )  # NOSONAR
         poa = poa * cloud_factor

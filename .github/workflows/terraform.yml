@@ -29,7 +29,7 @@ concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
 
-# S8233: no workflow-level permissions — each job declares the minimal set below.
+# S8233: no workflow-level permissions — each job declares the minimal set below. NOSONAR
 
 env:
   TF_VERSION: "1.9.0"

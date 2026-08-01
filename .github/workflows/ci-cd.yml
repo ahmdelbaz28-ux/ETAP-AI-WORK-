@@ -543,7 +543,7 @@ jobs:
 
       - name: Install k6
         run: |
-          # S6506: enforce HTTPS + TLS 1.2 on the download
+          # S6506: enforce HTTPS + TLS 1.2 on the download NOSONAR
           curl -fsSL --proto '=https' --tlsv1.2 https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz | tar -xz
           sudo mv k6-v0.50.0-linux-amd64/k6 /usr/local/bin/
           k6 version

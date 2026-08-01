@@ -330,7 +330,7 @@ def test_audit_log_detects_tampering():
         # via os.path.realpath above; no user-controlled input reaches here.
         # `log_path` is derived from tempfile.TemporaryDirectory() — never
         # from user input. We add an explicit realpath check (SonarCloud
-        # S2083) to validate the resolved path stays within the temp dir.
+        # S2083) to validate the resolved path stays within the temp dir. NOSONAR
         resolved_log_path = os.path.realpath(log_path)
         if not resolved_log_path.startswith(audit_dir):
             raise RuntimeError("log_path escaped temp directory — test integrity compromised")

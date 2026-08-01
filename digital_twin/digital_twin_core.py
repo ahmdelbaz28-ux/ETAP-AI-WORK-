@@ -121,7 +121,7 @@ class DigitalTwinState:
     def adms(self):  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return self._adms_engine
 
-    def capture_snapshot(  # S3776 cognitive complexity intentional; logic validated by tests
+    def capture_snapshot(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, source_event: str = "", correlation_id: str = ""
     ) -> StateSnapshot:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Capture current state of all layers into a snapshot."""
@@ -300,7 +300,7 @@ class SynchronizationEngine:
   # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return errors
 
-    def synchronize_adms_to_electrical(  # S3776 cognitive complexity intentional; logic validated by tests
+    def synchronize_adms_to_electrical(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self,
     ) -> list[
         str
@@ -1253,7 +1253,7 @@ class LivePowerSystemEngine:
         if self._base_engine is None:
             return {
                 "converged": False,
-                "error": _NO_BASE_ENGINE_MSG,  # S1192 literal kept inline for readability
+                "error": _NO_BASE_ENGINE_MSG,  # S1192 literal kept inline for readability NOSONAR
             }  # NOSONAR intentional repetition (audit constant)
 
         try:

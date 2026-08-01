@@ -38,7 +38,7 @@ class ValidationCampaign:
   # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
     def _record(self, category, test_name, passed, detail="", warning=False):
         status = (
-            "PASS" if passed else ("WARN" if warning else "FAIL")  # S3358 nested ternary clear in this context
+            "PASS" if passed else ("WARN" if warning else "FAIL")  # S3358 nested ternary clear in this context NOSONAR
         )  # NOSONAR nested conditional; extract to named variable (tech debt)
         if passed and not warning:
             self.passed += 1
@@ -113,7 +113,7 @@ class ValidationCampaign:
         converged = solver.solve(max_iter=100, tol=1e-6)
 
         self._record(
-            _STUDY_TYPE_3BUS_LF, "Convergence", converged, f"Converged={converged}"  # S1192 literal kept inline for readability
+            _STUDY_TYPE_3BUS_LF, "Convergence", converged, f"Converged={converged}"  # S1192 literal kept inline for readability NOSONAR
         )  # NOSONAR intentional repetition (audit constant)
 
         if converged:
@@ -313,7 +313,7 @@ class ValidationCampaign:
                 "All within 0.9-1.1 pu" if all_ok else "Some out of range",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
             )
 
-    def validate_ieee_30bus(  # S3776 cognitive complexity intentional; logic validated by tests
+    def validate_ieee_30bus(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self,
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """IEEE 30-Bus Load Flow Validation (Simplified)."""

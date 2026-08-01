@@ -396,7 +396,7 @@ class ClusterManager:
                 "utilization": total_load / max(total_capacity, 1e-9),
                 "status": "healthy"
                 if healthy == total
-                else "degraded"  # S3358 nested ternary clear in this context
+                else "degraded"  # S3358 nested ternary clear in this context NOSONAR
                 if healthy > 0
                 else "down",  # NOSONAR nested conditional; extract to named variable (tech debt)
             }

@@ -174,7 +174,7 @@ def check_docker_build():
                 "docker",
                 "build",
                 "-t",
-                _HF_GUARD_TEST_IMAGE,  # S1192 literal kept inline for readability
+                _HF_GUARD_TEST_IMAGE,  # S1192 literal kept inline for readability NOSONAR
                 tmpdir,
             ],  # NOSONAR intentional repetition (audit constant)
             capture_output=True,

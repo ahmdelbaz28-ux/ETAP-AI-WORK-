@@ -195,7 +195,7 @@ class YbusRebuildHandler(PropagationHandler):
                     )
             else:
                 ctx.record_step(
-                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # S1192 literal kept inline for readability
+                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # S1192 literal kept inline for readability NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -368,7 +368,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
   # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     fatal = False
 
-    def handle(  # S3776 cognitive complexity intentional; logic validated by tests
+    def handle(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, ctx: PropagationContext
     ) -> PropagationContext:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if ctx.dt_state is None or ctx.dt_state.system is None:

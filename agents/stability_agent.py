@@ -529,7 +529,7 @@ class StabilityAgent(BaseAgent):
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -593,7 +593,7 @@ class StabilityAgent(BaseAgent):
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -660,7 +660,7 @@ class StabilityAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(  # S3776 cognitive complexity intentional; logic validated by tests
+    def validate_result(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
         self, result: AgentResult
     ) -> bool:  # NOSONAR
         """

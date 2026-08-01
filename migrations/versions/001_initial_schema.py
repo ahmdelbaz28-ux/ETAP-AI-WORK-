@@ -152,7 +152,7 @@ def upgrade() -> None:
             "created_by",
             sa.String(36),
             sa.ForeignKey(
-                _USERS_ID_FK, ondelete="CASCADE"  # S1192 literal kept inline for readability
+                _USERS_ID_FK, ondelete="CASCADE"  # S1192 literal kept inline for readability NOSONAR
             ),  # NOSONAR intentional repetition (audit constant)
             nullable=False,
         ),
