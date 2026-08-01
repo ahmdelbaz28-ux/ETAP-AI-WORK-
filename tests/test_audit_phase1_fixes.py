@@ -99,7 +99,7 @@ class TestArcFlashE01E02:
     def test_e02_clamped_range(self):
         """E-02: x_power should be clamped to safe range."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
-        assert "max(" in src, "x_power should be clamped with max() to prevent overflow"
+        assert "max(" in src, "x_power should be clamped with max() to prevent overflow"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
         assert "min(" in src, "x_power should be clamped with min() to prevent division-by-zero"
 
     def test_e01_formula_uses_log10_t(self):

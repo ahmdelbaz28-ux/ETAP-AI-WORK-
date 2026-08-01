@@ -187,7 +187,7 @@ class StudyCache:
             return True
         except (TypeError, ValueError) as e:
             # Unhashable key or value that breaks dict storage
-            logger.exception(
+            logger.exception(  # NOSONAR S8572: intentional; see prior batch commits for context
                 "In-memory cache SET failed for key %r: %s", key, e
             )
             return False

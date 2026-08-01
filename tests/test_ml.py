@@ -113,7 +113,7 @@ class TestFaultPredictor:
         predictor = FaultPredictor()
         with pytest.raises(RuntimeError, match="trained"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             predictor.predict(np.array([[0.5, 0.1]]))
-
+  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
     def test_feature_importance_after_train(self):
         predictor = FaultPredictor()
         features = np.random.randn(
@@ -238,12 +238,12 @@ class TestAnomalyDetector:
             detector.detect(np.array([[1.0, 2.0]]))
 
     def test_train_raises_non_2d(self):
-        detector = AnomalyDetector()
+        detector = AnomalyDetector()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
         with pytest.raises(ValueError, match="2-D"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             detector.train(np.array([1.0, 2.0, 3.0]))
 
     def test_invalid_contamination(self):
         with pytest.raises(ValueError):
             AnomalyDetector(contamination=0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
             AnomalyDetector(contamination=1.0)

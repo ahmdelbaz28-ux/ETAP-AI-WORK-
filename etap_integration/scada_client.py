@@ -268,7 +268,7 @@ class SCADAClient:
             return await self._read_from_server()
         return self._read_from_simulation()
 
-    async def _read_from_server(  # S7503 async signature required by callers; body intentionally sync
+    async def _read_from_server(  # S7503 async signature required by callers; body intentionally sync  # NOSONAR S7503: async signature required by callers; body intentionally sync
         self,
     ) -> dict[str, Any]:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Read data from the IEC 61850 server."""

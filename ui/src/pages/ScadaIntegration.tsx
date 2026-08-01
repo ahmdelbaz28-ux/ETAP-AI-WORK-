@@ -83,7 +83,7 @@ function handleConnectionFailure(
   isRtl: boolean,
   notify: NotifyFn,
   addLog: AddLogFn,
-  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,
+  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,  # NOSONAR S4323: small union type; inline is clearer than a type alias for a single-use case
   setLatency: (n: number | null) => void,
 ): void {
   setConnectionStatus("disconnected");

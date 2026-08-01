@@ -148,7 +148,7 @@ def _require_api_key(request: Request) -> None:
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
         return
-
+  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI

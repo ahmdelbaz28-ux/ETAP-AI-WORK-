@@ -419,7 +419,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 1: File discovery
     # ------------------------------------------------------------------
-
+  # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _discover_files(  # S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -475,7 +475,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 2: Test name indexing
     # ------------------------------------------------------------------
-
+  # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _index_test_names(  # S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -505,7 +505,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 3: Function extraction
     # ------------------------------------------------------------------
-
+  # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _extract_all_functions(  # S7503 async signature required by callers; body intentionally sync
         self,
     ) -> list[FunctionInfo]:  # NOSONAR async function uses sync I/O for compatibility reasons

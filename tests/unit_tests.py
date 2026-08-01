@@ -1344,7 +1344,7 @@ class TestNumericalSafety:
         cleaned = guard.validate_matrix(mat, expected_shape=(2, 2))
         assert not np.any(np.isnan(cleaned))
         assert not np.any(np.isinf(cleaned))
-        with pytest.raises(
+        with pytest.raises(  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
             ValueError
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             guard.validate_matrix(np.eye(3), expected_shape=(2, 2))

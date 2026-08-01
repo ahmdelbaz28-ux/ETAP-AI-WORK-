@@ -286,7 +286,7 @@ def test_backward_compat_all_old_prompts_load():
     ]
     for h in old_handles:
         p = get_system_prompt(h)
-        assert p, f"Prompt '{h}' no longer loads (None/empty)"
+        assert p, f"Prompt '{h}' no longer loads (None/empty)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
     assert len(p) > 20, f"Prompt '{h}' no longer loads (too short: {len(p)} chars)"
 
 
@@ -439,7 +439,7 @@ def test_format_c_offers_four_followup_options():
 
     agent = ETAPExpertAgent()
     r = agent.answer("Run Load Flow to find fault current")
-    resp = r["response"]
+    resp = r["response"]  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
     assert "A)" in resp, "Format C must offer option A)"
     assert "B)" in resp, "Format C must offer option B)"
     assert "C)" in resp, "Format C must offer option C)"

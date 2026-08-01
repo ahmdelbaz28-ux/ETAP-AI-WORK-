@@ -349,7 +349,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_impossible_guard(
         self,
-        _tree: Optional[ast.AST],  # S1172 param retained for interface consistency
+        _tree: Optional[ast.AST],  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
@@ -765,7 +765,7 @@ class AIFailureModeDetector:
     def _detect_hallucinated_api(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
-        _source: str,  # S1172 param retained for interface consistency
+        _source: str,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
         context: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Detect imports of packages that are not in the known-packages set.

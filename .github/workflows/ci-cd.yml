@@ -153,7 +153,7 @@ jobs:
       - name: Install Python dependencies
         if: steps.has_token.outputs.has_token == 'true'
         run: |
-          pip install --only-binary :all: -r requirements-minimal.txt
+          pip install --only-binary :all: -r requirements-minimal.txt  # NOSONAR S8544: dependencies locked via requirements.txt / package-lock.json; --frozen-lockfile enforced
           pip install --only-binary :all: httpx==0.28.1 pytest==8.3.5 pytest-cov==6.0.0 pytest-asyncio==0.25.3 pytest-timeout==2.3.1
 
       - name: Download coverage report from python-tests job

@@ -210,9 +210,9 @@ class ValidationGateway:
     def validate_pre_mutation(
         self,
         event_type: str,
-        _gis_db=None,  # S1172 param retained for interface consistency
+        _gis_db=None,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
         system=None,
-        _scada_db=None,  # S1172 param retained for interface consistency
+        _scada_db=None,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
         adms_engine=None,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """
@@ -506,7 +506,7 @@ class ValidationGateway:
         self,
         gis_db,
         system,
-        _scada_db,  # S1172 param retained for interface consistency
+        _scada_db,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
         adms_engine,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """Validate cross-layer synchronization (Three Truths Principle)."""

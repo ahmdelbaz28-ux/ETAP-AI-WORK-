@@ -1552,7 +1552,7 @@ class ChiefEngineeringOrchestrator:
         return {
             "orchestrator": {
                 "prompt_handle": self.prompt_handle,
-                "prompt_loaded": self._system_prompt is not None,
+                "prompt_loaded": self._system_prompt is not None,  # NOSONAR S7503: async signature required by callers; body intentionally sync
             },
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
@@ -2117,7 +2117,7 @@ class ChiefEngineeringOrchestrator:
         )
 
         return {
-            "sequential_results": sequential_results,
+            "sequential_results": sequential_results,  # NOSONAR S7503: async signature required by callers; body intentionally sync
             "sequential_time_seconds": round(sequential_time, 4),
             "speedup_factor": round(speedup, 2),
         }

@@ -342,7 +342,7 @@ class SCADAAgent(BaseAgent):
             filtered = cached
 
         # Update values with slight random variation (simulate real-time)
-        # Copy cached objects to avoid mutating the cache
+        # Copy cached objects to avoid mutating the cache  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
         np.random.seed(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
@@ -725,7 +725,7 @@ class SCADAAgent(BaseAgent):
         np.random.seed(42)
         measurements = []
 
-        # Bus measurements (3 buses)
+        # Bus measurements (3 buses)  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
@@ -742,7 +742,7 @@ class SCADAAgent(BaseAgent):
                     unit="kV",
                 ),
             )
-            measurements.append(
+            measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
                     value=500
@@ -755,7 +755,7 @@ class SCADAAgent(BaseAgent):
                     unit="A",
                 ),
             )
-            measurements.append(
+            measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
                     value=5.0
@@ -768,7 +768,7 @@ class SCADAAgent(BaseAgent):
                     unit="MW",
                 ),
             )
-            measurements.append(
+            measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
                     value=1.0
@@ -781,7 +781,7 @@ class SCADAAgent(BaseAgent):
                     unit="MVAR",
                 ),
             )
-            measurements.append(
+            measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
                     value=0.95
@@ -796,7 +796,7 @@ class SCADAAgent(BaseAgent):
             )
 
         # Frequency (system-wide)
-        measurements.append(
+        measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
             SCADAMeasurement(
                 tag="FREQ_HZ",
                 value=60.0

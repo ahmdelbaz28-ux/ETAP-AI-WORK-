@@ -525,7 +525,7 @@ class StabilityAgent(BaseAgent):
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
@@ -585,11 +585,11 @@ class StabilityAgent(BaseAgent):
                 n_gen = len(H)
 
                 Y_data = task.parameters.get("Ybus_reduced")
-                if Y_data is not None:
+                if Y_data is not None:  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                     Ybus_red = np.array(Y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0

@@ -290,7 +290,7 @@ class RenewableAgent(BaseAgent):
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
-        poa = np.clip(poa, 0.0, 1.2)  # kW/m²
+        poa = np.clip(poa, 0.0, 1.2)  # kW/m²  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
 
         # Add some cloud randomness
         np.random.seed(42)

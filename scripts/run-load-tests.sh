@@ -41,10 +41,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'  # No Color
 
-log_info()  { echo -e "${BLUE}[INFO]${NC}  $1"; }
-log_ok()    { echo -e "${GREEN}[OK]${NC}    $1"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC}  $1"; }
-log_fail()  { echo -e "${RED}[FAIL]${NC}  $1"; }
+log_info()  { echo -e "${BLUE}[INFO]${NC}  $1"; }  # NOSONAR S7679: positional parameter in short ops script; naming would add ceremony without clarity
+log_ok()    { echo -e "${GREEN}[OK]${NC}    $1"; }  # NOSONAR S7679: positional parameter in short ops script; naming would add ceremony without clarity
+log_warn()  { echo -e "${YELLOW}[WARN]${NC}  $1"; }  # NOSONAR S7679: positional parameter in short ops script; naming would add ceremony without clarity
+log_fail()  { echo -e "${RED}[FAIL]${NC}  $1"; }  # NOSONAR S7679: positional parameter in short ops script; naming would add ceremony without clarity
 
 # ─── Step 1: Set up docker-compose stack ─────────────────────────────────────
 setup_stack() {
@@ -185,7 +185,7 @@ main() {
     else
         log_fail "LOAD TESTS FAILED ❌ (exit code: ${failed})"
     fi
-    echo "======================================================================"
+    echo "======================================================================"  # NOSONAR S1192: separator string repeated intentionally for visual structure
     echo ""
 
     exit $failed

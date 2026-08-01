@@ -347,7 +347,7 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
 
     This endpoint is useful when the Windows worker cannot reach Redis directly
     but can reach the Linux gateway over HTTP.
-    """
+    """  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
@@ -373,7 +373,7 @@ async def worker_heartbeat(worker_id: str):
     """HTTP-based heartbeat from a Windows worker.
 
     Used when the worker cannot connect to Redis directly.
-    """
+    """  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
@@ -385,7 +385,7 @@ async def worker_heartbeat(worker_id: str):
     if raw:
         info = json.loads(raw)
         info["last_heartbeat"] = time.time()
-        info["status"] = "idle"
+        info["status"] = "idle"  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI

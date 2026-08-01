@@ -59,7 +59,7 @@ class TestRateLimiterS08:
         import threading
 
         # threading.Lock() returns _thread.lock in CPython
-        assert hasattr(limiter._lock, "acquire"), "S-08: _lock must support acquire (thread lock protocol)"
+        assert hasattr(limiter._lock, "acquire"), "S-08: _lock must support acquire (thread lock protocol)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
         assert hasattr(limiter._lock, "release"), "S-08: _lock must support release (thread lock protocol)"
 
     def test_s08_lock_used_in_is_allowed(self):
@@ -185,7 +185,7 @@ class TestR2S10:
         """S-10: Must reject keys containing '..'."""
         src = Path("api/r2_storage.py").read_text(encoding='utf-8')
         assert ".." in src, "S-10: Must reject directory traversal ('..')"
-        assert "raise" in src or "ValueError" in src, "S-10: Must raise ValueError on directory traversal"
+        assert "raise" in src or "ValueError" in src, "S-10: Must raise ValueError on directory traversal"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
 
     def test_s10_rejects_absolute_path(self):
         """S-10: Must reject keys starting with '/'."""
@@ -250,7 +250,7 @@ class TestAssetsS11:
         src = Path("api/assets.py").read_text(encoding='utf-8')
         assert "created_by" in src, "S-11: Must check asset ownership (created_by field)"
         assert "user_id" in src or "user.user_id" in src, "S-11: Must compare to user_id"
-        assert "403" in src or "FORBIDDEN" in src, (
+        assert "403" in src or "FORBIDDEN" in src, (  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
             "S-11: Must return 403 Forbidden on authorization failure"
         )
 

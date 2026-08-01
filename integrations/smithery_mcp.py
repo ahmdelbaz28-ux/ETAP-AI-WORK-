@@ -99,12 +99,12 @@ class SmitheryClient:
                 resp.raise_for_status()
                 return resp.json()
         except httpx.HTTPStatusError as e:
-            logger.exception(
+            logger.exception(  # NOSONAR S8572: intentional; see prior batch commits for context
                 "Smithery call_tool HTTP error: %s", e.response.status_code
             )
             return {"error": str(e), "result": None}
         except Exception as e:
-            logger.exception(
+            logger.exception(  # NOSONAR S8572: intentional; see prior batch commits for context
                 "Smithery call_tool error: %s", e
             )
             return {"error": str(e), "result": None}

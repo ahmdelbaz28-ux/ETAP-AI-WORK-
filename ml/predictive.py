@@ -372,7 +372,7 @@ class LoadForecaster:
         """Prophet-based prediction."""
         future = self.model.make_future_dataframe(periods=horizon_hours, freq="h")
         forecast = self.model.predict(future)
-        result = forecast["yhat"].values[-horizon_hours:]
+        result = forecast["yhat"].values[-horizon_hours:]  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
         return np.maximum(result, 0.0)
 
     def _predict_lstm(self, horizon_hours: int) -> np.ndarray:

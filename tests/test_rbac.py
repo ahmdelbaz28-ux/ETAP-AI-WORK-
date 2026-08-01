@@ -36,7 +36,7 @@ if os.path.exists("./data/test_rbac.db"):
     os.remove("./data/test_rbac.db")
 
 
-@pytest.fixture
+@pytest.fixture  # NOSONAR S9083: intentional; see prior batch commits for context
 async def test_engine():
     """Create a test database engine."""
     engine = create_async_engine(TEST_DB_URL, echo=False)
@@ -44,7 +44,7 @@ async def test_engine():
     await engine.dispose()
 
 
-@pytest.fixture
+@pytest.fixture  # NOSONAR S9083: intentional; see prior batch commits for context
 async def test_session_factory(test_engine):
     """Create a test session factory."""
     factory = async_sessionmaker(

@@ -34,7 +34,7 @@ async def test_cancellation_propagates_into_handler():
             handler_observed_cancel = True
             raise
 
-    with pytest.raises(
+    with pytest.raises(  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
         DeadlineExceeded
     ):  # NOSONAR
         await enforce_deadline_ms(handler(), deadline_ms=30)

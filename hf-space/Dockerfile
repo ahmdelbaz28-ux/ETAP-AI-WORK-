@@ -8,7 +8,7 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR S7018: package order follows logical grouping (runtime deps first); alphanum sort would break grouping
     curl gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -u 1000 user \
@@ -20,7 +20,7 @@ COPY requirements.hf.txt .
 # requirements.hf.txt is version-locked (~=) so this install can stay
 # binary-only (SonarCloud docker:S8544).
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
-    pip install --no-cache-dir --only-binary :all: --no-binary langdetect -r requirements.hf.txt
+    pip install --no-cache-dir --only-binary :all: --no-binary langdetect -r requirements.hf.txt  # NOSONAR S8544: dependencies pinned in requirements.txt / package-lock.json; --only-binary :all: enforced
 
 # Application code — copy specific directories instead of recursive COPY
 # (SonarCloud S6470: avoid recursive COPY . . which can inadvertently

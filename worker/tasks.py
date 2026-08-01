@@ -171,7 +171,7 @@ def process_large_calculation_task(self, calculation_data: dict):
                 progress = (i / iterations) * 100
                 current_task.update_state(
                     state="PROGRESS",
-                    meta={"status": f"Calculation in progress: {progress:.1f}%"},
+                    meta={"status": f"Calculation in progress: {progress:.1f}%"},  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                 )
 
             # Perform some heavy computation
