@@ -130,6 +130,12 @@ def _is_within(path: Path, root: Path) -> bool:
 
 
 class CodeIndexer:
+    # Security Fix V-06: Resource limits for indexing operations
+    MAX_FILES_PER_INDEX = 5000          # Maximum files to process in one index run
+    MAX_CHUNKS_PER_FILE = 100           # Maximum chunks extracted per file
+    MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB — skip files larger than this
+    BATCH_SIZE = 50                     # ChromaDB upsert batch size
+
     def __init__(self, output_dir: str, embedding_function=None):
         # SonarCloud pythonsecurity:S8707: validate the path before creating
         # the directory so an LLM-supplied CLI argument can't be tricked into
@@ -176,8 +182,19 @@ class CodeIndexer:
     def index_repo(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, repo_path: str
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        """Index a repository with resource limits (V-06).
+
+        Security Fix V-06: Enforces file count limits, file size limits,
+        and per-file chunk limits to prevent CPU/memory starvation when
+        indexing large projects. Uses batched upserts to avoid memory
+        spikes in ChromaDB.
+        """
         repo_dir = Path(repo_path)
         total_chunks = 0
+        files_processed = 0
+        batch_ids = []
+        batch_docs = []
+        batch_metas = []
 
         logger.info("Scanning repository: %s", repo_dir.absolute())
         for root, dirs, files in os.walk(repo_dir):
@@ -190,36 +207,81 @@ class CodeIndexer:
             ]
 
             for file in files:
-                if file.endswith(".py"):
-                    filepath = Path(root) / file
-                    chunks = CodeExtractor.extract(filepath)
+                if not file.endswith(".py"):
+                    continue
 
-                    if chunks and self.collection:
-                        ids = []
-                        documents = []
-                        metadatas = []
+                # V-06: Enforce maximum file count
+                if files_processed >= self.MAX_FILES_PER_INDEX:
+                    logger.warning(
+                        "V-06: Reached MAX_FILES_PER_INDEX (%d). "
+                        "Stopping index to prevent resource exhaustion.",
+                        self.MAX_FILES_PER_INDEX,
+                    )
+                    break
 
-                        for chunk in chunks:
-                            chunk_id = f"{chunk['filepath']}::{chunk['name']}"
-                            # Add a hash to avoid re-indexing unchanged code later
-                            chunk_hash = self.hash_code(chunk["code"])
+                filepath = Path(root) / file
 
-                            ids.append(chunk_id)
-                            documents.append(chunk["code"])
-                            metadatas.append(
-                                {
-                                    "name": chunk["name"],
-                                    "type": chunk["type"],
-                                    "filepath": chunk["filepath"],
-                                    "hash": chunk_hash,
-                                },
+                # V-06: Skip files exceeding size limit
+                try:
+                    file_size = filepath.stat().st_size
+                    if file_size > self.MAX_FILE_SIZE_BYTES:
+                        logger.warning(
+                            "V-06: Skipping %s (%d bytes > %d limit)",
+                            filepath, file_size, self.MAX_FILE_SIZE_BYTES,
+                        )
+                        continue
+                except OSError:
+                    continue
+
+                # V-06: Enforce per-file chunk limit
+                chunks = CodeExtractor.extract(filepath)
+                if len(chunks) > self.MAX_CHUNKS_PER_FILE:
+                    logger.warning(
+                        "V-06: Truncating chunks for %s from %d to %d",
+                        filepath, len(chunks), self.MAX_CHUNKS_PER_FILE,
+                    )
+                    chunks = chunks[:self.MAX_CHUNKS_PER_FILE]
+
+                files_processed += 1
+
+                if chunks and self.collection:
+                    for chunk in chunks:
+                        chunk_id = f"{chunk['filepath']}::{chunk['name']}"
+                        chunk_hash = self.hash_code(chunk["code"])
+
+                        batch_ids.append(chunk_id)
+                        batch_docs.append(chunk["code"])
+                        batch_metas.append(
+                            {
+                                "name": chunk["name"],
+                                "type": chunk["type"],
+                                "filepath": chunk["filepath"],
+                                "hash": chunk_hash,
+                            },
+                        )
+
+                        # V-06: Batched upsert to prevent memory spikes
+                        if len(batch_ids) >= self.BATCH_SIZE:
+                            self.collection.upsert(
+                                ids=batch_ids, documents=batch_docs, metadatas=batch_metas
                             )
+                            batch_ids.clear()
+                            batch_docs.clear()
+                            batch_metas.clear()
 
-                        # Upsert automatically handles inserts and updates
-                        self.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-                    total_chunks += len(chunks)
+                total_chunks += len(chunks)
+            else:
+                continue
+            break  # V-06: Outer break when MAX_FILES_PER_INDEX reached
 
-        logger.info("Indexing complete. Extracted %s code chunks.", total_chunks)
+        # V-06: Flush remaining batch
+        if batch_ids and self.collection:
+            self.collection.upsert(ids=batch_ids, documents=batch_docs, metadatas=batch_metas)
+
+        logger.info(
+            "Indexing complete. Extracted %s code chunks from %d files.",
+            total_chunks, files_processed,
+        )
 
 
 if __name__ == "__main__":

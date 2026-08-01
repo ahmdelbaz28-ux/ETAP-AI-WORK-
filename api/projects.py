@@ -273,24 +273,36 @@ UserDep = CurrentUserDep
     "",
     response_model=ProjectListResponse,
     summary="List projects",
-    dependencies=[Depends(get_api_key)],
 )
 @router.get(
     "/",
     response_model=ProjectListResponse,
     summary="List projects (trailing slash)",
     include_in_schema=False,
-    dependencies=[Depends(get_api_key)],
 )
 async def list_projects(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: DbDep,
+    user: UserDep,  # V-07: Require authentication for listing
     status_filter: Annotated[
         Optional[ProjectStatus], Query(alias="status", description="Filter by status")
     ] = None,
 ) -> Any:
-    """Return a paginated, filterable list of power-system projects."""
-    base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
+    """Return a paginated, filterable list of power-system projects.
+
+    Security Fix V-07: Projects are now scoped to the authenticated user.
+    Users can only see projects they created (created_by = user_id).
+    Admins can see all projects.
+    """
+    # V-07: Tenant isolation — non-admin users see only their own projects
+    if user.role == "admin":
+        base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
+    else:
+        base_query = select(Project).where(
+            Project.status != ProjectStatus.DELETED,
+            Project.created_by == str(user.user_id),
+        )
+
     if status_filter is not None:
         base_query = base_query.where(Project.status == status_filter.value)
 
@@ -350,19 +362,28 @@ async def create_project(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Get a single project",
-    dependencies=[Depends(get_api_key)],
 )
 async def get_project(
     project_id: str,
     db: DbDep,
+    user: UserDep,  # V-07: Require authentication
 ) -> Any:
-    """Return a single project by ID."""
+    """Return a single project by ID.
+
+    Security Fix V-07: Users can only access their own projects.
+    Admins can access any project.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
+
+    # V-07: Tenant isolation — non-admin users can only access their own projects
+    if user.role != "admin" and project.created_by != str(user.user_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
+
     return ProjectResponse.model_validate(project)
 
 
@@ -377,10 +398,17 @@ async def update_project(
     db: DbDep,
     user: UserDep,
 ) -> Any:
-    """Update a project's name, description, or system config."""
+    """Update a project's name, description, or system config.
+
+    Security Fix V-07: Only the project owner or admin can update.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
+
+    # V-07: Tenant isolation — only owner or admin can update
+    if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     if body.name is not None:
@@ -406,13 +434,20 @@ async def delete_project(
     db: DbDep,
     user: UserDep,
 ) -> dict:
-    """Soft-delete a project by setting status to 'deleted'."""
+    """Soft-delete a project by setting status to 'deleted'.
+
+    Security Fix V-07: Only the project owner or admin can delete.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_ALREADY_DELETED)
+
+    # V-07: Tenant isolation — only owner or admin can delete
+    if user.role != "admin" and project.created_by != str(user.user_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     project.status = ProjectStatus.DELETED.value
     project.updated_at = datetime.now(UTC)
     db.add(project)
@@ -437,13 +472,20 @@ async def run_project_study(
     db: DbDep,
     user: UserDep,
 ) -> Any:
-    """Create a study result record for a project."""
+    """Create a study result record for a project.
+
+    Security Fix V-07: Only the project owner or admin can run studies.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
+
+    # V-07: Tenant isolation — only owner or admin can run studies
+    if user.role != "admin" and project.created_by != str(user.user_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     study = StudyResult(
         id=str(uuid.uuid4()),
@@ -463,17 +505,24 @@ async def run_project_study(
     "/{project_id}/studies",
     response_model=StudyListResponse,
     summary="List study results for a project",
-    dependencies=[Depends(get_api_key)],
 )
 async def list_project_studies(
     project_id: str,
     db: DbDep,
+    user: UserDep,  # V-07: Require authentication
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
 ) -> Any:
-    """Return a paginated list of study results for a project."""
+    """Return a paginated list of study results for a project.
+
+    Security Fix V-07: Only the project owner or admin can list studies.
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
+
+    # V-07: Tenant isolation — only owner or admin can list studies
+    if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     count_query = (

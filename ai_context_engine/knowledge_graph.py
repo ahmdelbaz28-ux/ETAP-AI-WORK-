@@ -16,18 +16,40 @@ logger = logging.getLogger("ai_context_engine_kg")
 
 
 class KnowledgeGraph:
-    """In-memory Code Property Graph for impact analysis and dependency mapping."""
+    """In-memory Code Property Graph for impact analysis and dependency mapping.
+
+    Security Fix V-06: Added resource limits to prevent memory exhaustion
+    when scanning large repositories.
+    """
+
+    # V-06: Resource limits
+    MAX_NODES = 100000          # Maximum nodes in the graph
+    MAX_EDGES = 500000         # Maximum edges in the graph
+    MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB — skip files larger than this
+    MAX_FILES_PER_SCAN = 5000  # Maximum files to scan per repo
 
     def __init__(self):
         self.nodes = {}  # node_id -> {label, properties}
         self.edges = []  # list of {source, relationship, target, properties}
         self.adj = {}  # adjacency list: source -> list of (target, relationship)
+        self._files_scanned = 0  # V-06: Track file count
 
-    def add_node(self, node_id: str, label: str, properties: dict = None) -> None:
-        """Add a component node to the graph."""
+    def add_node(self, node_id: str, label: str, properties: dict = None) -> bool:
+        """Add a component node to the graph.
+
+        Security Fix V-06: Returns False if the node limit is reached,
+        preventing unbounded memory growth.
+        """
+        if len(self.nodes) >= self.MAX_NODES:
+            logger.warning(
+                "V-06: MAX_NODES (%d) reached. Skipping node: %s",
+                self.MAX_NODES, node_id,
+            )
+            return False
         self.nodes[node_id] = {"label": label, "properties": properties or {}}
         if node_id not in self.adj:
             self.adj[node_id] = []
+        return True
 
     def add_relationship(
         self,
@@ -35,8 +57,19 @@ class KnowledgeGraph:
         relationship: str,
         target: str,
         properties: dict = None,
-    ) -> None:
-        """Add a directed relationship between two components."""
+    ) -> bool:
+        """Add a directed relationship between two components.
+
+        Security Fix V-06: Returns False if the edge limit is reached.
+        """
+        # V-06: Check edge limit
+        if len(self.edges) >= self.MAX_EDGES:
+            logger.warning(
+                "V-06: MAX_EDGES (%d) reached. Skipping edge: %s -> %s",
+                self.MAX_EDGES, source, target,
+            )
+            return False
+
         # Ensure nodes exist
         if source not in self.nodes:
             self.add_node(source, "unknown")
@@ -50,7 +83,9 @@ class KnowledgeGraph:
             "properties": properties or {},
         }
         self.edges.append(edge)
-        self.adj[source].append((target, relationship))
+        if source in self.adj:
+            self.adj[source].append((target, relationship))
+        return True
 
     def get_neighbors(self, node_id: str) -> list[tuple[str, str]]:
         """Returns adjacent nodes and their relationship types."""
@@ -114,7 +149,23 @@ class KnowledgeGraph:
     def scan_file_for_relations(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, filepath: Path, repo_root: Path
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-        """Parse file imports and class structure using AST to populate the graph."""
+        """Parse file imports and class structure using AST to populate the graph.
+
+        Security Fix V-06: Skips files exceeding size limit and enforces
+        node/edge limits during scanning.
+        """
+        # V-06: Skip files exceeding size limit
+        try:
+            file_size = filepath.stat().st_size
+            if file_size > self.MAX_FILE_SIZE_BYTES:
+                logger.debug(
+                    "V-06: Skipping %s (%d bytes > %d limit)",
+                    filepath, file_size, self.MAX_FILE_SIZE_BYTES,
+                )
+                return
+        except OSError:
+            return
+
         try:
             with open(filepath, encoding="utf-8") as f:
                 source = f.read()
@@ -215,8 +266,13 @@ class KnowledgeGraph:
                             break
 
     def scan_repo(self, repo_path: str) -> None:
-        """Scan entire repository to build a Code Property Graph."""
+        """Scan entire repository to build a Code Property Graph.
+
+        Security Fix V-06: Enforces file count limits to prevent
+        resource exhaustion on large repositories.
+        """
         repo_dir = Path(repo_path)
+        self._files_scanned = 0
         for root, dirs, files in os.walk(repo_dir):
             dirs[:] = [
                 d
@@ -225,9 +281,26 @@ class KnowledgeGraph:
                 and d not in ("venv", "node_modules", "__pycache__", "index")
             ]
             for file in files:
-                if file.endswith(".py"):
-                    self.scan_file_for_relations(Path(root) / file, repo_dir)
+                if not file.endswith(".py"):
+                    continue
+                # V-06: Enforce file count limit
+                if self._files_scanned >= self.MAX_FILES_PER_SCAN:
+                    logger.warning(
+                        "V-06: MAX_FILES_PER_SCAN (%d) reached. "
+                        "Stopping scan to prevent resource exhaustion.",
+                        self.MAX_FILES_PER_SCAN,
+                    )
+                    break
+                self.scan_file_for_relations(Path(root) / file, repo_dir)
+                self._files_scanned += 1
+            else:
+                continue
+            break  # V-06: Outer break when MAX_FILES_PER_SCAN reached
         self.resolve_references()
+        logger.info(
+            "V-06: KG scan complete. %d nodes, %d edges, %d files scanned.",
+            len(self.nodes), len(self.edges), self._files_scanned,
+        )
 
     def to_json(self) -> str:
         """Serialize graph to JSON string."""
