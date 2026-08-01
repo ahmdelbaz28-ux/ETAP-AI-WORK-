@@ -44,9 +44,14 @@ ENV PYTHONPATH=/app
 # Copy app code
 COPY --from=builder /build /app
 
+# V-54: Create non-root user for HF Spaces runtime
+RUN groupadd -r hfuser && \
+    useradd -r -g hfuser -d /app -s /sbin/nologin hfuser
+
 # Create writable directories in /tmp
 RUN mkdir -p /tmp/cache /tmp/logs /tmp/data /tmp/numba_cache /tmp/matplotlib_cache /tmp/hf_cache \
-    && chmod -R 777 /tmp
+    && chmod -R 777 /tmp \
+    && chown -R hfuser:hfuser /app /tmp
 
 # Environment for HF Spaces
 ENV PORT=7860
@@ -72,5 +77,12 @@ RUN mkdir -p /etc/supervisor/conf.d
 COPY docker/supervisord_app.conf /etc/supervisor/conf.d/app.conf
 
 EXPOSE 7860
+
+# V-54: Health check for HF Spaces
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -fsS http://localhost:7860/healthz || exit 1
+
+# V-54: Run as non-root user (security best practice)
+USER hfuser
 
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/app.conf"]
