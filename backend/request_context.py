@@ -185,7 +185,11 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 class TenantMiddleware(BaseHTTPMiddleware):
     """Set the PostgreSQL session variable for Row-Level Security (RLS).
 
-    SECURITY DESIGN (self-critique fix):
+    SECURITY DESIGN (self-critique fixes applied):
+    - C-2: Fixed memory leak — _rls_set_connections now uses WeakSet
+      instead of a plain set with mismatched object identities.
+    - m-1: Now clears ALL ContextVars (not just tenant_id) after request.
+
     The original version opened a SEPARATE database session to set
     ``app.current_tenant_id``. This was a critical bug — the RLS session
     variable was set on a connection that was immediately returned to the
@@ -205,11 +209,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
            specific connection
         4. All subsequent queries on that connection are automatically
            filtered by RLS policies
-        5. After the request, the ContextVar is cleared to prevent leakage
+        5. After the request, all ContextVars are cleared to prevent leakage
 
     On SQLite (dev mode), RLS is not supported — the application layer
     enforces tenant isolation via ORM-level filters (see projects.py,
-    assets.py, etc.).
+    assets.py, rbac.py, etc.).
     """
 
     # Class-level flag to prevent re-registering the event handler
@@ -223,11 +227,13 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
 
-        # After the request, clear the tenant_id from the ContextVar
-        # to prevent leakage to the next request on the same Task.
-        # Note: the connection is returned to the pool by get_db(),
-        # and the next checkout will set the correct tenant_id.
+        # After the request, clear all ContextVars to prevent leakage
+        # to the next request on the same async Task.
+        # SECURITY (self-critique m-1): Previously only cleared _tenant_id_var.
+        # Now clears all ContextVars that were set by the middleware chain.
         _tenant_id_var.set("")
+        _correlation_id_var.set("")
+        _project_id_var.set("")
 
         return response
 
@@ -251,8 +257,16 @@ class TenantMiddleware(BaseHTTPMiddleware):
             from api.database import engine
             from sqlalchemy import event, text
 
-            # Track which connections have already had the RLS variable set
-            _rls_set_connections: set[int] = set()
+            # Track which connections have already had the RLS variable set.
+            # SECURITY (self-critique C-2): Previous version used a plain
+            # set[int] with id(conn) for add but id(connection_record) for
+            # remove — these are different objects, so the set never shrank
+            # (memory leak). Fixed: use a WeakSet keyed by the connection's
+            # underlying dbapi_connection, which is the same object in both
+            # the before_cursor_execute and close events.
+            import weakref
+
+            _rls_set_connections: weakref.WeakSet = weakref.WeakSet()
 
             @event.listens_for(engine.sync_engine, "before_cursor_execute")
             def _set_tenant_before_query(
@@ -267,8 +281,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 if not tenant_id:
                     return
 
-                conn_id = id(conn)
-                if conn_id in _rls_set_connections:
+                # Use the DBAPI connection object for identity tracking.
+                # conn.connection is the underlying DBAPI connection object
+                # that is the same across both events.
+                dbapi_conn = conn.connection.dbapi_connection if hasattr(conn.connection, 'dbapi_connection') else conn.connection
+                if dbapi_conn in _rls_set_connections:
                     # Already set on this connection for this request
                     return
 
@@ -280,7 +297,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                         text("SET app.current_tenant_id = :tid"),
                         {"tid": tenant_id},
                     )
-                    _rls_set_connections.add(conn_id)
+                    _rls_set_connections.add(dbapi_conn)
                 except Exception:
                     # Non-PostgreSQL backends (SQLite) don't support SET
                     # — this is expected and safe to ignore.
@@ -290,11 +307,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
                         "Application-layer isolation is active."
                     )
 
-            @event.listens_for(engine.sync_engine, "close")
-            def _clear_rls_on_close(dbapi_conn, connection_record):
-                """Remove the connection from the RLS set when it's returned to the pool."""
-                conn_id = id(connection_record)
-                _rls_set_connections.discard(conn_id)
+            # The WeakSet automatically removes entries when the DBAPI
+            # connection is garbage-collected (returned to pool / closed).
+            # No explicit close event listener is needed anymore.
 
             logger.info(
                 "Registered SQLAlchemy before_cursor_execute event "

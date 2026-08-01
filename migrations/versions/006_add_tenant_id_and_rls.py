@@ -194,7 +194,28 @@ def upgrade() -> None:
             pass
 
     # ------------------------------------------------------------------
-    # 5. Row-Level Security (PostgreSQL only)
+    # 5. Make tenant_id NOT NULL after backfill (PostgreSQL only)
+    # ------------------------------------------------------------------
+    # SECURITY (self-critique M-1): After backfilling all existing rows
+    # with the default tenant_id, new rows MUST NOT be allowed to have
+    # a NULL tenant_id — otherwise RLS would silently exclude them, and
+    # the application layer would not enforce isolation for those rows.
+    # On SQLite, we skip this step because ALTER COLUMN is not supported
+    # and the application layer enforces tenant_id via ORM defaults.
+    if _dialect == "postgresql":
+        for table_name in _TENANT_SCOPED_TABLES:
+            try:
+                op.alter_column(
+                    table_name,
+                    "tenant_id",
+                    nullable=False,
+                )
+            except Exception:
+                # Table may not exist in all deployments
+                pass
+
+    # ------------------------------------------------------------------
+    # 6. Row-Level Security (PostgreSQL only)
     # ------------------------------------------------------------------
     # SQLite does not support RLS. The application layer provides
     # equivalent isolation via ContextVars + ORM-level filters.
@@ -212,9 +233,15 @@ def upgrade() -> None:
             # NOTE: DDL statements (ALTER TABLE, CREATE POLICY) cannot use
             # parameterized queries in Alembic. Table names come from the
             # constant list above (not user input), so they are safe.
+            #
+            # SECURITY (self-critique C-1): USING alone only controls
+            # SELECT/DELETE. Without WITH CHECK, INSERT/UPDATE bypass RLS —
+            # a user in tenant A could INSERT a row with tenant B's ID.
+            # Both clauses are now present for full isolation.
             op.execute(
                 f"CREATE POLICY tenant_isolation_{table_name} ON {table_name} "
-                f"USING (tenant_id = current_setting('app.current_tenant_id', true))"
+                f"USING (tenant_id = current_setting('app.current_tenant_id', true)) "
+                f"WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true))"
             )
 
             # Policy: service role (superuser) bypasses RLS for migrations/admin

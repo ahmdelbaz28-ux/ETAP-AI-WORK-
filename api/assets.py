@@ -194,6 +194,7 @@ class AssetListResponse(BaseModel):
 async def list_assets(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
     project_id: Annotated[Optional[str], Query(description="Filter by project ID")] = None,
     type_filter: Annotated[
         Optional[AssetType], Query(alias="type", description="Filter by asset type")
@@ -202,8 +203,17 @@ async def list_assets(
         Optional[AssetStatus], Query(alias="status", description="Filter by status")
     ] = None,
 ) -> Any:
-    """Return a paginated, filterable list of electrical assets."""
+    """Return a paginated, filterable list of electrical assets.
+
+    Security Fix V-07 (self-critique C-3): Assets are now scoped to the
+    authenticated user's tenant. Previously, any authenticated user could
+    see ALL assets across all tenants.
+    """
     base_query = select(Asset)
+
+    # V-07 (self-critique C-3): Tenant-scoped isolation
+    if user.tenant_id:
+        base_query = base_query.where(Asset.tenant_id == user.tenant_id)
 
     if project_id is not None:
         base_query = base_query.where(Asset.project_id == project_id)
@@ -266,6 +276,7 @@ async def create_asset(
     """Create a new electrical asset."""
     asset = Asset(
         id=str(uuid.uuid4()),
+        tenant_id=user.tenant_id if user.tenant_id else None,
         name=body.name,
         type=body.type.value,
         rating=body.rating,
