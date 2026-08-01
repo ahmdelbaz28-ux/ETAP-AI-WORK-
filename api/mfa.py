@@ -36,7 +36,9 @@ async def setup_totp(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
-        user_id = body.get("user_id")  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        user_id = body.get(
+            "user_id"
+        )  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
         if not user_id:
             raise HTTPException(
                 status_code=400, detail="user_id is required"

@@ -152,7 +152,8 @@ def _require_api_key(request: Request) -> None:
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
-            status_code=401, detail="Invalid or missing API key"  # S1192 literal kept inline for readability
+            status_code=401,
+            detail="Invalid or missing API key",  # S1192 literal kept inline for readability
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
@@ -320,7 +321,9 @@ async def trace_middleware(  # S3776 cognitive complexity intentional; logic val
                     xff
                     if proxy_ip in _trusted_list and xff
                     else (
-                        request.client.host if request.client else "unknown"  # S3358 nested ternary clear in this context
+                        request.client.host
+                        if request.client
+                        else "unknown"  # S3358 nested ternary clear in this context
                     )  # NOSONAR nested conditional; extract to named variable (tech debt)
                 )
             else:
@@ -437,7 +440,11 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, _, celery_app = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    (
+        CeleryAsyncResult,
+        _,
+        celery_app,
+    ) = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         get_celery_components()
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 

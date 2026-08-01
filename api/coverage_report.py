@@ -837,7 +837,9 @@ async def _main() -> (  # S3776 cognitive complexity intentional; logic validate
         out = (
             sys.stdout
             if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(
+                open(args.output, "w", encoding="utf-8")
+            )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         report_dict = report.to_dict()

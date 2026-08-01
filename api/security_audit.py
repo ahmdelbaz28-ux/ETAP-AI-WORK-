@@ -399,10 +399,13 @@ class SecurityAuditor:
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
             os.path.join(
-                self.project_root, "engineering_service.py"  # S1192 literal kept inline for readability
+                self.project_root,
+                "engineering_service.py",  # S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             os.path.join(
-                self.project_root, "api", "refactored_service.py"  # S1192 literal kept inline for readability
+                self.project_root,
+                "api",
+                "refactored_service.py",  # S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
         ]
 
@@ -749,7 +752,9 @@ class SecurityAuditor:
                 ):
                     continue
 
-                with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
+                with open(
+                    file_path, encoding="utf-8", errors="replace"
+                ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
                     lines = fh.readlines()
 
                 for i, line in enumerate(lines, 1):
@@ -843,7 +848,9 @@ class SecurityAuditor:
                     continue
 
                 with contextlib.suppress(Exception):
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
+                    with open(
+                        file_path, encoding="utf-8", errors="replace"
+                    ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
                         lines = fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -1249,7 +1256,9 @@ async def _main() -> (  # S3776 cognitive complexity intentional; logic validate
         out = (
             sys.stdout
             if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(
+                open(args.output, "w", encoding="utf-8")
+            )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         if not args.json_only:

@@ -103,7 +103,9 @@ def approve_request(
 
     # request_id is server-generated (apr_ prefix + token_hex); approver_id is
     # sanitized by _sanitize_for_log() (S5145: no CR/LF can reach the log).
-    logger.info("Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id))  # NOSONAR S5145: server-generated id + sanitized approver_id
+    logger.info(
+        "Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id)
+    )  # NOSONAR S5145: server-generated id + sanitized approver_id
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
@@ -126,7 +128,12 @@ def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, 
 
     # request_id is server-generated; rejector_id and reason are sanitized by
     # _sanitize_for_log() (S5145: no CR/LF can reach the log).
-    logger.info("Dual-control request %s REJECTED by %s: %s", request_id, _sanitize_for_log(rejector_id), _sanitize_for_log(reason))  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
+    logger.info(
+        "Dual-control request %s REJECTED by %s: %s",
+        request_id,
+        _sanitize_for_log(rejector_id),
+        _sanitize_for_log(reason),
+    )  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
 
     _notify_clients(request_id, request)
 
