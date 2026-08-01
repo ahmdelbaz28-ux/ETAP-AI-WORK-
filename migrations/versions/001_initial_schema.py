@@ -1,6 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_USERS_ID_FK = "users.id"  # NOSONAR: extracted constant (S1192)
 """Initial schema — core platform tables.
 
 Revision ID: 001
@@ -22,6 +20,8 @@ async SQLite (aiosqlite) compatibility.
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_USERS_ID_FK = "users.id"  # NOSONAR: extracted constant (S1192)
 
 import sqlalchemy as sa
 from alembic import op

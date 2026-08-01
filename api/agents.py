@@ -13,6 +13,7 @@ import os
 from datetime import UTC, datetime
 from typing import Any, List, Optional
 
+import aiofiles
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field

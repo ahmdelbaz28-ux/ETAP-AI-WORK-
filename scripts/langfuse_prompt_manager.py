@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# Module-level string constants (extracted to satisfy S1192).
-_PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR: extracted constant (S1192)
 """
 Langfuse prompt versioning management for AhmedETAP.
 
@@ -17,6 +15,8 @@ Usage:
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR: extracted constant (S1192)
 
 import argparse
 import base64

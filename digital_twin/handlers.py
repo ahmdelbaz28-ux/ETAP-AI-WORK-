@@ -1,6 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR: extracted constant (S1192)
 """
 Chain of Responsibility — Change Propagation Handlers
 =====================================================
@@ -28,6 +26,8 @@ Usage::
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR: extracted constant (S1192)
 
 import logging
 import time

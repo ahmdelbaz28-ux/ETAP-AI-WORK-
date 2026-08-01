@@ -1,12 +1,12 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR: extracted constant (S1192)
 """
 API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR: extracted constant (S1192)
 
 import hmac
 import os

@@ -1,6 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_MODEL_NOT_TRAINED_MSG = "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
 """
 Predictive Analytics Module for AhmedETAP Engineering Platform
 ============================================================
@@ -27,6 +25,8 @@ informative errors when unavailable.
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_MODEL_NOT_TRAINED_MSG = "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
 
 import contextlib
 import logging

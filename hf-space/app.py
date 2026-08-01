@@ -1,7 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_DOCS_PATH = "/docs"  # NOSONAR: extracted constant (S1192)
-_REDOC_PATH = "/redoc"  # NOSONAR: extracted constant (S1192)
 """
 AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
@@ -13,6 +10,9 @@ are defined in one place and reused by both the HF Space and the main API.
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_DOCS_PATH = "/docs"  # NOSONAR: extracted constant (S1192)
+_REDOC_PATH = "/redoc"  # NOSONAR: extracted constant (S1192)
 
 # datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
 # (pyproject.toml) in production, but local testing may run on Python <3.11.

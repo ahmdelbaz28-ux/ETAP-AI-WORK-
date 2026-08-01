@@ -1,6 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_NO_BASE_ENGINE_MSG = "No base engine available"  # NOSONAR: extracted constant (S1192)
 """
 Digital Twin Core - Unified Synchronization Engine
 ====================================================
@@ -27,6 +25,8 @@ Hard Constraints:
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_NO_BASE_ENGINE_MSG = "No base engine available"  # NOSONAR: extracted constant (S1192)
 
 import hashlib
 import logging

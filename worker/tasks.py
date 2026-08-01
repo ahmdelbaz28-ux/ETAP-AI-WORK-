@@ -8,6 +8,8 @@ import os
 import time
 import uuid
 
+import numpy as np
+
 from celery import (
     current_task,  # noqa: F401 — re-exported for tests that patch worker.tasks.current_task
 )

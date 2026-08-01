@@ -1,6 +1,4 @@
 
-# Module-level string constants (extracted to satisfy S1192).
-_REDIS_DEFAULT_URL = "redis://localhost:6379/0"  # NOSONAR: extracted constant (S1192)
 """
 etap_integration/worker_registry.py — ETAP Windows Worker heartbeat and registration.
 
@@ -59,6 +57,8 @@ Usage (on Linux gateway)
 """
 
 from __future__ import annotations
+# Module-level string constants (extracted to satisfy S1192).
+_REDIS_DEFAULT_URL = "redis://localhost:6379/0"  # NOSONAR: extracted constant (S1192)
 
 import asyncio
 import contextlib

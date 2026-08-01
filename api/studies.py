@@ -487,7 +487,7 @@ def pre_flight_check(system: dict) -> Optional[dict]:
 @count_executions(skill_name="study")
 @track_skill_operation("study")
 async def run_study(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
-    req: Annotated[Request, payload: StudyRequest, _: str, Depends(get_api_key)]  # S8410 Depends injection kept non-Annotated for consistency  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+    req: Request, payload: StudyRequest, _: str = Depends(get_api_key)  # S8410 Depends injection kept non-Annotated for consistency  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
 ):  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
