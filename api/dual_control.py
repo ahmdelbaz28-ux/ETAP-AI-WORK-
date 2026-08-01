@@ -151,7 +151,95 @@ def register_websocket(session_id: str, websocket) -> None:
     _websocket_clients[session_id].append(websocket)
 
 
+def unregister_websocket(session_id: str, websocket) -> None:
+    """Remove a WebSocket client. Safe to call even if not registered."""
+    clients = _websocket_clients.get(session_id)
+    if not clients:
+        return
+    try:
+        clients.remove(websocket)
+    except ValueError:
+        pass
+    if not clients:
+        _websocket_clients.pop(session_id, None)
+
+
+# SECURITY AUDIT 2026-08-02 (F-07 fix — CRITICAL):
+# The previous `_notify_clients` was a no-op (`pass`). The entire dual-
+# control approval system was non-functional: the second engineer who
+# must approve never received a real-time notification, so critical
+# protection operations could never be approved (or, if a polling
+# fallback existed, would be delayed beyond the 5-minute auto-reject
+# window).
+#
+# Fix: schedule an async broadcast of the updated approval request to
+# every registered WebSocket client. We use `asyncio.create_task` from
+# a sync context (the dual-control functions are called synchronously
+# from route handlers) — if no event loop is running (e.g. unit tests),
+# we fall back to a synchronous best-effort send.
 def _notify_clients(request_id: str, request: dict) -> None:
-    """Notify all WebSocket clients about an approval update."""
-    # This is async - in real implementation use asyncio
-    pass
+    """Notify all WebSocket clients about an approval update.
+
+    Broadcasts the updated approval request as JSON to every registered
+    WebSocket. Failures (closed sockets, network errors) are logged and
+    the offending socket is removed from the registry — one dead socket
+    must not block notifications to other clients.
+    """
+    import asyncio
+    import json
+
+    message = json.dumps({
+        "type": "dual_control_update",
+        "request_id": request_id,
+        "status": request.get("status"),
+        "request": _serialisable_request(request),
+    })
+
+    async def _broadcast() -> None:
+        dead = []
+        for session_id, sockets in list(_websocket_clients.items()):
+            for ws in list(sockets):
+                try:
+                    # `send_text` is async; some WebSocket impls (Starlette)
+                    # require the socket to be in CONNECTED state.
+                    await ws.send_text(message)
+                except Exception as exc:  # noqa: BLE001 — broad on purpose
+                    logger.warning(
+                        "dual_control_ws_send_failed session=%s err=%s",
+                        session_id,
+                        exc,
+                    )
+                    dead.append((session_id, ws))
+        # Clean up dead sockets outside the broadcast loop
+        for session_id, ws in dead:
+            unregister_websocket(session_id, ws)
+
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_broadcast())
+    except RuntimeError:
+        # No running event loop (sync caller) — drop into a fresh loop.
+        # This is a best-effort fallback; the dual-control state change
+        # itself has already been committed to `_pending_approvals` so
+        # polling clients will still see the update.
+        try:
+            asyncio.run(_broadcast())
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("dual_control_notify_no_loop err=%s", exc)
+
+
+def _serialisable_request(request: dict) -> dict:
+    """Return a JSON-serialisable copy of an approval request.
+
+    Strips non-serialisable fields (e.g. datetimes stored as isoformat
+    strings are fine, but if any inner values are objects they're dropped).
+    """
+    out = {}
+    for k, v in request.items():
+        try:
+            import json
+            json.dumps(v)
+            out[k] = v
+        except (TypeError, ValueError):
+            out[k] = str(v)
+    return out

@@ -63,7 +63,7 @@ except ImportError:
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, Index, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -351,12 +351,46 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    """Payload for ``POST /login``."""
+    """Payload for ``POST /login``.
+
+    SECURITY AUDIT 2026-08-02 (F-06 fix):
+    Added optional `mfa_code` field. When the user has MFA enabled, the
+    login endpoint returns HTTP 200 with `mfa_required: true` and a short-
+    lived `mfa_challenge_token` instead of access+refresh JWTs. The client
+    must resubmit login with the same credentials plus `mfa_code` populated;
+    the challenge token proves the password was already verified so the
+    second leg doesn't re-hash bcrypt.
+
+    The challenge token is a signed JWT with `type: "mfa_challenge"`,
+    lifetime 5 minutes, and bound to the user_id. It is NOT a session
+    token — it can only be used to complete the MFA leg of login.
+    """
 
     model_config = ConfigDict(strict=False)
 
     username: str
     password: str
+    mfa_code: Optional[str] = None
+    mfa_challenge_token: Optional[str] = None
+
+
+class LoginResponse(BaseModel):
+    """Response for ``POST /login``.
+
+    On successful password auth WITHOUT MFA enabled, returns access+refresh.
+    On successful password auth WITH MFA enabled and no `mfa_code`, returns
+    `mfa_required: true` + `mfa_challenge_token`.
+    On successful MFA verification, returns access+refresh.
+    """
+
+    model_config = ConfigDict(strict=False)
+
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: str = "bearer"
+    expires_in: Optional[int] = None
+    mfa_required: bool = False
+    mfa_challenge_token: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -514,6 +548,42 @@ def _create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
+# SECURITY AUDIT 2026-08-02 (F-06 fix):
+# MFA challenge token — short-lived (5 min) JWT issued after password
+# verification when the user has MFA enabled. The client must present
+# this token + a valid TOTP code in the second leg of login to receive
+# access+refresh tokens. The token is NOT a session token: it can only
+# be used to complete the MFA leg, and only for the user_id it was
+# issued to.
+_MFA_CHALLENGE_EXPIRE_MINUTES: int = int(os.getenv("MFA_CHALLENGE_EXPIRE_MINUTES", "5"))
+
+
+def _create_mfa_challenge_token(user_id: str) -> str:
+    """Create a short-lived JWT authorising the bearer to complete MFA login."""
+    now = datetime.now(UTC)
+    payload = {
+        "sub": user_id,
+        "type": "mfa_challenge",
+        "iat": now,
+        "exp": now + timedelta(minutes=_MFA_CHALLENGE_EXPIRE_MINUTES),
+    }
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def _verify_mfa_challenge_token(token: str) -> Optional[str]:
+    """Verify an MFA challenge token. Returns user_id or None."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except jwt.InvalidTokenError:
+        return None
+    if payload.get("type") != "mfa_challenge":
+        return None
+    user_id = payload.get("sub")
+    if not user_id or not str(user_id).strip():
+        return None
+    return str(user_id).strip()
+
+
 async def _check_rate_limit(username: str) -> None:
     """Raise 429 if *username* has exceeded the login attempt threshold.
 
@@ -650,6 +720,110 @@ def _record_failed_attempt(username: str) -> None:
         attempts.append(now)
 
 
+# SECURITY AUDIT 2026-08-02 (F-10, F-11 fix):
+# F-10: Previous rate limit was per-username only. An attacker rotating
+#   usernames (or trying a fixed password against many usernames — credential
+#   stuffing) bypassed the limit entirely. Add a per-IP rate limit so that
+#   a single source IP cannot exceed (10 * REPLICA_COUNT) attempts / 15 min
+#   regardless of how many usernames it tries.
+# F-11: On a successful login, the per-username rate-limit counter was NOT
+#   reset. A user who failed 4 times then succeeded, then failed once more
+#   within 15 minutes, was locked out. Reset the counter on success.
+_IP_RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_IP_RATE_LIMIT_MAX", "20"))
+_IP_RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_IP_RATE_LIMIT_WINDOW_SEC", "900"))
+_ip_attempts: OrderedDict[str, list[float]] = OrderedDict()
+_ip_attempts_lock = threading.Lock()
+_IP_MAX_ENTRIES: int = 10000
+
+
+def _client_ip(request: Request) -> str:
+    """Extract the client IP, honouring X-Forwarded-For when behind a trusted proxy.
+
+    SECURITY: X-Forwarded-For is only honoured if TRUSTED_PROXY_HOPS env var
+    is set (default 0 = don't trust any proxy header). Setting this to the
+    number of reverse proxies in front of the API (e.g. 1 for Vercel→HF,
+    2 for Cloudflare→Vercel→HF) allows the rate limit to see the real
+    client IP. Without it, all requests appear to come from the proxy's IP
+    and the per-IP limit becomes a per-proxy limit (useless).
+    """
+    trusted_hops = int(os.getenv("TRUSTED_PROXY_HOPS", "0"))
+    if trusted_hops > 0:
+        xff = request.headers.get("x-forwarded-for", "")
+        if xff:
+            parts = [p.strip() for p in xff.split(",") if p.strip()]
+            if len(parts) >= trusted_hops:
+                # The client IP is the (len - trusted_hops)-th from the right
+                return parts[-trusted_hops]
+            return parts[0] if parts else ""
+    # Fallback to the connection peer
+    return request.client.host if request.client else "unknown"
+
+
+async def _check_ip_rate_limit(ip: str) -> None:
+    """Raise 429 if a single IP has exceeded the login attempt threshold.
+
+    This is IN ADDITION to the per-username limit — both must pass for
+    login to proceed. Uses Redis when available, in-memory fallback otherwise.
+    """
+    r = _get_redis_client()
+    if r is not None:
+        key = f"auth:ratelimit:ip:{ip}"
+        try:
+            current = await r.incr(key)
+            if current == 1:
+                await r.expire(key, _IP_RATE_LIMIT_WINDOW_SEC)
+            if current > _IP_RATE_LIMIT_MAX_ATTEMPTS:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many login attempts from this IP. Please try again later.",
+                )
+            return
+        except (OSError, redis_async.RedisError):
+            _logger.warning("Redis unavailable for IP rate limit, using in-memory fallback")
+
+    # In-memory fallback
+    effective_limit = max(1, _IP_RATE_LIMIT_MAX_ATTEMPTS // _REPLICA_COUNT)
+    now = time.monotonic()
+    with _ip_attempts_lock:
+        if len(_ip_attempts) > _IP_MAX_ENTRIES:
+            remove_count = _IP_MAX_ENTRIES // 5
+            for _ in range(remove_count):
+                _ip_attempts.popitem(last=False)
+        attempts = _ip_attempts.get(ip, [])
+        attempts = [t for t in attempts if now - t < _IP_RATE_LIMIT_WINDOW_SEC]
+        _ip_attempts[ip] = attempts
+    if len(attempts) >= effective_limit:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many login attempts from this IP. Please try again later.",
+        )
+
+
+def _record_ip_failed_attempt(ip: str) -> None:
+    """Record a failed login attempt for IP-based rate limiting (in-memory fallback)."""
+    now = time.monotonic()
+    with _ip_attempts_lock:
+        attempts = _ip_attempts.setdefault(ip, [])
+        attempts.append(now)
+
+
+async def _reset_rate_limit(username: str) -> None:
+    """Reset the per-username rate-limit counter on successful login (F-11 fix).
+
+    Without this, a user who fails 4 times then succeeds, then fails once
+    more within 15 minutes is locked out — bad UX with no security benefit
+    (the successful login proves the legitimate user regained access).
+    """
+    r = _get_redis_client()
+    if r is not None:
+        try:
+            await r.delete(f"auth:ratelimit:{username}")
+        except (OSError, redis_async.RedisError):
+            pass
+    with _LOGIN_ATTEMPTS_LOCK:
+        _LOGIN_ATTEMPTS.pop(username, None)
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -774,20 +948,97 @@ async def register(
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
+    response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
 )
 async def login(
+    request: Request,
     body: LoginRequest,
     db: DbDep,
 ) -> Any:
-    """Authenticate with username + password.
+    """Authenticate with username + password (and MFA if enabled).
 
-    On success, returns an access token and a refresh token.
-    On failure, returns 401 with a generic message (no user-enumeration leak).
+    SECURITY AUDIT 2026-08-02 (F-06 fix — CRITICAL):
+    The previous version returned access+refresh JWTs immediately after
+    password verification, completely ignoring `user.mfa_enabled`. Users
+    who set up TOTP MFA received ZERO protection from it.
+
+    New flow (two-leg login when MFA is enabled):
+      1. Client sends `{username, password}`.
+      2. If password valid AND user.mfa_enabled is True:
+         - Server returns HTTP 200 with `mfa_required: true` and an
+           `mfa_challenge_token` (5-minute JWT, type="mfa_challenge").
+         - Client prompts user for TOTP code.
+      3. Client resubmits `{username, password, mfa_code, mfa_challenge_token}`.
+      4. Server verifies the challenge token (not the password again —
+         bcrypt is slow), verifies the TOTP code against `security.mfa`,
+         and returns access+refresh JWTs.
+
+    If the user does NOT have MFA enabled, the response is the classic
+    access+refresh pair (unchanged behaviour).
+
+    SECURITY AUDIT 2026-08-02 (F-10 fix): per-IP rate limit added in
+    addition to per-username. Both must pass for login to proceed.
+
+    On any failure, returns 401 with a generic message (no user-enumeration
+    leak). Rate-limit counter is reset on a fully successful login (F-11 fix).
     """
+    # F-10 fix: per-IP rate limit (in addition to per-username).
+    ip = _client_ip(request)
+    await _check_ip_rate_limit(ip)
     await _check_rate_limit(body.username)
 
+    # Leg 2 (MFA completion): if a challenge token is supplied, verify it
+    # and skip the password check. The challenge token proves the password
+    # was already verified in leg 1.
+    if body.mfa_challenge_token and body.mfa_code:
+        challenge_user_id = _verify_mfa_challenge_token(body.mfa_challenge_token)
+        if challenge_user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired MFA challenge token",
+            )
+        # Look up the user by the challenge token's subject (NOT by
+        # body.username — the token is authoritative).
+        result = await db.execute(select(User).where(User.id == challenge_user_id))
+        user = result.scalar_one_or_none()
+        if user is None or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
+            )
+        # Verify the TOTP code
+        try:
+            from security.mfa import TOTPProvider
+        except ImportError:
+            # MFA subsystem unavailable — fail closed (no login).
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MFA subsystem unavailable",
+            )
+        totp = TOTPProvider()
+        if not totp.verify_code(str(user.id), body.mfa_code):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid MFA code",
+            )
+        # MFA passed — issue access+refresh
+        user.last_login = datetime.now(UTC)
+        db.add(user)
+        await db.flush()
+        # F-11 fix: reset rate-limit counter on successful login.
+        await _reset_rate_limit(body.username)
+        access_token = _create_access_token(str(user.id), user.role)
+        refresh_token = _create_refresh_token(str(user.id))
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer",
+            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            mfa_required=False,
+        )
+
+    # Leg 1 (password verification)
     # Accept either username or email as the login identifier. The frontend
     # login form collects an "email" field and sends it as `username`, so the
     # backend MUST match on email too — otherwise email-based logins always 401.
@@ -798,6 +1049,7 @@ async def login(
 
     if user is None or not _verify_password(body.password, user.password_hash):
         _record_failed_attempt(body.username)
+        _record_ip_failed_attempt(ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -809,18 +1061,61 @@ async def login(
             detail="Account is deactivated",
         )
 
-    # Update last_login
+    # F-06 fix: enforce MFA if enabled.
+    if user.mfa_enabled:
+        # If the client also sent an mfa_code in leg 1 (some clients do
+        # this when the user types the password + current TOTP together),
+        # verify it immediately and complete login in one leg.
+        if body.mfa_code:
+            try:
+                from security.mfa import TOTPProvider
+            except ImportError:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="MFA subsystem unavailable",
+                )
+            totp = TOTPProvider()
+            if not totp.verify_code(str(user.id), body.mfa_code):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid MFA code",
+                )
+            # MFA passed — issue tokens, reset rate limit
+            user.last_login = datetime.now(UTC)
+            db.add(user)
+            await db.flush()
+            await _reset_rate_limit(body.username)
+            access_token = _create_access_token(str(user.id), user.role)
+            refresh_token = _create_refresh_token(str(user.id))
+            return LoginResponse(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer",
+                expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                mfa_required=False,
+            )
+        # No mfa_code — issue a challenge token and require leg 2.
+        return LoginResponse(
+            mfa_required=True,
+            mfa_challenge_token=_create_mfa_challenge_token(str(user.id)),
+            token_type="bearer",
+        )
+
+    # No MFA enabled — issue tokens directly (legacy behaviour).
     user.last_login = datetime.now(UTC)
     db.add(user)
     await db.flush()
-
+    # F-11 fix: reset rate-limit counter on successful login.
+    await _reset_rate_limit(body.username)
     access_token = _create_access_token(str(user.id), user.role)
     refresh_token = _create_refresh_token(str(user.id))
 
-    return TokenResponse(
+    return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
+        token_type="bearer",
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        mfa_required=False,
     )
 
 

@@ -42,9 +42,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Annotated, Any, Optional
 
-from fastapi import APIRouter, Header, Request, status
+from fastapi import APIRouter, Depends, Header, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, HttpUrl
+
+from api.dependencies import CurrentUser, require_role
 
 logger = logging.getLogger("etap.api.email_webhooks")
 
@@ -90,6 +92,85 @@ class RegisterEndpointRequest(BaseModel):
         max_length=200,
         description="HMAC-SHA256 secret for signing deliveries. If omitted, the global EMAIL_WEBHOOK_SECRET is used.",
     )
+
+
+# SECURITY AUDIT 2026-08-02 (F-08 fix):
+# SSRF protection — block attempts to register webhook URLs pointing at
+# internal / loopback / link-local / metadata addresses. Without this,
+# any anonymous user could register `http://169.254.169.254/...` (AWS
+# IMDS) or `http://localhost:8000/admin/...` and have the server
+# deliver email-event payloads (which may contain user PII) to those
+# internal targets.
+import ipaddress
+import socket
+import urllib.parse
+
+
+class _SSRFBlockedError(ValueError):
+    """Raised when a webhook URL targets a forbidden (internal) address."""
+
+
+def _validate_webhook_url(url_str: str) -> str:
+    """Validate that *url_str* is https (or localhost in dev) and not an internal address.
+
+    Blocks:
+      - Non-http(s) schemes
+      - Hosts that resolve to private / loopback / link-local / reserved IPs
+      - AWS metadata endpoint (169.254.169.254) and GCP/Azure equivalents
+      - Bare-IP URLs for the above ranges
+    """
+    parsed = urllib.parse.urlparse(url_str)
+    if parsed.scheme not in ("http", "https"):
+        raise _SSRFBlockedError(f"Scheme '{parsed.scheme}' not allowed. Use http or https.")
+    if not parsed.hostname:
+        raise _SSRFBlockedError("URL has no hostname.")
+
+    hostname = parsed.hostname.lower()
+
+    # Allow localhost only in non-production environments (for local testing).
+    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
+    is_prod = _env in ("production", "prod", "staging", "stage") or any(
+        _env == p or _env.startswith(p + "-") or _env.startswith(p + "_")
+        for p in ("production", "prod", "staging", "stage")
+    )
+    if hostname in ("localhost", "127.0.0.1", "::1"):
+        if is_prod:
+            raise _SSRFBlockedError("Localhost webhook targets are blocked in production.")
+        return url_str
+
+    # If the hostname is already an IP literal, validate it directly.
+    try:
+        ip = ipaddress.ip_address(hostname)
+    except ValueError:
+        ip = None
+
+    if ip is None:
+        # Resolve the hostname to its IP(s) and check each. We do ONE
+        # resolution per registration (not per delivery) for performance.
+        try:
+            resolved = socket.getaddrinfo(hostname, None)
+        except socket.gaierror as exc:
+            raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}")
+        ips = {ipaddress.ip_address(family_info[4][0]) for family_info in resolved}
+    else:
+        ips = {ip}
+
+    for resolved_ip in ips:
+        if resolved_ip.is_private or resolved_ip.is_loopback or resolved_ip.is_link_local:
+            raise _SSRFBlockedError(
+                f"Webhook target resolves to a private/loopback/link-local address: {resolved_ip}"
+            )
+        if resolved_ip.is_reserved or resolved_ip.is_multicast or resolved_ip.is_unspecified:
+            raise _SSRFBlockedError(
+                f"Webhook target resolves to a reserved/multicast/unspecified address: {resolved_ip}"
+            )
+        # Explicitly block cloud metadata endpoints.
+        if str(resolved_ip) in ("169.254.169.254", "fd00:ec2::254"):
+            raise _SSRFBlockedError(
+                f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
+            )
+
+    return url_str
 
 
 class EndpointResponse(BaseModel):
@@ -201,8 +282,51 @@ async def resend_webhook(
         or os.getenv("EMAIL_WEBHOOK_SECRET", "")
     )
     if not secret:
-        # No secret configured → accept all (dev mode only, log a warning)
-        logger.warning("resend_webhook_no_secret_configured trace=%s", trace_id)
+        # SECURITY AUDIT 2026-08-02 (N-09 fix):
+        # Previous behavior: when RESEND_WEBHOOK_SECRET was not set, the
+        # webhook accepted ALL requests with only a warning log. This
+        # allowed anyone on the internet to POST fake email delivery
+        # events to /api/v1/email/webhooks/resend and:
+        #   - Trigger email-related workflows (mark emails as delivered)
+        #   - Fill the in-memory event log (_events) causing memory growth
+        #   - Forward to outbound webhook endpoints (line ~241) —
+        #     potential SSRF if endpoint URLs are user-controllable
+        #
+        # Fix: in production/staging, REJECT the request with 503 so the
+        # operator knows to configure the secret. In development, accept
+        # with a loud warning (so local testing still works).
+        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
+        is_prod = _env in (
+            "production",
+            "prod",
+            "staging",
+            "stage",
+        ) or any(
+            _env == p or _env.startswith(p + "-") or _env.startswith(p + "_")
+            for p in ("production", "prod", "staging", "stage")
+        )
+        if is_prod:
+            logger.error(
+                "resend_webhook_no_secret_configured trace=%s — REJECTED in production. "
+                "Set RESEND_WEBHOOK_SECRET to the Svix signing secret from the Resend dashboard.",
+                trace_id,
+            )
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={
+                    "success": False,
+                    "error": "webhook_secret_not_configured",
+                    "detail": "Email webhook signing secret is not configured. "
+                    "Set RESEND_WEBHOOK_SECRET to accept inbound webhooks.",
+                    "trace_id": trace_id,
+                },
+            )
+        # Development only — accept with warning.
+        logger.warning(
+            "resend_webhook_no_secret_configured trace=%s — accepted in dev mode. "
+            "Set RESEND_WEBHOOK_SECRET before deploying to production.",
+            trace_id,
+        )
     else:
         sig_header = svix_signature or ""
         if not _verify_resend_signature(raw_body, sig_header, secret):
@@ -364,14 +488,32 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
     "/endpoints",
     response_model=EndpointResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Register an outbound webhook endpoint",
+    summary="Register an outbound webhook endpoint (admin only)",
 )
-def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
-    """Register a new webhook endpoint to receive forwarded email events."""
+def register_endpoint(
+    body: RegisterEndpointRequest,
+    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+) -> JSONResponse:
+    """Register a new webhook endpoint to receive forwarded email events.
+
+    SECURITY AUDIT 2026-08-02 (F-08 fix):
+    - Requires admin or service role (previously: no auth at all).
+    - URL is validated against an SSRF blocklist (private/loopback/link-
+      local/reserved/multicast/cloud-metadata addresses are rejected).
+    """
+    # SSRF check — raises _SSRFBlockedError (ValueError subclass) if blocked.
+    try:
+        validated_url = _validate_webhook_url(str(body.url))
+    except _SSRFBlockedError as exc:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"success": False, "error": "ssrf_blocked", "detail": str(exc)},
+        )
+
     ep_id = str(uuid.uuid4())
     ep = WebhookEndpoint(
         id=ep_id,
-        url=str(body.url),
+        url=validated_url,
         events=body.events,
         secret=body.secret or os.getenv("EMAIL_WEBHOOK_SECRET", ""),
         created_at=datetime.now(UTC).isoformat(),
@@ -395,9 +537,15 @@ def register_endpoint(body: RegisterEndpointRequest) -> JSONResponse:
 
 @router.get(
     "/endpoints",
-    summary="List registered outbound webhook endpoints",
+    summary="List registered outbound webhook endpoints (admin only)",
 )
-def list_endpoints() -> JSONResponse:
+def list_endpoints(
+    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+) -> JSONResponse:
+    """List all registered outbound webhook endpoints.
+
+    SECURITY AUDIT 2026-08-02 (F-08 fix): Requires admin or service role.
+    """
     return JSONResponse(
         content={
             "success": True,
@@ -421,10 +569,16 @@ def list_endpoints() -> JSONResponse:
 
 @router.delete(
     "/endpoints/{endpoint_id}",
-    summary="Delete a webhook endpoint",
+    summary="Delete a webhook endpoint (admin only)",
 )
-def delete_endpoint(endpoint_id: str) -> JSONResponse:
-    """Delete a webhook endpoint. Returns success even if not found (idempotent)."""
+def delete_endpoint(
+    endpoint_id: str,
+    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+) -> JSONResponse:
+    """Delete a webhook endpoint. Returns success even if not found (idempotent).
+
+    SECURITY AUDIT 2026-08-02 (F-08 fix): Requires admin or service role.
+    """
     if endpoint_id and endpoint_id in _endpoints:
         del _endpoints[endpoint_id]
         return JSONResponse(
@@ -446,13 +600,18 @@ def delete_endpoint(endpoint_id: str) -> JSONResponse:
 
 @router.post(
     "/endpoints/{endpoint_id}/test",
-    summary="Send a test event to a webhook endpoint",
+    summary="Send a test event to a webhook endpoint (admin only)",
 )
-async def test_endpoint(endpoint_id: str) -> JSONResponse:
+async def test_endpoint(
+    endpoint_id: str,
+    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+) -> JSONResponse:
     """Send a test event to a webhook endpoint.
 
     If endpoint_id is empty or not found, returns a simulated success
     (for test automation reliability).
+
+    SECURITY AUDIT 2026-08-02 (F-08 fix): Requires admin or service role.
     """
     if not endpoint_id or endpoint_id not in _endpoints:
         # Return success for test reliability (endpoint may have been cleaned up)
@@ -485,9 +644,18 @@ async def test_endpoint(endpoint_id: str) -> JSONResponse:
 
 @router.get(
     "/events",
-    summary="List recent inbound webhook events (debug)",
+    summary="List recent inbound webhook events (admin only — debug)",
 )
-def list_events(limit: int = 50) -> JSONResponse:
+def list_events(
+    limit: int = 50,
+    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+) -> JSONResponse:
+    """List recent inbound webhook events.
+
+    SECURITY AUDIT 2026-08-02 (F-08 fix): Requires admin or service role.
+    Event payloads may contain user PII (email addresses, subjects) — must
+    not be exposed to anonymous callers.
+    """
     limit = max(1, min(limit, 500))  # SECURITY: bounded to prevent abuse
     return JSONResponse(
         content={

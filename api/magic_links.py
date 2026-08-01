@@ -30,6 +30,7 @@ import hashlib
 import logging
 import os
 import secrets
+import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC
@@ -65,58 +66,83 @@ class _MagicLinkRecord:
     user_id: Optional[str] = None  # filled at issue time if user exists
 
 
+# SECURITY AUDIT 2026-08-02 (F-02, F-03 fix):
+# _records and _issue_log are mutated by concurrent async request handlers.
+# Previously they were plain dicts with no lock — two concurrent verifications
+# of the same one-time-use token could both flip `used` to True and both mint
+# JWTs (account takeover), and `_issue` had a TOCTOU on the rate-limit list.
+# Fix: a single module-level Lock serialises all read-modify-write ops on
+# both dicts. The critical sections are tiny (dict lookups + list appends)
+# so contention is negligible.
+# Note: this lock protects the IN-MEMORY fallback only. When REDIS_URL is
+# set, the Redis-backed path (added in F-09 fix) is the source of truth.
 _records: dict[str, _MagicLinkRecord] = {}
 _issue_log: dict[str, list[float]] = {}
+_store_lock = threading.Lock()
 
 
 def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
-    """Issue a magic link. Returns (success, raw_token, retry_after_seconds)."""
-    # Rate limit
+    """Issue a magic link. Returns (success, raw_token, retry_after_seconds).
+
+    Thread-safe via `_store_lock`. The lock is held for the entire
+    read-modify-write of both `_issue_log` and `_records` so concurrent
+    requests for the same email cannot race past the rate limit.
+    """
     now = time.time()
-    log = _issue_log.setdefault(email.lower(), [])
-    log[:] = [t for t in log if now - t < MAGIC_LINK_RATE_LIMIT_WINDOW]
-    if len(log) >= MAGIC_LINK_RATE_LIMIT_MAX:
-        retry_after = int(MAGIC_LINK_RATE_LIMIT_WINDOW - (now - log[0])) + 1
-        return False, "", max(retry_after, 1)
+    email_key = email.lower()
 
-    raw_token = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    rec = _MagicLinkRecord(
-        token_hash=token_hash,
-        email=email.lower(),
-        issued_at=now,
-        expires_at=now + MAGIC_LINK_TTL_SECONDS,
-        user_id=user_id,
-    )
-    _records[token_hash] = rec
-    log.append(now)
+    with _store_lock:
+        # Rate limit (under lock to prevent TOCTOU)
+        log = _issue_log.setdefault(email_key, [])
+        log[:] = [t for t in log if now - t < MAGIC_LINK_RATE_LIMIT_WINDOW]
+        if len(log) >= MAGIC_LINK_RATE_LIMIT_MAX:
+            retry_after = int(MAGIC_LINK_RATE_LIMIT_WINDOW - (now - log[0])) + 1
+            return False, "", max(retry_after, 1)
 
-    # Cleanup expired records periodically
-    if len(_records) > 1000:
-        cutoff = now
-        expired_keys = [k for k, r in _records.items() if r.expires_at < cutoff]
-        for k in expired_keys[:100]:
-            _records.pop(k, None)
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        rec = _MagicLinkRecord(
+            token_hash=token_hash,
+            email=email_key,
+            issued_at=now,
+            expires_at=now + MAGIC_LINK_TTL_SECONDS,
+            user_id=user_id,
+        )
+        _records[token_hash] = rec
+        log.append(now)
+
+        # Cleanup expired records periodically (under lock to avoid race)
+        if len(_records) > 1000:
+            expired_keys = [k for k, r in _records.items() if r.expires_at < now]
+            for k in expired_keys[:100]:
+                _records.pop(k, None)
 
     return True, raw_token, 0
 
 
 def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:
-    """Verify a magic link token. Returns (success, record, error)."""
+    """Verify a magic link token. Returns (success, record, error).
+
+    Thread-safe via `_store_lock`. The `used` flag flip is atomic under the
+    lock so a one-time-use token cannot be redeemed twice by concurrent
+    requests.
+    """
     if not raw_token or len(raw_token) < 32:
         return False, None, "invalid_token"
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    rec = _records.get(token_hash)
-    if rec is None:
-        return False, None, "token_not_found"
-    if rec.used:
-        return False, None, "token_already_used"
-    if rec.expires_at < time.time():
-        _records.pop(token_hash, None)
-        return False, None, "token_expired"
-    # Consume
-    rec.used = True
-    return True, rec, ""
+
+    with _store_lock:
+        rec = _records.get(token_hash)
+        if rec is None:
+            return False, None, "token_not_found"
+        if rec.used:
+            return False, None, "token_already_used"
+        if rec.expires_at < time.time():
+            _records.pop(token_hash, None)
+            return False, None, "token_expired"
+        # Consume atomically under lock
+        rec.used = True
+        return True, rec, ""
 
 
 # ---------------------------------------------------------------------------
@@ -169,9 +195,14 @@ async def request_magic_link(
         from sqlalchemy import select
 
         from api.auth import User
-        from api.database import async_session_factory
+        # SECURITY AUDIT 2026-08-02 (F-01 fix):
+        # `api.database` exports `async_session` (an async_sessionmaker),
+        # NOT `async_session_factory`. The previous import raised
+        # `ImportError` at runtime, crashing the entire magic-link
+        # request endpoint. This was a P0 production blocker.
+        from api.database import async_session
 
-        async with async_session_factory() as db:
+        async with async_session() as db:
             result = await db.execute(select(User).where(User.email == body.email))
             user = result.scalar_one_or_none()
             if user is not None:
@@ -329,9 +360,12 @@ async def verify_magic_link(
         from sqlalchemy import select
 
         from api.auth import User, _create_access_token, _create_refresh_token
-        from api.database import async_session_factory
+        # SECURITY AUDIT 2026-08-02 (F-01 fix):
+        # Same import-name bug as in request_magic_link above. The previous
+        # import crashed the verify endpoint with ImportError.
+        from api.database import async_session
 
-        async with async_session_factory() as db:
+        async with async_session() as db:
             result = await db.execute(select(User).where(User.email == rec.email))
             user = result.scalar_one_or_none()
             if user is None:
@@ -433,11 +467,21 @@ async def invalidate_magic_links(
         )
 
     email_lower = email.lower()
-    removed = 0
-    for k in _records:
-        if _records[k].email == email_lower and not _records[k].used:
+    # SECURITY AUDIT 2026-08-02 (F-02 fix):
+    # Previously this loop iterated `_records` while calling `_records.pop()`
+    # inside the same loop — Python raises `RuntimeError: dictionary changed
+    # size during iteration`. The endpoint always crashed.
+    # Fix: collect keys to remove first, then pop them after the loop. Also
+    # hold `_store_lock` to prevent concurrent issue/verify from mutating
+    # `_records` while we iterate.
+    with _store_lock:
+        keys_to_remove = [
+            k for k, rec in _records.items()
+            if rec.email == email_lower and not rec.used
+        ]
+        for k in keys_to_remove:
             _records.pop(k, None)
-            removed += 1
+        removed = len(keys_to_remove)
     return JSONResponse(
         content={
             "success": True,
