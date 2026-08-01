@@ -113,6 +113,11 @@ class CurrentUser(BaseModel):
     """Representation of the authenticated user injected into route handlers.
 
     This is a lightweight DTO; it is **not** an ORM model.
+
+    V-07 (Phase 2): Added ``tenant_id`` to support multi-tenant isolation.
+    The tenant_id is extracted from the JWT payload and propagated to
+    all downstream handlers, ORM queries, and the PostgreSQL RLS
+    session variable.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -122,6 +127,7 @@ class CurrentUser(BaseModel):
     email: str
     role: str
     is_active: bool = True
+    tenant_id: str = ""
 
 
 async def get_current_user(
@@ -227,12 +233,25 @@ async def get_current_user(
             detail="User account is deactivated",
         )
 
+    # SECURITY (self-critique M-2): After the user is verified from the
+    # database, we override the ContextVar tenant_id with the DB-verified
+    # value. This prevents a scenario where the JWT contains a different
+    # tenant_id (e.g., due to token being issued before a tenant change)
+    # and the middleware sets the wrong RLS session variable.
+    # The middleware runs BEFORE this dependency, so the RLS variable was
+    # initially set from the JWT. Now we correct it from the DB source.
+    from backend.request_context import set_tenant_id as _set_ctx_tenant_id
+
+    db_tenant_id = str(user.tenant_id) if user.tenant_id else ""
+    _set_ctx_tenant_id(db_tenant_id)
+
     return CurrentUser(
         user_id=str(user.id),
         username=user.username,
         email=user.email,
         role=user.role,
         is_active=user.is_active,
+        tenant_id=db_tenant_id,
     )
 
 

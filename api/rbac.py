@@ -62,6 +62,10 @@ class Role(Base):
     __tablename__ = "roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -86,6 +90,10 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     resource: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
@@ -120,6 +128,10 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -390,14 +402,23 @@ async def list_roles(
     user: CurrentUser = Depends(require_permission("roles", "list")),  # noqa: B008
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
 ) -> Any:
-    """Return a paginated list of all roles. Requires the ``admin`` role."""
+    """Return a paginated list of all roles. Requires the ``admin`` role.
+
+    Security Fix V-07 (self-critique M-3): Roles are now scoped to the
+    authenticated user's tenant. Previously, any admin could see ALL
+    roles across all tenants.
+    """
+    # V-07 (self-critique M-3): Tenant-scoped isolation
+    _tenant_filter = Role.tenant_id == user.tenant_id if user.tenant_id else True
+
     # Total count
-    count_result = await db.execute(select(func.count()).select_from(Role))
+    count_result = await db.execute(select(func.count()).select_from(Role).where(_tenant_filter))
     total = count_result.scalar_one()
 
     # Paginated query
     result = await db.execute(
         select(Role)
+        .where(_tenant_filter)
         .order_by(Role.name.asc())
         .offset(pagination.offset)
         .limit(pagination.page_size),
@@ -438,6 +459,7 @@ async def create_role(
 
     role = Role(
         id=str(uuid.uuid4()),
+        tenant_id=user.tenant_id if user.tenant_id else None,
         name=body.name,
         description=body.description,
         is_system=False,
@@ -545,14 +567,22 @@ async def list_permissions(
     user: CurrentUser = Depends(require_permission("permissions", "list")),  # noqa: B008
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
 ) -> Any:
-    """Return a paginated list of all permissions."""
+    """Return a paginated list of all permissions.
+
+    Security Fix V-07 (self-critique M-3): Permissions are now scoped
+    to the authenticated user's tenant.
+    """
+    # V-07 (self-critique M-3): Tenant-scoped isolation
+    _tenant_filter = Permission.tenant_id == user.tenant_id if user.tenant_id else True
+
     # Total count
-    count_result = await db.execute(select(func.count()).select_from(Permission))
+    count_result = await db.execute(select(func.count()).select_from(Permission).where(_tenant_filter))
     total = count_result.scalar_one()
 
     # Paginated query
     result = await db.execute(
         select(Permission)
+        .where(_tenant_filter)
         .order_by(Permission.resource.asc(), Permission.action.asc())
         .offset(pagination.offset)
         .limit(pagination.page_size),
@@ -603,6 +633,7 @@ async def create_permission(
 
     permission = Permission(
         id=str(uuid.uuid4()),
+        tenant_id=user.tenant_id if user.tenant_id else None,
         resource=body.resource,
         action=body.action,
         description=body.description,
@@ -698,6 +729,7 @@ async def assign_user_roles(
     for role_id in body.role_ids:
         user_role = UserRole(
             id=str(uuid.uuid4()),
+            tenant_id=user.tenant_id if user.tenant_id else None,
             user_id=user_id,
             role_id=role_id,
             assigned_by=user.user_id,

@@ -339,6 +339,7 @@ async def init_db() -> None:
     import api.auth  # noqa: F401  - registers User model
     import api.projects  # noqa: F401  - registers Project & StudyResult models
     import api.rbac  # noqa: F401  - registers Role Permission and UserRole models
+    import api.tenants  # noqa: F401  - registers Tenant model (V-07 Phase 2)
 
     # StudyJob table for persistent task queue — optional import (core.models
     # may not be available in stripped-down deployments).
