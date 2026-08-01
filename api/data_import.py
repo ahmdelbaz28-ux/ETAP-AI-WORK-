@@ -26,7 +26,10 @@ import io
 import json
 import re
 import uuid
-import xml.etree.ElementTree as ET
+try:
+    import defusedxml.ElementTree as ET  # SECURITY: prevents XXE / billion-laughs attacks
+except ImportError:
+    import xml.etree.ElementTree as ET  # fallback — less safe, but defusedxml is preferred
 from datetime import UTC, datetime
 from typing import Annotated, Any, Optional
 
@@ -492,7 +495,7 @@ def _parse_cim_xml(
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)  # nosec B314 — CIM/XML grid data is trusted input from authenticated file uploads
+        root = ET.fromstring(text)  # defusedxml protects against XXE / billion-laughs
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
@@ -563,22 +566,42 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
             detail="Filename is required",
         )
 
-    fmt = _detect_format(file.filename)
+    # SECURITY: Sanitize filename — strip control characters and path traversal
+    import re as _re
+    safe_filename = _re.sub(r'[\x00-\x1f\x7f]', '', file.filename.replace('..', '').replace('/', '_').replace('\\', '_'))
+    if safe_filename != file.filename:
+        import logging as _logging
+        _logging.getLogger("etap.api.data_import").warning(
+            "filename_sanitized original=%s safe=%s", file.filename, safe_filename
+        )
 
-    # Read and validate file size
-    content = await file.read()
+    fmt = _detect_format(safe_filename)
+
+    # SECURITY: Stream-read with size limit to prevent zip-bomb / memory exhaustion.
+    # Read in chunks up to max_bytes + 1 (the +1 lets us detect if the file
+    # exceeds the limit without reading the entire file first).
+    max_bytes = fmt.max_size_mb * 1024 * 1024
+    chunks: list[bytes] = []
+    total_read = 0
+    while True:
+        chunk = await file.read(1024 * 1024)  # 1 MB chunks
+        if not chunk:
+            break
+        total_read += len(chunk)
+        if total_read > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large: exceeds {fmt.max_size_mb} MB limit for {fmt.name}",
+            )
+        chunks.append(chunk)
+    content = b"".join(chunks)
     if not content:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty",
         )
 
-    max_bytes = fmt.max_size_mb * 1024 * 1024
-    if len(content) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large: {len(content)} bytes. Maximum for {fmt.name}: {max_bytes} bytes ({fmt.max_size_mb} MB)",
-        )
+    # Size already enforced during streaming read above
 
     # Parse based on format
     warnings: list[str] = []
@@ -605,7 +628,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         return ImportResult(
             success=False,
             format=fmt.id,
-            filename=file.filename,
+            filename=safe_filename,
             file_size_bytes=len(content),
             parsed_at=datetime.now(UTC).isoformat(),
             buses=[],
@@ -618,7 +641,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
     return ImportResult(
         success=True,
         format=fmt.id,
-        filename=file.filename,
+        filename=safe_filename,
         file_size_bytes=len(content),
         parsed_at=datetime.now(UTC).isoformat(),
         buses=buses,

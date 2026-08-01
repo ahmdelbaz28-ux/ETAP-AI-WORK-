@@ -7,7 +7,120 @@
  *
  * Solves CORS: browsers can't directly call LLM APIs because they don't
  * send CORS headers. This proxy forwards server-to-server.
+ *
+ * SECURITY AUDIT 2026-08-02 (CRITICAL SSRF fix):
+ * The previous version accepted ANY `endpoint` URL from the client,
+ * including http://169.254.169.254/ (AWS metadata), http://localhost:6379/
+ * (internal Redis), etc. This allowed:
+ *   - Cloud metadata exfiltration (IMDS)
+ *   - Internal network scanning
+ *   - API key forwarding to attacker-controlled servers
+ *
+ * Fix: strict URL allowlist — only known LLM API domains are permitted.
+ * All internal/private IPs are blocked.
  */
+
+// ---------------------------------------------------------------------------
+// SECURITY: URL allowlist — only these LLM API domains are permitted
+// ---------------------------------------------------------------------------
+const ALLOWED_LLM_DOMAINS = [
+  // OpenAI
+  "api.openai.com",
+  // Anthropic
+  "api.anthropic.com",
+  // Google Gemini / Vertex AI
+  "generativelanguage.googleapis.com",
+  "aiplatform.googleapis.com",
+  // Azure OpenAI
+  "*.openai.azure.com",
+  // Groq
+  "api.groq.com",
+  // Mistral
+  "api.mistral.ai",
+  // Cohere
+  "api.cohere.ai",
+  "api.cohere.com",
+  // Together AI
+  "api.together.xyz",
+  // Fireworks AI
+  "api.fireworks.ai",
+  // DeepSeek
+  "api.deepseek.com",
+  // Perplexity
+  "api.perplexity.ai",
+  // Local development (only in non-production)
+  "localhost",
+  "127.0.0.1",
+];
+
+// Private IP ranges that are ALWAYS blocked (even if allowlisted somehow)
+const PRIVATE_IP_PATTERNS = [
+  /^10\./,                              // 10.0.0.0/8
+  /^172\.(1[6-9]|2\d|3[0-1])\./,      // 172.16.0.0/12
+  /^192\.168\./,                        // 192.168.0.0/16
+  /^127\./,                             // 127.0.0.0/8 (loopback)
+  /^169\.254\./,                        // 169.254.0.0/16 (link-local / AWS IMDS)
+  /^0\./,                               // 0.0.0.0/8
+  /^::1$/,                              // IPv6 loopback
+  /^fc/,                                // IPv6 unique-local
+  /^fe80:/,                             // IPv6 link-local
+  /^fd/,                                // IPv6 unique-local
+];
+
+/**
+ * Validate the endpoint URL against the allowlist and block private IPs.
+ * Returns { valid: true } or { valid: false, reason: string }.
+ *
+ * SECURITY: This is the core SSRF mitigation. Without it, the proxy
+ * accepts ANY URL — including cloud metadata endpoints and internal services.
+ */
+function validateEndpoint(endpoint) {
+  let url;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return { valid: false, reason: "Invalid URL format" };
+  }
+
+  // Only HTTPS allowed (HTTP only in non-production for localhost)
+  const isProd = (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
+  if (url.protocol !== "https:") {
+    if (url.protocol === "http:" && !isProd && (url.hostname === "localhost" || url.hostname === "127.0.0.1")) {
+      // Allow http://localhost in development only
+    } else {
+      return { valid: false, reason: `Only HTTPS is allowed (got ${url.protocol})` };
+    }
+  }
+
+  // Block private IPs
+  const hostname = url.hostname;
+  for (const pattern of PRIVATE_IP_PATTERNS) {
+    if (pattern.test(hostname)) {
+      // Allow localhost/127.0.0.1 in non-production
+      if ((hostname === "localhost" || hostname === "127.0.0.1") && !isProd) {
+        continue;
+      }
+      return { valid: false, reason: `Private/internal IP addresses are blocked: ${hostname}` };
+    }
+  }
+
+  // Check against allowlist
+  const isAllowed = ALLOWED_LLM_DOMAINS.some((domain) => {
+    if (domain.startsWith("*.")) {
+      return hostname.endsWith(domain.slice(2)) || hostname === domain.slice(2);
+    }
+    return hostname === domain;
+  });
+
+  if (!isAllowed) {
+    return {
+      valid: false,
+      reason: `Domain '${hostname}' is not in the allowed LLM API domains list. Allowed: ${ALLOWED_LLM_DOMAINS.join(", ")}`,
+    };
+  }
+
+  return { valid: true };
+}
 
 /**
  * Validate the request body and return a normalized request descriptor,
@@ -22,6 +135,16 @@ function parseProxyRequest(req, res) {
   if (!endpoint || !apiKey || !body) {
     res.status(400).json({
       error: "Missing required fields: endpoint, apiKey, body",
+    });
+    return null;
+  }
+
+  // SECURITY: Validate endpoint URL against allowlist (SSRF protection)
+  const validation = validateEndpoint(endpoint);
+  if (!validation.valid) {
+    res.status(403).json({
+      error: "Endpoint not allowed",
+      reason: validation.reason,
     });
     return null;
   }
@@ -113,8 +236,16 @@ async function handleNonStreamingMode(res, endpoint, headers, requestBody) {
 }
 
 export default async function handler(req, res) {
-  // CORS preflight + method gate
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // SECURITY: Restrict CORS to same-origin (was "*" — allowed any website to use the proxy)
+  const allowedOrigin = process.env.LLM_PROXY_ALLOWED_ORIGIN || "";
+  const requestOrigin = req.headers.origin || "";
+  // In production, only allow the configured origin. In development, allow all.
+  const isProd = (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
+  if (isProd && allowedOrigin && requestOrigin !== allowedOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 

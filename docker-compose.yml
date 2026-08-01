@@ -14,7 +14,7 @@ services:
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+      - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/etap_platform
     # CRITICAL FIX: Added resource limits to prevent resource exhaustion.
     # Per CI/CD skill: production services must have CPU/memory boundaries.
     deploy:

@@ -317,12 +317,28 @@ class AuthenticationManager:
         return token
 
     def _generate_token(self, user: User) -> str:
-        """Generate JWT token for user."""
+        """Generate JWT token for user.
+
+        SECURITY AUDIT 2026-08-02 (SF-3/4/5 fix):
+        The previous version used "user_id" as the subject claim, but the
+        FastAPI auth middleware (api/dependencies.py) checks `payload.get("sub")`.
+        This meant tokens from this framework were incompatible with the FastAPI
+        auth layer. Additionally, the token was missing:
+          - `jti` (JWT ID) — needed for token revocation/blacklisting
+          - `type` claim — needed to distinguish access vs refresh tokens
+        Fix: Added `sub`, `jti`, and `type` claims. The `user_id` field is
+        kept for backward compatibility but `sub` is now the authoritative
+        subject identifier.
+        """
         now = datetime.now(UTC)
+        import uuid as _uuid
         payload = {
-            "user_id": user.user_id,
+            "sub": user.user_id,       # JWT standard subject claim (was missing)
+            "user_id": user.user_id,   # Kept for backward compatibility
             "username": user.username,
             "role": user.role.value,
+            "jti": str(_uuid.uuid4()), # JWT ID for revocation/blacklisting (was missing)
+            "type": "access",          # Token type claim (was missing)
             "exp": now + timedelta(hours=self.token_expiry_hours),
             "iat": now,
         }

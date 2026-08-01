@@ -222,3 +222,4 @@ opencv-python~=4.10.0
 #   sudo apt-get install tesseract-ocr   (Linux)
 #   https://github.com/UB-Mannheim/tesseract/wiki  (Windows)
 
+defusedxml>=0.7.1

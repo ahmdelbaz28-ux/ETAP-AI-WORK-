@@ -102,3 +102,4 @@ langchain-core>=0.1.0
 qdrant-client>=1.7.0
 langchain-qdrant>=0.1.0
 
+defusedxml>=0.7.1

@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if user is logged in on initial load
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = TOKEN_STORAGE.getItem(AUTH_TOKEN_KEY);
     if (token) {
       validateTokenAndSetUser(token);
     } else {
@@ -144,13 +144,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
       } else {
         // Token is invalid, clear it
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("refreshToken");
+        TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
+        TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
       }
     } catch (error) {
       console.error("Error validating token:", error);
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("refreshToken");
+      TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
+      TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
     } finally {
       setIsLoading(false);
     }
@@ -175,16 +175,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const data = await response.json();
 
     // Save tokens
-    localStorage.setItem("authToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    TOKEN_STORAGE.setItem(AUTH_TOKEN_KEY, data.access_token);
+    TOKEN_STORAGE.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
 
     // Fetch the user profile from /me (TokenResponse does not include user)
     await fetchUserProfile(data.access_token, email, setUser);
   };
 
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("refreshToken");
+    TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
+    TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
     setUser(null);
   };
 
@@ -218,8 +218,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshToken = async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
+      const refreshTokenValue = TOKEN_STORAGE.getItem(REFRESH_TOKEN_KEY);
+      if (!refreshTokenValue) {
         throw new Error("No refresh token available");
       }
 
@@ -227,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${refreshToken}`,
+          Authorization: `Bearer ${refreshTokenValue}`,
         },
       });
 
@@ -238,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       // Update access token
-      localStorage.setItem("authToken", data.access_token);
+      TOKEN_STORAGE.setItem(AUTH_TOKEN_KEY, data.access_token);
     } catch (error) {
       logout(); // If refresh fails, logout user
       throw error;

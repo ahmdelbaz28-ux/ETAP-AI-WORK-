@@ -7,6 +7,14 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0a0e1a" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- SECURITY AUDIT 2026-08-02 (UI-6 fix): Content-Security-Policy header.
+         Previously, no CSP was set — the application was vulnerable to XSS attacks
+         because there was no restriction on script sources, inline scripts, or eval().
+         This meta tag provides a baseline CSP. In production, this should be set as
+         an HTTP header (not meta tag) by the reverse proxy (Vercel/Cloudflare) for
+         stronger enforcement. The meta tag is a defense-in-depth measure for dev/local. -->
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://api.groq.com https://api.mistral.ai https://api.deepseek.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" />
     <title>AhmedETAP — Power Systems Engineering</title>
   </head>
   <body class="bg-gray-950 text-gray-100 min-h-screen">

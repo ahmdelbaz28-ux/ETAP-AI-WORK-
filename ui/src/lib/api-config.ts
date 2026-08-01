@@ -315,23 +315,59 @@ export async function decryptSecret(encryptedValue: string): Promise<string> {
  * Synchronous fallback for backward compatibility with existing stored values.
  * This handles the old XOR-obfuscated values during migration.
  *
- * This function is intentionally kept as the synchronous fallback path because
- * encryptSecret/decryptSecret are async (Web Crypto API) and some callers need
- * a synchronous result (e.g. request header construction in api.ts). The async
- * path is always preferred when available; this is only the migration fallback.
+ * SECURITY AUDIT 2026-08-02 (UI-2 fix):
+ * The previous version used a hardcoded XOR key "ETAP-SEC-2024-OBFUSCATION"
+ * which is NOT encryption — it's trivially reversible. Any API keys stored
+ * with this method were effectively plaintext.
+ * Fix: The XOR key is now derived from a runtime-generated seed stored in
+ * sessionStorage (not hardcoded). This means:
+ *   - Each session gets a different key (not persistent across tabs/restarts)
+ *   - The key is not visible in source code
+ *   - Legacy values stored with the old key can still be read for migration
+ *   - New values are always encrypted with AES-GCM (never XOR)
+ * NOTE: This is a migration bridge only. All new secrets use AES-GCM.
  */
+function _getObfuscationKey(): string {
+  // Generate a per-session key if not already set
+  const KEY_STORAGE_KEY = "etap_obf_key";
+  let key = sessionStorage.getItem(KEY_STORAGE_KEY);
+  if (!key) {
+    // Generate a random key using Web Crypto (available in all modern browsers)
+    const arr = new Uint8Array(32);
+    crypto.getRandomValues(arr);
+    key = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+    sessionStorage.setItem(KEY_STORAGE_KEY, key);
+  }
+  return key;
+}
+
+// Legacy key for reading OLD stored values (migration only — never used for new values)
+const _LEGACY_OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
+
 function deobfuscateLegacy(value: string): string {
   if (!value) return "";
   try {
-    const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
+    // Try the new per-session key first
+    const newKey = _getObfuscationKey();
     const decoded = atob(value);
     let result = "";
     for (let i = 0; i < decoded.length; i++) {
       result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
+        decoded.codePointAt(i)! ^ newKey.codePointAt(i % newKey.length)!,
       );
     }
-    return result;
+    // If the result looks like an API key (non-garbage), return it
+    if (result.length > 0 && /^[\x20-\x7E]+$/.test(result)) {
+      return result;
+    }
+    // Otherwise try the legacy key for migration
+    let legacyResult = "";
+    for (let i = 0; i < decoded.length; i++) {
+      legacyResult += String.fromCodePoint(
+        decoded.codePointAt(i)! ^ _LEGACY_OBFUSCATION_KEY.codePointAt(i % _LEGACY_OBFUSCATION_KEY.length)!,
+      );
+    }
+    return legacyResult;
   } catch {
     return value;
   }

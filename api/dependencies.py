@@ -199,7 +199,17 @@ async def get_current_user(
                     detail="Token has been revoked",
                 )
         except ImportError:
-            pass  # blacklist unavailable, continue
+            # SECURITY AUDIT 2026-08-02 (DEP-4 fix):
+            # Previously, this was a silent `pass` — if the blacklist module
+            # couldn't be imported, revoked tokens were silently accepted.
+            # Now we log a warning so the operator knows the blacklist is
+            # unavailable. In production, this should never happen — the
+            # module is part of the same package.
+            logger.warning(
+                "token_blacklist_import_failed jti=%s — blacklist check skipped. "
+                "Ensure api.auth module is importable.",
+                jti,
+            )
 
     # Verify the user still exists and is active
     result = await db.execute(select(User).where(User.id == user_id))
@@ -265,7 +275,7 @@ def require_role(*roles: str):
         if user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role '{user.role}' not permitted. Required: {', '.join(roles)}",
+                detail=f"Insufficient permissions.",
             )
         return user
 
@@ -295,8 +305,21 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     "Bearer <anything>" strings.
     """
     if not API_KEY:
-        # No API key configured — skip validation
-        return ""
+        # SECURITY AUDIT 2026-08-02 (DEP-2 fix):
+        # Previously, when ENGINEERING_SERVICE_API_KEY was not set, the
+        # function returned "" — meaning ALL endpoints using
+        # Depends(get_api_key) had ZERO authentication.
+        # Fix: In production, this is a hard error (raised at startup above).
+        # In development, we still allow it but log a prominent warning.
+        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
+        if _env not in ("production", "prod", "staging"):
+            logger.debug("API key auth disabled in development — no ENGINEERING_SERVICE_API_KEY set")
+            return ""
+        # Should never reach here (startup raises RuntimeError), but just in case:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key not configured. Set ENGINEERING_SERVICE_API_KEY.",
+        )
 
     # JWT bypass: if a VALID Bearer token is present, skip the API key check.
     # SECURITY AUDIT 2026-07-25 — Fix S-09: Now checks token type, expiry, and blacklist.
@@ -328,7 +351,11 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
                             detail="Token has been revoked",
                         )
                 except ImportError:
-                    pass  # blacklist unavailable, continue
+                    # SECURITY AUDIT 2026-08-02 (DEP-4 fix):
+                    logger.warning(
+                        "token_blacklist_import_failed (api_key) jti=%s — blacklist check skipped",
+                        jti,
+                    )
             return ""
         except jwt.ExpiredSignatureError as err:
             raise HTTPException(

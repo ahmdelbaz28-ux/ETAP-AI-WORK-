@@ -118,37 +118,49 @@ def _validate_key(key: str) -> str:
 # Lazy boto3 import (only when R2 is actually used)
 # ---------------------------------------------------------------------------
 
+import threading
+
 _client = None
+_client_lock = threading.Lock()
+
+# SECURITY: Maximum presigned URL expiry (7 days). Without this cap,
+# a caller could generate a presigned URL valid for years, creating a
+# persistent unauthenticated access vector to the object.
+_PRESIGN_MAX_EXPIRY = 7 * 24 * 3600  # 7 days in seconds
 
 
 def _get_client():
-    """Return a cached boto3 S3 client configured for R2."""
+    """Return a cached boto3 S3 client configured for R2 (thread-safe)."""
     global _client
+    # Double-checked locking: fast path (no lock) if client exists
     if _client is not None:
         return _client
+    with _client_lock:
+        if _client is not None:
+            return _client
 
-    if not R2_ENABLED:
-        raise RuntimeError(
-            "R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, "
-            "and R2_SECRET_ACCESS_KEY environment variables."
+        if not R2_ENABLED:
+            raise RuntimeError(
+                "R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, "
+                "and R2_SECRET_ACCESS_KEY environment variables."
+            )
+
+        import boto3
+        from botocore.config import Config
+
+        _client = boto3.client(
+            "s3",
+            endpoint_url=R2_ENDPOINT_URL,
+            aws_access_key_id=R2_ACCESS_KEY_ID,
+            aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+            region_name="auto",  # R2 uses "auto" region
+            config=Config(
+                retries={"max_attempts": 3, "mode": "adaptive"},
+                max_pool_connections=10,
+            ),
         )
-
-    import boto3
-    from botocore.config import Config
-
-    _client = boto3.client(
-        "s3",
-        endpoint_url=R2_ENDPOINT_URL,
-        aws_access_key_id=R2_ACCESS_KEY_ID,
-        aws_secret_access_key=R2_SECRET_ACCESS_KEY,
-        region_name="auto",  # R2 uses "auto" region
-        config=Config(
-            retries={"max_attempts": 3, "mode": "adaptive"},
-            max_pool_connections=10,
-        ),
-    )
-    logger.info("R2 client created: endpoint=%s, bucket=%s", R2_ENDPOINT_URL, R2_BUCKET_NAME)
-    return _client
+        logger.info("R2 client created: endpoint=%s, bucket=%s", R2_ENDPOINT_URL, R2_BUCKET_NAME)
+        return _client
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +219,7 @@ async def upload(
         put_kwargs["CacheControl"] = cache_control
 
     # boto3 is synchronous — run in a thread pool to not block the event loop
-    await asyncio.get_event_loop().run_in_executor(None, lambda: client.put_object(**put_kwargs))
+    await asyncio.get_running_loop().run_in_executor(None, lambda: client.put_object(**put_kwargs))
     logger.info("R2 upload: %s (%d bytes, %s)", key, len(data), content_type)
     return key
 
@@ -220,7 +232,7 @@ async def download(key: str) -> bytes:
     key = _validate_key(key)  # SECURITY S-10: path traversal validation
 
     client = _get_client()
-    response = await asyncio.get_event_loop().run_in_executor(
+    response = await asyncio.get_running_loop().run_in_executor(
         None,
         lambda: client.get_object(Bucket=R2_BUCKET_NAME, Key=key),
     )
@@ -237,7 +249,7 @@ async def delete(key: str) -> None:
     key = _validate_key(key)  # SECURITY S-10: path traversal validation
 
     client = _get_client()
-    await asyncio.get_event_loop().run_in_executor(
+    await asyncio.get_running_loop().run_in_executor(
         None,
         lambda: client.delete_object(Bucket=R2_BUCKET_NAME, Key=key),
     )
@@ -264,7 +276,7 @@ async def list_objects(
         _validate_key(prefix)
 
     client = _get_client()
-    response = await asyncio.get_event_loop().run_in_executor(
+    response = await asyncio.get_running_loop().run_in_executor(
         None,
         lambda: client.list_objects_v2(
             Bucket=R2_BUCKET_NAME,
@@ -303,7 +315,7 @@ async def delete_many(keys: list[str]) -> int:
     deleted_total = 0
     for i in range(0, len(keys), 1000):
         batch = keys[i : i + 1000]
-        response = await asyncio.get_event_loop().run_in_executor(
+        response = await asyncio.get_running_loop().run_in_executor(
             None,
             lambda b=batch: client.delete_objects(
                 Bucket=R2_BUCKET_NAME,
@@ -335,6 +347,17 @@ def presign(key: str, *, expires: int = 3600) -> str:
 
     # SECURITY (S-10): Validate key against path traversal
     _validate_key(key)
+
+    # SECURITY: Cap presigned URL expiry to 7 days maximum.
+    # Without this, a caller could generate URLs valid for years.
+    if expires > _PRESIGN_MAX_EXPIRY:
+        logger.warning(
+            "presign_expiry_capped requested=%d max=%d key=%s",
+            expires, _PRESIGN_MAX_EXPIRY, key[:50],
+        )
+        expires = _PRESIGN_MAX_EXPIRY
+    if expires < 60:
+        expires = 60  # Minimum 1 minute
 
     client = _get_client()
     url = client.generate_presigned_url(
