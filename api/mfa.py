@@ -372,12 +372,16 @@ async def verify_backup_code(
                     del _lockouts[target_user_id]
                     _failed_attempts.pop(target_user_id, None)
 
-        # V-9: Hash the code before comparison
+        # V-9: Hash the code before comparison — backup codes are stored
+        # as SHA-256 hashes, so we must compare the hash, not the plaintext.
         code_hash = hashlib.sha256(code.encode()).hexdigest()
 
         from security.mfa import TOTPProvider
         totp = TOTPProvider()
-        is_valid = totp.verify_backup_code(target_user_id, code)
+        # SECURITY FIX: Pass the HASH to verify_backup_code, not the plaintext.
+        # Previously, the code was hashed but the plaintext was sent to
+        # verify_backup_code(), which would never match the stored hash.
+        is_valid = totp.verify_backup_code(target_user_id, code_hash)
 
         if not is_valid:
             # Track failed attempt

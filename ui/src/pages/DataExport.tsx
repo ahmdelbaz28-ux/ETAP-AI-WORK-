@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -55,7 +56,7 @@ export default function DataExport() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     fetch(`${API_BASE_URL}/api/v1/exports`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })

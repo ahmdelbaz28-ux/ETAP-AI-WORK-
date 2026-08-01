@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import { AlertTriangle, ArrowRight, Cpu, FileText, Info, Loader2, Search, Share2 } from "lucide-react";
 import { useState } from "react";
@@ -52,7 +53,7 @@ export default function ContextEngine() {
     setLoading(true);
     setResults(null);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/context/retrieve`, {
         method: "POST",
         headers: {
@@ -76,7 +77,7 @@ export default function ContextEngine() {
     setLoading(true);
     setImpactResult(null);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/context/impact`, {
         method: "POST",
         headers: {

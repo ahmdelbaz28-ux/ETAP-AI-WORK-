@@ -363,13 +363,30 @@ def main() -> None:
     # ThreadPoolExecutor cannot kill a running thread — after timeout, the
     # thread continues running in the background consuming resources.
     # Subprocess-based execution allows proper cleanup via process.kill().
+    #
+    # BUG FIX 2026-08-02: The previous V-44 implementation had a CRITICAL
+    # bug — the wrapper script referenced `_safe_globals` which was never
+    # defined in the subprocess. The main process defined `safe_globals` and
+    # pickled it, but the subprocess never loaded the pickle. The wrapper
+    # would always crash with `NameError: name '_safe_globals' is not defined`.
+    #
+    # Fix: Embed the safe_globals definition directly in the wrapper script
+    # as a JSON-serialized string, so the subprocess is self-contained and
+    # does not depend on pickle (which is also a security risk — pickle
+    # deserialization can execute arbitrary code).
     import subprocess
     import tempfile
 
-    # Write the execution wrapper to a temp file
+    # Serialize the safe builtins names and allowed import names as JSON
+    # (only the names — the actual objects are reconstructed in the subprocess)
+    _safe_builtins_names = list(safe_globals["__builtins__"].keys())
+    _allowed_import_names = list(safe_globals.get("safe_import", {}).get("__allowed__", []))
+
+    # Build the wrapper script that reconstructs safe_globals in the subprocess
     wrapper_code = '''
 import sys
 import io
+import json
 from contextlib import redirect_stdout
 
 # V-42: Set memory limit
@@ -379,6 +396,46 @@ try:
     resource.setrlimit(resource.RLIMIT_AS, (max_bytes, max_bytes))
 except (ValueError, OSError, ImportError):
     pass
+
+# Reconstruct safe_globals in the subprocess
+# Builtins: only the safe subset
+_safe_builtins_names = {safe_builtins_names_json}
+_allowed_import_names = {allowed_imports_json}
+
+def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    root_name = name.split(".")[0]
+    if root_name not in _allowed_import_names:
+        raise ImportError(f"Unauthorized import: {{name}}")
+    return __import__(name, globals, locals, fromlist, level)
+
+# Build the actual builtins dict from the safe names
+_real_builtins = {{
+    "abs": abs, "all": all, "any": any, "bool": bool, "dict": dict,
+    "float": float, "int": int, "len": len, "list": list, "max": max,
+    "min": min, "pow": pow, "print": print, "range": range, "round": round,
+    "set": set, "str": str, "sum": sum, "tuple": tuple, "complex": complex,
+    "Exception": Exception, "ValueError": ValueError, "TypeError": TypeError,
+    "KeyError": KeyError, "ImportError": ImportError, "RuntimeError": RuntimeError,
+    "StopIteration": StopIteration, "enumerate": enumerate, "zip": zip,
+    "reversed": reversed, "sorted": sorted, "map": map, "filter": filter,
+    "True": True, "False": False, "None": None, "__import__": _safe_import,
+}}
+
+_safe_globals = {{
+    "__builtins__": _real_builtins,
+}}
+
+# Pre-import allowed modules
+import json as _json_mod
+import math as _math_mod
+_safe_globals["json"] = _json_mod
+_safe_globals["math"] = _math_mod
+for _mod_name in _allowed_import_names:
+    if _mod_name not in ("json", "math") and _mod_name in sys.modules:
+        try:
+            _safe_globals[_mod_name] = __import__(_mod_name)
+        except ImportError:
+            pass
 
 # Read and execute the user code
 _code = sys.stdin.read()
@@ -393,7 +450,11 @@ except Exception as e:
     print(str(e))
     import traceback
     traceback.print_exc()
-'''.format(max_memory_mb=MAX_MEMORY_MB)
+'''.format(
+        max_memory_mb=MAX_MEMORY_MB,
+        safe_builtins_names_json=json.dumps(_safe_builtins_names),
+        allowed_imports_json=json.dumps(["numpy", "scipy", "math", "json", "time", "core_model", "engine", "load_flow", "fault_analysis", "relays", "coordination"]),
+    )
 
     try:
         # Write wrapper to temp file
@@ -401,13 +462,6 @@ except Exception as e:
         os.close(fd)
         with open(wrapper_path, "w") as f:
             f.write(wrapper_code)
-
-        # Serialize safe_globals for the subprocess (only JSON-serializable parts)
-        import pickle
-        fd, globals_path = tempfile.mkstemp(suffix=".pkl", prefix="etap_globals_")
-        os.close(fd)
-        with open(globals_path, "wb") as f:
-            pickle.dump(safe_globals, f)
 
         # Run in subprocess with timeout
         try:
@@ -461,12 +515,11 @@ except Exception as e:
 
     finally:
         # Cleanup temp files
-        for path in [wrapper_path, globals_path]:
-            try:
-                if path and os.path.exists(path):
-                    os.remove(path)
-            except Exception:
-                pass
+        try:
+            if wrapper_path and os.path.exists(wrapper_path):
+                os.remove(wrapper_path)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

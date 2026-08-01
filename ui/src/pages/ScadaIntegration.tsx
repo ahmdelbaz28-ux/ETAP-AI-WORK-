@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
@@ -116,7 +117,7 @@ async function testScadaConnection(
 
   let response: Response;
   try {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
       method: "GET",
       headers: {
@@ -368,7 +369,7 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
 
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = getAuthToken();
         const response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

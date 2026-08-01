@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -395,7 +396,7 @@ export default function DigitalTwin() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const r = await fetch(`${API_BASE_URL}/api/v1/digital-twin/status`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         signal: AbortSignal.timeout(8000),

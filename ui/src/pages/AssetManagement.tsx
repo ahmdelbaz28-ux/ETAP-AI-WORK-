@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -120,7 +121,7 @@ export default function AssetManagement() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const r = await fetch(`${API_BASE_URL}/api/v1/assets?page=1&page_size=100`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         signal: AbortSignal.timeout(8000),
@@ -151,7 +152,7 @@ export default function AssetManagement() {
     }
     setSubmitting(true);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const r = await fetch(`${API_BASE_URL}/api/v1/assets`, {
         method: "POST",
         headers: {
@@ -189,7 +190,7 @@ export default function AssetManagement() {
       if (!confirm(`Delete asset "${asset.name}"? This cannot be undone.`)) return;
       setActionInProgress(asset.id);
       try {
-        const token = localStorage.getItem("authToken");
+        const token = getAuthToken();
         const r = await fetch(`${API_BASE_URL}/api/v1/assets/${encodeURIComponent(asset.id)}`, {
           method: "DELETE",
           headers: token ? { Authorization: `Bearer ${token}` } : {},

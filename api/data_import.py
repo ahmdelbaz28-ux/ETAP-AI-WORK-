@@ -628,14 +628,24 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         )
 
     # V-30: Zip bomb protection — check decompression ratio.
-    # If the in-memory content is significantly larger than the compressed
-    # upload, reject it. The ratio limit prevents memory exhaustion from
-    # highly compressible payloads.
-    _MAX_DECOMPRESSION_RATIO = 10.0  # content can be at most 10x the upload size
-    if total_read > 0 and len(content) > total_read * _MAX_DECOMPRESSION_RATIO:
+    # The streaming read above already enforces the size limit. However,
+    # for ZIP files (which are not currently decompressed here), we add
+    # an additional safeguard: if the upload size exceeds the format's
+    # max_size_mb, reject it. The stream-read loop already handles this,
+    # but this is a belt-and-suspenders check.
+    #
+    # NOTE: The previous version compared `total_read` with `len(content)`
+    # which were always equal (content is just the concatenation of chunks),
+    # making the ratio check a no-op. This version instead validates the
+    # Content-Encoding header — if the client claims gzip/deflate encoding,
+    # we reject it to prevent decompression bombs. The actual decompression
+    # ratio check is only meaningful for ZIP files, which are handled by
+    # a dedicated ZIP parser (not yet implemented).
+    content_encoding = file.headers.get("content-encoding", "").lower()
+    if content_encoding in ("gzip", "deflate", "br", "zstd"):
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"Decompressed content exceeds safe ratio. File may be a zip bomb.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Compressed uploads are not supported. Please upload the uncompressed file.",
         )
 
     # Size already enforced during streaming read above

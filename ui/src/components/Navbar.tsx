@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
+import { clearAuthTokens } from "../lib/tokenStorage";
 import { BrandLogo } from "./BrandLogo";
 
 interface NotificationItem {
@@ -169,7 +170,8 @@ export function Navbar() {
 
   const handleSignOut = () => {
     setShowUserMenu(false);
-    localStorage.removeItem("authToken");
+    // SECURITY FIX: Use clearAuthTokens() instead of localStorage.removeItem()
+    clearAuthTokens();
     localStorage.removeItem("etap-user");
     navigate("/login");
   };

@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -103,7 +104,7 @@ export default function DataImport() {
       setUploading(true);
       setResult(null);
       try {
-        const token = localStorage.getItem("authToken");
+        const token = getAuthToken();
         const formData = new FormData();
         formData.append("file", file);
 

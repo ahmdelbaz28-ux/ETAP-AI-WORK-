@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   AlertTriangle,
@@ -384,7 +385,7 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
     setValidationResults(null);
     try {
       const spec = getSystemSpecJson();
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/api/v1/system/validate`, {
         method: "POST",
         headers: {
@@ -418,7 +419,7 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
     setSimulationResults(null);
     try {
       const spec = getSystemSpecJson();
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/api/v1/studies/run`, {
         method: "POST",
         headers: {

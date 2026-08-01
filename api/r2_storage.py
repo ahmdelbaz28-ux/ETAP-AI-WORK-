@@ -247,6 +247,26 @@ async def upload(
 
     key = _validate_key(key)  # SECURITY S-10: path traversal validation
 
+    # V-26: Validate MIME type — reject dangerous content types
+    content_type_lower = content_type.lower().strip()
+    if content_type_lower in BLOCKED_MIME_TYPES:
+        raise ValueError(
+            f"Blocked MIME type: {content_type_lower}. "
+            f"This file type is not allowed for security reasons."
+        )
+    if content_type_lower not in ALLOWED_MIME_TYPES:
+        logger.warning(
+            "r2_upload_unsupported_mime type=%s key=%s — proceeding with caution",
+            content_type_lower, key[:50],
+        )
+
+    # V-27: Enforce maximum upload size
+    if len(data) > MAX_UPLOAD_SIZE_BYTES:
+        raise ValueError(
+            f"File too large: {len(data)} bytes exceeds maximum "
+            f"of {MAX_UPLOAD_SIZE_BYTES} bytes ({MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB)"
+        )
+
     client = _get_client()
     put_kwargs: dict[str, Any] = {
         "Bucket": R2_BUCKET_NAME,

@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import { AlertCircle, Calendar, Download, FileText, Table } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -27,7 +28,7 @@ export default function Reports() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     fetch(`${API_BASE_URL}/api/v1/reports`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })

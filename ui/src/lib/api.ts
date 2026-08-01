@@ -9,6 +9,7 @@
  */
 
 import { API_BASE_URL, getCachedSettings } from "./api-config";
+import { getAuthToken } from "./tokenStorage";
 
 // Forward user's active provider key/model to backend dynamically.
 // Extracted to a helper to keep request() below SonarCloud's cognitive
@@ -53,7 +54,9 @@ async function extractErrorDetail(response: Response): Promise<string> {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
-  const token = localStorage.getItem("authToken");
+  // SECURITY FIX: Use sessionStorage instead of localStorage for auth tokens.
+  // localStorage persists across sessions and is more vulnerable to XSS.
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

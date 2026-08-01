@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 // Admin dashboard with complex UI patterns
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,7 +30,7 @@ interface KillSwitchStatus {
 // --- Module-scope helpers (extracted to keep CuaMonitor's cognitive complexity low) ---
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem("authToken");
+  const token = getAuthToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -88,7 +89,7 @@ async function activateKill(
   onDone: () => void,
 ): Promise<void> {
   try {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch/activate`, {
       method: "POST",
       headers: {

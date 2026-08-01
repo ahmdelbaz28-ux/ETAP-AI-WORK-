@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import { FileText, Plus, Search, Loader2, Trash2, Copy } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -31,7 +32,7 @@ export default function Templates() {
   const fetchTemplates = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/templates/`, {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
@@ -49,7 +50,7 @@ export default function Templates() {
 
   const handleCreate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/templates/`, {
         method: "POST",
         headers: {
@@ -70,7 +71,7 @@ export default function Templates() {
 
   const handleDelete = async (id: string) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/templates/${id}`, {
         method: "DELETE",
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -85,7 +86,7 @@ export default function Templates() {
 
   const handleApply = async (id: string) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/templates/${id}/apply`, {
         method: "POST",
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },

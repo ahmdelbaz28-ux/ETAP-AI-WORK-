@@ -1,3 +1,4 @@
+import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import { Package, Plus, Search, Loader2, Trash2, Filter, Database } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -43,7 +44,7 @@ export default function AssetLibrary() {
   const fetchAssets = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/assets/`, {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
@@ -61,7 +62,7 @@ export default function AssetLibrary() {
 
   const handleCreate = async () => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/assets/`, {
         method: "POST",
         headers: {
@@ -82,7 +83,7 @@ export default function AssetLibrary() {
 
   const handleDelete = async (id: string) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/assets/${id}`, {
         method: "DELETE",
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
