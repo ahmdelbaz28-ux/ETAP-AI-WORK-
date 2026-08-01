@@ -474,9 +474,15 @@ class MathGuard:
         tolerance_ok, tolerance_msg = self._check_tolerance(claim_value, recomputed)
 
         passed = units_ok and tolerance_ok
+        if passed:
+            _reason = ""
+        elif not tolerance_ok:
+            _reason = tolerance_msg
+        else:
+            _reason = units_msg
         return MathGuardResult(
             passed=passed,
-            reason="" if passed else (tolerance_msg if not tolerance_ok else units_msg),  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+            reason=_reason,
             claim_value=claim_value,
             recomputed_value=recomputed,
             units_ok=units_ok,

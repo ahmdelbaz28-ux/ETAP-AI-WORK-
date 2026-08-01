@@ -386,19 +386,22 @@ class ClusterManager:
             total_capacity = sum(
                 n.capabilities.get("max_load", 100.0) for n in self._nodes.values()
             )
+            # Cluster status — extracted from nested ternary (S3358)
+            if healthy == total:
+                _cluster_status = "healthy"
+            elif healthy > 0:
+                _cluster_status = "degraded"
+            else:
+                _cluster_status = "down"
             return {
                 "cluster_name": self.cluster_name,
                 "total_nodes": total,
                 "healthy_nodes": healthy,
                 "unhealthy_nodes": total - healthy,
                 "total_load": total_load,
-                "total_capacity": total_capacity,  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+                "total_capacity": total_capacity,
                 "utilization": total_load / max(total_capacity, 1e-9),
-                "status": "healthy"
-                if healthy == total
-                else "degraded"  # S3358 nested ternary clear in this context NOSONAR
-                if healthy > 0
-                else "down",  # NOSONAR nested conditional; extract to named variable (tech debt)
+                "status": _cluster_status,
             }
 
 

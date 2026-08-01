@@ -727,9 +727,12 @@ class LargeSystemAdapter:
             )
         else:
             r.update(solver="dense", initial_voltages=self.optimized_system.get_all_bus_voltages())
-        r["system_type"] = (
-            "xl" if self._xl else ("large" if self._large else "normal")  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-        )  # NOSONAR nested conditional; extract to named variable (tech debt)
+        if self._xl:
+            r['system_type'] = 'xl'
+        elif self._large:
+            r['system_type'] = 'large'
+        else:
+            r['system_type'] = 'normal'
         return r
 
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)

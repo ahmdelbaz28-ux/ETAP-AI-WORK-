@@ -146,17 +146,14 @@ def map_adms_to_cim(  # S3776 cognitive complexity intentional; logic validated 
         ):
             continue
 
-        kind = (
-            "line"
-            if a.asset_type == ADMSAssetType.LINE
-            else (
-                "feeder"  # NOSONAR nested conditional; extract to named variable (tech debt)
-                if a.asset_type == ADMSAssetType.FEEDER
-                else (
-                    "transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch"  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                )  # NOSONAR nested conditional; extract to named variable (tech debt)
-            )
-        )
+        if a.asset_type == ADMSAssetType.LINE:
+            kind = "line"
+        elif a.asset_type == ADMSAssetType.FEEDER:
+            kind = "feeder"
+        elif a.asset_type == ADMSAssetType.TRANSFORMER:
+            kind = "transformer"
+        else:
+            kind = "switch"
 
         ce_id = f"CE::{a.asset_id}"
         ce = CIMConductingEquipment(

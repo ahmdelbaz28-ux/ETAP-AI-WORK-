@@ -248,9 +248,12 @@ class GISSyncBridge:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
-        xid = (
-            int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-        )  # NOSONAR nested conditional; extract to named variable (tech debt)
+        if '_' in xf_id:
+            xid = int(xf_id.split('_')[-1])
+        elif xf_id.isdigit():
+            xid = int(xf_id)
+        else:
+            xid = 1
         # Ensure the transformer exists — default to unit transformer if buses not yet present
         existing = [t for t in self.dt_state.system.transformers if t.transformer_id == xid]
         if not existing:

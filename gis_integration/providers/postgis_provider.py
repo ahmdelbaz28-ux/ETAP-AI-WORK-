@@ -73,6 +73,22 @@ def _validate_schema_name(schema: str) -> str:
 
 
 @dataclass
+
+
+def _parse_properties(value) -> dict:
+    """Parse a PostGIS row[3] value into a properties dict.
+
+    Handles three cases:
+    - value is already a dict -> return as-is
+    - value is a non-empty string -> JSON decode
+    - value is empty/None -> empty dict
+    """
+    if isinstance(value, dict):
+        return value
+    if value:
+        return json.loads(value)
+    return {}
+
 class SpatialAsset:
     """A spatially-enabled asset in PostGIS."""
 
@@ -373,11 +389,7 @@ class PostGISProvider:
                     asset_id=row[0],
                     asset_type=row[1],
                     geometry=json.loads(row[2]) if row[2] else None,
-                    properties=row[3]
-                    if isinstance(row[3], dict)
-                    else (
-                        json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                    ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+                    properties=_parse_properties(row[3]),
                     electrical_id=row[4],
                 )
         except Exception as exc:
@@ -407,11 +419,7 @@ class PostGISProvider:
                             asset_id=row[0],
                             asset_type=row[1],
                             geometry=json.loads(row[2]) if row[2] else None,
-                            properties=row[3]
-                            if isinstance(row[3], dict)
-                            else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+                            properties=_parse_properties(row[3]),
                             electrical_id=row[4],
                         ),
                     )
@@ -452,11 +460,7 @@ class PostGISProvider:
                             asset_id=row[0],
                             asset_type=row[1],
                             geometry=json.loads(row[2]) if row[2] else None,
-                            properties=row[3]
-                            if isinstance(row[3], dict)
-                            else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+                            properties=_parse_properties(row[3]),
                             electrical_id=row[4],
                         ),
                     )
@@ -494,11 +498,7 @@ class PostGISProvider:
                             asset_id=row[0],
                             asset_type=row[1],
                             geometry=json.loads(row[2]) if row[2] else None,
-                            properties=row[3]
-                            if isinstance(row[3], dict)
-                            else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+                            properties=_parse_properties(row[3]),
                             electrical_id=row[4],
                         ),
                     )
@@ -548,11 +548,7 @@ class PostGISProvider:
                             asset_id=row[0],
                             asset_type=row[1],
                             geometry=json.loads(row[2]) if row[2] else None,
-                            properties=row[3]
-                            if isinstance(row[3], dict)
-                            else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+                            properties=_parse_properties(row[3]),
                             electrical_id=row[4],
                         ),
                     )

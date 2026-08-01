@@ -52,13 +52,12 @@ class PowerSystemEngine:
         self.system = system
 
         # Injected or default solvers
-        self.load_flow_solver = (
-            load_flow_solver
-            if load_flow_solver is not None
-            else (
-                LoadFlowSolver(system) if system is not None else None  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-            )  # NOSONAR nested conditional; extract to named variable (tech debt)
-        )
+        if load_flow_solver is not None:
+            self.load_flow_solver = load_flow_solver
+        elif system is not None:
+            self.load_flow_solver = LoadFlowSolver(system)
+        else:
+            self.load_flow_solver = None
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
         )

@@ -37,9 +37,12 @@ class ValidationCampaign:
         self.warnings = 0
   # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
     def _record(self, category, test_name, passed, detail="", warning=False):
-        status = (
-            "PASS" if passed else ("WARN" if warning else "FAIL")  # S3358 nested ternary clear in this context NOSONAR
-        )  # NOSONAR nested conditional; extract to named variable (tech debt)
+        if passed:
+            status = "PASS"
+        elif warning:
+            status = "WARN"
+        else:
+            status = "FAIL"
         if passed and not warning:
             self.passed += 1
         elif warning:

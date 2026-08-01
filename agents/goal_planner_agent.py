@@ -385,16 +385,18 @@ class GoalPlannerAgent(BaseAgent):
         if not risks:
             recommendations.append("Schedule looks feasible — proceed with execution")
 
+        if len(risks) > 3:
+            _risk_level = "high"
+        elif len(risks) > 1:
+            _risk_level = "medium"
+        else:
+            _risk_level = "low"
         return {
             "risks": risks,
             "assumptions": assumptions,
             "recommendations": recommendations,
             "risk_count": len(risks),
-            "risk_level": "high"
-            if len(risks) > 3
-            else "medium"  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-            if len(risks) > 1
-            else "low",  # NOSONAR
+            "risk_level": _risk_level,
         }
 
     # ------------------------------------------------------------------

@@ -316,13 +316,12 @@ async def trace_middleware(  # S3776 cognitive complexity intentional; logic val
                 _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
                 xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
                 proxy_ip = request.client.host if request.client else ""
-                client_id = (
-                    xff  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
-                    if proxy_ip in _trusted_list and xff
-                    else (
-                        request.client.host if request.client else "unknown"  # S3358 nested ternary clear in this context NOSONAR
-                    )  # NOSONAR nested conditional; extract to named variable (tech debt)
-                )
+                if proxy_ip in _trusted_list and xff:
+                    client_id = xff
+                elif request.client:
+                    client_id = request.client.host
+                else:
+                    client_id = 'unknown'
             else:
                 client_id = request.client.host if request.client else "unknown"
             if not await _check_rate_limit(client_id):

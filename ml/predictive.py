@@ -1338,6 +1338,20 @@ def get_ml_capabilities() -> dict[str, Any]:
         Dictionary mapping capability name to availability status and
         recommended library.
     """
+    # Forecasting best_available — extracted from nested ternary (S3358)
+    if _HAS_TENSORFLOW:
+        _fc_best = "lstm"
+    elif _HAS_PROPHET:
+        _fc_best = "prophet"
+    else:
+        _fc_best = "linear"
+    # Fault prediction best_available — extracted from nested ternary (S3358)
+    if _HAS_XGBOOST:
+        _fp_best = "xgboost"
+    elif _HAS_SKLEARN:
+        _fp_best = "random_forest"
+    else:
+        _fp_best = "none"
     return {
         "sklearn": {
             "available": _HAS_SKLEARN,
@@ -1385,28 +1399,21 @@ def get_ml_capabilities() -> dict[str, Any]:
             "version": "2.0+",
             "purpose": "Model tracking and versioning",
         },
+        # Forecasting best_available — extracted from nested ternary (S3358)
         "forecasting_methods": {
             "available": [
-                "lstm" if _HAS_TENSORFLOW else None,  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+                "lstm" if _HAS_TENSORFLOW else None,
                 "prophet" if _HAS_PROPHET else None,
                 "linear",
             ],
-            "best_available": "lstm"
-            if _HAS_TENSORFLOW
-            else (
-                "prophet" if _HAS_PROPHET else "linear"  # S3358 nested ternary clear in this context NOSONAR
-            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+            "best_available": _fc_best,
         },
         "fault_prediction_methods": {
-            "available": [  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+            "available": [
                 "xgboost" if _HAS_XGBOOST else None,
                 "random_forest" if _HAS_SKLEARN else None,
             ],
-            "best_available": "xgboost"
-            if _HAS_XGBOOST
-            else (
-                "random_forest" if _HAS_SKLEARN else "none"  # S3358 nested ternary clear in this context NOSONAR
-            ),  # NOSONAR nested conditional; extract to named variable (tech debt)
+            "best_available": _fp_best,
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector._build_available_methods(),
