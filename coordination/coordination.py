@@ -111,10 +111,10 @@ class CoordinationEngine:
         def _trip_time_for_tms(
             tms,
             relay,
-            i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            i,
         ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Use the relay's curve type and Ip, but override TMS locally
-            i_mag = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            i_mag = abs(
                 i
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if i_mag < relay.Ip:

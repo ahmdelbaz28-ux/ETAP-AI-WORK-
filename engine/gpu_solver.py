@@ -201,7 +201,7 @@ class GPUSolver:
             if sp_issparse(
                 ybus
             ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                ybus_dense = _cp.asarray(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                ybus_dense = _cp.asarray(
                     ybus.toarray()
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             else:
@@ -213,10 +213,10 @@ class GPUSolver:
             )
             ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        p_sch = xp.array(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        p_sch = xp.array(
             [b.p_generation - b.p_load for b in bus_data], dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        q_sch = xp.array(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        q_sch = xp.array(
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -236,7 +236,7 @@ class GPUSolver:
             Q = S.imag
 
             # NOSONAR: Mismatch  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            deltap = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            deltap = (
                 p_sch - P
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             deltaQ = q_sch - Q  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -265,7 +265,7 @@ class GPUSolver:
                 break
 
             # NOSONAR: --- Build sparse Jacobian ---  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            j_sparse = self._build_jacobian(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            j_sparse = self._build_jacobian(
                 V, ybus_dense, pv_idx, pq_idx, n_unknowns
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -287,24 +287,21 @@ class GPUSolver:
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
         # NOSONAR: --- Copy results back to host ---  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        v_host = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        v_host = (
             _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        i_final = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        i_final = (
             ybus_dense @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        s_final = (
-            V
-            * xp.conj(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                i_final
-            )
+        s_final = V * xp.conj(
+            i_final
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if self._gpu_available:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            p_final = _cp.asnumpy(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            p_final = _cp.asnumpy(
                 s_final.real
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            q_final = _cp.asnumpy(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            q_final = _cp.asnumpy(
                 s_final.imag
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         else:
@@ -364,7 +361,7 @@ class GPUSolver:
         xp = self._xp
         len(V)
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        vmag = xp.abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        vmag = xp.abs(
             V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = xp.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -602,7 +599,7 @@ class GPUSolver:
                 b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
                 # NOSONAR: Ensure A is a CuPy sparse matrix  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                a_gpu = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                a_gpu = (
                     _cp.sparse.csr_matrix(_cp.asarray(A)) if not _cp.sparse.issparse(A) else A
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
@@ -614,7 +611,7 @@ class GPUSolver:
                     exc,
                 )
                 # NOSONAR: Fallback: transfer to CPU, solve, transfer back  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                a_cpu = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                a_cpu = (
                     A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                 b_cpu = _cp.asnumpy(b) if isinstance(b, _cp.ndarray) else np.asarray(b)
@@ -675,7 +672,7 @@ class GPUSolver:
             ybus = builder.build_sparse_ybus(
                 buses, branches
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_dense = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_dense = (
                 ybus.toarray()
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 

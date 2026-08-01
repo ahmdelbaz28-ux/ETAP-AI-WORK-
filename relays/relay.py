@@ -60,7 +60,7 @@ class OvercurrentRelay(Relay):
         relay_id,
         name="OvercurrentRelay",
         curve_type="standard_inverse",
-        tms=1.0,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        tms=1.0,
         ip=1.0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
         """
@@ -81,7 +81,7 @@ class OvercurrentRelay(Relay):
 
     def pickup_logic(
         self,
-        i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        i,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Pickup if current meets or exceeds pickup setting.
@@ -90,14 +90,14 @@ class OvercurrentRelay(Relay):
 
     def trip_time(
         self,
-        i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        i,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Calculate trip time based on IEC curve.
         """
         if not self.pickup_logic(i):
             return float("inf")
-        i_mag = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        i_mag = abs(
             i
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if self.curve_type == "standard_inverse":
@@ -114,7 +114,7 @@ class OvercurrentRelay(Relay):
     def operate(
         self,
         i,
-        t=0,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        t=0,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Operate the relay: if picked up and time exceeds trip time, then trip.
@@ -174,7 +174,7 @@ class DifferentialRelay(Relay):
         name="DifferentialRelay",
         ip=0.1,
         slope1=0.2,
-        slope2=0.5,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        slope2=0.5,
     ):  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         """
         Differential relay (87).

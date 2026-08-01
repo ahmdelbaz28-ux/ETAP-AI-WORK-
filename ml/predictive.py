@@ -304,18 +304,14 @@ class LoadForecaster:
         self._is_lstm = True
         return {"method": "lstm", "epochs": epochs, "samples": len(data)}
 
-    def _train_linear(
-        self, data: np.ndarray
-    ) -> dict[str, Any]:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+    def _train_linear(self, data: np.ndarray) -> dict[str, Any]:
         """Fallback: train an autoregressive linear model (least-squares)."""
         self._fallback_mean = float(np.mean(data))
         self._fallback_std = float(np.std(data)) if np.std(data) > 0 else 1.0
-        normalized = (
-            (data - self._fallback_mean) / self._fallback_std
-        )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        normalized = (data - self._fallback_mean) / self._fallback_std
 
         X, y = self._create_sequences(normalized)
-        x_flat = X.reshape(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        x_flat = X.reshape(
             X.shape[0], X.shape[1]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -341,7 +337,7 @@ class LoadForecaster:
         Uses ``self._trained_window_size`` when set (i.e. train() has been
         called and may have shrunk the window for a short sample), otherwise
         falls back to the default ``self._window_size``.
-        """  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        """
         w = self._trained_window_size or self._window_size
         X: list[np.ndarray] = []
         y: list[float] = []

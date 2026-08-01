@@ -467,10 +467,10 @@ class MatrixStabilizer:
         self,
         a: np.ndarray,
         b: np.ndarray,
-        _method: str = "lu",  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        _method: str = "lu",
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Solve Ax = b with fallback to least-squares on singular systems."""
-        a_arr = np.asarray(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        a_arr = np.asarray(
             a, dtype=float
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_arr = np.asarray(b, dtype=float)

@@ -435,7 +435,7 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
     "/api/v1/studies/task_status/{task_id}", responses={500: {"description": MSG_INTERNAL_ERROR}}
 )
 async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
-    """Get the status of an async study task."""  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+    """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
     (

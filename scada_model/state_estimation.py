@@ -85,7 +85,7 @@ class WLSEstimator:
 
     def estimate(
         self,
-        ybus: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ybus: np.ndarray,
         measurements: dict,
         bus_ids: list[str],
         slack_bus_idx: int = 0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -152,14 +152,14 @@ class WLSEstimator:
             r = z - h_x
 
             # Remove slack bus theta column from H to avoid singular gain matrix
-            h_reduced = H[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            h_reduced = H[
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             # Gain matrix G = H^T W H
             try:
                 G = h_reduced.T @ W @ h_reduced
-                g_inv = np.linalg.inv(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                g_inv = np.linalg.inv(
                     G
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             except np.linalg.LinAlgError:
@@ -194,7 +194,7 @@ class WLSEstimator:
 
         # Compute final residuals and bad data detection
         h_x_final = self._compute_h(x, ybus, h_indices, n)
-        h_final = self._compute_jacobian(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        h_final = self._compute_jacobian(
             x, ybus, h_indices, n
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         r_final = z - h_x_final
@@ -202,13 +202,13 @@ class WLSEstimator:
 
         # Covariance matrix (use reduced Jacobian to avoid singularity)
         try:
-            h_final_reduced = h_final[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            h_final_reduced = h_final[
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            g_final = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            g_final = (
                 h_final_reduced.T @ W @ h_final_reduced
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            g_inv_final = np.linalg.inv(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            g_inv_final = np.linalg.inv(
                 g_final
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             covariance = g_inv_final
@@ -220,11 +220,11 @@ class WLSEstimator:
         norm_residuals = None
         if covariance is not None:
             S = h_final_reduced @ g_inv_final @ h_final_reduced.T @ W
-            omega = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            omega = (
                 np.eye(m) - S
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             try:
-                omega_inv = np.linalg.inv(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                omega_inv = np.linalg.inv(
                     np.diag(np.diag(omega)) + np.eye(m) * 1e-10
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 norm_residuals = np.abs(omega_inv @ r_final) / (np.sqrt(np.diag(omega_inv)) + 1e-10)
@@ -265,7 +265,7 @@ class WLSEstimator:
         for (
             bus_idx,
             (P, Q, sigma_p, sigma_q),
-        ) in measurements.get(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ) in measurements.get(
             "power_injection", {}
         ).items():  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if bus_idx != slack_idx:
@@ -292,7 +292,7 @@ class WLSEstimator:
         x: np.ndarray,
         ybus: np.ndarray,
         h_indices: list,
-        n: int,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        n: int,
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]
@@ -331,13 +331,13 @@ class WLSEstimator:
                 h[k] = Qi
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-                gij = ybus[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                gij = ybus[
                     i, j
                 ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                bij = ybus[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                bij = ybus[
                     i, j
                 ].imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                pij = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                pij = (
                     V[i] ** 2 * gij
                     - V[i]
                     * V[j]
@@ -350,7 +350,7 @@ class WLSEstimator:
                 _, i, j = idx_info
                 gij = ybus[i, j].real
                 bij = ybus[i, j].imag
-                qij = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                qij = (
                     -(V[i] ** 2) * bij
                     - V[i]
                     * V[j]
@@ -364,7 +364,7 @@ class WLSEstimator:
     def _compute_jacobian(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         x: np.ndarray,
-        ybus: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ybus: np.ndarray,
         h_indices: list,
         n: int,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> np.ndarray:
@@ -384,10 +384,10 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-                    gij = ybus[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                    gij = ybus[
                         i, j
                     ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    bij = ybus[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                    bij = ybus[
                         i, j
                     ].imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     # dPi/dtheta_j

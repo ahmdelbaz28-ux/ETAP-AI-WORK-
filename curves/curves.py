@@ -20,7 +20,7 @@ class IEC60255Curves:
     def standard_inverse(
         tms,
         i,
-        ip,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ip,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Standard inverse curve.
@@ -35,7 +35,7 @@ class IEC60255Curves:
     def very_inverse(
         tms,
         i,
-        ip,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ip,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Very inverse curve.
@@ -50,7 +50,7 @@ class IEC60255Curves:
     def extremely_inverse(
         tms,
         i,
-        ip,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ip,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Extremely inverse curve.
@@ -65,7 +65,7 @@ class IEC60255Curves:
     def long_inverse(
         tms,
         i,
-        ip,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ip,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Long inverse curve (UK).

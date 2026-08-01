@@ -140,12 +140,8 @@ class PredictiveAgent(BaseAgent):
 
         # Holt-Winters iteration
         for t in range(season_length, n):
-            l_new = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
-            )  # NOSONAR
-            t_new = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                beta * (l_new - L) + (1 - beta) * T
-            )  # NOSONAR
+            l_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)  # NOSONAR
+            t_new = beta * (l_new - L) + (1 - beta) * T  # NOSONAR
             S[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * S[t % season_length]
             L = l_new
             T = t_new
@@ -158,18 +154,14 @@ class PredictiveAgent(BaseAgent):
 
         # Calculate in-sample error for confidence bounds
         fitted = []
-        l_f = np.mean(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            y[:season_length]
-        )  # NOSONAR
-        t_f = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        l_f = np.mean(y[:season_length])  # NOSONAR
+        t_f = (
             (  # NOSONAR
                 np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
             )
             / season_length
         )
-        s_f = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            y[:season_length] - l_f
-        )  # NOSONAR
+        s_f = y[:season_length] - l_f  # NOSONAR
         for t in range(season_length, n):
             f_val = l_f + t_f + s_f[t % season_length]
             fitted.append(f_val)

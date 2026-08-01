@@ -91,7 +91,7 @@ class SparseMatrixManager:
     def sparse_lu_solve(
         self,
         a: Any,
-        b: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        b: np.ndarray,
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if not issparse(a):
             a = csr_matrix(a)
@@ -103,7 +103,7 @@ class SparseMatrixManager:
     def sparse_factored_solve(
         self,
         a_factor: Any,
-        b: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        b: np.ndarray,
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         return a_factor.solve(b)
 

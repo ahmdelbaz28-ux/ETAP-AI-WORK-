@@ -140,15 +140,15 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             print(f"   {fault_type.replace('_', ' ').title()}:")
             if "fault_current" in fault_result:
-                if_ = fault_result[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                if_ = fault_result[
                     "fault_current"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current: {abs(if_):.4f} angle {np.angle(if_, deg=True):.2f}° pu")
             elif "fault_current_b" in fault_result:
-                ib = fault_result[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                ib = fault_result[
                     "fault_current_b"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                ic = fault_result[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                ic = fault_result[
                     "fault_current_c"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current B: {abs(ib):.4f} angle {np.angle(ib, deg=True):.2f}° pu")

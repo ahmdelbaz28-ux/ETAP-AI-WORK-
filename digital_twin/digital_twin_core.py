@@ -598,9 +598,7 @@ class ChangePropagationEngine:
                     measurements["voltage_mag"][i] = (vmag, 0.01)
 
                 pq = self.dt_state.scada.get_latest_power(str(bid))
-                if (
-                    pq is not None
-                ):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
             ybus = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -640,14 +638,14 @@ class ChangePropagationEngine:
             import math
 
             from fault_analysis.fault import (
-                FaultAnalyzer,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                FaultAnalyzer,
             )
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_pos = self.dt_state.system.get_ybus(
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_neg = self.dt_state.system.get_ybus(
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -670,16 +668,16 @@ class ChangePropagationEngine:
                 fault_ka = fault.get("fault_current_ka", 0.0)
                 # Simplified IEEE 1584-2018 incident energy estimate
                 # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-                arc_duration = 0.2  # NOSONAR: default 200ms clearing time  # — S117: engineering-notation variable (IEEE/IEC domain standard)
+                arc_duration = 0.2
                 working_distance_mm = 610.0  # 24 inches
                 k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_iarc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                log_iarc = (
                     k1 + k2 * math.log10(fault_ka)
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                iarc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                iarc = (
                     10**log_iarc
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                log_e = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                log_e = (
                     0.434 + (-0.262) * math.log10(iarc)
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 e_base = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -728,14 +726,14 @@ class ChangePropagationEngine:
             from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
             from relays.relay import (
-                OvercurrentRelay,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                OvercurrentRelay,
             )
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_pos = self.dt_state.system.get_ybus(
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            ybus_neg = self.dt_state.system.get_ybus(
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

@@ -116,12 +116,8 @@ class BatteryStorageAgent(BaseAgent):
 
         # Power capacity: maximum load above target
         load_above_target = np.maximum(load_profile_kw - target_peak_kw, 0.0)
-        p_required = float(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            np.max(load_above_target)
-        )  # NOSONAR
-        p_bess = min(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            p_required, max_power_kw
-        )  # NOSONAR
+        p_required = float(np.max(load_above_target))  # NOSONAR
+        p_bess = min(p_required, max_power_kw)  # NOSONAR
 
         # Energy capacity: total energy above target per day
         # Average daily energy to shift
@@ -136,14 +132,10 @@ class BatteryStorageAgent(BaseAgent):
         )
 
         # Also consider duration-based sizing
-        e_duration = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            p_bess * discharge_duration_hours
-        )  # NOSONAR
+        e_duration = p_bess * discharge_duration_hours  # NOSONAR
 
         # Take the larger of the two energy requirements
-        e_required = max(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            E_deliverable, e_duration
-        )  # NOSONAR
+        e_required = max(E_deliverable, e_duration)  # NOSONAR
 
         # Apply SOC limits and reserve
         soc_range = usable_soc_range[1] - usable_soc_range[0]
@@ -154,9 +146,7 @@ class BatteryStorageAgent(BaseAgent):
         )
 
         # Energy rating at nominal conditions (accounting for DoD)
-        e_nominal = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            E_total / dod_max if dod_max > 0 else E_total
-        )  # NOSONAR
+        e_nominal = E_total / dod_max if dod_max > 0 else E_total  # NOSONAR
 
         # Peak shaving result simulation
         shaved_profile = np.maximum(load_profile_kw - p_bess, target_peak_kw)
@@ -252,12 +242,8 @@ class BatteryStorageAgent(BaseAgent):
         # Initialize
         soc = np.zeros(n_periods + 1)
         soc[0] = initial_soc
-        p_charge = np.zeros(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            n_periods
-        )  # NOSONAR
-        p_discharge = np.zeros(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            n_periods
-        )  # NOSONAR
+        p_charge = np.zeros(n_periods)  # NOSONAR
+        p_discharge = np.zeros(n_periods)  # NOSONAR
         soc_history = np.zeros(n_periods)
 
         sqrt_efficiency = np.sqrt(round_trip_efficiency)
@@ -650,15 +636,9 @@ class BatteryStorageAgent(BaseAgent):
 
         # Temperature derating (Arrhenius)
         R_gas = 8.314e-3  # NOSONAR: kJ/(mol·K)  #
-        t_ref = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            25.0 + 273.15
-        )  # NOSONAR: K  #
-        t_op = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            temperature_C + 273.15
-        )  # NOSONAR: K  #
-        ea = params[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            "Ea_kJmol"
-        ]  # NOSONAR
+        t_ref = 25.0 + 273.15  # NOSONAR: K  #
+        t_op = temperature_C + 273.15  # NOSONAR: K  #
+        ea = params["Ea_kJmol"]  # NOSONAR
 
         temp_factor = np.exp(ea / R_gas * (1.0 / t_ref - 1.0 / t_op))
         # Higher temperature → faster degradation → temp_factor < 1 means reduced life

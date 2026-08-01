@@ -106,7 +106,7 @@ def main() -> int:
 
     for spec in candidates:
         try:
-            duckdbstore = _try_import(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            duckdbstore = _try_import(
                 spec
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             store = _instantiate(duckdbstore)

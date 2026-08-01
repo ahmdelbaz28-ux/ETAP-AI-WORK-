@@ -80,7 +80,7 @@ class RenewableAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     def analyze_solar_pv(
-        self,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
         irradiance_kw_m2: Optional[np.ndarray] = None,
@@ -180,7 +180,6 @@ class RenewableAgent(BaseAgent):
         )  # NOSONAR
         p_dc = np.maximum(p_dc, 0.0)
 
-        # NOSONAR: Inverter clipping  # — S117: engineering-notation variable (IEEE/IEC domain standard)
         p_ac_pre_loss = (
             p_dc
             * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -196,9 +195,7 @@ class RenewableAgent(BaseAgent):
         loss_factor = (
             (1.0 - losses.soiling_loss_pct / 100.0)
             * (1.0 - losses.mismatch_loss_pct / 100.0)
-            * (
-                1.0 - losses.wiring_loss_pct / 100.0
-            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            * (1.0 - losses.wiring_loss_pct / 100.0)
             * (losses.availability_pct / 100.0)
         )
 
@@ -405,7 +402,7 @@ class RenewableAgent(BaseAgent):
         weibull_pdf[0] = 0.0  # Avoid issues at v=0
 
         # Normalise
-        dv = v[1] - v[0]  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        dv = v[1] - v[0]
         weibull_pdf = weibull_pdf / (np.sum(weibull_pdf) * dv)
 
         # Annual energy production (AEP)
@@ -426,7 +423,6 @@ class RenewableAgent(BaseAgent):
         swept_area = np.pi * (rotor_diameter_m / 2.0) ** 2
         specific_power = rated_power_kw / swept_area * 1000.0  # W/m²
 
-        # NOSONAR: Mean wind speed from Weibull parameters  # — S117: engineering-notation variable (IEEE/IEC domain standard)
         mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
 
         # Theoretical max power (Betz limit)
@@ -700,7 +696,7 @@ class RenewableAgent(BaseAgent):
         -------
         Dict[str, Any]
             Hosting capacity result with limiting constraint.
-        """  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        """
         # 1. Voltage-limited hosting capacity
         voltage_rise_budget = (max_voltage_pu - 1.0) * 100.0  # % above nominal
         if max_voltage_rise_pct_per_kw > 0:
@@ -708,14 +704,10 @@ class RenewableAgent(BaseAgent):
                 voltage_rise_budget / max_voltage_rise_pct_per_kw
             )  # NOSONAR: kW  #
         else:
-            hc_voltage = float(
-                "inf"
-            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            hc_voltage = float("inf")
 
         # 2. Thermal-limited hosting capacity
-        thermal_headroom_pct = (
-            max_thermal_loading_pct - current_loading_pct
-        )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct
         hc_thermal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             feeder_head_kva * (thermal_headroom_pct / 100.0)
         )  # NOSONAR: kVA  #
@@ -729,7 +721,6 @@ class RenewableAgent(BaseAgent):
                 "inf"
             )  # NOSONAR
         else:
-            # NOSONAR: DER can't exceed current load (no reverse flow)  # — S117: engineering-notation variable (IEEE/IEC domain standard)
             hc_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
 
         # 4. Protection coordination margin (conservative 80% of thermal)
@@ -741,9 +732,7 @@ class RenewableAgent(BaseAgent):
         constraints = {
             "voltage_limit_kw": float(hc_voltage),
             "thermal_limit_kw": float(hc_thermal_kw),
-            "reverse_power_limit_kw": float(
-                hc_reverse
-            ),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            "reverse_power_limit_kw": float(hc_reverse),
             "protection_limit_kw": float(hc_protection),
         }
 
@@ -751,7 +740,7 @@ class RenewableAgent(BaseAgent):
             hc_voltage,
             hc_thermal_kw,
             hc_reverse,
-            hc_protection,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            hc_protection,
         )  # NOSONAR
         limiting_constraint = min(constraints, key=lambda k: constraints[k])
 
