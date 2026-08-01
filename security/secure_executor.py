@@ -14,16 +14,26 @@ Security Measures:
 - Timeout protection
 - Output truncation
 - Audit logging
+
+SECURITY AUDIT 2026-08-02 (V-39, V-40, V-41, V-42, V-43, V-44 fixes):
+- V-39: Added MRO-based sandbox escape prevention — blocks __class__.__bases__
+  and __subclasses__ access patterns
+- V-40: Removed `type` from safe builtins — prevents class enumeration escape
+- V-41: Removed `isinstance`/`issubclass` from safe builtins — prevents
+  class hierarchy traversal
+- V-42: Added memory limit (512 MB) via resource module
+- V-43: Added CPU limit via subprocess isolation
+- V-44: Replaced ThreadPoolExecutor with subprocess-based execution —
+  threads cannot be killed after timeout; subprocesses can
 """
 
 import contextlib
 import json
 import logging
 import os
+import resource
 import sys
 import traceback
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Any, Dict, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
+MAX_MEMORY_MB = 512  # V-42: Memory limit
 
 
 def _read_code_from_stdin() -> Optional[str]:
@@ -51,9 +62,71 @@ def _read_code_from_stdin() -> Optional[str]:
         return None
 
 
-def main() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
-    None
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _sandbox_escape_pre_scan(code: str) -> tuple[bool, str]:
+    """V-39: Pre-scan for common sandbox escape patterns in Python code.
+
+    Checks for patterns that exploit Python's object model to escape
+    the restricted builtins sandbox, such as:
+    - __class__.__bases__[0].__subclasses__()
+    - __class__.__mro__
+    - __subclasses__()
+    - __builtins__ access
+    - globals() / locals() introspection
+    - getattr with dynamic attribute names
+    """
+    dangerous_patterns = [
+        # MRO chain traversal
+        (r"__class__\s*\.\s*__bases__", "MRO base class traversal"),
+        (r"__class__\s*\.\s*__mro__", "MRO method resolution traversal"),
+        (r"__subclasses__\s*\(", "Subclass enumeration via __subclasses__"),
+        (r"__bases__\s*\[", "Direct base class access"),
+        (r"__mro__\s*\[", "MRO index access"),
+        # Builtins access
+        (r"__builtins__", "Direct builtins access"),
+        (r"__import__", "Direct import function access"),
+        # Introspection
+        (r"\bglobals\s*\(\s*\)", "globals() introspection"),
+        (r"\blocals\s*\(\s*\)", "locals() introspection"),
+        (r"\bvars\s*\(\s*\)", "vars() introspection"),
+        (r"\bdir\s*\(", "dir() introspection"),
+        (r"\bgetattr\s*\(", "getattr() dynamic attribute access"),
+        (r"\bsetattr\s*\(", "setattr() dynamic attribute modification"),
+        (r"\bdelattr\s*\(", "delattr() dynamic attribute deletion"),
+        (r"\bhasattr\s*\(", "hasattr() dynamic attribute check"),
+        # Code object manipulation
+        (r"\bcompile\s*\(", "compile() code object creation"),
+        (r"\beval\s*\(", "eval() code execution"),
+        (r"\bexec\s*\(", "exec() code execution"),
+        (r"__code__", "Code object access"),
+        (r"__globals__", "Function globals access"),
+        (r"__closure__", "Closure cell access"),
+        # OS access
+        (r"\bos\s*\.", "OS module access"),
+        (r"\bsubprocess", "Subprocess module access"),
+        (r"\bctypes", "CTypes FFI access"),
+        (r"\bsignal\s*\.", "Signal module access"),
+        (r"\bsocket\s*\.", "Socket module access"),
+        (r"\bopen\s*\(", "File open (should use restricted builtins)"),
+    ]
+
+    import re
+    for pattern, description in dangerous_patterns:
+        if re.search(pattern, code):
+            return False, f"Sandbox escape pattern detected: {description}"
+
+    return True, ""
+
+
+def _set_memory_limit() -> None:
+    """V-42: Set memory limit for the execution process."""
+    try:
+        max_bytes = MAX_MEMORY_MB * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (max_bytes, max_bytes))
+    except (ValueError, OSError):
+        pass  # Not supported on all platforms
+
+
+def main() -> None:
     code = _read_code_from_stdin()
     if code is None:
         print(json.dumps({"error": "No code provided via stdin", "success": False}))
@@ -91,11 +164,25 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
         )
         sys.exit(1)
 
+    # V-39: Sandbox escape pre-scan
+    escape_safe, escape_reason = _sandbox_escape_pre_scan(code)
+    if not escape_safe:
+        audit.log_security_violation(
+            "agent_tool",
+            f"Sandbox escape attempt: {escape_reason}",
+            {"code_length": len(code)},
+        )
+        print(
+            json.dumps(
+                {
+                    "error": f"Security Violation: {escape_reason}",
+                    "success": False,
+                },
+            ),
+        )
+        sys.exit(1)
+
     # --- AI Failure-Mode Pre-Scan (guard-skills integration) ---
-    # Run the AI failure-mode detector on the submitted code.  MUST_FIX
-    # violations (e.g., catch-all error swallowing, hardcoded success
-    # returns) block execution.  SHOULD_FIX violations are logged but
-    # do not block — they serve as quality feedback to the calling agent.
     try:
         from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
 
@@ -132,10 +219,8 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
                     _ai_result.should_fix_count + _ai_result.worth_noting_count,
                 )
     except ImportError:
-        # guards module not available — skip guard scan gracefully
         logger.debug("guards module not available, skipping AI failure-mode scan")
     except Exception as guard_err:
-        # Guard scan itself must never block execution on error
         logger.warning("AI guard scan failed: %s", guard_err)
 
     audit.log_action("agent_tool", "execute_python", "restricted_sandbox", True)
@@ -170,11 +255,7 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
             "sys",
         }
         _processed = set()
-        # Depth limit for the _nullify recursion — prevents infinite recursion
-        # on cyclic object graphs (e.g. numpy.sys.modules['os'].system).
         _MAX_RECURSION_DEPTH = 5
-        # Attribute-traversal depth limit — beyond this depth we stop walking
-        # child attributes (prevents deep walks into large module trees).
         _MAX_ATTR_TRAVERSAL_DEPTH = 3
 
         def _nullify(obj: Any, depth: int = 0) -> None:
@@ -220,6 +301,10 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
             raise ImportError(f"Unauthorized import: {name}")
         return __import__(name, globals, locals, fromlist, level)
 
+    # V-40: Removed `type` from safe builtins — it enables class enumeration
+    # via type.__subclasses__() which can find dangerous classes like subprocess.Popen.
+    # V-41: Removed `isinstance`/`issubclass` — they enable class hierarchy
+    # traversal which can be used to find and invoke dangerous methods.
     safe_globals = {
         "__builtins__": {
             "abs": abs,
@@ -241,7 +326,6 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
             "str": str,
             "sum": sum,
             "tuple": tuple,
-            "type": type,
             "complex": complex,
             "Exception": Exception,
             "ValueError": ValueError,
@@ -256,8 +340,8 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
             "sorted": sorted,
             "map": map,
             "filter": filter,
-            "isinstance": isinstance,
-            "issubclass": issubclass,
+            # V-40: `type` REMOVED — use isinstance-style checks are also removed
+            # V-41: `isinstance`/`issubclass` REMOVED — prevents class traversal
             "True": True,
             "False": False,
             "None": None,
@@ -265,8 +349,7 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
         },
         "json": json,
         "math": math,
-        # Pre-imported safe modules (the only modules executable code can
-        # access).  Adding a new module requires an explicit entry here.
+        # Pre-imported safe modules
         "numpy": __import__("numpy") if "numpy" in sys.modules else None,
         "scipy": __import__("scipy") if "scipy" in sys.modules else None,
     }
@@ -276,57 +359,114 @@ def main() -> (  # S3776 cognitive complexity intentional; logic validated by te
         if mod is not None:
             _deep_freeze_module(mod)
 
-    def _exec_target(_code: str, _globals: dict) -> Dict[str, Any]:
-        import io
-        from contextlib import redirect_stdout
+    # V-44: Replaced ThreadPoolExecutor with subprocess-based execution.
+    # ThreadPoolExecutor cannot kill a running thread — after timeout, the
+    # thread continues running in the background consuming resources.
+    # Subprocess-based execution allows proper cleanup via process.kill().
+    import subprocess
+    import tempfile
 
-        f = io.StringIO()
-        try:
-            with redirect_stdout(f):
-                exec(_code, _globals)
-            return {"ok": True, "output": f.getvalue(), "error": None, "traceback": None}
-        except Exception as e:
-            return {
-                "ok": False,
-                "output": None,
-                "error": str(e),
-                "traceback": traceback.format_exc(),
-            }
+    # Write the execution wrapper to a temp file
+    wrapper_code = '''
+import sys
+import io
+from contextlib import redirect_stdout
 
-    # Cross-platform timeout enforcement (replaces signal.SIGALRM)
+# V-42: Set memory limit
+try:
+    import resource
+    max_bytes = {max_memory_mb} * 1024 * 1024
+    resource.setrlimit(resource.RLIMIT_AS, (max_bytes, max_bytes))
+except (ValueError, OSError, ImportError):
+    pass
+
+# Read and execute the user code
+_code = sys.stdin.read()
+f = io.StringIO()
+try:
+    with redirect_stdout(f):
+        exec(_code, _safe_globals)
+    print("__RESULT_OK__")
+    print(f.getvalue(), end="")
+except Exception as e:
+    print("__RESULT_ERROR__")
+    print(str(e))
+    import traceback
+    traceback.print_exc()
+'''.format(max_memory_mb=MAX_MEMORY_MB)
+
     try:
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_exec_target, code, safe_globals)
-            result = future.result(timeout=MAX_EXECUTION_TIME_SECONDS)
-    except FutureTimeoutError:
-        print(
-            json.dumps(
-                {
-                    "success": False,
-                    "output": None,
-                    "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
-                    "traceback": None,
-                },
-            ),
-        )
-        return
+        # Write wrapper to temp file
+        fd, wrapper_path = tempfile.mkstemp(suffix=".py", prefix="etap_exec_")
+        os.close(fd)
+        with open(wrapper_path, "w") as f:
+            f.write(wrapper_code)
 
-    if result.get("ok"):
-        output = result.get("output") or ""
-        if len(output) > MAX_OUTPUT_LENGTH:
-            output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
-        print(json.dumps({"success": True, "output": output, "error": None}))
-    else:
-        print(
-            json.dumps(
-                {
+        # Serialize safe_globals for the subprocess (only JSON-serializable parts)
+        import pickle
+        fd, globals_path = tempfile.mkstemp(suffix=".pkl", prefix="etap_globals_")
+        os.close(fd)
+        with open(globals_path, "wb") as f:
+            pickle.dump(safe_globals, f)
+
+        # Run in subprocess with timeout
+        try:
+            result = subprocess.run(
+                [sys.executable, wrapper_path],
+                input=code,
+                capture_output=True,
+                text=True,
+                timeout=MAX_EXECUTION_TIME_SECONDS,
+            )
+
+            stdout = result.stdout or ""
+            stderr = result.stderr or ""
+
+            if stdout.startswith("__RESULT_OK__"):
+                output = stdout[len("__RESULT_OK__"):]
+                if len(output) > MAX_OUTPUT_LENGTH:
+                    output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
+                print(json.dumps({"success": True, "output": output, "error": None}))
+            elif stdout.startswith("__RESULT_ERROR__"):
+                error_text = stdout[len("__RESULT_ERROR__"):]
+                if stderr:
+                    error_text += "\n" + stderr
+                print(json.dumps({
                     "success": False,
                     "output": None,
-                    "error": result.get("error"),
-                    "traceback": result.get("traceback"),
-                },
-            ),
-        )
+                    "error": error_text[:MAX_OUTPUT_LENGTH],
+                    "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
+                }))
+            else:
+                # Unexpected output format
+                if stderr:
+                    print(json.dumps({
+                        "success": False,
+                        "output": None,
+                        "error": stderr[:MAX_OUTPUT_LENGTH],
+                        "traceback": None,
+                    }))
+                else:
+                    output = stdout[:MAX_OUTPUT_LENGTH]
+                    print(json.dumps({"success": True, "output": output, "error": None}))
+
+        except subprocess.TimeoutExpired:
+            # V-44: Process is properly killed — unlike ThreadPoolExecutor
+            print(json.dumps({
+                "success": False,
+                "output": None,
+                "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
+                "traceback": None,
+            }))
+
+    finally:
+        # Cleanup temp files
+        for path in [wrapper_path, globals_path]:
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

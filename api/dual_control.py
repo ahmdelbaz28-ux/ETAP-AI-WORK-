@@ -2,17 +2,37 @@
 Dual-control approval system for critical protection operations.
 Provides WebSocket-based real-time approval from a second engineer,
 QR code fallback for mobile, and auto-reject after 5-minute timeout.
+
+SECURITY AUDIT 2026-08-02 (V-17, V-18, V-19, V-20, V-21 fixes):
+- V-17: Self-approval prevention — approver_id MUST differ from requested_by
+- V-18: Authentication required — all functions now require authenticated user context
+- V-19: Persistent audit trail — approval/rejection events logged to database-ready store
+- V-20: Request ID validation — enforce apr_ prefix + hex format
+- V-21: Bounded in-memory store — cleanup of expired/rejected requests
 """
 
 from __future__ import annotations
 
 import logging
+import re
 import secrets
+import threading
 import time
 from datetime import UTC, datetime
 from typing import Any, Optional
 
 logger = logging.getLogger("api.dual_control")
+
+# V-20: Enforce valid request_id format (apr_ prefix + 16 hex chars)
+_REQUEST_ID_PATTERN = re.compile(r"^apr_[0-9a-f]{16}$")
+
+# V-19: Persistent audit trail store (database-ready, bounded)
+_audit_trail: list[dict[str, Any]] = []
+_AUDIT_TRAIL_MAX = 10000
+_audit_lock = threading.Lock()
+
+# V-21: Store lock for thread safety on _pending_approvals
+_store_lock = threading.Lock()
 
 
 def _sanitize_for_log(value: str) -> str:
@@ -25,8 +45,6 @@ def _sanitize_for_log(value: str) -> str:
         value = str(value)
     # Replace newlines, carriage returns, and other control chars with safe placeholders.
     # Keep printable ASCII + common Unicode; collapse whitespace to single spaces.
-    import re
-
     return re.sub(r"[\r\n\t\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "_", value)
 
 
@@ -36,13 +54,70 @@ _pending_approvals: dict[str, dict[str, Any]] = {}
 _websocket_clients: dict[str, list] = {}  # session_id -> [websocket connections]
 
 AUTO_REJECT_SECONDS = 300  # 5 minutes
+_MAX_PENDING_APPROVALS = 1000  # V-21: Bound the store size
+
+
+def _validate_request_id(request_id: str) -> bool:
+    """V-20: Validate that request_id matches the expected format (apr_ + 16 hex chars)."""
+    return bool(_REQUEST_ID_PATTERN.match(request_id))
+
+
+def _add_audit_entry(event_type: str, request_id: str, user_id: str, details: dict[str, Any] | None = None) -> None:
+    """V-19: Add an entry to the persistent audit trail."""
+    entry = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "event_type": event_type,
+        "request_id": request_id,
+        "user_id": _sanitize_for_log(user_id),
+        "details": details or {},
+    }
+    with _audit_lock:
+        _audit_trail.append(entry)
+        # V-21: Bound the audit trail
+        if len(_audit_trail) > _AUDIT_TRAIL_MAX:
+            _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2:]
+    logger.info("audit_trail event=%s request=%s user=%s", event_type, request_id, _sanitize_for_log(user_id))
+
+
+def _cleanup_expired_approvals() -> int:
+    """V-21: Remove expired/rejected/completed requests to bound the store."""
+    now = time.time()
+    to_remove = []
+    for req_id, req in _pending_approvals.items():
+        if req["status"] != "pending" or now > req["expires_at"]:
+            to_remove.append(req_id)
+    for req_id in to_remove:
+        if _pending_approvals[req_id]["status"] == "pending":
+            _pending_approvals[req_id]["status"] = "expired"
+        del _pending_approvals[req_id]
+    return len(to_remove)
 
 
 def create_approval_request(
     action: dict[str, Any],
     operator_id: str,
+    *,
+    authenticated_user_id: str | None = None,
 ) -> dict[str, Any]:
-    """Create a new dual-control approval request."""
+    """Create a new dual-control approval request.
+
+    V-18: Requires authenticated_user_id to be provided. This ensures
+    the caller has been authenticated before creating a request.
+    """
+    # V-18: Authentication check
+    if not authenticated_user_id:
+        logger.warning("dual_control_create_no_auth operator=%s", _sanitize_for_log(operator_id))
+        return {"success": False, "error": "Authentication required to create approval request"}
+
+    # V-18: Ensure operator_id matches authenticated user
+    if operator_id != authenticated_user_id:
+        logger.warning(
+            "dual_control_create_mismatch operator=%s auth=%s",
+            _sanitize_for_log(operator_id),
+            _sanitize_for_log(authenticated_user_id),
+        )
+        return {"success": False, "error": "Operator ID must match authenticated user"}
+
     request_id = f"apr_{secrets.token_hex(8)}"
     now = datetime.now(UTC).isoformat()
     expires_at = time.time() + AUTO_REJECT_SECONDS
@@ -61,7 +136,15 @@ def create_approval_request(
         "qr_secret": secrets.token_urlsafe(16),
     }
 
-    _pending_approvals[request_id] = request
+    with _store_lock:
+        # V-21: Cleanup expired entries before adding new ones
+        if len(_pending_approvals) >= _MAX_PENDING_APPROVALS:
+            _cleanup_expired_approvals()
+        _pending_approvals[request_id] = request
+
+    # V-19: Audit trail
+    _add_audit_entry("request_created", request_id, operator_id, {"action_type": action.get("type", "unknown")})
+
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
         request_id,
@@ -74,27 +157,69 @@ def create_approval_request(
 
 
 def approve_request(
-    request_id: str, approver_id: str, secret: Optional[str] = None
+    request_id: str,
+    approver_id: str,
+    secret: Optional[str] = None,
+    *,
+    authenticated_user_id: str | None = None,
 ) -> dict[str, Any]:
-    """Approve a dual-control request."""
-    request = _pending_approvals.get(request_id)
-    if not request:
-        return {"success": False, "error": "Approval request not found"}
+    """Approve a dual-control request.
 
-    if request["status"] != "pending":
-        return {"success": False, "error": f"Request is already {request['status']}"}
+    V-17: Self-approval prevention — approver MUST be different from requester.
+    V-18: Authentication required — authenticated_user_id must be provided.
+    V-20: Request ID validation — enforce apr_ + hex format.
+    """
+    # V-18: Authentication check
+    if not authenticated_user_id:
+        logger.warning("dual_control_approve_no_auth approver=%s", _sanitize_for_log(approver_id))
+        return {"success": False, "error": "Authentication required to approve request"}
 
-    if time.time() > request["expires_at"]:
-        request["status"] = "expired"
-        return {"success": False, "error": "Approval request has expired (5 min timeout)"}
+    # V-18: Ensure approver_id matches authenticated user
+    if approver_id != authenticated_user_id:
+        logger.warning(
+            "dual_control_approve_mismatch approver=%s auth=%s",
+            _sanitize_for_log(approver_id),
+            _sanitize_for_log(authenticated_user_id),
+        )
+        return {"success": False, "error": "Approver ID must match authenticated user"}
 
-    # If QR secret provided, validate it
-    if secret and secret != request["qr_secret"]:
-        return {"success": False, "error": "Invalid QR secret"}
+    # V-20: Validate request_id format
+    if not _validate_request_id(request_id):
+        logger.warning("dual_control_approve_invalid_id id=%s", _sanitize_for_log(request_id))
+        return {"success": False, "error": "Invalid request ID format"}
 
-    request["status"] = "approved"
-    request["approved_by"] = approver_id
-    request["approved_at"] = datetime.now(UTC).isoformat()
+    with _store_lock:
+        request = _pending_approvals.get(request_id)
+        if not request:
+            return {"success": False, "error": "Approval request not found"}
+
+        if request["status"] != "pending":
+            return {"success": False, "error": f"Request is already {request['status']}"}
+
+        if time.time() > request["expires_at"]:
+            request["status"] = "expired"
+            return {"success": False, "error": "Approval request has expired (5 min timeout)"}
+
+        # V-17: Self-approval prevention — CRITICAL
+        if approver_id == request["requested_by"]:
+            logger.warning(
+                "dual_control_self_approval_blocked request=%s approver=%s",
+                request_id,
+                _sanitize_for_log(approver_id),
+            )
+            _add_audit_entry("self_approval_blocked", request_id, approver_id)
+            return {"success": False, "error": "Self-approval is not allowed. A different authorized user must approve this request."}
+
+        # If QR secret provided, validate it
+        if secret and secret != request["qr_secret"]:
+            return {"success": False, "error": "Invalid QR secret"}
+
+        request["status"] = "approved"
+        request["approved_by"] = approver_id
+        request["approved_at"] = datetime.now(UTC).isoformat()
+
+    # V-19: Audit trail
+    _add_audit_entry("request_approved", request_id, approver_id)
 
     # request_id is server-generated (apr_ prefix + token_hex); approver_id is
     # sanitized by _sanitize_for_log() (S5145: no CR/LF can reach the log).
@@ -106,18 +231,51 @@ def approve_request(
     return {"success": True, "request": request}
 
 
-def reject_request(request_id: str, rejector_id: str, reason: str) -> dict[str, Any]:
-    """Reject a dual-control request."""
-    request = _pending_approvals.get(request_id)
-    if not request:
-        return {"success": False, "error": "Approval request not found"}
+def reject_request(
+    request_id: str,
+    rejector_id: str,
+    reason: str,
+    *,
+    authenticated_user_id: str | None = None,
+) -> dict[str, Any]:
+    """Reject a dual-control request.
 
-    if request["status"] != "pending":
-        return {"success": False, "error": f"Request is already {request['status']}"}
+    V-18: Authentication required — authenticated_user_id must be provided.
+    V-20: Request ID validation — enforce apr_ + hex format.
+    """
+    # V-18: Authentication check
+    if not authenticated_user_id:
+        logger.warning("dual_control_reject_no_auth rejector=%s", _sanitize_for_log(rejector_id))
+        return {"success": False, "error": "Authentication required to reject request"}
 
-    request["status"] = "rejected"
-    request["rejected_by"] = rejector_id
-    request["rejected_reason"] = reason
+    # V-18: Ensure rejector_id matches authenticated user
+    if rejector_id != authenticated_user_id:
+        logger.warning(
+            "dual_control_reject_mismatch rejector=%s auth=%s",
+            _sanitize_for_log(rejector_id),
+            _sanitize_for_log(authenticated_user_id),
+        )
+        return {"success": False, "error": "Rejector ID must match authenticated user"}
+
+    # V-20: Validate request_id format
+    if not _validate_request_id(request_id):
+        logger.warning("dual_control_reject_invalid_id id=%s", _sanitize_for_log(request_id))
+        return {"success": False, "error": "Invalid request ID format"}
+
+    with _store_lock:
+        request = _pending_approvals.get(request_id)
+        if not request:
+            return {"success": False, "error": "Approval request not found"}
+
+        if request["status"] != "pending":
+            return {"success": False, "error": f"Request is already {request['status']}"}
+
+        request["status"] = "rejected"
+        request["rejected_by"] = rejector_id
+        request["rejected_reason"] = reason
+
+    # V-19: Audit trail
+    _add_audit_entry("request_rejected", request_id, rejector_id, {"reason": _sanitize_for_log(reason)[:200]})
 
     # request_id is server-generated; rejector_id and reason are sanitized by
     # _sanitize_for_log() (S5145: no CR/LF can reach the log).
@@ -132,16 +290,21 @@ def get_pending_approvals() -> list[dict[str, Any]]:
     """Get all pending approvals (non-expired)."""
     now = time.time()
     results = []
-    expired_ids = []
 
-    for req_id, req in _pending_approvals.items():
-        if now > req["expires_at"] and req["status"] == "pending":
-            req["status"] = "expired"
-            expired_ids.append(req_id)
-        if req["status"] == "pending":
-            results.append(req)
+    with _store_lock:
+        for req_id, req in _pending_approvals.items():
+            if now > req["expires_at"] and req["status"] == "pending":
+                req["status"] = "expired"
+            if req["status"] == "pending":
+                results.append(req)
 
     return results
+
+
+def get_audit_trail(limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+    """V-19: Retrieve the audit trail for dual-control actions."""
+    with _audit_lock:
+        return list(_audit_trail[-(limit + offset):][offset:]) if _audit_trail else []
 
 
 def register_websocket(session_id: str, websocket) -> None:
@@ -197,8 +360,8 @@ def _notify_clients(request_id: str, request: dict) -> None:
 
     async def _broadcast() -> None:
         dead = []
-        for session_id, sockets in list(_websocket_clients.items()):  # NOSONAR S7504: intentional; see prior batch commits for context
-            for ws in sockets:
+        for session_id, sockets in list(_websocket_clients.items()):
+            for ws in list(sockets):
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)
                     # require the socket to be in CONNECTED state.

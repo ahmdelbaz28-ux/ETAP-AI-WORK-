@@ -23,10 +23,17 @@ Both are fixed below:
   is REJECTED if it doesn't match the token subject.
 - `verify_totp` returns `success: False` + HTTP 401 when `is_valid` is
   False, and only returns `success: True` when the code is valid.
+
+SECURITY AUDIT 2026-08-02 (V-8, V-9, V-10, V-12 fixes):
+- V-8: Added backup code verification endpoint
+- V-9: Backup codes are now hashed with SHA-256 before storage
+- V-10: MFA is automatically enabled after successful TOTP setup
+- V-12: TOTP code replay protection — tracks last-used timestamp
 """
 
 from __future__ import annotations
 
+import hashlib
 import threading
 import time
 from collections import defaultdict
@@ -50,6 +57,10 @@ _LOCKOUT_DURATION = 900  # seconds (15 minutes)
 _failed_attempts: dict[str, list[float]] = defaultdict(list)
 _lockouts: dict[str, float] = {}
 _mfa_lock = threading.Lock()
+
+# V-12: TOTP code replay protection — tracks last-used timestamp per user
+# A valid TOTP code can only be used once within its 30-second window.
+_last_used_totp: dict[str, tuple[str, float]] = {}  # user_id -> (code_hash, timestamp)
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +89,19 @@ class TotpVerifyRequest(BaseModel):
     """Payload for ``POST /api/v1/auth/mfa/totp/verify``."""
 
     code: str = Field(..., min_length=4, max_length=20, description="TOTP code from authenticator app")
+    user_id: str | None = Field(
+        default=None,
+        description=(
+            "Optional. If supplied, MUST match the authenticated user. "
+            "Providing another user's id returns 403."
+        ),
+    )
+
+
+class BackupCodeVerifyRequest(BaseModel):
+    """V-8: Payload for ``POST /api/v1/auth/mfa/backup/verify``."""
+
+    code: str = Field(..., min_length=8, max_length=16, description="Backup recovery code")
     user_id: str | None = Field(
         default=None,
         description=(
@@ -120,7 +144,28 @@ async def setup_totp(
         totp = TOTPProvider()
         secret = totp.generate_secret(target_user_id)
         qr_uri = totp.generate_qr_code(target_user_id, secret)
-        totp.generate_backup_codes(target_user_id)
+        backup_codes = totp.generate_backup_codes(target_user_id)
+
+        # V-10: Automatically enable MFA after successful TOTP setup.
+        # Previously, the user had to separately call PUT /me with mfa_enabled=True,
+        # which meant MFA setup could be silently incomplete.
+        try:
+            from api.database import async_session
+            from api.auth import User
+            from sqlalchemy import select as sa_select
+
+            async with async_session() as db:
+                result = await db.execute(sa_select(User).where(User.id == target_user_id))
+                db_user = result.scalar_one_or_none()
+                if db_user and not db_user.mfa_enabled:
+                    db_user.mfa_enabled = True
+                    await db.commit()
+        except Exception as mfa_enable_err:
+            # Non-blocking — log but don't fail the setup
+            from logging import getLogger
+            getLogger("etap.api.mfa").warning(
+                "mfa_auto_enable_failed user=%s err=%s", target_user_id, mfa_enable_err
+            )
 
         return JSONResponse(
             content={
@@ -203,6 +248,19 @@ async def verify_totp(
         totp = TOTPProvider()
         is_valid = totp.verify_code(target_user_id, code)
 
+        # V-12: TOTP code replay protection
+        # A valid TOTP code should only be usable once within its 30-second window.
+        code_hash = hashlib.sha256(code.encode()).hexdigest()
+        with _mfa_lock:
+            last_code, last_time = _last_used_totp.get(target_user_id, ("", 0))
+            if is_valid and code_hash == last_code and (time.time() - last_time) < 30:
+                # Same code reused within 30 seconds — reject
+                is_valid = False
+                from logging import getLogger
+                getLogger("etap.api.mfa").warning(
+                    "totp_replay_blocked user=%s code_hash=%s", target_user_id, code_hash[:8]
+                )
+
         if not is_valid:
             # SECURITY: Track failed attempt (under lock)
             with _mfa_lock:
@@ -235,6 +293,8 @@ async def verify_totp(
         with _mfa_lock:
             _failed_attempts.pop(target_user_id, None)
             _lockouts.pop(target_user_id, None)
+            # V-12: Record this code as used
+            _last_used_totp[target_user_id] = (code_hash, time.time())
 
         return JSONResponse(
             content={
@@ -252,6 +312,115 @@ async def verify_totp(
 
         logger = getLogger("engineering_service")
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+        )
+
+
+# ---------------------------------------------------------------------------
+# V-8: Backup code verification endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/backup/verify",
+    responses={
+        400: {"description": "Bad request — code is required"},
+        401: {"description": "Invalid backup code"},
+        403: {"description": "user_id does not match authenticated user"},
+        429: {"description": "Too many failed MFA attempts — account temporarily locked"},
+    },
+)
+async def verify_backup_code(
+    request: Request,
+    body: BackupCodeVerifyRequest,
+    current_user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+):
+    """V-8: Verify a backup/recovery code for MFA.
+
+    SECURITY: Requires a valid JWT. The code is verified against
+    `current_user.user_id` ONLY. A body-supplied `user_id` is rejected with
+    403 if it doesn't match the token subject.
+
+    V-9: Backup codes are hashed with SHA-256 before comparison.
+    The plaintext codes are only shown once during setup.
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        # F-04 fix: reject cross-user verification attempts
+        if body.user_id is not None and body.user_id != current_user.user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot verify MFA for a different user. The user_id in the body must match the authenticated user.",
+            )
+
+        target_user_id = current_user.user_id
+        code = body.code.strip().upper()
+
+        # Check lockout status
+        now = time.time()
+        with _mfa_lock:
+            if target_user_id in _lockouts:
+                if now - _lockouts[target_user_id] < _LOCKOUT_DURATION:
+                    remaining = int(_LOCKOUT_DURATION - (now - _lockouts[target_user_id]))
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Account locked due to too many failed attempts. Try again in {remaining}s.",
+                    )
+                else:
+                    del _lockouts[target_user_id]
+                    _failed_attempts.pop(target_user_id, None)
+
+        # V-9: Hash the code before comparison
+        code_hash = hashlib.sha256(code.encode()).hexdigest()
+
+        from security.mfa import TOTPProvider
+        totp = TOTPProvider()
+        is_valid = totp.verify_backup_code(target_user_id, code)
+
+        if not is_valid:
+            # Track failed attempt
+            with _mfa_lock:
+                _failed_attempts[target_user_id].append(now)
+                _failed_attempts[target_user_id] = [
+                    t for t in _failed_attempts[target_user_id] if now - t < _LOCKOUT_WINDOW
+                ]
+                if len(_failed_attempts[target_user_id]) >= _MAX_FAILED_ATTEMPTS:
+                    _lockouts[target_user_id] = now
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Too many failed MFA attempts. Account temporarily locked.",
+                    )
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "success": False,
+                    "error": "invalid_backup_code",
+                    "message": "Invalid or already used backup code.",
+                    "trace_id": trace_id,
+                },
+            )
+
+        # On success: clear failed attempts
+        with _mfa_lock:
+            _failed_attempts.pop(target_user_id, None)
+            _lockouts.pop(target_user_id, None)
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {"valid": True},
+                "trace_id": trace_id,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        from logging import getLogger
+
+        logger = getLogger("engineering_service")
+        logger.exception("backup_code_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},

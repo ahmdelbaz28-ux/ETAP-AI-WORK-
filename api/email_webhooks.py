@@ -36,6 +36,7 @@ import hmac
 import json
 import logging
 import os
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -74,6 +75,12 @@ class WebhookEndpoint:
 
 _endpoints: dict[str, WebhookEndpoint] = {}
 
+# V-22: Rate limiting for inbound webhook
+_WEBHOOK_RATE_LIMIT_MAX = int(os.getenv("WEBHOOK_RATE_LIMIT_MAX", "100"))  # 100 requests per window
+_WEBHOOK_RATE_LIMIT_WINDOW = int(os.getenv("WEBHOOK_RATE_LIMIT_WINDOW", "60"))  # 60 seconds
+_webhook_rate_limit: dict[str, list[float]] = {}
+_webhook_rate_lock = threading.Lock()
+
 
 # ---------------------------------------------------------------------------
 # Schemas
@@ -110,7 +117,7 @@ class _SSRFBlockedError(ValueError):
     """Raised when a webhook URL targets a forbidden (internal) address."""
 
 
-def _validate_webhook_url(url_str: str) -> None:  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+def _validate_webhook_url(url_str: str) -> str:
     """Validate that *url_str* is https (or localhost in dev) and not an internal address.
 
     Blocks:
@@ -119,10 +126,8 @@ def _validate_webhook_url(url_str: str) -> None:  # NOSONAR S3776: cognitive com
       - AWS metadata endpoint (169.254.169.254) and GCP/Azure equivalents
       - Bare-IP URLs for the above ranges
 
-    Pure validator: returns None. Raises ``_SSRFBlockedError`` for any
-    disallowed target. Callers should use the original URL string after
-    a successful validation (the URL is never transformed here, so
-    returning it would falsely imply normalization).
+    Returns the validated URL string (unchanged) so callers can chain.
+    Raises ``_SSRFBlockedError`` for any disallowed target.
     """
     parsed = urllib.parse.urlparse(url_str)
     if parsed.scheme not in ("http", "https"):
@@ -142,16 +147,16 @@ def _validate_webhook_url(url_str: str) -> None:  # NOSONAR S3776: cognitive com
         if is_prod:
             raise _SSRFBlockedError("Localhost webhook targets are blocked in production.")
         # Localhost in dev: short-circuit IP-block checks (already loopback).
-        return  # validator: nothing to return
-    _validate_remote_hostname(hostname, url_str)
+        validated_url = url_str
+    else:
+        validated_url = _validate_remote_hostname(hostname, url_str)
+    return validated_url
 
 
-def _validate_remote_hostname(hostname: str, url_str: str) -> None:
+def _validate_remote_hostname(hostname: str, url_str: str) -> str:
     """Resolve *hostname* and reject private/reserved/metadata endpoints.
 
-    Pure validator: returns None on success, raises _SSRFBlockedError
-    if the resolved IP is private/loopback/link-local/reserved/multicast/
-    unspecified or matches a cloud-metadata endpoint.
+    Returns *url_str* unchanged when the target is a safe public address.
     """
     # If the hostname is already an IP literal, validate it directly.
     try:
@@ -165,7 +170,7 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> None:
         try:
             resolved = socket.getaddrinfo(hostname, None)
         except socket.gaierror as exc:
-            raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}")  # NOSONAR S1313: hardcoded IP is a cloud-metadata blocklist entry (AWS 169.254.169.254 / GCP fd00:ec2::254) or RFC 1918 reference
+            raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}")
         ips = {ipaddress.ip_address(family_info[4][0]) for family_info in resolved}
     else:
         ips = {ip}
@@ -184,7 +189,7 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> None:
             raise _SSRFBlockedError(
                 f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
             )
-    # validator: success means no exception; nothing to return
+    return url_str
 
 
 class EndpointResponse(BaseModel):
@@ -203,7 +208,7 @@ class EndpointResponse(BaseModel):
 # HMAC signature verification (Resend uses Svix)
 # ---------------------------------------------------------------------------
 
-  # NOSONAR S7494: intentional; see prior batch commits for context
+
 def _verify_resend_signature(
     body: bytes,
     signature_header: str,
@@ -287,6 +292,20 @@ async def resend_webhook(
     ```
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
+
+    # V-22: Rate limiting on inbound webhook
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    with _webhook_rate_lock:
+        attempts = _webhook_rate_limit.setdefault(client_ip, [])
+        attempts[:] = [t for t in attempts if now - t < _WEBHOOK_RATE_LIMIT_WINDOW]
+        if len(attempts) >= _WEBHOOK_RATE_LIMIT_MAX:
+            return JSONResponse(
+                status_code=429,
+                content={"success": False, "error": "rate_limited", "message": "Too many webhook requests"},
+            )
+        attempts.append(now)
+
     raw_body = await request.body()
 
     # Verify signature
@@ -492,7 +511,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
 
     return delivered
 
-  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+
 # ---------------------------------------------------------------------------
 # Endpoint management
 # ---------------------------------------------------------------------------
@@ -516,9 +535,8 @@ def register_endpoint(
       local/reserved/multicast/cloud-metadata addresses are rejected).
     """
     # SSRF check — raises _SSRFBlockedError (ValueError subclass) if blocked.
-    # _validate_webhook_url is a pure validator; it does not transform the URL.
     try:
-        _validate_webhook_url(str(body.url))
+        validated_url = _validate_webhook_url(str(body.url))
     except _SSRFBlockedError as exc:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -528,7 +546,7 @@ def register_endpoint(
     ep_id = str(uuid.uuid4())
     ep = WebhookEndpoint(
         id=ep_id,
-        url=str(body.url),
+        url=validated_url,
         events=body.events,
         secret=body.secret or os.getenv("EMAIL_WEBHOOK_SECRET", ""),
         created_at=datetime.now(UTC).isoformat(),
@@ -540,7 +558,7 @@ def register_endpoint(
             "id": ep.id,
             "url": ep.url,
             "events": ep.events,
-            "is_active": ep.is_active,  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+            "is_active": ep.is_active,
             "created_at": ep.created_at,
             "last_triggered": ep.last_triggered,
             "last_status": ep.last_status,
@@ -573,7 +591,7 @@ def list_endpoints(
                     "created_at": ep.created_at,
                     "last_triggered": ep.last_triggered,
                     "last_status": ep.last_status,
-                    "trigger_count": ep.trigger_count,  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+                    "trigger_count": ep.trigger_count,
                     "failure_count": ep.failure_count,
                 }
                 for ep in _endpoints.values()
@@ -604,7 +622,7 @@ def delete_endpoint(
             }
         )
     # Idempotent: return success even if not found (for test reliability)
-    return JSONResponse(  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+    return JSONResponse(
         content={
             "success": True,
             "deleted": None,
@@ -648,7 +666,7 @@ async def test_endpoint(
         },
     }
     delivered = await _forward_to_endpoints("email.test", test_payload)
-    return JSONResponse(  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+    return JSONResponse(
         content={
             "success": True,
             "delivered": delivered,

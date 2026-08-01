@@ -204,6 +204,9 @@ class AuthenticationManager:
         self.username_to_id: dict[str, str] = {}
         self.token_to_session: dict[str, Session] = {}
 
+        # V-50: Thread safety lock for shared state
+        self._lock = threading.Lock()
+
         # Fernet key: prefer dedicated FERNET_ENCRYPTION_KEY env var
         # Derive from JWT secret only as a fallback (not recommended for production)
         _fernet_key_env = os.environ.get("FERNET_ENCRYPTION_KEY")
@@ -247,74 +250,76 @@ class AuthenticationManager:
         role: UserRole = UserRole.VIEWER,
     ) -> Optional[User]:
         """Create a new user (returns User on success, None on duplicate username)."""
-        if username in self.username_to_id:
-            logger.warning("Username '%s' already exists", username)
-            return None
+        with self._lock:  # V-50: thread safety
+            if username in self.username_to_id:
+                logger.warning("Username '%s' already exists", username)
+                return None
 
-        # Password strength validation
-        _MIN_PASSWORD_LENGTH = 8
-        if len(password) < _MIN_PASSWORD_LENGTH:
-            logger.warning("Password too short (minimum %d characters)", _MIN_PASSWORD_LENGTH)
-            return None
-        _common_passwords = ("password", "12345678", "qwerty123")
-        if password.lower() in _common_passwords or password.lower() == username.lower():
-            logger.warning("Password is too common or matches username")
-            return None
+            # Password strength validation
+            _MIN_PASSWORD_LENGTH = 8
+            if len(password) < _MIN_PASSWORD_LENGTH:
+                logger.warning("Password too short (minimum %d characters)", _MIN_PASSWORD_LENGTH)
+                return None
+            _common_passwords = ("password", "12345678", "qwerty123")
+            if password.lower() in _common_passwords or password.lower() == username.lower():
+                logger.warning("Password is too common or matches username")
+                return None
 
-        user_id = secrets.token_hex(16)
-        password_hash = self._hash_password(password)
+            user_id = secrets.token_hex(16)
+            password_hash = self._hash_password(password)
 
-        user = User(
-            user_id=user_id,
-            username=username,
-            email=email,
-            role=role,
-            password_hash=password_hash,
-        )
+            user = User(
+                user_id=user_id,
+                username=username,
+                email=email,
+                role=role,
+                password_hash=password_hash,
+            )
 
-        self.users[user_id] = user
-        self.username_to_id[username] = user_id
+            self.users[user_id] = user
+            self.username_to_id[username] = user_id
 
-        logger.info("User created: %s (role=%s)", username, role.value)
-        return user
+            logger.info("User created: %s (role=%s)", username, role.value)
+            return user
 
     def authenticate(self, username: str, password: str) -> Optional[str]:
         """Authenticate a user and return a token (or None on failure)."""
-        user_id = self.username_to_id.get(username)
-        if not user_id:
-            logger.warning("Authentication failed: invalid credentials")
-            return None
+        with self._lock:  # V-50: thread safety
+            user_id = self.username_to_id.get(username)
+            if not user_id:
+                logger.warning("Authentication failed: invalid credentials")
+                return None
 
-        user = self.users[user_id]
+            user = self.users[user_id]
 
-        if user.locked_until and datetime.now(UTC) < user.locked_until:
-            logger.warning("Authentication failed: account locked")
-            return None
+            if user.locked_until and datetime.now(UTC) < user.locked_until:
+                logger.warning("Authentication failed: account locked")
+                return None
 
-        if not self._verify_password(password, user.password_hash):
-            user.failed_login_attempts += 1
+            if not self._verify_password(password, user.password_hash):
+                user.failed_login_attempts += 1
 
-            if user.failed_login_attempts >= self.max_failed_attempts:
-                user.locked_until = datetime.now(UTC) + timedelta(
-                    minutes=self.lockout_duration_minutes,
-                )
-                logger.warning("Account locked: too many failed attempts")
+                if user.failed_login_attempts >= self.max_failed_attempts:
+                    user.locked_until = datetime.now(UTC) + timedelta(
+                        minutes=self.lockout_duration_minutes,
+                    )
+                    logger.warning("Account locked: too many failed attempts")
 
-            return None
+                return None
 
-        user.failed_login_attempts = 0
-        user.locked_until = None
-        user.last_login = datetime.now(UTC)
+            user.failed_login_attempts = 0
+            user.locked_until = None
+            user.last_login = datetime.now(UTC)
 
-        token = self._generate_token(user)
+            token = self._generate_token(user)
 
-        session_id = secrets.token_hex(16)
-        session = Session(session_id=session_id, user_id=user_id, token=token)
-        self.sessions[session_id] = session
-        self.token_to_session[token] = session
+            session_id = secrets.token_hex(16)
+            session = Session(session_id=session_id, user_id=user_id, token=token)
+            self.sessions[session_id] = session
+            self.token_to_session[token] = session
 
-        logger.info("User authenticated: %s", username)
-        return token
+            logger.info("User authenticated: %s", username)
+            return token
 
     def _generate_token(self, user: User) -> str:
         """Generate JWT token for user.
@@ -351,39 +356,41 @@ class AuthenticationManager:
 
     def validate_token(self, token: str) -> Optional[User]:
         """Validate a session token and return the User (or None if invalid)."""
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
-        session = self.token_to_session.get(token)
-        if not session or not session.is_valid or datetime.now(UTC) >= session.expires_at:
-            return None
-
-        user = self.users.get(session.user_id)
-        if not user or not user.is_active:
-            return None
-
-        try:
-            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
-            if payload["user_id"] != user.user_id:
+        with self._lock:  # V-50: thread safety
+            if isinstance(token, bytes):
+                token = token.decode("utf-8")
+            session = self.token_to_session.get(token)
+            if not session or not session.is_valid or datetime.now(UTC) >= session.expires_at:
                 return None
-        except jwt.ExpiredSignatureError:
-            session.is_valid = False
-            return None
-        except jwt.InvalidTokenError:
-            return None
 
-        return user
+            user = self.users.get(session.user_id)
+            if not user or not user.is_active:
+                return None
+
+            try:
+                payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                if payload["user_id"] != user.user_id:
+                    return None
+            except jwt.ExpiredSignatureError:
+                session.is_valid = False
+                return None
+            except jwt.InvalidTokenError:
+                return None
+
+            return user
 
     def logout(self, token: str) -> bool:
         """Invalidate a session token. Returns True if the token was active."""
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
-        session = self.token_to_session.pop(token, None)
-        if session:
-            session.is_valid = False
-            self.sessions.pop(session.session_id, None)
-            logger.info("User logged out: %s", session.user_id)
-            return True
-        return False
+        with self._lock:  # V-50: thread safety
+            if isinstance(token, bytes):
+                token = token.decode("utf-8")
+            session = self.token_to_session.pop(token, None)
+            if session:
+                session.is_valid = False
+                self.sessions.pop(session.session_id, None)
+                logger.info("User logged out: %s", session.user_id)
+                return True
+            return False
 
     def encrypt_secret(self, secret: str) -> str:
         """Encrypt a secret value using Fernet."""
@@ -399,19 +406,20 @@ class AuthenticationManager:
         Returns the number of sessions removed.
         Should be called periodically (e.g., via background task).
         """
-        now = datetime.now(UTC)
-        expired_tokens = [
-            token
-            for token, session in self.token_to_session.items()
-            if not session.is_valid or now >= session.expires_at
-        ]
-        for token in expired_tokens:
-            session = self.token_to_session.pop(token, None)
-            if session:
-                self.sessions.pop(session.session_id, None)
-        if expired_tokens:
-            logger.info("Cleaned up %d expired sessions", len(expired_tokens))
-        return len(expired_tokens)
+        with self._lock:  # V-50: thread safety
+            now = datetime.now(UTC)
+            expired_tokens = [
+                token
+                for token, session in self.token_to_session.items()
+                if not session.is_valid or now >= session.expires_at
+            ]
+            for token in expired_tokens:
+                session = self.token_to_session.pop(token, None)
+                if session:
+                    self.sessions.pop(session.session_id, None)
+            if expired_tokens:
+                logger.info("Cleaned up %d expired sessions", len(expired_tokens))
+            return len(expired_tokens)
 
 
 class AuthorizationManager:
@@ -459,7 +467,7 @@ class InputValidator:
     """
 
     # ast.Exec was removed in Python 3 (historically Py2 only). This project targets Py3.8,
-    # so reference it conditionally to keep compatibility.  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+    # so reference it conditionally to keep compatibility.
     FORBIDDEN_AST_NODES = tuple(
         n
         for n in (
@@ -475,7 +483,7 @@ class InputValidator:
     FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
-    def validate_python_code(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def validate_python_code(  # S3776 cognitive complexity intentional; logic validated by tests
         code: str, allowed_imports: set[str] = None
     ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
@@ -587,6 +595,9 @@ class InputValidator:
             "-EncodedCommand",
             "System.Diagnostics",
             "System.Reflection",
+            "Add-Type",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
+            "Import-Module",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
+            "Remove-Item",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
         ]
 
         for pattern in dangerous_patterns:

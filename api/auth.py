@@ -451,12 +451,30 @@ class ResetPasswordRequest(BaseModel):
 
 
 class UpdateProfileRequest(BaseModel):
-    """Payload for ``PUT /me``."""
+    """Payload for ``PUT /me``.
+
+    V-7 FIX: When disabling MFA, the user must provide either their current
+    password or a valid TOTP code. This prevents an attacker who steals a
+    session token from completely disabling MFA protection.
+    """
 
     model_config = ConfigDict(strict=False)
 
     email: Optional[EmailStr] = None
     mfa_enabled: Optional[bool] = None
+    # V-7: Required when mfa_enabled is set to False
+    current_password: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+        description="Current password (required when disabling MFA)",
+    )
+    mfa_code: Optional[str] = Field(
+        default=None,
+        min_length=4,
+        max_length=20,
+        description="TOTP code (required when disabling MFA if no password provided)",
+    )
 
 
 class UserResponse(BaseModel):
@@ -491,6 +509,78 @@ class UserListResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+
+
+# ---------------------------------------------------------------------------
+# V-1 FIX: CSRF Protection — Origin header validation
+# ---------------------------------------------------------------------------
+# Validates that state-changing requests (POST, PUT, DELETE) originate from
+# the same application. This prevents cross-origin form submissions and
+# CSRF attacks where an attacker crafts a page that submits requests to
+# our API using the victim's browser credentials.
+#
+# For JWT-based APIs, the primary CSRF vector is cross-origin requests that
+# include credentials (cookies). If the app uses cookies for auth, this is
+# critical. Even with Bearer tokens, this provides defense-in-depth.
+
+_ALLOWED_ORIGINS: set[str] = set(
+    origin.strip()
+    for origin in os.getenv("CSRF_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+)
+
+
+def _validate_csrf_origin(request: Request) -> None:
+    """V-1: Validate Origin header on state-changing requests.
+
+    For POST/PUT/DELETE requests, checks that the Origin header
+    matches the allowed origins. If no CSRF_ALLOWED_ORIGINS is
+    configured, allows requests from the same Host (same-origin).
+    """
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return
+
+    origin = request.headers.get("origin", "")
+    host = request.headers.get("host", "")
+
+    # If no Origin header (e.g., API clients, mobile apps), check for
+    # custom header presence as CSRF mitigation (X-Requested-With)
+    if not origin:
+        # API clients should send X-Requested-With or Authorization header
+        # This is the "custom header" CSRF mitigation strategy
+        if request.headers.get("x-requested-with") or request.headers.get("authorization"):
+            return
+        # No origin and no custom header — potentially suspicious but
+        # don't block to maintain backward compatibility with simple clients
+        _logger.debug("csrf_check_no_origin method=%s path=%s", request.method, request.url.path)
+        return
+
+    # If CSRF_ALLOWED_ORIGINS is configured, check against it
+    if _ALLOWED_ORIGINS:
+        if origin not in _ALLOWED_ORIGINS:
+            _logger.warning("csrf_blocked origin=%s host=%s", origin, host)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cross-origin request blocked",
+            )
+    else:
+        # Default: same-origin check — Origin must match Host
+        # e.g., Origin: https://example.com matches Host: example.com
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(origin)
+            origin_host = parsed.hostname
+            if origin_host and host:
+                # Extract host without port
+                host_only = host.split(":")[0]
+                if origin_host != host_only:
+                    _logger.warning("csrf_blocked origin=%s host=%s", origin, host)
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Cross-origin request blocked",
+                    )
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------
@@ -837,6 +927,7 @@ async def _reset_rate_limit(username: str) -> None:
 )
 async def register(
     body: RegisterRequest,
+    request: Request,
     db: DbDep,
 ) -> Any:
     """Create a new user account.
@@ -848,6 +939,9 @@ async def register(
     user@example.com are treated as the same email) to prevent account
     duplication and login confusion. Emails are stored lowercased.
     """
+    # V-1: CSRF origin validation
+    _validate_csrf_origin(request)
+
     # Normalise email to lowercase to ensure case-insensitive uniqueness.
     normalised_email = body.email.strip().lower()
 
@@ -951,7 +1045,7 @@ async def register(
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
 )
-async def login(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+async def login(
     request: Request,
     body: LoginRequest,
     db: DbDep,
@@ -987,6 +1081,9 @@ async def login(  # NOSONAR S3776: cognitive complexity intentional; logic valid
     ip = _client_ip(request)
     await _check_ip_rate_limit(ip)
     await _check_rate_limit(body.username)
+
+    # V-1: CSRF origin validation
+    _validate_csrf_origin(request)
 
     # Leg 2 (MFA completion): if a challenge token is supplied, verify it
     # and skip the password check. The challenge token proves the password
@@ -1175,6 +1272,16 @@ async def refresh(
     access_token = _create_access_token(str(user.id), user.role)
     new_refresh = _create_refresh_token(str(user.id))
 
+    # V-3 FIX: Blacklist the old refresh token to prevent reuse.
+    # Without this, an attacker who steals a refresh token can use it
+    # indefinitely even after the legitimate user refreshes.
+    if jti:
+        old_exp = payload.get("exp")
+        old_ttl = None
+        if isinstance(old_exp, (int, float)):
+            old_ttl = int(old_exp - datetime.now(tz=UTC).timestamp())
+        await _blacklist_token(jti, ttl_seconds=old_ttl)
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh,
@@ -1291,6 +1398,27 @@ async def update_me(
         db_user.email = new_email
 
     if body.mfa_enabled is not None:
+        # V-7 FIX: Require verification when DISABLING MFA
+        # An attacker who steals a session token could disable MFA
+        # without this check, completely removing the second factor.
+        if body.mfa_enabled is False and db_user.mfa_enabled is True:
+            verified = False
+            # Option 1: Verify current password
+            if body.current_password:
+                verified = _verify_password(body.current_password, db_user.password_hash)
+            # Option 2: Verify TOTP code
+            if not verified and body.mfa_code:
+                try:
+                    from security.mfa import TOTPProvider
+                    totp = TOTPProvider()
+                    verified = totp.verify_code(str(db_user.id), body.mfa_code)
+                except Exception:
+                    verified = False
+            if not verified:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Cannot disable MFA without verification. Provide current_password or mfa_code.",
+                )
         db_user.mfa_enabled = body.mfa_enabled
 
     db_user.updated_at = datetime.now(UTC)

@@ -29,7 +29,11 @@ import uuid
 try:
     import defusedxml.ElementTree as ET  # SECURITY: prevents XXE / billion-laughs attacks
 except ImportError:
-    import xml.etree.ElementTree as ET  # fallback — less safe, but defusedxml is preferred
+    # V-33 FIX: defusedxml is now a HARD requirement, not a soft fallback.
+    # The fallback to xml.etree.ElementTree is vulnerable to XXE and
+    # billion-laughs attacks. If defusedxml is not installed, the XML
+    # parser is disabled entirely.
+    ET = None
 from datetime import UTC, datetime
 from typing import Annotated, Any, Optional
 
@@ -190,20 +194,20 @@ def _decode_text(content: bytes) -> tuple[str, list[str]]:
 def _make_bus_record(row: dict[str, str]) -> BusRecord:
     """Build a BusRecord from a CSV DictReader row."""
     return BusRecord(
-        id=str(row.get("id", "")).strip(),
-        name=(row.get("name") or "").strip() or None,
+        id=_sanitize_csv_cell(str(row.get("id", "")).strip()),
+        name=_sanitize_csv_cell((row.get("name") or "").strip()) or None,
         voltage_kv=float(row["voltage_kv"]) if row.get("voltage_kv") else None,
-        type=(row.get("type") or "").strip() or None,
+        type=_sanitize_csv_cell((row.get("type") or "").strip()) or None,
     )
 
 
 def _make_branch_record(row: dict[str, str]) -> BranchRecord:
     """Build a BranchRecord from a CSV DictReader row."""
     return BranchRecord(
-        id=str(row.get("id", uuid.uuid4().hex[:8])).strip(),
-        from_bus=(row.get("from_bus") or row.get("from") or "").strip(),
-        to_bus=(row.get("to_bus") or row.get("to") or "").strip(),
-        type=(row.get("type") or "").strip() or None,
+        id=_sanitize_csv_cell(str(row.get("id", uuid.uuid4().hex[:8])).strip()),
+        from_bus=_sanitize_csv_cell((row.get("from_bus") or row.get("from") or "").strip()),
+        to_bus=_sanitize_csv_cell((row.get("to_bus") or row.get("to") or "").strip()),
+        type=_sanitize_csv_cell((row.get("type") or "").strip()) or None,
         r_pu=float(row["r_pu"]) if row.get("r_pu") else None,
         x_pu=float(row["x_pu"]) if row.get("x_pu") else None,
         rating_mva=float(row["rating_mva"]) if row.get("rating_mva") else None,
@@ -275,6 +279,21 @@ def _extract_child_text(elem: Any, local_tag: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 # Parsers
 # ---------------------------------------------------------------------------
+
+
+def _sanitize_csv_cell(value: str) -> str:
+    """V-32: Sanitize a CSV cell to prevent formula injection.
+
+    If a cell starts with =, +, -, or @, it could be interpreted as a
+    formula when the exported data is opened in Excel. Prefix with a
+    single quote to prevent formula execution.
+    """
+    if not value:
+        return value
+    stripped = value.strip()
+    if stripped and stripped[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
 
 
 def _parse_csv(
@@ -489,6 +508,13 @@ def _parse_cim_xml(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
     """Parse a CIM/XML file. Extracts TopologicalNode and ACLineSegment elements."""
+    # V-33: defusedxml is a hard requirement — if not installed, reject XML uploads
+    if ET is None:
+        raise ValueError(
+            "XML parsing is disabled: defusedxml is not installed. "
+            "Install it with: pip install defusedxml"
+        )
+
     text, warnings = _decode_text(content)
 
     buses: list[BusRecord] = []
@@ -599,6 +625,17 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty",
+        )
+
+    # V-30: Zip bomb protection — check decompression ratio.
+    # If the in-memory content is significantly larger than the compressed
+    # upload, reject it. The ratio limit prevents memory exhaustion from
+    # highly compressible payloads.
+    _MAX_DECOMPRESSION_RATIO = 10.0  # content can be at most 10x the upload size
+    if total_read > 0 and len(content) > total_read * _MAX_DECOMPRESSION_RATIO:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Decompressed content exceeds safe ratio. File may be a zip bomb.",
         )
 
     # Size already enforced during streaming read above

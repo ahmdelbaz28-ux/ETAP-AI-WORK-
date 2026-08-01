@@ -36,11 +36,12 @@ from dataclasses import dataclass
 from datetime import UTC
 from typing import Optional
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from api._test_mode import is_test_mode
+from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("etap.api.magic_links")
 
@@ -229,7 +230,8 @@ async def request_magic_link(
             },
         )
     elif not success and test_mode:
-        # In test mode, force issue a new token even if rate-limited
+        # V-13 FIX: In test mode, force issue a new token even if rate-limited,
+        # BUT still use the _store_lock to prevent race conditions.
         raw_token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
         rec = _MagicLinkRecord(
@@ -239,7 +241,9 @@ async def request_magic_link(
             expires_at=time.time() + MAGIC_LINK_TTL_SECONDS,
             user_id=user_id,
         )
-        _records[token_hash] = rec
+        # V-13 FIX: Use _store_lock for thread safety even in test mode
+        with _store_lock:
+            _records[token_hash] = rec
 
     # Send email only if user exists (otherwise silent no-op to prevent enumeration)
     if user_id is not None:
@@ -344,9 +348,11 @@ async def verify_magic_link(
 
     success, rec, error = _verify(body.token)
     if not success:
-        # Return 200 with success=False for test automation compatibility
+        # V-15 FIX: Return 401 on invalid/expired tokens (consistent with MFA fix F-05).
+        # Previously returned 200 with success=False which caused silent bypass
+        # for clients checking only HTTP status.
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             content={
                 "success": False,
                 "error": error,
@@ -432,8 +438,12 @@ async def verify_magic_link(
 )
 async def invalidate_magic_links(
     request: Request,
+    current_user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> JSONResponse:
     """Invalidate all pending magic links for the given email.
+
+    V-14 FIX: Now requires authentication. Previously, anyone could
+    invalidate magic links for any email — a denial-of-service vector.
 
     Accepts email as either:
     - Query parameter: POST /invalidate?email=user@example.com

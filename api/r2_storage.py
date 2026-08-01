@@ -72,6 +72,47 @@ R2_PUBLIC_URL_PREFIX: str = os.getenv("R2_PUBLIC_URL_PREFIX", "")
 # Whether R2 is configured (all required env vars present)
 R2_ENABLED: bool = bool(R2_ACCOUNT_ID and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY)
 
+# V-26: Allowed MIME types for upload — prevents uploading dangerous content
+# like HTML (XSS), shell scripts (RCE), or executables.
+ALLOWED_MIME_TYPES: set[str] = {
+    "application/pdf",
+    "application/json",
+    "application/xml",
+    "text/csv",
+    "text/plain",
+    "text/xml",
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/svg+xml",
+    "image/webp",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.ms-word",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/zip",
+    "application/x-yaml",
+    "text/yaml",
+    "application/octet-stream",  # generic binary — but validated by extension
+}
+
+# V-26: Dangerous MIME types that are ALWAYS blocked
+BLOCKED_MIME_TYPES: set[str] = {
+    "text/html",  # XSS vector
+    "application/x-sh",  # Shell script
+    "application/x-shellscript",  # Shell script
+    "application/x-bash",  # Bash script
+    "application/x-python",  # Python script
+    "application/x-executable",  # Binary executable
+    "application/x-dosexec",  # Windows executable
+    "application/x-msdownload",  # Windows download
+}
+
+# V-27: Maximum upload size (100 MB by default)
+MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")) * 1024 * 1024
+
 
 # SECURITY AUDIT 2026-07-25 — Fix S-10: Path traversal validation for R2 keys.
 def _validate_key(key: str) -> str:

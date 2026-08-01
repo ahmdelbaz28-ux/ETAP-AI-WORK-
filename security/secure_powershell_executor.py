@@ -4,11 +4,17 @@ Secure PowerShell Executor
 P0 Security Control: Validates and executes PowerShell commands in a restricted environment.
 Integrates with security_framework.py for input validation.
 
-Security hardening (2026-07-20):
+Security hardening (2026-08-02 — V-34, V-36, V-37, V-38 fixes):
+  - V-34: Removed dangerous cmdlets from whitelist (start-process, remove-item,
+    invoke-webrequest, invoke-restmethod, add-type, new-object, import-module)
+  - V-36: Fixed regex bypass — now also catches obfuscated invocations like
+    & "Invoke-Expression", Get-Command Invoke-Expression, etc.
+  - V-37: Aligned cmdlet whitelist with security_framework.py dangerous_patterns
+    (no more contradictions between the two checks)
+  - V-38: Backtick escaping now blocked in character-set whitelist
   - Replaced -Command with temp file execution (-File) to prevent command-line obfuscation
   - Added cmdlet whitelist for defense-in-depth
   - Added character-set whitelist validation
-  - Added input sanitization pipeline
   - Uses constrained runspace via execution policy
 """
 
@@ -37,11 +43,23 @@ MAX_COMMAND_LENGTH = 10000
 # ---------------------------------------------------------------------------
 # Whitelist of allowed PowerShell cmdlets and functions
 # ---------------------------------------------------------------------------
-# Any command containing a verb-noun pattern that is NOT in this list will
-# be blocked. This provides defense-in-depth against obfuscated commands
-# that bypass the AST validator.
+# V-34 FIX: Removed dangerous cmdlets that were previously in the whitelist:
+#   - start-process   → can launch arbitrary executables
+#   - remove-item     → can delete critical files
+#   - invoke-webrequest → can exfiltrate data via HTTP
+#   - invoke-restmethod → can exfiltrate data via HTTP
+#   - new-object      → can load malicious COM objects
+#   - add-type        → can load malicious .NET assemblies
+#   - import-module   → can load malicious PowerShell modules
+#   - new-psdrive     → can map network drives
+#   - register-psrepository → can register malicious repos
+#
+# V-37 FIX: This whitelist is now aligned with security_framework.py's
+# dangerous_patterns list. Previously, the framework blocked
+# Invoke-WebRequest/Start-Process/New-Object but the whitelist here
+# ALLOWED them — creating a contradictory security posture.
 ALLOWED_CMDLETS: set[str] = {
-    # File system operations
+    # File system operations (READ-ONLY + safe writes)
     "get-childitem",
     "set-location",
     "write-output",
@@ -49,7 +67,6 @@ ALLOWED_CMDLETS: set[str] = {
     "get-content",
     "add-content",
     "set-content",
-    "remove-item",
     "copy-item",
     "move-item",
     "new-item",
@@ -58,27 +75,21 @@ ALLOWED_CMDLETS: set[str] = {
     "get-itemproperty",
     "set-itemproperty",
     "get-acl",
-    "set-acl",
-    # Process operations
+    # Process operations (READ-ONLY — no start-process)
     "get-process",
-    "start-process",
-    "stop-process",
+    "stop-process",  # allowed for self-termination of runaway processes
     "get-service",
-    "start-service",
-    "stop-service",
-    # Network operations
+    # Network operations (READ-ONLY — no invoke-webrequest/invoke-restmethod)
     "test-connection",
     "resolve-dnsname",
-    "invoke-webrequest",
-    "invoke-restmethod",
-    # System information
+    # System information (READ-ONLY)
     "get-wmiobject",
     "get-ciminstance",
     "get-cimclass",
     "get-date",
     "get-location",
     "get-computerinfo",
-    "get-os",  # Active Directory (read-only)
+    # Active Directory (read-only)
     "get-aduser",
     "get-adgroup",
     "get-adgroupmember",
@@ -86,7 +97,7 @@ ALLOWED_CMDLETS: set[str] = {
     "get-adorganizationalunit",
     # Git operations
     "get-gitstatus",
-    # Utility
+    # Utility / pipeline
     "where-object",
     "select-object",
     "sort-object",
@@ -108,24 +119,16 @@ ALLOWED_CMDLETS: set[str] = {
     "write-debug",
     "write-warning",
     "write-error",
-    "new-object",
-    "add-type",
     "get-member",
     "get-command",
     "get-help",
     "get-module",
-    "import-module",
-    "export-modulemember",
     "set-strictmode",
     "set-psdebug",
     "get-variable",
     "set-variable",
     "remove-variable",
-    "get-childitemvariable",
-    "new-psdrive",
     "get-psdrive",
-    "remove-psdrive",
-    "register-psrepository",
     "get-psrepository",
     # Pipeline common
     "select-string",
@@ -134,23 +137,61 @@ ALLOWED_CMDLETS: set[str] = {
     "tee-object",
 }
 
+# V-34: Explicitly BLOCKED cmdlets — these are dangerous and MUST NOT be
+# allowed even if someone adds them to ALLOWED_CMDLETS by mistake.
+# This list is checked AFTER the whitelist for defense-in-depth.
+BLOCKED_CMDLETS: set[str] = {
+    "start-process",
+    "invoke-webrequest",
+    "invoke-restmethod",
+    "invoke-expression",
+    "invoke-command",
+    "new-object",
+    "add-type",
+    "import-module",
+    "remove-item",
+    "new-psdrive",
+    "remove-psdrive",
+    "register-psrepository",
+    "set-acl",
+}
+
 
 def _validate_cmdlet_whitelist(command: str) -> bool:
     """Check that all verb-noun cmdlet invocations are in the whitelist.
 
-    This uses a regex to find verb-noun patterns (e.g., Get-ChildItem)
-    and rejects the command if any matched pattern is not in ALLOWED_CMDLETS.
-    This provides defense-in-depth against obfuscated commands.
+    V-36 FIX: Enhanced regex to catch obfuscated invocations:
+    - Direct: Get-ChildItem
+    - String invocation: & "Invoke-Expression"
+    - Get-Command: Get-Command Invoke-Expression
+    - Quoted: "Start-Process"
+
+    Also checks BLOCKED_CMDLETS for defense-in-depth (V-34).
     """
-    # Match Verb-Noun patterns: Get-ChildItem, Invoke-WebRequest, etc.
-    # re.IGNORECASE makes [A-Z] equivalent to [A-Za-z], so the lower-case
-    # range would be redundant (SonarCloud python:S5869).
+    # V-36: Enhanced pattern matching — catch multiple invocation forms
+    # 1. Standard Verb-Noun patterns
     cmdlet_pattern = re.compile(
-        r"\b([A-Z]+)-([A-Z]+)\b",
-        re.IGNORECASE,
+        r"\b([A-Za-z]+)-([A-Za-z]+)\b",
     )
+    # 2. Quoted cmdlets: "Verb-Noun" or 'Verb-Noun'
+    quoted_cmdlet_pattern = re.compile(
+        r'["\']([A-Za-z]+)-([A-Za-z]+)["\']',
+    )
+
+    found_cmdlets = set()
     for match in cmdlet_pattern.finditer(command):
         cmdlet = match.group(0).lower()
+        found_cmdlets.add(cmdlet)
+    for match in quoted_cmdlet_pattern.finditer(command):
+        cmdlet = f"{match.group(1)}-{match.group(2)}".lower()
+        found_cmdlets.add(cmdlet)
+
+    for cmdlet in found_cmdlets:
+        # V-34: Check blocked list first (defense-in-depth)
+        if cmdlet in BLOCKED_CMDLETS:
+            logger.warning("Blocked explicitly dangerous cmdlet: %s", cmdlet)
+            return False
+        # Then check whitelist
         if cmdlet not in ALLOWED_CMDLETS:
             logger.warning("Blocked unauthorized cmdlet: %s", cmdlet)
             return False
@@ -160,17 +201,21 @@ def _validate_cmdlet_whitelist(command: str) -> bool:
 def _validate_character_set(command: str) -> bool:
     """Ensure command only contains allowed characters.
 
-    This prevents injection of null bytes, control characters, and other
-    special characters that could be used for obfuscation or bypass.
+    V-38 FIX: Backtick (`) is now BLOCKED to prevent PowerShell escape
+    obfuscation. Previously, backticks were allowed in the character set
+    but blocked by security_framework.py — contradictory.
     """
     # Allow: alphanumeric, spaces, common punctuation, and pipeline chars.
-    # NOTE: The literal dash '-' is placed at the END of the character class
-    # to avoid SonarCloud S5996 (impossible range inside regex character class).
-    # When '-' appears between two characters inside [], it creates a range
-    # (e.g. '=-' would mean range from '=' to '-'), which is unintended here.
-    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\=\[\]{}|\\\'"`~<>/?\-]+$')
+    # NOTE: Backtick (`) is EXPLICITLY EXCLUDED to prevent PowerShell
+    # escape obfuscation (V-38 fix). The dash '-' is placed at the END
+    # of the character class to avoid SonarCloud S5996.
+    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\=\[\]{}|\\\'"~<>/?\-]+$')
     if not allowed.match(command):
         logger.warning("Blocked command with disallowed characters")
+        return False
+    # V-38: Explicitly check for backticks (redundant but clear)
+    if "`" in command:
+        logger.warning("Blocked command with backtick escaping")
         return False
     return True
 
