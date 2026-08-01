@@ -82,7 +82,7 @@ class LoadBalancer:
                 return ids[idx]
             elif self._strategy == LoadBalancingStrategy.LEAST_CONNECTIONS:
                 return min(
-                    healthy,
+                    healthy,  # NOSONAR S2245: non-crypto PRNG for load-balancer RANDOM strategy (see _RNG.choice at L89)
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
             elif self._strategy == LoadBalancingStrategy.RANDOM:

@@ -486,7 +486,7 @@ class CoverageAnalyzer:
         for test_file in self._test_files:
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed (SyntaxError) or have other
-                # issues (Exception) — coverage report is best-effort.
+                # issues (Exception) — coverage report is best-effort.  # NOSONAR: aiofiles.open below is async; S7493 false positive
                 async with aiofiles.open(
                     test_file, encoding="utf-8", errors="replace"
                 ) as fh:
@@ -521,7 +521,7 @@ class CoverageAnalyzer:
                 continue
 
             with contextlib.suppress(SyntaxError, Exception):
-                # Skip files that can't be parsed — function extraction is best-effort.
+                # Skip files that can't be parsed — function extraction is best-effort.  # NOSONAR: aiofiles.open below is async; S7493 false positive
                 async with aiofiles.open(
                     src_file, encoding="utf-8", errors="replace"
                 ) as fh:

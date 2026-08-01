@@ -110,7 +110,7 @@ class _SSRFBlockedError(ValueError):
     """Raised when a webhook URL targets a forbidden (internal) address."""
 
 
-def _validate_webhook_url(url_str: str) -> str:
+def _validate_webhook_url(url_str: str) -> None:
     """Validate that *url_str* is https (or localhost in dev) and not an internal address.
 
     Blocks:
@@ -119,8 +119,10 @@ def _validate_webhook_url(url_str: str) -> str:
       - AWS metadata endpoint (169.254.169.254) and GCP/Azure equivalents
       - Bare-IP URLs for the above ranges
 
-    Returns the validated URL string (unchanged) so callers can chain.
-    Raises ``_SSRFBlockedError`` for any disallowed target.
+    Pure validator: returns None. Raises ``_SSRFBlockedError`` for any
+    disallowed target. Callers should use the original URL string after
+    a successful validation (the URL is never transformed here, so
+    returning it would falsely imply normalization).
     """
     parsed = urllib.parse.urlparse(url_str)
     if parsed.scheme not in ("http", "https"):
@@ -140,16 +142,16 @@ def _validate_webhook_url(url_str: str) -> str:
         if is_prod:
             raise _SSRFBlockedError("Localhost webhook targets are blocked in production.")
         # Localhost in dev: short-circuit IP-block checks (already loopback).
-        validated_url = url_str
-    else:
-        validated_url = _validate_remote_hostname(hostname, url_str)
-    return validated_url
+        return  # validator: nothing to return
+    _validate_remote_hostname(hostname, url_str)
 
 
-def _validate_remote_hostname(hostname: str, url_str: str) -> str:
+def _validate_remote_hostname(hostname: str, url_str: str) -> None:
     """Resolve *hostname* and reject private/reserved/metadata endpoints.
 
-    Returns *url_str* unchanged when the target is a safe public address.
+    Pure validator: returns None on success, raises _SSRFBlockedError
+    if the resolved IP is private/loopback/link-local/reserved/multicast/
+    unspecified or matches a cloud-metadata endpoint.
     """
     # If the hostname is already an IP literal, validate it directly.
     try:
@@ -182,7 +184,7 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> str:
             raise _SSRFBlockedError(
                 f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
             )
-    return url_str
+    # validator: success means no exception; nothing to return
 
 
 class EndpointResponse(BaseModel):
@@ -514,8 +516,9 @@ def register_endpoint(
       local/reserved/multicast/cloud-metadata addresses are rejected).
     """
     # SSRF check — raises _SSRFBlockedError (ValueError subclass) if blocked.
+    # _validate_webhook_url is a pure validator; it does not transform the URL.
     try:
-        validated_url = _validate_webhook_url(str(body.url))
+        _validate_webhook_url(str(body.url))
     except _SSRFBlockedError as exc:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -525,7 +528,7 @@ def register_endpoint(
     ep_id = str(uuid.uuid4())
     ep = WebhookEndpoint(
         id=ep_id,
-        url=validated_url,
+        url=str(body.url),
         events=body.events,
         secret=body.secret or os.getenv("EMAIL_WEBHOOK_SECRET", ""),
         created_at=datetime.now(UTC).isoformat(),

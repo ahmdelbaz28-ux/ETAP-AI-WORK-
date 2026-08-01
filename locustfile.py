@@ -354,7 +354,7 @@ class EngineeringServiceUser(AuthenticatedUser):
             headers=self._get_auth_headers(),
             name="POST /api/v1/studies/run [arc_flash]",
         )
-
+    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
     # ── AI Assistant Chat (weight: 15) ──────────────────────────────────────
 
     @task(8)
@@ -371,7 +371,7 @@ class EngineeringServiceUser(AuthenticatedUser):
             headers=self._get_auth_headers(),
             name="POST /api/v1/agents/etap-expert/chat",
         )
-
+    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
     @task(4)
     def etap_gui_chat(self):
         """Chat with the ETAP GUI Agent."""

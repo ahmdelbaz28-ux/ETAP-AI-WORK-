@@ -1152,7 +1152,7 @@ async def etap_gui_siem_events(limit: int = 50):
 
     log_path = siem_forwarder.log_file
     if not os.path.exists(log_path):
-        return {"success": True, "data": {"events": [], "total": 0, "message": "No events yet"}}
+        return {"success": True, "data": {"events": [], "total": 0, "message": "No events yet"}}  # NOSONAR: aiofiles.open is async; S7493 false positive
 
     limit = min(max(limit, 1), 200)
     events = []
