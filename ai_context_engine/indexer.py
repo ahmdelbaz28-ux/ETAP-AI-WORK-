@@ -131,10 +131,10 @@ def _is_within(path: Path, root: Path) -> bool:
 
 class CodeIndexer:
     # Security Fix V-06: Resource limits for indexing operations
-    MAX_FILES_PER_INDEX = 5000          # Maximum files to process in one index run
-    MAX_CHUNKS_PER_FILE = 100           # Maximum chunks extracted per file
+    MAX_FILES_PER_INDEX = 5000  # Maximum files to process in one index run
+    MAX_CHUNKS_PER_FILE = 100  # Maximum chunks extracted per file
     MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB — skip files larger than this
-    BATCH_SIZE = 50                     # ChromaDB upsert batch size
+    BATCH_SIZE = 50  # ChromaDB upsert batch size
 
     def __init__(self, output_dir: str, embedding_function=None):
         # SonarCloud pythonsecurity:S8707: validate the path before creating
@@ -227,7 +227,9 @@ class CodeIndexer:
                     if file_size > self.MAX_FILE_SIZE_BYTES:
                         logger.warning(
                             "V-06: Skipping %s (%d bytes > %d limit)",
-                            filepath, file_size, self.MAX_FILE_SIZE_BYTES,
+                            filepath,
+                            file_size,
+                            self.MAX_FILE_SIZE_BYTES,
                         )
                         continue
                 except OSError:
@@ -238,9 +240,11 @@ class CodeIndexer:
                 if len(chunks) > self.MAX_CHUNKS_PER_FILE:
                     logger.warning(
                         "V-06: Truncating chunks for %s from %d to %d",
-                        filepath, len(chunks), self.MAX_CHUNKS_PER_FILE,
+                        filepath,
+                        len(chunks),
+                        self.MAX_CHUNKS_PER_FILE,
                     )
-                    chunks = chunks[:self.MAX_CHUNKS_PER_FILE]
+                    chunks = chunks[: self.MAX_CHUNKS_PER_FILE]
 
                 files_processed += 1
 
@@ -280,7 +284,8 @@ class CodeIndexer:
 
         logger.info(
             "Indexing complete. Extracted %s code chunks from %d files.",
-            total_chunks, files_processed,
+            total_chunks,
+            files_processed,
         )
 
 

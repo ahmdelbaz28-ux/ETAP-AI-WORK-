@@ -23,8 +23,8 @@ class KnowledgeGraph:
     """
 
     # V-06: Resource limits
-    MAX_NODES = 100000          # Maximum nodes in the graph
-    MAX_EDGES = 500000         # Maximum edges in the graph
+    MAX_NODES = 100000  # Maximum nodes in the graph
+    MAX_EDGES = 500000  # Maximum edges in the graph
     MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB — skip files larger than this
     MAX_FILES_PER_SCAN = 5000  # Maximum files to scan per repo
 
@@ -43,7 +43,8 @@ class KnowledgeGraph:
         if len(self.nodes) >= self.MAX_NODES:
             logger.warning(
                 "V-06: MAX_NODES (%d) reached. Skipping node: %s",
-                self.MAX_NODES, node_id,
+                self.MAX_NODES,
+                node_id,
             )
             return False
         self.nodes[node_id] = {"label": label, "properties": properties or {}}
@@ -66,7 +67,9 @@ class KnowledgeGraph:
         if len(self.edges) >= self.MAX_EDGES:
             logger.warning(
                 "V-06: MAX_EDGES (%d) reached. Skipping edge: %s -> %s",
-                self.MAX_EDGES, source, target,
+                self.MAX_EDGES,
+                source,
+                target,
             )
             return False
 
@@ -160,7 +163,9 @@ class KnowledgeGraph:
             if file_size > self.MAX_FILE_SIZE_BYTES:
                 logger.debug(
                     "V-06: Skipping %s (%d bytes > %d limit)",
-                    filepath, file_size, self.MAX_FILE_SIZE_BYTES,
+                    filepath,
+                    file_size,
+                    self.MAX_FILE_SIZE_BYTES,
                 )
                 return
         except OSError:
@@ -299,7 +304,9 @@ class KnowledgeGraph:
         self.resolve_references()
         logger.info(
             "V-06: KG scan complete. %d nodes, %d edges, %d files scanned.",
-            len(self.nodes), len(self.edges), self._files_scanned,
+            len(self.nodes),
+            len(self.edges),
+            self._files_scanned,
         )
 
     def to_json(self) -> str:
