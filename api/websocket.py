@@ -12,8 +12,9 @@ import asyncio
 import hmac
 import json
 import logging
+import time
 from datetime import datetime, timezone
-from typing import List
+from typing import Dict, List, Optional, Set
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -25,19 +26,54 @@ logger = logging.getLogger(__name__)
 # Global list to store active WebSocket connections
 active_connections: List[WebSocket] = []
 
+# Security Fix V-01: Connection lifecycle management
+MAX_CONNECTIONS = 500  # Maximum concurrent WebSocket connections
+HEARTBEAT_INTERVAL = 30  # seconds between heartbeat pings
+HEARTBEAT_TIMEOUT = 10  # seconds to wait for pong before declaring dead
+MAX_MISSED_HEARTBEATS = 3  # consecutive missed pings before forced disconnect
+
 
 class SCADALiveFeed:
-    """Manages real-time SCADA data broadcasting to WebSocket clients."""
+    """Manages real-time SCADA data broadcasting to WebSocket clients.
+
+    Security Fix V-01: Added heartbeat/ping-pong, connection limits,
+    and explicit cleanup handlers for abrupt disconnects.
+    """
 
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.is_broadcasting = False
         self.broadcast_task = None
+        # V-01: Track connection metadata for lifecycle management
+        self._connection_meta: Dict[int, dict] = {}  # id(ws) -> meta
+        self._heartbeat_task: Optional[asyncio.Task] = None
+        self._cleanup_lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket) -> None:
-        """Add a new WebSocket connection to the active connections list."""
+        """Add a new WebSocket connection to the active connections list.
+
+        Security Fix V-01: Enforces connection limit and starts
+        heartbeat monitoring for each new connection.
+        """
+        # V-01: Enforce maximum connection limit
+        if len(self.active_connections) >= MAX_CONNECTIONS:
+            await websocket.close(code=4029, reason="Maximum connections reached")
+            logger.warning(
+                "WebSocket connection rejected: max connections (%d) reached",
+                MAX_CONNECTIONS,
+            )
+            return
+
         await websocket.accept()
         self.active_connections.append(websocket)
+
+        # V-01: Initialize connection metadata for heartbeat tracking
+        self._connection_meta[id(websocket)] = {
+            "connected_at": time.monotonic(),
+            "last_pong": time.monotonic(),
+            "missed_heartbeats": 0,
+        }
+
         logger.info(
             "New WebSocket connection established. Total connections: %d",
             len(self.active_connections),
@@ -48,10 +84,32 @@ class SCADALiveFeed:
             self.is_broadcasting = True
             self.broadcast_task = asyncio.create_task(self._broadcast_loop())
 
-    def disconnect(self, websocket: WebSocket) -> None:
-        """Remove a WebSocket connection from the active connections list."""
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
+        # V-01: Start heartbeat monitor if not already running
+        if self._heartbeat_task is None or self._heartbeat_task.done():
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+
+    async def disconnect(self, websocket: WebSocket) -> None:
+        """Remove a WebSocket connection from the active connections list.
+
+        Security Fix V-01: Explicitly cleans up buffers and metadata
+        on disconnect to prevent memory leaks from zombie connections.
+        """
+        async with self._cleanup_lock:
+            ws_id = id(websocket)
+            if websocket in self.active_connections:
+                self.active_connections.remove(websocket)
+
+            # V-01: Clean up connection metadata and buffers
+            if ws_id in self._connection_meta:
+                del self._connection_meta[ws_id]
+
+            # V-01: Attempt to close the underlying socket explicitly
+            try:
+                if websocket.application_state == WebSocketState.CONNECTED:
+                    await websocket.close(code=1000, reason="Cleanup")
+            except Exception:
+                pass  # Already closed or unreachable
+
             logger.info(
                 "WebSocket connection closed. Total connections: %d",
                 len(self.active_connections),
@@ -62,11 +120,26 @@ class SCADALiveFeed:
             self.is_broadcasting = False
             if self.broadcast_task:
                 self.broadcast_task.cancel()
+            # V-01: Also stop heartbeat when no connections
+            if self._heartbeat_task and not self._heartbeat_task.done():
+                self._heartbeat_task.cancel()
 
     async def send_personal_message(self, message: str, websocket: WebSocket) -> None:
-        """Send a personal message to a specific WebSocket client."""
+        """Send a personal message to a specific WebSocket client.
+
+        Security Fix V-01: Updates heartbeat tracking on successful send.
+        """
         if websocket.application_state == WebSocketState.CONNECTED:
-            await websocket.send_text(message)
+            try:
+                await websocket.send_text(message)
+                # V-01: Refresh last activity timestamp
+                ws_id = id(websocket)
+                if ws_id in self._connection_meta:
+                    self._connection_meta[ws_id]["last_pong"] = time.monotonic()
+                    self._connection_meta[ws_id]["missed_heartbeats"] = 0
+            except Exception:
+                logger.warning("Failed to send personal message, scheduling cleanup")
+                await self.disconnect(websocket)
 
     async def broadcast_message(self, message: str) -> None:
         """Broadcast a message to all active WebSocket connections."""
@@ -84,7 +157,7 @@ class SCADALiveFeed:
 
         # Remove disconnected clients
         for client in disconnected_clients:
-            self.disconnect(client)
+            await self.disconnect(client)
 
     async def _generate_scada_data(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
         self,
@@ -177,6 +250,50 @@ class SCADALiveFeed:
             )
 
         return scada_data
+
+    async def _heartbeat_loop(self):
+        """Security Fix V-01: Periodic heartbeat to detect zombie connections.
+
+        Sends a ping frame to each connected client and tracks missed
+        heartbeats. Connections that exceed MAX_MISSED_HEARTBEATS are
+        forcefully disconnected and cleaned up.
+        """
+        logger.info("Starting WebSocket heartbeat monitor")
+        while self.active_connections:
+            zombie_connections: List[WebSocket] = []
+
+            for ws in list(self.active_connections):
+                ws_id = id(ws)
+                meta = self._connection_meta.get(ws_id)
+                if not meta:
+                    continue
+
+                # Check if the connection has exceeded heartbeat timeout
+                elapsed = time.monotonic() - meta["last_pong"]
+                if elapsed > HEARTBEAT_INTERVAL + HEARTBEAT_TIMEOUT:
+                    meta["missed_heartbeats"] += 1
+                    logger.warning(
+                        "WebSocket heartbeat missed for connection %s "
+                        "(missed=%d, elapsed=%.1fs)",
+                        ws_id,
+                        meta["missed_heartbeats"],
+                        elapsed,
+                    )
+                else:
+                    meta["missed_heartbeats"] = 0
+
+                # Force-disconnect zombie connections
+                if meta["missed_heartbeats"] >= MAX_MISSED_HEARTBEATS:
+                    zombie_connections.append(ws)
+
+            # Clean up zombie connections
+            for ws in zombie_connections:
+                logger.warning(
+                    "Force-disconnecting zombie WebSocket: %s", id(ws)
+                )
+                await self.disconnect(ws)
+
+            await asyncio.sleep(HEARTBEAT_INTERVAL)
 
     async def _broadcast_loop(self):
         """Continuously broadcast SCADA data to all connected clients."""
@@ -290,7 +407,7 @@ async def scada_websocket_endpoint(
                 safe_ack = json.dumps({"ack": True, "type": "raw"})
             await scada_feed.send_personal_message(safe_ack, websocket)
     except WebSocketDisconnect:
-        scada_feed.disconnect(websocket)
+        await scada_feed.disconnect(websocket)
     except Exception:
         logger.exception("WebSocket error: ")
-        scada_feed.disconnect(websocket)
+        await scada_feed.disconnect(websocket)

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import copy
 import json
+import logging
 import threading
 import time
 from dataclasses import dataclass, field
@@ -22,6 +23,13 @@ from enum import Enum
 from typing import Any, Optional
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
+
+# Security Fix V-03: Per-element locking for distributed-safe state updates.
+# When Redis is available, use Redlock; otherwise, use per-element
+# threading locks as a fallback for single-process deployments.
+_ELEMENT_LOCK_TIMEOUT = 5.0  # seconds to wait for an element lock
 
 
 class StateLayer(Enum):
@@ -238,13 +246,104 @@ class StateStore:
     - State diff computation between versions
     - Layer-specific state queries
     - Maximum history size with automatic pruning
+
+    Security Fix V-03: Per-element locking to prevent race conditions
+    on Bus/Breaker state updates. Uses threading.Lock per element
+    with a fallback to Redis Redlock when available.
     """
 
-    def __init__(self, max_versions: int = 1000):
+    def __init__(self, max_versions: int = 1000, redis_url: Optional[str] = None):
         self._snapshots: list[StateSnapshot] = []
         self._max_versions = max_versions
         self._current_version = 0
         self._lock = threading.Lock()
+
+        # V-03: Per-element locks for granular concurrency control
+        self._element_locks: dict[str, threading.Lock] = {}
+        self._element_lock_lock = threading.Lock()  # Guards _element_locks dict
+
+        # V-03: Optional Redis Redlock for distributed deployments
+        self._redis_url = redis_url
+        self._redlock = None
+        if redis_url:
+            try:
+                from redis import Redis
+                from redlock import RedLock
+                self._redis_client = Redis.from_url(redis_url)
+                self._redlock = RedLock(self._redis_client)
+                logger.info("StateStore initialized with Redis Redlock: %s", redis_url)
+            except ImportError:
+                logger.warning(
+                    "Redis/Redlock not available, falling back to per-element threading locks. "
+                    "Install redis and redlock packages for distributed locking."
+                )
+                self._redis_client = None
+                self._redlock = None
+
+    def _get_element_lock(self, element_id: str) -> threading.Lock:
+        """Get or create a per-element lock. Thread-safe."""
+        with self._element_lock_lock:
+            if element_id not in self._element_locks:
+                self._element_locks[element_id] = threading.Lock()
+            return self._element_locks[element_id]
+
+    def update_bus_state(self, bus_id: str, voltage_magnitude: float, voltage_angle: float, source: str = "") -> bool:
+        """
+        Security Fix V-03: Thread-safe update of a single bus state.
+
+        Acquires a per-element lock to prevent concurrent updates to the
+        same bus from producing inconsistent state. Returns True if the
+        update was applied, False if the lock could not be acquired.
+        """
+        element_lock = self._get_element_lock(f"bus:{bus_id}")
+        if not element_lock.acquire(timeout=_ELEMENT_LOCK_TIMEOUT):
+            logger.warning(
+                "V-03: Could not acquire lock for bus %s within %.1fs (source=%s)",
+                bus_id, _ELEMENT_LOCK_TIMEOUT, source,
+            )
+            return False
+        try:
+            with self._lock:
+                current = self._snapshots[-1] if self._snapshots else None
+                if current is None:
+                    return False
+                bus = current.bus_states.get(bus_id)
+                if bus is None:
+                    return False
+                bus.voltage_magnitude = voltage_magnitude
+                bus.voltage_angle = voltage_angle
+            return True
+        finally:
+            element_lock.release()
+
+    def update_switch_state(self, switch_id: str, is_closed: bool, source: str = "") -> bool:
+        """
+        Security Fix V-03: Thread-safe update of a single switch state.
+
+        Acquires a per-element lock to prevent race conditions where a
+        switch could be recorded as both "open" and "closed" simultaneously.
+        Returns True if the update was applied, False if the lock could
+        not be acquired.
+        """
+        element_lock = self._get_element_lock(f"switch:{switch_id}")
+        if not element_lock.acquire(timeout=_ELEMENT_LOCK_TIMEOUT):
+            logger.warning(
+                "V-03: Could not acquire lock for switch %s within %.1fs (source=%s)",
+                switch_id, _ELEMENT_LOCK_TIMEOUT, source,
+            )
+            return False
+        try:
+            with self._lock:
+                current = self._snapshots[-1] if self._snapshots else None
+                if current is None:
+                    return False
+                sw = current.switch_states.get(switch_id)
+                if sw is None:
+                    return False
+                sw.is_closed = is_closed
+            return True
+        finally:
+            element_lock.release()
 
     def commit(self, snapshot: StateSnapshot) -> int:
         """

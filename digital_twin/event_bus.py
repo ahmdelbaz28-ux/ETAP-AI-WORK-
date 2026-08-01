@@ -13,6 +13,7 @@ Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 import uuid
@@ -21,6 +22,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 # ============================================================
 # EVENT TYPES
@@ -325,6 +328,10 @@ class EventBus:
     - Event history and replay
     - Handler priority ordering
     - Error isolation (one handler failure does not block others)
+
+    Security Fix V-03: Added per-element locking for state-modifying events
+    (SWITCH_OPENED, SWITCH_CLOSED, FAULT_DETECTED) to prevent race
+    conditions on the same element.
     """
 
     def __init__(self, max_history: int = 10000):
@@ -336,6 +343,34 @@ class EventBus:
         self._publishing = False
         self._event_queue: list[DomainEvent] = []
         self._lock = threading.Lock()
+
+        # V-03: Per-element locks for state-modifying events
+        self._element_locks: dict[str, threading.Lock] = {}
+        self._element_lock_guard = threading.Lock()
+
+    def _get_element_lock(self, element_id: str) -> threading.Lock:
+        """Get or create a per-element lock. Thread-safe."""
+        with self._element_lock_guard:
+            if element_id not in self._element_locks:
+                self._element_locks[element_id] = threading.Lock()
+            return self._element_locks[element_id]
+
+    def _extract_element_id(self, event: DomainEvent) -> Optional[str]:
+        """Extract the element identifier from a state-modifying event.
+
+        Returns None for events that don't modify a specific element.
+        """
+        if isinstance(event, (SwitchOpened, SwitchClosed)):
+            return f"switch:{event.switch_id}"
+        elif isinstance(event, FaultDetected):
+            return f"fault:{event.bus_id}"
+        elif isinstance(event, LoadChanged):
+            return f"load:{event.bus_id}"
+        elif isinstance(event, PVChanged):
+            return f"pv:{event.bus_id}"
+        elif isinstance(event, BatteryDispatch):
+            return f"battery:{event.bus_id}"
+        return None
 
     def subscribe(
         self,
@@ -391,52 +426,74 @@ class EventBus:
         Handlers are called synchronously in priority order.
         Errors in one handler do not block other handlers.
 
+        Security Fix V-03: For state-modifying events (switch changes,
+        fault detection), acquires a per-element lock to prevent
+        concurrent handlers from modifying the same element simultaneously.
+
         Returns:
         List of exceptions raised by handlers.
         """
-        with self._lock:
-            self._add_to_history(event)
-            # Take a snapshot of subscribers under the lock
-            wildcard_subs = list(self._wildcard_subscribers)
-            type_subs = list(self._subscribers.get(event.event_type, []))
+        # V-03: Acquire per-element lock for state-modifying events
+        element_id = self._extract_element_id(event)
+        element_lock = None
+        if element_id:
+            element_lock = self._get_element_lock(element_id)
+            if not element_lock.acquire(timeout=5.0):
+                logger.warning(
+                    "V-03: Could not acquire element lock for %s, "
+                    "event %s may cause race condition",
+                    element_id, event.event_id,
+                )
+                element_lock = None  # Proceed without lock rather than blocking
 
-        errors = []
+        try:
+            with self._lock:
+                self._add_to_history(event)
+                # Take a snapshot of subscribers under the lock
+                wildcard_subs = list(self._wildcard_subscribers)
+                type_subs = list(self._subscribers.get(event.event_type, []))
 
-        # Call wildcard subscribers first
-        for _, _, handler in wildcard_subs:
-            try:
-                handler(event)
-            except Exception as e:
-                errors.append(e)
-                with self._lock:
-                    self._handler_errors.append(
-                        {
-                            "event_id": event.event_id,
-                            "event_type": event.event_type.value,
-                            "handler": str(handler),
-                            "error": str(e),
-                            "timestamp": time.time(),
-                        },
-                    )
+            errors = []
 
-        # Call type-specific subscribers
-        for _, _, handler in type_subs:
-            try:
-                handler(event)
-            except Exception as e:
-                errors.append(e)
-                with self._lock:
-                    self._handler_errors.append(
-                        {
-                            "event_id": event.event_id,
-                            "event_type": event.event_type.value,
-                            "handler": str(handler),
-                            "error": str(e),
-                            "timestamp": time.time(),
-                        },
-                    )
+            # Call wildcard subscribers first
+            for _, _, handler in wildcard_subs:
+                try:
+                    handler(event)
+                except Exception as e:
+                    errors.append(e)
+                    with self._lock:
+                        self._handler_errors.append(
+                            {
+                                "event_id": event.event_id,
+                                "event_type": event.event_type.value,
+                                "handler": str(handler),
+                                "error": str(e),
+                                "timestamp": time.time(),
+                            },
+                        )
 
-        return errors
+            # Call type-specific subscribers
+            for _, _, handler in type_subs:
+                try:
+                    handler(event)
+                except Exception as e:
+                    errors.append(e)
+                    with self._lock:
+                        self._handler_errors.append(
+                            {
+                                "event_id": event.event_id,
+                                "event_type": event.event_type.value,
+                                "handler": str(handler),
+                                "error": str(e),
+                                "timestamp": time.time(),
+                            },
+                        )
+
+            return errors
+        finally:
+            # V-03: Release per-element lock
+            if element_lock is not None:
+                element_lock.release()
 
     def _add_to_history(self, event: DomainEvent) -> None:
         """Add event to history with size limit. Caller must hold self._lock."""
