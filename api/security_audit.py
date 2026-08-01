@@ -749,8 +749,8 @@ class SecurityAuditor:
                 ):
                     continue
 
-                with open(file_path, encoding="utf-8", errors="replace") as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                    lines = fh.readlines()
+                async with aiofiles.open(file_path, encoding="utf-8", errors="replace") as fh:  # S7493: async file I/O in async function (aiofiles)
+                    lines = await fh.readlines()
 
                 for i, line in enumerate(lines, 1):
                     stripped = line.strip()

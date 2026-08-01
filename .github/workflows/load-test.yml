@@ -88,8 +88,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: --no-binary langdetect -r requirements.txt || pip install --only-binary :all: --no-binary langdetect -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
-          pip install --only-binary :all: --no-binary langdetect langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
+          pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
 
       # ── Start the engineering service ──────────────────────────────────────
       - name: Start engineering service in background
@@ -262,8 +261,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: --no-binary langdetect -r requirements.txt || pip install --only-binary :all: --no-binary langdetect -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
-          pip install --only-binary :all: --no-binary langdetect langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
+          pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
           pip install --only-binary :all: locust==2.29.1
 
       # ── Start the engineering service ──────────────────────────────────────
