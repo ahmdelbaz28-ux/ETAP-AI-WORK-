@@ -442,7 +442,7 @@ def get_system_prompt(handle: str) -> str:
         if result:
             with _cache_lock:
                 _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
-            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # S1192 literal kept inline for readability NOSONAR
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # NOSONAR: S1192 literal kept inline for readability
             return result
 
     # Tier 3: Hardcoded safety-net
@@ -534,7 +534,7 @@ def _resolve_yaml_fallback(handle: str, yaml_prompt: Optional[str]) -> str:
     return _FALLBACK_PROMPT  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 
-async def get_system_prompt_async(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+async def get_system_prompt_async(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     handle: str,
 ) -> str:
     """Load a system prompt by handle, async (supports remote override).

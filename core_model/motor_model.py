@@ -32,7 +32,7 @@ class MotorParameters:
     efficiency: float = 0.90  # Motor efficiency
     starting_pf: float = 0.20  # Starting power factor
     lr_current_multiplier: float = 6.0  # Locked rotor current / full load current
-    inertia_constant_H: float = 0.5  # Inertia constant (seconds)  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    inertia_constant_H: float = 0.5  # NOSONAR: Inertia constant (seconds)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     x_d_prime: float = 0.20  # Transient reactance (per-unit)
     x_d_double_prime: float = 0.15  # Subtransient reactance (per-unit)
     r_stator: float = 0.01  # Stator resistance (per-unit)
@@ -117,7 +117,7 @@ class MotorModel:
         """
         # I_start = V / X_d" (approximately)
         V = 1.0  # per-unit
-        i_start = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_start = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V / self.x_d_double_prime_sys
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return i_start * self.mva_ratio
@@ -134,10 +134,10 @@ class MotorModel:
         """
         p = self.params
         # Locked rotor impedance (simplified)
-        z_lr = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        z_lr = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             p.r_stator, p.x_d_double_prime
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        i_lr = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_lr = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / z_lr if abs(z_lr) > 0 else complex(0, 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return i_lr * self.mva_ratio
@@ -152,7 +152,7 @@ class MotorModel:
         p = self.params
         # Running impedance
         pf_angle = np.arccos(p.power_factor)
-        i_running = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_running = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return i_running
@@ -184,14 +184,14 @@ class MotorModel:
 
         # Average motor torque during acceleration (simplified)
         # Typically 1.0-1.5 pu of rated torque
-        t_motor_avg = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_motor_avg = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.2 * voltage_fraction**2
-        )  # Torque proportional to V^2  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR: Torque proportional to V^2  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Average load torque (typically 0.3 for fans, 0.1 for pumps)
         T_load_avg = load_torque_fraction  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        delta_t = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        delta_t = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             t_motor_avg - T_load_avg
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if delta_t <= 0:
@@ -219,20 +219,20 @@ class MotorModel:
         p = self.params
         pf_angle = np.arccos(p.starting_pf)
         # x_d_double_prime_sys is already on system base; no further conversion needed
-        z_motor = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        z_motor = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage divider
-        V_source = 1.0  # per-unit  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        z_total = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        V_source = 1.0  # NOSONAR: per-unit  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        z_total = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             source_impedance + z_motor
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        v_motor = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_motor = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V_source * z_motor / z_total if abs(z_total) > 0 else V_source
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        v_motor_mag = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_motor_mag = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             v_motor
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         dip_percent = (1.0 - v_motor_mag) * 100.0
@@ -260,42 +260,42 @@ class MotorModel:
         p = self.params
 
         # Initial subtransient current
-        i_double_prime = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_double_prime = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / complex(p.r_stator, p.x_d_double_prime)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Transient current
-        i_prime = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_prime = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / complex(p.r_stator, p.x_d_prime)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Time constants (simplified)
-        t_double_prime = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_double_prime = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # subtransient  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        t_prime = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        )  # NOSONAR: subtransient  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        t_prime = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # transient  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR: transient  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # DC offset decay
-        t_dc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_dc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             p.x_d_double_prime / (2 * np.pi * 60 * p.r_stator)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Current at time t
         if t <= 0:
-            i_motor = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_motor = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 i_double_prime * self.mva_ratio
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
-            i_ac = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_ac = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 (i_double_prime - i_prime) * np.exp(-t / t_double_prime)
                 + i_prime
                 * np.exp(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     -t / t_prime,
                 )
             )
-            i_dc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            i_dc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 np.sqrt(2) * abs(i_double_prime) * np.exp(-t / t_dc)
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
@@ -327,26 +327,26 @@ class MotorModel:
         X2 = p.x_d_double_prime * 0.5  # approximate
         omega_s = 2 * np.pi * 60  # synchronous speed
 
-        r2_s = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        r2_s = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             R2 / slip
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        z_total = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        z_total = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             R1 + r2_s, X1 + X2
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I = V / z_total
         T = (abs(I) ** 2 * r2_s) / omega_s
 
         # Normalize to rated torque
-        r2_rated = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        r2_rated = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             R2 / p.slip_rated
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        z_rated = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        z_rated = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             R1 + r2_rated, X1 + X2
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        i_rated = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_rated = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V / z_rated
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        t_rated = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_rated = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (abs(i_rated) ** 2 * r2_rated) / omega_s
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 

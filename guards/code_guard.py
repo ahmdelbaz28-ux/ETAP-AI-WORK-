@@ -148,7 +148,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-03: Intent-revealing names (heuristic: single-letter vars outside loops)
     # ------------------------------------------------------------------
-    def _check_intent_revealing_names(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _check_intent_revealing_names(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation
@@ -285,7 +285,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-04: Boolean flag arguments
     # ------------------------------------------------------------------
-    def _check_boolean_flags(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _check_boolean_flags(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation
@@ -333,7 +333,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-06: CQS violation — function returns value AND mutates state
     # ------------------------------------------------------------------
-    def _check_cqs_violations(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _check_cqs_violations(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation

@@ -174,7 +174,7 @@ class AuthenticatedUser(HttpUser):
         """Authenticate on user start."""
         self.token = None
         self.auth_headers = {
-            "Content-Type": _JSON_CONTENT_TYPE  # S1192 literal kept inline for readability NOSONAR
+            "Content-Type": _JSON_CONTENT_TYPE  # NOSONAR: S1192 literal kept inline for readability
         }  # NOSONAR intentional repetition (audit constant)
         self._authenticate()
 
@@ -377,7 +377,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP GUI Agent."""
         question = _LOAD_RNG.choice(
             AI_QUESTIONS[:5]
-        )  # Shorter questions for GUI agent  # NOSONAR: load-test PRNG, non-crypto (S2245)
+        )  # NOSONAR: Shorter questions for GUI agent  # — load-test PRNG, non-crypto (S2245)
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

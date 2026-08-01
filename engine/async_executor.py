@@ -177,7 +177,7 @@ class AsyncExecutor:
                 continue
             self._execute_task(task)
 
-    def _execute_task(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _execute_task(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, task: AsyncTask
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         with self._lock:

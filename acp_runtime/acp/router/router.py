@@ -241,8 +241,8 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        _span_ctx: Optional[Any],  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
-        _t0: float,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
+        _span_ctx: Optional[Any],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _t0: float,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
         try:
@@ -354,7 +354,7 @@ class Router:
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-    async def _finish_observability(  # S7503 async signature required by callers; body intentionally sync  # NOSONAR S7503: async signature required by callers; body intentionally sync
+    async def _finish_observability(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
         self,
         span_ctx: Optional[Any],
         t0: float,

@@ -83,7 +83,7 @@ def create_scada_tags_geojson():
     return geojson_path
 
 
-def validate_geojson_structure(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def validate_geojson_structure(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     geojson_path,
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """

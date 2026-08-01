@@ -44,7 +44,7 @@ class SparseMatrixManager:
         return mat.toarray() if issparse(mat) else np.asarray(mat)
 
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def build_sparse_ybus(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def build_sparse_ybus(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, system: System, seq: str = "1"
     ) -> csr_matrix:  # NOSONAR cognitive complexity; refactoring sprint
         bids = sorted(system.buses.keys())
@@ -89,7 +89,7 @@ class SparseMatrixManager:
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_lu_solve(
-        self, a: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, a: Any, b: np.ndarray  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if not issparse(a):
             a = csr_matrix(a)
@@ -99,7 +99,7 @@ class SparseMatrixManager:
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_factored_solve(
-        self, a_factor: Any, b: np.ndarray  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, a_factor: Any, b: np.ndarray  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         return a_factor.solve(b)
 

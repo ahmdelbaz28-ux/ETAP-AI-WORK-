@@ -27,7 +27,7 @@ class GridConsistencyReport:
     cim_model: Optional[CIMModel] = None
 
 
-def grid_consistency_engine(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def grid_consistency_engine(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     assets: list[ADMSAsset],
 ) -> GridConsistencyReport:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """

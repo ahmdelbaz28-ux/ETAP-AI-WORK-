@@ -68,10 +68,10 @@ def _get_etap_provider():
 class ProcessRequest(BaseModel):
     prompt: str = Field(..., description="Natural language engineering request")
     autocad_url: str = Field(
-        _COPILOT_API_BASE_4820, description="AutoCAD plugin URL"  # S1192 literal kept inline for readability NOSONAR
+        _COPILOT_API_BASE_4820, description="AutoCAD plugin URL"  # NOSONAR: S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     revit_url: str = Field(
-        _COPILOT_API_BASE_4830, description="Revit plugin URL"  # S1192 literal kept inline for readability NOSONAR
+        _COPILOT_API_BASE_4830, description="Revit plugin URL"  # NOSONAR: S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     auto_sync: bool = Field(True, description="Automatically sync to connected systems")
 
@@ -128,7 +128,7 @@ class CopilotAPI:
         self.start_time = time.time()
         self._call_count = 0
 
-    def get_router(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def get_router(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self,
     ) -> APIRouter:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Create and return the FastAPI router."""

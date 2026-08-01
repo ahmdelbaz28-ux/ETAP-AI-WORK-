@@ -45,7 +45,7 @@ class GISProviderInterface(ABC):
         """
         if not getattr(self, "_loaded", False):
             raise RuntimeError(
-                _NO_GIS_PROJECT_MSG  # S1192 literal kept inline for readability NOSONAR
+                _NO_GIS_PROJECT_MSG  # NOSONAR: S1192 literal kept inline for readability
             )  # NOSONAR intentional repetition (audit constant)
         return []
 

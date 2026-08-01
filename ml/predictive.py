@@ -309,7 +309,7 @@ class LoadForecaster:
         normalized = (data - self._fallback_mean) / self._fallback_std  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         X, y = self._create_sequences(normalized)
-        x_flat = X.reshape(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        x_flat = X.reshape(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             X.shape[0], X.shape[1]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -358,7 +358,7 @@ class LoadForecaster:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
             raise RuntimeError(
-                _MODEL_NOT_TRAINED_MSG  # S1192 literal kept inline for readability NOSONAR
+                _MODEL_NOT_TRAINED_MSG  # NOSONAR: S1192 literal kept inline for readability
             )  # NOSONAR intentional repetition (audit constant)
 
         if self._is_prophet:
@@ -379,7 +379,7 @@ class LoadForecaster:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * _RNG.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
+        ) * _RNG.rand(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
             self._window_size
         )  # NOSONAR numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
@@ -513,7 +513,7 @@ class FaultPredictor:
         self._explainer: Any = None
         self._last_training_features: Optional[np.ndarray] = None
 
-    def train(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def train(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, features: np.ndarray, labels: np.ndarray
     ) -> dict[
         str, Any

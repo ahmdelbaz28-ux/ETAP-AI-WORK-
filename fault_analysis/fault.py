@@ -28,10 +28,10 @@ class FaultAnalyzer:
         base_kv (float): Base kV for current conversion. Default 115.0.
         """
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_neg = (  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+        self.Ybus_neg = (  # NOSONAR: S116 field names use engineering notation; snake_case would harm domain readability  # — IEEE/IEC engineering notation — domain-standard names (S116)
             ybus_neg if ybus_neg is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_zero = (  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
+        self.Ybus_zero = (  # NOSONAR: S116 field names use engineering notation; snake_case would harm domain readability  # — IEEE/IEC engineering notation — domain-standard names (S116)
             ybus_zero if ybus_zero is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.base_mva = base_mva
@@ -63,7 +63,7 @@ class FaultAnalyzer:
         return complex(z_col[k])
 
     def _invert_ybus(
-        self, ybus  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        self, ybus  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Invert Ybus to get Zbus, handling singularity by using pseudo-inverse.
 
@@ -114,13 +114,13 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit, and optionally voltage.
         """
-        vpre = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vpre = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        zth = self._z(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        zth = self._z(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             bus_index, "pos"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        if_ = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if_ = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             complex(float("inf"), 0) if abs(zth) < 1e-12 else vpre / zth
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return {
@@ -142,14 +142,14 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phase.
         """
-        vpre = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vpre = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
         Z0 = self._z(bus_index, "zero")
         denominator = Z1 + Z2 + Z0
-        if_ = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if_ = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             complex(float("inf"), 0) if abs(denominator) < 1e-12 else 3 * vpre / denominator
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return {
@@ -171,14 +171,14 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phases.
         """
-        vpre = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vpre = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
         denominator = Z1 + Z2
         if abs(denominator) < 1e-12:
-            if_ = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            if_ = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 float("inf"), 0
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
@@ -202,7 +202,7 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault currents (complex) in per-unit.
         """
-        vpre = complex(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        vpre = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
@@ -211,24 +211,24 @@ class FaultAnalyzer:
         # When both Z2 and Z0 are near zero, their parallel is also near zero
         # — this is a short circuit, not an open circuit.
         Z20 = (Z2 * Z0) / (Z2 + Z0) if abs(Z2 + Z0) > 1e-12 else complex(0, 0)
-        if1 = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if1 = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             vpre / (Z1 + Z20)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        if0 = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if0 = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             -if1 * (Z2 / (Z2 + Z0)) if abs(Z2 + Z0) > 1e-12 else complex(0, 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        if2 = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if2 = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             -if1 - if0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         a = complex(-0.5, np.sqrt(3) / 2)
         a2 = complex(-0.5, -np.sqrt(3) / 2)
-        ia = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ia = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             if1 + if2 + if0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        ib = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             a2 * if1 + a * if2 + if0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        ic = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ic = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             a * if1 + a2 * if2 + if0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return {

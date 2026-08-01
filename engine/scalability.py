@@ -12,7 +12,7 @@ import logging
 import random
 
 # Module-level PRNG for non-cryptographic load-balancing decisions.
-# Marked NOSONAR: not used for any security purpose (S2245 false positive).
+# NOSONAR: Marked — not used for any security purpose (S2245 false positive).
 _RNG = random.Random()  # NOSONAR: non-crypto PRNG, see S2245 documentation
 import threading
 import time

@@ -64,7 +64,7 @@ from core_model.transformer import Transformer
 # (see import block at the top of this file).
 
 
-def _to_jsonable(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def _to_jsonable(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
@@ -106,7 +106,7 @@ def _to_jsonable(  # S3776 cognitive complexity intentional; logic validated by 
         return str(obj)
 
 
-def _build_system_from_spec(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def _build_system_from_spec(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     spec: SystemSpec,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
@@ -486,8 +486,8 @@ def pre_flight_check(system: dict) -> Optional[dict]:
 )
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
-    req: Request, payload: StudyRequest, _: str = Depends(get_api_key)  # S8410 Depends injection kept non-Annotated for consistency  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+async def run_study(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    req: Request, payload: StudyRequest, _: str = Depends(get_api_key)  # NOSONAR: S8410 Depends injection kept non-Annotated for consistency  # — S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
 ):  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())

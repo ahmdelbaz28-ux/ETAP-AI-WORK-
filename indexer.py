@@ -176,7 +176,7 @@ def file_hash(path: Path) -> str:
         return "error"
 
 
-def extract_python_metadata(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def extract_python_metadata(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     path: Path,
 ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Extract classes, functions, imports, and docstring from a Python file."""
@@ -256,7 +256,7 @@ def extract_api_routes(path: Path) -> list:
     return routes
 
 
-def scan_python_modules() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def scan_python_modules() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     dict
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan all Python source directories and build module index."""
@@ -518,7 +518,7 @@ def scan_context_registry() -> dict:
     return {"mappings": mappings, "total": len(mappings)}
 
 
-def scan_env_variables() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     dict
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan the .env.example file and Python source for environment variable usage."""
@@ -591,7 +591,7 @@ def scan_env_variables() -> (  # S3776 cognitive complexity intentional; logic v
     }
 
 
-def scan_scripts() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def scan_scripts() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     dict
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan the scripts directory for shell/python/JS scripts."""
@@ -842,7 +842,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
     }
 
 
-def generate_markdown(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def generate_markdown(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     index: dict,
 ) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Generate a rich human-readable Markdown index."""

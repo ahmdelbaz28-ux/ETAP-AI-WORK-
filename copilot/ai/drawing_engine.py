@@ -289,7 +289,7 @@ class IntentParser:
         confidence = min(best_score, 1.0)
         return best_type, confidence
 
-    def _extract_parameters(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _extract_parameters(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, text: str
     ) -> dict[
         str, Any
@@ -334,7 +334,7 @@ class IntentParser:
 
         return params
 
-    def _extract_entities(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _extract_entities(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, text: str
     ) -> list[
         dict
@@ -407,7 +407,7 @@ class IntentParser:
 class GraphBuilder:
     """Builds an engineering knowledge graph from parsed intents."""
 
-    def build(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def build(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, intent: EngineeringIntent
     ) -> EngineeringGraph:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Build an engineering graph from a parsed intent.
@@ -845,7 +845,7 @@ class AIDrawingEngine:
 
         self._history: list[dict] = []
 
-    def process(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def process(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, natural_language_request: str
     ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Process a natural language engineering request end-to-end.

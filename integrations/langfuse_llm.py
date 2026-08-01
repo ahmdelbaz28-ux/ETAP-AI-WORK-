@@ -101,7 +101,7 @@ class SafetyValidationError(ValueError):
     """Raised when an LLM call violates a safety guardrail."""
 
 
-def _validate_input(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def _validate_input(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     messages: list[dict], metadata: Optional[dict]
 ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Run safety guardrails before the LLM call is made.

@@ -76,7 +76,7 @@ except Exception:  # numpy is normally present, but be defensive
     np: _Any = None  # type: ignore
 
 
-def _to_jsonable(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+def _to_jsonable(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native

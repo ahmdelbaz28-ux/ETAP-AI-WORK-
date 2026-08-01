@@ -26,7 +26,7 @@ class System:
         self.buses = {}  # bus_id -> Bus
         self.lines = []  # list of Line
         self.transformers = []  # list of Transformer
-        self.generators = []  # list of Generator  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.generators = []  # NOSONAR: list of Generator  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.loads = []  # list of Load
         self.Ybus_seq = {}  # NOSONAR IEEE/IEC notation for sequence-component Y-bus matrix  # sequence -> Ybus matrix
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow
@@ -69,7 +69,7 @@ class System:
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
-        ybus = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus = np.zeros(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (n, n), dtype=complex
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 

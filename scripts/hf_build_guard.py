@@ -155,7 +155,7 @@ def check_docker_build():
         warnings.append(
             "Docker not available locally - skipping build check (will be validated on GitHub Actions)",
         )
-        return None  # None = warning, not failure  # NOSONAR inline doc comment
+        return None  # NOSONAR: None = warning, not failure  # — inline doc comment
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Copy hf-space to temp dir for isolated build
@@ -174,7 +174,7 @@ def check_docker_build():
                 "docker",
                 "build",
                 "-t",
-                _HF_GUARD_TEST_IMAGE,  # S1192 literal kept inline for readability NOSONAR
+                _HF_GUARD_TEST_IMAGE,  # NOSONAR: S1192 literal kept inline for readability
                 tmpdir,
             ],  # NOSONAR intentional repetition (audit constant)
             capture_output=True,
@@ -198,7 +198,7 @@ def check_health_endpoint():
         warnings.append(
             "Docker not available locally - skipping health check (will be validated on GitHub Actions)",
         )
-        return None  # None = warning, not failure  # NOSONAR inline doc comment
+        return None  # NOSONAR: None = warning, not failure  # — inline doc comment
 
     try:
         # Stop any existing container

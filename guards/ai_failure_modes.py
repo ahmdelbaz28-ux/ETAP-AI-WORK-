@@ -273,7 +273,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-01: Catch-all error swallowing
     # ------------------------------------------------------------------
-    def _detect_catch_all(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_catch_all(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: Optional[ast.AST], source: str
     ) -> list[
         GuardViolation
@@ -349,7 +349,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_impossible_guard(
         self,
-        _tree: Optional[ast.AST],  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
+        _tree: Optional[ast.AST],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
@@ -442,7 +442,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
-    def _detect_rederive(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_rederive(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation
@@ -483,7 +483,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
-    def _detect_unused_imports(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_unused_imports(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation
@@ -633,7 +633,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-10: Copy-paste drift (near-duplicate blocks)
     # ------------------------------------------------------------------
-    def _detect_copy_paste_drift(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_copy_paste_drift(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, source: str
     ) -> list[
         GuardViolation
@@ -716,7 +716,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-13: Magic numbers without named constants
     # ------------------------------------------------------------------
-    def _detect_magic_numbers(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_magic_numbers(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: Optional[ast.AST], source: str
     ) -> list[
         GuardViolation
@@ -765,7 +765,7 @@ class AIFailureModeDetector:
     def _detect_hallucinated_api(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
-        _source: str,  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
+        _source: str,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
         context: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Detect imports of packages that are not in the known-packages set.
@@ -967,7 +967,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
-    def _detect_enum_boundary(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _detect_enum_boundary(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation

@@ -384,13 +384,13 @@ class ValidationSuite:
         system.build_sequence_networks(for_fault=True)
 
         # Test three-phase fault
-        ybus_pos = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_pos = system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        ybus_neg = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_neg = system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="2"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        ybus_zero = system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_zero = system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -398,7 +398,7 @@ class ValidationSuite:
 
         # Three-phase fault at bus 1
         result_3ph = fault_analyzer.three_phase_fault(0)
-        if_3ph = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if_3ph = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_3ph["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # For a slack bus with Z=0+j0.2, expected If ~ 1.0/0.2 = 5.0 pu
@@ -413,7 +413,7 @@ class ValidationSuite:
 
         # Line-to-ground fault at bus 1
         result_lg = fault_analyzer.line_to_ground_fault(0)
-        if_lg = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if_lg = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_lg["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # For SLG: If = 3*V / (Z1+Z2+Z0)
@@ -421,17 +421,17 @@ class ValidationSuite:
 
         # Line-to-line fault at bus 1
         result_ll = fault_analyzer.line_to_line_fault(0)
-        if_ll = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        if_ll = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_ll["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("Line-to-Line Fault at Bus 1", if_ll > 0, f"If={if_ll:.4f} pu")
 
         # Double line-to-ground fault at bus 1
         result_dlg = fault_analyzer.double_line_to_ground_fault(0)
-        ib = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ib = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_dlg["fault_current_b"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        ic = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ic = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_dlg["fault_current_c"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record(
@@ -627,7 +627,7 @@ class ValidationSuite:
         line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=z)
         system.add_line(line)
 
-        ybus = system.build_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus = system.build_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 

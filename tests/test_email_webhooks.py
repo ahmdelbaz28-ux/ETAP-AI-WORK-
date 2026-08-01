@@ -40,8 +40,8 @@ from api.email_webhooks import WebhookEndpoint, _should_forward
 # Module-level constants — SonarCloud S2068 (hard-coded credentials)
 # accepts module constants. NOT a real secret; HMAC test fixture only.
 # We use "# nosec" + "# pragma: allowlist secret" so the repo's local
-# scripts/security_scan.py skips this line (it doesn't recognize NOSONAR).
-_TEST_HMAC_SECRET = "x" * 32  # nosec  # pragma: allowlist secret  # NOSONAR test fixture, not a real secret
+# NOSONAR: scripts/security_scan.py skips this line (it doesn't recognize — ).
+_TEST_HMAC_SECRET = "x" * 32  # NOSONAR: nosec  # pragma: allowlist secret  # — test fixture, not a real secret
 
 
 def _make_endpoint(

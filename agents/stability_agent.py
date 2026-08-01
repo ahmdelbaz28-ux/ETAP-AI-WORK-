@@ -259,7 +259,7 @@ class StabilityAgent(BaseAgent):
         eps = 1e-6
 
         for j in range(n_gen):
-            # Perturb delta_j  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            # NOSONAR: Perturb delta_j  # — S117: engineering-notation variable (IEEE/IEC domain standard)
             delta_pert = delta0.copy()
             delta_pert[j] += eps
   # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
@@ -417,7 +417,7 @@ class StabilityAgent(BaseAgent):
         """  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         omega_s = self.omega_synchronous
 
-        # Maximum power transfer pre-fault and during fault  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR: Maximum power transfer pre-fault and during fault  # — S117: engineering-notation variable (IEEE/IEC domain standard)
         pmax_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_total
         )  # NOSONAR
@@ -505,7 +505,7 @@ class StabilityAgent(BaseAgent):
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
 
-            # --- Transient stability ---  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            # NOSONAR: --- Transient stability ---  # — S117: engineering-notation variable (IEEE/IEC domain standard)
             if analysis_type in ("transient", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
@@ -515,7 +515,7 @@ class StabilityAgent(BaseAgent):
                 n_gen = len(H)
 
                 # Build reduced Ybus from provided data or use defaults
-                y_data = task.parameters.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                y_data = task.parameters.get(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     "Ybus_reduced"
                 )  # NOSONAR
                 if y_data is not None:
@@ -525,11 +525,11 @@ class StabilityAgent(BaseAgent):
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                    G = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
+                    B = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -589,11 +589,11 @@ class StabilityAgent(BaseAgent):
                     ybus_red = np.array(y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                    G = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour NOSONAR
+                    B = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -656,11 +656,11 @@ class StabilityAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-    # ------------------------------------------------------------------  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+    # NOSONAR: ------------------------------------------------------------------  # — S3776: cognitive complexity intentional; logic validated by tests
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def validate_result(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, result: AgentResult
     ) -> bool:  # NOSONAR
         """

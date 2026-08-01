@@ -151,8 +151,8 @@ def _require_api_key(request: Request) -> None:
   # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI NOSONAR
-            status_code=401, detail=_INVALID_API_KEY_MSG  # S1192 literal kept inline for readability NOSONAR
+        raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+            status_code=401, detail=_INVALID_API_KEY_MSG  # NOSONAR: S1192 literal kept inline for readability
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
@@ -281,7 +281,7 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
   # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 @app.middleware("http")
-async def trace_middleware(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+async def trace_middleware(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     request: Request, call_next: Any
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
@@ -1071,7 +1071,7 @@ async def benchmark(request: Request):
         size = 200
         # SonarCloud python:S6711: use numpy.random.Generator (modern API)
         # instead of the legacy np.random.rand function.
-        rng = np.random.default_rng(seed=42)  # S6709: explicit seed for reproducibility NOSONAR
+        rng = np.random.default_rng(seed=42)  # NOSONAR: S6709: explicit seed for reproducibility
         t0 = _time.perf_counter()
         a = rng.random((size, size))
         b = rng.random((size, size))

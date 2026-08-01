@@ -121,7 +121,7 @@ class DigitalTwinState:
     def adms(self):  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return self._adms_engine
 
-    def capture_snapshot(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def capture_snapshot(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, source_event: str = "", correlation_id: str = ""
     ) -> StateSnapshot:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Capture current state of all layers into a snapshot."""
@@ -300,7 +300,7 @@ class SynchronizationEngine:
   # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return errors
 
-    def synchronize_adms_to_electrical(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def synchronize_adms_to_electrical(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self,
     ) -> list[
         str
@@ -640,10 +640,10 @@ class ChangePropagationEngine:
             from fault_analysis.fault import FaultAnalyzer  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -666,16 +666,16 @@ class ChangePropagationEngine:
                 fault_ka = fault.get("fault_current_ka", 0.0)
                 # Simplified IEEE 1584-2018 incident energy estimate
                 # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-                arc_duration = 0.2  # default 200ms clearing time  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                arc_duration = 0.2  # NOSONAR: default 200ms clearing time  # — S117: engineering-notation variable (IEEE/IEC domain standard)
                 working_distance_mm = 610.0  # 24 inches
                 k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                log_iarc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     k1 + k2 * math.log10(fault_ka)
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                iarc = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     10**log_iarc
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                log_e = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                log_e = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     0.434 + (-0.262) * math.log10(iarc)
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 e_base = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -726,10 +726,10 @@ class ChangePropagationEngine:
             from relays.relay import OvercurrentRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -1253,7 +1253,7 @@ class LivePowerSystemEngine:
         if self._base_engine is None:
             return {
                 "converged": False,
-                "error": _NO_BASE_ENGINE_MSG,  # S1192 literal kept inline for readability NOSONAR
+                "error": _NO_BASE_ENGINE_MSG,  # NOSONAR: S1192 literal kept inline for readability
             }  # NOSONAR intentional repetition (audit constant)
 
         try:

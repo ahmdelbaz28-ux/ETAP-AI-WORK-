@@ -122,7 +122,7 @@ class ZenonGuideRAG:
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def get_zenon_procedure(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def get_zenon_procedure(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, operation: str
     ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Get the official Zenon procedure for a specific operation."""

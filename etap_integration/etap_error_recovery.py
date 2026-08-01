@@ -386,7 +386,7 @@ class ETAPErrorRecovery:
     def _raise_study_retryable(error: Exception, study_type: str) -> None:
         raise RuntimeError(f"Study {study_type} failed after retry: {error}")
 
-    def _kill_etap_processes(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def _kill_etap_processes(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self,
     ) -> int:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         killed = 0

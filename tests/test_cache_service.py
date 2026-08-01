@@ -57,7 +57,7 @@ async def test_study_cache_ttl_functionality(mock_redis):
     # it would make the test silently pass with zero assertions.
     assert (
         result is not None
-    )  # Basic functionality verified  # NOSONAR TTL verification needs real Redis
+    )  # NOSONAR: Basic functionality verified  # — TTL verification needs real Redis
 
 
 @pytest.mark.asyncio

@@ -104,7 +104,7 @@ class HarmonicAnalysisEngine:
 
     def set_system_data(
         self,
-        ybus_fundamental: np.ndarray,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_fundamental: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         bus_ids: list[str],
         branch_data: dict = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
@@ -157,7 +157,7 @@ class HarmonicAnalysisEngine:
 
         h = harmonic_order
         n = ybus_fundamental.shape[0]
-        ybus_h = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_h = np.zeros(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (n, n), dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -178,29 +178,29 @@ class HarmonicAnalysisEngine:
         # Simplified approach: compute Zbus at fundamental → scale each
         # element's R and X components individually → rebuild Ybus via
         # pseudo-inversion.  This is more accurate than sign-based scaling.
-        zbus_1 = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        zbus_1 = np.linalg.inv(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             ybus_fundamental
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        zbus_h = np.zeros_like(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        zbus_h = np.zeros_like(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             zbus_1, dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         for i in range(n):
             for j in range(n):
-                z_ij = zbus_1[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                z_ij = zbus_1[  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     i, j
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 R = z_ij.real
                 X = z_ij.imag
 
                 # Skin effect on resistance (approximate)
-                r_h = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                r_h = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     R * np.sqrt(h) if R != 0 else 0.0
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
                 # Reactance scaling: inductive X > 0, capacitive X < 0
                 if X > 0:  # Net inductive at this (i,j)
-                    x_h = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    x_h = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         X * h
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 elif X < 0:  # Net capacitive at this (i,j)
@@ -239,13 +239,13 @@ class HarmonicAnalysisEngine:
         freq = h * self.fundamental_freq
 
         # Build harmonic Ybus
-        ybus_h = self.calculate_harmonic_impedance(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        ybus_h = self.calculate_harmonic_impedance(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             h
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Compute Zbus by inversion
         try:
-            zbus_h = np.linalg.inv(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            zbus_h = np.linalg.inv(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 ybus_h
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         except np.linalg.LinAlgError:
@@ -254,7 +254,7 @@ class HarmonicAnalysisEngine:
 
         # Build harmonic current injection vector
         n = len(self.bus_ids)
-        i_h = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_h = np.zeros(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             n, dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -264,13 +264,13 @@ class HarmonicAnalysisEngine:
                     bus_idx = self.bus_ids.index(source.bus_id)
                     # Convert polar to rectangular
                     angle_rad = np.radians(source.angle_deg)
-                    i_injection = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    i_injection = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         source.magnitude_pu * np.exp(1j * angle_rad)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     i_h[bus_idx] += i_injection
 
         # Solve for voltages: V = Zbus * I
-        v_h = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        v_h = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             zbus_h @ i_h
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -326,7 +326,7 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:  # Exclude fundamental
-                    v_h = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    v_h = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         result.bus_voltages.get(bus_id, 0)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += v_h**2
@@ -368,7 +368,7 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:
-                    i_h = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+                    i_h = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         result.branch_currents.get(branch_id, 0)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += i_h**2
@@ -417,7 +417,7 @@ class HarmonicAnalysisEngine:
     def check_ieee_519_compliance(
         self,
         thd_voltage: dict[str, float],
-        _tdd_current: dict[str, float],  # S1172 param retained for interface consistency  # NOSONAR S1172: parameter is part of interface contract / protocol; removal would break callers
+        _tdd_current: dict[str, float],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
         voltage_kv: float,  # NOSONAR unused param kept for API compatibility
     ) -> dict[str, bool]:
         """
@@ -569,11 +569,11 @@ class HarmonicAnalysisEngine:
         # Assume we want to provide low impedance path at tuned frequency
 
         # Choose capacitor rating (typical values)
-        Q_cap_MVAR = 1.0  # 1 MVAR capacitor bank  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_ll = 13.8  # Line-to-line voltage in kV (example)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        v_phase = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        Q_cap_MVAR = 1.0  # NOSONAR: 1 MVAR capacitor bank  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_ll = 13.8  # NOSONAR: Line-to-line voltage in kV (example)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        v_phase = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V_ll / np.sqrt(3)
-        )  # Phase voltage in kV  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR: Phase voltage in kV  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C

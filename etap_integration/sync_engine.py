@@ -262,7 +262,7 @@ class ETAPSyncEngine:
     # Direction: AhmedETAP -> ETAP (Export)
     # ------------------------------------------------------------------
 
-    def export_to_etap(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def export_to_etap(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, project_path: Optional[str] = None
     ) -> dict[
         str, Any

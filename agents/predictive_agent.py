@@ -140,10 +140,10 @@ class PredictiveAgent(BaseAgent):
 
         # Holt-Winters iteration
         for t in range(season_length, n):
-            l_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            l_new = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
             )  # NOSONAR
-            t_new = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            t_new = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 beta * (l_new - L) + (1 - beta) * T
             )  # NOSONAR
             S[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * S[t % season_length]
@@ -158,16 +158,16 @@ class PredictiveAgent(BaseAgent):
 
         # Calculate in-sample error for confidence bounds
         fitted = []
-        l_f = np.mean(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        l_f = np.mean(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             y[:season_length]
         )  # NOSONAR
-        t_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_f = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (  # NOSONAR
                 np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
             )
             / season_length
         )
-        s_f = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        s_f = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             y[:season_length] - l_f
         )  # NOSONAR
         for t in range(season_length, n):
@@ -494,7 +494,7 @@ class PredictiveAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-    async def execute(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    async def execute(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, task: EngineeringTask
     ) -> AgentResult:  # NOSONAR
         """

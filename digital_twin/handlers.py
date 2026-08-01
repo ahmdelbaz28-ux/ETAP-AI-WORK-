@@ -195,7 +195,7 @@ class YbusRebuildHandler(PropagationHandler):
                     )
             else:
                 ctx.record_step(
-                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # S1192 literal kept inline for readability NOSONAR
+                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # NOSONAR: S1192 literal kept inline for readability
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -368,7 +368,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
   # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     fatal = False
 
-    def handle(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    def handle(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, ctx: PropagationContext
     ) -> PropagationContext:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if ctx.dt_state is None or ctx.dt_state.system is None:
@@ -387,10 +387,10 @@ class ArcFlashRefreshHandler(PropagationHandler):
             from fault_analysis.fault import FaultAnalyzer  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -531,10 +531,10 @@ class ProtectionRefreshHandler(PropagationHandler):
             from relays.relay import OvercurrentRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_pos = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            ybus_neg = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

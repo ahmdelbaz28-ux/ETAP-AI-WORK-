@@ -201,22 +201,22 @@ class WeatherAgent(BaseAgent):
         # Simplified for wind perpendicular to conductor
 
         # Air properties at film temperature
-        t_film = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_film = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (T_c + T_a) / 2.0 + 273.15
-        )  # K  # NOSONAR
+        )  # NOSONAR: K  #
         k_air = 0.0242 + 7.0e-5 * (t_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (t_film - 300.0)  # Kinematic viscosity m²/s
 
         # Reynolds number
-        re = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        re = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             wind_speed_ms * D / nu_air if nu_air > 0 else 0.0
         )  # NOSONAR
 
         # Forced convection coefficient (simplified IEEE 738)
         if re > 0:
-            nu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+            nu = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 0.3 + 0.62 * re** 0.5 * 0.71 ** (1.0 / 3.0)
-            )  # Simplified  # NOSONAR
+            )  # NOSONAR: Simplified  #
             h_conv = nu * k_air / D
         else:
             # Natural convection (no wind)
@@ -226,10 +226,10 @@ class WeatherAgent(BaseAgent):
 
         # Radiative heat loss
         sigma_sb = 5.67e-8  # Stefan-Boltzmann constant
-        t_c_k = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_c_k = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             T_c + 273.15
         )  # NOSONAR
-        t_a_k = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        t_a_k = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             T_a + 273.15
         )  # NOSONAR
         q_rad = emissivity * sigma_sb * np.pi * D * (t_c_k**4 - t_a_k**4)
@@ -244,7 +244,7 @@ class WeatherAgent(BaseAgent):
         # I²R = q_loss - q_solar
         q_joule = q_loss - q_solar
 
-        i_dynamic = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_dynamic = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             float(np.sqrt(q_joule / R)) if q_joule > 0 and R > 0 else 0.0
         )  # NOSONAR
 
@@ -258,7 +258,7 @@ class WeatherAgent(BaseAgent):
             max(0, (conductor_max_temp_c - ambient_temp_c))
             / max(1, (conductor_max_temp_c - static_rating_ambient_c)),
         )
-        i_dlr_simple = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability NOSONAR
+        i_dlr_simple = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             static_rating_a * dlr_factor
         )  # NOSONAR
 

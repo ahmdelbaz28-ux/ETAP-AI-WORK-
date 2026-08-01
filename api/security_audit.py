@@ -387,7 +387,7 @@ class SecurityAuditor:
     # Check 1: Missing authentication on endpoints
     # ------------------------------------------------------------------
 
-    async def _check_missing_auth(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_missing_auth(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Scan all API endpoints for missing authentication checks.
@@ -399,10 +399,10 @@ class SecurityAuditor:
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
             os.path.join(
-                self.project_root, _ENGINEERING_SERVICE_FILENAME  # S1192 literal kept inline for readability NOSONAR
+                self.project_root, _ENGINEERING_SERVICE_FILENAME  # NOSONAR: S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             os.path.join(
-                self.project_root, "api", _REFACTORED_SERVICE_FILENAME  # S1192 literal kept inline for readability NOSONAR
+                self.project_root, "api", _REFACTORED_SERVICE_FILENAME  # NOSONAR: S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
         ]
     # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
@@ -489,7 +489,7 @@ class SecurityAuditor:
     # Check 2: CORS configuration
     # ------------------------------------------------------------------
 
-    async def _check_cors_configuration(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_cors_configuration(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for CORS misconfigurations."""
@@ -570,7 +570,7 @@ class SecurityAuditor:
     # Check 3: Input validation on POST/PUT endpoints
     # ------------------------------------------------------------------
 
-    async def _check_input_validation(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_input_validation(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Validate that all POST/PUT endpoints have input validation.
@@ -639,7 +639,7 @@ class SecurityAuditor:
     # Check 4: Missing rate limiting
     # ------------------------------------------------------------------
 
-    async def _check_rate_limiting(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_rate_limiting(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for missing rate limiting on sensitive endpoints."""
@@ -713,7 +713,7 @@ class SecurityAuditor:
     # Check 5: Hardcoded secrets
     # ------------------------------------------------------------------
 
-    async def _scan_hardcoded_secrets(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _scan_hardcoded_secrets(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Scan all Python source files for hardcoded secrets."""
@@ -806,7 +806,7 @@ class SecurityAuditor:
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
 
-    async def _check_insecure_dependencies(  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+    async def _check_insecure_dependencies(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for insecure dependency patterns in the codebase."""
@@ -906,7 +906,7 @@ class SecurityAuditor:
     # Check 7: Dead code
     # ------------------------------------------------------------------
 
-    async def _check_dead_code(  # S7503 async signature required by callers; body intentionally sync  # NOSONAR: aiofiles.open is async; S7493 false positive
+    async def _check_dead_code(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — aiofiles.open is async; S7493 false positive
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for dead code patterns (unreachable code, unused imports)."""
@@ -978,7 +978,7 @@ class SecurityAuditor:
     # Check 8: Weak crypto
     # ------------------------------------------------------------------
 
-    async def _check_weak_crypto(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_weak_crypto(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for weak cryptographic patterns."""
@@ -1038,7 +1038,7 @@ class SecurityAuditor:
     # Check 9: Information disclosure
     # ------------------------------------------------------------------
 
-    async def _check_information_disclosure(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def _check_information_disclosure(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for potential information disclosure vulnerabilities."""
@@ -1205,7 +1205,7 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> (  # S3776 cognitive complexity intentional; logic validated by tests NOSONAR
+async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """CLI entrypoint for running the security auditor."""
@@ -1236,7 +1236,7 @@ async def _main() -> (  # S3776 cognitive complexity intentional; logic validate
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    # S8707: validate the CLI-supplied output path before opening it. NOSONAR
+    # NOSONAR: S8707: validate the CLI-supplied output path before opening it.
     if args.output != "-":
         if "\x00" in args.output:
             parser.error("Invalid output path: contains NUL byte")

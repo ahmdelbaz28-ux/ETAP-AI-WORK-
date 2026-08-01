@@ -186,7 +186,7 @@ class StudyCache:
         if HAS_REDIS:
             self._init_redis()
 
-    async def _get_stats_lock(  # S7503 async signature required by callers; body intentionally sync  # NOSONAR S7503: async signature required by callers; body intentionally sync
+    async def _get_stats_lock(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
         self,
     ) -> asyncio.Lock:  # NOSONAR async function uses sync I/O for compatibility reasons
         if self._stats_lock is None:

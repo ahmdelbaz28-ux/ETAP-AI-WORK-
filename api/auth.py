@@ -1701,8 +1701,8 @@ async def reset_password(
 )
 async def list_users(
     db: DbDep,
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR  # S8410
-    pagination=Depends(pagination_params),  # noqa: B008  # NOSONAR  # S8410
+    user: CurrentUser = Depends(require_role("admin")),  # NOSONAR: noqa: B008  # — # S8410
+    pagination=Depends(pagination_params),  # NOSONAR: noqa: B008  # — # S8410
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -1747,7 +1747,7 @@ async def list_users(
 async def delete_user(
     user_id: str,
     db: DbDep,
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008  # NOSONAR  # S8410
+    user: CurrentUser = Depends(require_role("admin")),  # NOSONAR: noqa: B008  # — # S8410
 ) -> dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 

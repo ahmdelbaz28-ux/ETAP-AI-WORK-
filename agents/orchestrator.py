@@ -436,7 +436,7 @@ class ShortCircuitAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(
-                    _SYSTEM_DATA_NOT_PROVIDED_MSG  # S1192 literal kept inline for readability NOSONAR
+                    _SYSTEM_DATA_NOT_PROVIDED_MSG  # NOSONAR: S1192 literal kept inline for readability
                 )  # NOSONAR
 
             # Build sequence networks
@@ -678,7 +678,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
-            # system_data is now guaranteed non-None (else ValueError above)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            # NOSONAR: system_data is now guaranteed non-None (else ValueError above)  # — S117: engineering-notation variable (IEEE/IEC domain standard)
             generator_costs = task.parameters.get("generator_costs", [])
             method = task.parameters.get("method", "dc")
 
@@ -1301,12 +1301,12 @@ class ReportGenerationAgent(BaseAgent):
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
-                    "title", _ENGINEERING_REPORT_TITLE  # S1192 literal kept inline for readability NOSONAR
+                    "title", _ENGINEERING_REPORT_TITLE  # NOSONAR: S1192 literal kept inline for readability
                 ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
-                ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)  # S1192 literal kept inline for readability NOSONAR
+                ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)  # NOSONAR: S1192 literal kept inline for readability
             ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1557,7 +1557,7 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
-    async def submit_task(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def submit_task(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self, task: EngineeringTask
     ) -> None:  # NOSONAR
         """Submit engineering task for execution."""
@@ -2122,7 +2122,7 @@ class ChiefEngineeringOrchestrator:
             "speedup_factor": round(speedup, 2),
         }
 
-    async def get_task_status(  # S7503 async signature required by callers; body intentionally sync NOSONAR
+    async def get_task_status(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self, task_id: str
     ) -> Optional[
         EngineeringTask
