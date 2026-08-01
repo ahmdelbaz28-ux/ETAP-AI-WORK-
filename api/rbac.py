@@ -62,6 +62,10 @@ class Role(Base):
     __tablename__ = "roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -86,6 +90,10 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     resource: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
@@ -120,6 +128,10 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )

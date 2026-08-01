@@ -113,6 +113,11 @@ class CurrentUser(BaseModel):
     """Representation of the authenticated user injected into route handlers.
 
     This is a lightweight DTO; it is **not** an ORM model.
+
+    V-07 (Phase 2): Added ``tenant_id`` to support multi-tenant isolation.
+    The tenant_id is extracted from the JWT payload and propagated to
+    all downstream handlers, ORM queries, and the PostgreSQL RLS
+    session variable.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -122,6 +127,7 @@ class CurrentUser(BaseModel):
     email: str
     role: str
     is_active: bool = True
+    tenant_id: str = ""
 
 
 async def get_current_user(
@@ -233,6 +239,7 @@ async def get_current_user(
         email=user.email,
         role=user.role,
         is_active=user.is_active,
+        tenant_id=str(user.tenant_id) if user.tenant_id else "",
     )
 
 

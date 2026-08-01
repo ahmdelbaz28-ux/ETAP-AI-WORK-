@@ -52,8 +52,10 @@ from api.settings import router as settings_router
 from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
+from api.tenants import router as tenants_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
+from backend.request_context import CorrelationIdMiddleware, TenantMiddleware
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
 from services.study_service import (
@@ -565,11 +567,17 @@ if not _cors_origin_list:
     _cors_origin_list = []  # No origins allowed = restrictive by default
 # NOTE: In Starlette/FastAPI, middleware added LAST is the OUTERMOST layer
 # (first executed on incoming requests). Execution order:
-#   CORSMiddleware (preflight) → CSRFMiddleware → BodySizeLimit → trace_middleware → handler
+#   CORSMiddleware (preflight) → CSRFMiddleware → BodySizeLimit →
+#   TenantMiddleware → CorrelationIdMiddleware → trace_middleware → handler
 # CORSMiddleware must be outermost so it can answer OPTIONS preflight before
 # any other middleware rejects them (SonarCloud S8414).
 # CSRFMiddleware sits between CORS and BodySizeLimit so that state-changing
 # requests are validated before the body is examined.
+# V-07 (Phase 2): TenantMiddleware and CorrelationIdMiddleware are added
+# BEFORE BodySizeLimit so they run AFTER authentication (innermost) and
+# can set the PostgreSQL RLS session variable before any query runs.
+app.add_middleware(TenantMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)
 app.add_middleware(CSRFMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
@@ -681,6 +689,7 @@ app.include_router(context_engine_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
 app.include_router(rbac_router)
+app.include_router(tenants_router)  # V-07 (Phase 2): Tenant CRUD endpoints
 app.include_router(equipment_router)
 app.include_router(notifications_router)
 app.include_router(study_versions_router)

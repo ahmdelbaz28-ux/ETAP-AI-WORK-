@@ -82,7 +82,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import Boolean, DateTime, Index, String, func, select
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -313,6 +313,10 @@ class User(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -628,12 +632,19 @@ def _verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
-def _create_access_token(user_id: str, role: str) -> str:
-    """Create a short-lived JWT access token."""
+def _create_access_token(user_id: str, role: str, tenant_id: str = "") -> str:
+    """Create a short-lived JWT access token.
+
+    V-07 (Phase 2): Added ``tenant_id`` to the JWT payload so that
+    the TenantMiddleware can extract it from the token (not from
+    the untrusted X-Tenant-ID header) and set the PostgreSQL RLS
+    session variable.
+    """
     now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "role": role,
+        "tenant_id": tenant_id,
         "type": "access",
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -1141,7 +1152,7 @@ async def login(
         await db.flush()
         # F-11 fix: reset rate-limit counter on successful login.
         await _reset_rate_limit(body.username)
-        access_token = _create_access_token(str(user.id), user.role)
+        access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
         refresh_token = _create_refresh_token(str(user.id))
         return LoginResponse(
             access_token=access_token,
@@ -1198,7 +1209,7 @@ async def login(
             db.add(user)
             await db.flush()
             await _reset_rate_limit(body.username)
-            access_token = _create_access_token(str(user.id), user.role)
+            access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
             refresh_token = _create_refresh_token(str(user.id))
             return LoginResponse(
                 access_token=access_token,
@@ -1220,7 +1231,7 @@ async def login(
     await db.flush()
     # F-11 fix: reset rate-limit counter on successful login.
     await _reset_rate_limit(body.username)
-    access_token = _create_access_token(str(user.id), user.role)
+    access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
     refresh_token = _create_refresh_token(str(user.id))
 
     return LoginResponse(
@@ -1285,7 +1296,7 @@ async def refresh(
             detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
         )
 
-    access_token = _create_access_token(str(user.id), user.role)
+    access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
     new_refresh = _create_refresh_token(str(user.id))
 
     # V-3 FIX: Blacklist the old refresh token to prevent reuse.

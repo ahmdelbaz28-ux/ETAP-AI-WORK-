@@ -25,7 +25,7 @@ UTC = timezone.utc  # noqa: UP017
 
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import JSON, DateTime, String
+from sqlalchemy import JSON, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.database import Base
@@ -80,6 +80,10 @@ class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
     system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
@@ -102,6 +106,10 @@ class StudyResult(Base):
     __tablename__ = "study_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True, index=True,
+    )
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
@@ -163,6 +171,7 @@ class ProjectResponse(BaseModel):
     updated_at: Optional[datetime] = None
     created_by: str
     status: str
+    tenant_id: Optional[str] = None
 
 
 class ProjectListResponse(BaseModel):
@@ -205,6 +214,7 @@ class StudyResultResponse(BaseModel):
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     created_by: str
+    tenant_id: Optional[str] = None
 
 
 class StudyListResponse(BaseModel):
@@ -290,16 +300,27 @@ async def list_projects(
 ) -> Any:
     """Return a paginated, filterable list of power-system projects.
 
-    Security Fix V-07: Projects are now scoped to the authenticated user.
-    Users can only see projects they created (created_by = user_id).
-    Admins can see all projects.
+    Security Fix V-07 (Phase 2): Projects are now scoped to the
+    authenticated user's tenant. Non-admin users see only their own
+    projects within their tenant. Admins see all projects in their
+    tenant. RLS provides additional DB-level enforcement on PostgreSQL.
     """
-    # V-07: Tenant isolation — non-admin users see only their own projects
+    # V-07 (Phase 2): Tenant-scoped isolation
+    # If the user has a tenant_id, filter by it. This provides application-level
+    # tenant isolation on SQLite. On PostgreSQL, RLS provides additional
+    # defence-in-depth at the database level.
+    _tenant_filter = (
+        Project.tenant_id == user.tenant_id if user.tenant_id else True
+    )
     if user.role == "admin":
-        base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
+        base_query = select(Project).where(
+            Project.status != ProjectStatus.DELETED,
+            _tenant_filter,
+        )
     else:
         base_query = select(Project).where(
             Project.status != ProjectStatus.DELETED,
+            _tenant_filter,
             Project.created_by == str(user.user_id),
         )
 
@@ -346,6 +367,7 @@ async def create_project(
     """Create a new power-system project."""
     project = Project(
         id=str(uuid.uuid4()),
+        tenant_id=user.tenant_id if user.tenant_id else None,
         name=body.name,
         description=body.description,
         system_config=body.system_config,
@@ -489,6 +511,7 @@ async def run_project_study(
 
     study = StudyResult(
         id=str(uuid.uuid4()),
+        tenant_id=user.tenant_id if user.tenant_id else None,
         project_id=project_id,
         study_type=body.study_type.value,
         status=StudyStatus.PENDING.value,
