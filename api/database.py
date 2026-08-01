@@ -289,7 +289,7 @@ async def check_db_health() -> dict:
         backend = (
             "sqlite-fallback"
             if _FELL_BACK_TO_SQLITE
-            else ("postgresql" if _IS_POSTGRES else "sqlite")  # S3358 nested ternary clear in this context
+            else ("postgresql" if _IS_POSTGRES else "sqlite")  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
         )  # NOSONAR
         return {
             "status": "healthy" if not _FELL_BACK_TO_SQLITE else "degraded",

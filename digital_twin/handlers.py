@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR: extracted constant (S1192)
 """
 Chain of Responsibility — Change Propagation Handlers
 =====================================================
@@ -192,7 +195,7 @@ class YbusRebuildHandler(PropagationHandler):
                     )
             else:
                 ctx.record_step(
-                    "ybus_rebuild", False, {"error": "No electrical model bound"}  # S1192 literal kept inline for readability
+                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # S1192 literal kept inline for readability
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -372,7 +375,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
             ctx.record_step(
                 "arc_flash_refresh",
                 True,
-                {"status": "skipped", "reason": "No electrical model bound"},
+                {"status": "skipped", "reason": _NO_ELECTRICAL_MODEL_MSG},
             )
             return ctx
         try:
@@ -519,7 +522,7 @@ class ProtectionRefreshHandler(PropagationHandler):
             ctx.record_step(
                 "protection_refresh",
                 True,
-                {"status": "skipped", "reason": "No electrical model bound"},
+                {"status": "skipped", "reason": _NO_ELECTRICAL_MODEL_MSG},
             )
             return ctx
         try:

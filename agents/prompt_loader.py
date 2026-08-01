@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_PROMPT_NOT_FOUND_FALLBACK_MSG = "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR: extracted constant (S1192)
 """
 AhmedETAP - Prompt Loader (Safety-Critical Edition)
 ====================================================
@@ -439,7 +442,7 @@ def get_system_prompt(handle: str) -> str:
         if result:
             with _cache_lock:
                 _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
-            logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)  # S1192 literal kept inline for readability
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # S1192 literal kept inline for readability
             return result
 
     # Tier 3: Hardcoded safety-net
@@ -522,7 +525,7 @@ def _resolve_yaml_fallback(handle: str, yaml_prompt: Optional[str]) -> str:
         result = _load_from_yaml("fallback_agent")
         if result:
             _cache_prompt(handle, result, "fallback_yaml")
-            logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)
             return result
 
     # Tier 6: Hardcoded safety-net
@@ -611,7 +614,7 @@ async def get_system_prompt_async(  # S3776 cognitive complexity intentional; lo
         result = _load_from_yaml("fallback_agent")
         if result:
             _cache_prompt(handle, result, "fallback_yaml")
-            logger.warning("Prompt '%s' not found, using fallback_agent prompt", handle)
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)
             return result
 
     # Tier 6: Hardcoded safety-net

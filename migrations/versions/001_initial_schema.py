@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_USERS_ID_FK = "users.id"  # NOSONAR: extracted constant (S1192)
 """Initial schema — core platform tables.
 
 Revision ID: 001
@@ -149,7 +152,7 @@ def upgrade() -> None:
             "created_by",
             sa.String(36),
             sa.ForeignKey(
-                "users.id", ondelete="CASCADE"  # S1192 literal kept inline for readability
+                _USERS_ID_FK, ondelete="CASCADE"  # S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             nullable=False,
         ),
@@ -232,7 +235,7 @@ def upgrade() -> None:
         sa.Column(
             "created_by",
             sa.String(36),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey(_USERS_ID_FK, ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
@@ -256,7 +259,7 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.String(36),
-            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            sa.ForeignKey(_USERS_ID_FK, ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),

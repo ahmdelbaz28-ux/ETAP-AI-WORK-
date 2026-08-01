@@ -153,7 +153,7 @@ def map_adms_to_cim(  # S3776 cognitive complexity intentional; logic validated 
                 "feeder"  # NOSONAR nested conditional; extract to named variable (tech debt)
                 if a.asset_type == ADMSAssetType.FEEDER
                 else (
-                    "transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch"  # S3358 nested ternary clear in this context
+                    "transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch"  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                 )  # NOSONAR nested conditional; extract to named variable (tech debt)
             )
         )

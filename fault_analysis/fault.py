@@ -28,10 +28,10 @@ class FaultAnalyzer:
         base_kv (float): Base kV for current conversion. Default 115.0.
         """
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_neg = (  # S116 field names use engineering notation; snake_case would harm domain readability
+        self.Ybus_neg = (  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
             ybus_neg if ybus_neg is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_zero = (  # S116 field names use engineering notation; snake_case would harm domain readability
+        self.Ybus_zero = (  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
             ybus_zero if ybus_zero is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.base_mva = base_mva

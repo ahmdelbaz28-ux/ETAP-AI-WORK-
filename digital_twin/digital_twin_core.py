@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_NO_BASE_ENGINE_MSG = "No base engine available"  # NOSONAR: extracted constant (S1192)
 """
 Digital Twin Core - Unified Synchronization Engine
 ====================================================
@@ -1250,7 +1253,7 @@ class LivePowerSystemEngine:
         if self._base_engine is None:
             return {
                 "converged": False,
-                "error": "No base engine available",  # S1192 literal kept inline for readability
+                "error": _NO_BASE_ENGINE_MSG,  # S1192 literal kept inline for readability
             }  # NOSONAR intentional repetition (audit constant)
 
         try:
@@ -1303,7 +1306,7 @@ class LivePowerSystemEngine:
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-            return {"error": "No base engine available"}
+            return {"error": _NO_BASE_ENGINE_MSG}
 
         try:
             result = self._base_engine.run_fault_analysis(fault_type, bus_id)
@@ -1340,7 +1343,7 @@ class LivePowerSystemEngine:
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-            return {"error": "No base engine available"}
+            return {"error": _NO_BASE_ENGINE_MSG}
 
         try:
             result = self._base_engine.run_protection_coordination(

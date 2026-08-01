@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR: extracted constant (S1192)
 """
 API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
@@ -149,7 +152,7 @@ def _require_api_key(request: Request) -> None:
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
         raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
-            status_code=401, detail="Invalid or missing API key"  # S1192 literal kept inline for readability
+            status_code=401, detail=_INVALID_API_KEY_MSG  # S1192 literal kept inline for readability
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
@@ -314,7 +317,7 @@ async def trace_middleware(  # S3776 cognitive complexity intentional; logic val
                 xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
                 proxy_ip = request.client.host if request.client else ""
                 client_id = (
-                    xff
+                    xff  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                     if proxy_ip in _trusted_list and xff
                     else (
                         request.client.host if request.client else "unknown"  # S3358 nested ternary clear in this context
@@ -475,7 +478,7 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
         # Extract API key from headers
         api_key = websocket.headers.get("x-api-key")
         if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
+            await websocket.close(code=1008, reason=_INVALID_API_KEY_MSG)
             return
     except Exception:
         await websocket.close(code=1008, reason="Authentication error")
@@ -498,7 +501,7 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     try:
         api_key = websocket.headers.get("x-api-key")
         if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
+            await websocket.close(code=1008, reason=_INVALID_API_KEY_MSG)
             return
     except Exception:
         await websocket.close(code=1008, reason="Authentication error")

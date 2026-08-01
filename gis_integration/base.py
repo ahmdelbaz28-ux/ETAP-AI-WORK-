@@ -7,6 +7,9 @@ from typing import Optional
 from gis_integration.models import GeoCRSInfo, GISFeature
 
 
+
+# Module-level string constants (extracted to satisfy S1192).
+_NO_GIS_PROJECT_MSG = "No GIS project loaded; call load_project() first"  # NOSONAR: extracted constant (S1192)
 class GISProviderInterface(ABC):
     """
     Dependency-free abstraction for GIS providers (QGIS / ArcGIS).
@@ -42,7 +45,7 @@ class GISProviderInterface(ABC):
         """
         if not getattr(self, "_loaded", False):
             raise RuntimeError(
-                "No GIS project loaded; call load_project() first"  # S1192 literal kept inline for readability
+                _NO_GIS_PROJECT_MSG  # S1192 literal kept inline for readability
             )  # NOSONAR intentional repetition (audit constant)
         return []
 
@@ -54,7 +57,7 @@ class GISProviderInterface(ABC):
         override to stream features from the backend.
         """
         if not getattr(self, "_loaded", False):
-            raise RuntimeError("No GIS project loaded; call load_project() first")
+            raise RuntimeError(_NO_GIS_PROJECT_MSG)
         if not layer_id or not isinstance(layer_id, str):
             raise ValueError("layer_id must be a non-empty string")
         return iter(())
@@ -67,7 +70,7 @@ class GISProviderInterface(ABC):
         with the requested layer_id recorded for traceability.
         """
         if not getattr(self, "_loaded", False):
-            raise RuntimeError("No GIS project loaded; call load_project() first")
+            raise RuntimeError(_NO_GIS_PROJECT_MSG)
         return {
             "type": "FeatureCollection",
             "features": [],

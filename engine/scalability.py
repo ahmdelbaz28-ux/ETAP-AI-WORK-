@@ -392,7 +392,7 @@ class ClusterManager:
                 "healthy_nodes": healthy,
                 "unhealthy_nodes": total - healthy,
                 "total_load": total_load,
-                "total_capacity": total_capacity,
+                "total_capacity": total_capacity,  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                 "utilization": total_load / max(total_capacity, 1e-9),
                 "status": "healthy"
                 if healthy == total

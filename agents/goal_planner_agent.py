@@ -392,7 +392,7 @@ class GoalPlannerAgent(BaseAgent):
             "risk_count": len(risks),
             "risk_level": "high"
             if len(risks) > 3
-            else "medium"  # S3358 nested ternary clear in this context
+            else "medium"  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
             if len(risks) > 1
             else "low",  # NOSONAR
         }

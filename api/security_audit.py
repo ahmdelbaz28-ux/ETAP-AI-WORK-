@@ -1,3 +1,7 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_ENGINEERING_SERVICE_FILENAME = "engineering_service.py"  # NOSONAR: extracted constant (S1192)
+_REFACTORED_SERVICE_FILENAME = "refactored_service.py"  # NOSONAR: extracted constant (S1192)
 """
 api/security_audit.py — Runtime security audit module for the AhmedETAP.
 
@@ -395,10 +399,10 @@ class SecurityAuditor:
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
             os.path.join(
-                self.project_root, "engineering_service.py"  # S1192 literal kept inline for readability
+                self.project_root, _ENGINEERING_SERVICE_FILENAME  # S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             os.path.join(
-                self.project_root, "api", "refactored_service.py"  # S1192 literal kept inline for readability
+                self.project_root, "api", _REFACTORED_SERVICE_FILENAME  # S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
         ]
 
@@ -490,8 +494,8 @@ class SecurityAuditor:
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for CORS misconfigurations."""
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
+            os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
 
         for service_file in service_files:
@@ -575,8 +579,8 @@ class SecurityAuditor:
         rather than accepting raw ``Request`` objects for POST/PUT.
         """
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
+            os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
 
         for service_file in service_files:
@@ -651,8 +655,8 @@ class SecurityAuditor:
         ]
 
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
+            os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
 
         for service_file in service_files:
@@ -905,7 +909,7 @@ class SecurityAuditor:
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for dead code patterns (unreachable code, unused imports)."""
         # Check for the specific dead ConnectionManager in the original
-        service_file = os.path.join(self.project_root, "engineering_service.py")
+        service_file = os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME)
         if os.path.exists(service_file):
             async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
@@ -931,7 +935,7 @@ class SecurityAuditor:
                         f"twice in engineering_service.py (lines {', '.join(str(n) for n in line_numbers)}). "
                         "Only the last definition will be active."
                     ),
-                    file_path="engineering_service.py",
+                    file_path=_ENGINEERING_SERVICE_FILENAME,
                     line_number=line_numbers[-1] if line_numbers else None,
                     remediation="Remove the duplicate endpoint definition.",
                     cwe_id="CWE-1061",
@@ -947,7 +951,7 @@ class SecurityAuditor:
                         "The ``ConnectionManager`` class is defined but never "
                         "wired to any WebSocket endpoint. It is dead code."
                     ),
-                    file_path="engineering_service.py",
+                    file_path=_ENGINEERING_SERVICE_FILENAME,
                     remediation="Either wire the ConnectionManager to a WebSocket endpoint or remove it.",
                     cwe_id="CWE-1061",
                 )
@@ -964,7 +968,7 @@ class SecurityAuditor:
                         "twice in engineering_service.py, which means the second "
                         "definition silently overwrites the first."
                     ),
-                    file_path="engineering_service.py",
+                    file_path=_ENGINEERING_SERVICE_FILENAME,
                     remediation="Remove the duplicate variable definition.",
                 )
 
@@ -977,8 +981,8 @@ class SecurityAuditor:
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for weak cryptographic patterns."""
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
+            os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", "auth.py"),
         ]
 
@@ -1037,8 +1041,8 @@ class SecurityAuditor:
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for potential information disclosure vulnerabilities."""
         service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
+            os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
 
         for service_file in service_files:

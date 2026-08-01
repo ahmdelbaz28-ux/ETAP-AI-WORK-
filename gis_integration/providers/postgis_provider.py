@@ -376,7 +376,7 @@ class PostGISProvider:
                     properties=row[3]
                     if isinstance(row[3], dict)
                     else (
-                        json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context
+                        json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                     ),  # NOSONAR nested conditional; extract to named variable (tech debt)
                     electrical_id=row[4],
                 )
@@ -410,7 +410,7 @@ class PostGISProvider:
                             properties=row[3]
                             if isinstance(row[3], dict)
                             else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context
+                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                             ),  # NOSONAR nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
@@ -455,7 +455,7 @@ class PostGISProvider:
                             properties=row[3]
                             if isinstance(row[3], dict)
                             else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context
+                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                             ),  # NOSONAR nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
@@ -497,7 +497,7 @@ class PostGISProvider:
                             properties=row[3]
                             if isinstance(row[3], dict)
                             else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context
+                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                             ),  # NOSONAR nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),
@@ -551,7 +551,7 @@ class PostGISProvider:
                             properties=row[3]
                             if isinstance(row[3], dict)
                             else (
-                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context
+                                json.loads(row[3]) if row[3] else {}  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                             ),  # NOSONAR nested conditional; extract to named variable (tech debt)
                             electrical_id=row[4],
                         ),

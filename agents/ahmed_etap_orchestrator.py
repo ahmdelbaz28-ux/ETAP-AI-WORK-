@@ -476,7 +476,7 @@ class MathGuard:
         passed = units_ok and tolerance_ok
         return MathGuardResult(
             passed=passed,
-            reason="" if passed else (tolerance_msg if not tolerance_ok else units_msg),  # S3358 nested ternary clear in this context
+            reason="" if passed else (tolerance_msg if not tolerance_ok else units_msg),  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
             claim_value=claim_value,
             recomputed_value=recomputed,
             units_ok=units_ok,

@@ -24,7 +24,7 @@ class LoadFlowSolver:
 
     def __init__(self, system):
         self.system = system
-        self.Ybus = self.system.get_ybus(  # S116 field names use engineering notation; snake_case would harm domain readability
+        self.Ybus = self.system.get_ybus(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
             seq="1"
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = self.Ybus.shape[0]

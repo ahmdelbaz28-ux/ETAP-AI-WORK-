@@ -1,3 +1,7 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_COPILOT_API_BASE_4820 = "http://localhost:4820"  # NOSONAR: extracted constant (S1192)
+_COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR: extracted constant (S1192)
 """
 Engineering Copilot — FastAPI Backend
 =====================================
@@ -64,10 +68,10 @@ def _get_etap_provider():
 class ProcessRequest(BaseModel):
     prompt: str = Field(..., description="Natural language engineering request")
     autocad_url: str = Field(
-        "http://localhost:4820", description="AutoCAD plugin URL"  # S1192 literal kept inline for readability
+        _COPILOT_API_BASE_4820, description="AutoCAD plugin URL"  # S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     revit_url: str = Field(
-        "http://localhost:4830", description="Revit plugin URL"  # S1192 literal kept inline for readability
+        _COPILOT_API_BASE_4830, description="Revit plugin URL"  # S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     auto_sync: bool = Field(True, description="Automatically sync to connected systems")
 
@@ -107,8 +111,8 @@ class CopilotAPI:
 
     def __init__(
         self,
-        autocad_url: str = "http://localhost:4820",
-        revit_url: str = "http://localhost:4830",
+        autocad_url: str = _COPILOT_API_BASE_4820,
+        revit_url: str = _COPILOT_API_BASE_4830,
     ):
         self.mcp = CopilotMCPServer(
             autocad_url=autocad_url,
@@ -342,8 +346,8 @@ class CopilotAPI:
 
 
 def create_app(
-    autocad_url: str = "http://localhost:4820",
-    revit_url: str = "http://localhost:4830",
+    autocad_url: str = _COPILOT_API_BASE_4820,
+    revit_url: str = _COPILOT_API_BASE_4830,
 ) -> FastAPI:
     """Create the standalone FastAPI application.
 

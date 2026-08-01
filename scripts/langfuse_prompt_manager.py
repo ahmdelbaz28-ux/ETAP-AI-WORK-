@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Module-level string constants (extracted to satisfy S1192).
+_PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR: extracted constant (S1192)
 """
 Langfuse prompt versioning management for AhmedETAP.
 
@@ -197,16 +200,16 @@ def main() -> None:
 
     p_versions = sub.add_parser("versions", help="Show all versions of a prompt")
     p_versions.add_argument(
-        "name", help="Prompt name"  # S1192 literal kept inline for readability
+        "name", help=_PROMPT_NAME_LABEL  # S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     p_versions.set_defaults(func=cmd_versions)
 
     p_labels = sub.add_parser("labels", help="Show labels for a prompt")
-    p_labels.add_argument("name", help="Prompt name")
+    p_labels.add_argument("name", help=_PROMPT_NAME_LABEL)
     p_labels.set_defaults(func=cmd_labels)
 
     p_promote = sub.add_parser("promote", help="Promote latest version to a label")
-    p_promote.add_argument("name", help="Prompt name")
+    p_promote.add_argument("name", help=_PROMPT_NAME_LABEL)
     p_promote.add_argument(
         "label",
         choices=["production", "staging", "experimental"],
@@ -215,7 +218,7 @@ def main() -> None:
     p_promote.set_defaults(func=cmd_promote)
 
     p_demote = sub.add_parser("demote", help="Remove a label from all versions")
-    p_demote.add_argument("name", help="Prompt name")
+    p_demote.add_argument("name", help=_PROMPT_NAME_LABEL)
     p_demote.add_argument(
         "label",
         choices=["production", "staging", "experimental"],

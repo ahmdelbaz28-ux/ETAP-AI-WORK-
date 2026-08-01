@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Module-level string constants (extracted to satisfy S1192).
+_HF_GUARD_TEST_IMAGE = "hf-guard-test:latest"  # NOSONAR: extracted constant (S1192)
 """
 HF Space Build Guard
 ====================
@@ -171,7 +174,7 @@ def check_docker_build():
                 "docker",
                 "build",
                 "-t",
-                "hf-guard-test:latest",  # S1192 literal kept inline for readability
+                _HF_GUARD_TEST_IMAGE,  # S1192 literal kept inline for readability
                 tmpdir,
             ],  # NOSONAR intentional repetition (audit constant)
             capture_output=True,
@@ -211,7 +214,7 @@ def check_health_endpoint():
                 container_name,
                 "-p",
                 "7861:7860",
-                "hf-guard-test:latest",
+                _HF_GUARD_TEST_IMAGE,
             ],
             capture_output=True,
             text=True,
@@ -302,7 +305,7 @@ def cleanup():
             capture_output=True,
             timeout=10,
         )
-        subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
+        subprocess.run(["docker", "rmi", _HF_GUARD_TEST_IMAGE], capture_output=True, timeout=10)
     except Exception:
         pass
 

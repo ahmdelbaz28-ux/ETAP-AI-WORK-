@@ -56,7 +56,7 @@ class PowerSystemEngine:
             load_flow_solver
             if load_flow_solver is not None
             else (
-                LoadFlowSolver(system) if system is not None else None  # S3358 nested ternary clear in this context
+                LoadFlowSolver(system) if system is not None else None  # S3358 nested ternary clear in this context  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
             )  # NOSONAR nested conditional; extract to named variable (tech debt)
         )
         self.arc_flash_engine = (

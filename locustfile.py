@@ -13,6 +13,9 @@ import random
 from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
 
+
+# Module-level string constants (extracted to satisfy S1192).
+_JSON_CONTENT_TYPE = "application/json"  # NOSONAR: extracted constant (S1192)
 logger = logging.getLogger("ahmedetap-locust")
 
 # Module-level PRNG for load-test scenario selection only.
@@ -171,7 +174,7 @@ class AuthenticatedUser(HttpUser):
         """Authenticate on user start."""
         self.token = None
         self.auth_headers = {
-            "Content-Type": "application/json"  # S1192 literal kept inline for readability
+            "Content-Type": _JSON_CONTENT_TYPE  # S1192 literal kept inline for readability
         }  # NOSONAR intentional repetition (audit constant)
         self._authenticate()
 
@@ -194,7 +197,7 @@ class AuthenticatedUser(HttpUser):
                     self.token = body.get("access_token") or body.get("token")
                     if self.token:
                         self.auth_headers = {
-                            "Content-Type": "application/json",
+                            "Content-Type": _JSON_CONTENT_TYPE,
                             "Authorization": f"Bearer {self.token}",
                         }
                         login_resp.success()
@@ -256,7 +259,7 @@ class AuthenticatedUser(HttpUser):
                     self.token = body.get("access_token") or body.get("token")
                     if self.token:
                         self.auth_headers = {
-                            "Content-Type": "application/json",
+                            "Content-Type": _JSON_CONTENT_TYPE,
                             "Authorization": f"Bearer {self.token}",
                         }
                 except json.JSONDecodeError:

@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_PDF_GLOB_PATTERN = "*.pdf"  # NOSONAR: extracted constant (S1192)
 """
 ETAP User Guide - Complete Setup Script
 ========================================
@@ -84,9 +87,9 @@ def check_pdf_files():
         return 0
 
     pdf_count = len(
-        list(pdfs_path.glob("*.pdf"))  # S1192 literal kept inline for readability
+        list(pdfs_path.glob(_PDF_GLOB_PATTERN))  # S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
-    ac_count = len(list(ac_path.glob("*.pdf"))) if ac_path.exists() else 0
+    ac_count = len(list(ac_path.glob(_PDF_GLOB_PATTERN))) if ac_path.exists() else 0
 
     print_info(f"Main PDFs: {pdf_count}")
     print_info(f"AC Element PDFs: {ac_count}")
@@ -246,8 +249,8 @@ def create_integration_summary():
             "documentation": "etap_user_guide/README.md",
         },
         "statistics": {
-            "total_pdfs": len(list(Path("etap_user_guide/pdfs").glob("*.pdf"))),
-            "total_ac_pdfs": len(list(Path("etap_user_guide/ac_element").glob("*.pdf"))),
+            "total_pdfs": len(list(Path("etap_user_guide/pdfs").glob(_PDF_GLOB_PATTERN))),
+            "total_ac_pdfs": len(list(Path("etap_user_guide/ac_element").glob(_PDF_GLOB_PATTERN))),
             "extracted_files": len(list(Path("etap_user_guide/extracted").glob("*.txt"))),
             "chunk_files": len(list(Path("etap_user_guide/chunks").glob("*_chunks.json"))),
         },

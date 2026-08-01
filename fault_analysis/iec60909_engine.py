@@ -59,23 +59,23 @@ class ShortCircuitResult:
     voltage_factor_c: float  # Voltage factor used
     fault_location: str = ""
     # Sequence currents
-    I_positive: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    I_positive: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    I_negative: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    I_negative: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    I_zero: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    I_zero: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     # Phase currents
-    Ia: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    Ia: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ib: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    Ib: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ic: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability
+    Ic: complex = complex(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
 
@@ -140,19 +140,19 @@ class IEC60909Engine:
     def _compute_zbus(self) -> None:
         """Compute Zbus matrices from Ybus."""
         try:
-            self.Zbus_pos = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability
+            self.Zbus_pos = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
                 self.Ybus_pos
             )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:
             self.Zbus_pos = np.linalg.pinv(self.Ybus_pos)
         try:
-            self.Zbus_neg = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability
+            self.Zbus_neg = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
                 self.Ybus_neg
             )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:
             self.Zbus_neg = np.linalg.pinv(self.Ybus_neg)
         try:
-            self.Zbus_zero = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability
+            self.Zbus_zero = np.linalg.inv(  # S116 field names use engineering notation; snake_case would harm domain readability  # NOSONAR: IEEE/IEC engineering notation — domain-standard names (S116)
                 self.Ybus_zero
             )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:

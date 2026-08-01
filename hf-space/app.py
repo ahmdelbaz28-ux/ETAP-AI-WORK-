@@ -1,3 +1,7 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_DOCS_PATH = "/docs"  # NOSONAR: extracted constant (S1192)
+_REDOC_PATH = "/redoc"  # NOSONAR: extracted constant (S1192)
 """
 AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
@@ -137,8 +141,8 @@ app = FastAPI(
     version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
     license_info={"name": "MIT"},
-    docs_url="/docs",  # S1192 literal kept inline for readability
-    redoc_url="/redoc",  # S1192 literal kept inline for readability
+    docs_url=_DOCS_PATH,  # S1192 literal kept inline for readability
+    redoc_url=_REDOC_PATH,  # S1192 literal kept inline for readability
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
@@ -297,7 +301,7 @@ async def add_security_headers(request: Request, call_next):
     # Strict CSP: NO 'unsafe-eval' anywhere. 'unsafe-inline' for script-src
     # ONLY on API doc routes (/docs, /redoc) where Swagger/ReDoc need it.
     path = request.url.path
-    is_doc_route = path in ("/docs", "/redoc", "/openapi.json") or path.startswith("/docs/")
+    is_doc_route = path in (_DOCS_PATH, _REDOC_PATH, "/openapi.json") or path.startswith("/docs/")
     if is_doc_route:
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
@@ -441,8 +445,8 @@ async def root(request: Request):
                 "zenon_guides": ZENON_GUIDE_COUNT,
                 "standards": len(SUPPORTED_STANDARDS),
                 "endpoints": {
-                    "docs": "/docs",
-                    "redoc": "/redoc",
+                    "docs": _DOCS_PATH,
+                    "redoc": _REDOC_PATH,
                     "health": "/healthz",
                     "agents": "/api/v1/agents",
                 },
@@ -495,8 +499,8 @@ async def root(request: Request):
       <div class="stat"><div class="stat-num">{len(SUPPORTED_STANDARDS)}</div><div class="stat-label">Standards</div></div>
     </div>
     <div class="links">
-      <a href="/docs">Swagger Docs</a>
-      <a href="/redoc">ReDoc</a>
+      <a href=_DOCS_PATH>Swagger Docs</a>
+      <a href=_REDOC_PATH>ReDoc</a>
       <a href="/healthz">Health</a>
       <a href="/api/v1/agents">Agents</a>
       <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" target="_blank">GitHub</a>

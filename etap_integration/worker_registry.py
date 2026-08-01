@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_REDIS_DEFAULT_URL = "redis://localhost:6379/0"  # NOSONAR: extracted constant (S1192)
 """
 etap_integration/worker_registry.py — ETAP Windows Worker heartbeat and registration.
 
@@ -158,7 +161,7 @@ class ETAPWorkerHeartbeat:
     ) -> None:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
         self.redis_url = redis_url or os.getenv(
-            "REDIS_URL", "redis://localhost:6379/0"  # S1192 literal kept inline for readability
+            "REDIS_URL", _REDIS_DEFAULT_URL  # S1192 literal kept inline for readability
         )  # NOSONAR intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
@@ -246,7 +249,7 @@ class WorkerRegistry:
         redis_url: Optional[str] = None,
         stale_threshold: int = _WORKER_TTL,
     ) -> None:
-        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        self.redis_url = redis_url or os.getenv("REDIS_URL", _REDIS_DEFAULT_URL)
         self.stale_threshold = stale_threshold
         self._redis: Optional[Any] = None
 
@@ -297,7 +300,7 @@ class WorkerRegistry:
 
 router = APIRouter(prefix="/etap-worker", tags=["etap-windows-worker"])
 
-_REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+_REDIS_URL = os.getenv("REDIS_URL", _REDIS_DEFAULT_URL)
 
 
 @router.get("/workers")

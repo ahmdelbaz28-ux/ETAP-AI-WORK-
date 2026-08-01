@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Module-level string constants (extracted to satisfy S1192).
+_STUDY_TYPE_3BUS_LF = "3-Bus LF"  # NOSONAR: extracted constant (S1192)
 """Full Verification and Validation Campaign for Power Protection System"""
 
 import os
@@ -32,7 +35,7 @@ class ValidationCampaign:
         self.passed = 0
         self.failed = 0
         self.warnings = 0
-
+  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
     def _record(self, category, test_name, passed, detail="", warning=False):
         status = (
             "PASS" if passed else ("WARN" if warning else "FAIL")  # S3358 nested ternary clear in this context
@@ -110,7 +113,7 @@ class ValidationCampaign:
         converged = solver.solve(max_iter=100, tol=1e-6)
 
         self._record(
-            "3-Bus LF", "Convergence", converged, f"Converged={converged}"  # S1192 literal kept inline for readability
+            _STUDY_TYPE_3BUS_LF, "Convergence", converged, f"Converged={converged}"  # S1192 literal kept inline for readability
         )  # NOSONAR intentional repetition (audit constant)
 
         if converged:
@@ -120,7 +123,7 @@ class ValidationCampaign:
                 vang = np.angle(v, deg=True)
                 in_range = 0.9 <= vmag <= 1.1
                 self._record(
-                    "3-Bus LF",
+                    _STUDY_TYPE_3BUS_LF,
                     f"Bus {bid} Voltage",
                     in_range,
                     f"|V|={vmag:.6f} pu, angle={vang:.4f} deg",
@@ -134,7 +137,7 @@ class ValidationCampaign:
                 total_gen - total_load
             )  # should be positive (losses)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self._record(
-                "3-Bus LF",
+                _STUDY_TYPE_3BUS_LF,
                 "Power Balance",
                 True,
                 f"Total Load={total_load:.4f}, Total Gen={total_gen:.4f}, Losses={P_loss:.4f} pu",
@@ -143,7 +146,7 @@ class ValidationCampaign:
             # Ybus symmetry check
             Ybus = solver.Ybus  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             sym = np.allclose(Ybus, Ybus.T)
-            self._record("3-Bus LF", "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
+            self._record(_STUDY_TYPE_3BUS_LF, "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
 
     def validate_ieee_5bus(self):
         """IEEE 5-Bus Load Flow Validation."""

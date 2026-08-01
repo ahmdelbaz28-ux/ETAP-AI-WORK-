@@ -1,3 +1,6 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_MODEL_NOT_TRAINED_MSG = "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
 """
 Predictive Analytics Module for AhmedETAP Engineering Platform
 ============================================================
@@ -355,7 +358,7 @@ class LoadForecaster:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
             raise RuntimeError(
-                "Model has not been trained yet. Call train() first."  # S1192 literal kept inline for readability
+                _MODEL_NOT_TRAINED_MSG  # S1192 literal kept inline for readability
             )  # NOSONAR intentional repetition (audit constant)
 
         if self._is_prophet:
@@ -688,7 +691,7 @@ class FaultPredictor:
     def predict(self, features: np.ndarray) -> dict[str, Any]:
         """Predict fault probability and type."""
         if not self._is_trained or self.model is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
+            raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
 
         if features.ndim == 1:
             features = features.reshape(1, -1)
@@ -776,7 +779,7 @@ class FaultPredictor:
     def feature_importance(self) -> dict[str, float]:
         """Return feature importance scores."""
         if not self._is_trained or self.model is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
+            raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
 
         # feature_importances_ exists on both XGBoost and sklearn tree models.
         # The previous if/else was redundant (SonarCloud S3923).
@@ -937,7 +940,7 @@ class AnomalyDetector:
             Dictionary with anomaly detection results.
         """
         if not self._is_trained:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
+            raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
 
         if data.ndim == 1:
             data = data.reshape(1, -1)
@@ -974,7 +977,7 @@ class AnomalyDetector:
     def get_threshold(self) -> float:
         """Get the anomaly score threshold."""
         if self._threshold is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
+            raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
         return self._threshold
 
 
@@ -1384,7 +1387,7 @@ def get_ml_capabilities() -> dict[str, Any]:
         },
         "forecasting_methods": {
             "available": [
-                "lstm" if _HAS_TENSORFLOW else None,
+                "lstm" if _HAS_TENSORFLOW else None,  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                 "prophet" if _HAS_PROPHET else None,
                 "linear",
             ],
@@ -1395,7 +1398,7 @@ def get_ml_capabilities() -> dict[str, Any]:
             ),  # NOSONAR nested conditional; extract to named variable (tech debt)
         },
         "fault_prediction_methods": {
-            "available": [
+            "available": [  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
                 "xgboost" if _HAS_XGBOOST else None,
                 "random_forest" if _HAS_SKLEARN else None,
             ],

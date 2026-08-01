@@ -1,3 +1,8 @@
+
+# Module-level string constants (extracted to satisfy S1192).
+_SYSTEM_DATA_NOT_PROVIDED_MSG = "System data not provided"  # NOSONAR: extracted constant (S1192)
+_ENGINEERING_REPORT_TITLE = "Engineering Report"  # NOSONAR: extracted constant (S1192)
+_ANALYSIS_RESULTS_TITLE = "Analysis Results"  # NOSONAR: extracted constant (S1192)
 """
 AhmedETAP - Multi-Agent Orchestrator
 ========================================================
@@ -431,7 +436,7 @@ class ShortCircuitAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(
-                    "System data not provided"  # S1192 literal kept inline for readability
+                    _SYSTEM_DATA_NOT_PROVIDED_MSG  # S1192 literal kept inline for readability
                 )  # NOSONAR
 
             # Build sequence networks
@@ -563,7 +568,7 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             system_data = task.parameters.get("system")
             if not system_data:
-                raise ValueError("System data not provided")
+                raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
             # system_data is now guaranteed non-None (else ValueError above)
             harmonic_sources = task.parameters.get("harmonic_sources", [])
             voltage_kv = task.parameters.get("voltage_kv", 13.8)
@@ -672,7 +677,7 @@ class OptimalPowerFlowAgent(BaseAgent):
 
             system_data = task.parameters.get("system")
             if not system_data:
-                raise ValueError("System data not provided")
+                raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
             # system_data is now guaranteed non-None (else ValueError above)
             generator_costs = task.parameters.get("generator_costs", [])
             method = task.parameters.get("method", "dc")
@@ -799,7 +804,7 @@ class ProtectionCoordinationAgent(BaseAgent):
 
             system_data = task.parameters.get("system")
             if not system_data:
-                raise ValueError("System data not provided")
+                raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
 
             relay_data = task.parameters.get("relays", [])
             coordination_engine = CoordinationEngine()
@@ -1296,12 +1301,12 @@ class ReportGenerationAgent(BaseAgent):
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
-                    "title", "Engineering Report"  # S1192 literal kept inline for readability
+                    "title", _ENGINEERING_REPORT_TITLE  # S1192 literal kept inline for readability
                 ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
-                ReportSection(title="Analysis Results", content=str(content), order=1)  # S1192 literal kept inline for readability
+                ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)  # S1192 literal kept inline for readability
             ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1329,10 +1334,10 @@ class ReportGenerationAgent(BaseAgent):
 
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
-                title=content.get("title", "Engineering Report"),
+                title=content.get("title", _ENGINEERING_REPORT_TITLE),
                 prepared_by="AhmedETAP",
             )
-            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]
+            sections = [ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)]
             generator = DOCXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
             generator.generate_report(metadata, sections, file_path)
@@ -1359,10 +1364,10 @@ class ReportGenerationAgent(BaseAgent):
 
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
-                title=content.get("title", "Engineering Report"),
+                title=content.get("title", _ENGINEERING_REPORT_TITLE),
                 prepared_by="AhmedETAP",
             )
-            sections = [ReportSection(title="Analysis Results", content=str(content), order=1)]
+            sections = [ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)]
             generator = XLSXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
             generator.generate_report(metadata, sections, file_path)
