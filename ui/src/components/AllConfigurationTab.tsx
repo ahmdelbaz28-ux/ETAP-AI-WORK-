@@ -95,97 +95,432 @@ const CATEGORIES: Record<ConfigCategory, CategoryMeta> = {
 
 const CONFIG_CATALOG: readonly ConfigEntry[] = [
   // ─── Security & Auth (hidden) ───────────────────────────────────────────
-  { key: "FERNET_ENCRYPTION_KEY", category: "security", isSecret: true, description: "Fernet symmetric key for at-rest encryption of sensitive DB columns." },
-  { key: "ENCRYPTION_KEY", category: "security", isSecret: true, description: "Generic AES-256 key used by the legacy encrypt/decrypt helpers." },
-  { key: "ENVIRONMENT", category: "security", isSecret: false, description: "Runtime environment: development | staging | production." },
-  { key: "HOST", category: "security", isSecret: false, description: "Bind host for the FastAPI server." },
-  { key: "PORT", category: "security", isSecret: false, description: "Bind port for the FastAPI server." },
-  { key: "CSRF_SECRET", category: "security", isSecret: true, description: "HMAC secret for signing CSRF tokens." },
-  { key: "SESSION_SECRET", category: "security", isSecret: true, description: "Cookie-session signing secret." },
+  {
+    key: "FERNET_ENCRYPTION_KEY",
+    category: "security",
+    isSecret: true,
+    description: "Fernet symmetric key for at-rest encryption of sensitive DB columns.",
+  },
+  {
+    key: "ENCRYPTION_KEY",
+    category: "security",
+    isSecret: true,
+    description: "Generic AES-256 key used by the legacy encrypt/decrypt helpers.",
+  },
+  {
+    key: "ENVIRONMENT",
+    category: "security",
+    isSecret: false,
+    description: "Runtime environment: development | staging | production.",
+  },
+  {
+    key: "HOST",
+    category: "security",
+    isSecret: false,
+    description: "Bind host for the FastAPI server.",
+  },
+  {
+    key: "PORT",
+    category: "security",
+    isSecret: false,
+    description: "Bind port for the FastAPI server.",
+  },
+  {
+    key: "CSRF_SECRET",
+    category: "security",
+    isSecret: true,
+    description: "HMAC secret for signing CSRF tokens.",
+  },
+  {
+    key: "SESSION_SECRET",
+    category: "security",
+    isSecret: true,
+    description: "Cookie-session signing secret.",
+  },
 
   // ─── Database & Cache (hidden) ──────────────────────────────────────────
-  { key: "POSTGRES_DB", category: "database", isSecret: false, description: "Postgres database name (docker-compose only)." },
-  { key: "POSTGRES_USER", category: "database", isSecret: false, description: "Postgres username (docker-compose only)." },
-  { key: "POSTGRES_PASSWORD", category: "database", isSecret: true, description: "Postgres password (docker-compose only)." },
-  { key: "MASTRA_DB_URL", category: "database", isSecret: true, description: "Connection string for the Mastra agent-memory store." },
+  {
+    key: "POSTGRES_DB",
+    category: "database",
+    isSecret: false,
+    description: "Postgres database name (docker-compose only).",
+  },
+  {
+    key: "POSTGRES_USER",
+    category: "database",
+    isSecret: false,
+    description: "Postgres username (docker-compose only).",
+  },
+  {
+    key: "POSTGRES_PASSWORD",
+    category: "database",
+    isSecret: true,
+    description: "Postgres password (docker-compose only).",
+  },
+  {
+    key: "MASTRA_DB_URL",
+    category: "database",
+    isSecret: true,
+    description: "Connection string for the Mastra agent-memory store.",
+  },
 
   // ─── AI providers (hidden) ──────────────────────────────────────────────
-  { key: "ANTHROPIC_MAX_RETRIES", category: "ai", isSecret: false, description: "Max retry attempts for Anthropic API calls." },
-  { key: "ANTHROPIC_TIMEOUT", category: "ai", isSecret: false, description: "Request timeout (seconds) for Anthropic API calls." },
-  { key: "ANTHROPIC_VISION_MODEL", category: "ai", isSecret: false, description: "Model name for Anthropic vision requests." },
-  { key: "BYNARA_BASE_URL", category: "ai", isSecret: false, description: "Base URL for the Bynara LLM provider." },
-  { key: "BYNARA_MODEL", category: "ai", isSecret: false, description: "Default model name for Bynara requests." },
-  { key: "CLOUDFLARE_BASE_URL", category: "ai", isSecret: false, description: "Base URL for Cloudflare AI gateway." },
-  { key: "CLOUDFLARE_MODEL", category: "ai", isSecret: false, description: "Default model name for Cloudflare AI." },
-  { key: "CLOUDFLARE_ACCOUNT_ID", category: "ai", isSecret: false, description: "Cloudflare account ID for AI gateway." },
-  { key: "ZENMUX_BASE_URL", category: "ai", isSecret: false, description: "Base URL for the Zenmux router." },
-  { key: "ZENMUX_MODEL", category: "ai", isSecret: false, description: "Default model for Zenmux." },
+  {
+    key: "ANTHROPIC_MAX_RETRIES",
+    category: "ai",
+    isSecret: false,
+    description: "Max retry attempts for Anthropic API calls.",
+  },
+  {
+    key: "ANTHROPIC_TIMEOUT",
+    category: "ai",
+    isSecret: false,
+    description: "Request timeout (seconds) for Anthropic API calls.",
+  },
+  {
+    key: "ANTHROPIC_VISION_MODEL",
+    category: "ai",
+    isSecret: false,
+    description: "Model name for Anthropic vision requests.",
+  },
+  {
+    key: "BYNARA_BASE_URL",
+    category: "ai",
+    isSecret: false,
+    description: "Base URL for the Bynara LLM provider.",
+  },
+  {
+    key: "BYNARA_MODEL",
+    category: "ai",
+    isSecret: false,
+    description: "Default model name for Bynara requests.",
+  },
+  {
+    key: "CLOUDFLARE_BASE_URL",
+    category: "ai",
+    isSecret: false,
+    description: "Base URL for Cloudflare AI gateway.",
+  },
+  {
+    key: "CLOUDFLARE_MODEL",
+    category: "ai",
+    isSecret: false,
+    description: "Default model name for Cloudflare AI.",
+  },
+  {
+    key: "CLOUDFLARE_ACCOUNT_ID",
+    category: "ai",
+    isSecret: false,
+    description: "Cloudflare account ID for AI gateway.",
+  },
+  {
+    key: "ZENMUX_BASE_URL",
+    category: "ai",
+    isSecret: false,
+    description: "Base URL for the Zenmux router.",
+  },
+  {
+    key: "ZENMUX_MODEL",
+    category: "ai",
+    isSecret: false,
+    description: "Default model for Zenmux.",
+  },
 
   // ─── Email (hidden) ─────────────────────────────────────────────────────
-  { key: "EMAIL_APP_URL", category: "email", isSecret: false, description: "Public URL used in email body links." },
-  { key: "EMAIL_BRAND_NAME", category: "email", isSecret: false, description: "Brand name shown in email headers." },
-  { key: "EMAIL_BRAND_TAGLINE", category: "email", isSecret: false, description: "Brand tagline shown under the logo." },
-  { key: "EMAIL_BRAND_PRIMARY", category: "email", isSecret: false, description: "Primary brand color (hex) for email template." },
-  { key: "EMAIL_BRAND_SECONDARY", category: "email", isSecret: false, description: "Secondary brand color (hex)." },
-  { key: "EMAIL_BRAND_ACCENT", category: "email", isSecret: false, description: "Accent brand color (hex)." },
-  { key: "EMAIL_BRAND_LOGO_EMOJI", category: "email", isSecret: false, description: "Emoji used as fallback logo." },
-  { key: "EMAIL_DASHBOARD_ENABLED", category: "email", isSecret: false, description: "Toggle the Resend email dashboard router." },
-  { key: "EMAIL_DASHBOARD_ADMIN_ROLES", category: "email", isSecret: false, description: "Comma-separated roles allowed to view the email dashboard." },
-  { key: "EMAIL_DASHBOARD_RETENTION_DAYS", category: "email", isSecret: false, description: "Days to retain email dashboard records." },
-  { key: "EMAIL_DIGEST_ENABLED", category: "email", isSecret: false, description: "Toggle daily digest emails." },
-  { key: "EMAIL_DIGEST_SCHEDULE_DAILY", category: "email", isSecret: false, description: "Cron-like daily schedule for digests." },
+  {
+    key: "EMAIL_APP_URL",
+    category: "email",
+    isSecret: false,
+    description: "Public URL used in email body links.",
+  },
+  {
+    key: "EMAIL_BRAND_NAME",
+    category: "email",
+    isSecret: false,
+    description: "Brand name shown in email headers.",
+  },
+  {
+    key: "EMAIL_BRAND_TAGLINE",
+    category: "email",
+    isSecret: false,
+    description: "Brand tagline shown under the logo.",
+  },
+  {
+    key: "EMAIL_BRAND_PRIMARY",
+    category: "email",
+    isSecret: false,
+    description: "Primary brand color (hex) for email template.",
+  },
+  {
+    key: "EMAIL_BRAND_SECONDARY",
+    category: "email",
+    isSecret: false,
+    description: "Secondary brand color (hex).",
+  },
+  {
+    key: "EMAIL_BRAND_ACCENT",
+    category: "email",
+    isSecret: false,
+    description: "Accent brand color (hex).",
+  },
+  {
+    key: "EMAIL_BRAND_LOGO_EMOJI",
+    category: "email",
+    isSecret: false,
+    description: "Emoji used as fallback logo.",
+  },
+  {
+    key: "EMAIL_DASHBOARD_ENABLED",
+    category: "email",
+    isSecret: false,
+    description: "Toggle the Resend email dashboard router.",
+  },
+  {
+    key: "EMAIL_DASHBOARD_ADMIN_ROLES",
+    category: "email",
+    isSecret: false,
+    description: "Comma-separated roles allowed to view the email dashboard.",
+  },
+  {
+    key: "EMAIL_DASHBOARD_RETENTION_DAYS",
+    category: "email",
+    isSecret: false,
+    description: "Days to retain email dashboard records.",
+  },
+  {
+    key: "EMAIL_DIGEST_ENABLED",
+    category: "email",
+    isSecret: false,
+    description: "Toggle daily digest emails.",
+  },
+  {
+    key: "EMAIL_DIGEST_SCHEDULE_DAILY",
+    category: "email",
+    isSecret: false,
+    description: "Cron-like daily schedule for digests.",
+  },
 
   // ─── SCADA (hidden) ─────────────────────────────────────────────────────
-  { key: "SCADA_SYSTEM_TYPE", category: "scada", isSecret: false, description: "SCADA vendor: zenon | iec61850 | openhab." },
-  { key: "SCADA_SYNC_INTERVAL_SEC", category: "scada", isSecret: false, description: "Telemetry poll interval (seconds)." },
+  {
+    key: "SCADA_SYSTEM_TYPE",
+    category: "scada",
+    isSecret: false,
+    description: "SCADA vendor: zenon | iec61850 | openhab.",
+  },
+  {
+    key: "SCADA_SYNC_INTERVAL_SEC",
+    category: "scada",
+    isSecret: false,
+    description: "Telemetry poll interval (seconds).",
+  },
 
   // ─── ETAP (hidden) ──────────────────────────────────────────────────────
-  { key: "ETAP_WORKER_URL", category: "etap", isSecret: false, description: "URL of the ETAP worker bridge service." },
+  {
+    key: "ETAP_WORKER_URL",
+    category: "etap",
+    isSecret: false,
+    description: "URL of the ETAP worker bridge service.",
+  },
 
   // ─── Edge protection (hidden) ───────────────────────────────────────────
-  { key: "AKAMAI_ORIGIN_SECRET", category: "edge", isSecret: true, description: "Shared secret between Akamai edge and origin for request verification." },
-  { key: "CLOUDFLARE_ORIGIN_SECRET", category: "edge", isSecret: true, description: "Shared secret between Cloudflare edge and origin." },
-  { key: "CF_BLOCKED_COUNTRIES", category: "edge", isSecret: false, description: "Comma-separated ISO country codes to block at the edge." },
-  { key: "CF_ORIGIN_RATE_LIMIT", category: "edge", isSecret: false, description: "Per-IP rate limit enforced at the Cloudflare edge." },
+  {
+    key: "AKAMAI_ORIGIN_SECRET",
+    category: "edge",
+    isSecret: true,
+    description: "Shared secret between Akamai edge and origin for request verification.",
+  },
+  {
+    key: "CLOUDFLARE_ORIGIN_SECRET",
+    category: "edge",
+    isSecret: true,
+    description: "Shared secret between Cloudflare edge and origin.",
+  },
+  {
+    key: "CF_BLOCKED_COUNTRIES",
+    category: "edge",
+    isSecret: false,
+    description: "Comma-separated ISO country codes to block at the edge.",
+  },
+  {
+    key: "CF_ORIGIN_RATE_LIMIT",
+    category: "edge",
+    isSecret: false,
+    description: "Per-IP rate limit enforced at the Cloudflare edge.",
+  },
 
   // ─── Observability (hidden) ─────────────────────────────────────────────
-  { key: "HEALTH_CHECK_API_URL", category: "observability", isSecret: false, description: "Upstream health-check probe URL." },
-  { key: "PROMETHEUS_ENABLED", category: "observability", isSecret: false, description: "Toggle Prometheus metrics export." },
-  { key: "PROMETHEUS_PORT", category: "observability", isSecret: false, description: "Port for the Prometheus metrics endpoint." },
-  { key: "OTEL_EXPORTER_OTLP_ENDPOINT", category: "observability", isSecret: false, description: "OpenTelemetry OTLP endpoint URL." },
-  { key: "OTEL_SERVICE_NAME", category: "observability", isSecret: false, description: "OpenTelemetry service name label." },
+  {
+    key: "HEALTH_CHECK_API_URL",
+    category: "observability",
+    isSecret: false,
+    description: "Upstream health-check probe URL.",
+  },
+  {
+    key: "PROMETHEUS_ENABLED",
+    category: "observability",
+    isSecret: false,
+    description: "Toggle Prometheus metrics export.",
+  },
+  {
+    key: "PROMETHEUS_PORT",
+    category: "observability",
+    isSecret: false,
+    description: "Port for the Prometheus metrics endpoint.",
+  },
+  {
+    key: "OTEL_EXPORTER_OTLP_ENDPOINT",
+    category: "observability",
+    isSecret: false,
+    description: "OpenTelemetry OTLP endpoint URL.",
+  },
+  {
+    key: "OTEL_SERVICE_NAME",
+    category: "observability",
+    isSecret: false,
+    description: "OpenTelemetry service name label.",
+  },
 
   // ─── Rate limiting & circuit breaker (hidden) ───────────────────────────
-  { key: "RATE_LIMIT_REQUESTS_PER_MINUTE", category: "ratelimit", isSecret: false, description: "Global per-IP rate limit." },
-  { key: "CIRCUIT_BREAKER_FAILURE_THRESHOLD", category: "ratelimit", isSecret: false, description: "Failure count that opens the circuit breaker." },
-  { key: "MAX_BODY_SIZE", category: "ratelimit", isSecret: false, description: "Max request body size in bytes." },
+  {
+    key: "RATE_LIMIT_REQUESTS_PER_MINUTE",
+    category: "ratelimit",
+    isSecret: false,
+    description: "Global per-IP rate limit.",
+  },
+  {
+    key: "CIRCUIT_BREAKER_FAILURE_THRESHOLD",
+    category: "ratelimit",
+    isSecret: false,
+    description: "Failure count that opens the circuit breaker.",
+  },
+  {
+    key: "MAX_BODY_SIZE",
+    category: "ratelimit",
+    isSecret: false,
+    description: "Max request body size in bytes.",
+  },
 
   // ─── Feature flags (hidden) ─────────────────────────────────────────────
-  { key: "ENABLE_ASYNC_EXECUTION", category: "feature", isSecret: false, description: "Toggle async study execution." },
-  { key: "ENABLE_CACHING", category: "feature", isSecret: false, description: "Toggle study result caching." },
-  { key: "ENABLE_OBSERVABILITY", category: "feature", isSecret: false, description: "Toggle OpenTelemetry instrumentation." },
+  {
+    key: "ENABLE_ASYNC_EXECUTION",
+    category: "feature",
+    isSecret: false,
+    description: "Toggle async study execution.",
+  },
+  {
+    key: "ENABLE_CACHING",
+    category: "feature",
+    isSecret: false,
+    description: "Toggle study result caching.",
+  },
+  {
+    key: "ENABLE_OBSERVABILITY",
+    category: "feature",
+    isSecret: false,
+    description: "Toggle OpenTelemetry instrumentation.",
+  },
 
   // ─── Storage (hidden) ───────────────────────────────────────────────────
-  { key: "R2_ACCOUNT_ID", category: "storage", isSecret: false, description: "Cloudflare R2 account ID." },
-  { key: "R2_ACCESS_KEY_ID", category: "storage", isSecret: true, description: "R2 access key ID." },
-  { key: "R2_SECRET_ACCESS_KEY", category: "storage", isSecret: true, description: "R2 secret access key." },
-  { key: "R2_BUCKET_NAME", category: "storage", isSecret: false, description: "R2 bucket name for project artifacts." },
+  {
+    key: "R2_ACCOUNT_ID",
+    category: "storage",
+    isSecret: false,
+    description: "Cloudflare R2 account ID.",
+  },
+  {
+    key: "R2_ACCESS_KEY_ID",
+    category: "storage",
+    isSecret: true,
+    description: "R2 access key ID.",
+  },
+  {
+    key: "R2_SECRET_ACCESS_KEY",
+    category: "storage",
+    isSecret: true,
+    description: "R2 secret access key.",
+  },
+  {
+    key: "R2_BUCKET_NAME",
+    category: "storage",
+    isSecret: false,
+    description: "R2 bucket name for project artifacts.",
+  },
 
   // ─── Integrations (hidden) ──────────────────────────────────────────────
-  { key: "VERCEL_ORG_ID", category: "integration", isSecret: false, description: "Vercel org ID for deploy webhooks." },
-  { key: "VERCEL_TOKEN", category: "integration", isSecret: true, description: "Vercel personal access token." },
-  { key: "VITE_API_URL", category: "integration", isSecret: false, description: "Frontend build-time API URL override." },
-  { key: "GITHUB_REPO", category: "integration", isSecret: false, description: "Default repo for code-agent PRs." },
-  { key: "HF_SPACE_NAME", category: "integration", isSecret: false, description: "Hugging Face Space name." },
-  { key: "HF_REPO_URL", category: "integration", isSecret: false, description: "Hugging Face repo URL." },
-  { key: "LANGWATCH_PROJECT", category: "integration", isSecret: false, description: "LangWatch project slug." },
-  { key: "LANGWATCH_ENDPOINT", category: "integration", isSecret: false, description: "LangWatch OTLP endpoint." },
-  { key: "SMITHERY_BASE_URL", category: "integration", isSecret: false, description: "Smithery MCP base URL." },
+  {
+    key: "VERCEL_ORG_ID",
+    category: "integration",
+    isSecret: false,
+    description: "Vercel org ID for deploy webhooks.",
+  },
+  {
+    key: "VERCEL_TOKEN",
+    category: "integration",
+    isSecret: true,
+    description: "Vercel personal access token.",
+  },
+  {
+    key: "VITE_API_URL",
+    category: "integration",
+    isSecret: false,
+    description: "Frontend build-time API URL override.",
+  },
+  {
+    key: "GITHUB_REPO",
+    category: "integration",
+    isSecret: false,
+    description: "Default repo for code-agent PRs.",
+  },
+  {
+    key: "HF_SPACE_NAME",
+    category: "integration",
+    isSecret: false,
+    description: "Hugging Face Space name.",
+  },
+  {
+    key: "HF_REPO_URL",
+    category: "integration",
+    isSecret: false,
+    description: "Hugging Face repo URL.",
+  },
+  {
+    key: "LANGWATCH_PROJECT",
+    category: "integration",
+    isSecret: false,
+    description: "LangWatch project slug.",
+  },
+  {
+    key: "LANGWATCH_ENDPOINT",
+    category: "integration",
+    isSecret: false,
+    description: "LangWatch OTLP endpoint.",
+  },
+  {
+    key: "SMITHERY_BASE_URL",
+    category: "integration",
+    isSecret: false,
+    description: "Smithery MCP base URL.",
+  },
 
   // ─── Misc (hidden) ──────────────────────────────────────────────────────
-  { key: "MAX_WORKERS", category: "misc", isSecret: false, description: "Worker process count for the study executor." },
-  { key: "CACHE_SIZE_MB", category: "misc", isSecret: false, description: "In-memory cache size budget (MB)." },
-  { key: "CACHE_DEFAULT_TTL", category: "misc", isSecret: false, description: "Default TTL for cache entries (seconds)." },
+  {
+    key: "MAX_WORKERS",
+    category: "misc",
+    isSecret: false,
+    description: "Worker process count for the study executor.",
+  },
+  {
+    key: "CACHE_SIZE_MB",
+    category: "misc",
+    isSecret: false,
+    description: "In-memory cache size budget (MB).",
+  },
+  {
+    key: "CACHE_DEFAULT_TTL",
+    category: "misc",
+    isSecret: false,
+    description: "Default TTL for cache entries (seconds).",
+  },
 ] as const;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -430,11 +765,13 @@ export function AllConfigurationTab() {
       </div>
 
       <p className="text-xs text-[var(--text-tertiary)] mt-4 leading-relaxed">
-        This tab is a discoverability surface, not an editor. Secret-classified keys
-        never display their value — the Rotate button sends only the key name to
-        <code className="mx-1 font-mono text-[var(--text-muted)]">POST {API_BASE_URL}/api/v1/settings/rotate</code>
-        and the new value stays server-side. Non-secret values may be revealed on
-        demand for debugging.
+        This tab is a discoverability surface, not an editor. Secret-classified keys never display
+        their value — the Rotate button sends only the key name to
+        <code className="mx-1 font-mono text-[var(--text-muted)]">
+          POST {API_BASE_URL}/api/v1/settings/rotate
+        </code>
+        and the new value stays server-side. Non-secret values may be revealed on demand for
+        debugging.
       </p>
     </Card>
   );
