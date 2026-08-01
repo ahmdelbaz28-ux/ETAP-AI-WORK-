@@ -77,7 +77,7 @@ class TestSyncPromptLoaderSafety:
 
         async def _spy(
             *args, **kwargs
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             call_count[0] += 1
             return None
 
@@ -139,7 +139,7 @@ class TestAsyncPromptLoaderSafety:
 
         async def _spy(
             *args, **kwargs
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             call_count[0] += 1
             return None
 
@@ -160,7 +160,7 @@ class TestAsyncPromptLoaderSafety:
 
         call_count = [0]
 
-        async def _spy(handle):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        async def _spy(handle):  # NOSONAR async function uses sync I/O for compatibility reasons
             call_count[0] += 1
             return None  # Return None so YAML is used
 
@@ -189,7 +189,7 @@ class TestIntegrityCheck:
         # Mock Langfuse to return a DIFFERENT prompt than the YAML
         async def _mock_langfuse(
             handle,
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             return "MALICIOUS PROMPT — INJECTED FROM REMOTE"
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _mock_langfuse)
@@ -219,7 +219,7 @@ class TestIntegrityCheck:
 
         async def _mock_langfuse(
             handle,
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             return yaml_prompt  # Same content → same hash
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _mock_langfuse)
@@ -236,7 +236,7 @@ class TestIntegrityCheck:
 
         async def _mock_langfuse(
             handle,
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             return "Remote-only prompt content"
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _mock_langfuse)
@@ -268,19 +268,19 @@ class TestCircuitBreaker:
 
         async def _always_fails(
             handle,
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             call_count[0] += 1
-            # NOSONAR: generic Exception is intentional here —
+            # NOSONAR generic Exception is intentional here —
             # the test simulates a transport-level failure that could be any
             # exception subclass (ConnectionError, TimeoutError, etc.).
-            raise RuntimeError("network error")  # NOSONAR: RuntimeError simulates transport failure
+            raise RuntimeError("network error")  # NOSONAR RuntimeError simulates transport failure
 
         monkeypatch.setattr(prompt_loader, "_load_from_langfuse_async", _always_fails)
 
         # Call N+1 times — first N record failures, the N+1th fast-fails
         # Note: the circuit breaker logic is inside _load_from_langfuse_async,
         # but here we mocked that function, so we test the breaker directly.
-        for i in range(5):  # NOSONAR: unused local kept for clarity/debugging
+        for i in range(5):  # NOSONAR unused local kept for clarity/debugging
             prompt_loader._langfuse_cb.record_failure()
 
         assert prompt_loader._langfuse_cb.is_open
@@ -392,7 +392,7 @@ class TestTrackLLMCallDecorator:
 
         with pytest.raises(
             ValueError, match="boom"
-        ):  # NOSONAR: multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             asyncio.run(fn())
 
     def test_decorator_does_not_crash_when_langfuse_disabled(self, monkeypatch):

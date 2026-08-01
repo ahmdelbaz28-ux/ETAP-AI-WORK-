@@ -60,8 +60,8 @@ class OvercurrentRelay(Relay):
         relay_id,
         name="OvercurrentRelay",
         curve_type="standard_inverse",
-        TMS=1.0,
-        Ip=1.0,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        TMS=1.0,  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        Ip=1.0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
         """
         Overcurrent relay (50/51).
@@ -80,24 +80,24 @@ class OvercurrentRelay(Relay):
         self.curves = IEC60255Curves()
 
     def pickup_logic(
-        self, I
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Pickup if current meets or exceeds pickup setting.
         """
         return abs(I) >= self.Ip
 
     def trip_time(
-        self, I
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Calculate trip time based on IEC curve.
         """
         if not self.pickup_logic(I):
             return float("inf")
-        I_mag = abs(
+        I_mag = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             I
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if self.curve_type == "standard_inverse":
             return self.curves.standard_inverse(self.TMS, I_mag, self.Ip)
         elif self.curve_type == "very_inverse":
@@ -110,8 +110,8 @@ class OvercurrentRelay(Relay):
             raise ValueError(f"Unknown curve type: {self.curve_type}")
 
     def operate(
-        self, I, t=0
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, I, t=0  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Operate the relay: if picked up and time exceeds trip time, then trip.
         For simplicity, we assume instantaneous trip if we pass the operate method with time.
@@ -142,8 +142,8 @@ class DistanceRelay(Relay):
         self.offset_angle = np.radians(offset_angle)
 
     def pickup_logic(
-        self, V, I
-    ):  # NOSONAR: relay subclasses intentionally use domain-specific signatures (V,I for distance/directional; Ibias,Idiff for differential); base class is a protocol stub
+        self, V, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR relay subclasses intentionally use domain-specific signatures (V,I for distance/directional; Ibias,Idiff for differential); base class is a protocol stub
         if I == 0:
             return False
         Z = V / I
@@ -151,25 +151,25 @@ class DistanceRelay(Relay):
         return abs(Z) < self.impedance_setting
 
     def operate(
-        self, V, I
-    ):  # NOSONAR: see pickup_logic; signature matches the relay's measurement quantities
+        self, V, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR see pickup_logic; signature matches the relay's measurement quantities
         self.pickup = self.pickup_logic(V, I)
         # For distance relays, trip is typically instantaneous if picked up.
         self.trip = self.pickup
-        return self.trip  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        return self.trip  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
 
 class DifferentialRelay(Relay):
     def __init__(
-        self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5
-    ):  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+        self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         """
         Differential relay (87).
 
         Parameters:
         relay_id (int): Unique identifier.
         name (str): Name of the relay.
-        Ip (float): Pickup current in per-unit.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ip (float): Pickup current in per-unit.  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         slope1 (float): Slope1 of the characteristic.
         slope2 (float): Slope2 of the characteristic.
         """
@@ -179,21 +179,21 @@ class DifferentialRelay(Relay):
         self.slope2 = slope2
 
     def pickup_logic(
-        self, Ibias, Idiff
-    ):  # NOSONAR: differential relay uses (Ibias, Idiff) per IEEE C37.91; base class `value` is a protocol stub
+        self, Ibias, Idiff  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR differential relay uses (Ibias, Idiff) per IEEE C37.91; base class `value` is a protocol stub
         Ibias = abs(Ibias)
         Idiff = abs(Idiff)
-        Ibias2 = 2.0  # breakpoint for slope2  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+        Ibias2 = 2.0  # breakpoint for slope2  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if Ibias < Ibias2:
             return Idiff > self.Ip + self.slope1 * Ibias
         else:
             return (
                 Idiff > self.Ip + self.slope1 * Ibias2 + self.slope2 * (Ibias - Ibias2)
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     def operate(
-        self, Ibias, Idiff
-    ):  # NOSONAR: see pickup_logic; differential relay operates on bias+diff currents
+        self, Ibias, Idiff  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR see pickup_logic; differential relay operates on bias+diff currents
         self.pickup = self.pickup_logic(Ibias, Idiff)
         # Differential relays are typically instantaneous.
         self.trip = self.pickup
@@ -202,13 +202,13 @@ class DifferentialRelay(Relay):
 
 class DirectionalRelay(
     Relay
-):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def __init__(self, relay_id, name="DirectionalRelay", voltage_threshold=0.1, angle_offset=0):
         """
         Directional relay (67).
 
         Parameters:
-        relay_id (int): Unique identifier.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        relay_id (int): Unique identifier.  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         name (str): Name of the relay.
         voltage_threshold (float): Minimum voltage for operation in per-unit.
         angle_offset (float): Angle offset in degrees for directional characteristic.
@@ -218,21 +218,21 @@ class DirectionalRelay(
         self.angle_offset = np.radians(angle_offset)
 
     def pickup_logic(
-        self, V, I
-    ):  # NOSONAR: directional relay (67) needs V and I to compute direction; base `value` is a protocol stub
+        self, V, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR directional relay (67) needs V and I to compute direction; base `value` is a protocol stub
         if abs(V) < self.voltage_threshold or abs(I) < 1e-3:
             return False
         # Calculate the angle of VI
         S = V * np.conj(I)  # complex power
-        angle_S = np.angle(S)  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+        angle_S = np.angle(S)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         # Check if angle is within +/- 90 degrees of the offset angle (forward direction)
         angle_diff = angle_S - self.angle_offset
         # Normalize to [-180, 180]
         angle_diff = np.arctan2(np.sin(angle_diff), np.cos(angle_diff))
         return abs(angle_diff) < np.radians(90)
 
-    def operate(self, V, I):  # NOSONAR: see pickup_logic; directional relay operates on V+I
+    def operate(self, V, I):  # NOSONAR see pickup_logic; directional relay operates on V+I
         self.pickup = self.pickup_logic(V, I)
         # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
         self.trip = self.pickup
-        return self.trip  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        return self.trip  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

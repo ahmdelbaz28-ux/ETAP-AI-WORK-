@@ -27,7 +27,7 @@ jobs:
         run: python -m build
           
       - name: Create Release
-        uses: softprops/action-gh-release@v2  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           files: dist/**
           generate_release_notes: true

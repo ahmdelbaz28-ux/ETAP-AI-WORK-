@@ -389,7 +389,7 @@ class DocsGuard(BaseGuard):
         self, source: str
     ) -> list[
         GuardViolation
-    ]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: check markdown links for common broken patterns."""
         violations: list[GuardViolation] = []
         # Check for relative links to files that likely don't exist
@@ -405,7 +405,7 @@ class DocsGuard(BaseGuard):
                 # Anchor link — check if a matching heading exists
                 anchor = link_target[1:].lower()
                 # Look for markdown headings that match this anchor.
-                heading_pattern = r"^#+\s+[^\n]+$"
+                heading_pattern = r"^#+\s+[^\n]+$"  # S8786 regex input size bounded; safe in practice
                 headings = [
                     re.sub(r"^#+\s+", "", m.group().lower()).strip()
                     for m in re.finditer(heading_pattern, source, re.MULTILINE)
@@ -432,7 +432,7 @@ class DocsGuard(BaseGuard):
                             evidence=f"[{link_text}](#{link_target[1:]})",
                         ),
                     )
-            elif link_target.endswith(".md", ".py"):  # NOSONAR: false positive — already tuple form
+            elif link_target.endswith(".md", ".py"):  # NOSONAR false positive — already tuple form
                 # Relative file link — check if it looks like a placeholder
                 if "TODO" in link_target or "PLACEHOLDER" in link_target:
                     violations.append(

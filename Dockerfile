@@ -35,7 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R user:user /app /tmp
 
 # Python dependencies — lightweight subset (no ML, no Celery, no Redis).
-# NOSONAR: requirements.hf.txt is audited and pins versions in-repo.
+# requirements.hf.txt is version-locked (~=) so this install can stay
+# binary-only (SonarCloud docker:S8544).
 # NOTE: pre-commit hooks are NOT installed in the Docker image.
 # `pre-commit install` writes to .git/hooks/pre-commit, which requires a git
 # repository. The HF Space Docker build context excludes .git/ (see
@@ -45,7 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # production image does not need it. CI enforces lint/tests separately.
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
-    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt  # NOSONAR: requirements.hf.txt pins versions in-repo
+    pip install --no-cache-dir --only-binary :all: -r /tmp/requirements.hf.txt
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.

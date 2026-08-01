@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { FileText, Plus, Search, Loader2, Edit3, Trash2, Copy, CheckCircle2, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FileText, Plus, Search, Loader2, Trash2, Copy } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
-import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
+import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 
@@ -19,8 +19,8 @@ interface Template {
 }
 
 export default function Templates() {
-  const { t } = useTranslation();
-  const notify = useNotify();
+  useTranslation();
+  const { notify } = useNotify();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,8 +38,8 @@ export default function Templates() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTemplates(data.templates || data || []);
-    } catch (err: any) {
-      notify.error("Failed to load templates");
+    } catch {
+      notify("error", "Failed to load templates");
     } finally {
       setLoading(false);
     }
@@ -59,12 +59,12 @@ export default function Templates() {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      notify.success("Template created successfully");
+      notify("success", "Template created successfully");
       setShowCreate(false);
       setFormData({ name: "", description: "", study_type: "load_flow" });
       fetchTemplates();
-    } catch (err: any) {
-      notify.error("Failed to create template");
+    } catch {
+      notify("error", "Failed to create template");
     }
   };
 
@@ -76,10 +76,10 @@ export default function Templates() {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      notify.success("Template deleted");
+      notify("success", "Template deleted");
       fetchTemplates();
-    } catch (err: any) {
-      notify.error("Failed to delete template");
+    } catch {
+      notify("error", "Failed to delete template");
     }
   };
 
@@ -91,9 +91,9 @@ export default function Templates() {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      notify.success("Template applied to current study");
-    } catch (err: any) {
-      notify.error("Failed to apply template");
+      notify("success", "Template applied to current study");
+    } catch {
+      notify("error", "Failed to apply template");
     }
   };
 
@@ -101,6 +101,67 @@ export default function Templates() {
     t.name.toLowerCase().includes(search.toLowerCase()) ||
     t.description.toLowerCase().includes(search.toLowerCase())
   );
+
+  // S3358: render states via if/else instead of a nested ternary chain.
+  let content: ReactNode;
+  if (loading) {
+    content = (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
+    );
+  } else if (filtered.length === 0) {
+    content = (
+      <Card>
+        <div className="p-12 text-center">
+          <FileText className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-muted)]">No templates found. Create your first template to get started.</p>
+        </div>
+      </Card>
+    );
+  } else {
+    content = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map((tpl) => (
+          <Card key={tpl.id} className="hover:border-brand-500/40 transition-colors">
+            <div className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-5 h-5 text-brand-500 shrink-0" />
+                  <h3 className="font-semibold text-[var(--text-primary)] truncate">{tpl.name}</h3>
+                </div>
+                <Badge>{tpl.study_type}</Badge>
+              </div>
+              <p className="text-sm text-[var(--text-muted)] line-clamp-2">{tpl.description}</p>
+              <div className="flex items-center justify-between pt-2 border-t border-[var(--border-primary)]">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleApply(tpl.id)}
+                    className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                    title="Apply template"
+                    type="button"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(tpl.id)}
+                    className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    title="Delete template"
+                    type="button"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <span className="text-xs text-[var(--text-muted)]">
+                  {new Date(tpl.updated_at).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 p-6">
@@ -133,58 +194,7 @@ export default function Templates() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <div className="p-12 text-center">
-            <FileText className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
-            <p className="text-[var(--text-muted)]">No templates found. Create your first template to get started.</p>
-          </div>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((tpl) => (
-            <Card key={tpl.id} className="hover:border-brand-500/40 transition-colors">
-              <div className="p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="w-5 h-5 text-brand-500 shrink-0" />
-                    <h3 className="font-semibold text-[var(--text-primary)] truncate">{tpl.name}</h3>
-                  </div>
-                  <Badge>{tpl.study_type}</Badge>
-                </div>
-                <p className="text-sm text-[var(--text-muted)] line-clamp-2">{tpl.description}</p>
-                <div className="flex items-center justify-between pt-2 border-t border-[var(--border-primary)]">
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleApply(tpl.id)}
-                      className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-green-400 hover:bg-green-500/10 transition-colors"
-                      title="Apply template"
-                      type="button"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(tpl.id)}
-                      className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Delete template"
-                      type="button"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <span className="text-xs text-[var(--text-muted)]">
-                    {new Date(tpl.updated_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      {content}
 
       {/* Create/Edit Modal */}
       <Modal open={showCreate} onClose={() => setShowCreate(false)}>
@@ -194,8 +204,9 @@ export default function Templates() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Name</label>
+              <label htmlFor="tpl-name" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Name</label>
               <input
+                id="tpl-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -204,8 +215,9 @@ export default function Templates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Description</label>
+              <label htmlFor="tpl-description" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Description</label>
               <textarea
+                id="tpl-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
@@ -214,8 +226,9 @@ export default function Templates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Study Type</label>
+              <label htmlFor="tpl-study-type" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Study Type</label>
               <select
+                id="tpl-study-type"
                 value={formData.study_type}
                 onChange={(e) => setFormData({ ...formData, study_type: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]"

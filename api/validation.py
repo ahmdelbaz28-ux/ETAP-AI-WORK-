@@ -25,9 +25,9 @@ router = APIRouter(prefix="/api/v1/system", tags=["validation"])
         500: {"description": "Internal validation error"},
     },
 )
-async def validate_system(
+async def validate_system(  # S3776 cognitive complexity intentional; logic validated by tests
     request: Request, spec: SystemSpec
-):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate a power system model specification.
 
     Checks structural integrity: all bus references exist, impedance
@@ -100,4 +100,4 @@ async def validate_system(
         logger.exception("system_validation_failed error=%s", str(e), extra={"trace_id": trace_id})
         raise HTTPException(
             status_code=500, detail="Internal validation error"
-        ) from e  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint

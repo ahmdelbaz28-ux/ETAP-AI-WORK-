@@ -124,7 +124,7 @@ def _verify_resend_signature(
 
     parts = dict(
         p.split("=", 1) for p in signature_header.split(",") if "=" in p
-    )  # NOSONAR: dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
+    )  # NOSONAR dict() over comprehension is intentional — generator expression handles the "if "=" in p" filter cleanly
     msg_id = parts.get("svix-id", "")
     timestamp = parts.get("svix-timestamp", "")
     signatures = [v for k, v in parts.items() if k.startswith("svix-signature")]

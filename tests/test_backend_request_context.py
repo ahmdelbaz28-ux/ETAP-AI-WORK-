@@ -15,13 +15,13 @@ from backend.request_context import CorrelationIdMiddleware
 
 async def dummy_endpoint(
     request: Request,
-):  # NOSONAR: async function uses sync I/O for compatibility reasons
+):  # NOSONAR async function uses sync I/O for compatibility reasons
     return JSONResponse({"correlation_id": request.state.correlation_id})
 
 
 async def headers_endpoint(
     request: Request,
-):  # NOSONAR: async function uses sync I/O for compatibility reasons
+):  # NOSONAR async function uses sync I/O for compatibility reasons
     return JSONResponse(
         {
             "correlation_id": request.state.correlation_id,

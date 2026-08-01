@@ -118,7 +118,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         else:
             logger.info("LangfuseMiddleware disabled (LANGFUSE_ENABLED or keys missing)")
 
-    async def dispatch(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def dispatch(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
@@ -195,7 +195,7 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
             # Re-wrap the request body since we already consumed it
             def receive() -> dict[
                 str, Any
-            ]:  # NOSONAR: async function uses sync I/O for compatibility reasons
+            ]:  # NOSONAR async function uses sync I/O for compatibility reasons
                 return {"type": "http.request", "body": body_bytes, "more_body": False}
 
             request._receive = receive  # type: ignore[attr-defined]

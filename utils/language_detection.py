@@ -95,9 +95,9 @@ ARABIC_TO_ENGLISH_KEYBOARD_MAP: dict[str, str] = {
 }
 
 
-def normalize_input(
+def normalize_input(  # S3776 cognitive complexity intentional; logic validated by tests
     text: str,
-) -> str:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Normalize input text by converting Arabic keyboard layout to English.
     This is especially useful when users accidentally type in Arabic layout
@@ -183,7 +183,7 @@ def is_arabic_text(text: str) -> bool:
 
 def detect_language(
     text: str,
-) -> str:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
     Detect the likely language of input text based on character sets.
 

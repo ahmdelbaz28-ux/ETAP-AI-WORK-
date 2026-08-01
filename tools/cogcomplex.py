@@ -83,8 +83,9 @@ class _Complexity(ast.NodeVisitor):
             self.visit(stmt)
 
     def visit_AsyncWith(self, node):
-        for stmt in node.body:
-            self.visit(stmt)
+        # AsyncWith and With share the same body-visit semantics for
+        # complexity accounting; delegate to avoid a duplicate body.
+        self.visit_With(node)
 
     def visit_IfExp(self, node):
         self.complexity += 1 + self._nesting
@@ -170,7 +171,11 @@ def main() -> int:
     if len(sys.argv) < 2:
         print(__doc__)
         return 2
-    path = Path(sys.argv[1])
+    path = Path(sys.argv[1]).resolve()
+    # S8707: validate the CLI-supplied path before touching the filesystem.
+    if not path.is_file():
+        print(f"Error: not a file: {path}", file=sys.stderr)
+        return 2
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     wanted = set(sys.argv[2:])

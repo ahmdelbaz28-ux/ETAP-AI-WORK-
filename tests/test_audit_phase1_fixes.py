@@ -41,7 +41,7 @@ class TestArcFlashE01E02:
 
     def test_e01_non_compliance_warning_in_source(self):
         """E-01: Source must document the formula and its compliance status."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         # Must reference IEEE 1584
         assert "IEEE 1584" in src
         # Must contain the full equation with log10(t)
@@ -57,7 +57,7 @@ class TestArcFlashE01E02:
 
     def test_e02_x_factor_from_table(self):
         """E-02: x_factor must be unpacked from coefficients (not discarded)."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         # The unpack line must use x_factor, not _ (now 5-tuple: k1,k2,k3,k4,x_factor)
         assert re.search(r"k1,\s*k2,\s*k3,\s*k4,\s*x_factor\s*=", src), (
             "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS (5-tuple), not discarded"
@@ -65,7 +65,7 @@ class TestArcFlashE01E02:
 
     def test_e02_x_power_not_hardcoded(self):
         """E-02: x_power must NOT be hardcoded to 1.0."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         # Find the x_power assignment near line 341
         # It should reference x_factor, not be a literal 1.0
         lines = src.splitlines()
@@ -98,14 +98,14 @@ class TestArcFlashE01E02:
 
     def test_e02_clamped_range(self):
         """E-02: x_power should be clamped to safe range."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         assert "max(" in src and "min(" in src, (
             "x_power should be clamped to prevent division-by-zero or overflow"
         )
 
     def test_e01_formula_uses_log10_t(self):
         """E-01: Incident energy formula must use log10(t), not linear t."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         # Should NOT have `* arc_duration_sec` as linear multiplier
         # Should have `+ log10_t` in the formula
         assert "+ log10_t" in src or "+ np.log10(t)" in src, (
@@ -119,7 +119,7 @@ class TestArcFlashE01E02:
 
     def test_e01_gap_distance_parameter(self):
         """E-01: calculate_incident_energy must accept arc_gap_mm parameter."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text()
+        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
         assert "arc_gap_mm" in src, "E-01: arc_gap_mm parameter must exist"
 
     def test_e01_k4_in_coefficients(self):
@@ -134,7 +134,7 @@ class TestArcFlashE01E02:
 
     def test_e20_frequency_parameter(self):
         """S-20: IEC 60909 engine must have configurable frequency."""
-        src = Path("fault_analysis/iec60909_engine.py").read_text()
+        src = Path("fault_analysis/iec60909_engine.py").read_text(encoding='utf-8')
         assert "frequency_hz" in src, "S-20: frequency_hz parameter must exist in __init__"
         assert "self.frequency_hz" in src, (
             "S-20: self.frequency_hz must be stored as instance attribute"
@@ -147,7 +147,7 @@ class TestArcFlashE01E02:
 
     def test_e21_no_abs_imag(self):
         """S-21: IEC 60909 must use z_pos.imag, not abs(z_pos.imag)."""
-        src = Path("fault_analysis/iec60909_engine.py").read_text()
+        src = Path("fault_analysis/iec60909_engine.py").read_text(encoding='utf-8')
         # Should NOT have abs(z_pos.imag) in R/X ratio
         assert "abs(z_pos.imag)" not in src, (
             "S-21: R/X ratio must use z_pos.imag (not abs), per IEC 60909"
@@ -166,7 +166,7 @@ class TestLoadFlowE03:
 
     def test_e03_no_writeback_on_nonconvergence(self):
         """E-03: Source must NOT write back voltages when converged=False."""
-        src = Path("load_flow/load_flow.py").read_text()
+        src = Path("load_flow/load_flow.py").read_text(encoding='utf-8')
         # The non-convergence path should NOT contain bus.voltage = or bus.generation_power =
         # Find the `return False` block (non-convergence)
         lines = src.splitlines()
@@ -196,7 +196,7 @@ class TestCSRFS01:
 
     def test_s01_bypass_value_removed(self):
         """S-01: _BYPASS_VALUE should NOT exist or be commented out."""
-        src = Path("api/csrf.py").read_text()
+        src = Path("api/csrf.py").read_text(encoding='utf-8')
         # _BYPASS_VALUE must be commented out or removed
         lines = src.splitlines()
         for line in lines:
@@ -209,7 +209,7 @@ class TestCSRFS01:
 
     def test_s01_no_token_bypass_check(self):
         """S-01: No code path should accept literal 'bypass' as valid token."""
-        src = Path("api/csrf.py").read_text()
+        src = Path("api/csrf.py").read_text(encoding='utf-8')
         # Should NOT have: if token == "bypass"
         assert 'token == "bypass"' not in src, (
             "S-01: CSRF bypass via literal 'bypass' string must be removed"
@@ -229,7 +229,7 @@ class TestAuthS02:
 
     def test_s02_role_field_removed_or_defaulted(self):
         """S-02: RegisterRequest should NOT have a role field, or it should be ignored."""
-        src = Path("api/auth.py").read_text()
+        src = Path("api/auth.py").read_text(encoding='utf-8')
         # The registration handler should force a fixed role
         assert 'role="viewer"' in src or 'role = "viewer"' in src, (
             "S-02: Registration must force a fixed role (e.g., 'viewer')"
@@ -237,7 +237,7 @@ class TestAuthS02:
 
     def test_s02_register_creates_viewer(self):
         """S-02: New users should always get 'viewer' role, never 'admin'."""
-        src = Path("api/auth.py").read_text()
+        src = Path("api/auth.py").read_text(encoding='utf-8')
         # The role passed to create user should be hardcoded
         # Look for the register function's user creation
         assert "body.role" not in src or "# SECURITY" in src, (
@@ -255,7 +255,7 @@ class TestWebSocketS03:
 
     def test_s03_token_parameter_exists(self):
         """S-03: WebSocket endpoint should accept a token parameter."""
-        src = Path("api/websocket.py").read_text()
+        src = Path("api/websocket.py").read_text(encoding='utf-8')
         assert "token" in src.lower(), (
             "S-03: WebSocket endpoint should accept token for authentication"
         )
@@ -263,14 +263,14 @@ class TestWebSocketS03:
 
     def test_s03_auth_validation_exists(self):
         """S-03: Token validation function should exist."""
-        src = Path("api/websocket.py").read_text()
+        src = Path("api/websocket.py").read_text(encoding='utf-8')
         assert "_validate_ws_token" in src, (
             "S-03: WebSocket should have a token validation function"
         )
 
     def test_s03_rejects_unauthenticated(self):
         """S-03: Unauthenticated connections should be rejected."""
-        src = Path("api/websocket.py").read_text()
+        src = Path("api/websocket.py").read_text(encoding='utf-8')
         assert "4001" in src or "close" in src.lower(), (
             "S-03: Unauthenticated WebSocket connections should be closed"
         )
@@ -286,7 +286,7 @@ class TestTestModeS05:
 
     def test_s05_service_role(self):
         """S-05: Test mode API key should return 'service' role."""
-        src = Path("api/_test_mode.py").read_text()
+        src = Path("api/_test_mode.py").read_text(encoding='utf-8')
         assert '"service"' in src, "S-05: Test mode should grant 'service' role"
         # Should NOT have role: "admin"
         lines = src.splitlines()
@@ -315,12 +315,12 @@ class TestAIMLS07:
 
     def test_s07_auth_dependency_present(self):
         """S-07: AI/ML endpoints should have auth dependencies."""
-        src = Path("api/ai_ml.py").read_text()
+        src = Path("api/ai_ml.py").read_text(encoding='utf-8')
         assert "Depends(" in src, "S-07: AI/ML endpoints should use Depends() for authentication"
 
     def test_s07_all_endpoints_protected(self):
         """S-07: Every @router decorator should have dependencies."""
-        src = Path("api/ai_ml.py").read_text()
+        src = Path("api/ai_ml.py").read_text(encoding='utf-8')
         lines = src.splitlines()
         router_lines = [i for i, line in enumerate(lines) if "@router." in line]
         for line_num in router_lines:
@@ -343,7 +343,7 @@ class TestNginxS18:
 
     def test_s18_connection_upgrade_variable(self):
         """S-18: WebSocket Connection header must use $connection_upgrade, not literal 'upgrade'."""
-        src = Path("nginx.conf").read_text()
+        src = Path("nginx.conf").read_text(encoding='utf-8')
         lines = src.splitlines()
         for i, line in enumerate(lines):
             if "proxy_set_header Connection" not in line:

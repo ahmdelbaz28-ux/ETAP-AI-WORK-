@@ -81,11 +81,11 @@ class CoordinationEngine:
         list: List of coordination results for each fault current.
         """
         results = []
-        for If in fault_currents:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             results.append(self.check_coordination(upstream_relay, downstream_relay, If))
         return results
 
-    def suggest_tms_adjustment(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def suggest_tms_adjustment(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         upstream_relay,
         downstream_relay,
@@ -109,12 +109,12 @@ class CoordinationEngine:
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
         def _trip_time_for_tms(
-            tms, relay, I
-        ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            tms, relay, I  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Use the relay's curve type and Ip, but override TMS locally
-            I_mag = abs(
+            I_mag = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 I
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if I_mag < relay.Ip:
                 return float("inf")
             if relay.curve_type == "standard_inverse":
@@ -128,20 +128,20 @@ class CoordinationEngine:
             else:
                 raise ValueError(f"Unknown curve type: {relay.curve_type}")
 
-        best_TMS = None  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        best_TMS = None  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         min_violation = float("inf")
         # When upstream trips before downstream the margin is negative (or zero).
         # We penalise those cases heavily so the search will never prefer a TMS
         # that lets the upstream device trip first.
         UNCOORDINATED_PENALTY = 100.0
 
-        for TMS_candidate in np.linspace(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        for TMS_candidate in np.linspace(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self.tms_search_min,
             self.tms_search_max,
             self.tms_search_steps,
         ):
             violations = []
-            for If in fault_currents:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 t_up = _trip_time_for_tms(TMS_candidate, upstream_relay, If)
                 t_down = downstream_relay.trip_time(If)
 

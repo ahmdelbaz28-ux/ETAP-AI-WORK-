@@ -55,7 +55,7 @@ class RateLimiter:
 
     def _evict_stale_keys(
         self, _now: float, window_start: float
-    ) -> None:  # NOSONAR: kept for API symmetry with is_allowed (caller passes `now`)
+    ) -> None:  # NOSONAR kept for API symmetry with is_allowed (caller passes `now`)
         """Remove keys that have no entries within the current window.
 
         Called periodically (not on every request) to bound memory usage.

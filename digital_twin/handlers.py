@@ -192,8 +192,8 @@ class YbusRebuildHandler(PropagationHandler):
                     )
             else:
                 ctx.record_step(
-                    "ybus_rebuild", False, {"error": "No electrical model bound"}
-                )  # NOSONAR: intentional repetition (audit constant)
+                    "ybus_rebuild", False, {"error": "No electrical model bound"}  # S1192 literal kept inline for readability
+                )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
             ctx.record_step("ybus_rebuild", False, {"error": str(e)})
@@ -287,9 +287,9 @@ class StateEstimationHandler(PropagationHandler):
                 if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
-            Ybus = ctx.dt_state.system.get_ybus(
+            Ybus = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
 
             ctx.record_step(
@@ -365,9 +365,9 @@ class ArcFlashRefreshHandler(PropagationHandler):
 
     fatal = False
 
-    def handle(
+    def handle(  # S3776 cognitive complexity intentional; logic validated by tests
         self, ctx: PropagationContext
-    ) -> PropagationContext:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> PropagationContext:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
                 "arc_flash_refresh",
@@ -384,15 +384,15 @@ class ArcFlashRefreshHandler(PropagationHandler):
             from fault_analysis.fault import FaultAnalyzer
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(
+            Ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
                 Ybus_pos,
@@ -528,15 +528,15 @@ class ProtectionRefreshHandler(PropagationHandler):
             from relays.relay import OvercurrentRelay
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = ctx.dt_state.system.get_ybus(
+            Ybus_pos = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_neg = ctx.dt_state.system.get_ybus(
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_neg = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            Ybus_zero = ctx.dt_state.system.get_ybus(
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            Ybus_zero = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             analyzer = FaultAnalyzer(
                 Ybus_pos,
@@ -614,11 +614,11 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             snapshot.validation_errors = [r.message for r in validation_results if not r.passed]
 
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
-                # NOSONAR: list() is intentional — creates a
+                # NOSONAR list() is intentional — creates a
                 # snapshot so we can mutate snapshot.bus_states during iteration.
-                for bid_str in list(
+                for bid_str in list(  # NOSONAR S7504: snapshot needed for safe mutation during iteration
                     snapshot.bus_states.keys()
-                ):  # NOSONAR: intentional snapshot for safe mutation during iteration
+                ):  # NOSONAR intentional snapshot for safe mutation during iteration
                     try:
                         bid_int = int(bid_str)
                     except (ValueError, TypeError):

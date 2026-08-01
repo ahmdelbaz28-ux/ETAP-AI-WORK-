@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Python dependencies
 COPY requirements.hf.txt .
-# NOSONAR(S8544): requirements.hf.txt is audited and pins versions in-repo.
+# requirements.hf.txt is version-locked (~=) so this install can stay
+# binary-only (SonarCloud docker:S8544).
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
     pip install --no-cache-dir --only-binary :all: -r requirements.hf.txt
 

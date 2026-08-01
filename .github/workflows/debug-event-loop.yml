@@ -55,9 +55,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          # NOSONAR: requirements.txt is audited separately and pins versions in-repo.
-          pip install --only-binary :all: -r requirements.txt  # S8544: requirements.txt is audited and pins versions in-repo
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1 || pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1  # NOSONAR: versions pinned inline; diagnostic-only workflow (manual trigger)
+          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Smoke test — api.routes:app imports
         run: |

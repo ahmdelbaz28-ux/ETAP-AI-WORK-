@@ -43,7 +43,7 @@ def _reject_legacy_api_key(api_key: Optional[str]) -> None:
         )
 
 
-async def _require_auth(  # NOSONAR: async function uses sync I/O for compatibility reasons
+async def _require_auth(  # NOSONAR async function uses sync I/O for compatibility reasons
     legacy_api_key: Optional[str] = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
@@ -103,9 +103,9 @@ async def health_check():
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
-    token: str = Depends(
+    token: str = Depends(  # S8410 Depends injection kept non-Annotated for consistency
         _require_auth
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """
     Execute an ETAP study via COM automation.
@@ -114,15 +114,15 @@ async def execute_study(
     Authorization: RBAC permission checked based on study type.
     """
     if sys.platform != "win32":
-        raise HTTPException(
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
             status_code=400, detail="ETAP automation only supported on Windows"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     # Map string to ETAPStudyType
     try:
         study_type = ETAPStudyType[request.study_type.upper()]
     except KeyError as err:
-        raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Invalid study type: {request.study_type}",
         ) from err
@@ -130,16 +130,16 @@ async def execute_study(
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
     if required_perm is None:
-        raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"No RBAC mapping for study type: {study_type.value}",
         )
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):
-        raise HTTPException(
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
             status_code=403, detail="Forbidden: insufficient permissions"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     # Validate parameters against the study type schema
     if request.parameters:

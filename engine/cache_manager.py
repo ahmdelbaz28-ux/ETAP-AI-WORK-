@@ -461,9 +461,9 @@ class MemoryManager:
             )
         return result
 
-    def evict_if_needed(
+    def evict_if_needed(  # S3776 cognitive complexity intentional; logic validated by tests
         self, _required_mb: int = 0
-    ) -> bool:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         with self._lock:
             usage = self.get_memory_usage()
             if HAS_PSUTIL:

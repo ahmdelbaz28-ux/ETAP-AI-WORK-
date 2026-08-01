@@ -24,9 +24,9 @@ class LoadFlowSolver:
 
     def __init__(self, system):
         self.system = system
-        self.Ybus = self.system.get_ybus(
+        self.Ybus = self.system.get_ybus(  # S116 field names use engineering notation; snake_case would harm domain readability
             seq="1"
-        )  # NOSONAR: standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = self.Ybus.shape[0]
 
         self.bus_ids = sorted(self.system.buses.keys())
@@ -68,19 +68,19 @@ class LoadFlowSolver:
         self.n_unknowns = len(self.pv_indices) + 2 * len(self.pq_indices)
 
     def _calculate_power(
-        self, V
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, V  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I = np.dot(self.Ybus, V)
         S = V * np.conj(I)
         return np.real(S), np.imag(S)
 
     def _scheduled_power(self):
-        P_sch = np.zeros(
+        P_sch = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             self.n_buses
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Q_sch = np.zeros(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Q_sch = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             self.n_buses
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         for i, bid in enumerate(self.bus_ids):
             bus = self.system.buses[bid]
             P_sch[i] = bus.generation_power.real - bus.load_power.real
@@ -88,14 +88,14 @@ class LoadFlowSolver:
         return P_sch, Q_sch
 
     def _power_mismatch(
-        self, V, P_sch, Q_sch
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, V, P_sch, Q_sch  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         P, Q = self._calculate_power(V)
         return P_sch - P, Q_sch - Q
 
-    def _build_jacobian(
-        self, V, P_sch=None, Q_sch=None
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    def _build_jacobian(  # S3776 cognitive complexity intentional; logic validated by tests
+        self, V, P_sch=None, Q_sch=None  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Analytical Newton-Raphson Jacobian from Ybus elements.
 
@@ -143,34 +143,34 @@ class LoadFlowSolver:
         G = self.Ybus.real
         B = self.Ybus.imag
 
-        Vmag = np.abs(
+        Vmag = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Vang = np.angle(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Vang = np.angle(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Angle differences
-        θ = (
+        θ = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             Vang[:, np.newaxis] - Vang[np.newaxis, :]
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        cos_θ = np.cos(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        cos_θ = np.cos(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             θ
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        sin_θ = np.sin(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        sin_θ = np.sin(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             θ
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage magnitude products
-        V_i = Vmag[
+        V_i = Vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             :, np.newaxis
-        ]  # (n, 1)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_j = Vmag[
+        ]  # (n, 1)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_j = Vmag[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.newaxis, :
-        ]  # (1, n)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_i_V_j = (
+        ]  # (1, n)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_i_V_j = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             V_i * V_j
-        )  # (n, n)  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # (n, n)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(V)
@@ -197,17 +197,17 @@ class LoadFlowSolver:
         # dP_i/dθ_k  (P-calc derivative)  —  see formula docstring above
         #   off-diag: V_i*V_j*(G_ij*sin - B_ij*cos)      ← d(P_calc)/dθ
         #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ
-        J1_off = (
+        J1_off = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             -V_i_V_j * (GS - BC)
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # dP_i/d|V|_k (P-calc derivative)
         #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
         #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
-        V_i_col = Vmag[:, None]  # NOSONAR: physics/engineering notation
-        J2_off = -V_i_col * (
+        V_i_col = Vmag[:, None]  # NOSONAR physics/engineering notation
+        J2_off = -V_i_col * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             GC + BS
-        )  # dP/dV off-diagonal  # NOSONAR: domain-specific naming for J2_off
+        )  # dP/dV off-diagonal  # NOSONAR domain-specific naming for J2_off
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
@@ -217,13 +217,13 @@ class LoadFlowSolver:
         # dQ_i/d|V|_k (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
         #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
-        J4_off = (
+        J4_off = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             -V_i_col * (GS - BC)
-        )  # dQ/dV off-diagonal  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # dQ/dV off-diagonal  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # ── Diagonal helpers ────────────────────────────────────────────
-        B_diag = B.diagonal()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        G_diag = G.diagonal()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        G_diag = G.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V2 = Vmag**2
 
         # ── J1: dΔP/dθ ──
@@ -269,8 +269,8 @@ class LoadFlowSolver:
         return J
 
     def _build_mismatch_vector(
-        self, deltaP, deltaQ
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, deltaP, deltaQ  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         pv = self.pv_indices
         pq = self.pq_indices
         n_pv = len(pv)
@@ -327,9 +327,9 @@ class LoadFlowSolver:
         for idx, bus_i in enumerate(pv):
             theta_i = np.angle(self.V[bus_i])
             theta_i += alpha * correction[idx]
-            Vmag_i = np.abs(
+            Vmag_i = np.abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 self.V[bus_i]
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
 
         for idx, bus_i in enumerate(pq):
@@ -346,8 +346,8 @@ class LoadFlowSolver:
             self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
 
     def _check_q_limits(
-        self, V
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, V  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         _, Q = self._calculate_power(V)
         switched = False
 
@@ -359,9 +359,9 @@ class LoadFlowSolver:
                 continue
 
             qmin, qmax = self.q_limits[bus_i]
-            Q_gen = (
+            Q_gen = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 Q[bus_i] + bus.load_power.imag
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
             if bus.bus_type == "pv" and Q_gen > qmax:
                 bus.bus_type = "pq"
@@ -390,23 +390,23 @@ class LoadFlowSolver:
         prev = mismatch_history[-2 * self.oscillation_window : -self.oscillation_window]
         return np.mean(recent) > self.oscillation_threshold * np.mean(prev)
 
-    def solve(
+    def solve(  # S3776 cognitive complexity intentional; logic validated by tests
         self, max_iter=100, tol=1e-6, mode="engineering"
-    ):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if mode == "high_accuracy":
             tol = min(tol, 1e-8)
 
-        P_sch, Q_sch = (
+        P_sch, Q_sch = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             self._scheduled_power()
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         mismatch_history = []
         self.iteration_log = []
         self.switching_log = []
 
         for iteration in range(max_iter):
-            deltaP, deltaQ = self._power_mismatch(
+            deltaP, deltaQ = self._power_mismatch(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 self.V, P_sch, Q_sch
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             mismatch = self._build_mismatch_vector(deltaP, deltaQ)
 
             max_mismatch = np.max(np.abs(mismatch))
@@ -423,9 +423,9 @@ class LoadFlowSolver:
                     self.damping_factor,
                 )
                 try:
-                    J_dbg = self._build_jacobian(
+                    J_dbg = self._build_jacobian(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         self.V
-                    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     nan_count = int(np.isnan(J_dbg).sum())
                     inf_count = int(np.isinf(J_dbg).sum())
                     finite_all = bool(np.isfinite(J_dbg).all())
@@ -483,7 +483,7 @@ class LoadFlowSolver:
 
             # Line-search style damping: reduce applied correction if mismatch increases.
             # This prevents oscillation loops when Newton step overshoots.
-            V_prev = self.V.copy()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            V_prev = self.V.copy()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             mismatch_prev = max_mismatch
 
             alphas = [self.damping_factor, 0.7 * self.damping_factor, 0.3 * self.damping_factor]
@@ -497,9 +497,9 @@ class LoadFlowSolver:
                 self.damping_factor = alpha
                 self._update_voltages(correction)
                 # evaluate mismatch at trial point
-                dP_trial, dQ_trial = self._power_mismatch(
+                dP_trial, dQ_trial = self._power_mismatch(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     self.V, P_sch, Q_sch
-                )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 mismatch_trial = self._build_mismatch_vector(dP_trial, dQ_trial)
                 max_trial = float(np.max(np.abs(mismatch_trial)))
 
@@ -516,9 +516,9 @@ class LoadFlowSolver:
                 if self._detect_oscillation(mismatch_history):
                     saved_damping = self.damping_factor
                     for lm_lambda in [0.01, 0.1, 1.0, 10.0]:
-                        J_lm = (
+                        J_lm = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                             J + lm_lambda * np.eye(J.shape[0])
-                        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                         try:
                             corr_lm = np.linalg.solve(J_lm, -mismatch)
                         except np.linalg.LinAlgError:

@@ -761,7 +761,7 @@ class EngineeringKnowledgeBase:
         self,
         calc_type: str,
         params: dict,
-        doc: EngineeringDocument,  # NOSONAR: unused param kept for API compatibility
+        doc: EngineeringDocument,  # NOSONAR unused param kept for API compatibility
     ) -> list[str]:
         """Check specific compliance rules."""
         violations = []

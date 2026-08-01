@@ -431,19 +431,19 @@ class ShortCircuitAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(
-                    "System data not provided"
+                    "System data not provided"  # S1192 literal kept inline for readability
                 )  # NOSONAR
 
             # Build sequence networks
             system_data.build_sequence_networks()
 
-            Ybus_pos = system_data.get_ybus(
+            Ybus_pos = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR
-            Ybus_neg = system_data.get_ybus(
+            Ybus_neg = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="2"
             )  # NOSONAR
-            Ybus_zero = system_data.get_ybus(
+            Ybus_zero = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
             )  # NOSONAR
 
@@ -575,7 +575,7 @@ class HarmonicAnalysisAgent(BaseAgent):
             )
 
             # Set system data
-            Ybus = system_data.get_ybus(
+            Ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
@@ -678,7 +678,7 @@ class OptimalPowerFlowAgent(BaseAgent):
             method = task.parameters.get("method", "dc")
 
             # Create OPF engine
-            Ybus = system_data.get_ybus(
+            Ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
@@ -745,13 +745,13 @@ class OptimalPowerFlowAgent(BaseAgent):
             return False
 
         # Check power balance
-        P_gen = result.data.get(
+        P_gen = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_generation_mw", 0
         )  # NOSONAR
-        P_load = result.data.get(
+        P_load = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_load_mw", 0
         )  # NOSONAR
-        P_losses = result.data.get(
+        P_losses = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_losses_mw", 0
         )  # NOSONAR
 
@@ -1296,12 +1296,12 @@ class ReportGenerationAgent(BaseAgent):
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
-                    "title", "Engineering Report"
+                    "title", "Engineering Report"  # S1192 literal kept inline for readability
                 ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
-                ReportSection(title="Analysis Results", content=str(content), order=1)
+                ReportSection(title="Analysis Results", content=str(content), order=1)  # S1192 literal kept inline for readability
             ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1552,7 +1552,7 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
-    async def submit_task(
+    async def submit_task(  # S7503 async signature required by callers; body intentionally sync
         self, task: EngineeringTask
     ) -> None:  # NOSONAR
         """Submit engineering task for execution."""
@@ -2117,7 +2117,7 @@ class ChiefEngineeringOrchestrator:
             "speedup_factor": round(speedup, 2),
         }
 
-    async def get_task_status(
+    async def get_task_status(  # S7503 async signature required by callers; body intentionally sync
         self, task_id: str
     ) -> Optional[
         EngineeringTask

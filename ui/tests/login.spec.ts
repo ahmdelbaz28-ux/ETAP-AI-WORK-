@@ -47,7 +47,7 @@ test.describe("Login Page", () => {
     await page.locator("#login-password").fill("wrongpassword");
     await page.getByRole("button", { name: /Sign In/i }).click();
     await page.waitForTimeout(3000);
-    const errorBanner = page.locator(".bg-red-950\\/20, .text-red-300");
+    const errorBanner = page.locator(String.raw`.bg-red-950\/20, .text-red-300`);
     if (await errorBanner.isVisible().catch(() => false)) {
       await expect(errorBanner).toBeVisible();
     } else {

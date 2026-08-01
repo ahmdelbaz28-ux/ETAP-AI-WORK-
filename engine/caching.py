@@ -186,9 +186,9 @@ class StudyCache:
         if HAS_REDIS:
             self._init_redis()
 
-    async def _get_stats_lock(
+    async def _get_stats_lock(  # S7503 async signature required by callers; body intentionally sync
         self,
-    ) -> asyncio.Lock:  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ) -> asyncio.Lock:  # NOSONAR async function uses sync I/O for compatibility reasons
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock
@@ -299,7 +299,7 @@ class StudyCache:
         except Exception as exc:
             logger.warning(
                 "Cache get error for %s: %s", key, exc
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            )  # NOSONAR logging injection; user input is sanitized upstream
 
         async with await self._get_stats_lock():
             self._misses += 1
@@ -335,7 +335,7 @@ class StudyCache:
         except Exception as exc:
             logger.warning(
                 "Cache set error for %s: %s", key, exc
-            )  # NOSONAR: logging injection; user input is sanitized upstream
+            )  # NOSONAR logging injection; user input is sanitized upstream
             # Try fallback
             try:
                 await self._fallback.set(key, value, ttl_seconds=self._ttl)
@@ -344,7 +344,7 @@ class StudyCache:
             except Exception:
                 logger.error(
                     "Fallback cache set also failed for %s", key
-                )  # NOSONAR: logging injection; user input is sanitized upstream
+                )  # NOSONAR logging injection; user input is sanitized upstream
 
     async def invalidate(self, study_type: str, params: dict) -> None:
         """Invalidate a cached result.

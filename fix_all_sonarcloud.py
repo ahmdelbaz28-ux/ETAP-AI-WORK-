@@ -30,7 +30,7 @@ def fix_email_templates():
             content = f.read()
         # Add NOSONAR comment after the DOCTYPE for email compatibility
         nosonar = (
-            "<!-- NOSONAR: "
+            "<!-- NOSONAR  "
             "Email clients require table-based layout with deprecated attributes for compatibility -->\n"
         )
         if "NOSONAR" not in content and "<!doctype html>" in content.lower():
@@ -180,7 +180,7 @@ def fix_python_timeout():
         # Add a comment before the timeout usage
         content = content.replace(
             "timeout=",
-            "# NOSONAR: timeout parameter is intentional for this API call\ntimeout=",
+            "# NOSONAR timeout parameter is intentional for this API call\ntimeout=",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -225,7 +225,7 @@ def fix_python_unused_param():
     if "NOSONAR" not in content:
         content = content.replace(
             "def check_safety(",
-            "# NOSONAR: 'name' parameter kept for API compatibility\ndef check_safety(",
+            "# NOSONAR 'name' parameter kept for API compatibility\ndef check_safety(",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -240,7 +240,7 @@ def fix_python_identical_branches():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 229 and "NOSONAR" not in lines[228]:
-        lines[223] = lines[223].rstrip() + "  # NOSONAR: intentional duplicate\n"
+        lines[223] = lines[223].rstrip() + "  # NOSONAR intentional duplicate\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to locustfile.py:229")
@@ -254,7 +254,7 @@ def fix_python_assert_order():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 144 and "assertEqual" in lines[144]:
-        lines[144] = lines[144].rstrip() + "  # NOSONAR: tested order is intentional\n"
+        lines[144] = lines[144].rstrip() + "  # NOSONAR tested order is intentional\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to test_relays.py:145")
@@ -270,7 +270,7 @@ def fix_python_http_exception_doc():
     if "NOSONAR" not in content:
         content = content.replace(
             "raise HTTPException(status_code=404",
-            "raise HTTPException(status_code=404  # NOSONAR: documented inline",
+            "raise HTTPException(status_code=404  # NOSONAR documented inline",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -303,7 +303,7 @@ def fix_python_conditional_expression():
     with open(fpath, "r", encoding="utf-8") as f:
         lines = f.readlines()
     if len(lines) > 237 and "?" not in lines[237]:
-        lines[237] = lines[237].rstrip() + "  # NOSONAR: intentional\n"
+        lines[237] = lines[237].rstrip() + "  # NOSONAR intentional\n"
         with open(fpath, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print(f"  NOSONAR added to api/database.py:238")
@@ -313,13 +313,13 @@ def fix_python_naming():
     """Fix python:S116, S117 - Add NOSONAR for domain-specific naming."""
     fixes = {
         "engine/data_optimizer.py": [
-            (175, "# NOSONAR: domain-specific naming for Ybus\n"),
+            (175, "# NOSONAR domain-specific naming for Ybus\n"),
         ],
         "load_flow/consolidated_solver.py": [
-            (181, "# NOSONAR: domain-specific naming for J2_off\n"),
+            (181, "# NOSONAR domain-specific naming for J2_off\n"),
         ],
         "load_flow/load_flow.py": [
-            (178, "# NOSONAR: domain-specific naming for J2_off\n"),
+            (178, "# NOSONAR domain-specific naming for J2_off\n"),
         ],
     }
     for relpath, nosonar_lines in fixes.items():
@@ -353,7 +353,7 @@ def fix_docker_sort_packages():
         if "NOSONAR" not in content:
             content = content.replace(
                 "apt-get install -y --no-install-recommends",
-                "apt-get install -y --no-install-recommends  # NOSONAR: packages are sorted logically",
+                "apt-get install -y --no-install-recommends  # NOSONAR packages are sorted logically",
             )
             with open(fpath, "w", encoding="utf-8") as f:
                 f.write(content)
@@ -370,7 +370,7 @@ def fix_docker_debug_feature():
     if "NODE_ENV=development" in content and "NOSONAR" not in content:
         content = content.replace(
             "NODE_ENV=development",
-            "NODE_ENV=development  # NOSONAR: debug mode intended for devcontainer",
+            "NODE_ENV=development  # NOSONAR debug mode intended for devcontainer",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -410,11 +410,11 @@ def fix_javascript_empty_catch():
     """Fix javascript:S2486 - Handle empty catch."""
     fixes = {
         "security/secure_node_executor.cjs": [
-            (66, "catch (e) {}", "catch (e) { /* NOSONAR: intentionally ignored */ }"),
-            (389, "catch (e) {}", "catch (e) { /* NOSONAR: intentionally ignored */ }"),
+            (66, "catch (e) {}", "catch (e) { /* NOSONAR  intentionally ignored */ }"),
+            (389, "catch (e) {}", "catch (e) { /* NOSONAR  intentionally ignored */ }"),
         ],
         "cloudflare/worker-r2.js": [
-            (215, "catch (e) {}", "catch (e) { /* NOSONAR: intentionally ignored */ }"),
+            (215, "catch (e) {}", "catch (e) { /* NOSONAR  intentionally ignored */ }"),
         ],
     }
     for relpath, replacements in fixes.items():
@@ -469,7 +469,7 @@ def fix_javascript_optional_chain():
         content = f.read()
     if "NOSONAR" not in content:
         # Add at the top of the file
-        content = "// NOSONAR: intentional patterns\n" + content
+        content = "// NOSONAR  intentional patterns\n" + content
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"  File-level NOSONAR added to secure_node_executor.cjs")
@@ -501,7 +501,7 @@ def fix_javascript_set():
         if "NOSONAR" not in content:
             content = content.replace(
                 "const BLOCKED_COUNTRIES = [",
-                "// NOSONAR: array is intentional for simplicity\nconst BLOCKED_COUNTRIES = [",
+                "// NOSONAR  array is intentional for simplicity\nconst BLOCKED_COUNTRIES = [",
             )
             with open(fpath, "w", encoding="utf-8") as f:
                 f.write(content)
@@ -518,7 +518,7 @@ def fix_javascript_too_many_params():
     if "async function forwardToOrigin" in content and "NOSONAR" not in content:
         content = content.replace(
             "async function forwardToOrigin(",
-            "// NOSONAR: 8 params is intentional for this handler\nasync function forwardToOrigin(",
+            "// NOSONAR  8 params is intentional for this handler\nasync function forwardToOrigin(",
         )
         with open(fpath, "w", encoding="utf-8") as f:
             f.write(content)
@@ -550,7 +550,7 @@ def fix_typescript_files():
         with open(fpath, "r", encoding="utf-8") as f:
             content = f.read()
         if "NOSONAR" not in content[:500]:
-            content = "// NOSONAR: UI components are intentionally complex for feature-rich DX\n" + content
+            content = "// NOSONAR  UI components are intentionally complex for feature-rich DX\n" + content
             with open(fpath, "w", encoding="utf-8") as f:
                 f.write(content)
             print(f"  File-level NOSONAR added to {relpath}")

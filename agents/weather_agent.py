@@ -201,20 +201,20 @@ class WeatherAgent(BaseAgent):
         # Simplified for wind perpendicular to conductor
 
         # Air properties at film temperature
-        T_film = (
+        T_film = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (T_c + T_a) / 2.0 + 273.15
         )  # K  # NOSONAR
         k_air = 0.0242 + 7.0e-5 * (T_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (T_film - 300.0)  # Kinematic viscosity m²/s
 
         # Reynolds number
-        Re = (
+        Re = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             wind_speed_ms * D / nu_air if nu_air > 0 else 0.0
         )  # NOSONAR
 
         # Forced convection coefficient (simplified IEEE 738)
         if Re > 0:
-            Nu = (
+            Nu = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 0.3 + 0.62 * Re** 0.5 * 0.71 ** (1.0 / 3.0)
             )  # Simplified  # NOSONAR
             h_conv = Nu * k_air / D
@@ -226,10 +226,10 @@ class WeatherAgent(BaseAgent):
 
         # Radiative heat loss
         sigma_sb = 5.67e-8  # Stefan-Boltzmann constant
-        T_c_K = (
+        T_c_K = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             T_c + 273.15
         )  # NOSONAR
-        T_a_K = (
+        T_a_K = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             T_a + 273.15
         )  # NOSONAR
         q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K**4 - T_a_K**4)
@@ -244,7 +244,7 @@ class WeatherAgent(BaseAgent):
         # I²R = q_loss - q_solar
         q_joule = q_loss - q_solar
 
-        I_dynamic = (
+        I_dynamic = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             float(np.sqrt(q_joule / R)) if q_joule > 0 and R > 0 else 0.0
         )  # NOSONAR
 
@@ -258,7 +258,7 @@ class WeatherAgent(BaseAgent):
             max(0, (conductor_max_temp_c - ambient_temp_c))
             / max(1, (conductor_max_temp_c - static_rating_ambient_c)),
         )
-        I_dlr_simple = (
+        I_dlr_simple = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             static_rating_a * dlr_factor
         )  # NOSONAR
 

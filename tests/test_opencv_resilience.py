@@ -429,4 +429,4 @@ def test_full_chain_imports_cleanly():
     # The hybrid router must have checked both backends
     health = hybrid_vision.health_check()
     assert "primary" in health
-    assert health["primary"] in ("gemini", "opencv", "none")
+    assert health["primary"] in ("gemini", "openai", "anthropic", "opencv", "none")

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 async def create_test_system() -> (
     Any
-):  # NOSONAR: async function uses sync I/O for compatibility reasons
+):  # NOSONAR async function uses sync I/O for compatibility reasons
     """
     Create a minimal test system for agent testing.
     This creates a simple power system with minimal components to allow

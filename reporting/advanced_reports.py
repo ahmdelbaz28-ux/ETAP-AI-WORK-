@@ -525,7 +525,7 @@ class DOCXReportGenerator:
     def __init__(self):
         self.logger = logging.getLogger("docx_generator")
 
-    def generate_report(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def generate_report(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         metadata: ReportMetadata,
         sections: list[ReportSection],
@@ -666,7 +666,7 @@ class ReportGenerationAgent:
         self.chart_generator = ChartGenerator()
         self.logger = logging.getLogger("report_agent")
 
-    async def generate_complete_report(  # NOSONAR: async function uses sync I/O for compatibility reasons
+    async def generate_complete_report(  # NOSONAR async function uses sync I/O for compatibility reasons
         self,
         analysis_results: dict,
         metadata: Optional[ReportMetadata] = None,

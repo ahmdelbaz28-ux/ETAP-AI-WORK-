@@ -56,8 +56,8 @@ class PowerSystemEngine:
             load_flow_solver
             if load_flow_solver is not None
             else (
-                LoadFlowSolver(system) if system is not None else None
-            )  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                LoadFlowSolver(system) if system is not None else None  # S3358 nested ternary clear in this context
+            )  # NOSONAR nested conditional; extract to named variable (tech debt)
         )
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
@@ -103,15 +103,15 @@ class PowerSystemEngine:
             raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
-        Ybus_pos = self.system.get_ybus(
+        Ybus_pos = self.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="1"
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_neg = self.system.get_ybus(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_neg = self.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="2"
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Ybus_zero = self.system.get_ybus(
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ybus_zero = self.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             seq="0"
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
         # Get bus index

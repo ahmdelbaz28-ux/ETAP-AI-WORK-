@@ -23,7 +23,7 @@ except ImportError:
 # Module-level test password constant — SonarCloud S2068 (hard-coded
 # credentials) accepts module constants because they are easy to audit
 # in one place. NOT a real secret; used only by the test fixtures below.
-_TEST_DEFAULT_PASSWORD = "Str0ngP@ss!"  # NOSONAR: test credential constant, not a real secret
+_TEST_DEFAULT_PASSWORD = "Str0ngP@ss!"  # NOSONAR test credential constant, not a real secret
 
 
 # ---------------------------------------------------------------------------
@@ -56,26 +56,26 @@ def _require_study_models():
 
 def _build_network_from_data(raw: dict) -> dict:
     """Construct a network dict with real Pydantic model instances from raw data.
-    # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-      *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-      dicts keyed by component type).  Returns a dict with the same keys but  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-      whose values are lists of real Pydantic model instances.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    """  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      *raw* has the same structure as ``_TEST_NETWORK_DATA`` (lists of plain  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      dicts keyed by component type).  Returns a dict with the same keys but  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+      whose values are lists of real Pydantic model instances.  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    """  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     mod = _require_study_models()
-    BusSpec = mod.BusSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
-    LineSpec = mod.LineSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    BusSpec = mod.BusSpec  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+    LineSpec = mod.LineSpec  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
     GeneratorSpec = (
         mod.GeneratorSpec
-    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
-    LoadSpec = mod.LoadSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+    LoadSpec = mod.LoadSpec  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
     TransformerSpec = (
         mod.TransformerSpec
-    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
     model_map = {
         "buses": BusSpec,
         "lines": LineSpec,
-        "generators": GeneratorSpec,  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        "generators": GeneratorSpec,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         "loads": LoadSpec,
         "transformers": TransformerSpec,
     }
@@ -84,7 +84,7 @@ def _build_network_from_data(raw: dict) -> dict:
     for (
         key,
         ModelCls,
-    ) in model_map.items():  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    ) in model_map.items():  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         items = raw.get(key, [])
         result[key] = [ModelCls(**item) for item in items]
     return result
@@ -536,16 +536,16 @@ def temp_database():
 
 @pytest.fixture
 def sample_study_request(sample_3bus_network):
-    """Provides a sample study request for testing.  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-    # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    """Provides a sample study request for testing.  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
       Uses real Pydantic models from ``services.study_service``.
       Skips the test if that module is not importable.
     """
     mod = _require_study_models()
     StudyRequest = (
         mod.StudyRequest
-    )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
-    SystemSpec = mod.SystemSpec  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+    )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+    SystemSpec = mod.SystemSpec  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
     return StudyRequest(
         study_type="load_flow",

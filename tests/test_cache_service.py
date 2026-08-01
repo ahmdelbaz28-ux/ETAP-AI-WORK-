@@ -52,12 +52,12 @@ async def test_study_cache_ttl_functionality(mock_redis):
 
     # Wait for TTL to expire and try again (in real implementation, this would work)
     # For testing purposes, we'll just verify the TTL was set properly.
-    # NOSONAR: `assert True` is a deliberate placeholder for
+    # NOSONAR `assert True` is a deliberate placeholder for
     # a TTL-verification step that requires a real Redis instance. Removing
     # it would make the test silently pass with zero assertions.
     assert (
         result is not None
-    )  # Basic functionality verified  # NOSONAR: TTL verification needs real Redis
+    )  # Basic functionality verified  # NOSONAR TTL verification needs real Redis
 
 
 @pytest.mark.asyncio

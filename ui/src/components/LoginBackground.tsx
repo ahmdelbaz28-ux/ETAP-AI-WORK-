@@ -72,7 +72,7 @@ function breakerLedPing(open: boolean): string {
 
 // --- Sub-component: Animated flow path (conditional rendering extracted
 // to reduce LoginBackground's cognitive complexity). ---
-function AnimatedFlowPath({ d, color, dash, dur }: { d: string; color: string; dash: string; dur: string }) {
+function AnimatedFlowPath({ d, color, dash, dur }: Readonly<{ d: string; color: string; dash: string; dur: string }>) {
   return (
     <path
       d={d}

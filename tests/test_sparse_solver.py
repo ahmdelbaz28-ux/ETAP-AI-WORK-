@@ -226,8 +226,8 @@ class TestSparseSolver:
 
     def test_sparse_fill_percentage(self):
         """Test 6: Fill percentage decreases for larger systems."""
-        solver_3 = SparseYBus()  # NOSONAR: unused local kept for clarity/debugging
-        buses_3, branches_3 = _make_3bus_data()  # NOSONAR: unused local kept for clarity/debugging
+        solver_3 = SparseYBus()  # NOSONAR unused local kept for clarity/debugging
+        buses_3, branches_3 = _make_3bus_data()  # NOSONAR unused local kept for clarity/debugging
 
         solver_14 = SparseYBus()
         buses_14, branches_14 = _make_14bus_data()
@@ -261,12 +261,12 @@ class TestSparseSolver:
             S = V * np.conj(Y @ V)
             P_gen = sum(
                 b.p_generation for b in buses
-            )  # NOSONAR: physics notation (I/V/P/Q); snake_case harms readability
+            )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             P_load = sum(
                 b.p_load for b in buses
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            P_loss = S.real.sum()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            # Power balance: generation - load ≈ losses  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            P_loss = S.real.sum()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            # Power balance: generation - load ≈ losses  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             balance = abs(P_gen - P_load - P_loss)
             # Allow some tolerance for numerical precision
             assert balance < 1.0 or P_loss < 1.0

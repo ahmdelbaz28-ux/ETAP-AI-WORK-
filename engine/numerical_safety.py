@@ -164,7 +164,7 @@ class NumericalGuard:
 
     def is_within_bounds(
         self, value: float | np.ndarray, min_val: float, max_val: float, _name: str = "value"
-    ) -> bool:  # NOSONAR: param kept for API symmetry with clamp_to_bounds
+    ) -> bool:  # NOSONAR param kept for API symmetry with clamp_to_bounds
         """Check whether all elements lie within [min_val, max_val]."""
         arr = np.asarray(value, dtype=float)
         return bool(np.all((arr >= min_val) & (arr <= max_val)))
@@ -464,12 +464,12 @@ class MatrixStabilizer:
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
     def safe_solve(
-        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"
-    ) -> np.ndarray:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        self, A: np.ndarray, b: np.ndarray, _method: str = "lu"  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Solve Ax = b with fallback to least-squares on singular systems."""
-        A_arr = np.asarray(
+        A_arr = np.asarray(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             A, dtype=float
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_arr = np.asarray(b, dtype=float)
         try:
             return solve(A_arr, b_arr)
@@ -503,7 +503,7 @@ class MatrixStabilizer:
 
 def wrap_solver(
     solver_fn: Callable[..., Any],
-    numerical_guard: NumericalGuard,  # NOSONAR: unused param kept for API compatibility
+    numerical_guard: NumericalGuard,  # NOSONAR unused param kept for API compatibility
     convergence_monitor: ConvergenceMonitor,
 ) -> Callable[..., Any]:
     """Wrap a solver function with convergence monitoring.

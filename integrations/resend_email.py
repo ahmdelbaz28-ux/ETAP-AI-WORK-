@@ -134,7 +134,7 @@ async def _http_post_json(
     url: str,
     headers: dict[str, str],
     payload: dict[str, Any],
-    timeout: float,
+    timeout: float,  # NOSONAR S7483: transport timeout passed to httpx/urllib client, not asyncio timeout
 ) -> tuple[int, dict[str, Any]]:
     """POST JSON and return (status_code, json_body)."""
     if _HAS_HTTPX:

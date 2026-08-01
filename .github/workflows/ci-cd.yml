@@ -74,32 +74,30 @@ jobs:
       - name: Install UI dependencies
         working-directory: ui
         # SonarCloud S8544: use npm ci (reads package-lock.json) instead of
-        # npm install. Fallback to npm install only if npm ci fails (e.g. lockfile
-        # drift on a branch that hasn't merged main yet).
-        run: |
-          npm ci --ignore-scripts --omit=optional@^6.14.15 2>&1 || {
-            echo "::warning::npm ci failed. Retrying with npm install..."
-            npm install --ignore-scripts --no-optional 2>&1 || echo "::warning::UI dependencies partially installed — skipping UI checks"
-          }
+        # npm install. No fallback to npm install — a lockfile mismatch must
+        # be fixed by regenerating the lockfile (SonarCloud S8543).
+        run: npm ci --ignore-scripts --omit=optional@^6.14.15
 
       - name: TypeScript type-check
         # FIXED: Removed `|| echo "::warning::"` workaround.
         # Per CI/CD skill Rule 6: "If a test fails, fix the code — don't skip the test."
         # TypeScript type errors are now BLOCKING. If the UI has type errors,
-        # they must be fixed before merging.
+        # they must be fixed before merging. Uses the locally installed
+        # typescript (devDependency) instead of npx download (SonarCloud S6505).
         if: success()
         working-directory: ui
-        run: npx tsc@5.5.3 --noEmit
+        run: ./node_modules/.bin/tsc --noEmit
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa  # SECURITY R7-C2: pinned to commit SHA of tag v4 — resolves S7637
         with:
           version: 9
 
       - name: Install root dependencies
-        # SonarCloud S8544: use --frozen-lockfile is temporarily disabled due to lockfile drift issues
-        # See PR #255 - fallback to regular install to ensure CI passes
-        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+        # SonarCloud S8544: --frozen-lockfile reads the committed lockfile;
+        # --ignore-scripts prevents arbitrary install-time scripts (S6505).
+        # Fallback to regular install only if the lockfile is out of sync.
+        run: pnpm install --frozen-lockfile --ignore-scripts || pnpm install --no-frozen-lockfile --ignore-scripts
 
       - name: Run scenario tests
         env:
@@ -218,7 +216,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: steps.has_token.outputs.has_token == 'true'
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402  # SECURITY R7-C2: pinned to commit SHA of tag v4 — resolves S7637
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -258,12 +256,15 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ui
-        run: npx playwright@1.45.0 install chromium
+        # Uses the @playwright/test devDependency (pinned 1.45.0) installed by
+        # npm ci above — no npx download (SonarCloud S6505).
+        run: ./node_modules/.bin/playwright install chromium
 
       - name: Start Vite dev server
         working-directory: ui
         run: |
-          npx vite@5.3.1 --port 5173 &
+          # Local vite devDependency (6.4.3) — no npx download (SonarCloud S6505)
+          ./node_modules/.bin/vite --port 5173 &
           echo "PID=$!"
           for i in $(seq 1 30); do
             if curl -s http://localhost:5173 > /dev/null 2>&1; then
@@ -275,7 +276,7 @@ jobs:
 
       - name: Run Playwright E2E tests
         working-directory: ui
-        run: npx playwright@1.45.0 test --config=playwright.config.ts
+        run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
         uses: actions/upload-artifact@v4
@@ -326,7 +327,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Validate Python syntax
@@ -415,8 +416,9 @@ jobs:
         # in typer 0.12+) and typer 0.10-0.11 (Secondary flag TypeError on auth_app
         # subcommand). The only known-working version is typer 0.9.4 (last 0.9.x).
         # Pin all three to known-working versions to keep the Safety step stable.
-        # Also add a fallback to unpinned install in case any wheel is unavailable.
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7 typer==0.9.4 || pip install bandit==1.7.10 safety==3.2.7 typer==0.9.4'
+        # Also keep the install strictly binary-first: no source-build fallback
+        # (SonarCloud S8541).
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7 typer==0.9.4'
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
@@ -477,7 +479,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Helm
-        uses: azure/setup-helm@v5  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: azure/setup-helm@59b1c81c6280f5abebb1fb1bc585696daa7dfb42  # SECURITY R7-C2: pinned to commit SHA of tag v5 — resolves S7637
         with:
           version: 'v3.15.0'
 
@@ -535,11 +537,12 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR:S8544,S8541 - binary-first with source fallback for unwheeled packages
+          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
 
       - name: Install k6
         run: |
-          curl -fsSL https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz | tar -xz
+          # S6506: enforce HTTPS + TLS 1.2 on the download
+          curl -fsSL --proto '=https' --tlsv1.2 https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz | tar -xz
           sudo mv k6-v0.50.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
@@ -656,7 +659,7 @@ jobs:
           echo "✅ ui-dist/ ready ($(find ui-dist -type f | wc -l) files)"
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # SECURITY R7-C2: pinned to commit SHA of tag v4 — resolves S7637
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -682,7 +685,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v6  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302  # SECURITY R7-C2: pinned to commit SHA of tag v6 — resolves S7637
         with:
           images: ghcr.io/${{ steps.sanitize.outputs.image_name }}
           tags: |
@@ -691,12 +694,12 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c  # SECURITY R7-C2: pinned to commit SHA of tag v4 — resolves S7637
         # Required for GHA cache backend — the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v7  # NOSONAR: GitHub Action pinning; SHA pinning in CI sprint
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # SECURITY R7-C2: pinned to commit SHA of tag v7 — resolves S7637
         with:
           context: .
           file: ./Dockerfile
@@ -793,7 +796,7 @@ jobs:
           node-version: '24'
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@37.2.3
+        run: npm install -g --ignore-scripts vercel@37.2.3
 
       - name: Deploy to Vercel Production
         # Non-blocking: Vercel free tier limits deployments to 100/day.

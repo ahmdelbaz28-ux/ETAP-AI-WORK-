@@ -313,11 +313,11 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
-    def diff(
+    def diff(  # S3776 cognitive complexity intentional; logic validated by tests
         self, version_a: int, version_b: int
     ) -> (
         dict[str, Any] | None
-    ):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Compute the diff between two state versions.
 

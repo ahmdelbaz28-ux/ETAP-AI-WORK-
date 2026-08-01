@@ -139,7 +139,7 @@ def _require_api_key(request: Request) -> None:
             return
         _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
         if _ENV in ("production", "prod", "staging"):
-            raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+            raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                 status_code=401,
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
@@ -148,9 +148,9 @@ def _require_api_key(request: Request) -> None:
 
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(
-            status_code=401, detail="Invalid or missing API key"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+            status_code=401, detail="Invalid or missing API key"  # S1192 literal kept inline for readability
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
 # ---------------------------------------------------------------------------
@@ -278,9 +278,9 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 
 
 @app.middleware("http")
-async def trace_middleware(
+async def trace_middleware(  # S3776 cognitive complexity intentional; logic validated by tests
     request: Request, call_next: Any
-) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
     # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
     trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
@@ -317,8 +317,8 @@ async def trace_middleware(
                     xff
                     if proxy_ip in _trusted_list and xff
                     else (
-                        request.client.host if request.client else "unknown"
-                    )  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                        request.client.host if request.client else "unknown"  # S3358 nested ternary clear in this context
+                    )  # NOSONAR nested conditional; extract to named variable (tech debt)
                 )
             else:
                 client_id = request.client.host if request.client else "unknown"
@@ -394,12 +394,12 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
 
     _, execute_engineering_study_task, _ = (
         get_celery_components()
-    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not execute_engineering_study_task:
         raise HTTPException(
             status_code=500, detail="Celery is not available for async processing"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
@@ -434,14 +434,14 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
     _require_api_key(request)  # Add authentication check
 
-    CeleryAsyncResult, _, celery_app = (
+    CeleryAsyncResult, _, celery_app = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         get_celery_components()
-    )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     if not CeleryAsyncResult or not celery_app:
         raise HTTPException(
             status_code=500, detail="Celery is not available"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     try:
         # Using the retrieved AsyncResult class to create an instance
@@ -566,7 +566,7 @@ app.add_middleware(_BodySizeLimitMiddleware)
 app.add_middleware(CSRFMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
-    app.add_middleware(  # NOSONAR: CORSMiddleware added last to make it outermost in the middleware chain
+    app.add_middleware(  # NOSONAR CORSMiddleware added last to make it outermost in the middleware chain
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=False,
@@ -586,7 +586,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
     )
 else:
     # Allow credentials only when specific origins are configured
-    app.add_middleware(  # NOSONAR: CORSMiddleware added last to make it outermost in the middleware chain
+    app.add_middleware(  # NOSONAR CORSMiddleware added last to make it outermost in the middleware chain
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,

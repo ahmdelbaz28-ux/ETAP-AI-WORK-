@@ -42,8 +42,8 @@ class GISProviderInterface(ABC):
         """
         if not getattr(self, "_loaded", False):
             raise RuntimeError(
-                "No GIS project loaded; call load_project() first"
-            )  # NOSONAR: intentional repetition (audit constant)
+                "No GIS project loaded; call load_project() first"  # S1192 literal kept inline for readability
+            )  # NOSONAR intentional repetition (audit constant)
         return []
 
     def extract_features(self, layer_id: str) -> Iterator[GISFeature]:

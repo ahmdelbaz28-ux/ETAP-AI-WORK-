@@ -40,7 +40,7 @@ def validate_python_syntax():
     return results
 
 
-def check_imports():  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def check_imports():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     results = []
     py_files = []
     for root, dirs, files in os.walk("."):
@@ -70,7 +70,7 @@ def check_imports():  # NOSONAR: cognitive complexity; scheduled for refactoring
     return results
 
 
-def detect_circular_deps():  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def detect_circular_deps():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Simple circular dependency detection for local packages."""
     packages = {}
     for root, dirs, files in os.walk("."):

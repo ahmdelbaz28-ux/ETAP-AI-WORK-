@@ -160,7 +160,7 @@ def run_stress_validation_tests() -> ValidationReport:
     )
 
 
-def production_readiness_gate(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def production_readiness_gate(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     qgis_project_path: Optional[str] = None,
     arcgis_project_path: Optional[str] = None,
     adms_output_path: Optional[str] = None,

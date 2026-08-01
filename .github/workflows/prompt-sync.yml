@@ -26,8 +26,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml langfuse pydantic
+          python -m pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: pyyaml==6.0.2 langfuse==2.51.0 pydantic==2.9.2
 
       - name: Validate Prompts & Integrity Lock
         run: |

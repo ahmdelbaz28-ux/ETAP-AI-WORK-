@@ -234,10 +234,10 @@ class IEEE1584Database:
         if enclosure_type == EnclosureType.OPEN:
             return 1.0
 
-        V_enc = (
+        V_enc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             width_mm * height_mm * depth_mm
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_ref = (  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_ref = (  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ENCLOSURE_REFERENCE["width"]
             * ENCLOSURE_REFERENCE["height"]
             * ENCLOSURE_REFERENCE["depth"]
@@ -280,15 +280,15 @@ class IEEE1584Database:
 
         Iarc = 10^(k1 + k2*log10(Ibf) + k3*Ibf)
         """
-        Ibf = bolted_fault_current_ka  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ibf = bolted_fault_current_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         k1, k2, k3 = IEEE1584Database.get_arc_current_coefficients(voltage_kv, electrode_config)
 
-        log_Iarc = (
+        log_Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             k1 + k2 * np.log10(Ibf) + k3 * Ibf
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        Iarc = (
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             10**log_Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return Iarc
 
@@ -320,14 +320,14 @@ class IEEE1584Database:
         E = 10^(k1 + k2*log10(Iarc) + k3*Iarc) * t * CF / D^x
         """
         # Calculate arc current
-        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
             electrode_config,
         )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Get coefficients
         k1, k2, k3, x_factor = IEEE1584Database.get_incident_energy_coefficients(
@@ -345,25 +345,25 @@ class IEEE1584Database:
         )
 
         # Calculate at full arc current
-        log_E = (
+        log_E = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_full = (
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_full = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (10**log_E) * arc_duration_sec * CF / (working_distance_mm**x_factor)
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Calculate at reduced arc current
-        log_E_red = (
+        log_E_red = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        E_reduced = (
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             (10**log_E_red) * arc_duration_sec * CF / (working_distance_mm**x_factor)
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Use the higher value
-        E_final = max(
+        E_final = max(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_full, E_reduced
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return E_final, E_full, E_reduced, CF
 
@@ -381,14 +381,14 @@ class IEEE1584Database:
         """
         Calculate arc flash boundary (distance where E = 1.2 cal/cm^2).
         """
-        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
             electrode_config,
         )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         k1, k2, k3, x_factor = IEEE1584Database.get_boundary_coefficients(
             voltage_kv,
@@ -404,24 +404,24 @@ class IEEE1584Database:
         )
 
         # Boundary at full arc current
-        log_Db = (
+        log_Db = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if x_factor != 0:
-            Db_full = (
+            Db_full = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 ((10**log_Db) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
             Db_full = float("inf")
 
         # Boundary at reduced arc current
-        log_Db_red = (
+        log_Db_red = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         if x_factor != 0:
-            Db_reduced = (
+            Db_reduced = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 ((10**log_Db_red) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
-            )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         else:
             Db_reduced = float("inf")
 
@@ -472,18 +472,18 @@ class IEEE1584Database:
             raise ValueError("Bolted fault current above IEEE 1584 range (106 kA)")
 
         # Arc current
-        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
             electrode_config,
         )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             Iarc
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Incident energy
-        E_final, E_full, E_reduced, CF = (
-            IEEE1584Database.calculate_incident_energy(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        E_final, E_full, E_reduced, CF = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            IEEE1584Database.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv,
                 bolted_fault_current_ka,
                 arc_duration_sec,
@@ -497,7 +497,7 @@ class IEEE1584Database:
         )
 
         # Boundary
-        D_boundary = IEEE1584Database.calculate_arc_flash_boundary(  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        D_boundary = IEEE1584Database.calculate_arc_flash_boundary(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,

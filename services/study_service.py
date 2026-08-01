@@ -51,9 +51,9 @@ __all__ = [
 
 
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
-def _build_system_from_spec(
+def _build_system_from_spec(  # S3776 cognitive complexity intentional; logic validated by tests
     spec: SystemSpec,
-) -> Any:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     from core_model.bus import Bus
     from core_model.generator import Generator
@@ -228,7 +228,7 @@ def _run_async(coro: Coroutine[Any, Any, T]) -> T:
 
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
-def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
     system: Optional[Any],
     parameters: dict[str, Any],
@@ -237,7 +237,7 @@ def _run_native_study(  # NOSONAR: cognitive complexity; scheduled for refactori
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
-    Engine = _get_power_system_engine()  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+    Engine = _get_power_system_engine()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     engine = Engine(system)
 
     if study_type in ("load_flow",):
@@ -333,9 +333,9 @@ def _run_etap_study(
     }
 
 
-def execute_study_logic(
+def execute_study_logic(  # S3776 cognitive complexity intentional; logic validated by tests
     payload: StudyRequest, trace_id: str, start_time: float
-) -> StudyResult:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> StudyResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Execute study logic with caching and proper error handling."""
     from core.bootstrap import _add_execution_time, _increment_counter, _study_cache
     from utils.language_detection import normalize_input

@@ -158,8 +158,8 @@ class ETAPWorkerHeartbeat:
     ) -> None:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
         self.redis_url = redis_url or os.getenv(
-            "REDIS_URL", "redis://localhost:6379/0"
-        )  # NOSONAR: intentional repetition (audit constant)
+            "REDIS_URL", "redis://localhost:6379/0"  # S1192 literal kept inline for readability
+        )  # NOSONAR intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
         self._redis: Optional[Any] = None
@@ -323,7 +323,7 @@ async def worker_pool_health():
     registry = WorkerRegistry(redis_url=_REDIS_URL)
     available = await registry.get_available_workers()
     if not available:
-        raise HTTPException(  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             status_code=503,
             detail={
                 "status": "unhealthy",
@@ -347,9 +347,9 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
             status_code=503, detail="Registry unavailable — Redis not connected"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     info = {
         "worker_id": worker_id,
@@ -373,9 +373,9 @@ async def worker_heartbeat(worker_id: str):
     """
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
             status_code=503, detail="Registry unavailable"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     key = f"{_REGISTRY_PREFIX}{worker_id}"
     raw = await r.get(key)
@@ -385,8 +385,8 @@ async def worker_heartbeat(worker_id: str):
         info["status"] = "idle"
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
-        raise HTTPException(
+        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
             status_code=404, detail=f"Worker '{worker_id}' not registered"
-        )  # NOSONAR: HTTPException responses will be documented in API refactoring sprint
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     return {"acknowledged": True, "worker_id": worker_id}

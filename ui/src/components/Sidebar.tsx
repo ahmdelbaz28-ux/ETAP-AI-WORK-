@@ -2,7 +2,6 @@
 import {
   Activity,
   Bot,
-  Brain,
   Bug,
   ChevronLeft,
   ChevronRight,
@@ -20,6 +19,7 @@ import {
   Package,
   Plug,
   ScrollText,
+  Search,
   Settings,
   Shield,
   ShieldAlert,
@@ -70,7 +70,7 @@ const navItems: NavItem[] = [
   { to: "/admin/cua-monitor", icon: ShieldAlert, labelKey: "sidebar.cuaMonitor", section: "system" },
   { to: "/diagnostics", icon: Bug, labelKey: "sidebar.diagnostics", section: "system" },
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
-  { to: "/context-engine", icon: Brain, labelKey: "sidebar.contextEngine", section: "system" },
+  { to: "/context-engine", icon: Search, labelKey: "sidebar.contextEngine", section: "system" },
   { to: "/templates", icon: FileText, labelKey: "sidebar.templates", section: "system" },
   { to: "/asset-library", icon: Package, labelKey: "sidebar.assetLibrary", section: "system" },
   { to: "/logs", icon: ScrollText, labelKey: "sidebar.logs", section: "system" },
@@ -89,9 +89,12 @@ const sectionIcons: Record<string, React.ElementType> = {
   system: Wrench,
 };
 
+// S4323: named alias for the repeated health-status union type.
+type HealthStatus = "online" | "offline" | "checking";
+
 // Map health status to a tailwind dot color class. Extracted to keep Sidebar's
 // cognitive complexity below the S3776 threshold.
-function healthDotColor(status: "online" | "offline" | "checking"): string {
+function healthDotColor(status: HealthStatus): string {
   if (status === "online") return "bg-green-400 animate-pulse";
   if (status === "checking") return "bg-amber-400";
   return "bg-red-400";
@@ -127,17 +130,17 @@ function MobileSidebarDrawer({
   toggleTheme,
   t,
   location,
-}: {
+}: Readonly<{
   mobileSidebarOpen: boolean;
   setMobileSidebarOpen: (v: boolean) => void;
-  healthStatus: "online" | "offline" | "checking";
+  healthStatus: HealthStatus;
   topLevel: NavItem[];
   groupedItems: Record<string, NavItem[]>;
   theme: string;
   toggleTheme: () => void;
   t: (key: string) => string;
   location: { pathname: string };
-}) {
+}>) {
   return (
     <>
       {/* Backdrop */}

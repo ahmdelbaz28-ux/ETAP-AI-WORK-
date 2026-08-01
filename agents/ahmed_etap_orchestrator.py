@@ -420,9 +420,9 @@ class MathGuard:
     contract from REFERENCE.md §"Math Guard Spec".
     """
 
-    TOLERANCE_PCT = 0.01  # 0.01 %
+    DEFAULT_TOLERANCE_PCT = 0.01  # 0.01 %
 
-    def __init__(self, tolerance_pct: float = TOLERANCE_PCT):
+    def __init__(self, tolerance_pct: float = DEFAULT_TOLERANCE_PCT):
         self.tolerance_pct = tolerance_pct
 
     # ---- Public API -----------------------------------------------------
@@ -476,7 +476,7 @@ class MathGuard:
         passed = units_ok and tolerance_ok
         return MathGuardResult(
             passed=passed,
-            reason="" if passed else (tolerance_msg if not tolerance_ok else units_msg),
+            reason="" if passed else (tolerance_msg if not tolerance_ok else units_msg),  # S3358 nested ternary clear in this context
             claim_value=claim_value,
             recomputed_value=recomputed,
             units_ok=units_ok,
@@ -1284,7 +1284,7 @@ if __name__ == "__main__":
 
     # Smoke test: simulate a load_flow with a fake lead agent
     async def _smoke() -> None:
-        async def fake_lead(task: EngineeringTask) -> AgentResult:
+        async def fake_lead(task: EngineeringTask) -> AgentResult:  # S7503 async signature required by callers; body intentionally sync
             return AgentResult(
                 agent_name="FakeLoadFlow",
                 study_type=StudyType.LOAD_FLOW,

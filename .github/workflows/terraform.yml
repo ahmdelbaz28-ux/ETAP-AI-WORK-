@@ -29,10 +29,7 @@ concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: write   # Required for commenting terraform plan on PRs
-  id-token: write        # Required for OIDC auth to Azure
+# S8233: no workflow-level permissions — each job declares the minimal set below.
 
 env:
   TF_VERSION: "1.9.0"
@@ -46,11 +43,13 @@ jobs:
   tf-quality:
     name: Terraform fmt + validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
@@ -88,11 +87,15 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: tf-quality
     environment: dev
+    permissions:
+      contents: read
+      pull-requests: write   # Required for commenting terraform plan on PRs
+      id-token: write        # Required for OIDC auth to Azure
     steps:
       - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
-        uses: azure/login@v2
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -100,7 +103,7 @@ jobs:
           enable-AzurePipelines: false
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
@@ -175,11 +178,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: dev
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
     steps:
       - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
-        uses: azure/login@v2
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -187,7 +193,7 @@ jobs:
           enable-AzurePipelines: false
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
@@ -229,11 +235,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: staging  # Requires manual approval via GitHub environment protection rules
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
     steps:
       - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
-        uses: azure/login@v2
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -241,7 +250,7 @@ jobs:
           enable-AzurePipelines: false
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false
@@ -281,11 +290,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
     needs: tf-quality
     environment: production  # Requires manual approval + restricted branch
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
     steps:
       - uses: actions/checkout@v4
 
       - name: Azure OIDC Login
-        uses: azure/login@v2
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -293,7 +305,7 @@ jobs:
           enable-AzurePipelines: false
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
         with:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false

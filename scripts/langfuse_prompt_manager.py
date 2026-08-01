@@ -197,8 +197,8 @@ def main() -> None:
 
     p_versions = sub.add_parser("versions", help="Show all versions of a prompt")
     p_versions.add_argument(
-        "name", help="Prompt name"
-    )  # NOSONAR: intentional repetition (audit constant)
+        "name", help="Prompt name"  # S1192 literal kept inline for readability
+    )  # NOSONAR intentional repetition (audit constant)
     p_versions.set_defaults(func=cmd_versions)
 
     p_labels = sub.add_parser("labels", help="Show labels for a prompt")

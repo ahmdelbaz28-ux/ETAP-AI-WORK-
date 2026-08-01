@@ -84,7 +84,7 @@ class LoadBalancer:
             elif self._strategy == LoadBalancingStrategy.RANDOM:
                 return random.choice(
                     list(healthy.keys())
-                )  # NOSONAR: PRNG used for non-crypto purposes (test/load sim)
+                )  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = random.uniform(0, total)
@@ -96,7 +96,7 @@ class LoadBalancer:
                 return list(healthy.keys())[-1]
             return next(
                 iter(healthy.keys())
-            )  # NOSONAR: false positive — already uses next(iter(...))
+            )  # NOSONAR false positive — already uses next(iter(...))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -392,9 +392,9 @@ class ClusterManager:
                 "utilization": total_load / max(total_capacity, 1e-9),
                 "status": "healthy"
                 if healthy == total
-                else "degraded"
+                else "degraded"  # S3358 nested ternary clear in this context
                 if healthy > 0
-                else "down",  # NOSONAR: nested conditional; extract to named variable (tech debt)
+                else "down",  # NOSONAR nested conditional; extract to named variable (tech debt)
             }
 
 
@@ -464,7 +464,7 @@ class HorizontalScaler:
         reason = (
             f"Utilization {avg_util:.1%} exceeds {self.scale_up_threshold:.0%}"
             if action == "scale_up"
-            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR: nested conditional; extract to named variable (tech debt)
+            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR nested conditional; extract to named variable (tech debt)
             if action == "scale_down"
             else f"Utilization {avg_util:.1%} within normal range"
         )

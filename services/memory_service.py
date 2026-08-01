@@ -217,7 +217,7 @@ class AIMemoryService:
             class DummyLLM:
                 def predict(
                     self, _prompt: str, **_kwargs
-                ) -> str:  # NOSONAR: param kept for LLM-predict interface compatibility
+                ) -> str:  # NOSONAR param kept for LLM-predict interface compatibility
                     # Simple echo or placeholder implementation.
                     return ""
 

@@ -40,16 +40,16 @@ from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 # Test credentials — module-level constants so SonarCloud S2068
 # (hard-coded credentials) is satisfied. These are NOT real secrets;
 # they exist only to exercise auth code paths in the test suite.
-TEST_PASSWORD_1 = "WrongP@ss6!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_10 = "12345678"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_2 = "WrongP@ss!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_3 = "mynameS3cure!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_5 = "S3cureP@ss2!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_6 = "Br4ndN3wP@ss!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_7 = "N3wS3cureP@ss!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_8 = "Whatever123!"  # NOSONAR: test credential constant, not a real secret
-TEST_PASSWORD_9 = "OldP@ssw0rd!"  # NOSONAR: test credential constant, not a real secret
-TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR: test credential constant, not a real secret
+TEST_PASSWORD_1 = "WrongP@ss6!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_10 = "12345678"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_2 = "WrongP@ss!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_3 = "mynameS3cure!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_5 = "S3cureP@ss2!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_6 = "Br4ndN3wP@ss!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_7 = "N3wS3cureP@ss!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_8 = "Whatever123!"  # NOSONAR test credential constant, not a real secret
+TEST_PASSWORD_9 = "OldP@ssw0rd!"  # NOSONAR test credential constant, not a real secret
+TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR test credential constant, not a real secret
 
 
 # ===========================================================================
@@ -205,7 +205,7 @@ class TestLogin:
 
     def _register_and_login(
         self, client, username="logintest", password="S3cureP@ss!"
-    ):  # NOSONAR: test credential constant, not a real secret
+    ):  # NOSONAR test credential constant, not a real secret
         """Helper: register a user then attempt login."""
         client.post(
             "/api/v1/auth/register",
@@ -277,7 +277,7 @@ class TestLogin:
                 json={
                     "username": username,
                     "password": f"WrongP@ss{i}!",
-                },  # NOSONAR: test credential constant, not a real secret
+                },  # NOSONAR test credential constant, not a real secret
             )
             assert resp.status_code == 401, f"Attempt {i + 1} should return 401"
 
@@ -500,8 +500,8 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "Str0ngP@ss!",  # NOSONAR: test credential constant, not a real secret
-                "new_password": "N3wS3cureP@ss!",  # NOSONAR: test credential constant, not a real secret
+                "current_password": "Str0ngP@ss!",  # NOSONAR test credential constant, not a real secret
+                "new_password": "N3wS3cureP@ss!",  # NOSONAR test credential constant, not a real secret
             },
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
@@ -519,8 +519,8 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "WrongCurrentP@ss!",  # NOSONAR: test credential constant, not a real secret
-                "new_password": "N3wS3cureP@ss!",  # NOSONAR: test credential constant, not a real secret
+                "current_password": "WrongCurrentP@ss!",  # NOSONAR test credential constant, not a real secret
+                "new_password": "N3wS3cureP@ss!",  # NOSONAR test credential constant, not a real secret
             },
         )
         assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
@@ -532,7 +532,7 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
-                "current_password": "Str0ngP@ss!",  # NOSONAR: test credential constant, not a real secret
+                "current_password": "Str0ngP@ss!",  # NOSONAR test credential constant, not a real secret
                 "new_password": "password",  # blocklisted
             },
         )
@@ -626,7 +626,7 @@ class TestResetPassword:
             json={
                 "token": token,
                 "new_password": "Br4ndN3wP@ss!",
-            },  # NOSONAR: test credential constant, not a real secret
+            },  # NOSONAR test credential constant, not a real secret
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
 

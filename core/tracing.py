@@ -60,7 +60,7 @@ _propagator: TextMapPropagator = TraceContextTextMapPropagator()
 # ---------------------------------------------------------------------------
 
 
-def setup_tracing(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     service_name: str = "ahmedetap",
     service_version: str = "1.0.0",
     exporter_type: str = "console",
@@ -261,7 +261,7 @@ def create_span(
     return tracer.start_span(name, kind=kind, attributes=attributes or {})
 
 
-def trace_operation(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def trace_operation(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     operation_name: str,
     attributes: dict[str, Any] | None = None,
     record_exception: bool = True,

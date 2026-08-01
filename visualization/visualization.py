@@ -56,10 +56,10 @@ class Visualizer:
         plt = self._plt()
         if ax is None:
             _, ax = plt.subplots()
-        Ip = relay.Ip  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        I_multiples = np.linspace(
+        Ip = relay.Ip  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        I_multiples = np.linspace(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             current_range[0], current_range[1], points
-        )  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         currents = I_multiples * Ip
         times = []
         for I in currents:
@@ -121,7 +121,7 @@ class Visualizer:
         else:
             fig = ax.get_figure()
         margins = []
-        for If in fault_currents:  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             t_up = upstream_relay.trip_time(If)
             t_down = downstream_relay.trip_time(If)
             margin = t_up - t_down

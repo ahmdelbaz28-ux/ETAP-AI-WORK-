@@ -180,12 +180,12 @@ function KillSwitchPanel({
   isRtl,
   onActivate,
   onDeactivate,
-}: {
+}: Readonly<{
   killSwitch: KillSwitchStatus;
   isRtl: boolean;
   onActivate: () => void;
   onDeactivate: () => void;
-}) {
+}>) {
   const borderColor = killSwitch.active ? "border-red-500" : "border-green-500/50";
   const iconEl = killSwitch.active
     ? <AlertTriangle className="w-8 h-8 text-red-500 animate-pulse" />

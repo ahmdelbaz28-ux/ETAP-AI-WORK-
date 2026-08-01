@@ -247,7 +247,7 @@ async def etap_expert_chat(
     payload: ETAPExpertChatRequest,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP Expert skill agent.
 
@@ -314,7 +314,7 @@ async def etap_gui_chat(
     payload: ETAPGUIChatRequest,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Chat with the ETAP GUI Agent (Computer Use Agent).
 
@@ -396,7 +396,7 @@ async def etap_gui_execute(
     payload: ETAPGUIExecuteRequest,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
@@ -463,7 +463,7 @@ async def etap_gui_execute(
 async def etap_gui_health(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Health check for the ETAP GUI Agent CUA execution capabilities.
 
@@ -514,7 +514,7 @@ async def etap_gui_activate_kill_switch(
     reason: str = "manual_api_call",
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """🚨 EMERGENCY STOP — Activate the CUA kill switch.
 
@@ -551,7 +551,7 @@ async def etap_gui_activate_kill_switch(
 async def etap_gui_deactivate_kill_switch(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Deactivate the CUA kill switch.
 
@@ -579,7 +579,7 @@ async def etap_gui_deactivate_kill_switch(
 async def etap_gui_safety_health(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the life safety system status.
 
@@ -599,7 +599,7 @@ async def etap_gui_safety_health(
 async def etap_gui_safety_audit_verify(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Verify the integrity of the tamper-evident audit log.
 
@@ -635,7 +635,7 @@ async def etap_gui_safety_audit_verify(
 async def etap_gui_siem_health(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Get the SIEM Syslog forwarder status.
 
@@ -652,7 +652,7 @@ async def etap_gui_siem_events(
     limit: int = 50,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Read recent SIEM events from the logging-only JSONL file.
 
@@ -686,7 +686,7 @@ async def etap_gui_siem_events(
     try:
         with open(
             log_path, encoding="utf-8"
-        ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+        ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         # Take the last N lines
         for line in lines[-limit:]:
@@ -786,7 +786,7 @@ async def ahmed_etap_orchestrate(
     payload: AhmedETAPOrchestrateRequest,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Run a study through the AhmedETAP orchestration skill pipeline.
 
@@ -884,7 +884,7 @@ async def ahmed_etap_orchestrate(
 async def ahmed_etap_info(
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR(S8410): Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
     """Return metadata about the AhmedETAP orchestration skill.
 

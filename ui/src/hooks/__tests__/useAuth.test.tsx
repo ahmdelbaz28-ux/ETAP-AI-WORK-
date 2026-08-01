@@ -19,7 +19,8 @@ vi.stubGlobal("fetch", mockFetch);
 function toError(e: unknown): Error {
   if (e instanceof Error) return e;
   if (typeof e === "object" && e !== null) return new Error(JSON.stringify(e));
-  return new Error(String(e));
+  if (typeof e === "string" || typeof e === "number" || typeof e === "boolean") return new Error(String(e));
+  return new Error(`Unknown error (${typeof e})`);
 }
 
 function mockResponse({

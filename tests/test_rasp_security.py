@@ -120,7 +120,7 @@ class TestRASPAttackDetection:
         """SSRF to AWS metadata endpoint must be BLOCKED."""
         results = self.rasp.inspect(
             {"body": "http://169.254.169.254/latest/meta-data/"}
-        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to AWS metadata must be BLOCKED"
         assert blocked[0].rule_name == "ssrf_basic"
@@ -135,7 +135,7 @@ class TestRASPAttackDetection:
         """SSRF to internal IP must be BLOCKED."""
         results = self.rasp.inspect(
             {"body": "http://10.0.0.1/internal-api"}
-        )  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+        )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to internal IP must be BLOCKED"
 

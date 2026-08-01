@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { Package, Plus, Search, Loader2, Edit3, Trash2, Filter, Database } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Package, Plus, Search, Loader2, Trash2, Filter, Database } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
-import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
+import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 
@@ -21,9 +21,15 @@ interface Asset {
   updated_at: string;
 }
 
+const statusVariant = (status: Asset["status"]): "success" | "warning" | "default" => {
+  if (status === "active") return "success";
+  if (status === "maintenance") return "warning";
+  return "default";
+};
+
 export default function AssetLibrary() {
-  const { t } = useTranslation();
-  const notify = useNotify();
+  useTranslation();
+  const { notify } = useNotify();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -44,8 +50,8 @@ export default function AssetLibrary() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setAssets(data.assets || data || []);
-    } catch (err: any) {
-      notify.error("Failed to load assets");
+    } catch {
+      notify("error", "Failed to load assets");
     } finally {
       setLoading(false);
     }
@@ -65,12 +71,12 @@ export default function AssetLibrary() {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      notify.success("Asset created successfully");
+      notify("success", "Asset created successfully");
       setShowCreate(false);
       setFormData({ name: "", type: "transformer", category: "", manufacturer: "", model: "", rating: "", status: "active", location: "" });
       fetchAssets();
-    } catch (err: any) {
-      notify.error("Failed to create asset");
+    } catch {
+      notify("error", "Failed to create asset");
     }
   };
 
@@ -82,10 +88,10 @@ export default function AssetLibrary() {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      notify.success("Asset deleted");
+      notify("success", "Asset deleted");
       fetchAssets();
-    } catch (err: any) {
-      notify.error("Failed to delete asset");
+    } catch {
+      notify("error", "Failed to delete asset");
     }
   };
 
@@ -97,6 +103,62 @@ export default function AssetLibrary() {
     const matchesType = typeFilter === "all" || a.type === typeFilter;
     return matchesSearch && matchesType;
   });
+
+  // S3358: render states via if/else instead of a nested ternary chain.
+  let content: ReactNode;
+  if (loading) {
+    content = (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
+    );
+  } else if (filtered.length === 0) {
+    content = (
+      <Card>
+        <div className="p-12 text-center">
+          <Package className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-muted)]">No assets found. Add your first asset to get started.</p>
+        </div>
+      </Card>
+    );
+  } else {
+    content = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map((asset) => (
+          <Card key={asset.id} className="hover:border-brand-500/40 transition-colors">
+            <div className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Package className="w-5 h-5 text-brand-500 shrink-0" />
+                  <h3 className="font-semibold text-[var(--text-primary)] truncate">{asset.name}</h3>
+                </div>
+                <Badge variant={statusVariant(asset.status)}>
+                  {asset.status}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div><span className="text-[var(--text-muted)]">Type:</span> <span className="text-[var(--text-primary)]">{asset.type}</span></div>
+                <div><span className="text-[var(--text-muted)]">Rating:</span> <span className="text-[var(--text-primary)]">{asset.rating}</span></div>
+                <div><span className="text-[var(--text-muted)]">Manufacturer:</span> <span className="text-[var(--text-primary)]">{asset.manufacturer}</span></div>
+                <div><span className="text-[var(--text-muted)]">Model:</span> <span className="text-[var(--text-primary)]">{asset.model}</span></div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-[var(--border-primary)]">
+                <span className="text-xs text-[var(--text-muted)]">{asset.location || "N/A"}</span>
+                <button
+                  onClick={() => handleDelete(asset.id)}
+                  className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title="Delete asset"
+                  type="button"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 p-6">
@@ -142,73 +204,27 @@ export default function AssetLibrary() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <div className="p-12 text-center">
-            <Package className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
-            <p className="text-[var(--text-muted)]">No assets found. Add your first asset to get started.</p>
-          </div>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((asset) => (
-            <Card key={asset.id} className="hover:border-brand-500/40 transition-colors">
-              <div className="p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Package className="w-5 h-5 text-brand-500 shrink-0" />
-                    <h3 className="font-semibold text-[var(--text-primary)] truncate">{asset.name}</h3>
-                  </div>
-                  <Badge variant={asset.status === "active" ? "success" : asset.status === "maintenance" ? "warning" : "default"}>
-                    {asset.status}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="text-[var(--text-muted)]">Type:</span> <span className="text-[var(--text-primary)]">{asset.type}</span></div>
-                  <div><span className="text-[var(--text-muted)]">Rating:</span> <span className="text-[var(--text-primary)]">{asset.rating}</span></div>
-                  <div><span className="text-[var(--text-muted)]">Manufacturer:</span> <span className="text-[var(--text-primary)]">{asset.manufacturer}</span></div>
-                  <div><span className="text-[var(--text-muted)]">Model:</span> <span className="text-[var(--text-primary)]">{asset.model}</span></div>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-[var(--border-primary)]">
-                  <span className="text-xs text-[var(--text-muted)]">{asset.location || "N/A"}</span>
-                  <button
-                    onClick={() => handleDelete(asset.id)}
-                    className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    title="Delete asset"
-                    type="button"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      {content}
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)}>
         <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">New Asset</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Name</label>
-              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              <label htmlFor="asset-name" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Name</label>
+              <input id="asset-name" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Type</label>
-              <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              <label htmlFor="asset-type" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Type</label>
+              <select id="asset-type" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]">
                 {assetTypes.map((t) => (<option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Status</label>
-              <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+              <label htmlFor="asset-status" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Status</label>
+              <select id="asset-status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]">
                 <option value="active">Active</option>
                 <option value="maintenance">Maintenance</option>
@@ -216,23 +232,23 @@ export default function AssetLibrary() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Manufacturer</label>
-              <input type="text" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+              <label htmlFor="asset-manufacturer" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Manufacturer</label>
+              <input id="asset-manufacturer" type="text" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Model</label>
-              <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+              <label htmlFor="asset-model" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Model</label>
+              <input id="asset-model" type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Rating</label>
-              <input type="text" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} placeholder="e.g., 100 MVA"
+              <label htmlFor="asset-rating" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Rating</label>
+              <input id="asset-rating" type="text" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} placeholder="e.g., 100 MVA"
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Location</label>
-              <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              <label htmlFor="asset-location" className="block text-sm font-medium mb-1 text-[var(--text-primary)]">Location</label>
+              <input id="asset-location" type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]" />
             </div>
           </div>

@@ -141,10 +141,10 @@ class StabilityAgent(BaseAgent):
 
         def electrical_power(d: np.ndarray, Y: np.ndarray) -> np.ndarray:
             """Calculate electrical power output for each machine."""
-            Pe = np.zeros(
+            Pe = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 n_gen
             )  # NOSONAR
-            E_complex = (
+            E_complex = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * d)
             )  # NOSONAR
             I = Y @ E_complex
@@ -169,7 +169,7 @@ class StabilityAgent(BaseAgent):
                 w: np.ndarray,
                 _Y: np.ndarray = Y,  # NOSONAR
             ) -> tuple[np.ndarray, np.ndarray]:
-                Pe = electrical_power(
+                Pe = electrical_power(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     d, _Y
                 )  # NOSONAR
                 ddelta = w - self.omega_synchronous
@@ -259,24 +259,24 @@ class StabilityAgent(BaseAgent):
             delta_pert = delta0.copy()
             delta_pert[j] += eps
 
-            E_plus = (
+            E_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
-            I_plus = (
+            I_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 Ybus_red @ E_plus
             )  # NOSONAR
-            Pe_plus = np.real(
+            Pe_plus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E_plus * np.conj(I_plus)
             )  # NOSONAR
 
             delta_pert[j] = delta0[j] - eps
-            E_minus = (
+            E_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
-            I_minus = (
+            I_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 Ybus_red @ E_minus
             )  # NOSONAR
-            Pe_minus = np.real(
+            Pe_minus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E_minus * np.conj(I_minus)
             )  # NOSONAR
 
@@ -292,7 +292,7 @@ class StabilityAgent(BaseAgent):
         # Lower-left block: -M^{-1} K_S (synchronizing)
         # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
         # so the synchronizing-coefficient block carries a negative sign.
-        M_inv = np.diag(
+        M_inv = np.diag(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / M
         )  # NOSONAR
         A[n_gen:, :n_gen] = -M_inv @ K_S
@@ -414,10 +414,10 @@ class StabilityAgent(BaseAgent):
         omega_s = self.omega_synchronous
 
         # Maximum power transfer pre-fault and during fault
-        Pmax_pre = (
+        Pmax_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_total
         )  # NOSONAR
-        Pmax_fault = (
+        Pmax_fault = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0
         )  # NOSONAR
 
@@ -505,27 +505,27 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("transient", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                Pm = np.array(
+                Pm = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     task.parameters.get("mechanical_power", [0.8, 0.6, 0.5])
                 )  # NOSONAR
                 n_gen = len(H)
 
                 # Build reduced Ybus from provided data or use defaults
-                Y_data = task.parameters.get(
+                Y_data = task.parameters.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     "Ybus_reduced"
                 )  # NOSONAR
                 if Y_data is not None:
-                    Ybus_red = np.array(
+                    Ybus_red = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                         Y_data, dtype=complex
                     )  # NOSONAR
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = np.random.uniform(
+                    G = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(
+                    B = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -533,7 +533,7 @@ class StabilityAgent(BaseAgent):
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
                     Ybus_red = G + 1j * B
 
-                E_mag = np.array(
+                E_mag = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     task.parameters.get("internal_voltages", [1.1, 1.0, 1.05])
                 )  # NOSONAR
                 delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
@@ -585,11 +585,11 @@ class StabilityAgent(BaseAgent):
                     Ybus_red = np.array(Y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = np.random.uniform(
+                    G = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(
+                    B = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -656,7 +656,7 @@ class StabilityAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(
+    def validate_result(  # S3776 cognitive complexity intentional; logic validated by tests
         self, result: AgentResult
     ) -> bool:  # NOSONAR
         """

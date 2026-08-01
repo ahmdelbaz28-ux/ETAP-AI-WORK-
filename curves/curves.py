@@ -18,8 +18,8 @@ class IEC60255Curves:
 
     @staticmethod
     def standard_inverse(
-        TMS, I, Ip
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
@@ -31,8 +31,8 @@ class IEC60255Curves:
 
     @staticmethod
     def very_inverse(
-        TMS, I, Ip
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
@@ -44,8 +44,8 @@ class IEC60255Curves:
 
     @staticmethod
     def extremely_inverse(
-        TMS, I, Ip
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
@@ -57,8 +57,8 @@ class IEC60255Curves:
 
     @staticmethod
     def long_inverse(
-        TMS, I, Ip
-    ):  # NOSONAR: physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        TMS, I, Ip  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))

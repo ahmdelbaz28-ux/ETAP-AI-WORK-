@@ -434,7 +434,7 @@ class TestLangfuseMiddleware:
 
         async def homepage(
             request,
-        ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+        ):  # NOSONAR async function uses sync I/O for compatibility reasons
             return PlainTextResponse("hello")
 
         app = Starlette(routes=[Route("/", homepage)])

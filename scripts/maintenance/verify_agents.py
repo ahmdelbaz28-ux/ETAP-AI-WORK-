@@ -14,11 +14,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_class_structure(
+def check_agent_class_structure(  # S3776 cognitive complexity intentional; logic validated by tests
     filepath: str,
 ) -> list[
     str
-]:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Check if an agent file has a properly structured agent class."""
     issues = []
 

@@ -213,7 +213,7 @@ class ABACPolicyEngine:
     # -- rule evaluation -----------------------------------------------------
 
     @staticmethod
-    def _evaluate_rule(  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    def _evaluate_rule(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         rule: ABACRule,
         subject: dict,
         action: str,
@@ -741,6 +741,8 @@ def make_clearance_policy(
 
 
 def create_default_etap_abac_engine() -> ABACPolicyEngine:
+    # RFC1918 private address ranges used for internal-network allowlisting.
+    _PRIVATE_NETWORK_CIDRS = ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
     """Create an :class:`ABACPolicyEngine` pre-loaded with ETAP platform defaults.
 
     Default policies:
@@ -773,9 +775,9 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="engineer_studies",
             allowed_roles=["engineer"],
             actions=[
-                "get:/api/studies",  # NOSONAR: intentional repetition (audit constant)
+                "get:/api/studies",  # NOSONAR intentional repetition (audit constant)
                 "post:/api/studies",
-                "get:/api/projects",  # NOSONAR: intentional repetition (audit constant)
+                "get:/api/projects",  # NOSONAR intentional repetition (audit constant)
                 "post:/api/projects",
             ],
             priority=50,
@@ -812,11 +814,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     engine.add_policy(
         make_ip_allowlist_policy(
             name="internal_network",
-            allowed_cidrs=[
-                "10.0.0.0/8",
-                "172.16.0.0/12",
-                "192.168.0.0/16",
-            ],  # NOSONAR: hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
+            allowed_cidrs=list(_PRIVATE_NETWORK_CIDRS),  # NOSONAR S1313: RFC1918 ranges (10/8, 172.16/12, 192.168/16); not user-facing
             priority=30,
         ),
     )

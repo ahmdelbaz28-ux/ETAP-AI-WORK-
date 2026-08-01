@@ -69,6 +69,34 @@ function buildRandomAlarm(isRtl: boolean): SCADAAlarm {
 type NotifyFn = (type: "success" | "error" | "info" | "warning", message: string) => void;
 type AddLogFn = (msg: string) => void;
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  if (typeof err === "number" || typeof err === "boolean") return String(err);
+  return `unknown (${typeof err})`;
+}
+
+// --- Shared failure handler for live-telemetry connection attempts
+// (extracted from testScadaConnection to lower its cognitive complexity). ---
+function handleConnectionFailure(
+  err: unknown,
+  isRtl: boolean,
+  notify: NotifyFn,
+  addLog: AddLogFn,
+  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,
+  setLatency: (n: number | null) => void,
+): void {
+  setConnectionStatus("disconnected");
+  setLatency(null);
+  notify(
+    "error",
+    isRtl
+      ? "فشل الاتصال بنظام الإسكادا. تأكد من تشغيل خادم زينون."
+      : "Connection failed. Ensure Zenon service is running.",
+  );
+  addLog(isRtl ? `خطأ في الاتصال: ${errorMessage(err)}` : `Connection error: ${errorMessage(err)}`);
+}
+
 async function testScadaConnection(
   apiKey: string,
   isRtl: boolean,
@@ -86,9 +114,10 @@ async function testScadaConnection(
   );
   const startTime = performance.now();
 
+  let response: Response;
   try {
     const token = localStorage.getItem("authToken");
-    const response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
+    response = await fetch(`${API_BASE_URL}/api/v1/scada/live`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -96,39 +125,40 @@ async function testScadaConnection(
         ...(apiKey ? { "x-api-key": apiKey } : {}),
       },
     });
-
-    const endTime = performance.now();
-    setLatency(Math.round(endTime - startTime));
-
-    if (response.ok) {
-      const body = await response.json();
-      if (body.success && body.data?.points) {
-        setTelemetryPoints(body.data.points);
-      }
-      setConnectionStatus("connected");
-      notify(
-        "success",
-        isRtl ? "تم الاتصال بنجاح مع نظام الإسكادا!" : "SCADA connection verified successfully!",
-      );
-      addLog(
-        isRtl
-          ? `تم الاتصال. زمن الاستجابة: ${Math.round(endTime - startTime)} ملي ثانية.`
-          : `Connected. Latency: ${Math.round(endTime - startTime)} ms.`,
-      );
-    } else {
-      throw new Error(`HTTP Error ${response.status}`);
-    }
-  } catch (err: any) {
-    setConnectionStatus("disconnected");
-    setLatency(null);
-    notify(
-      "error",
-      isRtl
-        ? "فشل الاتصال بنظام الإسكادا. تأكد من تشغيل خادم زينون."
-        : "Connection failed. Ensure Zenon service is running.",
-    );
-    addLog(isRtl ? `خطأ في الاتصال: ${err.message}` : `Connection error: ${err.message}`);
+  } catch (err: unknown) {
+    handleConnectionFailure(err, isRtl, notify, addLog, setConnectionStatus, setLatency);
+    return;
   }
+
+  const endTime = performance.now();
+  setLatency(Math.round(endTime - startTime));
+
+  if (!response.ok) {
+    handleConnectionFailure(
+      new Error(`HTTP Error ${response.status}`),
+      isRtl,
+      notify,
+      addLog,
+      setConnectionStatus,
+      setLatency,
+    );
+    return;
+  }
+
+  const body = await response.json().catch(() => null);
+  if (body?.success && body.data?.points) {
+    setTelemetryPoints(body.data.points);
+  }
+  setConnectionStatus("connected");
+  notify(
+    "success",
+    isRtl ? "تم الاتصال بنجاح مع نظام الإسكادا!" : "SCADA connection verified successfully!",
+  );
+  addLog(
+    isRtl
+      ? `تم الاتصال. زمن الاستجابة: ${Math.round(endTime - startTime)} ملي ثانية.`
+      : `Connected. Latency: ${Math.round(endTime - startTime)} ms.`,
+  );
 }
 
 export default function ScadaIntegration() {  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task

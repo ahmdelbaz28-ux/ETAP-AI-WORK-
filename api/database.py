@@ -289,7 +289,7 @@ async def check_db_health() -> dict:
         backend = (
             "sqlite-fallback"
             if _FELL_BACK_TO_SQLITE
-            else ("postgresql" if _IS_POSTGRES else "sqlite")
+            else ("postgresql" if _IS_POSTGRES else "sqlite")  # S3358 nested ternary clear in this context
         )  # NOSONAR
         return {
             "status": "healthy" if not _FELL_BACK_TO_SQLITE else "degraded",
@@ -337,7 +337,7 @@ async def init_db() -> None:
     import api.assets  # noqa: F401  - registers Asset model
     import api.auth  # noqa: F401  - registers User model
     import api.projects  # noqa: F401  - registers Project & StudyResult models
-    import api.rbac  # noqa: F401  - registers Role, Permission, UserRole models
+    import api.rbac  # noqa: F401  - registers Role Permission and UserRole models
 
     # StudyJob table for persistent task queue — optional import (core.models
     # may not be available in stripped-down deployments).

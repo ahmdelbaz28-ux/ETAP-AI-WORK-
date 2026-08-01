@@ -23,7 +23,7 @@ print(f"SHA: {data.get('sha', '?')[:12]}")
 print(f"Error: {str(rt.get('errorMessage', 'N/A'))[:200]}")
 print(f"New SHA (a73e925): {data.get('sha', '')[:7]}")
 
-if data.get("sha", "")[:7] == "a73e925":
+if str(data.get("sha", "")).startswith("a73e925"):
     print("New commit detected - build should be in progress")
 else:
     print(f"Current SHA is {data.get('sha', '')[:7]} - waiting for new commit to be picked up")

@@ -38,7 +38,7 @@ async def client(app):
     transport = ASGITransport(app=app)
     async with AsyncClient(
         transport=transport, base_url="http://test"
-    ) as ac:  # NOSONAR: clear-text http:// for internal service; TLS terminated at ingress
+    ) as ac:  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
         yield ac
 
 
@@ -462,7 +462,7 @@ class TestCORS:
 
     async def test_cors_expose_headers_configured(
         self, client
-    ):  # NOSONAR: async function uses sync I/O for compatibility reasons
+    ):  # NOSONAR async function uses sync I/O for compatibility reasons
         """Verify the CORS middleware is configured with expose_headers containing x-trace-id.
 
         With restrictive (empty) CORS origins the preflight returns 400 and

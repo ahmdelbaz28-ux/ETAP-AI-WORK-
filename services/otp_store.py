@@ -91,8 +91,8 @@ class _InMemoryOtpStore:
         return rec
 
     async def update(self, key: str, rec: _OtpRecord) -> None:
-        await asyncio.sleep(0)  # yield to event loop — genuine async for swappable backend contract
-        self._records[key] = rec
+        # Identical semantics to set(); delegate to avoid a duplicate body.
+        await self.set(key, rec)
 
     async def delete(self, key: str) -> None:
         await asyncio.sleep(0)  # yield to event loop — genuine async for swappable backend contract

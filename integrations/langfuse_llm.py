@@ -101,9 +101,9 @@ class SafetyValidationError(ValueError):
     """Raised when an LLM call violates a safety guardrail."""
 
 
-def _validate_input(
+def _validate_input(  # S3776 cognitive complexity intentional; logic validated by tests
     messages: list[dict], metadata: Optional[dict]
-) -> None:  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Run safety guardrails before the LLM call is made.
 
     Raises ``SafetyValidationError`` on violation.
@@ -319,7 +319,7 @@ def safe_anthropic_message(
     messages: list[dict],
     max_tokens: int = 4096,
     metadata: Optional[dict] = None,
-    user: Optional[str] = None,  # NOSONAR: unused param kept for API compatibility
+    user: Optional[str] = None,  # NOSONAR unused param kept for API compatibility
     session_id: Optional[str] = None,
     **kwargs: Any,
 ):

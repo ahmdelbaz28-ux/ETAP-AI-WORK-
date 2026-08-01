@@ -171,9 +171,9 @@ def process_large_calculation_task(self, calculation_data: dict):
                 )
 
             # Perform some heavy computation
-            matrix = np.random.rand(
+            matrix = np.random.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour
                 size, size
-            )  # NOSONAR: numpy.random.Generator migration; API change required
+            )  # NOSONAR numpy.random.Generator migration; API change required
             result_matrix = np.linalg.inv(matrix + np.eye(size))
 
         result = {

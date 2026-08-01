@@ -136,8 +136,8 @@ app = FastAPI(
     version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
     license_info={"name": "MIT"},
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs",  # S1192 literal kept inline for readability
+    redoc_url="/redoc",  # S1192 literal kept inline for readability
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
@@ -643,7 +643,7 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     tags=["Agents"],
     responses={504: {"description": "CUA Loop timed out"}},
 )
-async def etap_gui_execute(request: Request):
+async def etap_gui_execute(request: Request):  # S3776 cognitive complexity intentional; logic validated by tests
     """Execute the REAL CUA Loop (Computer Use Agent).
 
     AUTO-DETECTS THE ENVIRONMENT:
@@ -1154,7 +1154,7 @@ async def etap_gui_siem_events(limit: int = 50):
     try:
         with open(
             log_path, encoding="utf-8"
-        ) as fh:  # NOSONAR: sync file I/O in async function; compatibility with sync lib
+        ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
             lines = fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()

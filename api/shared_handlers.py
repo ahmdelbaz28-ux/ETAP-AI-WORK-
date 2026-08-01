@@ -616,7 +616,7 @@ def sanitize_result(obj: Any) -> Any:
         if isinstance(obj, complex):
             return {"real": obj.real, "imag": obj.imag}
     except ImportError:
-        pass  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        pass  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
     if isinstance(obj, dict):
         return {str(k): sanitize_result(v) for k, v in obj.items()}
@@ -632,7 +632,7 @@ def sanitize_result(obj: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 
-def run_study_lightweight(  # NOSONAR: cognitive complexity; refactoring sprint
+def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
     study_type: str,
     system: dict[str, Any],
     parameters: dict[str, Any],

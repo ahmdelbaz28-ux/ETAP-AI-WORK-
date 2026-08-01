@@ -201,9 +201,9 @@ def eval_safety(output: str, expected_output: Optional[str] = None) -> dict[str,
     # the standard or warning about PE review is unsafe.
     has_number_with_unit = bool(
         re.search(
-            # NOSONAR: \d+\.?\d* is bounded (max ~10 chars
+            # NOSONAR \d+\.?\d* is bounded (max ~10 chars
             # for typical IEEE 1584 numeric values). No backtracking risk.
-            r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)\b",  # NOSONAR: bounded by short IEEE 1584 numeric values
+            r"\d+\.?\d*\s*(?:cal/cm[²2]|kA|V|A|MW|MVA|kV|ohms?|ms)\b",  # NOSONAR bounded by short IEEE 1584 numeric values
             output,
             re.IGNORECASE,
         ),
@@ -318,8 +318,8 @@ def eval_helpfulness(output: str, expected_output: Optional[str] = None) -> dict
 
 def run_safety_eval(
     dataset_name: str,
-    _prompt_name: str,  # NOSONAR: unused param kept for API compatibility
-    label: str = "production",  # NOSONAR: unused param kept for API compatibility
+    _prompt_name: str,  # NOSONAR unused param kept for API compatibility
+    label: str = "production",  # NOSONAR unused param kept for API compatibility
     evaluators: Optional[list] = None,
 ) -> dict[str, Any]:
     """Run a prompt against a dataset and score each output.

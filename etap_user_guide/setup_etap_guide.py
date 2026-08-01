@@ -54,9 +54,9 @@ def check_directory_structure():
 
     required_paths = [
         "etap_user_guide",
-        "etap_user_guide/pdfs",  # NOSONAR: intentional repetition (audit constant)
-        "etap_user_guide/ac_element",  # NOSONAR: intentional repetition (audit constant)
-        "etap_user_guide/extract_guide.py",  # NOSONAR: intentional repetition (audit constant)
+        "etap_user_guide/pdfs",  # NOSONAR intentional repetition (audit constant)
+        "etap_user_guide/ac_element",  # NOSONAR intentional repetition (audit constant)
+        "etap_user_guide/extract_guide.py",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/etap_guide_rag.py",
         "etap_user_guide/README.md",
     ]
@@ -84,8 +84,8 @@ def check_pdf_files():
         return 0
 
     pdf_count = len(
-        list(pdfs_path.glob("*.pdf"))
-    )  # NOSONAR: intentional repetition (audit constant)
+        list(pdfs_path.glob("*.pdf"))  # S1192 literal kept inline for readability
+    )  # NOSONAR intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob("*.pdf"))) if ac_path.exists() else 0
 
     print_info(f"Main PDFs: {pdf_count}")

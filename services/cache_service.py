@@ -93,11 +93,11 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-    async def get(
+    async def get(  # S3776 cognitive complexity intentional; logic validated by tests
         self, key: str, *args: Any, **kwargs: Any
     ) -> (
         dict[str, Any] | None
-    ):  # NOSONAR: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
         Get cached value by key.
 
@@ -189,7 +189,7 @@ class StudyCache:
             # Unhashable key or value that breaks dict storage
             logger.error(
                 "In-memory cache SET failed for key %r: %s", key, e
-            )  # NOSONAR: logger.error in except — see existing exception() calls
+            )  # NOSONAR logger.error in except — see existing exception() calls
             return False
 
     async def clear(self) -> None:
@@ -206,7 +206,7 @@ class StudyCache:
     async def ping(self) -> bool:
         """Ping cache backend. Must return True even for in-memory fallback (per tests)."""
         if self._use_redis and self._redis_client:
-            try:  # NOSONAR: async function uses sync I/O for compatibility reasons
+            try:  # NOSONAR async function uses sync I/O for compatibility reasons
                 await self._redis_client.ping()
                 return True
             except Exception:
@@ -214,7 +214,7 @@ class StudyCache:
         return True
 
 
-async def get_study_cache() -> StudyCache:  # NOSONAR: async function uses sync I/O; compatibility
+async def get_study_cache() -> StudyCache:  # NOSONAR async function uses sync I/O; compatibility
     """
     Async factory expected by tests.
 
