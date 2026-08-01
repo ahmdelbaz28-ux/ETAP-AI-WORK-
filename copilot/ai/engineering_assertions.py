@@ -25,7 +25,6 @@ Reference: docs/adr/0003-three-tier-prompt-fallback.md
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
@@ -558,7 +557,7 @@ def validate_fallback_output(
 
     elif output_type == "arc_flash":
         incident_energy = output_data.get("incident_energy", {})
-        boundaries = output_data.get("arc_flash_boundaries", None)
+        boundaries = output_data.get("arc_flash_boundaries")
         if isinstance(incident_energy, dict):
             energy_cal = {}
             for k, v in incident_energy.items():
