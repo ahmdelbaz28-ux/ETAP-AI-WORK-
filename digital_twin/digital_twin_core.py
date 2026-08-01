@@ -25,6 +25,7 @@ Hard Constraints:
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _NO_BASE_ENGINE_MSG = "No base engine available"  # NOSONAR: extracted constant (S1192)
 
@@ -637,7 +638,9 @@ class ChangePropagationEngine:
         try:
             import math
 
-            from fault_analysis.fault import FaultAnalyzer  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            from fault_analysis.fault import (
+                FaultAnalyzer,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            )
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
             ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -723,7 +726,9 @@ class ChangePropagationEngine:
         try:
             from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
-            from relays.relay import OvercurrentRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            from relays.relay import (
+                OvercurrentRelay,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            )
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
             ybus_pos = self.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

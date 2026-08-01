@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import ast
 import asyncio
-import aiofiles  # async file I/O for S7493 compliance
 import contextlib
 import json
 import os
@@ -37,6 +36,8 @@ import re
 import sys
 from dataclasses import asdict, dataclass, field
 from typing import Any
+
+import aiofiles  # async file I/O for S7493 compliance
 
 from compat import StrEnum
 

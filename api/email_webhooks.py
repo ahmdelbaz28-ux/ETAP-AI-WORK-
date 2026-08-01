@@ -170,7 +170,7 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> str:
         try:
             resolved = socket.getaddrinfo(hostname, None)
         except socket.gaierror as exc:
-            raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}")
+            raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}") from exc
         ips = {ipaddress.ip_address(family_info[4][0]) for family_info in resolved}
     else:
         ips = {ip}

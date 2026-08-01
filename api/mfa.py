@@ -150,9 +150,10 @@ async def setup_totp(
         # Previously, the user had to separately call PUT /me with mfa_enabled=True,
         # which meant MFA setup could be silently incomplete.
         try:
-            from api.database import async_session
-            from api.auth import User
             from sqlalchemy import select as sa_select
+
+            from api.auth import User
+            from api.database import async_session
 
             async with async_session() as db:
                 result = await db.execute(sa_select(User).where(User.id == target_user_id))

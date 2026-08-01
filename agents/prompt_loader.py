@@ -65,6 +65,7 @@ Usage::
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _PROMPT_NOT_FOUND_FALLBACK_MSG = "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR: extracted constant (S1192)
 

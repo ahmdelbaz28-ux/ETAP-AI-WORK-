@@ -15,6 +15,7 @@ Usage:
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR: extracted constant (S1192)
 

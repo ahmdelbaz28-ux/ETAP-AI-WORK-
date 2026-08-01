@@ -25,12 +25,12 @@ Usage (programmatic)::
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _ENGINEERING_SERVICE_FILENAME = "engineering_service.py"  # NOSONAR: extracted constant (S1192)
 _REFACTORED_SERVICE_FILENAME = "refactored_service.py"  # NOSONAR: extracted constant (S1192)
 
 import asyncio
-import aiofiles  # async file I/O for S7493 compliance
 import contextlib
 import json
 import os
@@ -38,6 +38,8 @@ import re
 import sys
 from dataclasses import dataclass, field
 from typing import Any, Optional
+
+import aiofiles  # async file I/O for S7493 compliance
 
 from compat import StrEnum
 

@@ -26,6 +26,7 @@ import io
 import json
 import re
 import uuid
+
 try:
     import defusedxml.ElementTree as ET  # SECURITY: prevents XXE / billion-laughs attacks
 except ImportError:

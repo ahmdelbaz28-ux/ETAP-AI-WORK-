@@ -26,6 +26,7 @@ Usage::
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR: extracted constant (S1192)
 
@@ -384,7 +385,9 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 ElectrodeConfig,
                 EnclosureType,
             )
-            from fault_analysis.fault import FaultAnalyzer  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            from fault_analysis.fault import (
+                FaultAnalyzer,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            )
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             ybus_pos = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -528,7 +531,9 @@ class ProtectionRefreshHandler(PropagationHandler):
         try:
             from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
-            from relays.relay import OvercurrentRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            from relays.relay import (
+                OvercurrentRelay,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            )
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             ybus_pos = ctx.dt_state.system.get_ybus(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

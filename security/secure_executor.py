@@ -33,8 +33,7 @@ import logging
 import os
 import resource
 import sys
-import traceback
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

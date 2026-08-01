@@ -807,7 +807,9 @@ class ValidationCampaign:
         )
 
         # Test 21 Relay (Distance)
-        from relays.relay import DistanceRelay  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        from relays.relay import (
+            DistanceRelay,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        )
 
         dist_relay = DistanceRelay(relay_id=4, name="Dist-21", impedance_setting=0.5)
         v_fault = complex(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

@@ -13,7 +13,6 @@ import random
 from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
 
-
 # Module-level string constants (extracted to satisfy S1192).
 _JSON_CONTENT_TYPE = "application/json"  # NOSONAR: extracted constant (S1192)
 logger = logging.getLogger("ahmedetap-locust")

@@ -101,7 +101,7 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
     """
     # Python 3.9+ supports usedforsecurity=False. Detect once via getattr
     # so we never call the bare hashlib.sha1(data) form (SonarCloud S4790).
-    sha1_func = getattr(hashlib, "sha1")  # NOSONAR S4790: RFC 6238 (TOTP) mandates SHA-1; usedforsecurity=False passed at call sites below
+    sha1_func = hashlib.sha1  # NOSONAR S4790: RFC 6238 (TOTP) mandates SHA-1; usedforsecurity=False passed at call sites below
     try:
         # Inspect whether the signature accepts usedforsecurity.
         import inspect

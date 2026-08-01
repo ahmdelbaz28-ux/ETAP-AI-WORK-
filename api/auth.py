@@ -1129,7 +1129,7 @@ async def login(
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="MFA subsystem unavailable",
-            )
+            ) from None
         totp = TOTPProvider()
         if not totp.verify_code(str(user.id), body.mfa_code):
             raise HTTPException(
@@ -1187,7 +1187,7 @@ async def login(
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="MFA subsystem unavailable",
-                )
+                ) from None
             totp = TOTPProvider()
             if not totp.verify_code(str(user.id), body.mfa_code):
                 raise HTTPException(

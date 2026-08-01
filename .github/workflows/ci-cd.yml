@@ -113,11 +113,10 @@ jobs:
     name: 🔐 SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [lint, python-tests]
-    # Only run when SONAR_TOKEN is configured — skip gracefully otherwise
-    # so the pipeline doesn't fail on forks or repos without SonarCloud setup.
-    # NOTE: secrets context is not available in job-level if conditions,
-    # so we use a step-level check instead.
-    if: ${{ !cancelled() }}
+    # Run SonarCloud scan even if lint/tests fail — code quality analysis should
+    # always run so we can see the impact of fixes. The !cancelled() check ensures
+    # we skip only when the workflow is explicitly cancelled.
+    if: ${{ !cancelled() && (success() || failure()) }}
     steps:
       - name: Check SONAR_TOKEN availability
         id: has_token

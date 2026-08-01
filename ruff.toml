@@ -49,10 +49,14 @@ ignore = [
     "UP007",  # Use X | Y for unions (requires Python 3.10+; we sometimes prefer Optional[] for clarity)
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
     "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
-    # UP038 was removed in ruff 0.9+ (Use X | Y in isinstance no longer flagged).
+    "UP017",  # Use datetime.UTC alias (gradual migration; many call sites still use datetime.timezone.utc)
+    "UP038",  # Use X | Y in isinstance (removed in ruff 0.9+; kept in ignore for 0.7.0 compat)
     # UP045 (non-pep604-annotation-optional) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # Both are omitted to keep CI ruff 0.7.0 compatible; will be re-enabled when CI upgrades ruff.
+    "T201",   # print() found — CLI tools in tools/ use print() for output (intentional)
+    "N817",   # CamelCase imported as acronym (ET for ElementTree — standard Python convention)
+    "SIM114", # Combine if branches — sometimes less readable than explicit branches
     "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)
     "N803",   # Invalid argument name (electrical engineering: V, I, R, X, etc.)
     "N815",   # Mixed-case variable in class scope (electrical engineering convention)

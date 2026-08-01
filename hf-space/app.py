@@ -10,6 +10,7 @@ are defined in one place and reused by both the HF Space and the main API.
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _DOCS_PATH = "/docs"  # NOSONAR: extracted constant (S1192)
 _REDOC_PATH = "/redoc"  # NOSONAR: extracted constant (S1192)
@@ -23,7 +24,6 @@ if not hasattr(datetime, "UTC"):
     datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
 
 import asyncio
-import aiofiles  # async file I/O for S7493 compliance
 import hmac
 import json
 import logging
@@ -31,6 +31,8 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Optional
+
+import aiofiles  # async file I/O for S7493 compliance
 
 from api._messages import ISO_8601_UTC_FMT
 

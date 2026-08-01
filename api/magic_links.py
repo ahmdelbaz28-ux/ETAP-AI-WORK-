@@ -196,6 +196,7 @@ async def request_magic_link(
         from sqlalchemy import select
 
         from api.auth import User
+
         # SECURITY AUDIT 2026-08-02 (F-01 fix):
         # `api.database` exports `async_session` (an async_sessionmaker),
         # NOT `async_session_factory`. The previous import raised
@@ -366,6 +367,7 @@ async def verify_magic_link(
         from sqlalchemy import select
 
         from api.auth import User, _create_access_token, _create_refresh_token
+
         # SECURITY AUDIT 2026-08-02 (F-01 fix):
         # Same import-name bug as in request_magic_link above. The previous
         # import crashed the verify endpoint with ImportError.

@@ -18,6 +18,7 @@ Architecture:
 """
 
 from __future__ import annotations
+
 # Module-level string constants (extracted to satisfy S1192).
 _SYSTEM_DATA_NOT_PROVIDED_MSG = "System data not provided"  # NOSONAR: extracted constant (S1192)
 _ENGINEERING_REPORT_TITLE = "Engineering Report"  # NOSONAR: extracted constant (S1192)
