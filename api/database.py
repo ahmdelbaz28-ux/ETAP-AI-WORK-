@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +102,38 @@ _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 # ---------------------------------------------------------------------------
 
 
+# In test environments (ENVIRONMENT=testing) we use NullPool to avoid the
+# classic asyncpg + pytest TestClient event-loop conflict:
+#   - The engine is created at module import time (bound to the import-time
+#     event loop, or no loop at all).
+#   - TestClient(app) starts a NEW event loop in its lifespan.
+#   - init_db() then calls engine.begin() → pool.connect() → pool_pre_ping
+#     triggers an asyncpg ping whose Future was bound to the import-time loop.
+#   - Result: RuntimeError: Task got Future attached to a different loop.
+# NullPool creates a fresh connection per checkout and disposes it on return,
+# so there is no Future to share across loops. The production path keeps the
+# default AsyncAdaptedQueuePool with pre-ping for stale-connection detection.
+_IS_TESTING = os.getenv("ENVIRONMENT", "").lower() == "testing"
+
+
 def _build_postgres_engine(url: str):
-    """Create an async PostgreSQL engine with sensible pool defaults."""
+    """Create an async PostgreSQL engine with sensible pool defaults.
+
+    In test environments (``ENVIRONMENT=testing``) a ``NullPool`` is used to
+    avoid the asyncpg + pytest TestClient event-loop conflict documented
+    above. Production keeps the default pooled engine with pre-ping.
+    """
+    if _IS_TESTING:
+        return create_async_engine(
+            url,
+            echo=_ECHO,
+            future=True,
+            poolclass=NullPool,
+            connect_args={
+                "server_settings": {"application_name": "etap-engineering-service"},
+                "timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
+            },
+        )
     return create_async_engine(
         url,
         echo=_ECHO,
@@ -146,10 +177,13 @@ def _build_sqlite_engine(url: str):
     """
     from sqlalchemy import event
 
+    # In test environments use NullPool for the same event-loop reason as
+    # _build_postgres_engine (see comment above).
     engine = create_async_engine(
         url,
         echo=_ECHO,
         future=True,
+        poolclass=NullPool if _IS_TESTING else None,
         connect_args={"check_same_thread": False},
     )
 
