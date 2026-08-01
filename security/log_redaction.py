@@ -107,7 +107,7 @@ _REDACTION_PATTERNS: list[tuple[Pattern[str], str]] = [
     # Skips: KEY_ID=..., KEYBOARD=... etc. (less sensitive)
     (
         re.compile(
-            r"\b(API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD|TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY|JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY|SERVICE_ACCOUNT_KEY)\s*[=:]\s*[\'\"]?[^\s\'\"]{4,}",  # NOSONAR: S5843 regex complexity required for format coverage  # — regex is intentionally comprehensive — simplification would lose match coverage (S5843)
+            r"\b(API_KEY|API_SECRET|SECRET_KEY|SECRET|PASSWORD|PASSWD|PWD|TOKEN|ACCESS_TOKEN|REFRESH_TOKEN|PRIVATE_KEY|ENCRYPTION_KEY|JWT_SECRET|JWT_SECRET_KEY|FERNET_KEY|SERVICE_ACCOUNT_KEY)\s*[=:]\s*[\'\"]?[^\s\'\"]{4,}",  # NOSONAR: S5843 — regex complexity required for comprehensive secret-key format coverage; simplification would lose match coverage
             re.IGNORECASE,
         ),
         r"\1=[REDACTED]",

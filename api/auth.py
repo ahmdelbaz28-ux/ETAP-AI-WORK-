@@ -540,11 +540,11 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 # include credentials (cookies). If the app uses cookies for auth, this is
 # critical. Even with Bearer tokens, this provides defense-in-depth.
 
-_ALLOWED_ORIGINS: set[str] = set(
+_ALLOWED_ORIGINS: set[str] = {
     origin.strip()
     for origin in os.getenv("CSRF_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
-)
+}
 
 
 def _validate_csrf_origin(request: Request) -> None:

@@ -234,9 +234,10 @@ def _verify_resend_signature(
         return False
 
     try:
-        parts = dict(
-            p.split("=", 1) for p in signature_header.split(",") if "=" in p
-        )
+        parts = {
+            k: v for p in signature_header.split(",") if "=" in p
+            for k, v in (p.split("=", 1),)
+        }
     except (ValueError, AttributeError):
         return False
 

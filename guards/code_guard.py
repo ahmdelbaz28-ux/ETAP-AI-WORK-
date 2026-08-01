@@ -419,7 +419,7 @@ class CodeGuard(BaseGuard):
             r"#\s*(?:if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
             r"#\s*\w+\s*=\s*",  # assignment
             r"#\s*\w+\.\w+\(",  # method call
-            r"#\s*print\s*\(",  # print statement  # NOSONAR regex pattern string, not a comment
+            r"#\s*print\s*\(",  # NOSONAR: S8786 — regex pattern string, not a comment; print statement detection
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()

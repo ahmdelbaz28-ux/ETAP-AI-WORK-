@@ -533,7 +533,7 @@ def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional
             if not line or line.startswith("#"):
                 # Capture section headers (lines of # === Text ===)
                 if line.startswith("# ===") and "===" in line[5:]:
-                    section_match = re.search(r"#\s*=+\s*([^=]+)\s*=", line)  # S8786 regex input size bounded; safe in practice  # NOSONAR: regex is intentionally comprehensive — simplification would lose match coverage (S8786)
+                    section_match = re.search(r"#\s*=+\s*([^=]+)\s*=", line)  # NOSONAR: S8786 — regex input size bounded; safe in practice; intentionally comprehensive
                     if section_match:
                         current_section = section_match.group(1).strip()
                 continue
@@ -616,7 +616,7 @@ def scan_scripts() -> (  # NOSONAR: S3776 cognitive complexity intentional; logi
                     if m:
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
-                    m = re.search(r"^#\s*([^\n]+)$", content, re.MULTILINE)  # S8786 regex input size bounded; safe in practice  # NOSONAR: regex is intentionally comprehensive — simplification would lose match coverage (S8786)
+                    m = re.search(r"^#\s*([^\n]+)$", content, re.MULTILINE)  # NOSONAR: S8786 — regex input size bounded; safe in practice; intentionally comprehensive
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:

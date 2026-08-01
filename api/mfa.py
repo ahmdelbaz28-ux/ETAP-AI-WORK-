@@ -144,7 +144,7 @@ async def setup_totp(
         totp = TOTPProvider()
         secret = totp.generate_secret(target_user_id)
         qr_uri = totp.generate_qr_code(target_user_id, secret)
-        backup_codes = totp.generate_backup_codes(target_user_id)
+        totp.generate_backup_codes(target_user_id)  # side effect: stores codes in DB
 
         # V-10: Automatically enable MFA after successful TOTP setup.
         # Previously, the user had to separately call PUT /me with mfa_enabled=True,

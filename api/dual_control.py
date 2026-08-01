@@ -360,8 +360,8 @@ def _notify_clients(request_id: str, request: dict) -> None:
 
     async def _broadcast() -> None:
         dead = []
-        for session_id, sockets in list(_websocket_clients.items()):
-            for ws in list(sockets):
+        for session_id, sockets in list(_websocket_clients.items()):  # NOSONAR: S7504 — snapshot for safe iteration during await
+            for ws in list(sockets):  # NOSONAR: S7504 — snapshot for safe iteration during await
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)
                     # require the socket to be in CONNECTED state.
