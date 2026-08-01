@@ -417,7 +417,7 @@ class HarmonicAnalysisEngine:
     def check_ieee_519_compliance(
         self,
         thd_voltage: dict[str, float],
-        tdd_current: dict[str, float],  # S1172 param retained for interface consistency
+        _tdd_current: dict[str, float],  # S1172 param retained for interface consistency
         voltage_kv: float,  # NOSONAR unused param kept for API compatibility
     ) -> dict[str, bool]:
         """

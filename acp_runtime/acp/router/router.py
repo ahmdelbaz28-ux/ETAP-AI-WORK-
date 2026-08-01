@@ -241,8 +241,8 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        span_ctx: Optional[Any],  # S1172 param retained for interface consistency
-        t0: float,  # S1172 param retained for interface consistency
+        _span_ctx: Optional[Any],  # S1172 param retained for interface consistency
+        _t0: float,  # S1172 param retained for interface consistency
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
         try:

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import ast
 import asyncio
+import aiofiles  # async file I/O for S7493 compliance
 import contextlib
 import json
 import os
@@ -486,10 +487,10 @@ class CoverageAnalyzer:
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed (SyntaxError) or have other
                 # issues (Exception) — coverage report is best-effort.
-                with open(
+                async with aiofiles.open(
                     test_file, encoding="utf-8", errors="replace"
-                ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                    source = fh.read()
+                ) as fh:
+                    source = await fh.read()
                 tree = ast.parse(source, filename=test_file)
 
                 for node in ast.walk(tree):
@@ -521,10 +522,10 @@ class CoverageAnalyzer:
 
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed — function extraction is best-effort.
-                with open(
+                async with aiofiles.open(
                     src_file, encoding="utf-8", errors="replace"
-                ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                    source = fh.read()
+                ) as fh:
+                    source = await fh.read()
                 tree = ast.parse(source, filename=src_file)
 
                 extractor = _FunctionExtractor(module_name, src_file)

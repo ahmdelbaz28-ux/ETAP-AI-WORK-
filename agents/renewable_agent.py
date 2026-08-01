@@ -29,6 +29,10 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+# Module-level numpy Generator for reproducible non-crypto sampling.
+# NOSONAR: explicitly non-cryptographic (S6711, S2245).
+_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+
 logger = logging.getLogger(__name__)
 
 

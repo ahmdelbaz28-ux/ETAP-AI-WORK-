@@ -9,6 +9,17 @@ from typing import Any
 from gis_integration.models import ADMSAsset
 
 
+def _make_test_rng(seed: int) -> random.Random:
+    """Build a deterministic PRNG for non-security test/fault-injection scenarios.
+
+    NOSONAR: random.Random is intentionally used here because the seed must be
+    deterministic for reproducible test-vector generation. Cryptographic
+    randomness would defeat the purpose (test reproducibility).
+    """
+    return random.Random(seed)  # NOSONAR: non-crypto PRNG for test fixtures (S2245)
+
+
+
 @dataclass(frozen=True)
 class FailureScenario:
     scenario_id: str
@@ -27,7 +38,7 @@ def inject_corrupted_geometries(
     - remove geometry.type
     - or remove coordinates
     """
-    rng = random.Random(seed)
+    rng = _make_test_rng(seed)
     out = copy.deepcopy(assets)
     n = len(out)
     if n == 0:
@@ -36,12 +47,12 @@ def inject_corrupted_geometries(
     k = max(1, int(n * corruption_ratio))
     for idx in rng.sample(
         range(n), k
-    ):  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+    ):
         a = out[idx]
         geom = dict(a.geometry)
         mode = rng.choice(
             ["missing_type", "missing_coordinates"]
-        )  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+        )
         if mode == "missing_type":
             geom.pop("type", None)
         else:
@@ -63,7 +74,7 @@ def inject_broken_crs_metadata(
     contamination_ratio: float = 0.1,
     broken_value: str = "INVALID_EPSG",
 ) -> list[ADMSAsset]:
-    rng = random.Random(seed)
+    rng = _make_test_rng(seed)
     out = copy.deepcopy(assets)
     n = len(out)
     if n == 0:
@@ -72,7 +83,7 @@ def inject_broken_crs_metadata(
     k = max(1, int(n * contamination_ratio))
     for idx in rng.sample(
         range(n), k
-    ):  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+    ):
         a = out[idx]
         md = dict(a.metadata)
         md["source_crs"] = broken_value
@@ -95,7 +106,7 @@ def inject_missing_layers_simulation(
     Pure helper: choose which layer_ids are 'missing' in a provider extraction simulation.
     Returns: (present_layers, missing_layers)
     """
-    rng = random.Random(seed)
+    rng = _make_test_rng(seed)
     layers = list(required_layer_ids)
     n = len(layers)
     if n == 0:

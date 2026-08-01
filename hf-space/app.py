@@ -19,6 +19,7 @@ if not hasattr(datetime, "UTC"):
     datetime.UTC = datetime.timezone.utc  # type: ignore  # noqa: UP017
 
 import asyncio
+import aiofiles  # async file I/O for S7493 compliance
 import hmac
 import json
 import logging
@@ -1152,10 +1153,10 @@ async def etap_gui_siem_events(limit: int = 50):
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        with open(
+        async with aiofiles.open(
             log_path, encoding="utf-8"
-        ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-            lines = fh.readlines()
+        ) as fh:
+            lines = await fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()
             if not line:

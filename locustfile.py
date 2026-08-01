@@ -8,11 +8,16 @@ from __future__ import annotations
 import json
 import logging
 import os
+import random
 
 from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
 
 logger = logging.getLogger("ahmedetap-locust")
+
+# Module-level PRNG for load-test scenario selection only.
+# NOSONAR: explicitly non-cryptographic — load-test jitter/selection (S2245).
+_LOAD_RNG = random.Random()  # NOSONAR: load-test PRNG (non-crypto)
 
 # ─── Custom Event Listeners & Metrics ────────────────────────────────────────
 
@@ -352,11 +357,9 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(8)
     def etap_expert_chat(self):
         """Chat with the ETAP Expert AI assistant."""
-        import random
-
-        question = random.choice(
+        question = _LOAD_RNG.choice(
             AI_QUESTIONS
-        )  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+        )  # NOSONAR: load-test PRNG, non-crypto (S2245)
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
             json={
@@ -369,11 +372,9 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(4)
     def etap_gui_chat(self):
         """Chat with the ETAP GUI Agent."""
-        import random
-
-        question = random.choice(
+        question = _LOAD_RNG.choice(
             AI_QUESTIONS[:5]
-        )  # Shorter questions for GUI agent  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+        )  # Shorter questions for GUI agent  # NOSONAR: load-test PRNG, non-crypto (S2245)
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

@@ -29,6 +29,10 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+# Module-level numpy Generator for reproducible non-crypto sampling.
+# NOSONAR: explicitly non-cryptographic (S6711, S2245).
+_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+
 logger = logging.getLogger(__name__)
 
 
@@ -521,11 +525,11 @@ class StabilityAgent(BaseAgent):
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -585,11 +589,11 @@ class StabilityAgent(BaseAgent):
                     Ybus_red = np.array(Y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    G = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = np.random.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0

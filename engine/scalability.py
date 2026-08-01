@@ -10,6 +10,10 @@ from __future__ import annotations
 import heapq
 import logging
 import random
+
+# Module-level PRNG for non-cryptographic load-balancing decisions.
+# Marked NOSONAR: not used for any security purpose (S2245 false positive).
+_RNG = random.Random()  # NOSONAR: non-crypto PRNG, see S2245 documentation
 import threading
 import time
 import uuid
@@ -82,12 +86,12 @@ class LoadBalancer:
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
             elif self._strategy == LoadBalancingStrategy.RANDOM:
-                return random.choice(
+                return _RNG.choice(
                     list(healthy.keys())
-                )  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
+                )  # NOSONAR: non-crypto PRNG, see S2245 documentation
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
-                r = random.uniform(0, total)
+                r = _RNG.uniform(0, total)  # NOSONAR: non-crypto PRNG, see S2245 documentation
                 cumulative = 0.0
                 for wid, w in healthy.items():
                     cumulative += w.weight

@@ -26,6 +26,7 @@ Usage (programmatic)::
 from __future__ import annotations
 
 import asyncio
+import aiofiles  # async file I/O for S7493 compliance
 import contextlib
 import json
 import os
@@ -405,10 +406,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                lines = fh.readlines()
+            ) as fh:
+                lines = await fh.readlines()
 
             # Parse to find endpoint definitions
             current_endpoint: Optional[str] = None
@@ -497,10 +498,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
+            ) as fh:
+                content = await fh.read()
 
             # Check for wildcard origins
             if 'allow_origins=["*"]' in content or "allow_origins=['*']" in content:
@@ -582,10 +583,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                lines = fh.readlines()
+            ) as fh:
+                lines = await fh.readlines()
 
             for i, line in enumerate(lines, 1):
                 # Look for POST/PUT endpoints that accept raw Request
@@ -658,10 +659,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
+            ) as fh:
+                content = await fh.read()
 
             # Check if global rate limiting exists
             has_global_rate_limit = (
@@ -869,10 +870,10 @@ class SecurityAuditor:
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             with contextlib.suppress(Exception):
-                with open(
+                async with aiofiles.open(
                     req_file, encoding="utf-8", errors="replace"
-                ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                    requirements = fh.readlines()
+                ) as fh:
+                    requirements = await fh.readlines()
 
                 for line in requirements:
                     line = line.strip()
@@ -906,10 +907,10 @@ class SecurityAuditor:
         # Check for the specific dead ConnectionManager in the original
         service_file = os.path.join(self.project_root, "engineering_service.py")
         if os.path.exists(service_file):
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
+            ) as fh:
+                content = await fh.read()
                 lines = content.split("\n")
 
             # Check for duplicate RASP stats endpoint
@@ -985,10 +986,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
+            ) as fh:
+                content = await fh.read()
 
             # Check for default JWT secret
             if "etap-platform-default-secret-change-in-production" in content:
@@ -1044,10 +1045,10 @@ class SecurityAuditor:
             if not os.path.exists(service_file):
                 continue
 
-            with open(
+            async with aiofiles.open(
                 service_file, encoding="utf-8", errors="replace"
-            ) as fh:  # NOSONAR sync file I/O in async function; compatibility with sync lib
-                content = fh.read()
+            ) as fh:
+                content = await fh.read()
 
             # Check if stack traces are exposed in error responses
             if "traceback" in content.lower() and "JSONResponse" in content:

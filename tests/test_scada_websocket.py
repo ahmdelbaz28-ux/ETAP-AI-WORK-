@@ -99,20 +99,20 @@ def _create_test_app() -> FastAPI:
     return _app
 
 
-@pytest.fixture()
+@pytest.fixture
 def app() -> FastAPI:
     """Provide a fresh FastAPI app for each test."""
     return _create_test_app()
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(app: FastAPI) -> TestClient:
     """Synchronous test client for WebSocket interactions."""
     with TestClient(app) as c:
         yield c
 
 
-@pytest.fixture()
+@pytest.fixture
 def fresh_scada_feed() -> SCADALiveFeed:
     """Provide a clean ``SCADALiveFeed`` instance for each test.
 
@@ -125,7 +125,7 @@ def fresh_scada_feed() -> SCADALiveFeed:
     return feed
 
 
-@pytest.fixture()
+@pytest.fixture
 def api_key_headers() -> dict:
     """Headers that include a valid API key for authenticated WS connections."""
     return {"x-api-key": TEST_API_KEY}
@@ -156,13 +156,13 @@ def _create_auth_gated_app(expected_key: str) -> FastAPI:
     return _app
 
 
-@pytest.fixture()
+@pytest.fixture
 def auth_app() -> FastAPI:
     """App that requires ``x-api-key`` matching ``TEST_API_KEY``."""
     return _create_auth_gated_app(TEST_API_KEY)
 
 
-@pytest.fixture()
+@pytest.fixture
 def auth_client(auth_app: FastAPI) -> TestClient:
     """Test client bound to the auth-gated app."""
     with TestClient(auth_app) as c:
@@ -323,13 +323,13 @@ def _create_state_estimation_app() -> (
     return _app
 
 
-@pytest.fixture()
+@pytest.fixture
 def se_app() -> FastAPI:
     """App with state-estimation processing on incoming WS messages."""
     return _create_state_estimation_app()
 
 
-@pytest.fixture()
+@pytest.fixture
 def se_client(se_app: FastAPI) -> TestClient:
     """Test client bound to the state-estimation app."""
     with TestClient(se_app) as c:
@@ -773,9 +773,7 @@ class TestAuthentication:
         """A connection without an API key is rejected with code 1008."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(
-            WebSocketDisconnect
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             # The server should close the connection immediately
             with auth_client.websocket_connect(WS_PATH) as ws:
                 ws.receive_json()
@@ -784,9 +782,7 @@ class TestAuthentication:
         """A connection with an incorrect API key is rejected."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(
-            WebSocketDisconnect
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
                 ws.receive_json()
 
@@ -794,9 +790,7 @@ class TestAuthentication:
         """An empty ``x-api-key`` header is treated as missing."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(
-            WebSocketDisconnect
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
                 ws.receive_json()
 

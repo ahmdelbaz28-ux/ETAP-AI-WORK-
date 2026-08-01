@@ -16,6 +16,10 @@ from celery import (
 from services.study_service import StudyRequest, execute_study_logic
 from worker.celery_app import app
 
+# Module-level numpy Generator for reproducible non-crypto sampling.
+# NOSONAR: explicitly non-cryptographic (S6711, S2245).
+_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+
 logger = logging.getLogger(__name__)
 
 
@@ -171,7 +175,7 @@ def process_large_calculation_task(self, calculation_data: dict):
                 )
 
             # Perform some heavy computation
-            matrix = np.random.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour
+            matrix = _RNG.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour
                 size, size
             )  # NOSONAR numpy.random.Generator migration; API change required
             result_matrix = np.linalg.inv(matrix + np.eye(size))

@@ -327,8 +327,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
-          pip install langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
+          pip install --only-binary :all: --no-binary langdetect -r requirements.txt || pip install --only-binary :all: --no-binary langdetect -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: --no-binary langdetect langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Validate Python syntax
@@ -538,8 +538,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
-          pip install langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
+          pip install --only-binary :all: --no-binary langdetect -r requirements.txt || pip install --only-binary :all: --no-binary langdetect -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: --no-binary langdetect langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
 
       - name: Install k6
         run: |

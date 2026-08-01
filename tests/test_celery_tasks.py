@@ -267,9 +267,7 @@ class TestTaskStatusTracking:
 
         # In eager mode with task_eager_propagates=True, the exception
         # is re-raised.  We catch it and inspect the stored result.
-        with pytest.raises(
-            RuntimeError, match="Engine crashed"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError, match="Engine crashed"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -321,9 +319,7 @@ class TestTaskStatusTracking:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("boom")
 
-        with pytest.raises(
-            RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -478,9 +474,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Solver diverged")
 
-        with pytest.raises(
-            RuntimeError, match="Solver diverged"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError, match="Solver diverged"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -492,9 +486,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = ValueError("Invalid study_type: unknown")
 
-        with pytest.raises(
-            ValueError, match="Invalid study_type"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ValueError, match="Invalid study_type"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -506,9 +498,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Engine crashed")
 
-        with pytest.raises(
-            RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -535,9 +525,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("timeout")
 
-        with pytest.raises(
-            RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -594,9 +582,7 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = KeyError("missing_key")
 
-        with pytest.raises(
-            KeyError, match="missing_key"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(KeyError, match="missing_key"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -713,9 +699,7 @@ class TestTaskRetry:
         # The execute_engineering_study_task does not have autoretry_for
         # configured, so it will raise.  We demonstrate the pattern and
         # verify the retry decorator *can* be applied.
-        with pytest.raises(
-            ConnectionError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ConnectionError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -765,9 +749,7 @@ class TestTaskRetry:
         mock_exec.side_effect = _side_effect
 
         # Since the task doesn't have autoretry_for, it raises on first failure
-        with pytest.raises(
-            ConnectionError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ConnectionError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -964,9 +946,7 @@ class TestTaskIntegration:
         mock_exec.side_effect = ValueError("Invalid parameter: tolerance")
 
         # 1. Submit — exception propagates in eager mode
-        with pytest.raises(
-            ValueError, match="Invalid parameter"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(ValueError, match="Invalid parameter"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )

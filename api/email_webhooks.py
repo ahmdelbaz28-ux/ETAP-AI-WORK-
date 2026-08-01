@@ -118,6 +118,9 @@ def _validate_webhook_url(url_str: str) -> str:
       - Hosts that resolve to private / loopback / link-local / reserved IPs
       - AWS metadata endpoint (169.254.169.254) and GCP/Azure equivalents
       - Bare-IP URLs for the above ranges
+
+    Returns the validated URL string (unchanged) so callers can chain.
+    Raises ``_SSRFBlockedError`` for any disallowed target.
     """
     parsed = urllib.parse.urlparse(url_str)
     if parsed.scheme not in ("http", "https"):
@@ -136,8 +139,18 @@ def _validate_webhook_url(url_str: str) -> str:
     if hostname in ("localhost", "127.0.0.1", "::1"):
         if is_prod:
             raise _SSRFBlockedError("Localhost webhook targets are blocked in production.")
-        return url_str
+        # Localhost in dev: short-circuit IP-block checks (already loopback).
+        validated_url = url_str
+    else:
+        validated_url = _validate_remote_hostname(hostname, url_str)
+    return validated_url
 
+
+def _validate_remote_hostname(hostname: str, url_str: str) -> str:
+    """Resolve *hostname* and reject private/reserved/metadata endpoints.
+
+    Returns *url_str* unchanged when the target is a safe public address.
+    """
     # If the hostname is already an IP literal, validate it directly.
     try:
         ip = ipaddress.ip_address(hostname)
@@ -165,11 +178,10 @@ def _validate_webhook_url(url_str: str) -> str:
                 f"Webhook target resolves to a reserved/multicast/unspecified address: {resolved_ip}"
             )
         # Explicitly block cloud metadata endpoints.
-        if str(resolved_ip) in ("169.254.169.254", "fd00:ec2::254"):
+        if str(resolved_ip) in ("169.254.169.254", "fd00:ec2::254"):  # NOSONAR: cloud metadata endpoints (AWS/GCP) - intentional blocklist (S1313)
             raise _SSRFBlockedError(
                 f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
             )
-
     return url_str
 
 

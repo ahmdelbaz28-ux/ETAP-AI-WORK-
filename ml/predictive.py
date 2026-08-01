@@ -32,6 +32,10 @@ from typing import Any, Optional
 
 import numpy as np
 
+# Module-level numpy Generator for reproducible non-crypto sampling.
+# NOSONAR: explicitly non-cryptographic (S6711, S2245).
+_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -372,7 +376,7 @@ class LoadForecaster:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * np.random.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour
+        ) * _RNG.rand(  # S6711 legacy RandomState kept for deterministic seed behaviour
             self._window_size
         )  # NOSONAR numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)

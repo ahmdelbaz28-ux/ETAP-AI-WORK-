@@ -252,9 +252,9 @@ class MemoryOptimizedSystem:
         return self
 
     def _b_idx(self, bid: int) -> int:
-        idx = np.where(self._ids == bid)[
+        idx = np.nonzero(self._ids == bid)[
             0
-        ]  # NOSONAR np.where with single arg; kept for readability
+        ]  # NOSONAR np.nonzero returns indices of True elements; equivalent to np.where(cond)[0] but clearer (S6729)
         if len(idx) == 0:
             raise KeyError(f"Bus {bid} not found")
         return int(idx[0])

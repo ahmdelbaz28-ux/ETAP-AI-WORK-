@@ -29,6 +29,10 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+# Module-level numpy Generator for reproducible non-crypto sampling.
+# NOSONAR: explicitly non-cryptographic (S6711, S2245).
+_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+
 logger = logging.getLogger(__name__)
 
 
@@ -342,7 +346,7 @@ class SCADAAgent(BaseAgent):
         np.random.seed(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
-            noise = np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+            noise = _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                 0, 0.005
             )  # 0.5% noise  # NOSONAR
             new_value = m.value * (1.0 + noise)
@@ -725,7 +729,7 @@ class SCADAAgent(BaseAgent):
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
-                1.0 + np.random.normal(0, 0.02)  # S6711 legacy RandomState kept for deterministic seed behaviour
+                1.0 + _RNG.normal(0, 0.02)  # S6711 legacy RandomState kept for deterministic seed behaviour
             )  # NOSONAR
 
             measurements.append(
@@ -742,7 +746,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
                     value=500
-                    + np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         0, 10
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -755,7 +759,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
                     value=5.0
-                    + np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         0, 0.1
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -768,7 +772,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
                     value=1.0
-                    + np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         0, 0.05
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -781,7 +785,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
                     value=0.95
-                    + np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                         0, 0.01
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -796,7 +800,7 @@ class SCADAAgent(BaseAgent):
             SCADAMeasurement(
                 tag="FREQ_HZ",
                 value=60.0
-                + np.random.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
+                + _RNG.normal(  # S6711 legacy RandomState kept for deterministic seed behaviour
                     0, 0.01
                 ),  # NOSONAR
                 timestamp=timestamp,
