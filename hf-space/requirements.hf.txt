@@ -16,6 +16,7 @@ python-multipart~=0.0.32
 httpx~=0.28.1
 requests~=2.34.2
 aiohttp~=3.14.3
+aiofiles~=24.1.0
 
 # ─── Engineering & Scientific ─────────────────────────────────────────────────
 numpy~=2.5.1
