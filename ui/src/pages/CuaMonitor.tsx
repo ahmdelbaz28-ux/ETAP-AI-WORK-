@@ -1,7 +1,7 @@
+import { Activity, AlertTriangle, Power, Shield, ShieldOff } from "lucide-react";
 // Admin dashboard with complex UI patterns
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Activity, AlertTriangle, Power, Shield, ShieldOff } from "lucide-react";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
@@ -48,9 +48,7 @@ function getEntryVariant(entryType: string): BadgeVariant {
   return "default";
 }
 
-async function fetchKillSwitch(
-  setKillSwitch: (s: KillSwitchStatus) => void,
-): Promise<void> {
+async function fetchKillSwitch(setKillSwitch: (s: KillSwitchStatus) => void): Promise<void> {
   try {
     const resp = await fetch(`${API_BASE_URL}/admin/cua/kill-switch`, {
       headers: authHeader(),
@@ -128,15 +126,13 @@ async function deactivateKill(
   }
 }
 
-function renderTableBody(
-  loading: boolean,
-  logs: CUAActionLog[],
-  isRtl: boolean,
-) {
+function renderTableBody(loading: boolean, logs: CUAActionLog[], isRtl: boolean) {
   if (loading) {
     return (
       <tr>
-        <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">Loading...</td>
+        <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">
+          Loading...
+        </td>
       </tr>
     );
   }
@@ -161,9 +157,7 @@ function renderTableBody(
         </Badge>
       </td>
       <td className="py-2 px-2 font-mono text-[10px]">{entry.timestamp}</td>
-      <td className="py-2 px-2 font-mono text-[10px] max-w-[200px] truncate">
-        {entry.action}
-      </td>
+      <td className="py-2 px-2 font-mono text-[10px] max-w-[200px] truncate">{entry.action}</td>
       <td className="py-2 px-2">{entry.safety_level || "-"}</td>
       <td className="py-2 px-2 font-mono text-[9px] text-[var(--text-muted)]">
         {entry.hash?.slice(0, 12)}...
@@ -187,15 +181,29 @@ function KillSwitchPanel({
   onDeactivate: () => void;
 }>) {
   const borderColor = killSwitch.active ? "border-red-500" : "border-green-500/50";
-  const iconEl = killSwitch.active
-    ? <AlertTriangle className="w-8 h-8 text-red-500 animate-pulse" />
-    : <ShieldOff className="w-8 h-8 text-green-500" />;
-  const statusBadge = killSwitch.active
-    ? <Badge variant="danger" size="sm" className="animate-pulse">{isRtl ? "نشط — جميع الإجراءات محظورة" : "ACTIVE — All actions BLOCKED"}</Badge>
-    : <Badge variant="success" size="sm">{isRtl ? "غير نشط — الإجراءات مسموحة" : "Inactive — Actions allowed"}</Badge>;
-  const actionButton = !killSwitch.active
-    ? <Button variant="danger" icon={Power} onClick={onActivate}>{isRtl ? "تفعيل الطوارئ" : "Kill All"}</Button>
-    : <Button variant="secondary" icon={Power} onClick={onDeactivate}>{isRtl ? "إلغاء الطوارئ" : "Resume All"}</Button>;
+  const iconEl = killSwitch.active ? (
+    <AlertTriangle className="w-8 h-8 text-red-500 animate-pulse" />
+  ) : (
+    <ShieldOff className="w-8 h-8 text-green-500" />
+  );
+  const statusBadge = killSwitch.active ? (
+    <Badge variant="danger" size="sm" className="animate-pulse">
+      {isRtl ? "نشط — جميع الإجراءات محظورة" : "ACTIVE — All actions BLOCKED"}
+    </Badge>
+  ) : (
+    <Badge variant="success" size="sm">
+      {isRtl ? "غير نشط — الإجراءات مسموحة" : "Inactive — Actions allowed"}
+    </Badge>
+  );
+  const actionButton = !killSwitch.active ? (
+    <Button variant="danger" icon={Power} onClick={onActivate}>
+      {isRtl ? "تفعيل الطوارئ" : "Kill All"}
+    </Button>
+  ) : (
+    <Button variant="secondary" icon={Power} onClick={onDeactivate}>
+      {isRtl ? "إلغاء الطوارئ" : "Resume All"}
+    </Button>
+  );
 
   return (
     <Card padding="md" className={`border-2 ${borderColor}`}>
@@ -221,14 +229,17 @@ function KillSwitchPanel({
   );
 }
 
-export default function CuaMonitor() {  // NOSONAR(S3776): CUA monitor dashboard — complexity from 4 async data fetchers + render branches; decomposition tracked as separate refactor
+export default function CuaMonitor() {
+  // NOSONAR(S3776): CUA monitor dashboard — complexity from 4 async data fetchers + render branches; decomposition tracked as separate refactor
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
 
   const [logs, setLogs] = useState<CUAActionLog[]>([]);
   const [killSwitch, setKillSwitch] = useState<KillSwitchStatus>({
-    active: false, activated_at: null, reason: null,
+    active: false,
+    activated_at: null,
+    reason: null,
   });
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -301,7 +312,9 @@ export default function CuaMonitor() {  // NOSONAR(S3776): CUA monitor dashboard
             </h3>
           </div>
           <div className="flex gap-1">
-            <Badge variant="default" size="sm">{logs.length} entries</Badge>
+            <Badge variant="default" size="sm">
+              {logs.length} entries
+            </Badge>
           </div>
         </div>
 

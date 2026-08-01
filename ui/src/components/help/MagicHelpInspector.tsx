@@ -11,7 +11,10 @@ const INTERACTIVE_SELECTOR =
 const OVERLAY_SELECTOR = String.raw`.fixed.z-\[100\], .magic-inspector-overlay, .magic-inspector-banner`;
 
 // Bilingual text-content → contextId heuristics (order matters: more specific first).
-const TEXT_CONTEXT_RULES: ReadonlyArray<{ readonly contextId: string; readonly keywords: readonly string[] }> = [
+const TEXT_CONTEXT_RULES: ReadonlyArray<{
+  readonly contextId: string;
+  readonly keywords: readonly string[];
+}> = [
   { contextId: "dashboard.overview", keywords: ["dashboard", "لوحة التحكم", "التحكم"] },
   { contextId: "studies.load-flow", keywords: ["load flow", "تدفق الحمل"] },
   { contextId: "studies.short-circuit", keywords: ["short circuit", "دائرة قصيرة", "قصر"] },
@@ -286,7 +289,8 @@ export function MagicHelpInspector() {
           onClick={() => setIsActive(false)}
           className="ml-2 p-1 rounded hover:bg-white/10 transition-colors"
           title={lang === "ar" ? "إغلاق" : "Close"}
-         type="button">
+          type="button"
+        >
           <X className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </button>
       </div>

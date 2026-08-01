@@ -99,9 +99,9 @@ const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
 function obfuscate(value: string): string {
   let result = "";
   for (let i = 0; i < value.length; i++) {
-    result += String.fromCodePoint(
-      value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-    );
+    const a = value.codePointAt(i) ?? 0;
+    const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+    result += String.fromCodePoint(a ^ b);
   }
   return btoa(result);
 }
@@ -110,9 +110,9 @@ function deobfuscate(value: string): string {
     const decoded = atob(value);
     let result = "";
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-      );
+      const a = decoded.codePointAt(i) ?? 0;
+      const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+      result += String.fromCodePoint(a ^ b);
     }
     return result;
   } catch {
@@ -2012,16 +2012,18 @@ function ExternalServicesPanel({
                 <div className="space-y-2 mb-3">
                   {svc.fields.map((f) => (
                     <div key={f.key}>
-                      <label className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
+                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
                         {f.label}
                         {f.required && <span className="text-red-400"> *</span>}
-                      </label>
+                      </span>
                       <input
                         type={f.type === "password" ? "password" : "text"}
                         placeholder={f.placeholder}
                         value={settings[f.key] || ""}
-                        onChange={(e) => // NOSONAR — S2004: inline form onChange
-                          setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
+                        onChange={
+                          (
+                            e, // NOSONAR — S2004: inline form onChange
+                          ) => setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
                         }
                         className="w-full px-2.5 py-1.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-md text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none font-mono transition-colors"
                       />
@@ -2029,17 +2031,18 @@ function ExternalServicesPanel({
                   ))}
                 </div>
 
-                {st.detail && (() => {
-                  let stateColor;
-                  if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
-                  else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
-                  else stateColor = "bg-yellow-500/10 text-yellow-400";
-                  return (
-                    <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
-                      {st.detail}
-                    </div>
-                  );
-                })()}
+                {st.detail &&
+                  (() => {
+                    let stateColor: string;
+                    if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
+                    else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
+                    else stateColor = "bg-yellow-500/10 text-yellow-400";
+                    return (
+                      <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
+                        {st.detail}
+                      </div>
+                    );
+                  })()}
 
                 <div className="flex items-center gap-2">
                   <Button
@@ -2093,7 +2096,7 @@ function SettingsField({
     field.includes("RATE") ||
     field.includes("THRESHOLD") ||
     field.includes("MAX_");
-  let inputType;
+  let inputType: string;
   if (isSecret) inputType = "password";
   else if (isNumber) inputType = "number";
   else inputType = "text";
@@ -2184,7 +2187,9 @@ const VISION_PROVIDERS = [
   },
 ];
 
-function VisionApiKeysPanel({ notify }: { readonly notify: (type: NotifyType, message: string) => void }) {
+function VisionApiKeysPanel({
+  notify,
+}: { readonly notify: (type: NotifyType, message: string) => void }) {
   const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<
@@ -2613,21 +2618,21 @@ export default function Settings() {
       // Use the new AES-GCM encryption for secret fields
       const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
       await setEncryptedSettings(settings);
-      
+
       // Also save legacy XOR format for backward compatibility with older code
       const toStore: Record<string, string> = {};
       for (const [k, v] of Object.entries(settings)) {
         toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
       }
       localStorage.setItem("etap-settings", JSON.stringify(toStore));
-      
+
       if (settings.API_KEY_SECRET) {
         localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
       }
-      
+
       // Refresh the sync cache so getCachedSettings() returns the new values
       await refreshSettingsCache();
-      
+
       notify("success", "Settings saved successfully");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save settings";
@@ -2740,33 +2745,43 @@ export default function Settings() {
           transition={{ duration: 0.2 }}
         >
           {(() => {
-            if (activeTab === "ai") return <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "ai")
+              return (
+                <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />
+              );
             if (activeTab === "mcp") return <MCPSettingsPanel />;
-            if (activeTab === "external") return <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "external")
+              return (
+                <ExternalServicesPanel
+                  settings={settings}
+                  setSettings={setSettings}
+                  notify={notify}
+                />
+              );
             if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
             return (
-            <>
-              {currentSections.map((section) => (
-                <Card key={section.title} padding="md">
-                  <CardHeader
-                    title={section.title}
-                    subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
-                    icon={TAB_SECTIONS[activeTab]?.icon}
-                  />
-                  <div className="space-y-4">
-                    {section.fields.map((field) => (
-                      <SettingsField
-                        key={field}
-                        field={field}
-                        value={settings[field] || ""}
-                        onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
-                      />
-                    ))}
-                  </div>
-                </Card>
-              ))}
-            </>
-          );
+              <>
+                {currentSections.map((section) => (
+                  <Card key={section.title} padding="md">
+                    <CardHeader
+                      title={section.title}
+                      subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
+                      icon={TAB_SECTIONS[activeTab]?.icon}
+                    />
+                    <div className="space-y-4">
+                      {section.fields.map((field) => (
+                        <SettingsField
+                          key={field}
+                          field={field}
+                          value={settings[field] || ""}
+                          onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
+                        />
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </>
+            );
           })()}
         </motion.div>
       </TabPanels>

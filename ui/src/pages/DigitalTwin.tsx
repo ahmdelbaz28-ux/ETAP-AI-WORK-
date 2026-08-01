@@ -53,7 +53,14 @@ function DigitalTwinDiagram() {
           Digital Twin
         </Badge>
       </div>
-      <svg viewBox="0 0 700 400" className="w-full h-auto" style={{ minHeight: 240 }}>
+      <svg
+        viewBox="0 0 700 400"
+        className="w-full h-auto"
+        style={{ minHeight: 240 }}
+        role="img"
+        aria-label="Digital twin network diagram"
+      >
+        <title>Digital twin network diagram</title>
         {/* Grid background */}
         <defs>
           <pattern id="dt-grid" width="20" height="20" patternUnits="userSpaceOnUse">

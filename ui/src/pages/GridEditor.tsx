@@ -105,7 +105,8 @@ const CAIRO_TEMPLATE = {
   ] as Load[],
 };
 
-export default function GridEditor() {  // NOSONAR(S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
+export default function GridEditor() {
+  // NOSONAR(S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
@@ -641,7 +642,10 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                 onMouseMove={handleSvgMouseMove}
                 onMouseUp={handleSvgMouseUp}
                 onMouseDown={handleSvgMouseDown}
+                role="img"
+                aria-label="Interactive grid editor canvas"
               >
+                <title>Grid editor</title>
                 {/* SVG Grid pattern background */}
                 <defs>
                   <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -890,9 +894,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
             {selectedDetails ? (
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-[var(--text-tertiary)] mb-1">
+                  <span className="block text-[var(--text-tertiary)] mb-1">
                     {isRtl ? "الاسم" : "Name"}
-                  </label>
+                  </span>
                   <input
                     type="text"
                     value={(selectedDetails as any).name || `Line ${selectedDetails.id}`}
@@ -908,9 +912,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "نوع الناقل" : "Bus Type"}
-                          </label>
+                          </span>
                           <select
                             value={b.type}
                             onChange={(e) => updateSelectedProperty("type", e.target.value)}
@@ -922,9 +926,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "الجهد الاسمي (kV)" : "Nominal KV"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             value={b.baseKv}
@@ -945,9 +949,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "المقاومة R1 (pu)" : "Resistance R1 (pu)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             step="0.001"
@@ -959,9 +963,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "المفاعلة X1 (pu)" : "Reactance X1 (pu)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             step="0.001"
@@ -983,9 +987,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "القدرة الحقيقية pg (MW)" : "Real Power pg (MW)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             value={g.pg}
@@ -996,9 +1000,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "قيمة تنظيم الجهد" : "Voltage Setpoint (pu)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             step="0.01"
@@ -1020,9 +1024,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "القدرة الفعالة P (MW)" : "Real Load P (MW)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             value={ld.pMw}
@@ -1033,9 +1037,9 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <span className="block text-[var(--text-tertiary)] mb-1">
                             {isRtl ? "القدرة غير الفعالة Q (MVAR)" : "Reactive Load Q (MVAR)"}
-                          </label>
+                          </span>
                           <input
                             type="number"
                             value={ld.qMvar}

@@ -67,7 +67,12 @@ const navItems: NavItem[] = [
   { to: "/data-export", icon: Download, labelKey: "sidebar.dataExport", section: "system" },
   { to: "/settings", icon: Settings, labelKey: "sidebar.settings", section: "system" },
   { to: "/admin", icon: ShieldCheck, labelKey: "sidebar.administration", section: "system" },
-  { to: "/admin/cua-monitor", icon: ShieldAlert, labelKey: "sidebar.cuaMonitor", section: "system" },
+  {
+    to: "/admin/cua-monitor",
+    icon: ShieldAlert,
+    labelKey: "sidebar.cuaMonitor",
+    section: "system",
+  },
   { to: "/diagnostics", icon: Bug, labelKey: "sidebar.diagnostics", section: "system" },
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
   { to: "/context-engine", icon: Search, labelKey: "sidebar.contextEngine", section: "system" },
@@ -101,9 +106,10 @@ function healthDotColor(status: HealthStatus): string {
 }
 
 // Partition navItems into top-level items and items grouped by section.
-function partitionNavItems(
-  items: readonly NavItem[],
-): { topLevel: NavItem[]; grouped: Record<string, NavItem[]> } {
+function partitionNavItems(items: readonly NavItem[]): {
+  topLevel: NavItem[];
+  grouped: Record<string, NavItem[]>;
+} {
   const grouped: Record<string, NavItem[]> = {};
   const topLevel: NavItem[] = [];
   items.forEach((item) => {
@@ -189,7 +195,8 @@ function MobileSidebarDrawer({
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="Close menu"
             className="p-2 -mr-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors shrink-0"
-           type="button">
+            type="button"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -255,7 +262,8 @@ function MobileSidebarDrawer({
             onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-           type="button">
+            type="button"
+          >
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (
@@ -273,7 +281,8 @@ function MobileSidebarDrawer({
   );
 }
 
-export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from role-based filtering + active route matching; decomposition tracked as separate refactor
+export function Sidebar() {
+  // NOSONAR(S3776): Sidebar nav — complexity from role-based filtering + active route matching; decomposition tracked as separate refactor
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -429,7 +438,8 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
               sidebarCollapsed && "justify-center px-0",
             )}
             aria-label={theme === "dark" ? t("sidebar.lightMode") : t("sidebar.darkMode")}
-           type="button">
+            type="button"
+          >
             {theme === "dark" ? (
               <Sun className="w-[18px] h-[18px] shrink-0" />
             ) : (
@@ -448,7 +458,8 @@ export function Sidebar() {  // NOSONAR(S3776): Sidebar nav — complexity from 
             )}
             title={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
             aria-label={sidebarCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-           type="button">
+            type="button"
+          >
             {sidebarCollapsed ? (
               <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? "rotate-180" : ""}`} />
             ) : (

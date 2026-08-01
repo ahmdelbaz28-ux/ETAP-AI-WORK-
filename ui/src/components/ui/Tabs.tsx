@@ -2,7 +2,12 @@ import { type ReactNode, useState } from "react";
 import { cn } from "../../utils/helpers";
 
 interface TabsProps {
-  readonly tabs: { readonly id: string; readonly label: string; readonly icon?: ReactNode; readonly badge?: string | number }[];
+  readonly tabs: {
+    readonly id: string;
+    readonly label: string;
+    readonly icon?: ReactNode;
+    readonly badge?: string | number;
+  }[];
   readonly activeTab: string;
   readonly onChange: (id: string) => void;
   readonly className?: string;
@@ -23,7 +28,8 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               ? "bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm"
               : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-card)]/50",
           )}
-         type="button">
+          type="button"
+        >
           {tab.icon}
           {tab.label}
           {tab.badge !== undefined && (

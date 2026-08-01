@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState, type ComponentType } from "react";
+import { type ComponentType, Suspense, lazy, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";

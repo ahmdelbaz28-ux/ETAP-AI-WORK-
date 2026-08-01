@@ -72,7 +72,12 @@ function breakerLedPing(open: boolean): string {
 
 // --- Sub-component: Animated flow path (conditional rendering extracted
 // to reduce LoginBackground's cognitive complexity). ---
-function AnimatedFlowPath({ d, color, dash, dur }: Readonly<{ d: string; color: string; dash: string; dur: string }>) {
+function AnimatedFlowPath({
+  d,
+  color,
+  dash,
+  dur,
+}: Readonly<{ d: string; color: string; dash: string; dur: string }>) {
   return (
     <path
       d={d}
@@ -159,7 +164,10 @@ const TOOLTIP_BUILDERS: Record<string, TooltipBuilder> = {
             `Status: ${isBreakerOpen ? "NO-LOAD (Open Circuit)" : "ON-LOAD (Active)"}`,
           ],
         },
-  "bus-b": (isRtl, isBreakerOpen) =>  // NOSONAR(S3776): tooltip builder closure — complexity from bilingual RTL handling; refactoring would split related logic across files
+  "bus-b": (
+    isRtl,
+    isBreakerOpen, // NOSONAR(S3776): tooltip builder closure — complexity from bilingual RTL handling; refactoring would split related logic across files
+  ) =>
     isRtl
       ? {
           title: "قضيب التوزيع الفرعي (BUS-13.8KV)",
@@ -485,7 +493,9 @@ export function LoginBackground({
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && <AnimatedFlowPath d="M400,316 L400,355" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />}
+        {!isBreakerOpen && (
+          <AnimatedFlowPath d="M400,316 L400,355" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />
+        )}
 
         {/* --- INTERACTIVE CIRCUIT BREAKER (CB-101) --- */}
         <g
@@ -560,7 +570,9 @@ export function LoginBackground({
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && <AnimatedFlowPath d="M400,385 L400,450" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />}
+        {!isBreakerOpen && (
+          <AnimatedFlowPath d="M400,385 L400,450" color={ACTIVE_BUS_COLOR} dash="8 12" dur="10s" />
+        )}
 
         {/* --- LOW VOLTAGE DISTRIBUTION LEVEL (13.8 kV) --- */}
         {/* LV Bus Bar */}
@@ -592,7 +604,9 @@ export function LoginBackground({
           strokeWidth="2.5"
           className="transition-colors duration-500"
         />
-        {!isBreakerOpen && <AnimatedFlowPath d="M600,450 L600,560" color={FEEDER_ACTIVE} dash="8 10" dur="8s" />}
+        {!isBreakerOpen && (
+          <AnimatedFlowPath d="M600,450 L600,560" color={FEEDER_ACTIVE} dash="8 10" dur="8s" />
+        )}
         {/* Load Arrow Symbol */}
         <g
           className="cursor-pointer group/feeder"

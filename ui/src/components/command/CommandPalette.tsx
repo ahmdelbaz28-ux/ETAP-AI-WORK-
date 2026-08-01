@@ -25,7 +25,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../utils/helpers";
 
-interface Command {
+interface CommandItem {
   id: string;
   label: string;
   description?: string;
@@ -205,12 +205,11 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     label: { en: "✨ Magic Help Inspector", ar: "✨ فاحص المساعدة" },
     icon: Zap,
     section: ACTION_SECTION,
-    buildAction: () => () =>
-      globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
+    buildAction: () => () => globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
   },
 ];
 
-function buildStaticCommands(lang: Lang, navigate: ReturnType<typeof useNavigate>): Command[] {
+function buildStaticCommands(lang: Lang, navigate: ReturnType<typeof useNavigate>): CommandItem[] {
   return COMMAND_DEFS.map((def) => ({
     id: def.id,
     label: def.label[lang],
@@ -233,7 +232,7 @@ export function CommandPalette() {
   const lang: Lang = i18n.language === "ar" ? "ar" : "en";
 
   // ─── Static commands (always available) ──────────────────────────────
-  const staticCommands: Command[] = useMemo(
+  const staticCommands: CommandItem[] = useMemo(
     () => buildStaticCommands(lang, navigate),
     [lang, navigate],
   );
@@ -254,7 +253,7 @@ export function CommandPalette() {
     return Array.from(set);
   }, [filtered]);
 
-  const executeCommand = useCallback((cmd: Command) => {
+  const executeCommand = useCallback((cmd: CommandItem) => {
     cmd.action();
     setOpen(false);
     setQuery("");
@@ -385,7 +384,8 @@ export function CommandPalette() {
                             ? "bg-[var(--accent-glow)] text-[var(--accent-primary)]"
                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]",
                         )}
-                       type="button">
+                        type="button"
+                      >
                         <cmd.icon
                           className={cn(
                             "w-4 h-4 shrink-0",

@@ -161,7 +161,8 @@ export default function Logs() {
                     ? "bg-[var(--color-brand-500)] text-white"
                     : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
                 )}
-               type="button">
+                type="button"
+              >
                 {level.label}
                 {level.count > 0 && level.key !== "all" && (
                   <span className="ml-1 opacity-60">({level.count})</span>

@@ -326,7 +326,8 @@ export default function AssetManagement() {
                       ? "bg-[var(--color-brand-500)] text-white"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
                   )}
-                 type="button">
+                  type="button"
+                >
                   {status}
                 </button>
               ))}
@@ -411,7 +412,8 @@ export default function AssetManagement() {
                         disabled={actionInProgress === asset.id}
                         title="Delete asset"
                         className="ml-2 p-1.5 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                       type="button">
+                        type="button"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>

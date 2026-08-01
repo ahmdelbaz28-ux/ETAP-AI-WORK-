@@ -90,7 +90,11 @@ async function extractErrorMessage(response: Response, fallback: string): Promis
 // Fetch user profile from /me endpoint after login. Falls back to a minimal
 // user object derived from the login email if /me is unavailable.
 // Extracted from `login` to reduce its cognitive complexity.
-async function fetchUserProfile(token: string, email: string, setUser: (user: User) => void): Promise<void> {
+async function fetchUserProfile(
+  token: string,
+  email: string,
+  setUser: (user: User) => void,
+): Promise<void> {
   try {
     const meResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },

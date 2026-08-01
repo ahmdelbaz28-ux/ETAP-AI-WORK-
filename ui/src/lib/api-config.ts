@@ -159,10 +159,10 @@ export async function refreshSettingsCache(): Promise<void> {
 /**
  * Secure encryption for sensitive settings using Web Crypto API (AES-GCM).
  * This replaces the weak XOR obfuscation with proper encryption.
- * 
+ *
  * The encryption key is derived from a user-specific salt stored in localStorage
  * combined with a device fingerprint, making it unique per user/device.
- * 
+ *
  * Note: This is client-side encryption for localStorage only. The actual API keys
  * are sent to the backend via secure HTTPS requests with proper authentication.
  */
@@ -178,13 +178,13 @@ async function getEncryptionKey(): Promise<CryptoKey> {
   if (!salt) {
     // Generate a new random salt
     const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-    salt = Array.from(saltBytes, b => b.toString(16).padStart(2, '0')).join('');
+    salt = Array.from(saltBytes, (b) => b.toString(16).padStart(2, "0")).join("");
     localStorage.setItem("etap-encryption-salt", salt);
   }
 
   // Create a device fingerprint for additional entropy
   const fingerprint = await getDeviceFingerprint();
-  
+
   // Derive key using PBKDF2
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
@@ -192,29 +192,33 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     encoder.encode(fingerprint),
     "PBKDF2",
     false,
-    ["deriveKey"]
+    ["deriveKey"],
   );
 
-  const saltBytes = new Uint8Array(salt.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16)));
-  
+  const saltHexPairs = salt.match(/.{1,2}/g);
+  if (!saltHexPairs) {
+    throw new Error("Invalid salt: expected hex string with at least 2 characters");
+  }
+  const saltBytes = new Uint8Array(saltHexPairs.map((byte) => Number.parseInt(byte, 16)));
+
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
       salt: saltBytes,
       iterations: 100000,
-      hash: "SHA-256"
+      hash: "SHA-256",
     },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false, // not extractable
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
 }
 
 // Generate a device fingerprint for key derivation
 async function getDeviceFingerprint(): Promise<string> {
   if (typeof window === "undefined") return "server";
-  
+
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (ctx) {
@@ -223,21 +227,21 @@ async function getDeviceFingerprint(): Promise<string> {
     ctx.fillText("ETAP fingerprint", 2, 2);
   }
   const canvasFingerprint = canvas.toDataURL();
-  
+
   const components = [
     navigator.userAgent,
     navigator.language,
-    screen.width + "x" + screen.height,
+    `${screen.width}x${screen.height}`,
     new Date().getTimezoneOffset().toString(),
     canvasFingerprint,
   ];
-  
+
   // Hash the components
   const encoder = new TextEncoder();
   const data = encoder.encode(components.join("|"));
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -246,28 +250,24 @@ async function getDeviceFingerprint(): Promise<string> {
  */
 export async function encryptSecret(value: string): Promise<string> {
   if (!value) return "";
-  
+
   try {
     const key = await getEncryptionKey();
     const encoder = new TextEncoder();
     const data = encoder.encode(value);
-    
+
     // Generate a random IV (12 bytes for AES-GCM)
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    
+
     // Encrypt
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      data
-    );
-    
+    const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+
     // Combine IV + ciphertext
     const encryptedArray = new Uint8Array(encrypted);
     const combined = new Uint8Array(iv.length + encryptedArray.length);
     combined.set(iv);
     combined.set(encryptedArray, iv.length);
-    
+
     // Return as base64
     return btoa(String.fromCodePoint(...combined));
   } catch (error) {
@@ -282,26 +282,27 @@ export async function encryptSecret(value: string): Promise<string> {
  */
 export async function decryptSecret(encryptedValue: string): Promise<string> {
   if (!encryptedValue) return "";
-  
+
   try {
     const key = await getEncryptionKey();
-    
-    // Decode from base64
+
+    // Decode from base64. `atob` returns a binary string where each character
+    // is a single byte; `codePointAt(0)` therefore always returns a number in
+    // [0, 255]. The `?? 0` fallback satisfies the type checker but is
+    // unreachable for non-empty strings (empty input is rejected above).
     const combined = new Uint8Array(
-      atob(encryptedValue).split("").map(c => c.codePointAt(0)!)
+      atob(encryptedValue)
+        .split("")
+        .map((c) => c.codePointAt(0) ?? 0),
     );
-    
+
     // Extract IV (first 12 bytes) and ciphertext
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
-    
+
     // Decrypt
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
-    
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
@@ -327,9 +328,12 @@ function deobfuscateLegacy(value: string): string {
     const decoded = atob(value);
     let result = "";
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-      );
+      // Both strings are non-empty (decoded from atob, OBFUSCATION_KEY is a
+      // literal). `codePointAt(i) ?? 0` is unreachable but satisfies the
+      // type checker.
+      const a = decoded.codePointAt(i) ?? 0;
+      const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+      result += String.fromCodePoint(a ^ b);
     }
     return result;
   } catch {
@@ -344,7 +348,7 @@ export async function getDeobfuscatedSettings(): Promise<Record<string, string>>
     if (!stored) return {};
     const parsed = JSON.parse(stored);
     const deobfuscated: Record<string, string> = {};
-    
+
     for (const [k, v] of Object.entries(parsed)) {
       if (SECRET_FIELDS.has(k)) {
         // Try new AES-GCM decryption first
@@ -371,10 +375,10 @@ export async function getDeobfuscatedSettings(): Promise<Record<string, string>>
  */
 export async function setEncryptedSettings(settings: Record<string, string>): Promise<void> {
   if (typeof window === "undefined" || !window.localStorage) return;
-  
+
   try {
     const encrypted: Record<string, string> = {};
-    
+
     for (const [k, v] of Object.entries(settings)) {
       if (SECRET_FIELDS.has(k) && v) {
         encrypted[k] = await encryptSecret(v);
@@ -382,7 +386,7 @@ export async function setEncryptedSettings(settings: Record<string, string>): Pr
         encrypted[k] = v;
       }
     }
-    
+
     localStorage.setItem("etap-settings", JSON.stringify(encrypted));
   } catch (error) {
     console.error("Failed to store encrypted settings:", error);

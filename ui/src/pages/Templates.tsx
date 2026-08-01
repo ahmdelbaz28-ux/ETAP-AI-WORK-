@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { FileText, Plus, Search, Loader2, Trash2, Copy } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { Copy, FileText, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
@@ -45,7 +45,9 @@ export default function Templates() {
     }
   };
 
-  useEffect(() => { fetchTemplates(); }, []);
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
 
   const handleCreate = async () => {
     try {
@@ -97,9 +99,10 @@ export default function Templates() {
     }
   };
 
-  const filtered = templates.filter((t) =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.description.toLowerCase().includes(search.toLowerCase())
+  const filtered = templates.filter(
+    (t) =>
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   // S3358: render states via if/else instead of a nested ternary chain.
@@ -115,7 +118,9 @@ export default function Templates() {
       <Card>
         <div className="p-12 text-center">
           <FileText className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
-          <p className="text-[var(--text-muted)]">No templates found. Create your first template to get started.</p>
+          <p className="text-[var(--text-muted)]">
+            No templates found. Create your first template to get started.
+          </p>
         </div>
       </Card>
     );
@@ -171,11 +176,19 @@ export default function Templates() {
             <FileText className="w-6 h-6 text-brand-500" />
             Templates
           </h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">Manage study templates for quick configuration</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            Manage study templates for quick configuration
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <ContextHelpButton contextId="templates" />
-          <Button onClick={() => { setEditTemplate(null); setFormData({ name: "", description: "", study_type: "load_flow" }); setShowCreate(true); }}>
+          <Button
+            onClick={() => {
+              setEditTemplate(null);
+              setFormData({ name: "", description: "", study_type: "load_flow" });
+              setShowCreate(true);
+            }}
+          >
             <Plus className="w-4 h-4" /> New Template
           </Button>
         </div>
@@ -204,7 +217,12 @@ export default function Templates() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label htmlFor="tpl-name" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Name</label>
+              <label
+                htmlFor="tpl-name"
+                className="block text-sm font-medium text-[var(--text-primary)] mb-1"
+              >
+                Name
+              </label>
               <input
                 id="tpl-name"
                 type="text"
@@ -215,7 +233,12 @@ export default function Templates() {
               />
             </div>
             <div>
-              <label htmlFor="tpl-description" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Description</label>
+              <label
+                htmlFor="tpl-description"
+                className="block text-sm font-medium text-[var(--text-primary)] mb-1"
+              >
+                Description
+              </label>
               <textarea
                 id="tpl-description"
                 value={formData.description}
@@ -226,7 +249,12 @@ export default function Templates() {
               />
             </div>
             <div>
-              <label htmlFor="tpl-study-type" className="block text-sm font-medium text-[var(--text-primary)] mb-1">Study Type</label>
+              <label
+                htmlFor="tpl-study-type"
+                className="block text-sm font-medium text-[var(--text-primary)] mb-1"
+              >
+                Study Type
+              </label>
               <select
                 id="tpl-study-type"
                 value={formData.study_type}
@@ -249,7 +277,9 @@ export default function Templates() {
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setShowCreate(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreate} disabled={!formData.name.trim()}>
               {editTemplate ? "Update" : "Create"}
             </Button>

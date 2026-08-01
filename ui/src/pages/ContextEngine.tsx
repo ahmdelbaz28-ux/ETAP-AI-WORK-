@@ -1,12 +1,21 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowRight, Cpu, FileText, Info, Loader2, Search, Share2 } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Cpu,
+  FileText,
+  Info,
+  Loader2,
+  Search,
+  Share2,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { cn } from "../utils/helpers";
 import { API_BASE_URL } from "../lib/api-config";
+import { cn } from "../utils/helpers";
 
 interface ContextResult {
   snippet: string;
@@ -104,7 +113,8 @@ export default function ContextEngine() {
             {t("contextEngine.title") || "Context Engine"}
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            {t("contextEngine.description") || "AI-powered code retrieval and dependency impact analysis"}
+            {t("contextEngine.description") ||
+              "AI-powered code retrieval and dependency impact analysis"}
           </p>
         </div>
         <ContextHelpButton contextId="context-engine" />
@@ -141,7 +151,9 @@ export default function ContextEngine() {
       </div>
 
       <Card>
-        <CardHeader title={mode === "retrieve" ? "Code Snippet Retrieval" : "Dependency Impact Analysis"} />
+        <CardHeader
+          title={mode === "retrieve" ? "Code Snippet Retrieval" : "Dependency Impact Analysis"}
+        />
         <div className="p-4 space-y-4">
           {mode === "retrieve" ? (
             <div className="flex gap-3">
@@ -154,7 +166,9 @@ export default function ContextEngine() {
                 onKeyDown={(e) => e.key === "Enter" && handleRetrieve()}
               />
               <div className="flex items-center gap-2">
-                <label htmlFor="ce-topk" className="text-xs text-[var(--text-muted)]">Top K:</label>
+                <label htmlFor="ce-topk" className="text-xs text-[var(--text-muted)]">
+                  Top K:
+                </label>
                 <select
                   id="ce-topk"
                   value={topK}
@@ -162,7 +176,9 @@ export default function ContextEngine() {
                   className="px-2 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] text-sm"
                 >
                   {[3, 5, 10, 20].map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -172,7 +188,11 @@ export default function ContextEngine() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all"
                 type="button"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
                 Search
               </button>
             </div>
@@ -187,7 +207,9 @@ export default function ContextEngine() {
                 onKeyDown={(e) => e.key === "Enter" && handleImpact()}
               />
               <div className="flex items-center gap-2">
-                <label htmlFor="ce-max-depth" className="text-xs text-[var(--text-muted)]">Max Depth:</label>
+                <label htmlFor="ce-max-depth" className="text-xs text-[var(--text-muted)]">
+                  Max Depth:
+                </label>
                 <select
                   id="ce-max-depth"
                   value={maxDepth}
@@ -195,7 +217,9 @@ export default function ContextEngine() {
                   className="px-2 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] text-sm"
                 >
                   {[1, 2, 3, 5].map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -205,7 +229,11 @@ export default function ContextEngine() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all"
                 type="button"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Share2 className="w-4 h-4" />
+                )}
                 Analyze
               </button>
             </div>
@@ -216,15 +244,19 @@ export default function ContextEngine() {
       {/* Results */}
       {results && results.length > 0 && (
         <Card>
-          <CardHeader title={`Results (${results.length})`} icon={<FileText className="w-5 h-5 text-brand-500" />} />
+          <CardHeader
+            title={`Results (${results.length})`}
+            icon={<FileText className="w-5 h-5 text-brand-500" />}
+          />
           <div className="p-4 space-y-3">
             {results.map((r) => (
-              <div key={`${r.file}:${r.line_start}`} className="p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-elevated)] space-y-2">
+              <div
+                key={`${r.file}:${r.line_start}`}
+                className="p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-elevated)] space-y-2"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--text-primary)]">{r.file}</span>
-                  <Badge variant={scoreVariant(r.score)}>
-                    {(r.score * 100).toFixed(0)}% match
-                  </Badge>
+                  <Badge variant={scoreVariant(r.score)}>{(r.score * 100).toFixed(0)}% match</Badge>
                 </div>
                 <pre className="text-xs text-[var(--text-secondary)] bg-[var(--bg-primary)] p-2 rounded overflow-x-auto max-h-32">
                   <code>{r.snippet}</code>
@@ -240,7 +272,10 @@ export default function ContextEngine() {
 
       {impactResult && (
         <Card>
-          <CardHeader title={`Impact Analysis: ${impactResult.component}`} icon={<Share2 className="w-5 h-5 text-brand-500" />} />
+          <CardHeader
+            title={`Impact Analysis: ${impactResult.component}`}
+            icon={<Share2 className="w-5 h-5 text-brand-500" />}
+          />
           <div className="p-4 space-y-3">
             {impactResult.affected_components.length === 0 ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 text-green-400 text-sm">
@@ -249,21 +284,26 @@ export default function ContextEngine() {
               </div>
             ) : (
               impactResult.affected_components.map((ac) => (
-                <div key={ac.name} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-elevated)]">
+                <div
+                  key={ac.name}
+                  className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-elevated)]"
+                >
                   <div className="flex items-center gap-3">
                     <ArrowRight className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span className="text-sm font-medium text-[var(--text-primary)]">{ac.name}</span>
+                    <span className="text-sm font-medium text-[var(--text-primary)]">
+                      {ac.name}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={severityVariant(ac.severity)}>
-                      {ac.severity}
-                    </Badge>
+                    <Badge variant={severityVariant(ac.severity)}>{ac.severity}</Badge>
                     <span className="text-xs text-[var(--text-muted)]">{ac.impact}</span>
                   </div>
                 </div>
               ))
             )}
-            <div className="text-xs text-[var(--text-muted)]">Max depth: {impactResult.max_depth}</div>
+            <div className="text-xs text-[var(--text-muted)]">
+              Max depth: {impactResult.max_depth}
+            </div>
           </div>
         </Card>
       )}

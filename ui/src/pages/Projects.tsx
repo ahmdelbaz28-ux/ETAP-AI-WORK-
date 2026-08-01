@@ -229,7 +229,8 @@ export default function Projects() {
                           disabled={actionInProgress === project.id}
                           title="Archive project"
                           className="p-1.5 rounded text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                         type="button">
+                          type="button"
+                        >
                           <Archive className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -238,7 +239,8 @@ export default function Projects() {
                         disabled={actionInProgress === project.id}
                         title="Delete project"
                         className="p-1.5 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                       type="button">
+                        type="button"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
