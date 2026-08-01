@@ -67,7 +67,10 @@ tqdm~=4.70.0
 beautifulsoup4~=4.15.0
 lxml~=6.1.1
 redis~=8.1.0
-websockets~=17.0.1
+# websockets: pinned to <16 because supabase's realtime dependency requires
+# websockets>=11,<16. The previous pin (websockets~=17.0.1) caused a
+# ResolutionImpossible error during Docker build, failing the HF Space build.
+websockets~=15.0.1
 
 # ─── CUA Loop (Computer Use Agent) ───────────────────────────────────────────
 # These enable the BrowserCUAExecutor — a headless-browser CUA that works
