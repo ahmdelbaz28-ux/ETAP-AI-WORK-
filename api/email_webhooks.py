@@ -504,7 +504,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
 )
 def register_endpoint(
     body: RegisterEndpointRequest,
-    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
 ) -> JSONResponse:
     """Register a new webhook endpoint to receive forwarded email events.
 
@@ -552,7 +552,7 @@ def register_endpoint(
     summary="List registered outbound webhook endpoints (admin only)",
 )
 def list_endpoints(
-    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
 ) -> JSONResponse:
     """List all registered outbound webhook endpoints.
 
@@ -585,7 +585,7 @@ def list_endpoints(
 )
 def delete_endpoint(
     endpoint_id: str,
-    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
 ) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent).
 
@@ -616,7 +616,7 @@ def delete_endpoint(
 )
 async def test_endpoint(
     endpoint_id: str,
-    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
 ) -> JSONResponse:
     """Send a test event to a webhook endpoint.
 
@@ -660,7 +660,7 @@ async def test_endpoint(
 )
 def list_events(
     limit: int = 50,
-    user: CurrentUser = Depends(require_role("admin", "service")),  # noqa: B008
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
 ) -> JSONResponse:
     """List recent inbound webhook events.
 

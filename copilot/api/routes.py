@@ -251,8 +251,9 @@ class CopilotAPI:
 
         @router.post("/autocad/draw")
         async def draw_in_autocad(
-            entity_type: str = Query(...), params: dict = None  # S8410 Depends injection kept non-Annotated for consistency
-        ):  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+            entity_type: Annotated[str, Query(...)] = ...,  # NOSONAR: Annotated form (S8410)
+            params: dict | None = None,
+        ):
             """Draw a specific entity in AutoCAD.
 
             Entity types: bus, transformer, cable, breaker, panel, load, equipment

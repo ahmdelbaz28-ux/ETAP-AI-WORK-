@@ -32,7 +32,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Optional, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -234,7 +234,7 @@ async def generate_digest(
 async def preview_digest(
     email: str,
     period: str = "daily",
-    user: CurrentUser = Depends(get_current_user_from_header),
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> str:
     """Render the digest HTML without sending it (admin/debug)."""
     # Authorization: users can only preview their own digest; admins can preview any
