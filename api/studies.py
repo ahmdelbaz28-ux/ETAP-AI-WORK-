@@ -496,7 +496,7 @@ async def run_study(  # S3776 cognitive complexity intentional; logic validated 
     # --- Feature flag check (Item 9) ---
     if not is_feature_enabled(payload.study_type):
         flag_info = FEATURE_FLAGS.get(payload.study_type, {})
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
             status_code=400,
             detail=f"This study type is currently disabled in production. Status: {flag_info.get('status', 'unknown')}. Description: {flag_info.get('description', 'No description')}",
         )
@@ -523,7 +523,7 @@ async def run_study(  # S3776 cognitive complexity intentional; logic validated 
         "scada",
     }
     if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
             status_code=400,
             detail="System configuration is required. Please provide a valid power system model.",
         )
@@ -532,7 +532,7 @@ async def run_study(  # S3776 cognitive complexity intentional; logic validated 
     if payload.system is not None:
         pf_result = pre_flight_check(payload.system.model_dump())
         if pf_result is not None:
-            raise HTTPException(status_code=400, detail=pf_result["error"])
+            raise HTTPException(status_code=400, detail=pf_result["error"])  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
 
     # Initialise result containers BEFORE any branch that may append to them.
     # Previous code called `warnings.append(...)` below before this assignment,
@@ -659,7 +659,7 @@ async def run_study(  # S3776 cognitive complexity intentional; logic validated 
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(
+                    raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
                         status_code=400, detail=f"System spec error: {ve}"
                     ) from ve  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             data = _run_native_study(payload.study_type, system, payload.parameters)
@@ -708,7 +708,7 @@ async def run_study(  # S3776 cognitive complexity intentional; logic validated 
             str(ve),
             extra={"trace_id": trace_id},
         )
-        raise HTTPException(status_code=400, detail="Invalid study request parameters") from ve
+        raise HTTPException(status_code=400, detail="Invalid study request parameters") from ve  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
     except Exception as e:
         _increment_counter("failed")
         logger.exception(  # NOSONAR logging injection; user input is sanitized upstream

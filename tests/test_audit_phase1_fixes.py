@@ -99,9 +99,8 @@ class TestArcFlashE01E02:
     def test_e02_clamped_range(self):
         """E-02: x_power should be clamped to safe range."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding='utf-8')
-        assert "max(" in src and "min(" in src, (
-            "x_power should be clamped to prevent division-by-zero or overflow"
-        )
+        assert "max(" in src, "x_power should be clamped with max() to prevent overflow"
+        assert "min(" in src, "x_power should be clamped with min() to prevent division-by-zero"
 
     def test_e01_formula_uses_log10_t(self):
         """E-01: Incident energy formula must use log10(t), not linear t."""

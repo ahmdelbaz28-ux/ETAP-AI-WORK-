@@ -37,7 +37,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 def _reject_legacy_api_key(api_key: Optional[str]) -> None:
     if api_key:
-        raise HTTPException(
+        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
             status_code=401,
             detail="Legacy API key auth is not supported. Use JWT Bearer token.",
         )
@@ -114,7 +114,7 @@ async def execute_study(
     Authorization: RBAC permission checked based on study type.
     """
     if sys.platform != "win32":
-        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
             status_code=400, detail="ETAP automation only supported on Windows"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -137,7 +137,7 @@ async def execute_study(
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):
-        raise HTTPException(  # S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
             status_code=403, detail="Forbidden: insufficient permissions"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 

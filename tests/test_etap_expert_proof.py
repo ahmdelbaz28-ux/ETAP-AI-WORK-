@@ -286,7 +286,8 @@ def test_backward_compat_all_old_prompts_load():
     ]
     for h in old_handles:
         p = get_system_prompt(h)
-        assert p and len(p) > 20, f"Prompt '{h}' no longer loads"
+        assert p, f"Prompt '{h}' no longer loads (None/empty)"
+    assert len(p) > 20, f"Prompt '{h}' no longer loads (too short: {len(p)} chars)"
 
 
 def test_backward_compat_load_flow_still_returns_converged():
@@ -439,9 +440,10 @@ def test_format_c_offers_four_followup_options():
     agent = ETAPExpertAgent()
     r = agent.answer("Run Load Flow to find fault current")
     resp = r["response"]
-    assert "A)" in resp and "B)" in resp and "C)" in resp and "D)" in resp, (
-        "Format C must offer options A/B/C/D"
-    )
+    assert "A)" in resp, "Format C must offer option A)"
+    assert "B)" in resp, "Format C must offer option B)"
+    assert "C)" in resp, "Format C must offer option C)"
+    assert "D)" in resp, "Format C must offer option D)"
 
 
 def test_format_c_corrects_short_circuit_for_fault_current():

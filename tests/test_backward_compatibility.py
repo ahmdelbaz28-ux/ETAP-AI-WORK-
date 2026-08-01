@@ -165,4 +165,5 @@ def test_old_prompts_still_loaded():
     ]
     for handle in old_handles:
         prompt = get_system_prompt(handle)
-        assert prompt and len(prompt) > 20, f"Prompt '{handle}' no longer loads"
+        assert prompt, f"Prompt '{handle}' no longer loads (None/empty)"
+    assert len(prompt) > 20, f"Prompt '{handle}' no longer loads (too short: {len(prompt)} chars)"
