@@ -34,11 +34,11 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
-from api.dependencies import get_api_key
+from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
 from services.email_send_log import get_recent_sends
 
 logger = logging.getLogger("etap.api.email_digest")
@@ -231,8 +231,18 @@ async def generate_digest(
 
 
 @router.get("/preview/{email}", response_class=HTMLResponse, summary="Preview a user's digest")
-async def preview_digest(email: str, period: str = "daily") -> str:
+async def preview_digest(
+    email: str,
+    period: str = "daily",
+    user: CurrentUser = Depends(get_current_user_from_header),
+) -> str:
     """Render the digest HTML without sending it (admin/debug)."""
+    # Authorization: users can only preview their own digest; admins can preview any
+    if user.email.lower() != email.lower() and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="cannot_preview_other_user",
+        )
     ctx = await _build_digest_context(email, period)
     from services.email_service import _load_template, _render
 
