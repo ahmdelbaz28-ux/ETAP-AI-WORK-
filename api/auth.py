@@ -318,8 +318,10 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
@@ -1157,7 +1159,9 @@ async def login(
         await db.flush()
         # F-11 fix: reset rate-limit counter on successful login.
         await _reset_rate_limit(body.username)
-        access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
+        access_token = _create_access_token(
+            str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
+        )
         refresh_token = _create_refresh_token(str(user.id))
         return LoginResponse(
             access_token=access_token,
@@ -1214,7 +1218,9 @@ async def login(
             db.add(user)
             await db.flush()
             await _reset_rate_limit(body.username)
-            access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
+            access_token = _create_access_token(
+                str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
+            )
             refresh_token = _create_refresh_token(str(user.id))
             return LoginResponse(
                 access_token=access_token,
@@ -1236,7 +1242,9 @@ async def login(
     await db.flush()
     # F-11 fix: reset rate-limit counter on successful login.
     await _reset_rate_limit(body.username)
-    access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
+    access_token = _create_access_token(
+        str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
+    )
     refresh_token = _create_refresh_token(str(user.id))
 
     return LoginResponse(
@@ -1301,7 +1309,9 @@ async def refresh(
             detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
         )
 
-    access_token = _create_access_token(str(user.id), user.role, str(user.tenant_id) if user.tenant_id else "")
+    access_token = _create_access_token(
+        str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
+    )
     new_refresh = _create_refresh_token(str(user.id))
 
     # V-3 FIX: Blacklist the old refresh token to prevent reuse.

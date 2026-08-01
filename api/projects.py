@@ -81,8 +81,10 @@ class Project(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
@@ -107,8 +109,10 @@ class StudyResult(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -309,9 +313,7 @@ async def list_projects(
     # If the user has a tenant_id, filter by it. This provides application-level
     # tenant isolation on SQLite. On PostgreSQL, RLS provides additional
     # defence-in-depth at the database level.
-    _tenant_filter = (
-        Project.tenant_id == user.tenant_id if user.tenant_id else True
-    )
+    _tenant_filter = Project.tenant_id == user.tenant_id if user.tenant_id else True
     if user.role == "admin":
         base_query = select(Project).where(
             Project.status != ProjectStatus.DELETED,

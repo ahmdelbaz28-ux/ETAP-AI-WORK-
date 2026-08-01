@@ -63,8 +63,10 @@ class Role(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
@@ -91,8 +93,10 @@ class Permission(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     resource: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -129,8 +133,10 @@ class UserRole(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("tenants.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        String(36),
+        ForeignKey("tenants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
@@ -576,7 +582,9 @@ async def list_permissions(
     _tenant_filter = Permission.tenant_id == user.tenant_id if user.tenant_id else True
 
     # Total count
-    count_result = await db.execute(select(func.count()).select_from(Permission).where(_tenant_filter))
+    count_result = await db.execute(
+        select(func.count()).select_from(Permission).where(_tenant_filter)
+    )
     total = count_result.scalar_one()
 
     # Paginated query

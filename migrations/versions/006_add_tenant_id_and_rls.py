@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import Text
 
 # ---------------------------------------------------------------------------
 # Revision identifiers
@@ -202,6 +201,9 @@ def upgrade() -> None:
     # the application layer would not enforce isolation for those rows.
     # On SQLite, we skip this step because ALTER COLUMN is not supported
     # and the application layer enforces tenant_id via ORM defaults.
+    _bind = op.get_bind()
+    _dialect = _bind.dialect.name
+
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
             try:
@@ -219,13 +221,12 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # SQLite does not support RLS. The application layer provides
     # equivalent isolation via ContextVars + ORM-level filters.
-    _bind = op.get_bind()
-    _dialect = _bind.dialect.name
+    # (_dialect already defined above in step 5)
 
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
             # Enable RLS
-            op.execute(f'ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY')
+            op.execute(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY")
 
             # Policy: tenant members can see rows belonging to their tenant
             # The current_tenant_id is set via SET app.current_tenant_id = '<uuid>'
@@ -258,8 +259,8 @@ def downgrade() -> None:
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
             try:
-                op.execute(f'DROP POLICY IF EXISTS tenant_isolation_{table_name} ON {table_name}')
-                op.execute(f'ALTER TABLE {table_name} DISABLE ROW LEVEL SECURITY')
+                op.execute(f"DROP POLICY IF EXISTS tenant_isolation_{table_name} ON {table_name}")
+                op.execute(f"ALTER TABLE {table_name} DISABLE ROW LEVEL SECURITY")
             except Exception:
                 pass
 

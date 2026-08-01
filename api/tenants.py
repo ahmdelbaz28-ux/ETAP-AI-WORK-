@@ -22,16 +22,13 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func, select
+from sqlalchemy import Boolean, DateTime, Integer, String, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
-    PaginationParams,
-    get_current_user_from_header,
-    pagination_params,
     require_role,
 )
 

@@ -254,9 +254,6 @@ class TenantMiddleware(BaseHTTPMiddleware):
         (to avoid redundant SET on every query within the same request).
         """
         try:
-            from api.database import engine
-            from sqlalchemy import event, text
-
             # Track which connections have already had the RLS variable set.
             # SECURITY (self-critique C-2): Previous version used a plain
             # set[int] with id(conn) for add but id(connection_record) for
@@ -266,12 +263,14 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # the before_cursor_execute and close events.
             import weakref
 
+            from sqlalchemy import event, text
+
+            from api.database import engine
+
             _rls_set_connections: weakref.WeakSet = weakref.WeakSet()
 
             @event.listens_for(engine.sync_engine, "before_cursor_execute")
-            def _set_tenant_before_query(
-                conn, cursor, statement, parameters, context, executemany
-            ):
+            def _set_tenant_before_query(conn, cursor, statement, parameters, context, executemany):
                 """Set app.current_tenant_id before the first query on each connection.
 
                 This runs synchronously on the underlying DBAPI connection.
@@ -284,7 +283,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 # Use the DBAPI connection object for identity tracking.
                 # conn.connection is the underlying DBAPI connection object
                 # that is the same across both events.
-                dbapi_conn = conn.connection.dbapi_connection if hasattr(conn.connection, 'dbapi_connection') else conn.connection
+                dbapi_conn = (
+                    conn.connection.dbapi_connection
+                    if hasattr(conn.connection, "dbapi_connection")
+                    else conn.connection
+                )
                 if dbapi_conn in _rls_set_connections:
                     # Already set on this connection for this request
                     return
@@ -312,8 +315,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # No explicit close event listener is needed anymore.
 
             logger.info(
-                "Registered SQLAlchemy before_cursor_execute event "
-                "for RLS tenant isolation"
+                "Registered SQLAlchemy before_cursor_execute event " "for RLS tenant isolation"
             )
 
         except Exception:
