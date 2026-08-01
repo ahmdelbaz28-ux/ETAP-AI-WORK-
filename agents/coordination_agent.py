@@ -4,8 +4,18 @@ AhmedETAP - Protection Coordination Agent
 Protection system coordination analysis per IEEE 242 (Buff Book)
 and IEC 60255.
 
+V-TCC-01 Self-Critique Fixes:
+- REMOVED duplicate _IEC60255_CURVES dict — all calculations now
+  delegate to calculate_iec_operating_time() from curves.curves,
+  which is the single source of truth for IEC 60255 and IEEE C37.112
+  curve parameters with safety guards.
+- FIXED naming inconsistency: 'long_time_inverse' → 'long_inverse'
+  to match the IEC60255Curves class and the curve registry.
+- All safety guards (min operating time, max multiplier, instantaneous
+  override) are now enforced automatically through the safe function.
+
 Capabilities:
-- Relay operating time calculation (IEC 60255 curve equations)
+- Relay operating time calculation (IEC 60255 / IEEE C37.112 curve equations)
 - Time-current curve coordination analysis
 - Coordination margin verification (minimum 0.2s)
 - Pickup setting and time dial optimization
@@ -31,28 +41,13 @@ from typing import Any
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from curves.curves import (
+    calculate_iec_operating_time,
+    MAX_MULTIPLIER_OF_PICKUP,
+    MIN_OPERATING_TIME_S,
+)
 
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# IEC 60255 relay characteristic curve parameters
-# ---------------------------------------------------------------------------
-
-_IEC60255_CURVES: dict[str, dict[str, float]] = {
-    # Standard inverse-time characteristics: t = TMS × (k / ((I/Ips)ⁿ - 1))
-    # where TMS = time multiplier setting, I = fault current,
-    # Ips = pickup setting, k and n are curve constants
-    "standard_inverse": {"k": 0.140, "n": 0.020},
-    "very_inverse": {"k": 13.50, "n": 1.000},
-    "extremely_inverse": {"k": 80.00, "n": 2.000},
-    "long_time_inverse": {"k": 120.0, "n": 1.000},
-    # IEEE C37.112 curves: t = TD × (A / (M^p - 1) + B)
-    # where TD = time dial, M = I/Ips
-    "ieee_moderately_inverse": {"A": 0.0515, "B": 0.1140, "p": 0.0200},
-    "ieee_very_inverse": {"A": 19.61, "B": 0.4910, "p": 2.0000},
-    "ieee_extremely_inverse": {"A": 28.20, "B": 0.1217, "p": 2.0000},
-}
 
 
 class CoordinationAgent(BaseAgent):
@@ -119,9 +114,17 @@ class CoordinationAgent(BaseAgent):
         pickup_current_a: float,
         curve_type: str = "standard_inverse",
         time_multiplier: float = 1.0,
+        *,
+        instantaneous_override_a: float | None = None,
+        min_operating_time_s: float = MIN_OPERATING_TIME_S,
+        max_multiplier: float = MAX_MULTIPLIER_OF_PICKUP,
     ) -> dict[str, Any]:
         """
         Calculate relay operating time per IEC 60255 or IEEE C37.112.
+
+        V-TCC-01: Now delegates entirely to calculate_iec_operating_time()
+        which is the single source of truth for curve parameters and
+        safety guards.  No duplicate formula logic in this agent.
 
         Parameters
         ----------
@@ -131,57 +134,51 @@ class CoordinationAgent(BaseAgent):
             Relay pickup (plug) setting in amperes.
         curve_type : str
             Characteristic curve type: 'standard_inverse',
-            'very_inverse', 'extremely_inverse', 'long_time_inverse',
+            'very_inverse', 'extremely_inverse', 'long_inverse',
             'ieee_moderately_inverse', 'ieee_very_inverse',
             'ieee_extremely_inverse'.
         time_multiplier : float
             Time multiplier setting (TMS) for IEC curves or time dial
             (TD) for IEEE curves.
+        instantaneous_override_a : float or None
+            Instantaneous overcurrent element (element 50) threshold.
+        min_operating_time_s : float
+            Minimum operating time floor.
+        max_multiplier : float
+            Maximum M = I/Ip beyond which the formula is unreliable.
 
         Returns
         -------
         Dict[str, Any]
             Dictionary with 'operating_time_s', 'curve_type',
-            'pickup_current_a', 'fault_current_a', 'multiples_of_pickup'.
+            'pickup_current_a', 'fault_current_a', 'multiples_of_pickup',
+            'status', 'warnings'.
         """
-        M = fault_current_a / pickup_current_a if pickup_current_a > 0 else 0.0
+        # Backward compatibility: accept 'long_time_inverse' and map to 'long_inverse'
+        normalized_curve = curve_type.lower().strip()
+        if normalized_curve == "long_time_inverse":
+            normalized_curve = "long_inverse"
 
-        if M <= 1.0:
-            return {
-                "operating_time_s": float("inf"),
-                "curve_type": curve_type,
-                "pickup_current_a": pickup_current_a,
-                "fault_current_a": fault_current_a,
-                "multiples_of_pickup": round(M, 4),
-                "status": "below_pickup",
-            }
+        result = calculate_iec_operating_time(
+            i_fault=fault_current_a,
+            i_setting=pickup_current_a,
+            tms=time_multiplier,
+            curve_type=normalized_curve,
+            instantaneous_override_a=instantaneous_override_a,
+            min_operating_time_s=min_operating_time_s,
+            max_multiplier=max_multiplier,
+        )
 
-        curve_params = _IEC60255_CURVES.get(curve_type)
-        if curve_params is None:
-            raise ValueError(f"Unknown curve type: {curve_type}")
-
-        if curve_type.startswith("ieee_"):
-            # IEEE C37.112: t = TD × (A / (M^p - 1) + B)
-            A = curve_params["A"]
-            B = curve_params["B"]
-            p = curve_params["p"]
-            denominator = M**p - 1.0
-            op_time = float("inf") if denominator <= 0 else time_multiplier * (A / denominator + B)
-        else:
-            # IEC 60255: t = TMS × k / (M^n - 1)
-            k = curve_params["k"]
-            n = curve_params["n"]
-            denominator = M**n - 1.0
-            op_time = float("inf") if denominator <= 0 else time_multiplier * k / denominator
-
+        # Map to the agent's expected output format
         return {
-            "operating_time_s": round(float(op_time), 4),
-            "curve_type": curve_type,
+            "operating_time_s": result["operating_time_s"],
+            "curve_type": result["curve_type"],
             "pickup_current_a": pickup_current_a,
             "fault_current_a": fault_current_a,
-            "multiples_of_pickup": round(M, 4),
+            "multiples_of_pickup": result["multiples_of_pickup"],
             "time_multiplier": time_multiplier,
-            "status": "operates",
+            "status": result["status"],
+            "warnings": result.get("warnings", []),
         }
 
     def verify_coordination(
@@ -302,7 +299,7 @@ class CoordinationAgent(BaseAgent):
         currents = multipliers * pickup_current_a
 
         times = []
-        for I in currents:
+        for I in currents:  # NOSONAR physics/engineering notation
             result = self.calculate_relay_operating_time(
                 fault_current_a=float(I),
                 pickup_current_a=pickup_current_a,
