@@ -3,6 +3,15 @@
 import { createContext, createElement, useContext, useEffect, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
 
+// SECURITY AUDIT 2026-08-02 (UI-1 fix):
+// JWT tokens moved from localStorage to sessionStorage to reduce XSS
+// amplification (localStorage persists across tabs/sessions; sessionStorage
+// is scoped to the tab and cleared on close). These constants centralize the
+// storage keys so they can be changed in one place.
+const TOKEN_STORAGE = sessionStorage;
+const AUTH_TOKEN_KEY = "authToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+
 interface User {
   id: string;
   email: string;

@@ -1435,8 +1435,8 @@ a:focus-visible {
 /* ─── Dark/Light Mode Scrollbar Enhancement ─────────────────────── */
 /* Merged into existing :root / .light declarations above; these
    rules repeat for clarity since they live far from line 148. */
-:root { scrollbar-color: var(--color-surface-600) transparent; }  # NOSONAR S4666: duplicate selector is an intentional override for theme variants
-.light { scrollbar-color: var(--color-surface-400) transparent; }  # NOSONAR S4666: duplicate selector is an intentional override for theme variants
+:root { scrollbar-color: var(--color-surface-600) transparent; }  /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
+.light { scrollbar-color: var(--color-surface-400) transparent; }  /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
 
 /* ─── Glass Card Backdrop Enhancement ──────────────────────────── */
 /* NOTE: .glass-premium and .glass-elevated already exist at line ~769.
