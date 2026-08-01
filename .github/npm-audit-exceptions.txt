@@ -1,0 +1,31 @@
+# npm audit exception list
+# ─────────────────────────────────────────────────────────────────────────────
+# Format: one GitHub Advisory ID per line. Lines starting with `#` are comments.
+# These advisories are accepted by the `npm-audit` CI gate after manual review.
+#
+# Review policy (per ci-cd-and-automation skill):
+#   - Every exception MUST have a documented rationale here.
+#   - Exceptions MUST be re-reviewed at least quarterly.
+#   - If a patched version becomes available, the exception MUST be removed and
+#     the dependency upgraded immediately.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# GHSA-qwww-vcr4-c8h2 — React Router: RSC Mode CSRF Bypass Allows Action
+# Execution Before 400 Response.
+# Affects: react-router 7.12.0 - 8.2.0
+# Status as of 2026-08-01: NO patched version exists. The only npm-suggested
+# "fix" is to downgrade to 7.11.0, which is itself vulnerable to 14 OTHER
+# high-severity advisories (XSS, RCE, DoS — see GHSA-2w69-qvjg-hvjx et al.).
+# Downgrading would trade 1 advisory for 14 strictly-worse advisories.
+# Practical exploitability in THIS repo:
+#   - The vulnerability requires React Server Components (RSC) mode, which is
+#     a server-side rendering feature used by Next.js / Remix.
+#   - This repository's UI is a Vite SPA (see ui/vite.config.ts) — it does
+#     NOT use RSC, server actions, or server-side routing.
+#   - The vulnerable code path (server action execution before 400 response)
+#     is therefore unreachable in this codebase.
+# Decision: accept on the grounds of (a) no patched version existing and
+# (b) the vulnerable code path being unreachable in this deployment.
+# Re-review trigger: react-router-dom@7.18.3+ release, OR migration to a
+# server-side rendering framework (Next.js / Remix / RSC).
+GHSA-qwww-vcr4-c8h2

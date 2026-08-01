@@ -25,12 +25,18 @@
   "build": {
     "appId": "com.etap.ai-platform",
     "productName": "Ahmed etap Platform",
-    "files": ["dist/**/*", "electron/**/*"],
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
     "directories": {
       "output": "release"
     },
     "win": {
-      "target": ["nsis", "msi"],
+      "target": [
+        "nsis",
+        "msi"
+      ],
       "icon": "public/favicon.svg"
     },
     "nsis": {
@@ -43,7 +49,10 @@
       "createStartMenuShortcut": true
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "public/favicon.svg"
     }
   },
@@ -61,7 +70,7 @@
     "react-icons": "5.7.0",
     "react-is": "^19.0.0",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "7.18.1",
+    "react-router-dom": "7.18.2",
     "recharts": "3.9.2",
     "remark-gfm": "^4.0.1",
     "simple-icons": "^16.25.0",
@@ -72,7 +81,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@eslint/js": "9.17.0",
-    "@playwright/test": "1.45.0",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
@@ -80,7 +89,7 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "4.3.4",
-    "concurrently": "10.0.3",
+    "concurrently": "^10.0.4",
     "cross-env": "7.0.3",
     "electron": "43.0.0",
     "electron-builder": "26.15.3",
