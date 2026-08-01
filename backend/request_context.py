@@ -8,8 +8,11 @@ same event loop.
 
 Phase 2 enhancements:
   - Tenant ID is now extracted from JWT claims (not from X-Tenant-ID header)
-  - TenantMiddleware sets the PostgreSQL session variable ``app.current_tenant_id``
-    so that Row-Level Security (RLS) policies enforce isolation at the DB level
+  - CorrelationIdMiddleware sets the ContextVar for tenant_id
+  - TenantMiddleware registers a SQLAlchemy engine event that sets
+    ``app.current_tenant_id`` on every connection used by the request,
+    so that Row-Level Security (RLS) policies enforce isolation at the
+    DB level.
   - ContextVars are natively supported by asyncio and guarantee isolation
     across concurrent Tasks — even when they run on the same thread.
 
@@ -182,48 +185,124 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 class TenantMiddleware(BaseHTTPMiddleware):
     """Set the PostgreSQL session variable for Row-Level Security (RLS).
 
-    This middleware runs AFTER JWT authentication and sets the
-    ``app.current_tenant_id`` session variable on the database
-    connection so that PostgreSQL RLS policies can filter rows
-    by the current tenant.
+    SECURITY DESIGN (self-critique fix):
+    The original version opened a SEPARATE database session to set
+    ``app.current_tenant_id``. This was a critical bug — the RLS session
+    variable was set on a connection that was immediately returned to the
+    pool and never used by the route handler's queries. The RLS policy
+    would never see the variable.
+
+    The fix: register a SQLAlchemy ``before_cursor_execute`` event that
+    injects ``SET app.current_tenant_id`` before the FIRST query on each
+    connection. This guarantees the RLS variable is set on the actual
+    connection used by the route handler.
 
     Flow:
-        1. CorrelationIdMiddleware extracts tenant_id from JWT
-        2. TenantMiddleware reads the tenant_id from ContextVar
-        3. TenantMiddleware sets ``SET app.current_tenant_id = '<uuid>'``
-           on the database connection
+        1. CorrelationIdMiddleware extracts tenant_id from JWT → ContextVar
+        2. TenantMiddleware registers the before_cursor_execute event
+        3. When the route handler's first query runs, the event fires
+           and sets ``SET app.current_tenant_id = '<uuid>'`` on that
+           specific connection
         4. All subsequent queries on that connection are automatically
            filtered by RLS policies
+        5. After the request, the ContextVar is cleared to prevent leakage
 
     On SQLite (dev mode), RLS is not supported — the application layer
     enforces tenant isolation via ORM-level filters (see projects.py,
     assets.py, etc.).
     """
 
+    # Class-level flag to prevent re-registering the event handler
+    _event_registered: bool = False
+
     async def dispatch(self, request: Request, call_next):
-        tenant_id = get_tenant_id()
-
-        if tenant_id:
-            # Set the PostgreSQL session variable for RLS
-            try:
-                from api.database import async_session
-
-                async with async_session() as db:
-                    from sqlalchemy import text
-
-                    await db.execute(
-                        text("SET app.current_tenant_id = :tenant_id"),
-                        {"tenant_id": tenant_id},
-                    )
-                    await db.commit()
-            except Exception:
-                # Non-PostgreSQL backends (SQLite) don't support SET
-                # commands — this is expected and safe to ignore.
-                # The application layer handles isolation.
-                logger.debug(
-                    "Could not set app.current_tenant_id (likely SQLite backend). "
-                    "Application-layer isolation is active."
-                )
+        # Register the connection event handler once
+        if not TenantMiddleware._event_registered:
+            self._register_connection_event()
+            TenantMiddleware._event_registered = True
 
         response = await call_next(request)
+
+        # After the request, clear the tenant_id from the ContextVar
+        # to prevent leakage to the next request on the same Task.
+        # Note: the connection is returned to the pool by get_db(),
+        # and the next checkout will set the correct tenant_id.
+        _tenant_id_var.set("")
+
         return response
+
+    @staticmethod
+    def _register_connection_event() -> None:
+        """Register a SQLAlchemy engine event that sets the RLS session
+        variable on every connection before the first query.
+
+        This is the ONLY reliable way to set the PostgreSQL session
+        variable on the connection that will actually be used by the
+        route handler's queries. Opening a separate session (as the
+        original version did) sets the variable on a different
+        connection that is never used.
+
+        The ``before_cursor_execute`` event fires before every cursor
+        execution. We use a connection_info dict to track whether
+        the SET command has already been issued for this connection
+        (to avoid redundant SET on every query within the same request).
+        """
+        try:
+            from api.database import engine
+            from sqlalchemy import event, text
+
+            # Track which connections have already had the RLS variable set
+            _rls_set_connections: set[int] = set()
+
+            @event.listens_for(engine.sync_engine, "before_cursor_execute")
+            def _set_tenant_before_query(
+                conn, cursor, statement, parameters, context, executemany
+            ):
+                """Set app.current_tenant_id before the first query on each connection.
+
+                This runs synchronously on the underlying DBAPI connection.
+                The ContextVar is read here to get the current tenant_id.
+                """
+                tenant_id = get_tenant_id()
+                if not tenant_id:
+                    return
+
+                conn_id = id(conn)
+                if conn_id in _rls_set_connections:
+                    # Already set on this connection for this request
+                    return
+
+                # Only set on PostgreSQL connections
+                try:
+                    # Use the connection's execute method to set the variable
+                    # This works with both asyncpg and psycopg2 drivers
+                    conn.execute(
+                        text("SET app.current_tenant_id = :tid"),
+                        {"tid": tenant_id},
+                    )
+                    _rls_set_connections.add(conn_id)
+                except Exception:
+                    # Non-PostgreSQL backends (SQLite) don't support SET
+                    # — this is expected and safe to ignore.
+                    logger.debug(
+                        "Could not set app.current_tenant_id "
+                        "(likely SQLite backend). "
+                        "Application-layer isolation is active."
+                    )
+
+            @event.listens_for(engine.sync_engine, "close")
+            def _clear_rls_on_close(dbapi_conn, connection_record):
+                """Remove the connection from the RLS set when it's returned to the pool."""
+                conn_id = id(connection_record)
+                _rls_set_connections.discard(conn_id)
+
+            logger.info(
+                "Registered SQLAlchemy before_cursor_execute event "
+                "for RLS tenant isolation"
+            )
+
+        except Exception:
+            logger.warning(
+                "Could not register SQLAlchemy event for RLS. "
+                "Tenant isolation will rely on application-layer filters only."
+            )

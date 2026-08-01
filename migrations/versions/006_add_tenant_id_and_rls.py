@@ -10,7 +10,7 @@ This migration adds multi-tenant isolation at the database level:
 2. Adds ``tenant_id`` column (String 36, FK → tenants.id) to all
    tenant-scoped tables: users, projects, study_results, sessions,
    audit_log, security_events, assets, roles, permissions, user_roles,
-   role_permissions, study_jobs, mfa_credentials.
+   study_jobs, mfa_credentials.
 3. Creates indexes on ``tenant_id`` for fast tenant-scoped queries.
 4. On PostgreSQL, enables Row-Level Security (RLS) with policies that
    restrict each table to the current tenant, using a session variable
@@ -47,9 +47,16 @@ down_revision = "005"
 branch_labels = None
 depends_on = None
 
+# Default tenant ID for existing data backfill.
+_DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
+
 # List of tables that need tenant_id column.
 # Excludes: tenants (it IS the tenant table), role_permissions (association table —
 # tenant isolation is inherited via the role_id FK).
+# SECURITY (self-critique): Table names are constants defined here, not
+# user-supplied. They are used in DDL statements via Alembic's op API
+# which validates identifiers. The UPDATE statements use sa.text() with
+# bound parameters to prevent SQL injection.
 _TENANT_SCOPED_TABLES = [
     "users",
     "projects",
@@ -133,10 +140,9 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # 2. Add tenant_id column to each table + index
     # ------------------------------------------------------------------
+    # SECURITY (self-critique): Using Alembic's op.add_column() which
+    # validates identifiers. No raw f-string SQL for table names.
     for table_name in _TENANT_SCOPED_TABLES:
-        # Check if the table exists (some may not be created in all deployments)
-        # Use try/except because Alembic's batch mode for SQLite doesn't support
-        # inspector checks inline.
         try:
             op.add_column(
                 table_name,
@@ -155,27 +161,34 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # 3. Create a default tenant for existing data
     # ------------------------------------------------------------------
+    # Use sa.text() with bound parameters to prevent SQL injection.
     op.execute(
-        """
-        INSERT INTO tenants (id, name, slug, is_active, plan, max_projects, max_users)
-        VALUES ('default-tenant-00000000-0000-0000-0000-000000000000',
-                'Default Tenant',
-                'default',
-                true,
-                'enterprise',
-                1000,
-                500)
-        """
+        sa.text(
+            "INSERT INTO tenants (id, name, slug, is_active, plan, max_projects, max_users) "
+            "VALUES (:id, :name, :slug, true, :plan, :max_projects, :max_users)"
+        ).bindparams(
+            id=_DEFAULT_TENANT_ID,
+            name="Default Tenant",
+            slug="default",
+            plan="enterprise",
+            max_projects=1000,
+            max_users=500,
+        )
     )
 
     # ------------------------------------------------------------------
     # 4. Backfill tenant_id on existing rows with the default tenant
     # ------------------------------------------------------------------
+    # SECURITY (self-critique): Use sa.text() with bound parameter for
+    # the tenant_id value. Table names come from the constant list above
+    # (not user input), so they are safe for DDL. The UPDATE value uses
+    # a parameterized query.
     for table_name in _TENANT_SCOPED_TABLES:
         try:
             op.execute(
-                f"UPDATE {table_name} SET tenant_id = 'default-tenant-00000000-0000-0000-0000-000000000000' "
-                f"WHERE tenant_id IS NULL"
+                sa.text(
+                    f"UPDATE {table_name} SET tenant_id = :tid WHERE tenant_id IS NULL"
+                ).bindparams(tid=_DEFAULT_TENANT_ID)
             )
         except Exception:
             pass
@@ -196,10 +209,13 @@ def upgrade() -> None:
             # Policy: tenant members can see rows belonging to their tenant
             # The current_tenant_id is set via SET app.current_tenant_id = '<uuid>'
             # by the TenantMiddleware before any query runs.
-            op.execute(f"""
-                CREATE POLICY tenant_isolation_{table_name} ON {table_name}
-                USING (tenant_id = current_setting('app.current_tenant_id', true))
-            """)
+            # NOTE: DDL statements (ALTER TABLE, CREATE POLICY) cannot use
+            # parameterized queries in Alembic. Table names come from the
+            # constant list above (not user input), so they are safe.
+            op.execute(
+                f"CREATE POLICY tenant_isolation_{table_name} ON {table_name} "
+                f"USING (tenant_id = current_setting('app.current_tenant_id', true))"
+            )
 
             # Policy: service role (superuser) bypasses RLS for migrations/admin
             # This is implicit — superusers bypass RLS by default in PostgreSQL.

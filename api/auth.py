@@ -104,6 +104,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "3
 REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
 RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
+# V-07 (Phase 2): Default tenant ID for new user registrations.
+# This must match the value in migrations/versions/006_add_tenant_id_and_rls.py.
+_DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
+
 # ---------------------------------------------------------------------------
 # Rate-limiting (Redis-backed, per username, with in-memory fallback)
 # ---------------------------------------------------------------------------
@@ -1003,6 +1007,7 @@ async def register(
 
     user = User(
         id=str(uuid.uuid4()),
+        tenant_id=_DEFAULT_TENANT_ID,  # V-07 (Phase 2): Assign to default tenant
         username=body.username,
         email=normalised_email,
         password_hash=_hash_password(body.password),
