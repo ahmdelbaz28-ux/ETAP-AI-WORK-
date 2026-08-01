@@ -537,6 +537,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v-04-fix-deterministic-engineering-assertion-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      V-04 Fix: Deterministic Engineering Assertion Layer
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -556,6 +573,16 @@
 
 <h1 id="3-tier-prompt-fallback-langwatch-local-yaml-hardcoded-default">3-tier prompt fallback: LangWatch → local YAML → hardcoded default</h1>
 <p>Agent prompts use a 3-tier fallback: (1) LangWatch API for remote versioned prompts, (2) local YAML files in <code>prompts/</code> for offline operation, (3) hardcoded defaults. This ensures agents always function even when network or external services are unavailable. The trade-off is that prompt drift can occur between LangWatch and local YAML, requiring a sync process. We accept this because safety-critical engineering agents must never fail due to a missing prompt — the hardcoded fallback guarantees execution continues.</p>
+<h2 id="v-04-fix-deterministic-engineering-assertion-layer">V-04 Fix: Deterministic Engineering Assertion Layer</h2>
+<p><strong>Problem</strong>: When the system falls back to a less-capable model or a hardcoded safety-net prompt, the AI's output may look syntactically valid (correct JSON format) but contain engineering-unsafe values — e.g., a voltage of 0.01 pu, a fault current of 999 kA, or a trip time of 0.0001 s. The system previously only validated the format of the response, not the numerical correctness of the engineering outputs.</p>
+<p><strong>Solution</strong>: A deterministic assertion layer (<code>copilot/ai/engineering_assertions.py</code>) that validates AI-generated engineering outputs against physical constraints and engineering standards BEFORE they are shown to the user. This layer is called after every AI response produced by a fallback model or safety-net prompt.</p>
+<p><strong>Checks implemented</strong>:
+- <strong>Voltage range sanity</strong> (IEEE C84.1 Range A/B): Bus voltages must be within physical bounds
+- <strong>Short-circuit current consistency</strong> (IEC 60909): Fault currents must be within physically plausible ranges
+- <strong>Trip time physical plausibility</strong> (IEC 60255): Relay trip times must be within physically achievable bounds
+- <strong>Arc flash energy bounds</strong> (IEEE 1584): Incident energy must be within realistic limits
+- <strong>Cable sizing ampacity verification</strong> (IEC 60364): Cable ampacity must exceed load current</p>
+<p><strong>Integration</strong>: Use <code>validate_fallback_output(output_type, output_data)</code> before displaying any AI response from a fallback model. If the validation fails, the output is rejected or flagged for human review.</p>
 
 
 
