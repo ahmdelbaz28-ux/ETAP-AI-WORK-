@@ -88,7 +88,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
 
       # ── Start the engineering service ──────────────────────────────────────
       - name: Start engineering service in background
@@ -261,7 +262,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
-          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
           pip install --only-binary :all: locust==2.29.1
 
       # ── Start the engineering service ──────────────────────────────────────

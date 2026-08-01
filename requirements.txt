@@ -57,7 +57,7 @@ requests~=2.33.0
 ezdxf~=1.3.0
 
 # Language detection
-langdetect~=1.0.9
+# langdetect~=1.0.9  # NOSONAR: installed separately (py2-only wheel; pure-Python sdist)
 
 # YAML parsing
 pyyaml~=6.0.0
@@ -149,7 +149,7 @@ kubernetes~=29.0.0
 websockets~=12.0
 
 # MQTT messaging for SCADA integration
-paho-mqtt~=1.6.1
+paho-mqtt~=2.1.0
 
 # MongoDB (optional — only needed if SCADA MongoDB backend is used)
 # pymongo~=4.6.0

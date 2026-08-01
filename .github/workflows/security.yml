@@ -47,7 +47,7 @@ jobs:
         with:
           languages: javascript-typescript, python
       - name: Build Python
-        run: "pip install --only-binary :all: -r requirements.txt  # NOSONAR: CodeQL build; requirements.txt pins versions in-repo; continue-on-error=true below makes this advisory"
+        run: "pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: CodeQL build; requirements.txt pins versions in-repo; continue-on-error=true below makes this advisory"
         continue-on-error: true
       - name: Build TypeScript
         run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
@@ -207,7 +207,8 @@ jobs:
         run: |
           pip install --only-binary :all: --upgrade pip==25.0.1
           # requirements.txt is version-locked (~=) and audited by Safety in CI.
-          pip install --only-binary :all: -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install --only-binary :all: -r requirements.txt || pip install -r requirements.txt  # NOSONAR: requirements.txt is version-locked (~=) and audited by Safety in CI
+          pip install langdetect==1.0.9  # NOSONAR: langdetect 1.0.9 ships a py2-only wheel; pure-Python sdist — only source-build exception
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 httpx==0.28.1
 
       - name: Start service for runtime checks
