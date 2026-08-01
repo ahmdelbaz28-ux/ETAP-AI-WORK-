@@ -183,9 +183,9 @@ class TestMlCapabilitiesErrorHandling:
         if not result.get("success"):
             errors_str = str(result.get("errors", ""))
             # The improved handler wraps the error with context
-            assert "deployment_note" in result or "ml/" in errors_str or "numpy" in errors_str, (
-                f"Error message too cryptic: {errors_str[:200]}"
-            )
+            assert (
+                "deployment_note" in result or "ml/" in errors_str or "numpy" in errors_str
+            ), f"Error message too cryptic: {errors_str[:200]}"
 
 
 # ---------------------------------------------------------------------------
@@ -267,9 +267,9 @@ class TestSupportedStandardsConsistency:
         from api.shared_handlers import SUPPORTED_STANDARDS, build_platform_info
 
         info = build_platform_info()
-        assert info["standards"] == SUPPORTED_STANDARDS, (
-            "build_platform_info() must use SUPPORTED_STANDARDS, not an inline list."
-        )
+        assert (
+            info["standards"] == SUPPORTED_STANDARDS
+        ), "build_platform_info() must use SUPPORTED_STANDARDS, not an inline list."
 
     def test_supported_standards_contains_expected_entries(self):
         from api.shared_handlers import SUPPORTED_STANDARDS
@@ -336,9 +336,9 @@ class TestDocsNoStaleCounts:
             pytest.skip(f"{filename} not found")
         content = path.read_text(encoding="utf-8")
         # "548 passing" or "548 tests" is stale — actual count is ~1681
-        assert "548 passing" not in content, (
-            f"{filename} contains stale '548 passing' — update to actual count"
-        )
+        assert (
+            "548 passing" not in content
+        ), f"{filename} contains stale '548 passing' — update to actual count"
         assert "548 Tests" not in content, f"{filename} contains stale '548 Tests'"
 
     def test_no_wrong_hf_url_in_readme(self):
@@ -351,6 +351,6 @@ class TestDocsNoStaleCounts:
             if not path.exists():
                 continue
             content = path.read_text(encoding="utf-8")
-            assert wrong_url not in content, (
-                f"{filename} contains wrong HF URL '{wrong_url}'. Use '{correct_url}' instead."
-            )
+            assert (
+                wrong_url not in content
+            ), f"{filename} contains wrong HF URL '{wrong_url}'. Use '{correct_url}' instead."

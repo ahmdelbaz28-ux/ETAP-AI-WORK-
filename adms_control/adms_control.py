@@ -181,9 +181,7 @@ class TopologyProcessor:
 
     def find_connected_components(
         self,
-    ) -> list[
-        set[str]
-    ]:
+    ) -> list[set[str]]:
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
@@ -392,9 +390,7 @@ class ADMSControlEngine:
         # Find path from target feeder to section
         path = self.topology.find_path(
             to_root,
-            next(
-                iter(self.topology.section_buses.get(section_id, set()))
-            )  # NOSONAR
+            next(iter(self.topology.section_buses.get(section_id, set())))  # NOSONAR
             if section_id in self.topology.section_buses
             else to_root,
         )
@@ -573,9 +569,7 @@ class ADMSControlEngine:
         else:
             result.unrestored_sections = de_energized
 
-    def execute_flisr(
-        self, tripped_switch_ids: list[str], scada_db=None
-    ) -> FLISRResult:
+    def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:
         """
         Execute full FLISR sequence:
         1. Detect fault section

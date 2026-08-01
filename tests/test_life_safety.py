@@ -64,7 +64,7 @@ def test_kill_switch_activate_and_deactivate():
     assert KILL_SWITCH_PATH.exists()
 
     # Verify content
-    data = json.loads(KILL_SWITCH_PATH.read_text(encoding='utf-8'))
+    data = json.loads(KILL_SWITCH_PATH.read_text(encoding="utf-8"))
     assert data["reason"] == "test_emergency"
     assert "activated_at" in data
 
@@ -264,7 +264,7 @@ def test_audit_log_creates_chain():
 
         # Log file should exist with at least one entry
         assert Path(log_path).exists()
-        lines = Path(log_path).read_text(encoding='utf-8').strip().split("\n")
+        lines = Path(log_path).read_text(encoding="utf-8").strip().split("\n")
         assert len(lines) >= 1
 
         # Each entry must have a hash field
@@ -334,7 +334,7 @@ def test_audit_log_detects_tampering():
         resolved_log_path = os.path.realpath(log_path)
         if not resolved_log_path.startswith(audit_dir):
             raise RuntimeError("log_path escaped temp directory — test integrity compromised")
-        lines = Path(resolved_log_path).read_text(encoding='utf-8').strip().split("\n")
+        lines = Path(resolved_log_path).read_text(encoding="utf-8").strip().split("\n")
         first_entry = json.loads(lines[0])
         first_entry["data"]["action"]["target"] = "TAMPERED_TARGET"
         lines[0] = json.dumps(first_entry)

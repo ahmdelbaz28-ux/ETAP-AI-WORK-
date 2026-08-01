@@ -269,6 +269,7 @@ class StateStore:
             try:
                 from redis import Redis
                 from redlock import RedLock
+
                 self._redis_client = Redis.from_url(redis_url)
                 self._redlock = RedLock(self._redis_client)
                 logger.info("StateStore initialized with Redis Redlock: %s", redis_url)
@@ -287,7 +288,9 @@ class StateStore:
                 self._element_locks[element_id] = threading.Lock()
             return self._element_locks[element_id]
 
-    def update_bus_state(self, bus_id: str, voltage_magnitude: float, voltage_angle: float, source: str = "") -> bool:
+    def update_bus_state(
+        self, bus_id: str, voltage_magnitude: float, voltage_angle: float, source: str = ""
+    ) -> bool:
         """
         Security Fix V-03: Thread-safe update of a single bus state.
 
@@ -299,7 +302,9 @@ class StateStore:
         if not element_lock.acquire(timeout=_ELEMENT_LOCK_TIMEOUT):
             logger.warning(
                 "V-03: Could not acquire lock for bus %s within %.1fs (source=%s)",
-                bus_id, _ELEMENT_LOCK_TIMEOUT, source,
+                bus_id,
+                _ELEMENT_LOCK_TIMEOUT,
+                source,
             )
             return False
         try:
@@ -329,7 +334,9 @@ class StateStore:
         if not element_lock.acquire(timeout=_ELEMENT_LOCK_TIMEOUT):
             logger.warning(
                 "V-03: Could not acquire lock for switch %s within %.1fs (source=%s)",
-                switch_id, _ELEMENT_LOCK_TIMEOUT, source,
+                switch_id,
+                _ELEMENT_LOCK_TIMEOUT,
+                source,
             )
             return False
         try:

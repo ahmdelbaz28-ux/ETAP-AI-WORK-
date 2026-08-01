@@ -63,7 +63,8 @@ class FaultAnalyzer:
         return complex(z_col[k])
 
     def _invert_ybus(
-        self, ybus  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        ybus,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Invert Ybus to get Zbus, handling singularity by using pseudo-inverse.
 

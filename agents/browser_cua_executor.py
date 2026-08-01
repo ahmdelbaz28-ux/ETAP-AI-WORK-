@@ -354,9 +354,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
         logger.info("browser wait(%.1fs)", seconds)
         return None
 
-    def _execute_action_hook(
-        self, action: CUAAction, **kwargs
-    ) -> Optional[str]:
+    def _execute_action_hook(self, action: CUAAction, **kwargs) -> Optional[str]:
         """Execute a single browser action. Returns error string or None."""
         if self._page is None:
             return "browser page not available"

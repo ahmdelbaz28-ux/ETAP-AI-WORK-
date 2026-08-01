@@ -215,7 +215,7 @@ class WeatherAgent(BaseAgent):
         # Forced convection coefficient (simplified IEEE 738)
         if re > 0:
             nu = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                0.3 + 0.62 * re** 0.5 * 0.71 ** (1.0 / 3.0)
+                0.3 + 0.62 * re**0.5 * 0.71 ** (1.0 / 3.0)
             )  # NOSONAR: Simplified  #
             h_conv = nu * k_air / D
         else:

@@ -61,8 +61,7 @@ def _validate_schema_name(schema: str) -> str:
     """
     if not schema or not _SCHEMA_NAME_RE.match(schema):
         raise ValueError(
-            f"Invalid PostgreSQL schema name: {schema!r}. "
-            r"Must match /^[A-Za-z_]\w{0,62}$/",
+            f"Invalid PostgreSQL schema name: {schema!r}. " r"Must match /^[A-Za-z_]\w{0,62}$/",
         )
     return schema
 
@@ -73,8 +72,6 @@ def _validate_schema_name(schema: str) -> str:
 
 
 @dataclass
-
-
 def _parse_properties(value) -> dict:
     """Parse a PostGIS row[3] value into a properties dict.
 
@@ -88,6 +85,7 @@ def _parse_properties(value) -> dict:
     if value:
         return json.loads(value)
     return {}
+
 
 class SpatialAsset:
     """A spatially-enabled asset in PostGIS."""

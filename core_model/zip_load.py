@@ -93,7 +93,8 @@ class ZIPLoadModel:
             self.coefficients = ZIP_PRESETS["constant_power"]
 
     def calculate_power(
-        self, v: float  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        v: float,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -115,7 +116,8 @@ class ZIPLoadModel:
         return P, Q
 
     def calculate_admittance(
-        self, v: float  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        v: float,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> complex:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Calculate the equivalent admittance of the ZIP load at voltage V.
@@ -143,7 +145,8 @@ class ZIPLoadModel:
         return y_eq
 
     def get_impedance_component(
-        self, v: float  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        v: float,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> complex:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Get only the constant-impedance component admittance.
@@ -166,7 +169,8 @@ class ZIPLoadModel:
         return complex(p_z, -q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
 
     def voltage_sensitivity(
-        self, v: float  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        v: float,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

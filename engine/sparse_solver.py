@@ -456,8 +456,11 @@ class SparseYBus:
         i_final = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             ybus_dense @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        s_final = V * np.conj(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            i_final
+        s_final = (
+            V
+            * np.conj(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                i_final
+            )
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
         elapsed = time.perf_counter() - t0
@@ -819,8 +822,11 @@ class SparseYBus:
         i_final = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             Ybus @ V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        s_final = V * np.conj(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            i_final
+        s_final = (
+            V
+            * np.conj(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                i_final
+            )
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         return SparseConvergenceResult(
             converged=converged,

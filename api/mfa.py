@@ -88,7 +88,9 @@ class TotpSetupRequest(BaseModel):
 class TotpVerifyRequest(BaseModel):
     """Payload for ``POST /api/v1/auth/mfa/totp/verify``."""
 
-    code: str = Field(..., min_length=4, max_length=20, description="TOTP code from authenticator app")
+    code: str = Field(
+        ..., min_length=4, max_length=20, description="TOTP code from authenticator app"
+    )
     user_id: str | None = Field(
         default=None,
         description=(
@@ -164,6 +166,7 @@ async def setup_totp(
         except Exception as mfa_enable_err:
             # Non-blocking — log but don't fail the setup
             from logging import getLogger
+
             getLogger("etap.api.mfa").warning(
                 "mfa_auto_enable_failed user=%s err=%s", target_user_id, mfa_enable_err
             )
@@ -258,6 +261,7 @@ async def verify_totp(
                 # Same code reused within 30 seconds — reject
                 is_valid = False
                 from logging import getLogger
+
                 getLogger("etap.api.mfa").warning(
                     "totp_replay_blocked user=%s code_hash=%s", target_user_id, code_hash[:8]
                 )
@@ -378,6 +382,7 @@ async def verify_backup_code(
         code_hash = hashlib.sha256(code.encode()).hexdigest()
 
         from security.mfa import TOTPProvider
+
         totp = TOTPProvider()
         # SECURITY FIX: Pass the HASH to verify_backup_code, not the plaintext.
         # Previously, the code was hashed but the plaintext was sent to

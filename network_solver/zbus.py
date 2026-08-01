@@ -2,7 +2,8 @@ import numpy as np
 
 
 def zbus_from_ybus(
-    ybus, reference_bus=0  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    ybus,
+    reference_bus=0,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     """
     Compute Zbus matrix from Ybus by inverting the reduced Ybus matrix.

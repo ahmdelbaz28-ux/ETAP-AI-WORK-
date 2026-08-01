@@ -541,9 +541,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 # critical. Even with Bearer tokens, this provides defense-in-depth.
 
 _ALLOWED_ORIGINS: set[str] = {
-    origin.strip()
-    for origin in os.getenv("CSRF_ALLOWED_ORIGINS", "").split(",")
-    if origin.strip()
+    origin.strip() for origin in os.getenv("CSRF_ALLOWED_ORIGINS", "").split(",") if origin.strip()
 }
 
 
@@ -585,6 +583,7 @@ def _validate_csrf_origin(request: Request) -> None:
         # e.g., Origin: https://example.com matches Host: example.com
         try:
             from urllib.parse import urlparse
+
             parsed = urlparse(origin)
             origin_host = parsed.hostname
             if origin_host and host:
@@ -1427,6 +1426,7 @@ async def update_me(
             if not verified and body.mfa_code:
                 try:
                     from security.mfa import TOTPProvider
+
                     totp = TOTPProvider()
                     verified = totp.verify_code(str(db_user.id), body.mfa_code)
                 except Exception:

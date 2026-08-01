@@ -181,8 +181,11 @@ class RenewableAgent(BaseAgent):
         p_dc = np.maximum(p_dc, 0.0)
 
         # NOSONAR: Inverter clipping  # — S117: engineering-notation variable (IEEE/IEC domain standard)
-        p_ac_pre_loss = p_dc * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            losses.inverter_efficiency_pct / 100.0
+        p_ac_pre_loss = (
+            p_dc
+            * (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                losses.inverter_efficiency_pct / 100.0
+            )
         )  # NOSONAR
         p_ac_clipped = np.minimum(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             p_ac_pre_loss, ac_capacity_kw
@@ -193,7 +196,9 @@ class RenewableAgent(BaseAgent):
         loss_factor = (
             (1.0 - losses.soiling_loss_pct / 100.0)
             * (1.0 - losses.mismatch_loss_pct / 100.0)
-            * (1.0 - losses.wiring_loss_pct / 100.0)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            * (
+                1.0 - losses.wiring_loss_pct / 100.0
+            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             * (losses.availability_pct / 100.0)
         )
 
@@ -290,12 +295,18 @@ class RenewableAgent(BaseAgent):
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
-        poa = np.clip(poa, 0.0, 1.2)  # NOSONAR: kW/m²  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+        poa = np.clip(
+            poa, 0.0, 1.2
+        )  # NOSONAR: kW/m²  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
-            hours
+        cloud_factor = (
+            0.7
+            + 0.3
+            * np.random.random(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                hours
+            )
         )  # NOSONAR
         poa = poa * cloud_factor
 
@@ -697,10 +708,14 @@ class RenewableAgent(BaseAgent):
                 voltage_rise_budget / max_voltage_rise_pct_per_kw
             )  # NOSONAR: kW  #
         else:
-            hc_voltage = float("inf")  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            hc_voltage = float(
+                "inf"
+            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         # 2. Thermal-limited hosting capacity
-        thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        thermal_headroom_pct = (
+            max_thermal_loading_pct - current_loading_pct
+        )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         hc_thermal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             feeder_head_kva * (thermal_headroom_pct / 100.0)
         )  # NOSONAR: kVA  #
@@ -726,12 +741,17 @@ class RenewableAgent(BaseAgent):
         constraints = {
             "voltage_limit_kw": float(hc_voltage),
             "thermal_limit_kw": float(hc_thermal_kw),
-            "reverse_power_limit_kw": float(hc_reverse),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            "reverse_power_limit_kw": float(
+                hc_reverse
+            ),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             "protection_limit_kw": float(hc_protection),
         }
 
         hc_overall = min(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            hc_voltage, hc_thermal_kw, hc_reverse, hc_protection  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            hc_voltage,
+            hc_thermal_kw,
+            hc_reverse,
+            hc_protection,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         )  # NOSONAR
         limiting_constraint = min(constraints, key=lambda k: constraints[k])
 

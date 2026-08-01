@@ -137,50 +137,72 @@ class EngineeringAssertionLayer:
         results = []
         for bus_id, voltage_kv in bus_voltages.items():
             if nominal_voltage_kv <= 0:
-                results.append(AssertionResult(
-                    check_name="voltage_range",
-                    passed=False,
-                    severity=AssertionSeverity.CRITICAL,
-                    message=f"Invalid nominal voltage {nominal_voltage_kv} kV for bus {bus_id}",
-                    details={"bus_id": bus_id, "voltage_kv": voltage_kv},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="voltage_range",
+                        passed=False,
+                        severity=AssertionSeverity.CRITICAL,
+                        message=f"Invalid nominal voltage {nominal_voltage_kv} kV for bus {bus_id}",
+                        details={"bus_id": bus_id, "voltage_kv": voltage_kv},
+                    )
+                )
                 continue
 
             voltage_pu = voltage_kv / nominal_voltage_kv
 
             # Range B check (hard limit)
             if voltage_pu < self.VOLTAGE_PU_MIN_RANGE_B or voltage_pu > self.VOLTAGE_PU_MAX_RANGE_B:
-                results.append(AssertionResult(
-                    check_name="voltage_range_b",
-                    passed=False,
-                    severity=AssertionSeverity.CRITICAL,
-                    message=(
-                        f"Bus {bus_id} voltage {voltage_pu:.3f} pu is outside "
-                        f"IEEE C84.1 Range B ({self.VOLTAGE_PU_MIN_RANGE_B:.2f}-"
-                        f"{self.VOLTAGE_PU_MAX_RANGE_B:.2f} pu)"
-                    ),
-                    details={"bus_id": bus_id, "voltage_kv": voltage_kv, "voltage_pu": voltage_pu},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="voltage_range_b",
+                        passed=False,
+                        severity=AssertionSeverity.CRITICAL,
+                        message=(
+                            f"Bus {bus_id} voltage {voltage_pu:.3f} pu is outside "
+                            f"IEEE C84.1 Range B ({self.VOLTAGE_PU_MIN_RANGE_B:.2f}-"
+                            f"{self.VOLTAGE_PU_MAX_RANGE_B:.2f} pu)"
+                        ),
+                        details={
+                            "bus_id": bus_id,
+                            "voltage_kv": voltage_kv,
+                            "voltage_pu": voltage_pu,
+                        },
+                    )
+                )
             # Range A check (warning)
-            elif voltage_pu < self.VOLTAGE_PU_MIN_RANGE_A or voltage_pu > self.VOLTAGE_PU_MAX_RANGE_A:
-                results.append(AssertionResult(
-                    check_name="voltage_range_a",
-                    passed=not self.strict_mode,
-                    severity=AssertionSeverity.WARNING,
-                    message=(
-                        f"Bus {bus_id} voltage {voltage_pu:.3f} pu is outside "
-                        f"IEEE C84.1 Range A ({self.VOLTAGE_PU_MIN_RANGE_A:.2f}-"
-                        f"{self.VOLTAGE_PU_MAX_RANGE_A:.2f} pu) but within Range B"
-                    ),
-                    details={"bus_id": bus_id, "voltage_kv": voltage_kv, "voltage_pu": voltage_pu},
-                ))
+            elif (
+                voltage_pu < self.VOLTAGE_PU_MIN_RANGE_A or voltage_pu > self.VOLTAGE_PU_MAX_RANGE_A
+            ):
+                results.append(
+                    AssertionResult(
+                        check_name="voltage_range_a",
+                        passed=not self.strict_mode,
+                        severity=AssertionSeverity.WARNING,
+                        message=(
+                            f"Bus {bus_id} voltage {voltage_pu:.3f} pu is outside "
+                            f"IEEE C84.1 Range A ({self.VOLTAGE_PU_MIN_RANGE_A:.2f}-"
+                            f"{self.VOLTAGE_PU_MAX_RANGE_A:.2f} pu) but within Range B"
+                        ),
+                        details={
+                            "bus_id": bus_id,
+                            "voltage_kv": voltage_kv,
+                            "voltage_pu": voltage_pu,
+                        },
+                    )
+                )
             else:
-                results.append(AssertionResult(
-                    check_name="voltage_range",
-                    passed=True,
-                    message=f"Bus {bus_id} voltage {voltage_pu:.3f} pu is within Range A",
-                    details={"bus_id": bus_id, "voltage_kv": voltage_kv, "voltage_pu": voltage_pu},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="voltage_range",
+                        passed=True,
+                        message=f"Bus {bus_id} voltage {voltage_pu:.3f} pu is within Range A",
+                        details={
+                            "bus_id": bus_id,
+                            "voltage_kv": voltage_kv,
+                            "voltage_pu": voltage_pu,
+                        },
+                    )
+                )
 
         self._results.extend(results)
         return results
@@ -212,51 +234,59 @@ class EngineeringAssertionLayer:
         for fault_id, current_ka in fault_currents.items():
             # Check absolute physical bounds
             if current_ka > self.MAX_FAULT_CURRENT_KA:
-                results.append(AssertionResult(
-                    check_name="fault_current_absolute",
-                    passed=False,
-                    severity=AssertionSeverity.FATAL,
-                    message=(
-                        f"Fault current {current_ka:.1f} kA at {fault_id} exceeds "
-                        f"physical maximum {self.MAX_FAULT_CURRENT_KA} kA"
-                    ),
-                    details={"fault_id": fault_id, "current_ka": current_ka},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="fault_current_absolute",
+                        passed=False,
+                        severity=AssertionSeverity.FATAL,
+                        message=(
+                            f"Fault current {current_ka:.1f} kA at {fault_id} exceeds "
+                            f"physical maximum {self.MAX_FAULT_CURRENT_KA} kA"
+                        ),
+                        details={"fault_id": fault_id, "current_ka": current_ka},
+                    )
+                )
             elif current_ka < self.MIN_FAULT_CURRENT_A / 1000:
-                results.append(AssertionResult(
-                    check_name="fault_current_minimum",
-                    passed=False,
-                    severity=AssertionSeverity.WARNING,
-                    message=(
-                        f"Fault current {current_ka:.6f} kA at {fault_id} is below "
-                        f"minimum detectable threshold"
-                    ),
-                    details={"fault_id": fault_id, "current_ka": current_ka},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="fault_current_minimum",
+                        passed=False,
+                        severity=AssertionSeverity.WARNING,
+                        message=(
+                            f"Fault current {current_ka:.6f} kA at {fault_id} is below "
+                            f"minimum detectable threshold"
+                        ),
+                        details={"fault_id": fault_id, "current_ka": current_ka},
+                    )
+                )
             # Check consistency with system's maximum expected fault level
             elif current_ka > max_expected_ka * 1.5:
                 # Allow 50% margin above expected for motor contribution, etc.
-                results.append(AssertionResult(
-                    check_name="fault_current_consistency",
-                    passed=not self.strict_mode,
-                    severity=AssertionSeverity.WARNING,
-                    message=(
-                        f"Fault current {current_ka:.1f} kA at {fault_id} significantly "
-                        f"exceeds expected maximum {max_expected_ka:.1f} kA (>{max_expected_ka * 1.5:.1f} kA)"
-                    ),
-                    details={
-                        "fault_id": fault_id,
-                        "current_ka": current_ka,
-                        "max_expected_ka": max_expected_ka,
-                    },
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="fault_current_consistency",
+                        passed=not self.strict_mode,
+                        severity=AssertionSeverity.WARNING,
+                        message=(
+                            f"Fault current {current_ka:.1f} kA at {fault_id} significantly "
+                            f"exceeds expected maximum {max_expected_ka:.1f} kA (>{max_expected_ka * 1.5:.1f} kA)"
+                        ),
+                        details={
+                            "fault_id": fault_id,
+                            "current_ka": current_ka,
+                            "max_expected_ka": max_expected_ka,
+                        },
+                    )
+                )
             else:
-                results.append(AssertionResult(
-                    check_name="fault_current",
-                    passed=True,
-                    message=f"Fault current {current_ka:.1f} kA at {fault_id} is within expected range",
-                    details={"fault_id": fault_id, "current_ka": current_ka},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="fault_current",
+                        passed=True,
+                        message=f"Fault current {current_ka:.1f} kA at {fault_id} is within expected range",
+                        details={"fault_id": fault_id, "current_ka": current_ka},
+                    )
+                )
 
         self._results.extend(results)
         return results
@@ -298,7 +328,12 @@ class EngineeringAssertionLayer:
                     f"Relay {relay_id} trip time {trip_time_s * 1000:.1f} ms is below "
                     f"physical minimum {self.MIN_TRIP_TIME_S * 1000:.1f} ms"
                 ),
-                details={"relay_id": relay_id, "trip_time_s": trip_time_s, "current_a": current_a, "pickup_a": pickup_a},
+                details={
+                    "relay_id": relay_id,
+                    "trip_time_s": trip_time_s,
+                    "current_a": current_a,
+                    "pickup_a": pickup_a,
+                },
             )
         elif trip_time_s > self.MAX_TRIP_TIME_S:
             result = AssertionResult(
@@ -309,7 +344,12 @@ class EngineeringAssertionLayer:
                     f"Relay {relay_id} trip time {trip_time_s:.1f} s exceeds "
                     f"practical maximum {self.MAX_TRIP_TIME_S:.1f} s"
                 ),
-                details={"relay_id": relay_id, "trip_time_s": trip_time_s, "current_a": current_a, "pickup_a": pickup_a},
+                details={
+                    "relay_id": relay_id,
+                    "trip_time_s": trip_time_s,
+                    "current_a": current_a,
+                    "pickup_a": pickup_a,
+                },
             )
         elif current_a > pickup_a and trip_time_s > 100:
             # Current is above pickup but trip time is very long — suspicious
@@ -321,7 +361,12 @@ class EngineeringAssertionLayer:
                     f"Relay {relay_id} trip time {trip_time_s:.1f} s is unusually long "
                     f"for current {current_a:.1f} A >> pickup {pickup_a:.1f} A"
                 ),
-                details={"relay_id": relay_id, "trip_time_s": trip_time_s, "current_a": current_a, "pickup_a": pickup_a},
+                details={
+                    "relay_id": relay_id,
+                    "trip_time_s": trip_time_s,
+                    "current_a": current_a,
+                    "pickup_a": pickup_a,
+                },
             )
         else:
             result = AssertionResult(
@@ -356,45 +401,53 @@ class EngineeringAssertionLayer:
         results = []
         for bus_id, energy in incident_energy_cal_cm2.items():
             if energy < 0:
-                results.append(AssertionResult(
-                    check_name="arc_flash_energy_negative",
-                    passed=False,
-                    severity=AssertionSeverity.FATAL,
-                    message=f"Negative incident energy {energy:.2f} cal/cm2 at {bus_id} is physically impossible",
-                    details={"bus_id": bus_id, "energy_cal_cm2": energy},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="arc_flash_energy_negative",
+                        passed=False,
+                        severity=AssertionSeverity.FATAL,
+                        message=f"Negative incident energy {energy:.2f} cal/cm2 at {bus_id} is physically impossible",
+                        details={"bus_id": bus_id, "energy_cal_cm2": energy},
+                    )
+                )
             elif energy > self.MAX_INCIDENT_ENERGY_CAL_CM2:
-                results.append(AssertionResult(
-                    check_name="arc_flash_energy_upper",
-                    passed=False,
-                    severity=AssertionSeverity.CRITICAL,
-                    message=(
-                        f"Incident energy {energy:.1f} cal/cm2 at {bus_id} exceeds "
-                        f"realistic upper bound {self.MAX_INCIDENT_ENERGY_CAL_CM2} cal/cm2"
-                    ),
-                    details={"bus_id": bus_id, "energy_cal_cm2": energy},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="arc_flash_energy_upper",
+                        passed=False,
+                        severity=AssertionSeverity.CRITICAL,
+                        message=(
+                            f"Incident energy {energy:.1f} cal/cm2 at {bus_id} exceeds "
+                            f"realistic upper bound {self.MAX_INCIDENT_ENERGY_CAL_CM2} cal/cm2"
+                        ),
+                        details={"bus_id": bus_id, "energy_cal_cm2": energy},
+                    )
+                )
             else:
-                results.append(AssertionResult(
-                    check_name="arc_flash_energy",
-                    passed=True,
-                    message=f"Incident energy {energy:.2f} cal/cm2 at {bus_id} is within bounds",
-                    details={"bus_id": bus_id, "energy_cal_cm2": energy},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="arc_flash_energy",
+                        passed=True,
+                        message=f"Incident energy {energy:.2f} cal/cm2 at {bus_id} is within bounds",
+                        details={"bus_id": bus_id, "energy_cal_cm2": energy},
+                    )
+                )
 
         if arc_flash_boundaries_mm:
             for bus_id, boundary_mm in arc_flash_boundaries_mm.items():
                 if boundary_mm < self.MIN_ARC_FLASH_BOUNDARY_MM:
-                    results.append(AssertionResult(
-                        check_name="arc_flash_boundary",
-                        passed=False,
-                        severity=AssertionSeverity.CRITICAL,
-                        message=(
-                            f"Arc flash boundary {boundary_mm:.0f} mm at {bus_id} is below "
-                            f"minimum safe distance {self.MIN_ARC_FLASH_BOUNDARY_MM:.0f} mm"
-                        ),
-                        details={"bus_id": bus_id, "boundary_mm": boundary_mm},
-                    ))
+                    results.append(
+                        AssertionResult(
+                            check_name="arc_flash_boundary",
+                            passed=False,
+                            severity=AssertionSeverity.CRITICAL,
+                            message=(
+                                f"Arc flash boundary {boundary_mm:.0f} mm at {bus_id} is below "
+                                f"minimum safe distance {self.MIN_ARC_FLASH_BOUNDARY_MM:.0f} mm"
+                            ),
+                            details={"bus_id": bus_id, "boundary_mm": boundary_mm},
+                        )
+                    )
 
         self._results.extend(results)
         return results
@@ -424,44 +477,52 @@ class EngineeringAssertionLayer:
         for cable_id, load_a in cable_loads_a.items():
             ampacity_a = cable_ampacities_a.get(cable_id)
             if ampacity_a is None:
-                results.append(AssertionResult(
-                    check_name="cable_ampacity_missing",
-                    passed=False,
-                    severity=AssertionSeverity.CRITICAL,
-                    message=f"No ampacity data for cable {cable_id}",
-                    details={"cable_id": cable_id, "load_a": load_a},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="cable_ampacity_missing",
+                        passed=False,
+                        severity=AssertionSeverity.CRITICAL,
+                        message=f"No ampacity data for cable {cable_id}",
+                        details={"cable_id": cable_id, "load_a": load_a},
+                    )
+                )
                 continue
 
             if load_a > ampacity_a:
-                results.append(AssertionResult(
-                    check_name="cable_overload",
-                    passed=False,
-                    severity=AssertionSeverity.FATAL,
-                    message=(
-                        f"Cable {cable_id} load {load_a:.1f} A exceeds "
-                        f"ampacity {ampacity_a:.1f} A — FIRE HAZARD"
-                    ),
-                    details={"cable_id": cable_id, "load_a": load_a, "ampacity_a": ampacity_a},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="cable_overload",
+                        passed=False,
+                        severity=AssertionSeverity.FATAL,
+                        message=(
+                            f"Cable {cable_id} load {load_a:.1f} A exceeds "
+                            f"ampacity {ampacity_a:.1f} A — FIRE HAZARD"
+                        ),
+                        details={"cable_id": cable_id, "load_a": load_a, "ampacity_a": ampacity_a},
+                    )
+                )
             elif ampacity_a > self.MAX_CABLE_AMPERAGE:
-                results.append(AssertionResult(
-                    check_name="cable_ampacity_unrealistic",
-                    passed=False,
-                    severity=AssertionSeverity.CRITICAL,
-                    message=(
-                        f"Cable {cable_id} ampacity {ampacity_a:.1f} A exceeds "
-                        f"realistic maximum {self.MAX_CABLE_AMPERAGE:.0f} A"
-                    ),
-                    details={"cable_id": cable_id, "ampacity_a": ampacity_a},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="cable_ampacity_unrealistic",
+                        passed=False,
+                        severity=AssertionSeverity.CRITICAL,
+                        message=(
+                            f"Cable {cable_id} ampacity {ampacity_a:.1f} A exceeds "
+                            f"realistic maximum {self.MAX_CABLE_AMPERAGE:.0f} A"
+                        ),
+                        details={"cable_id": cable_id, "ampacity_a": ampacity_a},
+                    )
+                )
             else:
-                results.append(AssertionResult(
-                    check_name="cable_sizing",
-                    passed=True,
-                    message=f"Cable {cable_id} sizing OK ({load_a:.1f} A <= {ampacity_a:.1f} A)",
-                    details={"cable_id": cable_id, "load_a": load_a, "ampacity_a": ampacity_a},
-                ))
+                results.append(
+                    AssertionResult(
+                        check_name="cable_sizing",
+                        passed=True,
+                        message=f"Cable {cable_id} sizing OK ({load_a:.1f} A <= {ampacity_a:.1f} A)",
+                        details={"cable_id": cable_id, "load_a": load_a, "ampacity_a": ampacity_a},
+                    )
+                )
 
         self._results.extend(results)
         return results
@@ -538,7 +599,11 @@ def validate_fallback_output(
             current_ka = {}
             for k, v in fault_currents.items():
                 try:
-                    current_ka[k] = float(v) if not isinstance(v, dict) else float(v.get("magnitude", v.get("mag", 0)))
+                    current_ka[k] = (
+                        float(v)
+                        if not isinstance(v, dict)
+                        else float(v.get("magnitude", v.get("mag", 0)))
+                    )
                 except (TypeError, ValueError):
                     current_ka[k] = 0.0
             layer.validate_short_circuit_results(current_ka)
@@ -550,7 +615,11 @@ def validate_fallback_output(
             voltage_kv = {}
             for k, v in bus_voltages.items():
                 try:
-                    voltage_kv[k] = float(v) if not isinstance(v, dict) else float(v.get("magnitude", v.get("mag", 0)))
+                    voltage_kv[k] = (
+                        float(v)
+                        if not isinstance(v, dict)
+                        else float(v.get("magnitude", v.get("mag", 0)))
+                    )
                 except (TypeError, ValueError):
                     voltage_kv[k] = 0.0
             layer.validate_voltage_results(voltage_kv, nominal_kv)
@@ -593,7 +662,9 @@ def validate_fallback_output(
             layer.validate_cable_sizing(cable_loads, cable_ampacities)
 
     summary = layer.get_summary()
-    is_safe = not layer.has_critical_failures() and (not strict_mode or not layer.has_any_failures())
+    is_safe = not layer.has_critical_failures() and (
+        not strict_mode or not layer.has_any_failures()
+    )
 
     if not is_safe:
         logger.warning(

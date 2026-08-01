@@ -488,8 +488,7 @@ async def invalidate_magic_links(
     # `_records` while we iterate.
     with _store_lock:
         keys_to_remove = [
-            k for k, rec in _records.items()
-            if rec.email == email_lower and not rec.used
+            k for k, rec in _records.items() if rec.email == email_lower and not rec.used
         ]
         for k in keys_to_remove:
             _records.pop(k, None)

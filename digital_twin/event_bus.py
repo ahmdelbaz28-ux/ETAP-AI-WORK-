@@ -442,7 +442,8 @@ class EventBus:
                 logger.warning(
                     "V-03: Could not acquire element lock for %s, "
                     "event %s may cause race condition",
-                    element_id, event.event_id,
+                    element_id,
+                    event.event_id,
                 )
                 element_lock = None  # Proceed without lock rather than blocking
 

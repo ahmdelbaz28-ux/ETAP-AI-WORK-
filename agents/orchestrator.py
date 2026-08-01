@@ -1,4 +1,3 @@
-
 """
 AhmedETAP - Multi-Agent Orchestrator
 ========================================================
@@ -576,7 +575,9 @@ class HarmonicAnalysisAgent(BaseAgent):
 
             # Create engine
             engine = HarmonicAnalysisEngine(
-                fundamental_freq=task.parameters.get("fundamental_freq", 60.0),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                fundamental_freq=task.parameters.get(
+                    "fundamental_freq", 60.0
+                ),  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                 max_harmonic=self.max_harmonic_order,
             )
 
@@ -746,13 +747,16 @@ class OptimalPowerFlowAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate OPF results."""
-        if not result.data.get("success"):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        if not result.data.get(
+            "success"
+        ):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             result.validation_errors.append("OPF did not converge")
             return False
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Check power balance
         p_gen = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            "total_generation_mw", 0  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            "total_generation_mw",
+            0,  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         )  # NOSONAR
         p_load = result.data.get(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "total_load_mw", 0
@@ -1302,12 +1306,15 @@ class ReportGenerationAgent(BaseAgent):
             metadata = ReportMetadata(
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
-                    "title", _ENGINEERING_REPORT_TITLE  # NOSONAR: S1192 literal kept inline for readability
+                    "title",
+                    _ENGINEERING_REPORT_TITLE,  # NOSONAR: S1192 literal kept inline for readability
                 ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
-                ReportSection(title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1)  # NOSONAR: S1192 literal kept inline for readability
+                ReportSection(
+                    title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1
+                )  # NOSONAR: S1192 literal kept inline for readability
             ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1553,7 +1560,8 @@ class ChiefEngineeringOrchestrator:
         return {
             "orchestrator": {
                 "prompt_handle": self.prompt_handle,
-                "prompt_loaded": self._system_prompt is not None,  # NOSONAR S7503: async signature required by callers; body intentionally sync
+                "prompt_loaded": self._system_prompt
+                is not None,  # NOSONAR S7503: async signature required by callers; body intentionally sync
             },
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
@@ -1642,9 +1650,7 @@ class ChiefEngineeringOrchestrator:
         return studies
 
     @trace_operation("_execute_workflow", attributes={"component": "orchestrator"})
-    async def _execute_workflow(
-        self, task: EngineeringTask
-    ) -> list[AgentResult]:
+    async def _execute_workflow(self, task: EngineeringTask) -> list[AgentResult]:
         """Execute workflow by coordinating agents with parallel execution."""
         results = []
 
@@ -1738,9 +1744,7 @@ class ChiefEngineeringOrchestrator:
         )
         return await self.agents["validation"].execute(validation_task)
 
-    async def _run_guard_review(
-        self, task: EngineeringTask, results: list[AgentResult]
-    ) -> None:
+    async def _run_guard_review(self, task: EngineeringTask, results: list[AgentResult]) -> None:
         """Phase 3.5: guard-skills code quality review of AI-generated code."""
         if not self._code_guard_agent:
             return
@@ -1768,9 +1772,7 @@ class ChiefEngineeringOrchestrator:
         except Exception as guard_err:
             self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
 
-    async def _run_report_phase(
-        self, task: EngineeringTask, results: list[AgentResult]
-    ) -> None:
+    async def _run_report_phase(self, task: EngineeringTask, results: list[AgentResult]) -> None:
         """Phase 4: generate the final report when validations pass."""
         report_task = EngineeringTask(
             task_id=f"report_{task.task_id}",
@@ -1936,9 +1938,7 @@ class ChiefEngineeringOrchestrator:
         # Helper: create an EngineeringTask for a single study
         # -----------------------------------------------------------
         def _make_task(study_str: str, agent_key: str) -> EngineeringTask:
-            return self._build_parallel_task(
-                task_id, study_str, agent_key, system_data, parameters
-            )
+            return self._build_parallel_task(task_id, study_str, agent_key, system_data, parameters)
 
         # -----------------------------------------------------------
         # Semaphore to cap concurrency at max_workers
@@ -1979,9 +1979,7 @@ class ChiefEngineeringOrchestrator:
         # Optional benchmark: sequential execution for comparison
         # -----------------------------------------------------------
         if benchmark:
-            result.update(
-                await self._run_sequential_benchmark(resolved, _make_task, parallel_time)
-            )
+            result.update(await self._run_sequential_benchmark(resolved, _make_task, parallel_time))
 
         self.logger.info(
             "Parallel studies completed: task_id=%s, studies=%d, parallel_time=%.4fs",
@@ -2125,9 +2123,7 @@ class ChiefEngineeringOrchestrator:
 
     async def get_task_status(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self, task_id: str
-    ) -> Optional[
-        EngineeringTask
-    ]:  # NOSONAR
+    ) -> Optional[EngineeringTask]:  # NOSONAR
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

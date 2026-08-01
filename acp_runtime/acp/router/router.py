@@ -202,7 +202,11 @@ class Router:
             return "", self._scope_validator, (AuthenticationRequired.code, e.message, e.data)
         except Exception as e:
             self._log.exception("auth validator failed for %s", req.id)
-            return "", self._scope_validator, (AuthenticationRequired.code, f"Authentication failed: {e}", None)
+            return (
+                "",
+                self._scope_validator,
+                (AuthenticationRequired.code, f"Authentication failed: {e}", None),
+            )
         return caller_id, scope_validator, None
 
     async def _fail_request(
@@ -241,7 +245,9 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        _span_ctx: Optional[Any],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _span_ctx: Optional[
+            Any
+        ],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
         _t0: float,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
@@ -264,9 +270,7 @@ class Router:
             outcome, error_code = "error", JSONRPC_INTERNAL_ERROR
         return resp, outcome, error_code
 
-    async def _handle_request(
-        self, req: JsonRpcRequest
-    ) -> dict:
+    async def _handle_request(self, req: JsonRpcRequest) -> dict:
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
         caller_id = ""

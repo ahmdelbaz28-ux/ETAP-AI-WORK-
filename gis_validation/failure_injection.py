@@ -19,7 +19,6 @@ def _make_test_rng(seed: int) -> random.Random:
     return random.Random(seed)  # NOSONAR: non-crypto PRNG for test fixtures (S2245)
 
 
-
 @dataclass(frozen=True)
 class FailureScenario:
     scenario_id: str
@@ -39,20 +38,18 @@ def inject_corrupted_geometries(
     - or remove coordinates
     """
     rng = _make_test_rng(seed)
-    out = copy.deepcopy(assets)  # NOSONAR S2245: deterministic PRNG via _make_test_rng above; reproducible fault injection, not security
+    out = copy.deepcopy(
+        assets
+    )  # NOSONAR S2245: deterministic PRNG via _make_test_rng above; reproducible fault injection, not security
     n = len(out)
     if n == 0:
         return out
 
     k = max(1, int(n * corruption_ratio))
-    for idx in rng.sample(
-        range(n), k
-    ):
+    for idx in rng.sample(range(n), k):
         a = out[idx]
         geom = dict(a.geometry)
-        mode = rng.choice(
-            ["missing_type", "missing_coordinates"]
-        )
+        mode = rng.choice(["missing_type", "missing_coordinates"])
         if mode == "missing_type":
             geom.pop("type", None)
         else:
@@ -81,9 +78,7 @@ def inject_broken_crs_metadata(
         return out
 
     k = max(1, int(n * contamination_ratio))
-    for idx in rng.sample(
-        range(n), k
-    ):
+    for idx in rng.sample(range(n), k):
         a = out[idx]
         md = dict(a.metadata)
         md["source_crs"] = broken_value

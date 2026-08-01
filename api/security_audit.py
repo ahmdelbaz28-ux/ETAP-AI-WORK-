@@ -1,4 +1,3 @@
-
 """
 api/security_audit.py — Runtime security audit module for the AhmedETAP.
 
@@ -384,7 +383,8 @@ class SecurityAuditor:
             cwe_id=cwe_id,
         )
         self._findings.append(finding)
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 1: Missing authentication on endpoints
     # ------------------------------------------------------------------
@@ -401,20 +401,21 @@ class SecurityAuditor:
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
             os.path.join(
-                self.project_root, _ENGINEERING_SERVICE_FILENAME  # NOSONAR: S1192 literal kept inline for readability
+                self.project_root,
+                _ENGINEERING_SERVICE_FILENAME,  # NOSONAR: S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             os.path.join(
-                self.project_root, "api", _REFACTORED_SERVICE_FILENAME  # NOSONAR: S1192 literal kept inline for readability
+                self.project_root,
+                "api",
+                _REFACTORED_SERVICE_FILENAME,  # NOSONAR: S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
         ]
-    # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = await fh.readlines()
 
             # Parse to find endpoint definitions
@@ -486,7 +487,8 @@ class SecurityAuditor:
                     references=["OWASP API2:2023 Broken Authentication"],
                     cwe_id="CWE-306",
                 )
-  # NOSONAR S7503: async signature required by callers; body intentionally sync
+
+    # NOSONAR S7503: async signature required by callers; body intentionally sync
     # ------------------------------------------------------------------
     # Check 2: CORS configuration
     # ------------------------------------------------------------------
@@ -499,14 +501,12 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-    # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
 
             # Check for wildcard origins
@@ -567,7 +567,8 @@ class SecurityAuditor:
                     references=["OWASP API8:2023 Security Misconfiguration"],
                     cwe_id="CWE-942",
                 )
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 3: Input validation on POST/PUT endpoints
     # ------------------------------------------------------------------
@@ -584,14 +585,12 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-    # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = await fh.readlines()
 
             for i, line in enumerate(lines, 1):
@@ -636,7 +635,8 @@ class SecurityAuditor:
                                 ],
                                 cwe_id="CWE-20",
                             )
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 4: Missing rate limiting
     # ------------------------------------------------------------------
@@ -660,14 +660,12 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-    # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
 
             # Check if global rate limiting exists
@@ -710,7 +708,8 @@ class SecurityAuditor:
                         remediation="Track rate limits per client IP or API key.",
                         cwe_id="CWE-770",
                     )
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 5: Hardcoded secrets
     # ------------------------------------------------------------------
@@ -751,7 +750,9 @@ class SecurityAuditor:
                 ):
                     continue
 
-                async with aiofiles.open(file_path, encoding="utf-8", errors="replace") as fh:  # S7493: async file I/O in async function (aiofiles)
+                async with aiofiles.open(
+                    file_path, encoding="utf-8", errors="replace"
+                ) as fh:  # S7493: async file I/O in async function (aiofiles)
                     lines = await fh.readlines()
 
                 for i, line in enumerate(lines, 1):
@@ -803,7 +804,8 @@ class SecurityAuditor:
                                 cwe_id="CWE-798",
                             )
                             break  # Only report once per line
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
@@ -845,9 +847,7 @@ class SecurityAuditor:
                     continue
 
                 with contextlib.suppress(Exception):
-                    async with aiofiles.open(
-                        file_path, encoding="utf-8", errors="replace"
-                    ) as fh:
+                    async with aiofiles.open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = await fh.readlines()
 
                     for i, line in enumerate(lines, 1):
@@ -878,9 +878,7 @@ class SecurityAuditor:
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             with contextlib.suppress(Exception):
-                async with aiofiles.open(
-                    req_file, encoding="utf-8", errors="replace"
-                ) as fh:
+                async with aiofiles.open(req_file, encoding="utf-8", errors="replace") as fh:
                     requirements = await fh.readlines()
 
                 for line in requirements:
@@ -915,9 +913,7 @@ class SecurityAuditor:
         # Check for the specific dead ConnectionManager in the original
         service_file = os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME)
         if os.path.exists(service_file):
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
                 lines = content.split("\n")
 
@@ -987,16 +983,16 @@ class SecurityAuditor:
         service_files = [
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
-            os.path.join(self.project_root, "api", "auth.py"),  # NOSONAR: aiofiles.open is async; S7493 false positive
+            os.path.join(
+                self.project_root, "api", "auth.py"
+            ),  # NOSONAR: aiofiles.open is async; S7493 false positive
         ]
 
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
 
             # Check for default JWT secret
@@ -1033,7 +1029,9 @@ class SecurityAuditor:
                 ]
                 for _line_num, line in lines_with_compare:
                     # Skip if it's in a comparison that's clearly not timing-sensitive
-                    if "if" in line and "provided" not in line.lower():  # NOSONAR S7503: async signature required by callers; body intentionally sync
+                    if (
+                        "if" in line and "provided" not in line.lower()
+                    ):  # NOSONAR S7503: async signature required by callers; body intentionally sync
                         continue
 
     # ------------------------------------------------------------------
@@ -1046,16 +1044,16 @@ class SecurityAuditor:
         """Check for potential information disclosure vulnerabilities."""
         service_files = [
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
-            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),  # NOSONAR: aiofiles.open is async; S7493 false positive
+            os.path.join(
+                self.project_root, "api", _REFACTORED_SERVICE_FILENAME
+            ),  # NOSONAR: aiofiles.open is async; S7493 false positive
         ]
 
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-            async with aiofiles.open(
-                service_file, encoding="utf-8", errors="replace"
-            ) as fh:
+            async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
 
             # Check if stack traces are exposed in error responses
@@ -1200,7 +1198,9 @@ class SecurityAuditor:
             dirnames[:] = [d for d in dirnames if d not in skip_dirs]
             count += sum(1 for f in filenames if f.endswith(".py"))
         return count
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+
+# NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 # ---------------------------------------------------------------------------
 # CLI entrypoint
@@ -1253,7 +1253,9 @@ async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic
         out = (
             sys.stdout
             if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(
+                open(args.output, "w", encoding="utf-8")
+            )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         if not args.json_only:

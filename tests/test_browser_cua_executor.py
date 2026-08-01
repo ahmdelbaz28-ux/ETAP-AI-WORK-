@@ -99,7 +99,15 @@ def test_browser_cua_executor_falls_back_when_deps_missing():
         assert result.success is False
         assert result.aborted_reason is not None
         aborted_lower = result.aborted_reason.lower()
-        assert any(term in aborted_lower for term in ("unavailable", "launch error", "executable doesn't exist", "executable does not exist"))
+        assert any(
+            term in aborted_lower
+            for term in (
+                "unavailable",
+                "launch error",
+                "executable doesn't exist",
+                "executable does not exist",
+            )
+        )
         assert len(result.steps) == 0  # no steps executed
     else:
         # If deps are available (e.g., on a CI runner with Playwright),

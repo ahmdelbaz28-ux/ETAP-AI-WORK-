@@ -420,7 +420,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 1: File discovery
     # ------------------------------------------------------------------
-  # NOSONAR S7503: async signature required by callers; body intentionally sync
+    # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _discover_files(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -476,7 +476,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 2: Test name indexing
     # ------------------------------------------------------------------
-  # NOSONAR S7503: async signature required by callers; body intentionally sync
+    # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _index_test_names(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -488,9 +488,7 @@ class CoverageAnalyzer:
             with contextlib.suppress(SyntaxError, Exception):
                 # Skip files that can't be parsed (SyntaxError) or have other
                 # NOSONAR: issues (Exception) — coverage report is best-effort.  # — aiofiles.open below is async; S7493 false positive
-                async with aiofiles.open(
-                    test_file, encoding="utf-8", errors="replace"
-                ) as fh:
+                async with aiofiles.open(test_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
                 tree = ast.parse(source, filename=test_file)
 
@@ -506,7 +504,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 3: Function extraction
     # ------------------------------------------------------------------
-  # NOSONAR S7503: async signature required by callers; body intentionally sync
+    # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _extract_all_functions(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
         self,
     ) -> list[FunctionInfo]:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -523,9 +521,7 @@ class CoverageAnalyzer:
 
             with contextlib.suppress(SyntaxError, Exception):
                 # NOSONAR: Skip files that can't be parsed — function extraction is best-effort.  # — aiofiles.open below is async; S7493 false positive
-                async with aiofiles.open(
-                    src_file, encoding="utf-8", errors="replace"
-                ) as fh:
+                async with aiofiles.open(src_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
                 tree = ast.parse(source, filename=src_file)
 
@@ -538,7 +534,7 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 4: Test matching
     # ------------------------------------------------------------------
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     def _match_functions_to_tests(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, functions: list[FunctionInfo]
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -700,7 +696,8 @@ class CoverageAnalyzer:
             critical_gaps=critical_gaps,
             suggestions=suggestions,
         )
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     def _identify_critical_gaps(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
         self, modules: list[ModuleCoverage]
     ) -> list[
@@ -787,7 +784,8 @@ class CoverageAnalyzer:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+# NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -834,7 +832,9 @@ async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic
         out = (
             sys.stdout
             if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(
+                open(args.output, "w", encoding="utf-8")
+            )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         report_dict = report.to_dict()

@@ -1,4 +1,3 @@
-
 """
 AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
@@ -650,7 +649,9 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     tags=["Agents"],
     responses={504: {"description": "CUA Loop timed out"}},
 )
-async def etap_gui_execute(request: Request):  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+async def etap_gui_execute(
+    request: Request,
+):  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
     """Execute the REAL CUA Loop (Computer Use Agent).
 
     AUTO-DETECTS THE ENVIRONMENT:
@@ -1154,14 +1155,15 @@ async def etap_gui_siem_events(limit: int = 50):
 
     log_path = siem_forwarder.log_file
     if not os.path.exists(log_path):
-        return {"success": True, "data": {"events": [], "total": 0, "message": "No events yet"}}  # NOSONAR: aiofiles.open is async; S7493 false positive
+        return {
+            "success": True,
+            "data": {"events": [], "total": 0, "message": "No events yet"},
+        }  # NOSONAR: aiofiles.open is async; S7493 false positive
 
     limit = min(max(limit, 1), 200)
     events = []
     try:
-        async with aiofiles.open(
-            log_path, encoding="utf-8"
-        ) as fh:
+        async with aiofiles.open(log_path, encoding="utf-8") as fh:
             lines = await fh.readlines()
         for line in lines[-limit:]:
             line = line.strip()

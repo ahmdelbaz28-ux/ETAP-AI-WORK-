@@ -105,6 +105,7 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
     try:
         # Inspect whether the signature accepts usedforsecurity.
         import inspect
+
         sig = inspect.signature(sha1_func)
         if "usedforsecurity" in sig.parameters:
             return sha1_func(data, usedforsecurity=False)
@@ -121,7 +122,10 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
         # the SHA-1 invocation inside an HMAC construction (RFC 2104),
         # which is the recommended use of SHA-1 in security contexts.
         import hmac
-        return hmac.new(b"", data, hashlib.sha1)  # NOSONAR: S4790 — SHA-1 inside HMAC (RFC 2104) is the recommended secure use; not a raw hash  # type: ignore[return-value]
+
+        return hmac.new(
+            b"", data, hashlib.sha1
+        )  # NOSONAR: S4790 — SHA-1 inside HMAC (RFC 2104) is the recommended secure use; not a raw hash  # type: ignore[return-value]
 
 
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
@@ -372,7 +376,9 @@ class TOTPProvider:
         if entry:
             entry.backup_codes = code_hashes
         else:
-            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=code_hashes)
+            self._secrets[user_id] = TOTPSecret(
+                user_id=user_id, secret="", backup_codes=code_hashes
+            )
         logger.info("Generated %d backup codes for user %s", count, user_id)
         return codes
 

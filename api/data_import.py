@@ -622,12 +622,17 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
 
     # SECURITY: Sanitize filename — strip control characters and path traversal
     import re as _re
-    safe_filename = _re.sub(r'[\x00-\x1f\x7f]', '', file.filename.replace('..', '').replace('/', '_').replace('\\', '_'))
+
+    safe_filename = _re.sub(
+        r"[\x00-\x1f\x7f]", "", file.filename.replace("..", "").replace("/", "_").replace("\\", "_")
+    )
     if safe_filename != file.filename:
         import logging as _logging
+
         # NOSONAR: S5145 — only log the sanitized filename (not user-controlled original) to prevent log injection
         _logging.getLogger("etap.api.data_import").warning(
-            "filename_sanitized safe=%s (original contained control chars/path traversal)", safe_filename
+            "filename_sanitized safe=%s (original contained control chars/path traversal)",
+            safe_filename,
         )
 
     fmt = _detect_format(safe_filename)

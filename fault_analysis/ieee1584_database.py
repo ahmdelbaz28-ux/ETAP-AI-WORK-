@@ -482,7 +482,12 @@ class IEEE1584Database:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Incident energy
-        e_final, e_full, e_reduced, CF = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        (
+            e_final,
+            e_full,
+            e_reduced,
+            CF,
+        ) = (  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             IEEE1584Database.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv,
                 bolted_fault_current_ka,

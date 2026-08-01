@@ -288,9 +288,7 @@ async def test_notification_callback():
             "params": {"percent": 75},
         }
     )
-    assert (
-        called_with is not None
-    )  # NOSONAR
+    assert called_with is not None  # NOSONAR
     # After the assert, called_with is narrowed from Optional[dict] to dict,
     # so bracket access is safe (S5644 satisfied).
     assert called_with["method"] == "progress.update"

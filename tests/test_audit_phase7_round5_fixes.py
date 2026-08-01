@@ -58,16 +58,16 @@ class TestAdminEndpointAuthentication:
         """Each admin endpoint must call _require_api_key(request)."""
         # Find the route decorator and the function that follows
         # Check that within the function body, _require_api_key is called
-        assert f'@app.{method.lower()}("{path}"' in routes_source, (
-            f"Route decorator for {method} {path} not found"
-        )
+        assert (
+            f'@app.{method.lower()}("{path}"' in routes_source
+        ), f"Route decorator for {method} {path} not found"
         # Find the function definition after the decorator
         decorator_pos = routes_source.index(f'@app.{method.lower()}("{path}"')
         # Get the next ~500 characters after the decorator (should contain the function body)
         func_body = routes_source[decorator_pos : decorator_pos + 3000]
-        assert "_require_api_key(request)" in func_body, (
-            f"{method} {path} does NOT call _require_api_key(request)"
-        )
+        assert (
+            "_require_api_key(request)" in func_body
+        ), f"{method} {path} does NOT call _require_api_key(request)"
 
     def test_admin_activate_has_request_param(self, routes_source: str) -> None:
         """The activate endpoint must accept request: Request parameter."""
@@ -111,12 +111,12 @@ class TestCUAWebSocketAuthentication:
         assert 'websocket.headers.get("x-api-key")' in routes_source
         # Check hmac.compare_digest is used
         ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "hmac.compare_digest" in ws_section[:1000], (
-            "CUA WebSocket must use hmac.compare_digest for constant-time comparison"
-        )
-        assert "code=1008" in ws_section[:1000], (
-            "CUA WebSocket must close with code 1008 on auth failure"
-        )
+        assert (
+            "hmac.compare_digest" in ws_section[:1000]
+        ), "CUA WebSocket must use hmac.compare_digest for constant-time comparison"
+        assert (
+            "code=1008" in ws_section[:1000]
+        ), "CUA WebSocket must close with code 1008 on auth failure"
 
     def test_cua_websocket_closes_on_missing_key(self, routes_source: str) -> None:
         """CUA WebSocket must close connection if API key is missing."""
@@ -180,9 +180,9 @@ class TestHelmAntiAffinity:
 
     def test_pod_anti_affinity_configured(self, values_yaml: str) -> None:
         """api.affinity must contain podAntiAffinity."""
-        assert "podAntiAffinity" in values_yaml, (
-            "Helm values.yaml must define podAntiAffinity under api.affinity"
-        )
+        assert (
+            "podAntiAffinity" in values_yaml
+        ), "Helm values.yaml must define podAntiAffinity under api.affinity"
 
     def test_anti_affinity_topology_key(self, values_yaml: str) -> None:
         """Anti-affinity must use kubernetes.io/hostname topology key."""
@@ -249,9 +249,10 @@ class TestDependencyUpdates:
             if line.startswith("openai = "):
                 version = line.split('"')[1]
                 major, minor = map(int, version.split(".")[:2])
-                assert (major, minor) >= (1, 60), (
-                    f"openai version {version} is too old (>= 1.60.0 required)"
-                )
+                assert (major, minor) >= (
+                    1,
+                    60,
+                ), f"openai version {version} is too old (>= 1.60.0 required)"
 
     def test_anthropic_version_updated(self, pylock: str) -> None:
         """anthropic must be >= 0.49.0 (was 0.28.1 with known issues)."""
@@ -260,9 +261,10 @@ class TestDependencyUpdates:
             if line.startswith("anthropic = "):
                 version = line.split('"')[1]
                 major, minor = map(int, version.split(".")[:2])
-                assert (major, minor) >= (0, 49), (
-                    f"anthropic version {version} is too old (>= 0.49.0 required)"
-                )
+                assert (major, minor) >= (
+                    0,
+                    49,
+                ), f"anthropic version {version} is too old (>= 0.49.0 required)"
 
     def test_no_very_old_openai(self, pylock: str) -> None:
         """openai must NOT be the old 1.35.10 version."""

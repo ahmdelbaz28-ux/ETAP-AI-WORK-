@@ -452,9 +452,7 @@ class DigitalTwinAgent(BaseAgent):
         if pcl < 0 or pcl > 100:
             errors.append(f"PCL out of range: {pcl:.2f}%")
 
-    def validate_result(
-        self, result: AgentResult
-    ) -> bool:
+    def validate_result(self, result: AgentResult) -> bool:
         """
         Validate digital twin synchronization results.
 

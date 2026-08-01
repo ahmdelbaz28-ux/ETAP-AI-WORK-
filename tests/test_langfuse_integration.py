@@ -202,9 +202,9 @@ class TestIntegrityCheck:
         assert "MALICIOUS" not in prompt
         # A CRITICAL log must be emitted
         critical_logs = [r for r in caplog.records if r.levelname == "CRITICAL"]
-        assert any("hash mismatch" in r.message.lower() for r in critical_logs), (
-            "Hash mismatch must emit CRITICAL log"
-        )
+        assert any(
+            "hash mismatch" in r.message.lower() for r in critical_logs
+        ), "Hash mismatch must emit CRITICAL log"
 
     def test_hash_match_uses_remote(self, monkeypatch, caplog):
         """Remote prompt with matching hash → use remote (override OK)."""
@@ -390,7 +390,9 @@ class TestTrackLLMCallDecorator:
         async def fn():
             raise ValueError("boom")
 
-        with pytest.raises(ValueError, match="boom"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ValueError, match="boom"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             asyncio.run(fn())
 
     def test_decorator_does_not_crash_when_langfuse_disabled(self, monkeypatch):

@@ -52,18 +52,14 @@ class FakeByteStream:
         self._sent: list[bytes] = []
         self._closed = False
 
-    async def receive(
-        self, max_bytes: int = 65536
-    ) -> bytes:  # NOSONAR
+    async def receive(self, max_bytes: int = 65536) -> bytes:  # NOSONAR
         if not self._read_data:
             return b""
         chunk = self._read_data[:max_bytes]
         self._read_data = self._read_data[max_bytes:]
         return chunk
 
-    async def send(
-        self, data: bytes
-    ) -> None:  # NOSONAR
+    async def send(self, data: bytes) -> None:  # NOSONAR
         self._sent.append(data)
 
     async def aclose(

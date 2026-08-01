@@ -80,7 +80,8 @@ class OvercurrentRelay(Relay):
         self.curves = IEC60255Curves()
 
     def pickup_logic(
-        self, i  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Pickup if current meets or exceeds pickup setting.
@@ -88,7 +89,8 @@ class OvercurrentRelay(Relay):
         return abs(i) >= self.Ip
 
     def trip_time(
-        self, i  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Calculate trip time based on IEC curve.
@@ -110,7 +112,9 @@ class OvercurrentRelay(Relay):
             raise ValueError(f"Unknown curve type: {self.curve_type}")
 
     def operate(
-        self, i, t=0  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        i,
+        t=0,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Operate the relay: if picked up and time exceeds trip time, then trip.
@@ -142,7 +146,9 @@ class DistanceRelay(Relay):
         self.offset_angle = np.radians(offset_angle)
 
     def pickup_logic(
-        self, v=None, i=None  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        self,
+        v=None,
+        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
     ):  # NOSONAR relay subclasses intentionally use domain-specific signatures (V,I for distance/directional; Ibias,Idiff for differential); base class is a protocol stub
         if i == 0:
             return False
@@ -151,7 +157,9 @@ class DistanceRelay(Relay):
         return abs(Z) < self.impedance_setting
 
     def operate(
-        self, v=None, i=None  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
+        self,
+        v=None,
+        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
     ):  # NOSONAR see pickup_logic; signature matches the relay's measurement quantities
         self.pickup = self.pickup_logic(v, i)
         # For distance relays, trip is typically instantaneous if picked up.
@@ -161,7 +169,12 @@ class DistanceRelay(Relay):
 
 class DifferentialRelay(Relay):
     def __init__(
-        self, relay_id, name="DifferentialRelay", ip=0.1, slope1=0.2, slope2=0.5  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        relay_id,
+        name="DifferentialRelay",
+        ip=0.1,
+        slope1=0.2,
+        slope2=0.5,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ):  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         """
         Differential relay (87).
@@ -179,7 +192,9 @@ class DifferentialRelay(Relay):
         self.slope2 = slope2
 
     def pickup_logic(
-        self, ibias=None, idiff=None  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        self,
+        ibias=None,
+        idiff=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
     ):  # NOSONAR differential relay uses (Ibias, Idiff) per IEEE C37.91; base class `value` is a protocol stub
         ibias = abs(ibias)
         idiff = abs(idiff)
@@ -192,7 +207,9 @@ class DifferentialRelay(Relay):
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
     def operate(
-        self, ibias=None, idiff=None  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
+        self,
+        ibias=None,
+        idiff=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
     ):  # NOSONAR see pickup_logic; differential relay operates on bias+diff currents
         self.pickup = self.pickup_logic(ibias, idiff)
         # Differential relays are typically instantaneous.
@@ -218,7 +235,9 @@ class DirectionalRelay(
         self.angle_offset = np.radians(angle_offset)
 
     def pickup_logic(
-        self, v=None, i=None  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        self,
+        v=None,
+        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
     ):  # NOSONAR directional relay (67) needs V and I to compute direction; base `value` is a protocol stub
         if abs(v) < self.voltage_threshold or abs(i) < 1e-3:
             return False
@@ -231,7 +250,9 @@ class DirectionalRelay(
         angle_diff = np.arctan2(np.sin(angle_diff), np.cos(angle_diff))
         return abs(angle_diff) < np.radians(90)
 
-    def operate(self, v=None, i=None):  # NOSONAR see pickup_logic; S2638 default=None satisfies LSP; directional relay operates on V+I
+    def operate(
+        self, v=None, i=None
+    ):  # NOSONAR see pickup_logic; S2638 default=None satisfies LSP; directional relay operates on V+I
         self.pickup = self.pickup_logic(v, i)
         # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
         self.trip = self.pickup

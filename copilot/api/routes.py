@@ -68,10 +68,12 @@ def _get_etap_provider():
 class ProcessRequest(BaseModel):
     prompt: str = Field(..., description="Natural language engineering request")
     autocad_url: str = Field(
-        _COPILOT_API_BASE_4820, description="AutoCAD plugin URL"  # NOSONAR: S1192 literal kept inline for readability
+        _COPILOT_API_BASE_4820,
+        description="AutoCAD plugin URL",  # NOSONAR: S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     revit_url: str = Field(
-        _COPILOT_API_BASE_4830, description="Revit plugin URL"  # NOSONAR: S1192 literal kept inline for readability
+        _COPILOT_API_BASE_4830,
+        description="Revit plugin URL",  # NOSONAR: S1192 literal kept inline for readability
     )  # NOSONAR intentional repetition (audit constant)
     auto_sync: bool = Field(True, description="Automatically sync to connected systems")
 
@@ -187,7 +189,9 @@ class CopilotAPI:
         async def set_model(request: ModelUpdateRequest):
             """Set/replace the unified engineering model."""
             try:
-                model = UnifiedEngineeringModel.from_json(request.model_json)  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+                model = UnifiedEngineeringModel.from_json(
+                    request.model_json
+                )  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
                 self.mcp._model = model
                 return {"success": True, "message": "Model updated"}
             except Exception as e:
@@ -274,7 +278,9 @@ class CopilotAPI:
                 "cable": lambda p: cad.draw_cable(Cable(**p)),
                 "breaker": lambda p: cad.draw_breaker(Breaker(**p)),
                 "panel": lambda p: cad.draw_panel(Panel(**p)),
-                "load": lambda p: cad.draw_load(Load(**p)),  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+                "load": lambda p: cad.draw_load(
+                    Load(**p)
+                ),  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
             }
 
             handler = handlers.get(entity_type)
@@ -282,7 +288,7 @@ class CopilotAPI:
                 raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
                     status_code=400, detail=f"Unknown entity type: {entity_type}"
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+            # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
             try:
                 result = handler(params)
                 return {"success": True, "result": result}

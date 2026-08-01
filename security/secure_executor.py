@@ -126,6 +126,7 @@ def _sandbox_escape_pre_scan(code: str) -> tuple[bool, str]:
     ]
 
     import re
+
     for pattern, description in dangerous_patterns:
         if re.search(pattern, code):
             return False, f"Sandbox escape pattern detected: {description}"
@@ -399,7 +400,7 @@ def main() -> None:
     _allowed_import_names = list(safe_globals.get("safe_import", {}).get("__allowed__", []))
 
     # Build the wrapper script that reconstructs safe_globals in the subprocess
-    wrapper_code = '''
+    wrapper_code = """
 import sys
 import io
 import json
@@ -466,10 +467,24 @@ except Exception as e:
     print(str(e))
     import traceback
     traceback.print_exc()
-'''.format(
+""".format(
         max_memory_mb=MAX_MEMORY_MB,
         safe_builtins_names_json=json.dumps(_safe_builtins_names),
-        allowed_imports_json=json.dumps(["numpy", "scipy", "math", "json", "time", "core_model", "engine", "load_flow", "fault_analysis", "relays", "coordination"]),
+        allowed_imports_json=json.dumps(
+            [
+                "numpy",
+                "scipy",
+                "math",
+                "json",
+                "time",
+                "core_model",
+                "engine",
+                "load_flow",
+                "fault_analysis",
+                "relays",
+                "coordination",
+            ]
+        ),
     )
 
     wrapper_path = None  # V-45: Initialize before try to prevent UnboundLocalError in finally
@@ -494,41 +509,53 @@ except Exception as e:
             stderr = result.stderr or ""
 
             if stdout.startswith("__RESULT_OK__"):
-                output = stdout[len("__RESULT_OK__"):]
+                output = stdout[len("__RESULT_OK__") :]
                 if len(output) > MAX_OUTPUT_LENGTH:
                     output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
                 print(json.dumps({"success": True, "output": output, "error": None}))
             elif stdout.startswith("__RESULT_ERROR__"):
-                error_text = stdout[len("__RESULT_ERROR__"):]
+                error_text = stdout[len("__RESULT_ERROR__") :]
                 if stderr:
                     error_text += "\n" + stderr
-                print(json.dumps({
-                    "success": False,
-                    "output": None,
-                    "error": error_text[:MAX_OUTPUT_LENGTH],
-                    "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
-                }))
+                print(
+                    json.dumps(
+                        {
+                            "success": False,
+                            "output": None,
+                            "error": error_text[:MAX_OUTPUT_LENGTH],
+                            "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
+                        }
+                    )
+                )
             else:
                 # Unexpected output format
                 if stderr:
-                    print(json.dumps({
-                        "success": False,
-                        "output": None,
-                        "error": stderr[:MAX_OUTPUT_LENGTH],
-                        "traceback": None,
-                    }))
+                    print(
+                        json.dumps(
+                            {
+                                "success": False,
+                                "output": None,
+                                "error": stderr[:MAX_OUTPUT_LENGTH],
+                                "traceback": None,
+                            }
+                        )
+                    )
                 else:
                     output = stdout[:MAX_OUTPUT_LENGTH]
                     print(json.dumps({"success": True, "output": output, "error": None}))
 
         except subprocess.TimeoutExpired:
             # V-44: Process is properly killed — unlike ThreadPoolExecutor
-            print(json.dumps({
-                "success": False,
-                "output": None,
-                "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
-                "traceback": None,
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": False,
+                        "output": None,
+                        "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
+                        "traceback": None,
+                    }
+                )
+            )
 
     finally:
         # Cleanup temp files — V-45: wrapper_path is always defined now

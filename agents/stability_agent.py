@@ -141,7 +141,9 @@ class StabilityAgent(BaseAgent):
         delta_history = np.zeros((n_steps, n_gen))
         omega_history = np.zeros((n_steps, n_gen))
         delta_history[0] = delta
-        omega_history[0] = omega  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        omega_history[0] = (
+            omega  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        )
 
         def electrical_power(d: np.ndarray, Y: np.ndarray) -> np.ndarray:
             """Calculate electrical power output for each machine."""  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
@@ -262,7 +264,7 @@ class StabilityAgent(BaseAgent):
             # NOSONAR: Perturb delta_j  # — S117: engineering-notation variable (IEEE/IEC domain standard)
             delta_pert = delta0.copy()
             delta_pert[j] += eps
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             e_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
@@ -270,10 +272,15 @@ class StabilityAgent(BaseAgent):
                 ybus_red @ e_plus
             )  # NOSONAR
             pe_plus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                e_plus * np.conj(i_plus)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                e_plus
+                * np.conj(
+                    i_plus
+                )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             )  # NOSONAR
 
-            delta_pert[j] = delta0[j] - eps  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            delta_pert[j] = (
+                delta0[j] - eps
+            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             e_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
@@ -292,7 +299,7 @@ class StabilityAgent(BaseAgent):
 
         # Upper-right block: Identity (d(delta)/dt = omega - omega_s)
         A[:n_gen, n_gen:] = np.eye(n_gen)
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Lower-left block: -M^{-1} K_S (synchronizing)
         # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
         # so the synchronizing-coefficient block carries a negative sign.
@@ -533,7 +540,9 @@ class StabilityAgent(BaseAgent):
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
-                    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                    np.fill_diagonal(
+                        G, np.sum(G, axis=1) - np.diag(G) + 1.0
+                    )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                     np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
                     ybus_red = G + 1j * B
 
@@ -585,7 +594,9 @@ class StabilityAgent(BaseAgent):
                 n_gen = len(H)
 
                 y_data = task.parameters.get("Ybus_reduced")
-                if y_data is not None:  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                if (
+                    y_data is not None
+                ):  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                     ybus_red = np.array(y_data, dtype=complex)
                 else:
                     np.random.seed(42)

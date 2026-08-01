@@ -1,4 +1,3 @@
-
 """
 Digital Twin Core - Unified Synchronization Engine
 ====================================================
@@ -298,7 +297,7 @@ class SynchronizationEngine:
         for eid in electrical_ids:
             if eid not in gis_electrical_ids:
                 errors.append(f"Electrical element '{eid}' has no GIS asset (spatial truth gap)")
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+        # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return errors
 
     def synchronize_adms_to_electrical(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
@@ -599,7 +598,9 @@ class ChangePropagationEngine:
                     measurements["voltage_mag"][i] = (vmag, 0.01)
 
                 pq = self.dt_state.scada.get_latest_power(str(bid))
-                if pq is not None:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                if (
+                    pq is not None
+                ):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
             ybus = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

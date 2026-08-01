@@ -109,7 +109,9 @@ class CoordinationEngine:
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
         def _trip_time_for_tms(
-            tms, relay, i  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            tms,
+            relay,
+            i,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Use the relay's curve type and Ip, but override TMS locally
             i_mag = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability

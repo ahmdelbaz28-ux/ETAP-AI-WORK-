@@ -143,9 +143,9 @@ class TestMetricsHelpers:
         assert ct.startswith("text/plain; version="), f"Unexpected content-type: {ct}"
         assert ct.endswith("; charset=utf-8"), f"Unexpected content-type: {ct}"
         # Either 0.0.4 (legacy) or 1.0.0 (current) is acceptable.
-        assert "version=0.0.4" in ct or "version=1.0.0" in ct, (
-            f"Unexpected Prometheus content-type version: {ct}"
-        )
+        assert (
+            "version=0.0.4" in ct or "version=1.0.0" in ct
+        ), f"Unexpected Prometheus content-type version: {ct}"
 
     def test_record_validation_failure(self) -> None:
         """record_validation_failure increments the counter."""

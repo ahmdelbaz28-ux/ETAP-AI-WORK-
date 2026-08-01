@@ -231,9 +231,9 @@ def test_peer_review_matrix_leads_resolve_to_registered_agents():
         agent_key = mapping.get(lead_study)
         if agent_key is None or agent_key not in orch.agents:
             unresolved.append(lead_study)
-    assert not unresolved, (
-        f"Peer-review matrix lead study types with no registered agent: {unresolved}"
-    )
+    assert (
+        not unresolved
+    ), f"Peer-review matrix lead study types with no registered agent: {unresolved}"
 
 
 def test_peer_review_matrix_reviewers_resolve_to_registered_agents():
@@ -251,9 +251,9 @@ def test_peer_review_matrix_reviewers_resolve_to_registered_agents():
         agent_key = mapping.get(reviewer_study, reviewer_study)
         if agent_key not in registered:
             unresolved.append(reviewer_study)
-    assert not unresolved, (
-        f"Peer-review matrix reviewer study types with no registered agent: {unresolved}"
-    )
+    assert (
+        not unresolved
+    ), f"Peer-review matrix reviewer study types with no registered agent: {unresolved}"
 
 
 # ---------------------------------------------------------------------------
@@ -293,15 +293,15 @@ def test_skill_agent_finds_arc_flash_lead():
 
     orch = get_orchestrator()
     assert "arc_flash" in orch.agents, "arc_flash agent not registered"
-    assert isinstance(orch.agents["arc_flash"], ArcFlashAgent), (
-        f"arc_flash agent is {type(orch.agents['arc_flash']).__name__}, expected ArcFlashAgent"
-    )
+    assert isinstance(
+        orch.agents["arc_flash"], ArcFlashAgent
+    ), f"arc_flash agent is {type(orch.agents['arc_flash']).__name__}, expected ArcFlashAgent"
 
     # And the skill's lead lookup must agree
     lead_key = AhmedETAPSkillAgent._default_lead_for("arc_flash")
-    assert lead_key == "arc_flash", (
-        f"_default_lead_for('arc_flash') returned '{lead_key}', expected 'arc_flash'"
-    )
+    assert (
+        lead_key == "arc_flash"
+    ), f"_default_lead_for('arc_flash') returned '{lead_key}', expected 'arc_flash'"
 
 
 def test_skill_agent_finds_transient_stability_lead():
@@ -488,6 +488,6 @@ def test_math_guard_module_is_llm_free():
         "chat.completions.create",
     ]
     found = [kw for kw in forbidden if kw in src]
-    assert not found, (
-        f"MathGuard module imports LLM SDKs: {found}. MathGuard must be 100% deterministic Python."
-    )
+    assert (
+        not found
+    ), f"MathGuard module imports LLM SDKs: {found}. MathGuard must be 100% deterministic Python."

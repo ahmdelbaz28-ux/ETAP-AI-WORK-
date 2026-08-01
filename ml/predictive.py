@@ -1,4 +1,3 @@
-
 """
 Predictive Analytics Module for AhmedETAP Engineering Platform
 ============================================================
@@ -27,7 +26,9 @@ informative errors when unavailable.
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_MODEL_NOT_TRAINED_MSG = "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
+_MODEL_NOT_TRAINED_MSG = (
+    "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
+)
 
 import contextlib
 import logging
@@ -303,11 +304,15 @@ class LoadForecaster:
         self._is_lstm = True
         return {"method": "lstm", "epochs": epochs, "samples": len(data)}
 
-    def _train_linear(self, data: np.ndarray) -> dict[str, Any]:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+    def _train_linear(
+        self, data: np.ndarray
+    ) -> dict[str, Any]:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         """Fallback: train an autoregressive linear model (least-squares)."""
         self._fallback_mean = float(np.mean(data))
         self._fallback_std = float(np.std(data)) if np.std(data) > 0 else 1.0
-        normalized = (data - self._fallback_mean) / self._fallback_std  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        normalized = (
+            (data - self._fallback_mean) / self._fallback_std
+        )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
 
         X, y = self._create_sequences(normalized)
         x_flat = X.reshape(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -373,7 +378,11 @@ class LoadForecaster:
         """Prophet-based prediction."""
         future = self.model.make_future_dataframe(periods=horizon_hours, freq="h")
         forecast = self.model.predict(future)
-        result = forecast["yhat"].values[-horizon_hours:]  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+        result = forecast[
+            "yhat"
+        ].values[
+            -horizon_hours:
+        ]  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
         return np.maximum(result, 0.0)
 
     def _predict_lstm(self, horizon_hours: int) -> np.ndarray:
@@ -507,7 +516,9 @@ class FaultPredictor:
             Use Optuna for hyperparameter optimization during training.
         """
         self.model: Any = None
-        self._is_trained: bool = False  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+        self._is_trained: bool = (
+            False  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+        )
         self._use_xgboost = use_xgboost and _HAS_XGBOOST
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP

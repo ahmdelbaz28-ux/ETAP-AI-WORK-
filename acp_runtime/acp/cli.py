@@ -136,9 +136,7 @@ def _build_observability(
 
     _ACP_CLI_LOGGER = "acp.cli"
     if args.verbose:
-        logger = ConsoleStructuredLogger(
-            _ACP_CLI_LOGGER, min_level=LogLevel.DEBUG
-        )  # NOSONAR
+        logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.DEBUG)  # NOSONAR
     elif args.quiet:
         logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.ERROR)
     else:
@@ -245,9 +243,7 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
     if logger is not None:
         logger.info("ACP stdio server started")
     http_port = getattr(args, "http_port", None)
-    metrics_path = getattr(
-        args, "metrics_path", _DEFAULT_METRICS_PATH
-    )  # NOSONAR
+    metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)  # NOSONAR
     if http_port is not None and health_handler is not None:
         async with anyio.create_task_group() as tg:
             tg.start_soon(start_http_server, health_handler, http_port, metrics_path)

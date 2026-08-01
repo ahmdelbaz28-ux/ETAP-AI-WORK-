@@ -527,8 +527,7 @@ class PredictiveAgent(BaseAgent):
                     hist_load = [
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0
-                        * np.random.randn()  # NOSONAR
+                        + 5.0 * np.random.randn()  # NOSONAR
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -605,8 +604,7 @@ class PredictiveAgent(BaseAgent):
                     hist_load = [
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0
-                        * np.random.randn()  # NOSONAR
+                        + 5.0 * np.random.randn()  # NOSONAR
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")

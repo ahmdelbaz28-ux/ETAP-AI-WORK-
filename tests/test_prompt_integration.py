@@ -68,9 +68,9 @@ class TestPromptLoader:
         for handle in agent_handles:
             clear_prompt_cache()
             prompt = get_system_prompt(handle)
-            assert len(prompt) > 20, (
-                f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
-            )
+            assert (
+                len(prompt) > 20
+            ), f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
 
     def test_fallback_for_missing_prompt(self):
         """A non-existent prompt handle should return a fallback string, not crash."""
@@ -140,9 +140,9 @@ class TestAgentPromptIntegration:
         from agents.orchestrator import LoadFlowAgent
 
         agent = LoadFlowAgent()
-        assert agent.prompt_handle == "load_flow_agent", (
-            f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
-        )
+        assert (
+            agent.prompt_handle == "load_flow_agent"
+        ), f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
 
     def test_load_flow_agent_prompt_loaded(self):
         """LoadFlowAgent should have its prompt loaded at init."""
@@ -159,12 +159,12 @@ class TestAgentPromptIntegration:
 
         orch = ChiefEngineeringOrchestrator()
         for key, agent in orch.agents.items():
-            assert agent._system_prompt is not None, (
-                f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
-            )
-            assert len(agent._system_prompt) > 20, (
-                f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
-            )
+            assert (
+                agent._system_prompt is not None
+            ), f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
+            assert (
+                len(agent._system_prompt) > 20
+            ), f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
 
     def test_orchestrator_has_prompt(self):
         """ChiefEngineeringOrchestrator should have its own prompt loaded."""
@@ -299,9 +299,9 @@ class TestPromptHandleMapping:
             if p not in prompt_consumers:
                 unmapped.append(p)
 
-        assert len(unmapped) == 0, (
-            f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
-        )
+        assert (
+            len(unmapped) == 0
+        ), f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
 
 
 if __name__ == "__main__":

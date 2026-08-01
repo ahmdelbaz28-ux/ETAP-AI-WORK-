@@ -142,7 +142,9 @@ class TestOvercurrentRelay:
 
     def test_tms_property(self):
         r = OvercurrentRelay(relay_id=1, TMS=0.75)
-        assert pytest.approx(0.75) == r.TMS  # NOSONAR S3415: intentional; see prior batch commits for context
+        assert (
+            pytest.approx(0.75) == r.TMS
+        )  # NOSONAR S3415: intentional; see prior batch commits for context
 
     def test_ip_property(self):
         r = OvercurrentRelay(relay_id=1, Ip=0.8)

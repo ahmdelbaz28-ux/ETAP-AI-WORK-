@@ -63,9 +63,9 @@ class TestRateLimiter:
         assert limiter.is_allowed("3.3.3.3") is False
         # Wait for window to expire
         time.sleep(1.1)
-        assert limiter.is_allowed("3.3.3.3") is True, (
-            "After window expiry, request should be allowed"
-        )
+        assert (
+            limiter.is_allowed("3.3.3.3") is True
+        ), "After window expiry, request should be allowed"
 
     def test_reset_clears_all_entries(self):
         """GIVEN a limiter at capacity

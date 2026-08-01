@@ -112,20 +112,31 @@ BLOCKED_MIME_TYPES: set[str] = {
 
 # V-53: Dangerous file extensions that are ALWAYS blocked
 BLOCKED_EXTENSIONS: set[str] = {
-    ".html", ".htm",          # XSS vector
-    ".js", ".mjs",            # JavaScript — can execute in browser
-    ".vbs", ".vbe",           # VBScript
-    ".wsf", ".wsh",           # Windows Script Host
-    ".bat", ".cmd",           # Windows batch
-    ".ps1", ".psm1",          # PowerShell
-    ".sh", ".bash",           # Shell scripts
-    ".py", ".pyw",            # Python
-    ".exe", ".dll",           # Windows executables
-    ".msi", ".msp",           # Windows installers
-    ".scr", ".com",           # Screensaver / DOS executable
-    ".hta",                   # HTML Application (IE)
-    ".lnk",                   # Windows shortcut
-    ".svg",                   # SVG can contain JavaScript (XSS)
+    ".html",
+    ".htm",  # XSS vector
+    ".js",
+    ".mjs",  # JavaScript — can execute in browser
+    ".vbs",
+    ".vbe",  # VBScript
+    ".wsf",
+    ".wsh",  # Windows Script Host
+    ".bat",
+    ".cmd",  # Windows batch
+    ".ps1",
+    ".psm1",  # PowerShell
+    ".sh",
+    ".bash",  # Shell scripts
+    ".py",
+    ".pyw",  # Python
+    ".exe",
+    ".dll",  # Windows executables
+    ".msi",
+    ".msp",  # Windows installers
+    ".scr",
+    ".com",  # Screensaver / DOS executable
+    ".hta",  # HTML Application (IE)
+    ".lnk",  # Windows shortcut
+    ".svg",  # SVG can contain JavaScript (XSS)
 }
 
 # V-27: Maximum upload size (100 MB by default)
@@ -284,7 +295,8 @@ async def upload(
     if content_type_lower not in ALLOWED_MIME_TYPES:
         logger.warning(
             "r2_upload_unsupported_mime type=%s key=%s — proceeding with caution",
-            content_type_lower, key[:50],
+            content_type_lower,
+            key[:50],
         )
 
     # V-27: Enforce maximum upload size
@@ -441,7 +453,9 @@ def presign(key: str, *, expires: int = 3600) -> str:
     if expires > _PRESIGN_MAX_EXPIRY:
         logger.warning(
             "presign_expiry_capped requested=%d max=%d key=%s",
-            expires, _PRESIGN_MAX_EXPIRY, key[:50],
+            expires,
+            _PRESIGN_MAX_EXPIRY,
+            key[:50],
         )
         expires = _PRESIGN_MAX_EXPIRY
     if expires < 60:

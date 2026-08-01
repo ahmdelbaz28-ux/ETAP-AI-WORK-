@@ -267,7 +267,9 @@ class TestTaskStatusTracking:
 
         # In eager mode with task_eager_propagates=True, the exception
         # is re-raised.  We catch it and inspect the stored result.
-        with pytest.raises(RuntimeError, match="Engine crashed"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            RuntimeError, match="Engine crashed"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -319,9 +321,13 @@ class TestTaskStatusTracking:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("boom")
 
-        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            RuntimeError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
-                args=(_sample_study_data(),),  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+                args=(
+                    _sample_study_data(),
+                ),  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
             )
 
         failure_calls = [
@@ -474,11 +480,14 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Solver diverged")
 
-        with pytest.raises(RuntimeError, match="Solver diverged"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            RuntimeError, match="Solver diverged"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
-  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+
+    # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
     @patch("worker.tasks.execute_study_logic")
     @patch("worker.tasks.current_task")
     def test_value_error_propagates(self, mock_ct, mock_exec):
@@ -486,19 +495,25 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = ValueError("Invalid study_type: unknown")
 
-        with pytest.raises(ValueError, match="Invalid study_type"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ValueError, match="Invalid study_type"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
 
     @patch("worker.tasks.execute_study_logic")
-    @patch("worker.tasks.current_task")  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+    @patch(
+        "worker.tasks.current_task"
+    )  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
     def test_failure_meta_contains_error_message(self, mock_ct, mock_exec):
         """The FAILURE state update should include the error message in meta."""
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Engine crashed")
 
-        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            RuntimeError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -525,7 +540,9 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("timeout")
 
-        with pytest.raises(RuntimeError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            RuntimeError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -535,7 +552,9 @@ class TestTaskFailureHandling:
             for call in mock_ct.update_state.call_args_list
             if (call.kwargs.get("state") == "FAILURE") or (call.args and call.args[0] == "FAILURE")
         ]
-        meta = failure_calls[0].kwargs.get("meta") or failure_calls[0].args[1]  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+        meta = (
+            failure_calls[0].kwargs.get("meta") or failure_calls[0].args[1]
+        )  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
         assert "status" in meta
         assert "failed" in meta["status"].lower()
 
@@ -582,7 +601,9 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = KeyError("missing_key")
 
-        with pytest.raises(KeyError, match="missing_key"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            KeyError, match="missing_key"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -663,9 +684,9 @@ class TestTaskTimeout:
         """
         vis_timeout = celery_app.conf.broker_transport_options.get("visibility_timeout", 0)
         hard_limit = celery_app.conf.task_time_limit
-        assert vis_timeout >= hard_limit, (
-            f"visibility_timeout ({vis_timeout}s) should be >= task_time_limit ({hard_limit}s)"
-        )
+        assert (
+            vis_timeout >= hard_limit
+        ), f"visibility_timeout ({vis_timeout}s) should be >= task_time_limit ({hard_limit}s)"
 
     def test_result_expires_configured(self):
         """The result TTL should be configured to prevent premature cleanup."""
@@ -699,7 +720,9 @@ class TestTaskRetry:
         # The execute_engineering_study_task does not have autoretry_for
         # configured, so it will raise.  We demonstrate the pattern and
         # verify the retry decorator *can* be applied.
-        with pytest.raises(ConnectionError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ConnectionError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -749,7 +772,9 @@ class TestTaskRetry:
         mock_exec.side_effect = _side_effect
 
         # Since the task doesn't have autoretry_for, it raises on first failure
-        with pytest.raises(ConnectionError):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ConnectionError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -946,7 +971,9 @@ class TestTaskIntegration:
         mock_exec.side_effect = ValueError("Invalid parameter: tolerance")
 
         # 1. Submit — exception propagates in eager mode
-        with pytest.raises(ValueError, match="Invalid parameter"):# NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(
+            ValueError, match="Invalid parameter"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -964,7 +991,9 @@ class TestTaskIntegration:
         assert "error" in meta
         assert "Invalid parameter" in meta["error"]
 
-    @patch("worker.tasks.execute_study_logic")  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+    @patch(
+        "worker.tasks.execute_study_logic"
+    )  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
     @patch("worker.tasks.current_task")
     def test_multiple_concurrent_submissions(self, mock_ct, mock_exec):
         """Multiple task submissions should each get unique IDs and results."""

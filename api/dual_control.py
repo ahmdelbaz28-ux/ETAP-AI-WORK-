@@ -62,7 +62,9 @@ def _validate_request_id(request_id: str) -> bool:
     return bool(_REQUEST_ID_PATTERN.match(request_id))
 
 
-def _add_audit_entry(event_type: str, request_id: str, user_id: str, details: dict[str, Any] | None = None) -> None:
+def _add_audit_entry(
+    event_type: str, request_id: str, user_id: str, details: dict[str, Any] | None = None
+) -> None:
     """V-19: Add an entry to the persistent audit trail."""
     entry = {
         "timestamp": datetime.now(UTC).isoformat(),
@@ -75,8 +77,13 @@ def _add_audit_entry(event_type: str, request_id: str, user_id: str, details: di
         _audit_trail.append(entry)
         # V-21: Bound the audit trail
         if len(_audit_trail) > _AUDIT_TRAIL_MAX:
-            _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2:]
-    logger.info("audit_trail event=%s request=%s user=%s", event_type, request_id, _sanitize_for_log(user_id))  # NOSONAR: S5145 — user_id sanitized via _sanitize_for_log(); request_id validated by _validate_request_id; event_type is internal constant
+            _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2 :]
+    logger.info(
+        "audit_trail event=%s request=%s user=%s",
+        event_type,
+        request_id,
+        _sanitize_for_log(user_id),
+    )  # NOSONAR: S5145 — user_id sanitized via _sanitize_for_log(); request_id validated by _validate_request_id; event_type is internal constant
 
 
 def _cleanup_expired_approvals() -> int:
@@ -143,7 +150,9 @@ def create_approval_request(
         _pending_approvals[request_id] = request
 
     # V-19: Audit trail
-    _add_audit_entry("request_created", request_id, operator_id, {"action_type": action.get("type", "unknown")})
+    _add_audit_entry(
+        "request_created", request_id, operator_id, {"action_type": action.get("type", "unknown")}
+    )
 
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
@@ -208,7 +217,10 @@ def approve_request(
                 _sanitize_for_log(approver_id),
             )  # NOSONAR: S5145 — approver_id sanitized; request_id validated
             _add_audit_entry("self_approval_blocked", request_id, approver_id)
-            return {"success": False, "error": "Self-approval is not allowed. A different authorized user must approve this request."}
+            return {
+                "success": False,
+                "error": "Self-approval is not allowed. A different authorized user must approve this request.",
+            }
 
         # If QR secret provided, validate it
         if secret and secret != request["qr_secret"]:
@@ -223,7 +235,9 @@ def approve_request(
 
     # request_id is server-generated (apr_ prefix + token_hex); approver_id is
     # sanitized by _sanitize_for_log() (S5145: no CR/LF can reach the log).
-    logger.info("Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id))  # NOSONAR S5145: server-generated id + sanitized approver_id
+    logger.info(
+        "Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id)
+    )  # NOSONAR S5145: server-generated id + sanitized approver_id
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
@@ -275,11 +289,18 @@ def reject_request(
         request["rejected_reason"] = reason
 
     # V-19: Audit trail
-    _add_audit_entry("request_rejected", request_id, rejector_id, {"reason": _sanitize_for_log(reason)[:200]})
+    _add_audit_entry(
+        "request_rejected", request_id, rejector_id, {"reason": _sanitize_for_log(reason)[:200]}
+    )
 
     # request_id is server-generated; rejector_id and reason are sanitized by
     # _sanitize_for_log() (S5145: no CR/LF can reach the log).
-    logger.info("Dual-control request %s REJECTED by %s: %s", request_id, _sanitize_for_log(rejector_id), _sanitize_for_log(reason))  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
+    logger.info(
+        "Dual-control request %s REJECTED by %s: %s",
+        request_id,
+        _sanitize_for_log(rejector_id),
+        _sanitize_for_log(reason),
+    )  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
 
     _notify_clients(request_id, request)
 
@@ -304,7 +325,7 @@ def get_pending_approvals() -> list[dict[str, Any]]:
 def get_audit_trail(limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
     """V-19: Retrieve the audit trail for dual-control actions."""
     with _audit_lock:
-        return list(_audit_trail[-(limit + offset):][offset:]) if _audit_trail else []
+        return list(_audit_trail[-(limit + offset) :][offset:]) if _audit_trail else []
 
 
 def register_websocket(session_id: str, websocket) -> None:
@@ -351,16 +372,20 @@ def _notify_clients(request_id: str, request: dict) -> None:
     import asyncio
     import json
 
-    message = json.dumps({
-        "type": "dual_control_update",
-        "request_id": request_id,
-        "status": request.get("status"),
-        "request": _serialisable_request(request),
-    })
+    message = json.dumps(
+        {
+            "type": "dual_control_update",
+            "request_id": request_id,
+            "status": request.get("status"),
+            "request": _serialisable_request(request),
+        }
+    )
 
     async def _broadcast() -> None:
         dead = []
-        for session_id, sockets in list(_websocket_clients.items()):  # NOSONAR: S7504 — snapshot for safe iteration during await
+        for session_id, sockets in list(
+            _websocket_clients.items()
+        ):  # NOSONAR: S7504 — snapshot for safe iteration during await
             for ws in list(sockets):  # NOSONAR: S7504 — snapshot for safe iteration during await
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)
@@ -401,6 +426,7 @@ def _serialisable_request(request: dict) -> dict:
     for k, v in request.items():
         try:
             import json
+
             json.dumps(v)
             out[k] = v
         except (TypeError, ValueError):

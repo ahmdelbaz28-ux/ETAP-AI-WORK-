@@ -42,7 +42,10 @@ _PROMPT_INJECTION_PATTERNS: list[tuple[str, str]] = [
     # Instruction override attempts
     (r"(?i)\bignore\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
     (r"(?i)\bforget\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
-    (r"(?i)\bdisregard\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)", "[filtered]"),
+    (
+        r"(?i)\bdisregard\s+(previous|all|above|prior)\s+(instructions?|rules?|prompts?)",
+        "[filtered]",
+    ),
     (r"(?i)\bnew\s+instructions?\s*:", "[filtered]"),
     (r"(?i)\boverride\s+(previous|all|default)\s+(instructions?|rules?|settings?)", "[filtered]"),
     (r"(?i)\byou\s+are\s+now\s+", "[filtered]"),
@@ -50,7 +53,10 @@ _PROMPT_INJECTION_PATTERNS: list[tuple[str, str]] = [
     (r"(?i)\bact\s+as\s+(if\s+you\s+are|a)\s+", "[filtered]"),
     # Data exfiltration
     (r"(?i)\b(reveal|show|display|print|dump|expose)\s+(the\s+)?(system\s+)?prompt", "[filtered]"),
-    (r"(?i)\b(reveal|show|display|print|dump|expose)\s+(your|the)\s+(instructions?|rules?)", "[filtered]"),
+    (
+        r"(?i)\b(reveal|show|display|print|dump|expose)\s+(your|the)\s+(instructions?|rules?)",
+        "[filtered]",
+    ),
     (r"(?i)\bwhat\s+(is|are)\s+your\s+(instructions?|rules?|prompt)", "[filtered]"),
     # Escape attempts
     (r"(?i)\bexec\s*\(", "[filtered]"),

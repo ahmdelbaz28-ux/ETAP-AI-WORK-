@@ -134,9 +134,9 @@ class TestHealthEndpoint:
         resp = await client.get("/health")
         data = resp.json()
         required_fields = {"status", "version", "timestamp", "trace_id"}
-        assert required_fields.issubset(data.keys()), (
-            f"Missing fields: {required_fields - data.keys()}"
-        )
+        assert required_fields.issubset(
+            data.keys()
+        ), f"Missing fields: {required_fields - data.keys()}"
 
 
 # ===================================================================
@@ -190,9 +190,9 @@ class TestReadyEndpoint:
             "timestamp",
             "trace_id",
         }
-        assert required_fields.issubset(data.keys()), (
-            f"Missing fields: {required_fields - data.keys()}"
-        )
+        assert required_fields.issubset(
+            data.keys()
+        ), f"Missing fields: {required_fields - data.keys()}"
 
 
 # ===================================================================
@@ -622,9 +622,9 @@ class TestBodySizeLimit:
             # Payload whose JSON encoding exceeds 100 bytes
             large_payload = {"study_type": "load_flow", "parameters": {"data": "x" * 200}}
             resp = await client.post("/api/v1/studies/run", json=large_payload)
-            assert resp.status_code == 413, (
-                f"Expected 413 for oversized request, got {resp.status_code}"
-            )
+            assert (
+                resp.status_code == 413
+            ), f"Expected 413 for oversized request, got {resp.status_code}"
         finally:
             routes_mod._MAX_BODY_SIZE = original_max
 

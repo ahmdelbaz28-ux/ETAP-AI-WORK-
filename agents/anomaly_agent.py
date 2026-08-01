@@ -468,7 +468,9 @@ class AnomalyAgent(BaseAgent):
                 sigma_threshold=sigma_threshold,
             )
 
-    def _run_cusum(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+    def _run_cusum(
+        self, method: str, data: np.ndarray, task: EngineeringTask, results: dict
+    ) -> None:
         """Run CUSUM shift detection when selected."""
         if method in ("cusum", "full"):
             target = task.parameters.get("target")
@@ -482,7 +484,9 @@ class AnomalyAgent(BaseAgent):
                 h=h,
             )
 
-    def _run_ewma(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
+    def _run_ewma(
+        self, method: str, data: np.ndarray, task: EngineeringTask, results: dict
+    ) -> None:
         """Run EWMA detection when selected."""
         if method in ("ewma", "full"):
             lam = float(task.parameters.get("ewma_lambda", 0.1))
@@ -564,9 +568,7 @@ class AnomalyAgent(BaseAgent):
                 overall_severity = sev
         return overall_severity
 
-    async def execute(
-        self, task: EngineeringTask
-    ) -> AgentResult:
+    async def execute(self, task: EngineeringTask) -> AgentResult:
         """
         Execute anomaly detection task.
 

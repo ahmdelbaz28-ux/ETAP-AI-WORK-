@@ -337,13 +337,14 @@ class AuthenticationManager:
         """
         now = datetime.now(UTC)
         import uuid as _uuid
+
         payload = {
-            "sub": user.user_id,       # JWT standard subject claim (was missing)
-            "user_id": user.user_id,   # Kept for backward compatibility
+            "sub": user.user_id,  # JWT standard subject claim (was missing)
+            "user_id": user.user_id,  # Kept for backward compatibility
             "username": user.username,
             "role": user.role.value,
-            "jti": str(_uuid.uuid4()), # JWT ID for revocation/blacklisting (was missing)
-            "type": "access",          # Token type claim (was missing)
+            "jti": str(_uuid.uuid4()),  # JWT ID for revocation/blacklisting (was missing)
+            "type": "access",  # Token type claim (was missing)
             "exp": now + timedelta(hours=self.token_expiry_hours),
             "iat": now,
         }
@@ -684,6 +685,7 @@ class InputValidator:
         sanitized = input_str.replace("\x00", "")
         # Strip control characters (keep \t, \n, \r for legitimate text)
         import re as _re
+
         sanitized = _re.sub(r"[\x01-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]", "", sanitized)
         # Strip ANSI escape sequences
         sanitized = _re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", sanitized)

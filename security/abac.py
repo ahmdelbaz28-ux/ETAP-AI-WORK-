@@ -743,7 +743,11 @@ def make_clearance_policy(
 def create_default_etap_abac_engine() -> ABACPolicyEngine:
     # RFC1918 private address ranges used for internal-network allowlisting.
     # NOSONAR: hardcoded IPs are intentional CIDR blocklist for private networks (S1313).
-    _PRIVATE_NETWORK_CIDRS = ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")  # NOSONAR: RFC1918 private network CIDRs - intentional allowlist (S1313)
+    _PRIVATE_NETWORK_CIDRS = (
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+    )  # NOSONAR: RFC1918 private network CIDRs - intentional allowlist (S1313)
     """Create an :class:`ABACPolicyEngine` pre-loaded with ETAP platform defaults.
 
     Default policies:
@@ -815,7 +819,9 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
     engine.add_policy(
         make_ip_allowlist_policy(
             name="internal_network",
-            allowed_cidrs=list(_PRIVATE_NETWORK_CIDRS),  # NOSONAR S1313: RFC1918 ranges (10/8, 172.16/12, 192.168/16); not user-facing
+            allowed_cidrs=list(
+                _PRIVATE_NETWORK_CIDRS
+            ),  # NOSONAR S1313: RFC1918 ranges (10/8, 172.16/12, 192.168/16); not user-facing
             priority=30,
         ),
     )

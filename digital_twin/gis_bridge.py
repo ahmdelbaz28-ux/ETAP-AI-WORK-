@@ -248,8 +248,8 @@ class GISSyncBridge:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
-        if '_' in xf_id:
-            xid = int(xf_id.split('_')[-1])
+        if "_" in xf_id:
+            xid = int(xf_id.split("_")[-1])
         elif xf_id.isdigit():
             xid = int(xf_id)
         else:
@@ -343,7 +343,9 @@ class GISSyncBridge:
         gid = (
             int(gen_id.split("_")[-1])
             if "_" in gen_id
-            else int(gen_id)  # NOSONAR: S3358 nested ternary clear in this context  # — nested ternary kept for readability — single-expression mapping (S3358)
+            else int(
+                gen_id
+            )  # NOSONAR: S3358 nested ternary clear in this context  # — nested ternary kept for readability — single-expression mapping (S3358)
             if gen_id.isdigit()
             else 1  # NOSONAR nested conditional; extract to named variable (tech debt)
         )

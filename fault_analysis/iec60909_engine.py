@@ -211,7 +211,10 @@ class IEC60909Engine:
         return min(kappa, 2.0)  # kappa max is 2.0
 
     def _calculate_mu(
-        self, ik_initial_pu: float, t_min: float | None = None  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        ik_initial_pu: float,
+        t_min: float
+        | None = None,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> float:  # NOSONAR physics/engineering notation
         """
         Calculate the factor mu for breaking current per IEC 60909.

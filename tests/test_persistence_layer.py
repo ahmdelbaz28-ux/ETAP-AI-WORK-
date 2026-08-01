@@ -65,16 +65,12 @@ class _FakeRedis:
     ):  # NOSONAR async function uses sync I/O for compatibility reasons
         return True
 
-    async def delete(
-        self, *keys
-    ):  # NOSONAR async function uses sync I/O for compatibility reasons
+    async def delete(self, *keys):  # NOSONAR async function uses sync I/O for compatibility reasons
         for k in keys:
             self._store.pop(k, None)
         return len(keys)
 
-    async def keys(
-        self, pattern
-    ):  # NOSONAR async function uses sync I/O for compatibility reasons
+    async def keys(self, pattern):  # NOSONAR async function uses sync I/O for compatibility reasons
         import fnmatch
 
         return [k for k in self._store if fnmatch.fnmatch(k, pattern.replace("*", "[^:]*"))]
@@ -203,9 +199,9 @@ class TestDatabaseEngineCreation:
             async with engine.connect() as conn:
                 tables = await conn.run_sync(lambda sync_conn: inspect(sync_conn).get_table_names())
             assert "users" in tables, f"init_db should have created 'users' table, got: {tables}"
-            assert "projects" in tables, (
-                f"init_db should have created 'projects' table, got: {tables}"
-            )
+            assert (
+                "projects" in tables
+            ), f"init_db should have created 'projects' table, got: {tables}"
         finally:
             await engine.dispose()
 

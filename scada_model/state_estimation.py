@@ -262,7 +262,10 @@ class WLSEstimator:
             w_list.append(1.0 / (sigma**2) if sigma > 0 else 1e6)
 
         # Power injection measurements
-        for bus_idx, (P, Q, sigma_p, sigma_q) in measurements.get(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        for (
+            bus_idx,
+            (P, Q, sigma_p, sigma_q),
+        ) in measurements.get(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             "power_injection", {}
         ).items():  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             if bus_idx != slack_idx:
@@ -285,7 +288,11 @@ class WLSEstimator:
         return np.array(z_list), h_indices, np.array(w_list)
 
     def _compute_h(
-        self, x: np.ndarray, ybus: np.ndarray, h_indices: list, n: int  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        x: np.ndarray,
+        ybus: np.ndarray,
+        h_indices: list,
+        n: int,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]

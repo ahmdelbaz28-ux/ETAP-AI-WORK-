@@ -35,7 +35,8 @@ class ValidationCampaign:
         self.passed = 0
         self.failed = 0
         self.warnings = 0
-  # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+
+    # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
     def _record(self, category, test_name, passed, detail="", warning=False):
         if passed:
             status = "PASS"
@@ -116,7 +117,10 @@ class ValidationCampaign:
         converged = solver.solve(max_iter=100, tol=1e-6)
 
         self._record(
-            _STUDY_TYPE_3BUS_LF, "Convergence", converged, f"Converged={converged}"  # NOSONAR: S1192 literal kept inline for readability
+            _STUDY_TYPE_3BUS_LF,
+            "Convergence",
+            converged,
+            f"Converged={converged}",  # NOSONAR: S1192 literal kept inline for readability
         )  # NOSONAR intentional repetition (audit constant)
 
         if converged:
@@ -133,7 +137,9 @@ class ValidationCampaign:
                 )
 
             # Power balance check
-            total_load = sum(b.load_power.real for b in system.buses.values())  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+            total_load = sum(
+                b.load_power.real for b in system.buses.values()
+            )  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
             total_gen = sum(b.generation_power.real for b in system.buses.values())
             # Slack bus picks up the difference
             p_loss = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -313,7 +319,9 @@ class ValidationCampaign:
                 "14-Bus LF",
                 "All Voltages in Range",
                 all_ok,
-                "All within 0.9-1.1 pu" if all_ok else "Some out of range",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+                "All within 0.9-1.1 pu"
+                if all_ok
+                else "Some out of range",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
             )
 
     def validate_ieee_30bus(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
@@ -517,7 +525,7 @@ class ValidationCampaign:
 
         analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
         bus_idx = 1  # bus 2 index
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Three-phase fault
         result_3ph = analyzer.three_phase_fault(bus_idx)
         if_3ph = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -538,7 +546,7 @@ class ValidationCampaign:
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
         Ith = if_3ph  # NOSONAR: Simplified  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("SC", "Thermal Current", Ith > 0, f"Ith={Ith:.4f} pu")
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # SLG fault
         result_slg = analyzer.line_to_ground_fault(bus_idx)
         if_slg = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -553,14 +561,14 @@ class ValidationCampaign:
             abs(if_slg - if_3ph) > 0.01,
             f"SLG={if_slg:.4f}, 3ph={if_3ph:.4f}",
         )
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Line-to-line fault
         result_ll = analyzer.line_to_line_fault(bus_idx)
         if_ll = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_ll["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("SC", "LL Fault Current > 0", if_ll > 0, f"I_LL={if_ll:.4f} pu")
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Double line-to-ground
         result_dlg = analyzer.double_line_to_ground_fault(bus_idx)
         ib = abs(  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -586,11 +594,13 @@ class ValidationCampaign:
         print("=" * 70)
 
         engine = ArcFlashEngine()
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Test Case 1: IEEE 1584 example - 4.16 kV, 20 kA, VCB, Box
         try:
-            iarc, iarc_red = engine.calculate_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                4.16, 20.0, ElectrodeConfig.VCB
+            iarc, iarc_red = (
+                engine.calculate_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                    4.16, 20.0, ElectrodeConfig.VCB
+                )
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self._record(
                 "ArcFlash",
@@ -610,10 +620,14 @@ class ValidationCampaign:
             )
         except Exception as e:
             self._record("ArcFlash", "Arc Current Calculation", False, f"Error: {e}")
-  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+        # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
         # Test Case 2: Incident Energy
         try:
-            e_final, e_full, e_red = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+            (
+                e_final,
+                e_full,
+                e_red,
+            ) = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 engine.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     4.16,
                     20.0,

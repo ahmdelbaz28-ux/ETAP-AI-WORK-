@@ -1,4 +1,3 @@
-
 """
 AhmedETAP - Prompt Loader (Safety-Critical Edition)
 ====================================================
@@ -67,7 +66,9 @@ Usage::
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_PROMPT_NOT_FOUND_FALLBACK_MSG = "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR: extracted constant (S1192)
+_PROMPT_NOT_FOUND_FALLBACK_MSG = (
+    "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR: extracted constant (S1192)
+)
 
 import asyncio
 import hashlib
@@ -443,7 +444,9 @@ def get_system_prompt(handle: str) -> str:
         if result:
             with _cache_lock:
                 _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
-            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # NOSONAR: S1192 literal kept inline for readability
+            logger.warning(
+                _PROMPT_NOT_FOUND_FALLBACK_MSG, handle
+            )  # NOSONAR: S1192 literal kept inline for readability
             return result
 
     # Tier 3: Hardcoded safety-net

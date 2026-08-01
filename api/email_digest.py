@@ -233,7 +233,9 @@ async def generate_digest(
 @router.get("/preview/{email}", response_class=HTMLResponse, summary="Preview a user's digest")
 async def preview_digest(
     email: str,
-    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
+    user: Annotated[
+        CurrentUser, Depends(get_current_user_from_header)
+    ],  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
     period: str = "daily",
 ) -> str:
     """Render the digest HTML without sending it (admin/debug)."""

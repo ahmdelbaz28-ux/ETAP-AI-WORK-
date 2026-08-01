@@ -55,9 +55,7 @@ class JsonRpcRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    jsonrpc: str = Field(
-        default="2.0", pattern=_JSONRPC_VERSION_PATTERN
-    )  # NOSONAR
+    jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)  # NOSONAR
     id: RequestId
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None

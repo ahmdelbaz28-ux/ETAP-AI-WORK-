@@ -1,4 +1,3 @@
-
 """
 etap_integration/worker_registry.py — ETAP Windows Worker heartbeat and registration.
 
@@ -162,7 +161,8 @@ class ETAPWorkerHeartbeat:
     ) -> None:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
         self.redis_url = redis_url or os.getenv(
-            "REDIS_URL", _REDIS_DEFAULT_URL  # NOSONAR: S1192 literal kept inline for readability
+            "REDIS_URL",
+            _REDIS_DEFAULT_URL,  # NOSONAR: S1192 literal kept inline for readability
         )  # NOSONAR intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
@@ -386,7 +386,9 @@ async def worker_heartbeat(worker_id: str):
     if raw:
         info = json.loads(raw)
         info["last_heartbeat"] = time.time()
-        info["status"] = "idle"  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+        info["status"] = (
+            "idle"  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+        )
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
         raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI

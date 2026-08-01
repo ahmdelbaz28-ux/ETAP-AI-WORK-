@@ -1,4 +1,3 @@
-
 """Initial schema — core platform tables.
 
 Revision ID: 001
@@ -153,7 +152,8 @@ def upgrade() -> None:
             "created_by",
             sa.String(36),
             sa.ForeignKey(
-                _USERS_ID_FK, ondelete="CASCADE"  # NOSONAR: S1192 literal kept inline for readability
+                _USERS_ID_FK,
+                ondelete="CASCADE",  # NOSONAR: S1192 literal kept inline for readability
             ),  # NOSONAR intentional repetition (audit constant)
             nullable=False,
         ),

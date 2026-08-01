@@ -773,7 +773,9 @@ class TestAuthentication:
         """A connection without an API key is rejected with code 1008."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             # The server should close the connection immediately
             with auth_client.websocket_connect(WS_PATH) as ws:
                 ws.receive_json()
@@ -782,7 +784,9 @@ class TestAuthentication:
         """A connection with an incorrect API key is rejected."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
                 ws.receive_json()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
 
@@ -790,11 +794,14 @@ class TestAuthentication:
         """An empty ``x-api-key`` header is treated as missing."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(WebSocketDisconnect):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
                 ws.receive_json()
 
-  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+
+# NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
 # ===========================================================================
 # Unit-level: SCADALiveFeed internals
 # ===========================================================================

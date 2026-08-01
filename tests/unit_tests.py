@@ -188,9 +188,13 @@ class TestETAPSchemaValidation:
             schema = STUDY_TYPE_PARAMETER_SCHEMAS.get(study_type, {})
             for key, rule in schema.items():
                 assert "type" in rule, f"{study_type}.{key} missing 'type'"
-                assert rule["type"] in ("numeric", "integer", "string", "boolean", "list"), (
-                    f"{study_type}.{key} has unknown type: {rule['type']}"
-                )
+                assert rule["type"] in (
+                    "numeric",
+                    "integer",
+                    "string",
+                    "boolean",
+                    "list",
+                ), f"{study_type}.{key} has unknown type: {rule['type']}"
 
 
 # ============================================================================
@@ -217,12 +221,12 @@ class TestWorkerRBAC:
         ]
 
         for study_type in implemented_studies:
-            assert study_type in STUDY_TYPE_TO_PERMISSION, (
-                f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
-            )
-            assert isinstance(STUDY_TYPE_TO_PERMISSION[study_type], Permission), (
-                f"{study_type} maps to non-Permission value"
-            )
+            assert (
+                study_type in STUDY_TYPE_TO_PERMISSION
+            ), f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
+            assert isinstance(
+                STUDY_TYPE_TO_PERMISSION[study_type], Permission
+            ), f"{study_type} maps to non-Permission value"
 
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
@@ -243,9 +247,9 @@ class TestWorkerRBAC:
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
-            assert authz.check_permission(token, permission), (
-                f"Engineer should have {permission.value} for {study_type.value}"
-            )
+            assert authz.check_permission(
+                token, permission
+            ), f"Engineer should have {permission.value} for {study_type.value}"
 
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
@@ -266,9 +270,9 @@ class TestWorkerRBAC:
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
-            assert not authz.check_permission(token, permission), (
-                f"Viewer should NOT have {permission.value} for {study_type.value}"
-            )
+            assert not authz.check_permission(
+                token, permission
+            ), f"Viewer should NOT have {permission.value} for {study_type.value}"
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
@@ -303,9 +307,9 @@ class TestWorkerRBAC:
 
         fake_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake"
         for permission in STUDY_TYPE_TO_PERMISSION.values():
-            assert not authz.check_permission(fake_token, permission), (
-                f"Fake token should not have {permission.value}"
-            )
+            assert not authz.check_permission(
+                fake_token, permission
+            ), f"Fake token should not have {permission.value}"
 
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
@@ -529,9 +533,9 @@ class TestArcFlash:
         )
 
         assert Iarc > 0, "Arc current should be positive"
-        assert Iarc_reduced == pytest.approx(0.85 * Iarc), (
-            "Reduced arc current should be 85% of full"
-        )
+        assert Iarc_reduced == pytest.approx(
+            0.85 * Iarc
+        ), "Reduced arc current should be 85% of full"
 
     def test_incident_energy_positive(self):
         """Test that incident energy is always positive."""
@@ -591,9 +595,9 @@ class TestArcFlash:
             working_distance_mm=610.0,
         )
 
-        assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, (
-            "Different voltages should produce different incident energies"
-        )
+        assert (
+            result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2
+        ), "Different voltages should produce different incident energies"
 
     def test_input_validation(self):
         """Test that invalid inputs raise errors."""
@@ -663,9 +667,9 @@ class TestProtectionCoordination:
 
         result = coord_engine.check_coordination(upstream, downstream, 5.0)
 
-        assert result["downstream_time"] < result["upstream_time"], (
-            "Downstream relay should trip faster"
-        )
+        assert (
+            result["downstream_time"] < result["upstream_time"]
+        ), "Downstream relay should trip faster"
 
     def test_coordination_margin(self):
         """Test coordination margin requirement."""
@@ -934,9 +938,9 @@ class TestSecurityFramework:
 
         # Dangerous code
         dangerous_code = "import os\nos.system('rm -rf /')"
-        assert not validator.validate_python_code(dangerous_code), (
-            "Dangerous code should fail validation"
-        )
+        assert not validator.validate_python_code(
+            dangerous_code
+        ), "Dangerous code should fail validation"
 
     def test_rate_limiting(self):
         """Test rate limiting."""
@@ -1053,9 +1057,9 @@ class TestIntegration:
         ]
 
         for fault in faults:
-            assert "fault_current" in fault or "fault_current_b" in fault, (
-                "Fault result should contain current"
-            )
+            assert (
+                "fault_current" in fault or "fault_current_b" in fault
+            ), "Fault result should contain current"
 
 
 # ============================================================================
@@ -1112,7 +1116,6 @@ class TestSecretsManager:
         assert val == "key-to-rotate"
 
     def test_key_access_audit_logging(self, tmp_path, monkeypatch):
-
         monkeypatch.setattr("security.secrets_manager.AUDIT_DIR", tmp_path / "audit")
         auditor = KeyAccessAuditor()
         auditor.log_access("user_a", "api-key-1", KeyAccessAuditor.ACTION_GET, True)

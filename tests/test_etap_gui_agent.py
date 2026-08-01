@@ -371,9 +371,9 @@ def test_etap_gui_agent_in_hf_space_agents_list():
     from api.shared_handlers import AGENTS
 
     agent_ids = [a.get("id") for a in AGENTS if isinstance(a, dict)]
-    assert "etap-gui-agent" in agent_ids, (
-        f"AGENTS must include 'etap-gui-agent', got ids: {agent_ids}"
-    )
+    assert (
+        "etap-gui-agent" in agent_ids
+    ), f"AGENTS must include 'etap-gui-agent', got ids: {agent_ids}"
 
 
 def test_prompt_yaml_exists():

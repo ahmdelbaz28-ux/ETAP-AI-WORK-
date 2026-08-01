@@ -349,7 +349,9 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_impossible_guard(
         self,
-        _tree: Optional[ast.AST],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _tree: Optional[
+            ast.AST
+        ],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""

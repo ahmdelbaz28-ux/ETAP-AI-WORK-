@@ -246,11 +246,11 @@ class ETAPCompatibilityChecker:
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
             if required and (not avail):
-                sev = 'error'
+                sev = "error"
             elif not avail:
-                sev = 'warning'
+                sev = "warning"
             else:
-                sev = 'info'
+                sev = "info"
             checks.append(
                 CheckResult(
                     f"Package: {pkg}",

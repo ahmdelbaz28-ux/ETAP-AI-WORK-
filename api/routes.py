@@ -1,4 +1,3 @@
-
 """
 API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
@@ -149,11 +148,12 @@ def _require_api_key(request: Request) -> None:
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
         return
-  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+    # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
         raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
-            status_code=401, detail=_INVALID_API_KEY_MSG  # NOSONAR: S1192 literal kept inline for readability
+            status_code=401,
+            detail=_INVALID_API_KEY_MSG,  # NOSONAR: S1192 literal kept inline for readability
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
@@ -279,7 +279,8 @@ async def _check_rate_limit(client_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT", "120"))
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+# NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
 
 @app.middleware("http")
 async def trace_middleware(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
@@ -322,7 +323,7 @@ async def trace_middleware(  # NOSONAR: S3776 cognitive complexity intentional; 
                 elif request.client:
                     client_id = request.client.host
                 else:
-                    client_id = 'unknown'
+                    client_id = "unknown"
             else:
                 client_id = request.client.host if request.client else "unknown"
             if not await _check_rate_limit(client_id):
@@ -437,7 +438,11 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
     _require_api_key(request)  # Add authentication check
 
-    celeryasyncresult, _, celery_app = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+    (
+        celeryasyncresult,
+        _,
+        celery_app,
+    ) = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
         get_celery_components()
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 

@@ -99,9 +99,7 @@ async def test_handler_that_ignores_cancellation_still_bails():
                     raise
 
     coro = rogue_handler()
-    with pytest.raises(
-        DeadlineExceeded
-    ):  # NOSONAR
+    with pytest.raises(DeadlineExceeded):  # NOSONAR
         await enforce_deadline_ms(coro, deadline_ms=30)
 
 
@@ -138,9 +136,7 @@ async def test_cancellable_without_deadline_requires_external_cancel():
 
         tg.start_soon(runner)
         await anyio.sleep(0.02)
-        assert (
-            runner_scope is not None
-        )  # NOSONAR
+        assert runner_scope is not None  # NOSONAR
         runner_scope.cancel()
         # Give the cancellation scope time to propagate; move_on_after ensures
         # we don't hang indefinitely if cancellation is broken.

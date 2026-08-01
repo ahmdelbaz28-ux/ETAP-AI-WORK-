@@ -1,4 +1,3 @@
-
 """
 Chain of Responsibility — Change Propagation Handlers
 =====================================================
@@ -196,7 +195,11 @@ class YbusRebuildHandler(PropagationHandler):
                     )
             else:
                 ctx.record_step(
-                    "ybus_rebuild", False, {"error": _NO_ELECTRICAL_MODEL_MSG}  # NOSONAR: S1192 literal kept inline for readability
+                    "ybus_rebuild",
+                    False,
+                    {
+                        "error": _NO_ELECTRICAL_MODEL_MSG
+                    },  # NOSONAR: S1192 literal kept inline for readability
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -288,7 +291,9 @@ class StateEstimationHandler(PropagationHandler):
                 if vmag is not None:
                     measurements["voltage_mag"][i] = (vmag, 0.01)
                 pq = ctx.dt_state.scada.get_latest_power(str(bid))
-                if pq is not None:  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
+                if (
+                    pq is not None
+                ):  # NOSONAR S117: engineering-notation variable (IEEE/IEC domain standard)
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
             ybus = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -366,7 +371,8 @@ class ArcFlashRefreshHandler(PropagationHandler):
     numbers are guaranteed to match what ``PowerSystemEngine.run_arc_flash()``
     returns (single-source-of-truth for the IEEE 1584 coefficients).
     """
-  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+
+    # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     fatal = False
 
     def handle(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
@@ -624,7 +630,9 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
                 # NOSONAR list() is intentional — creates a
                 # snapshot so we can mutate snapshot.bus_states during iteration.
-                for bid_str in list(  # NOSONAR S7504: snapshot needed for safe mutation during iteration
+                for (
+                    bid_str
+                ) in list(  # NOSONAR S7504: snapshot needed for safe mutation during iteration
                     snapshot.bus_states.keys()
                 ):  # NOSONAR intentional snapshot for safe mutation during iteration
                     try:

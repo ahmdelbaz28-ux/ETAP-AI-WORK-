@@ -288,9 +288,7 @@ class SCADALiveFeed:
 
             # Clean up zombie connections
             for ws in zombie_connections:
-                logger.warning(
-                    "Force-disconnecting zombie WebSocket: %s", id(ws)
-                )
+                logger.warning("Force-disconnecting zombie WebSocket: %s", id(ws))
                 await self.disconnect(ws)
 
             await asyncio.sleep(HEARTBEAT_INTERVAL)

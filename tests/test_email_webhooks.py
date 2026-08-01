@@ -41,7 +41,9 @@ from api.email_webhooks import WebhookEndpoint, _should_forward
 # accepts module constants. NOT a real secret; HMAC test fixture only.
 # We use "# nosec" + "# pragma: allowlist secret" so the repo's local
 # NOSONAR: scripts/security_scan.py skips this line (it doesn't recognize — ).
-_TEST_HMAC_SECRET = "x" * 32  # NOSONAR: nosec  # pragma: allowlist secret  # — test fixture, not a real secret
+_TEST_HMAC_SECRET = (
+    "x" * 32
+)  # NOSONAR: nosec  # pragma: allowlist secret  # — test fixture, not a real secret
 
 
 def _make_endpoint(

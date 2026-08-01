@@ -1255,7 +1255,9 @@ class ETAPAutomation:
         Validates path length against configured maximum.
         """
         if not file_path or not isinstance(file_path, str):
-            logger.warning("Invalid project path type or empty: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning(
+                "Invalid project path type or empty: %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
@@ -1267,7 +1269,9 @@ class ETAPAutomation:
             return False
 
         if not file_path.endswith(".edb"):
-            logger.warning("Invalid project file extension: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning(
+                "Invalid project file extension: %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
@@ -1282,7 +1286,9 @@ class ETAPAutomation:
 
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
-            logger.warning("UNC path not allowed (SMB relay risk): %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning(
+                "UNC path not allowed (SMB relay risk): %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
@@ -1303,9 +1309,13 @@ class ETAPAutomation:
             # filesystem write happens only inside the ETAP COM process which
             # validates the path again. Removing resolve() would break relative
             # path handling for legitimate ETAP project files.
-            resolved = normalised.resolve(strict=False)  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
+            resolved = normalised.resolve(
+                strict=False
+            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
         except (ValueError, RuntimeError):
-            logger.warning("Invalid path format: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning(
+                "Invalid path format: %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1315,7 +1325,9 @@ class ETAPAutomation:
             try:
                 resolved.relative_to(home)
             except ValueError:
-                logger.warning("Project path escapes CWD and HOME: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning(
+                    "Project path escapes CWD and HOME: %r", file_path
+                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         if self._allowed_project_dirs:
@@ -1323,7 +1335,9 @@ class ETAPAutomation:
                 str(resolved).startswith(allowed_dir) for allowed_dir in self._allowed_project_dirs
             )
             if not is_allowed:
-                logger.warning("Project path outside allowed directories: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning(
+                    "Project path outside allowed directories: %r", file_path
+                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         return True
@@ -1370,7 +1384,9 @@ class ETAPAutomation:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
         if not self._validate_project_path(file_path):
-            logger.error("Project path validation failed: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.error(
+                "Project path validation failed: %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return None
 
         try:
@@ -1379,10 +1395,14 @@ class ETAPAutomation:
             if com_project:
                 project = ETAPProject(com_project, file_path, com_timeout=self.com_timeout_seconds)
                 self._projects[file_path] = project
-                logger.info("Opened project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.info(
+                    "Opened project: %r", file_path
+                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return project
             else:
-                logger.error("Failed to open project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.error(
+                    "Failed to open project: %r", file_path
+                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return None
 
         except pythoncom.com_error as e:

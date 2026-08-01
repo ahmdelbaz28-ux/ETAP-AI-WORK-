@@ -259,9 +259,9 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
             )
             # If it succeeded, there must be no duplicates
             lowered = {w.strip().lower() for w in words if w.strip()}
-            assert len(lowered) == len([w for w in words if w.strip()]), (
-                f"Expected unique trigger words, got {words}"
-            )
+            assert len(lowered) == len(
+                [w for w in words if w.strip()]
+            ), f"Expected unique trigger words, got {words}"
         except ValidationError:
             # ValidationError is expected when duplicates exist
             non_empty = [w for w in words if w.strip()]

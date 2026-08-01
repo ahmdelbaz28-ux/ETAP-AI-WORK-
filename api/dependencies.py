@@ -313,7 +313,9 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         # In development, we still allow it but log a prominent warning.
         _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
         if _env not in ("production", "prod", "staging"):
-            logger.debug("API key auth disabled in development — no ENGINEERING_SERVICE_API_KEY set")
+            logger.debug(
+                "API key auth disabled in development — no ENGINEERING_SERVICE_API_KEY set"
+            )
             return ""
         # Should never reach here (startup raises RuntimeError), but just in case:
         raise HTTPException(

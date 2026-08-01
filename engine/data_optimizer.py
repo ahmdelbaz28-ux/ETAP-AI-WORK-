@@ -89,7 +89,9 @@ class SparseMatrixManager:
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_lu_solve(
-        self, a: Any, b: np.ndarray  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        a: Any,
+        b: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         if not issparse(a):
             a = csr_matrix(a)
@@ -99,7 +101,9 @@ class SparseMatrixManager:
 
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_factored_solve(
-        self, a_factor: Any, b: np.ndarray  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+        self,
+        a_factor: Any,
+        b: np.ndarray,  # NOSONAR: S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
     ) -> np.ndarray:  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         return a_factor.solve(b)
 
@@ -252,7 +256,9 @@ class MemoryOptimizedSystem:
         return self
 
     def _b_idx(self, bid: int) -> int:
-        idx = np.nonzero(self._ids == bid)[
+        idx = np.nonzero(
+            self._ids == bid
+        )[
             0
         ]  # NOSONAR np.nonzero returns indices of True elements; equivalent to np.where(cond)[0] but clearer (S6729)
         if len(idx) == 0:
@@ -728,11 +734,11 @@ class LargeSystemAdapter:
         else:
             r.update(solver="dense", initial_voltages=self.optimized_system.get_all_bus_voltages())
         if self._xl:
-            r['system_type'] = 'xl'
+            r["system_type"] = "xl"
         elif self._large:
-            r['system_type'] = 'large'
+            r["system_type"] = "large"
         else:
-            r['system_type'] = 'normal'
+            r["system_type"] = "normal"
         return r
 
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
