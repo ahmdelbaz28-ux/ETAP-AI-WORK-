@@ -50,11 +50,9 @@ ignore = [
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
     "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
     # UP038 was removed in ruff 0.9+ (Use X | Y in isinstance no longer flagged).
-    # Listed here for historical context; ruff emits a non-fatal warning if it
-    # appears in this list, so we omit it. CI installs the latest ruff, which
-    # already stops enforcing UP038.
-    "UP045",  # Non-PEP604 annotation Optional (gradual migration)
-    "UP047",  # Use type parameters (Python 3.12+ generic syntax; not yet adopted repo-wide)
+    # UP045 (non-pep604-annotation-optional) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
+    # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
+    # Both are omitted to keep CI ruff 0.7.0 compatible; will be re-enabled when CI upgrades ruff.
     "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)
     "N803",   # Invalid argument name (electrical engineering: V, I, R, X, etc.)
     "N815",   # Mixed-case variable in class scope (electrical engineering convention)
