@@ -32,7 +32,14 @@
     "expand": "Expand",
     "engineering": "Engineering",
     "integration": "Integration",
-    "system": "System"
+    "system": "System",
+    "cuaMonitor": "CUA Monitor",
+    "auditLogs": "Audit Logs",
+    "featureFlags": "Feature Flags",
+    "integrations": "Integrations",
+    "contextEngine": "Context Engine",
+    "templates": "Templates",
+    "assetLibrary": "Asset Library"
   },
   "navbar": {
     "welcome": "Welcome",

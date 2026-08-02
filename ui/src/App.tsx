@@ -61,6 +61,9 @@ const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
+const AuditLogsPage = lazyLoad(() => import("./pages/AuditLogs"));
+const IntegrationsPage = lazyLoad(() => import("./pages/Integrations"));
+const FeatureFlagsPage = lazyLoad(() => import("./pages/FeatureFlags"));
 
 function KeyboardShortcutsHandler() {
   useKeyboardShortcuts();
@@ -194,6 +197,9 @@ export default function App() {
                 <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
+                <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
+                <Route path="/admin/feature-flags" element={<FeatureFlagsPage />} />
+                <Route path="/integrations" element={<IntegrationsPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>

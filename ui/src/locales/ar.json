@@ -32,7 +32,14 @@
     "expand": "توسيع",
     "engineering": "الهندسة",
     "integration": "التكامل",
-    "system": "النظام"
+    "system": "النظام",
+    "cuaMonitor": "مراقب CUA",
+    "auditLogs": "سجلات التدقيق",
+    "featureFlags": "علامات الميزات",
+    "integrations": "التكاملات",
+    "contextEngine": "محرك السياق",
+    "templates": "القوالب",
+    "assetLibrary": "مكتبة الأصول"
   },
   "navbar": {
     "welcome": "مرحباً",
