@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 0
 
@@ -398,7 +398,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 1
 
@@ -498,7 +498,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}

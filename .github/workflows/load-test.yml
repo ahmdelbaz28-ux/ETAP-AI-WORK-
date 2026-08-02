@@ -77,7 +77,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6  # pin SHA for security
@@ -250,7 +250,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6  # pin SHA for security
