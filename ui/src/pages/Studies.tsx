@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Badge, Card } from "../components/ui";
 import { fetchStudyTypes } from "../lib/api";
 import { studyCategories } from "../lib/studyCategories";

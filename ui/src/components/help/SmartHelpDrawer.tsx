@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { resolveContext } from "../../help/contextRegistry";
 import type { HelpCategory, HelpTopic } from "../../help/types";
 import { useSmartHelp } from "../../hooks/useSmartHelp";

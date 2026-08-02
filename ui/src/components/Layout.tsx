@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";

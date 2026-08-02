@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 /**
  * @vitest-environment jsdom
  *
  * Tests for the AIAssistant page component.
  *
  * These tests reflect the current implementation of AIAssistant.tsx, which:
- *   - uses useNavigate() from react-router-dom (so it must be rendered inside
+ *   - uses useNavigate() from react-router (so it must be rendered inside
  *     a <MemoryRouter>),
  *   - loads agents via fetchAgents() but no longer renders an agent picker
  *     <select> (agent selection was removed when the LLM chat flow was

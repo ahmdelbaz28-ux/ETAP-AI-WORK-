@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { useNotify } from "../context/NotificationContext";
 import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../lib/api-config";
