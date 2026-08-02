@@ -102,13 +102,13 @@ aiosqlite~=0.19.0
 asyncpg>=0.29,<0.32
 
 # ETAP Worker API (FastAPI)
-# FastAPI: upgraded from 0.109.x → 0.115.4+ to resolve dependency conflict
-# with starlette 0.40.x (required for CVE-2024-47874 + CVE-2025-54121 fixes).
-# fastapi 0.109.x requires starlette<0.37, but we pin starlette>=0.40 for the
-# security fixes. fastapi 0.115.4+ supports starlette>=0.40,<0.42 — compatible
-# with our starlette>=0.40.0,<0.41.0 pin below.
-# See: https://github.com/fastapi/fastapi/releases/tag/0.115.0
-fastapi>=0.115.4,<0.116.0
+# SECURITY: upgraded from 0.115.4 → 0.121.0 to fix CVEs in starlette:
+#   CVE-2026-54283 (request.form() limits silently ignored)
+#   CVE-2026-48818 (SSRF via UNC paths in StaticFiles)
+#   CVE-2025-62727 (O(n²) DoS via Range header merging)
+# FastAPI 0.121.0+ supports starlette>=0.49.1 which contains the fixes.
+# Previous FastAPI 0.115.x only supported starlette<0.42, blocking the fix.
+fastapi>=0.121.0,<0.126.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
@@ -187,11 +187,15 @@ pygments~=2.18.0
 python-multipart~=0.0.6
 
 # Starlette (FastAPI dependency - pinned for compatibility)
-# SECURITY: upgraded from 0.35.0 → 0.40.0 to fix CVE-2024-47874 (DoS via
-# multipart forms) and CVE-2025-54121 (memory leak). We use 0.40.x because
-# it is compatible with fastapi>=0.115.4 (upgraded above). Full upgrade to
-# starlette 1.1.0 requires upgrading FastAPI to >=0.118 first (see P1 backlog).
-starlette>=0.40.0,<0.41.0
+# SECURITY: upgraded from 0.40.0 → 0.49.1 to fix:
+#   CVE-2026-54283 (request.form() limits silently ignored)
+#   CVE-2026-48818 (SSRF via UNC paths in StaticFiles)
+#   CVE-2025-62727 (O(n²) DoS via Range header merging)
+# Also inherits fixes from 0.40.x → 0.49.x:
+#   CVE-2024-47874 (DoS via multipart forms)
+#   CVE-2025-54121 (memory leak)
+# Compatible with fastapi>=0.121.0 (upgraded above).
+starlette>=0.49.1,<0.50.0
 
 # Celery for async task queue
 celery~=5.3.0
