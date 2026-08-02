@@ -70,13 +70,7 @@ except ImportError:
 
 from integrations._observability_base import NoOpContext as _NoOpContext
 from integrations._observability_base import build_health_check
-
-
-def _env_truthy(var: str, default: bool = False) -> bool:
-    """Delegate to shared ``core.utils.env_truthy`` to eliminate duplication."""
-    from core.utils import env_truthy
-
-    return env_truthy(var, default)
+from integrations._observability_base import env_truthy as _env_truthy
 
 
 def _truncate_for_capture(text: Any, max_chars: int) -> Optional[str]:
