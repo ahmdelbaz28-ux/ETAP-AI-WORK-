@@ -17,34 +17,56 @@ SECURITY AUDIT 2026-07-25 — Fix S-08:
   Keys that have no entries within the window are evicted on each call.
 - Added _last_cleanup tracking to avoid O(n) full-scan on every call.
 
-CRITICAL FIX — Rate Limiter Lockout in SCADA:
+CRITICAL FIX — Rate Limiter Lockout in SCADA (v2 — hardened):
 - Added SCADA internal bypass via X-SCADA-Internal-Key header and
   IP whitelisting to prevent rate-limiting of critical SCADA telemetry
-  during fault cascade events. Without this bypass, the rate limiter
-  would block SCADA alarm signals, blinding operators to live faults.
+  during fault cascade events.
+- v2 hardening: Uses ipaddress module for proper CIDR matching (not
+  broken string prefix matching). Uses hmac.compare_digest for
+  timing-attack-resistant secret comparison. Does NOT default to
+  trusting all RFC 1918 networks (that would bypass ALL rate limiting
+  behind a load balancer). SCADA_TRUSTED_IPS must be explicitly
+  configured — empty by default for safety.
+- Added audit logging for SCADA bypass events.
 """
 
 from __future__ import annotations
 
+import hmac
+import ipaddress
+import logging
 import os
 import threading
 import time
 
 from fastapi import HTTPException, Request
 
+_logger = logging.getLogger("api._rate_limit")
+
 # SCADA internal bypass secret — must match the SCADA_INTERNAL_SECRET
 # environment variable configured on internal SCADA services.
+# IMPORTANT: Empty string means bypass is DISABLED (fail-closed).
 _SCADA_INTERNAL_SECRET = os.getenv("SCADA_INTERNAL_SECRET", "")
 
-# Trusted internal IP ranges for SCADA systems (RFC 1918 private networks).
-# These ranges are used for internal SCADA communication and should never
-# be rate-limited, even during fault cascade events.
-_SCADA_TRUSTED_IPS: set[str] = set(
-    os.getenv("SCADA_TRUSTED_IPS", "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16").split(",")
-)
-
-# Global hard limit for maximum file uploads (50 MB) to prevent OOM.
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 Megabytes
+# Trusted SCADA IP ranges — MUST be explicitly configured.
+# SECURITY: Intentionally defaults to EMPTY (no IPs trusted).
+# The previous version defaulted to all RFC 1918 private networks
+# (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), which is a CRITICAL
+# security hole: if the server is behind a load balancer with a private
+# IP, ALL external requests would bypass rate limiting.
+# Set SCADA_TRUSTED_IPS env var to specific SCADA server IPs, e.g.:
+#   SCADA_TRUSTED_IPS=10.0.1.100,10.0.1.101
+# Or use CIDR notation for SCADA VLANs:
+#   SCADA_TRUSTED_IPS=10.0.1.0/24
+_SCADA_TRUSTED_IPS_RAW = os.getenv("SCADA_TRUSTED_IPS", "")
+_SCADA_TRUSTED_NETWORKS: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
+for _cidr in _SCADA_TRUSTED_IPS_RAW.split(","):
+    _cidr = _cidr.strip()
+    if _cidr:
+        try:
+            _SCADA_TRUSTED_NETWORKS.append(ipaddress.ip_network(_cidr, strict=False))
+        except ValueError:
+            _logger.warning("Invalid SCADA_TRUSTED_IPS entry ignored: %r", _cidr)
 
 
 class RateLimiter:
@@ -145,32 +167,52 @@ def _is_scada_internal_request(request: Request) -> bool:
 
     A request is considered internal SCADA traffic if EITHER:
     1. It carries the X-SCADA-Internal-Key header matching the
-       SCADA_INTERNAL_SECRET environment variable, OR
-    2. The client IP falls within the trusted SCADA IP ranges
-       (configured via SCADA_TRUSTED_IPS env var).
+       SCADA_INTERNAL_SECRET environment variable (timing-safe comparison), OR
+    2. The client IP falls within the explicitly configured SCADA_TRUSTED_IPS
+       networks (using ipaddress module for proper CIDR matching).
+
+    SECURITY NOTES (v2 hardening):
+    - Uses hmac.compare_digest() for constant-time secret comparison
+      to prevent timing attacks.
+    - Uses ipaddress.ip_network/ip_address for proper CIDR matching
+      instead of broken string prefix matching.
+    - SCADA_TRUSTED_IPS defaults to EMPTY (fail-closed) — must be
+      explicitly configured. The previous version defaulted to all
+      RFC 1918 private networks, which would bypass ALL rate limiting
+      behind a load balancer.
+    - All bypass events are logged for audit trail.
 
     Returns True if the request should bypass the standard rate limiter.
     """
-    # Check 1: Secret key header bypass
+    # Check 1: Secret key header bypass (timing-safe comparison)
     internal_key = request.headers.get("X-SCADA-Internal-Key", "")
-    if _SCADA_INTERNAL_SECRET and internal_key == _SCADA_INTERNAL_SECRET:
-        return True
-
-    # Check 2: IP whitelist bypass
-    # Only check if SCADA_TRUSTED_IPS is configured with non-default values
-    client_ip = request.client.host if request.client else ""
-    for trusted_cidr in _SCADA_TRUSTED_IPS:
-        trusted_cidr = trusted_cidr.strip()
-        if not trusted_cidr:
-            continue
-        # Simple prefix match for /8, /12, /16 networks
-        if "/" in trusted_cidr:
-            network_prefix = trusted_cidr.split("/")[0]
-            prefix_len = int(trusted_cidr.split("/")[1])
-            if prefix_len <= 24 and client_ip.startswith(".".join(network_prefix.split(".")[: prefix_len // 8])):
-                return True
-        elif client_ip == trusted_cidr:
+    if _SCADA_INTERNAL_SECRET and len(internal_key) == len(_SCADA_INTERNAL_SECRET):
+        if hmac.compare_digest(internal_key, _SCADA_INTERNAL_SECRET):
+            _logger.info(
+                "scada_rate_limit_bypass method=secret_key client_ip=%s path=%s",
+                request.client.host if request.client else "unknown",
+                request.url.path,
+            )
             return True
+
+    # Check 2: IP whitelist bypass (proper CIDR matching via ipaddress module)
+    client_ip = request.client.host if request.client else ""
+    if not client_ip or not _SCADA_TRUSTED_NETWORKS:
+        return False
+
+    try:
+        client_addr = ipaddress.ip_address(client_ip)
+        for network in _SCADA_TRUSTED_NETWORKS:
+            if client_addr in network:
+                _logger.info(
+                    "scada_rate_limit_bypass method=ip_whitelist client_ip=%s network=%s path=%s",
+                    client_ip,
+                    str(network),
+                    request.url.path,
+                )
+                return True
+    except ValueError:
+        _logger.warning("Invalid client IP address in rate limit check: %r", client_ip)
 
     return False
 

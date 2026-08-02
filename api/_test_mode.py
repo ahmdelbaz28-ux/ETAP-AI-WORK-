@@ -19,47 +19,81 @@ Usage:
 
     # Normalize Postman template variables ({{var}}) that weren't substituted
     code = normalize_template_var(body.code, default="999999")
+
+CRITICAL FIX — Test Mode in Production (v2 — fail-closed):
+    Previous version defaulted to "development" when ENVIRONMENT env var
+    was not set, which is a fail-open design: if the env var is accidentally
+    unset or misconfigured in production, test mode is enabled, exposing
+    OTP codes, magic-link tokens, and bypassing rate limits.
+
+    v2 fix: The system now defaults to PRODUCTION (fail-closed) when
+    the environment variable is not set. Additionally, a hard kill switch
+    (DISABLE_TEST_MODE=true) is available that forces test mode OFF
+    regardless of any other configuration. This ensures that even if
+    all other checks fail, test mode cannot be enabled in production.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Optional
 
 from fastapi import Request
 
+_logger = logging.getLogger("api._test_mode")
+
+# Hard kill switch: DISABLE_TEST_MODE=true forces test mode OFF
+# regardless of ENVIRONMENT or any other setting. This is the
+# ultimate safety net — set it in production deployments.
+_DISABLE_TEST_MODE = os.getenv("DISABLE_TEST_MODE", "").lower().strip() in ("true", "1", "yes")
+
+# Log the test mode status at module load time for audit trail
+if _DISABLE_TEST_MODE:
+    _logger.warning("test_mode HARD DISABLED via DISABLE_TEST_MODE=true — test features are blocked")
+
 
 def _is_production_env() -> bool:
     """Return True when running in a production-like environment.
 
-    Test-mode behaviours (returning OTP codes in responses, auto-verifying
-    placeholder codes, accepting X-API-Key as admin) MUST be disabled in
-    production regardless of what env vars are set, because a leaked
-    ENGINEERING_SERVICE_API_KEY would otherwise grant full admin access
-    on the email dashboard / OTP / magic-link flows.
+    CRITICAL FIX (v2 — fail-closed):
+    Previous version defaulted to "development" when ENVIRONMENT was
+    not set. This is a fail-open design: if the env var is accidentally
+    unset or misconfigured in production, test mode is enabled, exposing
+    OTP codes, magic-link tokens, and bypassing rate limits.
 
-    SECURITY AUDIT 2026-07-29 (self-critique pass, NEW DISCOVERY):
-    Previous version used `env in ("production", "prod", "staging")` which
-    is an EXACT match — typos like "prodution", "pod", "stageing" would
-    fall through to development mode and re-enable the test-mode backdoor
-    even though the operator clearly intended production. Same problem
-    with prefix-style values like "production-azure", "prod-west", or
-    "staging-eu-west-1".
-    Fix: treat the environment as production if the value (lowercased,
-    stripped) STARTS WITH any of the production prefixes. This is strict
-    enough that "develop" / "dev" / "local" / "test" still resolve to
-    development, but generous enough that "production-azure" is correctly
-    treated as production.
+    v2 fix: The system now defaults to PRODUCTION (fail-closed) when
+    the environment variable is not set. This means:
+    - No ENVIRONMENT set → production (safe)
+    - ENVIRONMENT=development → development (test mode possible)
+    - ENVIRONMENT=typo → production (safe, because unknown = production)
+
+    The only way to get development mode is to explicitly set
+    ENVIRONMENT to a known development value. This is the correct
+    security posture for a system that handles credentials.
     """
-    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
+    env = os.getenv("ENVIRONMENT", os.getenv("ENV", "")).lower().strip()
+
+    # No environment variable set → fail-closed → production
+    if not env:
+        _logger.debug("No ENVIRONMENT/ENV set — defaulting to production (fail-closed)")
+        return True
+
     # Explicit dev/test values — never production.
-    if env in ("", "development", "dev", "local", "localhost", "test", "testing", "ci"):
+    if env in ("development", "dev", "local", "localhost", "test", "testing", "ci"):
         return False
+
     # Anything starting with a production prefix is production.
-    return any(
+    if any(
         env == prefix or env.startswith(prefix + "-") or env.startswith(prefix + "_")
         for prefix in ("production", "prod", "staging", "stage")
-    )
+    ):
+        return True
+
+    # Unknown values → fail-closed → production
+    # This catches typos like "prodution", "pod", "stageing"
+    _logger.warning("Unknown ENVIRONMENT value %r — defaulting to production (fail-closed)", env)
+    return True
 
 
 def is_test_mode(request: Request) -> bool:
@@ -72,16 +106,25 @@ def is_test_mode(request: Request) -> bool:
     - Magic link verify: auto-verify placeholder tokens
     - Dashboard: accept API key as alternative to JWT
 
-    SECURITY: ALWAYS returns False in production/staging environments.
-    A leaked ENGINEERING_SERVICE_API_KEY must NEVER grant admin access,
-    bypass rate limits, or expose OTP/magic-link tokens in responses.
+    SECURITY (v2 — fail-closed + hard kill switch):
+    - ALWAYS returns False in production/staging environments
+    - ALWAYS returns False if DISABLE_TEST_MODE=true (hard kill switch)
+    - A leaked ENGINEERING_SERVICE_API_KEY must NEVER grant admin access,
+      bypass rate limits, or expose OTP/magic-link tokens in responses
+    - Defaults to production (fail-closed) when ENVIRONMENT is not set
 
     Returns True only if ALL of the following are true:
-    1. Current environment is development (NOT production/staging), AND
-    2. X-API-Key header is present AND
-    3. ENGINEERING_SERVICE_API_KEY env var is set AND
-    4. They match exactly (timing-safe comparison)
+    1. DISABLE_TEST_MODE is not set to true (hard kill switch), AND
+    2. Current environment is development (NOT production/staging), AND
+    3. X-API-Key header is present AND
+    4. ENGINEERING_SERVICE_API_KEY env var is set AND
+    5. They match exactly (timing-safe comparison)
     """
+    # Hard kill switch — always takes precedence
+    if _DISABLE_TEST_MODE:
+        return False
+
+    # Production environment check — fail-closed
     if _is_production_env():
         return False
 

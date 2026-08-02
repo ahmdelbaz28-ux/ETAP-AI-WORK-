@@ -41,8 +41,11 @@ from typing import Annotated, Any, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
-from api._rate_limit import MAX_FILE_SIZE
 from api.dependencies import get_api_key, get_current_user_from_header
+
+# Global hard limit for maximum file uploads (50 MB) to prevent OOM.
+# This is the absolute ceiling regardless of per-format limits.
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 Megabytes
 
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
 

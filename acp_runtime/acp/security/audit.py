@@ -22,6 +22,8 @@ from typing import Any, Union
 
 import anyio
 
+from acp.observability.structured_logger import sanitize_log_payload
+
 __all__ = [
     "AuditEntry",
     "AuditLogger",
@@ -60,8 +62,27 @@ class AuditEntry:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> str:
-        """Serialize as a single-line JSON string."""
-        return json.dumps(asdict(self), default=str, separators=(",", ":"), sort_keys=True)
+        """Serialize as a single-line JSON string with sensitive data redacted.
+
+        CRITICAL FIX: The metadata dict is sanitized before serialization
+        to prevent credential leakage into audit log files and
+        observability systems (Grafana/Loki). Without this, any request
+        object containing passwords, tokens, or connection strings
+        would be written to disk in plain text.
+        """
+        safe_metadata = sanitize_log_payload(self.metadata) if self.metadata else {}
+        safe_entry = {
+            "timestamp": self.timestamp,
+            "method": self.method,
+            "capability": self.capability,
+            "caller_id": self.caller_id,
+            "outcome": self.outcome,
+            "duration_ms": self.duration_ms,
+            "error_code": self.error_code,
+            "trace_id": self.trace_id,
+            "metadata": safe_metadata,
+        }
+        return json.dumps(safe_entry, default=str, separators=(",", ":"), sort_keys=True)
 
 
 # ------------------------------------------------------------------ AuditLogger (ABC)
