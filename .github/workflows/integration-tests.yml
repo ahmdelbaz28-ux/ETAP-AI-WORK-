@@ -102,10 +102,10 @@ jobs:
       ENCRYPTION_KEY: integration-test-encryption-key-not-for-production-32b
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -182,10 +182,10 @@ jobs:
       PORT: 8000
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -290,10 +290,10 @@ jobs:
           - 6379:6379
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'

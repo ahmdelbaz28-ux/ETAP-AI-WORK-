@@ -40,13 +40,13 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - name: Set up Python
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38  # v4
         with:
           languages: javascript-typescript, python
       - name: Build Python
@@ -56,7 +56,7 @@ jobs:
         run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
         continue-on-error: true
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38  # v4
         with:
           category: "/language:javascript-typescript,python"
 
@@ -74,9 +74,9 @@ jobs:
     # security feature. Do NOT silence it with continue-on-error.
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - name: Dependency Review
-        uses: actions/dependency-review-action@v5  # pin SHA for security
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5
         with:
           fail-on-severity: high
 
@@ -93,7 +93,7 @@ jobs:
     # The SARIF upload still reports to Security tab for manual review.
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -125,7 +125,7 @@ jobs:
           # Quarterly remediation sprints should update .trivyignore and
           # fix vulnerable packages.
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38  # v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -136,10 +136,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
 
@@ -198,10 +198,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'

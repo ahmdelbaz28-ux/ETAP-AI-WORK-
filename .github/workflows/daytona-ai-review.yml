@@ -65,13 +65,13 @@ jobs:
       !contains(github.event.pull_request.user.login, 'dependabot')
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@v5  # pin SHA for security
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
 
       - name: Get PR metadata
         id: pr
-        uses: actions/github-script@v7  # pin SHA for security
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           script: |
             const result = await github.rest.pulls.get({
@@ -161,7 +161,7 @@ jobs:
 
       - name: Post review to PR
         if: ${{ steps.review.outputs.ok == 'true' }}
-        uses: actions/github-script@v7  # pin SHA for security
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         env:
           REVIEW_RESULT: ${{ steps.review.outputs.raw }}
         with:
@@ -216,7 +216,7 @@ jobs:
 
       - name: Report empty-review (no token or API error)
         if: ${{ steps.review.outputs.ok == 'false' }}
-        uses: actions/github-script@v7  # pin SHA for security
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           script: |
             const ts = new Date().toISOString().slice(0,19) + "Z";
