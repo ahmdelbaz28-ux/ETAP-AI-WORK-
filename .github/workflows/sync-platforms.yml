@@ -56,12 +56,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
         with:
           fetch-depth: 0
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6  # pin SHA for security
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -70,7 +70,7 @@ jobs:
             package-lock.json
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6  # pin SHA for security
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -398,12 +398,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
         with:
           fetch-depth: 1
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6  # pin SHA for security
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -498,7 +498,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}

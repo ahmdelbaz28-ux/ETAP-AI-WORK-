@@ -176,7 +176,7 @@ def file_hash(path: Path) -> str:
         return "error"
 
 
-def extract_python_metadata(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def extract_python_metadata(  # NOSONAR
     path: Path,
 ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Extract classes, functions, imports, and docstring from a Python file."""
@@ -256,7 +256,7 @@ def extract_api_routes(path: Path) -> list:
     return routes
 
 
-def scan_python_modules() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def scan_python_modules() -> (  # NOSONAR
     dict
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan all Python source directories and build module index."""
@@ -518,37 +518,43 @@ def scan_context_registry() -> dict:
     return {"mappings": mappings, "total": len(mappings)}
 
 
-def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-    dict
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    """Scan the .env.example file and Python source for environment variable usage."""
+def _parse_env_example() -> dict:
+    """Parse .env.example file for variable names and section comments."""
     env_vars = {}
-
-    # 1. Parse .env.example for variable names + comments
     env_example = PROJECT_ROOT / ".env.example"
-    if env_example.exists():
-        current_section = "General"
-        for line in env_example.read_text(encoding="utf-8", errors="ignore").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
-                # Capture section headers (lines of # === Text ===)
-                if line.startswith("# ===") and "===" in line[5:]:
-                    section_match = re.search(
-                        r"#\s*=+\s*([^=]+)\s*=", line
-                    )  # NOSONAR: S8786 — regex input size bounded; safe in practice; intentionally comprehensive
-                    if section_match:
-                        current_section = section_match.group(1).strip()
-                continue
-            if "=" in line:
-                key = line.split("=", 1)[0].strip()
-                env_vars[key] = {
-                    "name": key,
-                    "section": current_section,
-                    "default_hint": line.split("=", 1)[1].strip()[:80],
-                    "used_in_files": [],
-                }
+    if not env_example.exists():
+        return env_vars
 
-    # 2. Scan Python files for os.getenv / os.environ.get usage
+    current_section = "General"
+    for line in env_example.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            # Capture section headers (lines of # === Text ===)
+            if line.startswith("# ===") and "===" in line[5:]:
+                section_match = re.search(
+                    r"#\s*=+\s*([^=]+)\s*=", line
+                )  # NOSONAR
+                if section_match:
+                    current_section = section_match.group(1).strip()
+            continue
+        if "=" in line:
+            key = line.split("=", 1)[0].strip()
+            env_vars[key] = {
+                "name": key,
+                "section": current_section,
+                "default_hint": line.split("=", 1)[1].strip()[:80],
+                "used_in_files": [],
+            }
+    return env_vars
+
+
+_ENV_VAR_PATTERN = re.compile(
+    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']'
+)
+
+
+def _scan_python_files_for_env_vars(env_vars: dict) -> None:
+    """Scan Python source files for os.getenv / os.environ.get usage, updating env_vars in-place."""
     for dir_name in PYTHON_DIRS + [".", "hf-space"]:
         dir_path = PROJECT_ROOT / dir_name
         if not dir_path.is_dir():
@@ -564,11 +570,7 @@ def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional
                     content = fpath.read_text(encoding="utf-8", errors="ignore")
                 except Exception:
                     continue
-                # Find all os.getenv("VAR") and os.environ.get("VAR")
-                for m in re.finditer(
-                    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']',
-                    content,
-                ):
+                for m in _ENV_VAR_PATTERN.finditer(content):
                     var_name = m.group(1)
                     if var_name not in env_vars:
                         env_vars[var_name] = {
@@ -580,11 +582,21 @@ def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional
                     if rel not in env_vars[var_name]["used_in_files"]:
                         env_vars[var_name]["used_in_files"].append(rel)
 
-    # 3. Categorize
+
+def _categorize_env_vars(env_vars: dict) -> dict:
+    """Categorize environment variables by section."""
     sections = {}
     for var in env_vars.values():
         sec = var["section"]
         sections.setdefault(sec, []).append(var["name"])
+    return sections
+
+
+def scan_env_variables() -> dict:
+    """Scan the .env.example file and Python source for environment variable usage."""
+    env_vars = _parse_env_example()
+    _scan_python_files_for_env_vars(env_vars)
+    sections = _categorize_env_vars(env_vars)
 
     return {
         "variables": env_vars,
@@ -593,7 +605,7 @@ def scan_env_variables() -> (  # NOSONAR: S3776 cognitive complexity intentional
     }
 
 
-def scan_scripts() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def scan_scripts() -> (  # NOSONAR
     dict
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Scan the scripts directory for shell/python/JS scripts."""
@@ -620,7 +632,7 @@ def scan_scripts() -> (  # NOSONAR: S3776 cognitive complexity intentional; logi
                 elif fname.endswith((".sh", ".mjs", ".js")):
                     m = re.search(
                         r"^#\s*([^\n]+)$", content, re.MULTILINE
-                    )  # NOSONAR: S8786 — regex input size bounded; safe in practice; intentionally comprehensive
+                    )  # NOSONAR
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:
@@ -846,7 +858,7 @@ def build_ui_search_index(help_data: dict, modules: dict, ui: dict, api_routes: 
     }
 
 
-def generate_markdown(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def generate_markdown(  # NOSONAR
     index: dict,
 ) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Generate a rich human-readable Markdown index."""

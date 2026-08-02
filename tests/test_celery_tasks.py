@@ -57,7 +57,7 @@ from worker.tasks import (
 )
 
 # =============================================================================
-# NOSONAR: Fixtures  # — section separator comment
+# NOSONAR
 # =============================================================================
 
 
@@ -736,7 +736,7 @@ class TestTaskRetry:
         has the expected signature.
         """
         # Verify the task is bound (bind=True) which enables self.retry()
-        # NOSONAR: Note: bind attribute may not exist on the task object directly in all Celery versions  # — S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+        # NOSONAR
         # Instead verify the task accepts 'self' as first arg (signature check)
         assert hasattr(execute_engineering_study_task, "run"), "Task should have a run method"
 

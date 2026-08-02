@@ -37,7 +37,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 def _reject_legacy_api_key(api_key: Optional[str]) -> None:
     if api_key:
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+        raise HTTPException(  # NOSONAR
             status_code=401,
             detail="Legacy API key auth is not supported. Use JWT Bearer token.",
         )
@@ -103,7 +103,7 @@ async def health_check():
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
-    token: Annotated[str, Depends(_require_auth)],  # NOSONAR: Annotated form (S8410)
+    token: Annotated[str, Depends(_require_auth)],  # NOSONAR
 ):
     """
     Execute an ETAP study via COM automation.
@@ -112,7 +112,7 @@ async def execute_study(
     Authorization: RBAC permission checked based on study type.
     """
     if sys.platform != "win32":
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+        raise HTTPException(  # NOSONAR
             status_code=400, detail="ETAP automation only supported on Windows"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -135,7 +135,7 @@ async def execute_study(
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+        raise HTTPException(  # NOSONAR
             status_code=403, detail="Forbidden: insufficient permissions"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 

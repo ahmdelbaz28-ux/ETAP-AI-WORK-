@@ -635,9 +635,9 @@ class BatteryStorageAgent(BaseAgent):
             cycle_histogram[dod_range] = int(count)
 
         # Temperature derating (Arrhenius)
-        R_gas = 8.314e-3  # NOSONAR: kJ/(mol·K)  #
-        t_ref = 25.0 + 273.15  # NOSONAR: K  #
-        t_op = temperature_C + 273.15  # NOSONAR: K  #
+        R_gas = 8.314e-3  # NOSONAR
+        t_ref = 25.0 + 273.15  # NOSONAR
+        t_op = temperature_C + 273.15  # NOSONAR
         ea = params["Ea_kJmol"]  # NOSONAR
 
         temp_factor = np.exp(ea / R_gas * (1.0 / t_ref - 1.0 / t_op))

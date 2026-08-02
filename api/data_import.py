@@ -637,7 +637,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
     if safe_filename != file.filename:
         import logging as _logging
 
-        # NOSONAR: S5145 — only log the sanitized filename (not user-controlled original) to prevent log injection
+        # NOSONAR
         _logging.getLogger("etap.api.data_import").warning(
             "filename_sanitized safe=%s (original contained control chars/path traversal)",
             safe_filename,

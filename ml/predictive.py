@@ -27,7 +27,7 @@ from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
 _MODEL_NOT_TRAINED_MSG = (
-    "Model has not been trained yet. Call train() first."  # NOSONAR: extracted constant (S1192)
+    "Model has not been trained yet. Call train() first."  # NOSONAR
 )
 
 import contextlib
@@ -38,8 +38,8 @@ from typing import Any, Optional
 import numpy as np
 
 # Module-level numpy Generator for reproducible non-crypto sampling.
-# NOSONAR: explicitly non-cryptographic (S6711, S2245).
-_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+# NOSONAR
+_RNG = np.random.default_rng()  # NOSONAR
 
 logger = logging.getLogger(__name__)
 
@@ -360,7 +360,7 @@ class LoadForecaster:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
             raise RuntimeError(
-                _MODEL_NOT_TRAINED_MSG  # NOSONAR: S1192 literal kept inline for readability
+                _MODEL_NOT_TRAINED_MSG  # NOSONAR
             )  # NOSONAR intentional repetition (audit constant)
 
         if self._is_prophet:
@@ -385,7 +385,7 @@ class LoadForecaster:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-        ) * _RNG.rand(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+        ) * _RNG.rand(  # NOSONAR
             self._window_size
         )  # NOSONAR numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
@@ -521,7 +521,7 @@ class FaultPredictor:
         self._explainer: Any = None
         self._last_training_features: Optional[np.ndarray] = None
 
-    def train(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def train(  # NOSONAR
         self, features: np.ndarray, labels: np.ndarray
     ) -> dict[
         str, Any

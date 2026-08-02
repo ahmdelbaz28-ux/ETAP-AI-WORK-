@@ -762,7 +762,7 @@ async def etap_gui_siem_events(
     limit = min(max(limit, 1), 200)
     events: list = []
     try:
-        async with aiofiles.open(  # NOSONAR: aiofiles.open is async; S7493 false positive
+        async with aiofiles.open(  # NOSONAR
             log_path, encoding="utf-8"
         ) as fh:
             lines = await fh.readlines()

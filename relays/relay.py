@@ -208,7 +208,7 @@ class DistanceRelay(Relay):
     def pickup_logic(
         self,
         v=None,
-        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        i=None,  # NOSONAR
     ):  # NOSONAR relay subclasses intentionally use domain-specific signatures (V,I for distance/directional; Ibias,Idiff for differential); base class is a protocol stub
         if i == 0:
             return False
@@ -219,7 +219,7 @@ class DistanceRelay(Relay):
     def operate(
         self,
         v=None,
-        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
+        i=None,  # NOSONAR
     ):  # NOSONAR see pickup_logic; signature matches the relay's measurement quantities
         self.pickup = self.pickup_logic(v, i)
         # For distance relays, trip is typically instantaneous if picked up.
@@ -258,7 +258,7 @@ class DifferentialRelay(Relay):
     def pickup_logic(
         self,
         ibias=None,
-        idiff=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        idiff=None,  # NOSONAR
         **kwargs,
     ):  # NOSONAR differential relay uses (Ibias, Idiff) per IEEE C37.91; base class `value` is a protocol stub
         # Backward compatibility: accept uppercase keyword args
@@ -267,7 +267,7 @@ class DifferentialRelay(Relay):
 
         ibias = abs(ibias)
         idiff = abs(idiff)
-        Ibias2 = 2.0  # NOSONAR: breakpoint for slope2  # — physics notation (I/V/P/Q); snake_case harms readability
+        Ibias2 = 2.0  # NOSONAR
         if ibias < Ibias2:
             return idiff > self.Ip + self.slope1 * ibias
         else:
@@ -278,7 +278,7 @@ class DifferentialRelay(Relay):
     def operate(
         self,
         ibias=None,
-        idiff=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class operate(self, value)
+        idiff=None,  # NOSONAR
         **kwargs,
     ):  # NOSONAR see pickup_logic; differential relay operates on bias+diff currents
         # Backward compatibility: accept uppercase keyword args
@@ -309,7 +309,7 @@ class DirectionalRelay(Relay):  # NOSONAR physics/engineering notation
     def pickup_logic(
         self,
         v=None,
-        i=None,  # NOSONAR: S117 engineering-notation variable names; S2638 default=None satisfies LSP vs base class pickup_logic(self, value)
+        i=None,  # NOSONAR
     ):  # NOSONAR directional relay (67) needs V and I to compute direction; base `value` is a protocol stub
         if abs(v) < self.voltage_threshold or abs(i) < 1e-3:
             return False

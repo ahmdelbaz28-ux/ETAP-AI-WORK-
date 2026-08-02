@@ -30,8 +30,8 @@ import numpy as np
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 # Module-level numpy Generator for reproducible non-crypto sampling.
-# NOSONAR: explicitly non-cryptographic (S6711, S2245).
-_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+# NOSONAR
+_RNG = np.random.default_rng()  # NOSONAR
 
 logger = logging.getLogger(__name__)
 
@@ -342,13 +342,13 @@ class SCADAAgent(BaseAgent):
             filtered = cached
 
         # Update values with slight random variation (simulate real-time)
-        # NOSONAR: Copy cached objects to avoid mutating the cache  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+        # NOSONAR
         np.random.seed(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
-            noise = _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+            noise = _RNG.normal(  # NOSONAR
                 0, 0.005
-            )  # NOSONAR: 0.5% noise  #
+            )  # NOSONAR
             new_value = m.value * (1.0 + noise)
             result_measurements.append(
                 SCADAMeasurement(
@@ -725,14 +725,14 @@ class SCADAAgent(BaseAgent):
         np.random.seed(42)
         measurements = []
 
-        # NOSONAR: Bus measurements (3 buses)  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+        # NOSONAR
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
                 1.0
                 + _RNG.normal(
                     0, 0.02
-                )  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                )  # NOSONAR
             )  # NOSONAR
 
             measurements.append(
@@ -749,7 +749,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
                     value=500
-                    + _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # NOSONAR
                         0, 10
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -762,7 +762,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
                     value=5.0
-                    + _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # NOSONAR
                         0, 0.1
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -775,7 +775,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
                     value=1.0
-                    + _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # NOSONAR
                         0, 0.05
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -788,7 +788,7 @@ class SCADAAgent(BaseAgent):
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
                     value=0.95
-                    + _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    + _RNG.normal(  # NOSONAR
                         0, 0.01
                     ),  # NOSONAR
                     timestamp=timestamp,
@@ -803,7 +803,7 @@ class SCADAAgent(BaseAgent):
             SCADAMeasurement(
                 tag="FREQ_HZ",
                 value=60.0
-                + _RNG.normal(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                + _RNG.normal(  # NOSONAR
                     0, 0.01
                 ),  # NOSONAR
                 timestamp=timestamp,
@@ -818,7 +818,7 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"{bk_id}_STATUS",
-                    value=1.0,  # NOSONAR: breaker state: 1 means closed, 0 means open  #
+                    value=1.0,  # NOSONAR
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",

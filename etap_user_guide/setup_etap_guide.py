@@ -1,5 +1,5 @@
 # Module-level string constants (extracted to satisfy S1192).
-_PDF_GLOB_PATTERN = "*.pdf"  # NOSONAR: extracted constant (S1192)
+_PDF_GLOB_PATTERN = "*.pdf"  # NOSONAR
 """
 ETAP User Guide - Complete Setup Script
 ========================================
@@ -88,7 +88,7 @@ def check_pdf_files():
     pdf_count = len(
         list(
             pdfs_path.glob(_PDF_GLOB_PATTERN)
-        )  # NOSONAR: S1192 literal kept inline for readability
+        )  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob(_PDF_GLOB_PATTERN))) if ac_path.exists() else 0
 

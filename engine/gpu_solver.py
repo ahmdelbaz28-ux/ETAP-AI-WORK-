@@ -235,7 +235,7 @@ class GPUSolver:
             P = S.real
             Q = S.imag
 
-            # NOSONAR: Mismatch  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            # NOSONAR
             deltap = (
                 p_sch - P
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -264,7 +264,7 @@ class GPUSolver:
                 converged = True
                 break
 
-            # NOSONAR: --- Build sparse Jacobian ---  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            # NOSONAR
             j_sparse = self._build_jacobian(
                 V, ybus_dense, pv_idx, pq_idx, n_unknowns
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -286,7 +286,7 @@ class GPUSolver:
                 vmag = xp.clip(vmag, 0.5, 1.5)
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
-        # NOSONAR: --- Copy results back to host ---  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # NOSONAR
         v_host = (
             _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -554,7 +554,7 @@ class GPUSolver:
             data_arr = np.array(data, dtype=np.float64)
             rows_arr = np.array(rows, dtype=np.int32)
             cols_arr = np.array(cols, dtype=np.int32)
-            # NOSONAR: Build CuPy CSR matrix via COO  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            # NOSONAR
             J_coo = _cp.sparse.coo_matrix(  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                 (data_arr, (rows_arr, cols_arr)),
                 shape=(n_unknowns, n_unknowns),
@@ -598,7 +598,7 @@ class GPUSolver:
                 # Ensure b is a CuPy array
                 b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
-                # NOSONAR: Ensure A is a CuPy sparse matrix  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                # NOSONAR
                 a_gpu = (
                     _cp.sparse.csr_matrix(_cp.asarray(A)) if not _cp.sparse.issparse(A) else A
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -610,7 +610,7 @@ class GPUSolver:
                     "GPU spsolve failed (%s) — falling back to CPU for this solve.",
                     exc,
                 )
-                # NOSONAR: Fallback: transfer to CPU, solve, transfer back  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                # NOSONAR
                 a_cpu = (
                     A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability

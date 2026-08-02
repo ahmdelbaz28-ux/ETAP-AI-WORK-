@@ -26,8 +26,8 @@ Usage (programmatic)::
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_ENGINEERING_SERVICE_FILENAME = "engineering_service.py"  # NOSONAR: extracted constant (S1192)
-_REFACTORED_SERVICE_FILENAME = "refactored_service.py"  # NOSONAR: extracted constant (S1192)
+_ENGINEERING_SERVICE_FILENAME = "engineering_service.py"  # NOSONAR
+_REFACTORED_SERVICE_FILENAME = "refactored_service.py"  # NOSONAR
 
 import asyncio
 import contextlib
@@ -389,7 +389,7 @@ class SecurityAuditor:
     # Check 1: Missing authentication on endpoints
     # ------------------------------------------------------------------
 
-    async def _check_missing_auth(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_missing_auth(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Scan all API endpoints for missing authentication checks.
@@ -402,15 +402,15 @@ class SecurityAuditor:
         service_files = [
             os.path.join(
                 self.project_root,
-                _ENGINEERING_SERVICE_FILENAME,  # NOSONAR: S1192 literal kept inline for readability
+                _ENGINEERING_SERVICE_FILENAME,  # NOSONAR
             ),  # NOSONAR intentional repetition (audit constant)
             os.path.join(
                 self.project_root,
                 "api",
-                _REFACTORED_SERVICE_FILENAME,  # NOSONAR: S1192 literal kept inline for readability
+                _REFACTORED_SERVICE_FILENAME,  # NOSONAR
             ),  # NOSONAR intentional repetition (audit constant)
         ]
-        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
@@ -493,7 +493,7 @@ class SecurityAuditor:
     # Check 2: CORS configuration
     # ------------------------------------------------------------------
 
-    async def _check_cors_configuration(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_cors_configuration(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for CORS misconfigurations."""
@@ -501,7 +501,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
@@ -573,7 +573,7 @@ class SecurityAuditor:
     # Check 3: Input validation on POST/PUT endpoints
     # ------------------------------------------------------------------
 
-    async def _check_input_validation(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_input_validation(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Validate that all POST/PUT endpoints have input validation.
@@ -585,7 +585,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
@@ -641,7 +641,7 @@ class SecurityAuditor:
     # Check 4: Missing rate limiting
     # ------------------------------------------------------------------
 
-    async def _check_rate_limiting(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_rate_limiting(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for missing rate limiting on sensitive endpoints."""
@@ -660,7 +660,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
-        # NOSONAR: aiofiles.open is async; S7493 false positive (aiofiles is async I/O)
+        # NOSONAR
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
@@ -714,26 +714,85 @@ class SecurityAuditor:
     # Check 5: Hardcoded secrets
     # ------------------------------------------------------------------
 
-    async def _scan_hardcoded_secrets(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
-        self,
-    ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
-        """Scan all Python source files for hardcoded secrets."""
-        skip_dirs = {
-            ".git",
-            "__pycache__",
-            "node_modules",
-            ".venv",  # NOSONAR intentional repetition (audit constant)
-            "venv",
-            ".tox",
-            ".mypy_cache",
-            ".pytest_cache",
-            "dist",
-            "build",
-            "acp_runtime",
-        }
+    _SKIP_DIRS = {
+        ".git",
+        "__pycache__",
+        "node_modules",
+        ".venv",  # NOSONAR intentional repetition (audit constant)
+        "venv",
+        ".tox",
+        ".mypy_cache",
+        ".pytest_cache",
+        "dist",
+        "build",
+        "acp_runtime",
+    }
 
+    @staticmethod
+    def _should_skip_file(rel_path: str) -> bool:
+        """Skip test files and self-referential modules."""
+        return (
+            "test" in rel_path.lower()
+            or "security_audit" in rel_path
+            or "error_debugger" in rel_path
+        )
+
+    @staticmethod
+    def _is_comment_or_docstring(stripped: str) -> bool:
+        """Check if a line is a comment or docstring."""
+        return stripped.startswith(("#", '"""', "'''"))
+
+    @staticmethod
+    def _is_safe_context(stripped: str) -> bool:
+        """Check if a line is clearly safe context."""
+        return any(re.search(pat, stripped.lower()) for pat in _SAFE_CONTEXT_PATTERNS)
+
+    @staticmethod
+    def _is_env_var_lookup(stripped: str) -> bool:
+        """Check if a line is an environment variable lookup."""
+        return "os.environ" in stripped or "os.getenv" in stripped
+
+    @staticmethod
+    def _is_empty_or_placeholder(stripped: str) -> bool:
+        """Check if a value is empty or placeholder."""
+        return '""' in stripped or "''" in stripped
+
+    def _check_line_for_secrets(self, stripped: str, rel_path: str, line_number: int) -> bool:
+        """Check a single line against secret patterns. Returns True if a finding was added."""
+        for pattern, description, severity in _SECRET_PATTERNS:
+            if not re.search(pattern, stripped, re.IGNORECASE):
+                continue
+            if self._is_env_var_lookup(stripped) or self._is_empty_or_placeholder(stripped):
+                continue
+            self._add_finding(
+                category=FindingCategory.HARDCODED_SECRET,
+                severity=severity,
+                title=description,
+                description=(
+                    f"A potential hardcoded secret was detected in "
+                    f"``{rel_path}`` at line {line_number}. Hardcoded secrets "
+                    f"in source code are a critical security risk."
+                ),
+                file_path=rel_path,
+                line_number=line_number,
+                remediation=(
+                    "Move the secret to an environment variable or "
+                    "a secrets manager (e.g., HashiCorp Vault, AWS "
+                    "Secrets Manager)."
+                ),
+                references=[
+                    "OWASP API7:2023 Server Side Request Forgery",
+                    "CWE-798",
+                ],
+                cwe_id="CWE-798",
+            )
+            return True
+        return False
+
+    async def _scan_hardcoded_secrets(self) -> None:
+        """Scan all Python source files for hardcoded secrets."""
         for dirpath, dirnames, filenames in os.walk(self.project_root):
-            dirnames[:] = [d for d in dirnames if d not in skip_dirs]
+            dirnames[:] = [d for d in dirnames if d not in self._SKIP_DIRS]
 
             for fname in filenames:
                 if not fname.endswith(".py"):
@@ -742,12 +801,7 @@ class SecurityAuditor:
                 file_path = os.path.join(dirpath, fname)
                 rel_path = os.path.relpath(file_path, self.project_root)
 
-                # Skip test files and self-referential modules
-                if (
-                    "test" in rel_path.lower()
-                    or "security_audit" in rel_path
-                    or "error_debugger" in rel_path
-                ):
+                if self._should_skip_file(rel_path):
                     continue
 
                 async with aiofiles.open(
@@ -758,59 +812,20 @@ class SecurityAuditor:
                 for i, line in enumerate(lines, 1):
                     stripped = line.strip()
 
-                    # Skip comments and docstrings
-                    if (
-                        stripped.startswith(
-                            "#", '"""', "'''"
-                        )  # NOSONAR false positive — already uses tuple form
-                    ):
+                    if self._is_comment_or_docstring(stripped):
+                        continue
+                    if self._is_safe_context(stripped):
                         continue
 
-                    # Skip lines that are clearly safe context
-                    line_lower = stripped.lower()
-                    if any(re.search(pat, line_lower) for pat in _SAFE_CONTEXT_PATTERNS):
-                        continue
-
-                    # Check against secret patterns
-                    for pattern, description, severity in _SECRET_PATTERNS:
-                        if re.search(pattern, stripped, re.IGNORECASE):
-                            # Additional check: skip env var lookups
-                            if "os.environ" in stripped or "os.getenv" in stripped:
-                                continue
-                            # Skip if value is empty or placeholder
-                            if '""' in stripped or "''" in stripped:
-                                continue
-
-                            self._add_finding(
-                                category=FindingCategory.HARDCODED_SECRET,
-                                severity=severity,
-                                title=description,
-                                description=(
-                                    f"A potential hardcoded secret was detected in "
-                                    f"``{rel_path}`` at line {i}. Hardcoded secrets "
-                                    f"in source code are a critical security risk."
-                                ),
-                                file_path=rel_path,
-                                line_number=i,
-                                remediation=(
-                                    "Move the secret to an environment variable or "
-                                    "a secrets manager (e.g., HashiCorp Vault, AWS "
-                                    "Secrets Manager)."
-                                ),
-                                references=[
-                                    "OWASP API7:2023 Server Side Request Forgery",
-                                    "CWE-798",
-                                ],
-                                cwe_id="CWE-798",
-                            )
-                            break  # Only report once per line
+                    if self._check_line_for_secrets(stripped, rel_path, i):
+                        break  # Only report once per line
 
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
 
-    async def _check_insecure_dependencies(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    async def _check_insecure_dependencies(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for insecure dependency patterns in the codebase."""
@@ -871,7 +886,7 @@ class SecurityAuditor:
                                         "Review the usage and ensure no untrusted input "
                                         "is passed. Use safer alternatives where available."
                                     ),
-                                    cwe_id="CWE-94",  # NOSONAR: aiofiles.open is async; S7493 false positive
+                                    cwe_id="CWE-94",  # NOSONAR
                                 )
 
         # Check requirements.txt for known vulnerable packages
@@ -906,7 +921,7 @@ class SecurityAuditor:
     # Check 7: Dead code
     # ------------------------------------------------------------------
 
-    async def _check_dead_code(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — aiofiles.open is async; S7493 false positive
+    async def _check_dead_code(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for dead code patterns (unreachable code, unused imports)."""
@@ -976,7 +991,7 @@ class SecurityAuditor:
     # Check 8: Weak crypto
     # ------------------------------------------------------------------
 
-    async def _check_weak_crypto(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_weak_crypto(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for weak cryptographic patterns."""
@@ -985,7 +1000,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
             os.path.join(
                 self.project_root, "api", "auth.py"
-            ),  # NOSONAR: aiofiles.open is async; S7493 false positive
+            ),  # NOSONAR
         ]
 
         for service_file in service_files:
@@ -1038,7 +1053,7 @@ class SecurityAuditor:
     # Check 9: Information disclosure
     # ------------------------------------------------------------------
 
-    async def _check_information_disclosure(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def _check_information_disclosure(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Check for potential information disclosure vulnerabilities."""
@@ -1046,7 +1061,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(
                 self.project_root, "api", _REFACTORED_SERVICE_FILENAME
-            ),  # NOSONAR: aiofiles.open is async; S7493 false positive
+            ),  # NOSONAR
         ]
 
         for service_file in service_files:
@@ -1207,7 +1222,7 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+async def _main() -> (  # NOSONAR
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """CLI entrypoint for running the security auditor."""
@@ -1238,7 +1253,7 @@ async def _main() -> (  # NOSONAR: S3776 cognitive complexity intentional; logic
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    # NOSONAR: S8707: validate the CLI-supplied output path before opening it.
+    # NOSONAR
     if args.output != "-":
         if "\x00" in args.output:
             parser.error("Invalid output path: contains NUL byte")

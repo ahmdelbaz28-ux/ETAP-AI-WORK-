@@ -41,7 +41,7 @@ class MotorParameters:
     efficiency: float = 0.90  # Motor efficiency
     starting_pf: float = 0.20  # Starting power factor
     lr_current_multiplier: float = 6.0  # Locked rotor current / full load current
-    inertia_constant_H: float = 0.5  # NOSONAR: Inertia constant (seconds)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    inertia_constant_H: float = 0.5  # NOSONAR
     x_d_prime: float = 0.20  # Transient reactance (per-unit)
     x_d_double_prime: float = 0.15  # Subtransient reactance (per-unit)
     r_stator: float = 0.01  # Stator resistance (per-unit)
@@ -195,7 +195,7 @@ class MotorModel:
         # Typically 1.0-1.5 pu of rated torque
         t_motor_avg = (
             1.2 * voltage_fraction**2
-        )  # NOSONAR: Torque proportional to V^2  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Average load torque (typically 0.3 for fans, 0.1 for pumps)
         T_load_avg = load_torque_fraction  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -233,7 +233,7 @@ class MotorModel:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage divider
-        V_source = 1.0  # NOSONAR: per-unit  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        V_source = 1.0  # NOSONAR
         z_total = (
             source_impedance + z_motor
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -365,10 +365,10 @@ class MotorModel:
         # Time constants (simplified)
         t_double_prime = (
             p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # NOSONAR: subtransient  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
         t_prime = (
             p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # NOSONAR: transient  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # DC offset decay
         t_dc = (

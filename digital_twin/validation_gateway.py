@@ -210,9 +210,9 @@ class ValidationGateway:
     def validate_pre_mutation(
         self,
         event_type: str,
-        _gis_db=None,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _gis_db=None,  # NOSONAR
         system=None,
-        _scada_db=None,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _scada_db=None,  # NOSONAR
         adms_engine=None,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """
@@ -440,7 +440,7 @@ class ValidationGateway:
     # ADMS LAYER VALIDATIONS (Operational Truth)
     # ============================================================
 
-    def _validate_adms_layer(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _validate_adms_layer(  # NOSONAR
         self, scada_db, adms_engine
     ) -> list[
         ValidationResult
@@ -506,7 +506,7 @@ class ValidationGateway:
         self,
         gis_db,
         system,
-        _scada_db,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        _scada_db,  # NOSONAR
         adms_engine,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
         """Validate cross-layer synchronization (Three Truths Principle)."""

@@ -19,9 +19,9 @@ Architecture:
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_SYSTEM_DATA_NOT_PROVIDED_MSG = "System data not provided"  # NOSONAR: extracted constant (S1192)
-_ENGINEERING_REPORT_TITLE = "Engineering Report"  # NOSONAR: extracted constant (S1192)
-_ANALYSIS_RESULTS_TITLE = "Analysis Results"  # NOSONAR: extracted constant (S1192)
+_SYSTEM_DATA_NOT_PROVIDED_MSG = "System data not provided"  # NOSONAR
+_ENGINEERING_REPORT_TITLE = "Engineering Report"  # NOSONAR
+_ANALYSIS_RESULTS_TITLE = "Analysis Results"  # NOSONAR
 
 import asyncio
 import logging
@@ -436,7 +436,7 @@ class ShortCircuitAgent(BaseAgent):
             system_data = task.parameters.get("system")
             if not system_data:
                 raise ValueError(
-                    _SYSTEM_DATA_NOT_PROVIDED_MSG  # NOSONAR: S1192 literal kept inline for readability
+                    _SYSTEM_DATA_NOT_PROVIDED_MSG  # NOSONAR
                 )  # NOSONAR
 
             # Build sequence networks
@@ -1303,14 +1303,14 @@ class ReportGenerationAgent(BaseAgent):
                 report_id=f"RPT_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 title=content.get(
                     "title",
-                    _ENGINEERING_REPORT_TITLE,  # NOSONAR: S1192 literal kept inline for readability
+                    _ENGINEERING_REPORT_TITLE,  # NOSONAR
                 ),  # NOSONAR
                 prepared_by="AhmedETAP",
             )
             sections = [
                 ReportSection(
                     title=_ANALYSIS_RESULTS_TITLE, content=str(content), order=1
-                )  # NOSONAR: S1192 literal kept inline for readability
+                )  # NOSONAR
             ]  # NOSONAR
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1562,7 +1562,7 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
-    async def submit_task(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def submit_task(  # NOSONAR
         self, task: EngineeringTask
     ) -> None:  # NOSONAR
         """Submit engineering task for execution."""
@@ -2117,7 +2117,7 @@ class ChiefEngineeringOrchestrator:
             "speedup_factor": round(speedup, 2),
         }
 
-    async def get_task_status(  # NOSONAR: S7503 async signature required by callers; body intentionally sync
+    async def get_task_status(  # NOSONAR
         self, task_id: str
     ) -> Optional[EngineeringTask]:  # NOSONAR
         """Get status of a task."""

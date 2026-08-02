@@ -6,7 +6,7 @@ Handles all API endpoints, request validation, and response formatting.
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR: extracted constant (S1192)
+_INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR
 
 import hmac
 import os
@@ -153,9 +153,9 @@ def _require_api_key(request: Request) -> None:
     # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR
             status_code=401,
-            detail=_INVALID_API_KEY_MSG,  # NOSONAR: S1192 literal kept inline for readability
+            detail=_INVALID_API_KEY_MSG,  # NOSONAR
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
@@ -285,7 +285,7 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 
 
 @app.middleware("http")
-async def trace_middleware(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+async def trace_middleware(  # NOSONAR
     request: Request, call_next: Any
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
@@ -1086,7 +1086,7 @@ async def benchmark(request: Request):
         size = 200
         # SonarCloud python:S6711: use numpy.random.Generator (modern API)
         # instead of the legacy np.random.rand function.
-        rng = np.random.default_rng(seed=42)  # NOSONAR: S6709: explicit seed for reproducibility
+        rng = np.random.default_rng(seed=42)  # NOSONAR
         t0 = _time.perf_counter()
         a = rng.random((size, size))
         b = rng.random((size, size))

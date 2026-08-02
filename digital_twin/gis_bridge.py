@@ -345,7 +345,7 @@ class GISSyncBridge:
             if "_" in gen_id
             else int(
                 gen_id
-            )  # NOSONAR: S3358 nested ternary clear in this context  # — nested ternary kept for readability — single-expression mapping (S3358)
+            )  # NOSONAR
             if gen_id.isdigit()
             else 1  # NOSONAR nested conditional; extract to named variable (tech debt)
         )
@@ -383,7 +383,7 @@ class GISSyncBridge:
                     asset.properties["is_closed"] = is_closed
                     self.postgis.upsert_asset(asset)
 
-    def sync_digital_twin_to_gis(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def sync_digital_twin_to_gis(  # NOSONAR
         self,
     ) -> list[
         SyncRecord

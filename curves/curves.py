@@ -33,6 +33,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Optional
 
 # ---------------------------------------------------------------------------
@@ -179,7 +180,7 @@ def calculate_iec_operating_time(
         M = max_multiplier
 
     # --- Apply epsilon nudge at singularity ---
-    M_effective = M if M != 1.0 else _IEC_CURVE_EPSILON
+    M_effective = M if not math.isclose(M, 1.0) else _IEC_CURVE_EPSILON
 
     # --- Compute raw trip time ---
     curve_info = _CURVE_REGISTRY[curve_type_lower]

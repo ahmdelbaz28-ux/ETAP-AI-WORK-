@@ -16,7 +16,7 @@ def _make_test_rng(seed: int) -> random.Random:
     deterministic for reproducible test-vector generation. Cryptographic
     randomness would defeat the purpose (test reproducibility).
     """
-    return random.Random(seed)  # NOSONAR: non-crypto PRNG for test fixtures (S2245)
+    return random.Random(seed)  # NOSONAR
 
 
 @dataclass(frozen=True)

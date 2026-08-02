@@ -178,7 +178,7 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-03: One scenario per test
     # ------------------------------------------------------------------
-    def _check_multi_scenario(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _check_multi_scenario(  # NOSONAR
         self, tree: ast.AST, source: str
     ) -> list[
         GuardViolation
@@ -441,7 +441,7 @@ class TestGuard(BaseGuard):
 
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
-        pattern = r'assert\s+[^\n]*(?:response|output|result|completion)[^\n]*==\s*["\']'  # NOSONAR: S8786 regex input size bounded; safe in practice  # — regex is intentionally comprehensive — simplification would lose match coverage (S8786)
+        pattern = r'assert\s+[^\n]*(?:response|output|result|completion)[^\n]*==\s*["\']'  # NOSONAR
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(

@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
@@ -92,7 +92,7 @@ jobs:
       pull-requests: write   # Required for commenting terraform plan on PRs
       id-token: write        # Required for OIDC auth to Azure
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
 
       - name: Azure OIDC Login
         uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
@@ -133,7 +133,7 @@ jobs:
 
       - name: Comment PR with Plan
         if: always() && steps.plan.outcome != 'cancelled'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v7  # pin SHA for security
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -182,7 +182,7 @@ jobs:
       contents: read
       id-token: write        # Required for OIDC auth to Azure
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
 
       - name: Azure OIDC Login
         uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
@@ -239,7 +239,7 @@ jobs:
       contents: read
       id-token: write        # Required for OIDC auth to Azure
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
 
       - name: Azure OIDC Login
         uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
@@ -294,7 +294,7 @@ jobs:
       contents: read
       id-token: write        # Required for OIDC auth to Azure
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # pin SHA for security
 
       - name: Azure OIDC Login
         uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637

@@ -651,7 +651,8 @@ class TestVTCC01Regression:
         for curve_type in OvercurrentRelay.VALID_CURVE_TYPES:
             relay = OvercurrentRelay(relay_id=1, TMS=1.0, Ip=1.0, curve_type=curve_type)
             t = relay.trip_time(10.0)
-            assert t > 0 and math.isfinite(t), f"Failed for {curve_type}: got {t}"
+            assert t > 0
+            assert math.isfinite(t), f"Failed for {curve_type}: got {t}"
 
     def test_overcurrent_relay_invalid_curve_raises(self):
         """GIVEN OvercurrentRelay with invalid curve type

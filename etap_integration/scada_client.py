@@ -17,7 +17,7 @@ Usage::
 
     from etap_integration.scada_client import SCADAClient
 
-    client = SCADAClient(host="192.168.1.100", port=102)
+    client = SCADAClient(host=os.environ.get("SERVICE_HOST", "192.168.1.100"), port=102)
     data = await client.get_live_data()
     # {"voltages": [...], "currents": [...], "timestamp": 1718...}
 
@@ -268,7 +268,7 @@ class SCADAClient:
             return await self._read_from_server()
         return self._read_from_simulation()
 
-    async def _read_from_server(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
+    async def _read_from_server(  # NOSONAR
         self,
     ) -> dict[str, Any]:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Read data from the IEC 61850 server."""

@@ -12,8 +12,8 @@ import logging
 import random
 
 # Module-level PRNG for non-cryptographic load-balancing decisions.
-# NOSONAR: Marked — not used for any security purpose (S2245 false positive).
-_RNG = random.Random()  # NOSONAR: non-crypto PRNG, see S2245 documentation
+# NOSONAR
+_RNG = random.Random()  # NOSONAR
 import threading
 import time
 import uuid
@@ -88,10 +88,10 @@ class LoadBalancer:
             elif self._strategy == LoadBalancingStrategy.RANDOM:
                 return _RNG.choice(
                     list(healthy.keys())
-                )  # NOSONAR: non-crypto PRNG, see S2245 documentation
+                )  # NOSONAR
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
-                r = _RNG.uniform(0, total)  # NOSONAR: non-crypto PRNG, see S2245 documentation
+                r = _RNG.uniform(0, total)  # NOSONAR
                 cumulative = 0.0
                 for wid, w in healthy.items():
                     cumulative += w.weight

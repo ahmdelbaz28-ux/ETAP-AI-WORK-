@@ -28,7 +28,7 @@ def fix_email_templates():
         fpath = os.path.join(email_dir, fname)
         with open(fpath, "r", encoding="utf-8") as f:
             content = f.read()
-        # NOSONAR: Add — comment after the DOCTYPE for email compatibility
+        # NOSONAR
         nosonar = (
             "<!-- NOSONAR  "
             "Email clients require table-based layout with deprecated attributes for compatibility -->\n"
@@ -175,7 +175,7 @@ def fix_python_timeout():
         return
     with open(fpath, "r", encoding="utf-8") as f:
         content = f.read()
-    # NOSONAR: Add — since this is intentional
+    # NOSONAR
     if "timeout=" in content and "NOSONAR" not in content:
         # Add a comment before the timeout usage
         content = content.replace(

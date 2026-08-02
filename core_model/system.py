@@ -26,7 +26,7 @@ class System:
         self.buses = {}  # bus_id -> Bus
         self.lines = []  # list of Line
         self.transformers = []  # list of Transformer
-        self.generators = []  # NOSONAR: list of Generator  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.generators = []  # NOSONAR
         self.loads = []  # list of Load
         self.Ybus_seq = {}  # NOSONAR IEEE/IEC notation for sequence-component Y-bus matrix  # sequence -> Ybus matrix
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow

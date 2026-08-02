@@ -14,14 +14,12 @@ from locust import HttpUser, between, events, task
 from locust.runners import MasterRunner, WorkerRunner
 
 # Module-level string constants (extracted to satisfy S1192).
-_JSON_CONTENT_TYPE = "application/json"  # NOSONAR: extracted constant (S1192)
+_JSON_CONTENT_TYPE = "application/json"  # NOSONAR
 logger = logging.getLogger("ahmedetap-locust")
 
 # Module-level PRNG for load-test scenario selection only.
-# NOSONAR: explicitly non-cryptographic — load-test jitter/selection (S2245).
-_LOAD_RNG = random.Random()  # NOSONAR: load-test PRNG (non-crypto)
-
-# ─── Custom Event Listeners & Metrics ────────────────────────────────────────
+# NOSONAR
+_LOAD_RNG = random.Random()  # NOSONAR ─── Custom Event Listeners & Metrics ────────────────────────────────────────
 
 # Track study execution times for custom reporting
 _study_execution_times: list[float] = []
@@ -173,7 +171,7 @@ class AuthenticatedUser(HttpUser):
         """Authenticate on user start."""
         self.token = None
         self.auth_headers = {
-            "Content-Type": _JSON_CONTENT_TYPE  # NOSONAR: S1192 literal kept inline for readability
+            "Content-Type": _JSON_CONTENT_TYPE  # NOSONAR
         }  # NOSONAR intentional repetition (audit constant)
         self._authenticate()
 
@@ -360,7 +358,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(8)
     def etap_expert_chat(self):
         """Chat with the ETAP Expert AI assistant."""
-        question = _LOAD_RNG.choice(AI_QUESTIONS)  # NOSONAR: load-test PRNG, non-crypto (S2245)
+        question = _LOAD_RNG.choice(AI_QUESTIONS)  # NOSONAR
         self.client.post(
             "/api/v1/agents/etap-expert/chat",
             json={
@@ -376,7 +374,7 @@ class EngineeringServiceUser(AuthenticatedUser):
         """Chat with the ETAP GUI Agent."""
         question = _LOAD_RNG.choice(
             AI_QUESTIONS[:5]
-        )  # NOSONAR: Shorter questions for GUI agent  # — load-test PRNG, non-crypto (S2245)
+        )  # NOSONAR
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

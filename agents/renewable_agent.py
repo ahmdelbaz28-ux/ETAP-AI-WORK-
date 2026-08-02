@@ -30,8 +30,8 @@ import numpy as np
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 # Module-level numpy Generator for reproducible non-crypto sampling.
-# NOSONAR: explicitly non-cryptographic (S6711, S2245).
-_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+# NOSONAR
+_RNG = np.random.default_rng()  # NOSONAR
 
 logger = logging.getLogger(__name__)
 
@@ -164,8 +164,8 @@ class RenewableAgent(BaseAgent):
         else:
             temperature_c = np.asarray(temperature_c, dtype=float)
 
-        G_stc = 1.0  # NOSONAR: kW/m² (STC)  #
-        T_stc = 25.0  # NOSONAR: °C  #
+        G_stc = 1.0  # NOSONAR
+        T_stc = 25.0  # NOSONAR
 
         # Cell temperature per NOCT method (IEEE 1547 / IEC 61215)
         # T_cell = T_amb + (NOCT - 20) × G / 800
@@ -294,14 +294,14 @@ class RenewableAgent(BaseAgent):
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
         poa = np.clip(
             poa, 0.0, 1.2
-        )  # NOSONAR: kW/m²  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+        )  # NOSONAR
 
         # Add some cloud randomness
         np.random.seed(42)
         cloud_factor = (
             0.7
             + 0.3
-            * np.random.random(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+            * np.random.random(  # NOSONAR
                 hours
             )
         )  # NOSONAR
@@ -408,7 +408,7 @@ class RenewableAgent(BaseAgent):
         # Annual energy production (AEP)
         p_avg = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.sum(P * weibull_pdf) * dv
-        )  # NOSONAR: Average power in kW  #
+        )  # NOSONAR
         hours_per_year = 8760.0
         aep_gross = p_avg * hours_per_year
 
@@ -702,7 +702,7 @@ class RenewableAgent(BaseAgent):
         if max_voltage_rise_pct_per_kw > 0:
             hc_voltage = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 voltage_rise_budget / max_voltage_rise_pct_per_kw
-            )  # NOSONAR: kW  #
+            )  # NOSONAR
         else:
             hc_voltage = float("inf")
 
@@ -710,10 +710,10 @@ class RenewableAgent(BaseAgent):
         thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct
         hc_thermal = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             feeder_head_kva * (thermal_headroom_pct / 100.0)
-        )  # NOSONAR: kVA  #
+        )  # NOSONAR
         hc_thermal_kw = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             hc_thermal * pf_der
-        )  # NOSONAR: Convert to kW at DER PF  #
+        )  # NOSONAR
 
         # 3. Reverse power constraint
         if reverse_power_allowed:

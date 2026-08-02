@@ -48,6 +48,20 @@ logger = logging.getLogger(__name__)
 MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
 MAX_MEMORY_MB = 512  # V-42: Memory limit
+MAX_CODE_LENGTH = 50000
+ALLOWED_IMPORT_NAMES = [
+    "numpy",
+    "scipy",
+    "math",
+    "json",
+    "time",
+    "core_model",
+    "engine",
+    "load_flow",
+    "fault_analysis",
+    "relays",
+    "coordination",
+]
 
 
 def _read_code_from_stdin() -> Optional[str]:
@@ -143,14 +157,8 @@ def _set_memory_limit() -> None:
         pass  # Not supported on all platforms
 
 
-def main() -> None:
-    code = _read_code_from_stdin()
-    if code is None:
-        print(json.dumps({"error": "No code provided via stdin", "success": False}))
-        sys.exit(1)
-
-    # Limit code length to prevent resource exhaustion
-    MAX_CODE_LENGTH = 50000
+def _validate_code_length(code: str) -> None:
+    """Exit if code exceeds maximum length."""
     if len(code) > MAX_CODE_LENGTH:
         print(
             json.dumps(
@@ -162,9 +170,9 @@ def main() -> None:
         )
         sys.exit(1)
 
-    audit = get_audit_logger()
-    validator = get_validator()
 
+def _validate_code_security(code: str, audit, validator) -> None:
+    """Run AST validation and sandbox escape pre-scan. Exit on violation."""
     if not validator.validate_python_code(code):
         audit.log_security_violation(
             "agent_tool",
@@ -181,7 +189,6 @@ def main() -> None:
         )
         sys.exit(1)
 
-    # V-39: Sandbox escape pre-scan
     escape_safe, escape_reason = _sandbox_escape_pre_scan(code)
     if not escape_safe:
         audit.log_security_violation(
@@ -199,121 +206,114 @@ def main() -> None:
         )
         sys.exit(1)
 
-    # --- AI Failure-Mode Pre-Scan (guard-skills integration) ---
+
+def _run_ai_guard_scan(code: str, audit) -> None:
+    """Run AI failure-mode pre-scan. Exit on MUST_FIX violations."""
     try:
         from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
 
         _ai_detector = AIFailureModeDetector()
         _ai_result = _ai_detector.detect(code)
-        if not _ai_result.passed:
-            _must_fix = [v for v in _ai_result.violations if v.severity == GuardSeverity.MUST_FIX]
-            if _must_fix:
-                audit.log_security_violation(
-                    "agent_tool",
-                    "AI failure-mode guard blocked execution",
+        if _ai_result.passed:
+            return
+        _must_fix = [v for v in _ai_result.violations if v.severity == GuardSeverity.MUST_FIX]
+        if _must_fix:
+            audit.log_security_violation(
+                "agent_tool",
+                "AI failure-mode guard blocked execution",
+                {
+                    "must_fix_count": len(_must_fix),
+                    "violations": [v.rule_id for v in _must_fix],
+                },
+            )
+            _details = "; ".join(f"{v.rule_id}: {v.description}" for v in _must_fix[:5])
+            print(
+                json.dumps(
                     {
-                        "must_fix_count": len(_must_fix),
-                        "violations": [v.rule_id for v in _must_fix],
+                        "error": f"AI Quality Guard: Code blocked due to critical failure modes. "
+                        f"{_details}",
+                        "success": False,
+                        "guard_violations": _ai_result.to_dict(),
                     },
-                )
-                _details = "; ".join(f"{v.rule_id}: {v.description}" for v in _must_fix[:5])
-                print(
-                    json.dumps(
-                        {
-                            "error": f"AI Quality Guard: Code blocked due to critical failure modes. "
-                            f"{_details}",
-                            "success": False,
-                            "guard_violations": _ai_result.to_dict(),
-                        },
-                    ),
-                )
-                sys.exit(1)
-            else:
-                # SHOULD_FIX / WORTH_NOTING — log but proceed
-                audit.log_action("agent_tool", "ai_guard_warning", "quality_warning", True)
-                logger.info(
-                    "AI guard: %d should-fix / worth-noting violations detected (proceeding)",
-                    _ai_result.should_fix_count + _ai_result.worth_noting_count,
-                )
+                ),
+            )
+            sys.exit(1)
+        else:
+            # SHOULD_FIX / WORTH_NOTING — log but proceed
+            audit.log_action("agent_tool", "ai_guard_warning", "quality_warning", True)
+            logger.info(
+                "AI guard: %d should-fix / worth-noting violations detected (proceeding)",
+                _ai_result.should_fix_count + _ai_result.worth_noting_count,
+            )
     except ImportError:
         logger.debug("guards module not available, skipping AI failure-mode scan")
     except Exception as guard_err:
         logger.warning("AI guard scan failed: %s", guard_err)
 
-    audit.log_action("agent_tool", "execute_python", "restricted_sandbox", True)
 
-    import math
+def _deep_freeze_module(mod: Any) -> None:
+    """Deep-freeze a module by nullifying dangerous attributes at all levels.
 
-    def _deep_freeze_module(mod: Any) -> None:
-        """Deep-freeze a module by nullifying dangerous attributes at all levels.
+    This prevents sandbox escape via paths like:
+      numpy.sys.modules['os'].system('cmd')
+      scipy.__builtins__['__import__']('os')
+    """
+    if mod is None:
+        return
+    DANGEROUS_NAMES = {
+        "os",
+        "system",
+        "popen",
+        "spawn",
+        "exec",
+        "eval",
+        "execfile",
+        "load",
+        "loads",
+        "__builtins__",
+        "__import__",
+        "subprocess",
+        "ctypes",
+        "signal",
+        "socket",
+        "sys",
+    }
+    _processed = set()
+    _MAX_RECURSION_DEPTH = 5
+    _MAX_ATTR_TRAVERSAL_DEPTH = 3
 
-        This prevents sandbox escape via paths like:
-          numpy.sys.modules['os'].system('cmd')
-          scipy.__builtins__['__import__']('os')
-        """
-        if mod is None:
+    def _nullify(obj: Any, depth: int = 0) -> None:
+        if depth > _MAX_RECURSION_DEPTH or id(obj) in _processed:
             return
-        DANGEROUS_NAMES = {
-            "os",
-            "system",
-            "popen",
-            "spawn",
-            "exec",
-            "eval",
-            "execfile",
-            "load",
-            "loads",
-            "__builtins__",
-            "__import__",
-            "subprocess",
-            "ctypes",
-            "signal",
-            "socket",
-            "sys",
-        }
-        _processed = set()
-        _MAX_RECURSION_DEPTH = 5
-        _MAX_ATTR_TRAVERSAL_DEPTH = 3
+        _processed.add(id(obj))
+        if not hasattr(obj, "__dict__") and not (
+            hasattr(obj, "__path__") or hasattr(obj, "__name__")
+        ):
+            return
+        for attr_name in dir(obj):
+            if attr_name.startswith("_") and attr_name not in ("__builtins__", "__import__"):
+                continue
+            if attr_name in DANGEROUS_NAMES:
+                with contextlib.suppress(AttributeError, TypeError):
+                    object.__setattr__(obj, attr_name, None)
+            elif depth < _MAX_ATTR_TRAVERSAL_DEPTH:
+                try:
+                    child = getattr(obj, attr_name, None)
+                    if child is not None and hasattr(child, "__name__"):
+                        _nullify(child, depth + 1)
+                except Exception:
+                    pass
 
-        def _nullify(obj: Any, depth: int = 0) -> None:
-            if depth > _MAX_RECURSION_DEPTH or id(obj) in _processed:
-                return
-            _processed.add(id(obj))
-            if not hasattr(obj, "__dict__") and not (
-                hasattr(obj, "__path__") or hasattr(obj, "__name__")
-            ):
-                return
-            for attr_name in dir(obj):
-                if attr_name.startswith("_") and attr_name not in ("__builtins__", "__import__"):
-                    continue
-                if attr_name in DANGEROUS_NAMES:
-                    with contextlib.suppress(AttributeError, TypeError):
-                        object.__setattr__(obj, attr_name, None)
-                elif depth < _MAX_ATTR_TRAVERSAL_DEPTH:
-                    try:
-                        child = getattr(obj, attr_name, None)
-                        if child is not None and hasattr(child, "__name__"):
-                            _nullify(child, depth + 1)
-                    except Exception:
-                        pass
+    _nullify(mod)
 
-        _nullify(mod)
+
+def _build_safe_globals() -> dict:
+    """Build the safe globals dict with restricted builtins and pre-imported modules."""
+    import math
 
     def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
         root_name = name.split(".")[0]
-        allowed = {
-            "numpy",
-            "scipy",
-            "math",
-            "json",
-            "time",
-            "core_model",
-            "engine",
-            "load_flow",
-            "fault_analysis",
-            "relays",
-            "coordination",
-        }
+        allowed = set(ALLOWED_IMPORT_NAMES)
         if root_name not in allowed:
             raise ImportError(f"Unauthorized import: {name}")
         return __import__(name, globals, locals, fromlist, level)
@@ -376,30 +376,14 @@ def main() -> None:
         if mod is not None:
             _deep_freeze_module(mod)
 
-    # V-44: Replaced ThreadPoolExecutor with subprocess-based execution.
-    # ThreadPoolExecutor cannot kill a running thread — after timeout, the
-    # thread continues running in the background consuming resources.
-    # Subprocess-based execution allows proper cleanup via process.kill().
-    #
-    # BUG FIX 2026-08-02: The previous V-44 implementation had a CRITICAL
-    # bug — the wrapper script referenced `_safe_globals` which was never
-    # defined in the subprocess. The main process defined `safe_globals` and
-    # pickled it, but the subprocess never loaded the pickle. The wrapper
-    # would always crash with `NameError: name '_safe_globals' is not defined`.
-    #
-    # Fix: Embed the safe_globals definition directly in the wrapper script
-    # as a JSON-serialized string, so the subprocess is self-contained and
-    # does not depend on pickle (which is also a security risk — pickle
-    # deserialization can execute arbitrary code).
-    import subprocess
-    import tempfile
+    return safe_globals
 
-    # Serialize the safe builtins names and allowed import names as JSON
-    # (only the names — the actual objects are reconstructed in the subprocess)
+
+def _build_wrapper_script(safe_globals: dict) -> str:
+    """Build the subprocess wrapper script that reconstructs safe_globals."""
     _safe_builtins_names = list(safe_globals["__builtins__"].keys())
-    _allowed_import_names = list(safe_globals.get("safe_import", {}).get("__allowed__", []))
 
-    # Build the wrapper script that reconstructs safe_globals in the subprocess
+    # NOSONAR
     wrapper_code = """
 import sys
 import io
@@ -470,22 +454,52 @@ except Exception as e:
 """.format(
         max_memory_mb=MAX_MEMORY_MB,
         safe_builtins_names_json=json.dumps(_safe_builtins_names),
-        allowed_imports_json=json.dumps(
-            [
-                "numpy",
-                "scipy",
-                "math",
-                "json",
-                "time",
-                "core_model",
-                "engine",
-                "load_flow",
-                "fault_analysis",
-                "relays",
-                "coordination",
-            ]
-        ),
+        allowed_imports_json=json.dumps(ALLOWED_IMPORT_NAMES),
     )
+    return wrapper_code
+
+
+def _handle_subprocess_result(stdout: str, stderr: str) -> None:
+    """Print the JSON result based on subprocess output."""
+    if stdout.startswith("__RESULT_OK__"):
+        output = stdout[len("__RESULT_OK__"):]
+        if len(output) > MAX_OUTPUT_LENGTH:
+            output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
+        print(json.dumps({"success": True, "output": output, "error": None}))
+    elif stdout.startswith("__RESULT_ERROR__"):
+        error_text = stdout[len("__RESULT_ERROR__"):]
+        if stderr:
+            error_text += "\n" + stderr
+        print(
+            json.dumps(
+                {
+                    "success": False,
+                    "output": None,
+                    "error": error_text[:MAX_OUTPUT_LENGTH],
+                    "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
+                }
+            )
+        )
+    elif stderr:
+        print(
+            json.dumps(
+                {
+                    "success": False,
+                    "output": None,
+                    "error": stderr[:MAX_OUTPUT_LENGTH],
+                    "traceback": None,
+                }
+            )
+        )
+    else:
+        output = stdout[:MAX_OUTPUT_LENGTH]
+        print(json.dumps({"success": True, "output": output, "error": None}))
+
+
+def _execute_in_subprocess(code: str, wrapper_code: str) -> None:
+    """Write the wrapper script to a temp file and run it in a subprocess."""
+    import subprocess
+    import tempfile
 
     wrapper_path = None  # V-45: Initialize before try to prevent UnboundLocalError in finally
     try:
@@ -504,45 +518,7 @@ except Exception as e:
                 text=True,
                 timeout=MAX_EXECUTION_TIME_SECONDS,
             )
-
-            stdout = result.stdout or ""
-            stderr = result.stderr or ""
-
-            if stdout.startswith("__RESULT_OK__"):
-                output = stdout[len("__RESULT_OK__") :]
-                if len(output) > MAX_OUTPUT_LENGTH:
-                    output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
-                print(json.dumps({"success": True, "output": output, "error": None}))
-            elif stdout.startswith("__RESULT_ERROR__"):
-                error_text = stdout[len("__RESULT_ERROR__") :]
-                if stderr:
-                    error_text += "\n" + stderr
-                print(
-                    json.dumps(
-                        {
-                            "success": False,
-                            "output": None,
-                            "error": error_text[:MAX_OUTPUT_LENGTH],
-                            "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
-                        }
-                    )
-                )
-            else:
-                # Unexpected output format
-                if stderr:
-                    print(
-                        json.dumps(
-                            {
-                                "success": False,
-                                "output": None,
-                                "error": stderr[:MAX_OUTPUT_LENGTH],
-                                "traceback": None,
-                            }
-                        )
-                    )
-                else:
-                    output = stdout[:MAX_OUTPUT_LENGTH]
-                    print(json.dumps({"success": True, "output": output, "error": None}))
+            _handle_subprocess_result(result.stdout or "", result.stderr or "")
 
         except subprocess.TimeoutExpired:
             # V-44: Process is properly killed — unlike ThreadPoolExecutor
@@ -564,6 +540,27 @@ except Exception as e:
                 os.remove(wrapper_path)
         except Exception:
             pass
+
+
+def main() -> None:
+    code = _read_code_from_stdin()
+    if code is None:
+        print(json.dumps({"error": "No code provided via stdin", "success": False}))
+        sys.exit(1)
+
+    _validate_code_length(code)
+
+    audit = get_audit_logger()
+    validator = get_validator()
+
+    _validate_code_security(code, audit, validator)
+    _run_ai_guard_scan(code, audit)
+
+    audit.log_action("agent_tool", "execute_python", "restricted_sandbox", True)
+
+    safe_globals = _build_safe_globals()
+    wrapper_code = _build_wrapper_script(safe_globals)
+    _execute_in_subprocess(code, wrapper_code)
 
 
 if __name__ == "__main__":

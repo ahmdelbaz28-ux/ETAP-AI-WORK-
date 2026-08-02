@@ -131,7 +131,7 @@ class SIEMSyslogForwarder:
     Singleton pattern — one forwarder per process.
     """
 
-    def __init__(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def __init__(  # NOSONAR
         self,
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self.enabled = os.getenv("SIEM_ENABLED", "false").lower() == "true"
@@ -318,7 +318,7 @@ class SIEMSyslogForwarder:
             <165>1 2026-06-30T12:34:56Z host01 AhmedETAP-CUA - lethal_block
             [AhmedETAP@1 action="click" target="disable protection"] LETHAL BLOCK
         """
-        # NOSONAR: PRI is computed as facility * 8 + severity (RFC 5424 §6.2.1)  # — explanatory comment
+        # NOSONAR
         pri = facility * 8 + severity
         version = 1
         timestamp = datetime.datetime.now(UTC).strftime(ISO_8601_UTC_FMT)

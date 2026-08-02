@@ -125,7 +125,7 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
 
         return hmac.new(
             b"", data, hashlib.sha1
-        )  # NOSONAR: S4790 — SHA-1 inside HMAC (RFC 2104) is the recommended secure use; not a raw hash  # type: ignore[return-value]
+        )  # NOSONAR type: ignore[return-value]
 
 
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:

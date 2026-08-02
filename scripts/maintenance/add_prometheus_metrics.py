@@ -55,6 +55,20 @@ DIGITAL_TWIN_AVAILABLE = Gauge(
 """
 
 
+def _validate_path_safety(path: Path, allowed_root: str) -> Path:
+    """Validate that a path stays within the allowed root directory."""
+    resolved = Path(os.path.realpath(path))
+    allowed = Path(os.path.realpath(allowed_root))
+    try:
+        resolved.relative_to(allowed)
+    except ValueError:
+        raise RuntimeError(
+            f"Path traversal detected: {resolved} is outside {allowed}. "
+            "Aborting to prevent unsafe file write."
+        )
+    return resolved
+
+
 def main() -> None:
     # Path traversal mitigation (SonarCloud S2083): verify the resolved
     # path stays within the expected script directory. METRICS_FILE is

@@ -159,7 +159,7 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             await self.disconnect(client)
 
-    async def _generate_scada_data(  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
+    async def _generate_scada_data(  # NOSONAR
         self,
     ) -> dict:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Generate mock SCADA data for demonstration purposes.

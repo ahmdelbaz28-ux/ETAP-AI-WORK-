@@ -22,8 +22,8 @@ Endpoints:
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_COPILOT_API_BASE_4820 = "http://localhost:4820"  # NOSONAR: extracted constant (S1192)
-_COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR: extracted constant (S1192)
+_COPILOT_API_BASE_4820 = "http://localhost:4820"  # NOSONAR
+_COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR
 
 import json
 import logging
@@ -69,11 +69,11 @@ class ProcessRequest(BaseModel):
     prompt: str = Field(..., description="Natural language engineering request")
     autocad_url: str = Field(
         _COPILOT_API_BASE_4820,
-        description="AutoCAD plugin URL",  # NOSONAR: S1192 literal kept inline for readability
+        description="AutoCAD plugin URL",  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     revit_url: str = Field(
         _COPILOT_API_BASE_4830,
-        description="Revit plugin URL",  # NOSONAR: S1192 literal kept inline for readability
+        description="Revit plugin URL",  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     auto_sync: bool = Field(True, description="Automatically sync to connected systems")
 
@@ -130,7 +130,7 @@ class CopilotAPI:
         self.start_time = time.time()
         self._call_count = 0
 
-    def get_router(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def get_router(  # NOSONAR
         self,
     ) -> APIRouter:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Create and return the FastAPI router."""
@@ -172,7 +172,7 @@ class CopilotAPI:
             self._call_count += 1
             result = self.mcp.call_tool(tool_name, request.arguments)
             if not result.get("success"):
-                raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                raise HTTPException(  # NOSONAR
                     status_code=400, detail=result.get("error")
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             return result
@@ -195,7 +195,7 @@ class CopilotAPI:
                 self.mcp._model = model
                 return {"success": True, "message": "Model updated"}
             except Exception as e:
-                raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                raise HTTPException(  # NOSONAR
                     status_code=400, detail=f"Invalid model: {e}"
                 ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -255,7 +255,7 @@ class CopilotAPI:
 
         @router.post("/autocad/draw")
         async def draw_in_autocad(
-            entity_type: Annotated[str, Query(...)] = ...,  # NOSONAR: Annotated form (S8410)
+            entity_type: Annotated[str, Query(...)] = ...,  # NOSONAR
             params: dict | None = None,
         ):
             """Draw a specific entity in AutoCAD.
@@ -268,7 +268,7 @@ class CopilotAPI:
             cad = self.mcp.autocad
 
             if not cad.is_connected:
-                raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                raise HTTPException(  # NOSONAR
                     status_code=503, detail="AutoCAD plugin not connected"
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -285,7 +285,7 @@ class CopilotAPI:
 
             handler = handlers.get(entity_type)
             if not handler:
-                raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                raise HTTPException(  # NOSONAR
                     status_code=400, detail=f"Unknown entity type: {entity_type}"
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
@@ -293,7 +293,7 @@ class CopilotAPI:
                 result = handler(params)
                 return {"success": True, "result": result}
             except Exception as e:
-                raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                raise HTTPException(  # NOSONAR
                     status_code=500, detail=str(e)
                 ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 

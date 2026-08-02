@@ -44,7 +44,7 @@ def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
     return comps
 
 
-def _has_undirected_loop(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def _has_undirected_loop(  # NOSONAR
     adj: dict[str, set[str]],
 ) -> tuple[
     bool, list[str]

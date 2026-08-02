@@ -32,6 +32,19 @@ from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
+def _sanitize_for_log(value: str, max_len: int = 200) -> str:
+    """Sanitize user-controlled data before logging to prevent injection."""
+    if not isinstance(value, str):
+        value = str(value)
+    # Remove control characters (CR/LF injection)
+    sanitized = value.replace("\n", "").replace("\r", "").replace("\t", "")
+    # Truncate to prevent log flooding
+    if len(sanitized) > max_len:
+        sanitized = sanitized[:max_len] + "..."
+    return sanitized
+
+
+
 # Only import on Windows
 if sys.platform == "win32":
     try:
@@ -1263,7 +1276,7 @@ class ETAPAutomation:
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
                 "Project path length %d exceeds maximum %d",
-                len(file_path),
+                _sanitize_for_log(len(file_path)),
                 MAX_PROJECT_PATH_LENGTH,
             )
             return False

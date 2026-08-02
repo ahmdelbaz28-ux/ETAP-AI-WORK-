@@ -21,7 +21,7 @@ async SQLite (aiosqlite) compatibility.
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_USERS_ID_FK = "users.id"  # NOSONAR: extracted constant (S1192)
+_USERS_ID_FK = "users.id"  # NOSONAR
 
 import sqlalchemy as sa
 from alembic import op
@@ -153,7 +153,7 @@ def upgrade() -> None:
             sa.String(36),
             sa.ForeignKey(
                 _USERS_ID_FK,
-                ondelete="CASCADE",  # NOSONAR: S1192 literal kept inline for readability
+                ondelete="CASCADE",  # NOSONAR
             ),  # NOSONAR intentional repetition (audit constant)
             nullable=False,
         ),

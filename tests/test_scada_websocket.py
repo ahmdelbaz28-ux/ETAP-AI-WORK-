@@ -775,8 +775,7 @@ class TestAuthentication:
 
         with pytest.raises(
             WebSocketDisconnect
-        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
-            # The server should close the connection immediately
+        ):  # NOSONAR The server should close the connection immediately
             with auth_client.websocket_connect(WS_PATH) as ws:
                 ws.receive_json()
 
@@ -786,7 +785,7 @@ class TestAuthentication:
 
         with pytest.raises(
             WebSocketDisconnect
-        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
+        ):  # NOSONAR
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
                 ws.receive_json()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
 
@@ -796,7 +795,7 @@ class TestAuthentication:
 
         with pytest.raises(
             WebSocketDisconnect
-        ):  # NOSONAR: single-call pytest.raises; nested async websocket_connect is the SUT (S5778)
+        ):  # NOSONAR
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
                 ws.receive_json()
 

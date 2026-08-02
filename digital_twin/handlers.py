@@ -27,7 +27,7 @@ Usage::
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR: extracted constant (S1192)
+_NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR
 
 import logging
 import time
@@ -199,7 +199,7 @@ class YbusRebuildHandler(PropagationHandler):
                     False,
                     {
                         "error": _NO_ELECTRICAL_MODEL_MSG
-                    },  # NOSONAR: S1192 literal kept inline for readability
+                    },  # NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -373,7 +373,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     fatal = False
 
-    def handle(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def handle(  # NOSONAR
         self, ctx: PropagationContext
     ) -> PropagationContext:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if ctx.dt_state is None or ctx.dt_state.system is None:

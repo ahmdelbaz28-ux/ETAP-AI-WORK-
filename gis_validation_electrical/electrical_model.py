@@ -47,7 +47,7 @@ def _stable_float_from_str(s: str, *, min_val: float, max_val: float) -> float:
     return min_val + (h % 100000) / 100000.0 * span
 
 
-def build_electrical_model(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def build_electrical_model(  # NOSONAR
     assets: list[ADMSAsset],
 ) -> ElectricalModel:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """
