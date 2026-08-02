@@ -49,6 +49,9 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   HF_SPACE_REPO: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   # ── 1. FORWARD SYNC: GitHub → all downstream platforms ─────────────────────
   forward-sync:

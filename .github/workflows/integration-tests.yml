@@ -59,6 +59,9 @@ concurrency:
   group: integration-tests-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   # ── 1. DATABASE INTEGRATION ───────────────────────────────────────────────
   database:

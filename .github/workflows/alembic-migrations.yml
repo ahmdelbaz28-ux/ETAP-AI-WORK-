@@ -15,6 +15,9 @@ on:
       - 'alembic/**'
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   test-migrations:
     name: Test Migrations

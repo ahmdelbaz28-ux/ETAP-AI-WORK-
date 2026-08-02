@@ -20,6 +20,9 @@ on:
         required: false
         default: 'tests/test_persistence_layer.py tests/test_knowledge.py tests/test_ai_context_engine.py tests/test_security_e2e.py tests/test_auth_api.py tests/test_projects_api.py tests/test_regression_fixes.py'
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   debug-event-loop:
     name: 🔍 Debug Event Loop

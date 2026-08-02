@@ -11,6 +11,9 @@ on:
       - 'scripts/validate_prompts.py'
   workflow_dispatch:
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   sync-prompts:
     runs-on: ubuntu-latest
@@ -19,7 +22,7 @@ jobs:
         uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python
-        uses: actions/setup-python@v5  # pin SHA for security
+        uses: actions/setup-python@v6  # pin SHA for security
         with:
           python-version: '3.11'
           cache: 'pip'

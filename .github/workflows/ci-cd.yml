@@ -16,6 +16,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 # =============================================================================
+
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
 
   # ── 1. CODE QUALITY ─────────────────────────────────────────────────────────

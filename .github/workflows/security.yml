@@ -28,6 +28,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   codeql:
     name: CodeQL Analysis
@@ -107,7 +110,7 @@ jobs:
             -v "${PWD}:/repo" \
             -v /tmp/trivy-cache:/root/.cache/trivy \
             -w /repo \
-            aquasec/trivy:latest \
+            aquasec/trivy:0.58.0 \
             fs --severity CRITICAL,HIGH \
                --ignore-unfixed \
                --exit-code 0 \
