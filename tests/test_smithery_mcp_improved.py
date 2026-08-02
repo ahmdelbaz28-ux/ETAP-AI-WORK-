@@ -385,9 +385,17 @@ class TestAsyncRetry:
     """Test the _call_with_retry method for async operations."""
 
     @pytest.mark.asyncio
-    async def test_succeeds_on_first_attempt(self, fresh_smithery_module: Any) -> None:
-        # Disable rate limiter blocking
-        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
+    async def test_succeeds_on_first_attempt(
+        self,
+        fresh_smithery_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Disable rate limiter blocking (use monkeypatch for auto-revert)
+        monkeypatch.setattr(
+            fresh_smithery_module._TokenBucket,
+            "acquire",
+            lambda self, timeout=30.0: True,
+        )
         client = fresh_smithery_module.SmitheryClient()
         call_count = [0]
 
@@ -400,10 +408,22 @@ class TestAsyncRetry:
         assert call_count[0] == 1
 
     @pytest.mark.asyncio
-    async def test_retries_on_5xx(self, fresh_smithery_module: Any) -> None:
-        # Disable rate limiter blocking + sleep
-        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
-        fresh_smithery_module.asyncio.sleep = AsyncMock()  # type: ignore
+    async def test_retries_on_5xx(
+        self,
+        fresh_smithery_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Disable rate limiter blocking + sleep (use monkeypatch for auto-revert).
+        # NOTE: ``fresh_smithery_module.asyncio`` IS the global ``asyncio`` module
+        # — setting ``asyncio.sleep = AsyncMock()`` directly would mutate the
+        # global module and leak into every subsequent test in the session.
+        # monkeypatch.setattr auto-reverts at test teardown.
+        monkeypatch.setattr(
+            fresh_smithery_module._TokenBucket,
+            "acquire",
+            lambda self, timeout=30.0: True,
+        )
+        monkeypatch.setattr(fresh_smithery_module.asyncio, "sleep", AsyncMock())
 
         client = fresh_smithery_module.SmitheryClient()
         client.max_retries = 3
@@ -425,9 +445,17 @@ class TestAsyncRetry:
         assert call_count[0] == 3
 
     @pytest.mark.asyncio
-    async def test_non_retryable_error_includes_attempts(self, fresh_smithery_module: Any) -> None:
+    async def test_non_retryable_error_includes_attempts(
+        self,
+        fresh_smithery_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         """Regression: non-retryable errors should also include ``attempts`` field."""
-        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
+        monkeypatch.setattr(
+            fresh_smithery_module._TokenBucket,
+            "acquire",
+            lambda self, timeout=30.0: True,
+        )
         client = fresh_smithery_module.SmitheryClient()
         client.max_retries = 3
 
@@ -447,9 +475,17 @@ class TestAsyncRetry:
         assert result["result"] is None
 
     @pytest.mark.asyncio
-    async def test_keyboard_interrupt_propagates(self, fresh_smithery_module: Any) -> None:
+    async def test_keyboard_interrupt_propagates(
+        self,
+        fresh_smithery_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         """Security/safety: KeyboardInterrupt must NOT be swallowed by retry loop."""
-        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
+        monkeypatch.setattr(
+            fresh_smithery_module._TokenBucket,
+            "acquire",
+            lambda self, timeout=30.0: True,
+        )
         client = fresh_smithery_module.SmitheryClient()
         client.max_retries = 5
 
@@ -459,6 +495,55 @@ class TestAsyncRetry:
         # KeyboardInterrupt is a BaseException, not Exception — should propagate
         with pytest.raises(KeyboardInterrupt):
             await client._call_with_retry(op, op_name="test", timeout=1.0)
+
+
+# ─── Tests: atexit handler (no deprecation warning) ────────────────────────
+
+
+class TestAtexitHandler:
+    """Regression: the atexit handler used ``asyncio.get_event_loop()`` which
+    is deprecated on Python 3.12+ and raises ``RuntimeError`` on Python 3.14+.
+
+    The fix uses ``asyncio.get_running_loop()`` (which never emits deprecation
+    warnings) to detect a running loop, and falls back to creating a fresh
+    loop with ``asyncio.new_event_loop()`` when none is running.
+    """
+
+    def test_atexit_close_does_not_emit_deprecation_warning(
+        self,
+        fresh_smithery_module: Any,
+    ) -> None:
+        """Calling ``_atexit_close`` must not emit any DeprecationWarning."""
+        import warnings
+
+        # Run the atexit handler and capture any warnings it emits.
+        with warnings.catch_warnings(record=True) as captured:
+            warnings.simplefilter("always")
+            # The handler suppresses all exceptions internally, so this
+            # should never raise. We're checking it doesn't emit warnings.
+            fresh_smithery_module._atexit_close()
+
+        # Filter for DeprecationWarnings related to asyncio.
+        deprecation_warnings = [
+            w for w in captured if issubclass(w.category, DeprecationWarning)
+        ]
+        asyncio_warnings = [
+            w
+            for w in deprecation_warnings
+            if "asyncio" in str(w.message).lower()
+            or "get_event_loop" in str(w.message).lower()
+        ]
+        assert len(asyncio_warnings) == 0, (
+            f"_atexit_close emitted asyncio DeprecationWarning(s): "
+            f"{[str(w.message) for w in asyncio_warnings]}"
+        )
+
+    def test_atexit_close_never_raises(self, fresh_smithery_module: Any) -> None:
+        """The atexit handler must NEVER raise (it uses contextlib.suppress)."""
+        # Calling it multiple times must also be safe (idempotent).
+        fresh_smithery_module._atexit_close()
+        fresh_smithery_module._atexit_close()
+        fresh_smithery_module._atexit_close()
 
 
 if __name__ == "__main__":

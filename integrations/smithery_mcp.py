@@ -680,19 +680,32 @@ def _atexit_close() -> None:
     Uses a fresh event loop because we're in an atexit context (no running
     loop). All exceptions are suppressed (atexit handlers must never raise).
 
-    Note: ``asyncio.new_event_loop()`` is used directly (instead of the
-    deprecated ``asyncio.get_event_loop()`` which emits a DeprecationWarning
-    on Python 3.12+).
+    Implementation note: ``asyncio.get_event_loop()`` is deprecated on
+    Python 3.12+ when there is no running loop, and will raise
+    ``RuntimeError`` on Python 3.14+. We therefore use
+    ``asyncio.get_running_loop()`` (which never emits deprecation warnings)
+    to detect a running loop, and fall back to creating a fresh loop with
+    ``asyncio.new_event_loop()`` when none is running — which is the
+    expected case during atexit.
     """
     with contextlib.suppress(Exception):
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                raise RuntimeError("loop closed")
+            # If we're somehow inside a running loop, do NOT block on
+            # run_until_complete (that would deadlock). Schedule the close
+            # instead. This branch is unlikely during atexit but is a
+            # defensive measure.
+            running_loop = asyncio.get_running_loop()
+            running_loop.create_task(smithery_client.aclose())
+            return
         except RuntimeError:
-            loop = asyncio.new_event_loop()
+            # No running loop — expected path during atexit.
+            pass
+        loop = asyncio.new_event_loop()
+        try:
             asyncio.set_event_loop(loop)
-        loop.run_until_complete(smithery_client.aclose())
+            loop.run_until_complete(smithery_client.aclose())
+        finally:
+            loop.close()
 
 
 atexit.register(_atexit_close)

@@ -236,9 +236,17 @@ class TestRetryWrapper:
         assert result == "ok"
         assert call_count[0] == 1
 
-    def test_retries_on_connection_error(self, fresh_langwatch_module: Any) -> None:
-        # Disable sleep to keep test fast
-        fresh_langwatch_module.time.sleep = lambda _: None  # type: ignore[attr-defined]
+    def test_retries_on_connection_error(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Disable sleep to keep test fast.
+        # NOTE: ``fresh_langwatch_module.time`` IS the global ``time`` module —
+        # setting ``time.sleep = lambda _: None`` directly would mutate the
+        # global module and leak into every subsequent test in the session.
+        # monkeypatch.setattr auto-reverts at test teardown.
+        monkeypatch.setattr(fresh_langwatch_module.time, "sleep", lambda _: None)
         tracker = fresh_langwatch_module.LangWatchTracker()
         tracker.max_retries = 3
         call_count = [0]
@@ -266,8 +274,12 @@ class TestRetryWrapper:
         assert result is None
         assert call_count[0] == 1  # no retries
 
-    def test_returns_none_after_max_retries(self, fresh_langwatch_module: Any) -> None:
-        fresh_langwatch_module.time.sleep = lambda _: None  # type: ignore[attr-defined]
+    def test_returns_none_after_max_retries(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(fresh_langwatch_module.time, "sleep", lambda _: None)
         tracker = fresh_langwatch_module.LangWatchTracker()
         tracker.max_retries = 2
         call_count = [0]
@@ -474,6 +486,158 @@ class TestGetContextManagerValidation:
         assert cm is not None
         assert hasattr(cm, "__enter__")
         assert hasattr(cm, "__exit__")
+
+
+# ─── Tests: robust env var parsing (regression for fragile int(float(...))) ──
+
+
+class TestEnvIntRobustness:
+    """Regression: ``int(float(os.getenv(...)))`` crashed module import on
+    misconfigured env vars (e.g. ``LANGWATCH_TIMEOUT=5s``).
+
+    The fix replaces it with ``_env_int`` which falls back to the default
+    and logs a warning instead of raising ``ValueError``.
+    """
+
+    def test_env_int_returns_default_for_none(self, fresh_langwatch_module: Any) -> None:
+        # ``_env_int`` is the helper added to fix the fragile parsing.
+        # When the env var is unset, it must return the default.
+        import os
+
+        if "LANGWATCH_TIMEOUT" in os.environ:
+            del os.environ["LANGWATCH_TIMEOUT"]
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 5
+
+    def test_env_int_returns_default_for_empty_string(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "")
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 5
+
+    def test_env_int_parses_plain_int(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "10")
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 10
+
+    def test_env_int_parses_float_string(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # This was the original bug: int("5.0") raises ValueError.
+        # The fix uses int(float(raw)) so "5.0" parses to 5.
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "5.0")
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 5
+
+    def test_env_int_falls_back_on_garbage_value(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # The critical regression: "5s" or "abc" must NOT crash module import.
+        # Before the fix, this raised ValueError and took down the entire
+        # integrations package (and any service importing it).
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "5s")
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 5
+
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "abc")
+        assert fresh_langwatch_module._env_int("LANGWATCH_TIMEOUT", 5) == 5
+
+    def test_env_int_falls_back_on_garbage_max_capture_chars(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("LANGWATCH_MAX_CAPTURE_CHARS", "not-a-number")
+        tracker = fresh_langwatch_module.LangWatchTracker()
+        # Must fall back to 4096 instead of crashing.
+        assert tracker.max_capture_chars == 4096
+
+    def test_env_int_falls_back_on_garbage_max_retries(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("LANGWATCH_MAX_RETRIES", "invalid")
+        tracker = fresh_langwatch_module.LangWatchTracker()
+        # Must fall back to 3 instead of crashing.
+        assert tracker.max_retries == 3
+
+    def test_module_import_survives_bad_env_var(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """End-to-end regression: a bad env var must NOT crash module import.
+
+        Before the fix, ``import integrations.langwatch_integration`` with
+        ``LANGWATCH_TIMEOUT=garbage`` raised ValueError at module load time,
+        breaking every service that imports the integrations package.
+        """
+        monkeypatch.setenv("LANGWATCH_TIMEOUT", "garbage-value")
+        monkeypatch.setenv("LANGWATCH_MAX_CAPTURE_CHARS", "also-garbage")
+        monkeypatch.setenv("LANGWATCH_MAX_RETRIES", "nope")
+        # Re-import must succeed (no ValueError raised).
+        import importlib
+
+        import integrations.langwatch_integration as lw
+
+        importlib.reload(lw)
+        # And the defaults must be applied.
+        tracker = lw.LangWatchTracker()
+        assert tracker.timeout == 5
+        assert tracker.max_capture_chars == 4096
+        assert tracker.max_retries == 3
+
+
+# ─── Tests: track() trace object validation ──────────────────────────────────
+
+
+class TestTrackTraceValidation:
+    """Test that ``track()`` gracefully handles ``langwatch.trace()`` returning
+    None or a non-trace object (defensive validation added in this fix).
+    """
+
+    def test_track_no_raise_when_trace_returns_none(
+        self,
+        fresh_langwatch_module: Any,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """If langwatch.trace() returns None, track() must NOT raise."""
+        tracker = fresh_langwatch_module.LangWatchTracker()
+        tracker.enabled = True
+        tracker._get_client = lambda: True  # type: ignore
+
+        # Mock langwatch.trace to return None
+        fresh_langwatch_module.langwatch = MagicMock()
+        fresh_langwatch_module.langwatch.trace = MagicMock(return_value=None)
+
+        # Must not raise — the defensive check short-circuits.
+        tracker.track(name="test_op", input_text="hello", output_text="world")
+
+    def test_track_no_raise_when_trace_returns_non_trace(
+        self,
+        fresh_langwatch_module: Any,
+    ) -> None:
+        """If langwatch.trace() returns a non-trace object (e.g. a dict),
+        track() must NOT raise AttributeError when calling .update()/.send().
+        """
+        tracker = fresh_langwatch_module.LangWatchTracker()
+        tracker.enabled = True
+        tracker._get_client = lambda: True  # type: ignore
+
+        # Mock langwatch.trace to return a plain dict (no .send method)
+        fresh_langwatch_module.langwatch = MagicMock()
+        fresh_langwatch_module.langwatch.trace = MagicMock(
+            return_value={"not": "a trace"}
+        )
+
+        # Must not raise — the defensive check short-circuits.
+        tracker.track(name="test_op", input_text="hello", output_text="world")
 
 
 if __name__ == "__main__":
