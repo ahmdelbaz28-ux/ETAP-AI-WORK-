@@ -73,7 +73,10 @@ structlog~=23.2.0
 #   CVE-2023-50782 (NULL deref in signature verification)
 #   CVE-2024-0727 (PKCS#12 NULL deref)
 #   GHSA-537c-gmf6-5ccf (Bleichenbacher timing in PKCS#1 v1.5)
-cryptography~=48.0.0
+# SECURITY: upgraded from 48.0.0 → 48.0.1 to fix:
+#   CVE-2026-26007 (subgroup attack due to missing subgroup validation)
+#   Vulnerable OpenSSL included in cryptography wheels
+cryptography~=48.0.1
 hvac~=2.1.0
 
 # Password hashing
@@ -81,7 +84,10 @@ bcrypt~=4.1.0
 
 # JWT token signing
 # NOTE: must be >=2.12.0 to satisfy supabase-auth 2.31.0
-PyJWT>=2.12.0,<3
+# SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
+#   CVE-2026-32597 (accepts unknown `crit` header extensions)
+#   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
+PyJWT>=2.13.0,<3
 
 # Data validation
 # NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
@@ -111,17 +117,24 @@ aiofiles>=24.1.0,<25.0.0
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
-# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 to fix 30 CVEs including:
+# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 to fix CVEs including:
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
+#   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
+#   CVE-2026-59936 (infinite loop for not terminated inline images)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf~=6.13.0
+pypdf~=6.14.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
-# SECURITY: nltk upgraded from 3.8.0 → 3.9.4 to fix 13 CVEs including:
+# SECURITY: nltk upgraded from 3.8.0 → 3.9.4 → 3.10.0 to fix CVEs including:
 #   PYSEC-2024-167 (RCE via pickled models)
 #   CVE-2026-33230 / CVE-2026-33231
-nltk~=3.9.4
+#   CVE-2026-12075 (DNS-rebinding SSRF in nltk.pathseek)
+#   CVE-2026-12061 (ReDoS in ReviewsCorpusReader)
+#   CVE-2026-12072 (Path Traversal in NKJPCorpusReader)
+#   CVE-2026-12074 (Path Traversal in FramenetCorpusReader)
+#   CVE-2026-54293 (URL-Encoded Path Traversal in nltk.data.load())
+nltk~=3.10.0
 
 # Document processing
 python-docx~=1.1.0
@@ -206,7 +219,14 @@ google-generativeai~=0.8.0
 # Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
 # SECURITY: upgraded from 10.2.0 → 12.2.0 to fix CVE-2024-28219 (buffer overflow)
 # and CVE-2026-42310.
-Pillow~=12.2.0
+# SECURITY: upgraded from 12.2.0 → 12.3.0 to fix 8 CVEs including:
+#   CVE-2026-59200 (Decompression Bomb DoS via PdfParser)
+#   CVE-2026-59199 (Heap OOB write in Image.paste/Image.crop)
+#   CVE-2026-59197 (Heap OOB write in ImageFilter.RankFilter)
+#   CVE-2026-59205 (Controlled heap OOB write in ImageCmsTransform)
+#   CVE-2026-59204 (JPEG2000 tiled decode DoS)
+#   CVE-2026-55380/55379/54060/54059/54058 (decompression bomb bypasses)
+Pillow~=12.3.0
 
 # OpenCV — local screen analysis (offline fallback when Gemini is unreachable)
 # Used by integrations/opencv_vision.py for contour detection + UI element detection
