@@ -424,6 +424,42 @@ class TestAsyncRetry:
         assert result == "recovered"
         assert call_count[0] == 3
 
+    @pytest.mark.asyncio
+    async def test_non_retryable_error_includes_attempts(self, fresh_smithery_module: Any) -> None:
+        """Regression: non-retryable errors should also include ``attempts`` field."""
+        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
+        client = fresh_smithery_module.SmitheryClient()
+        client.max_retries = 3
+
+        async def op() -> str:
+            # 401 is non-retryable
+            exc = Exception("Unauthorized")
+            mock_resp = MagicMock()
+            mock_resp.status_code = 401
+            exc.response = mock_resp  # type: ignore
+            raise exc
+
+        result = await client._call_with_retry(op, op_name="test", timeout=1.0)
+        assert isinstance(result, dict)
+        assert result["error_type"] == "Exception"
+        # ``attempts`` should be present and equal to 1 (no retries for non-retryable)
+        assert result["attempts"] == 1
+        assert result["result"] is None
+
+    @pytest.mark.asyncio
+    async def test_keyboard_interrupt_propagates(self, fresh_smithery_module: Any) -> None:
+        """Security/safety: KeyboardInterrupt must NOT be swallowed by retry loop."""
+        fresh_smithery_module._TokenBucket.acquire = lambda self, timeout=30.0: True  # type: ignore
+        client = fresh_smithery_module.SmitheryClient()
+        client.max_retries = 5
+
+        async def op() -> str:
+            raise KeyboardInterrupt("user pressed Ctrl+C")
+
+        # KeyboardInterrupt is a BaseException, not Exception — should propagate
+        with pytest.raises(KeyboardInterrupt):
+            await client._call_with_retry(op, op_name="test", timeout=1.0)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

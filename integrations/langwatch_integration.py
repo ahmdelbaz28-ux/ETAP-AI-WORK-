@@ -54,11 +54,13 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import atexit
 import contextlib
 import functools
 import logging
 import os
+import random
 import threading
 import time
 from collections.abc import Callable
@@ -250,6 +252,10 @@ class LangWatchTracker:
 
         Returns:
             The operation result, or ``None`` on failure.
+
+        Note: catches ``Exception`` (not ``BaseException``) so that
+        ``KeyboardInterrupt`` / ``SystemExit`` propagate immediately
+        without being retried or swallowed.
         """
         for attempt in range(self.max_retries + 1):
             start = time.monotonic()
@@ -264,7 +270,7 @@ class LangWatchTracker:
                         attempt,
                     )
                 return result
-            except BaseException as exc:  # noqa: BLE001 — broad on purpose
+            except Exception as exc:  # noqa: BLE001 — broad on purpose (NOT BaseException: let KeyboardInterrupt propagate)
                 latency_ms = (time.monotonic() - start) * 1000
                 if not _is_retryable_exception(exc):
                     # Non-retryable — fail fast
@@ -285,8 +291,6 @@ class LangWatchTracker:
                     )
                     return None
                 # Exponential backoff with jitter: 0.5s, 1s, 2s, 4s... + jitter
-                import random
-
                 delay = min(0.5 * (2**attempt) + random.uniform(0, 0.25), 10.0)
                 logger.debug(
                     "LangWatch %s attempt %d failed (%s) — retrying in %.2fs",
@@ -314,6 +318,12 @@ class LangWatchTracker:
 
         Retries on transient failures (network, 5xx). PII is truncated
         to ``LANGWATCH_MAX_CAPTURE_CHARS`` before being sent to the cloud.
+
+        Note: ``self.timeout`` is documented for callers but NOT enforced
+        here — the LangWatch SDK uses an internal async sender that does
+        not expose a per-call timeout. The retry wrapper will catch
+        ``TimeoutError`` if the SDK raises one. For tighter timeout
+        control, wrap the call site in ``concurrent.futures``.
         """
 
         def _do_track() -> None:
@@ -349,6 +359,10 @@ class LangWatchTracker:
         Note: context managers cannot be retried in-line (the body runs
         between ``__enter__`` and ``__exit__``), so retry is not applied
         here. Use ``track()`` for retry-protected manual logging.
+
+        If ``langwatch.trace()`` returns ``None`` or a non-context-manager
+        object, a ``_NoOpContext`` is returned to prevent ``with None:``
+        failures downstream.
         """
         if self._get_client() is None:
             return _NoOpContext()
@@ -357,7 +371,17 @@ class LangWatchTracker:
             if metadata:
                 kw["metadata"] = metadata
             kw.update(kwargs)
-            return langwatch.trace(**kw)
+            cm = langwatch.trace(**kw)
+            # Validate that the returned object is actually usable as a
+            # context manager (has __enter__ and __exit__). If not, fall
+            # back to a no-op to prevent `with None:` failures.
+            if cm is None or not hasattr(cm, "__enter__") or not hasattr(cm, "__exit__"):
+                logger.debug(
+                    "LangWatch trace() returned non-context-manager object (%r) — using no-op",
+                    type(cm).__name__ if cm is not None else "None",
+                )
+                return _NoOpContext()
+            return cm
         except Exception as e:
             logger.warning("LangWatch context error (non-critical): %s", e)
             return _NoOpContext()
@@ -460,8 +484,6 @@ def track_llm_call(
     """
 
     def decorator(func: Callable) -> Callable:
-        import asyncio
-
         is_async = asyncio.iscoroutinefunction(func)
 
         if is_async:
@@ -493,9 +515,13 @@ def track_llm_call(
                                 )
                             )
                         return result
-                    except BaseException as exc:
+                    except Exception as exc:
                         # Record exception on the trace so it's visible in
                         # the dashboard, then re-raise so the caller sees it.
+                        # NOTE: ``Exception`` (not ``BaseException``) so that
+                        # ``KeyboardInterrupt`` / ``SystemExit`` propagate
+                        # without being recorded on the trace (user is
+                        # interrupting the program, they don't care about it).
                         if hasattr(trace, "record_exception"):
                             with contextlib.suppress(Exception):
                                 trace.record_exception(exc)
@@ -527,7 +553,8 @@ def track_llm_call(
                             )
                         )
                     return result
-                except BaseException as exc:
+                except Exception as exc:
+                    # See note in async_wrapper: ``Exception`` not ``BaseException``.
                     if hasattr(trace, "record_exception"):
                         with contextlib.suppress(Exception):
                             trace.record_exception(exc)

@@ -324,8 +324,10 @@ class TestSyncWrapperFix:
         fresh_langwatch_module: Any,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        # Force-enable the tracker by mocking _get_client to return True
-        tracker = fresh_langwatch_module.LangWatchTracker()
+        # Patch the module-level singleton — the decorator captures
+        # ``langwatch_tracker`` by name lookup at call time, so we MUST
+        # modify the singleton, not a fresh instance.
+        tracker = fresh_langwatch_module.langwatch_tracker
         tracker.enabled = True
         tracker.max_capture_chars = 4096
 
@@ -351,7 +353,7 @@ class TestSyncWrapperFix:
         assert "result: hello" in captured["output"]
 
     def test_sync_wrapper_captures_input(self, fresh_langwatch_module: Any) -> None:
-        tracker = fresh_langwatch_module.LangWatchTracker()
+        tracker = fresh_langwatch_module.langwatch_tracker
         tracker.enabled = True
         tracker.max_capture_chars = 4096
         tracker._get_client = lambda: True  # type: ignore
@@ -379,7 +381,7 @@ class TestExceptionRecording:
     """Test that exceptions are recorded on the trace and re-raised."""
 
     def test_exception_recorded_and_reraised(self, fresh_langwatch_module: Any) -> None:
-        tracker = fresh_langwatch_module.LangWatchTracker()
+        tracker = fresh_langwatch_module.langwatch_tracker
         tracker.enabled = True
         tracker.max_capture_chars = 4096
         tracker._get_client = lambda: True  # type: ignore
@@ -401,6 +403,77 @@ class TestExceptionRecording:
         # Verify exception was recorded on the trace
         assert len(recorded_exc) == 1
         assert isinstance(recorded_exc[0], RuntimeError)
+
+    def test_keyboard_interrupt_not_swallowed(self, fresh_langwatch_module: Any) -> None:
+        """Security/safety: KeyboardInterrupt must propagate without being recorded."""
+        tracker = fresh_langwatch_module.langwatch_tracker
+        tracker.enabled = True
+        tracker.max_capture_chars = 4096
+        tracker._get_client = lambda: True  # type: ignore
+
+        recorded_exc: list[Any] = []
+        mock_trace = MagicMock()
+        mock_trace.record_exception = lambda exc: recorded_exc.append(exc)
+        mock_trace.__enter__ = lambda self: self  # type: ignore
+        mock_trace.__exit__ = lambda *a: False  # type: ignore
+        tracker.get_context_manager = lambda name, metadata=None, **kw: mock_trace  # type: ignore
+
+        @fresh_langwatch_module.track_llm_call(name="interrupted_op")
+        def my_func(prompt: str) -> str:
+            raise KeyboardInterrupt("user pressed Ctrl+C")
+
+        # Must propagate, NOT be swallowed by the wrapper
+        with pytest.raises(KeyboardInterrupt):
+            my_func("input")
+
+        # And must NOT have been recorded on the trace
+        # (because we catch Exception, not BaseException)
+        assert len(recorded_exc) == 0
+
+
+# ─── Tests: get_context_manager validation ──────────────────────────────────
+
+
+class TestGetContextManagerValidation:
+    """Test that get_context_manager handles None/non-CM returns safely."""
+
+    def test_returns_noop_when_trace_returns_none(self, fresh_langwatch_module: Any) -> None:
+        """If langwatch.trace() returns None, must return _NoOpContext.
+
+        Without this validation, ``with None as trace:`` would raise
+        ``AttributeError: __enter__`` and break the caller.
+        """
+        tracker = fresh_langwatch_module.langwatch_tracker
+        tracker.enabled = True
+        tracker._get_client = lambda: True  # type: ignore
+
+        # Mock langwatch.trace to return None
+        fresh_langwatch_module.langwatch = MagicMock()
+        fresh_langwatch_module.langwatch.trace = MagicMock(return_value=None)
+
+        cm = tracker.get_context_manager(name="test", metadata={"a": 1})
+        # Should be a _NoOpContext, not None
+        assert cm is not None
+        assert hasattr(cm, "__enter__")
+        assert hasattr(cm, "__exit__")
+        # Verify it works as a context manager
+        with cm as ctx:
+            assert ctx is not None
+
+    def test_returns_noop_when_trace_returns_non_cm(self, fresh_langwatch_module: Any) -> None:
+        """If langwatch.trace() returns a non-CM object, must return _NoOpContext."""
+        tracker = fresh_langwatch_module.langwatch_tracker
+        tracker.enabled = True
+        tracker._get_client = lambda: True  # type: ignore
+
+        # Mock langwatch.trace to return a plain dict (no __enter__/__exit__)
+        fresh_langwatch_module.langwatch = MagicMock()
+        fresh_langwatch_module.langwatch.trace = MagicMock(return_value={"not": "a CM"})
+
+        cm = tracker.get_context_manager(name="test")
+        assert cm is not None
+        assert hasattr(cm, "__enter__")
+        assert hasattr(cm, "__exit__")
 
 
 if __name__ == "__main__":

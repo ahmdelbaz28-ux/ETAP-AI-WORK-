@@ -56,11 +56,13 @@ Environment variables:
 
 from __future__ import annotations
 
+import asyncio
 import atexit
 import contextlib
 import json
 import logging
 import os
+import random
 import threading
 import time
 import uuid
@@ -242,6 +244,7 @@ class SmitheryClient:
 
         # Lazy-init shared httpx client (for connection pooling)
         self._http_client: httpx.AsyncClient | None = None
+        self._http_client_fallback: httpx.AsyncClient | None = None
         self._http_client_lock = threading.Lock()
         self._http_client_init_attempted = False
 
@@ -264,34 +267,48 @@ class SmitheryClient:
     # ─── HTTP client lifecycle ───────────────────────────────────────────
 
     def _get_http_client(self) -> httpx.AsyncClient:
-        """Lazily create a shared httpx.AsyncClient (thread-safe)."""
+        """Lazily create a shared httpx.AsyncClient (thread-safe).
+
+        On failure, caches a single fallback client so we don't leak
+        ephemeral ``httpx.AsyncClient`` instances on every call.
+        """
         if self._http_client is not None:
             return self._http_client
         with self._http_client_lock:
             if self._http_client is not None:
                 return self._http_client
             if self._http_client_init_attempted:
-                # Already failed once; return a fresh ephemeral client as fallback.
-                return httpx.AsyncClient(timeout=self.timeout_call)
+                # Already failed once; reuse the cached fallback if any.
+                # This prevents resource leaks from creating a new ephemeral
+                # httpx.AsyncClient on every call.
+                if self._http_client_fallback is None:
+                    self._http_client_fallback = httpx.AsyncClient(timeout=self.timeout_call)
+                return self._http_client_fallback
             self._http_client_init_attempted = True
             try:
                 self._http_client = httpx.AsyncClient(timeout=self.timeout_call)
                 logger.debug("Smithery HTTP client initialized (shared, pooled)")
+                return self._http_client
             except Exception as e:
                 logger.warning("Smithery HTTP client init failed: %s", e)
-            return self._http_client or httpx.AsyncClient(timeout=self.timeout_call)
+                # Cache a fallback so we don't repeatedly try to create one.
+                self._http_client_fallback = httpx.AsyncClient(timeout=self.timeout_call)
+                return self._http_client_fallback
 
     async def _close_http_client(self) -> None:
         """Close the shared HTTP client. Safe to call multiple times."""
-        if self._http_client is None:
-            return
+        clients_to_close: list[httpx.AsyncClient] = []
         with self._http_client_lock:
-            if self._http_client is None:
-                return
-            client = self._http_client
-            self._http_client = None
-        with _suppress_context():
-            await client.aclose()
+            if self._http_client is not None:
+                clients_to_close.append(self._http_client)
+                self._http_client = None
+            fallback = self._http_client_fallback
+            self._http_client_fallback = None
+        if fallback is not None:
+            clients_to_close.append(fallback)
+        for client in clients_to_close:
+            with contextlib.suppress(Exception):
+                await client.aclose()
 
     # ─── Properties ──────────────────────────────────────────────────────
 
@@ -396,6 +413,10 @@ class SmitheryClient:
         """Execute an async operation with retry + exponential backoff.
 
         Respects the rate limiter and circuit breaker.
+
+        Note: catches ``Exception`` (not ``BaseException``) so that
+        ``KeyboardInterrupt`` / ``SystemExit`` propagate immediately
+        without being retried or swallowed.
         """
         if not self._check_circuit():
             return {
@@ -413,9 +434,6 @@ class SmitheryClient:
                 "result": None,
             }
 
-        import asyncio
-        import random
-
         last_exc: BaseException | None = None
         for attempt in range(self.max_retries + 1):
             try:
@@ -425,7 +443,7 @@ class SmitheryClient:
                 if attempt > 0:
                     logger.info("Smithery %s succeeded after %d retries", op_name, attempt)
                 return result
-            except BaseException as exc:  # noqa: BLE001 — broad on purpose
+            except Exception as exc:  # noqa: BLE001 — broad on purpose (NOT BaseException: let KeyboardInterrupt propagate)
                 last_exc = exc
                 if not _is_retryable_exception(exc):
                     self._record_call(success=False)
@@ -438,6 +456,7 @@ class SmitheryClient:
                     return {
                         "error": str(exc),
                         "error_type": type(exc).__name__,
+                        "attempts": attempt + 1,
                         "result": None,
                     }
                 if attempt >= self.max_retries:
@@ -660,9 +679,11 @@ def _atexit_close() -> None:
 
     Uses a fresh event loop because we're in an atexit context (no running
     loop). All exceptions are suppressed (atexit handlers must never raise).
-    """
-    import asyncio
 
+    Note: ``asyncio.new_event_loop()`` is used directly (instead of the
+    deprecated ``asyncio.get_event_loop()`` which emits a DeprecationWarning
+    on Python 3.12+).
+    """
     with contextlib.suppress(Exception):
         try:
             loop = asyncio.get_event_loop()
@@ -675,21 +696,3 @@ def _atexit_close() -> None:
 
 
 atexit.register(_atexit_close)
-
-
-# ─── Suppress context helper (avoids bare `except: pass`) ──────────────────
-
-
-class _suppress_context:
-    """Context manager that suppresses all exceptions (intentional no-op for shutdown).
-
-    Used in ``_close_http_client`` to avoid bare ``except: pass`` patterns
-    that would trip up SonarQube's S110 rule. Equivalent to
-    ``contextlib.suppress(Exception)`` but localized for clarity.
-    """
-
-    def __enter__(self) -> _suppress_context:
-        return self
-
-    def __exit__(self, *exc_info: Any) -> bool:
-        return True
