@@ -54,6 +54,10 @@ env:
   DATABASE_URL: sqlite+aiosqlite:///./test.db
 
 # =============================================================================
+
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
 
   # ── 1. K6 LOAD TEST ─────────────────────────────────────────────────────────
@@ -77,7 +81,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6  # pin SHA for security
@@ -250,7 +254,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6  # pin SHA for security
@@ -306,7 +310,7 @@ jobs:
           # These are throwaway credentials only used in CI; ENGINEERING_SERVICE_AUTH_DISABLED=true
           # is also set so the API-key middleware is bypassed.
           LOCUST_TEST_USERNAME: loadtest_user
-          LOCUST_TEST_PASSWORD: LoadTest-Str0ng-Passw0rd!2026
+          LOCUST_TEST_PASSWORD: ${{ secrets.LOCUST_TEST_PASSWORD }}
         run: |
           mkdir -p load-test-results/locust
 

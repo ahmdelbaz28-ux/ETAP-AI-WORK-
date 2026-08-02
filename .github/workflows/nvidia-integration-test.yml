@@ -21,13 +21,16 @@ on:
       - 'src/core/types.ts'
       - 'src/core/providers.ts'
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   nvidia-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security
@@ -60,8 +63,7 @@ jobs:
               FAIL=$((FAIL+1))
             else
               len=${#val}
-              masked="${val:0:8}...${val: -4}"
-              echo "  ✅ PASS  $s (length=$len, value=$masked)"
+              echo "  ✅ PASS  $s (length=$len)"
               PASS=$((PASS+1))
             fi
           done

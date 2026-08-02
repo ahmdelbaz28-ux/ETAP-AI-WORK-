@@ -10,6 +10,9 @@ on:
     # Run daily at 06:00 UTC to catch HF Space drift
     - cron: '0 6 * * *'
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   production-smoke:
     name: Production Smoke Tests
@@ -18,7 +21,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security

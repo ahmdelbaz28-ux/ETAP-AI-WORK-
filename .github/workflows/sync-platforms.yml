@@ -49,6 +49,9 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   HF_SPACE_REPO: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   # ── 1. FORWARD SYNC: GitHub → all downstream platforms ─────────────────────
   forward-sync:
@@ -56,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 0
 
@@ -398,7 +401,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 1
 
@@ -498,7 +501,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}

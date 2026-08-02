@@ -7,11 +7,14 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
+permissions:
+  contents: write  # Required to create GitHub releases
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # pin SHA for security
+      - uses: actions/checkout@v5  # pin SHA for security
       
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security

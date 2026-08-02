@@ -15,6 +15,9 @@ on:
       - 'alembic/**'
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   test-migrations:
     name: Test Migrations
@@ -37,7 +40,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
       
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security
@@ -78,7 +81,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
       
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security

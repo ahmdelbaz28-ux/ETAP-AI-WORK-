@@ -28,6 +28,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
 jobs:
   codeql:
     name: CodeQL Analysis
@@ -37,7 +40,7 @@ jobs:
       security-events: write  # SonarCloud S8233: scoped to this job only
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security
         with:
@@ -71,7 +74,7 @@ jobs:
     # security feature. Do NOT silence it with continue-on-error.
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
       - name: Dependency Review
         uses: actions/dependency-review-action@v5  # pin SHA for security
         with:
@@ -90,7 +93,7 @@ jobs:
     # The SARIF upload still reports to Security tab for manual review.
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -107,7 +110,7 @@ jobs:
             -v "${PWD}:/repo" \
             -v /tmp/trivy-cache:/root/.cache/trivy \
             -w /repo \
-            aquasec/trivy:latest \
+            aquasec/trivy:0.58.0 \
             fs --severity CRITICAL,HIGH \
                --ignore-unfixed \
                --exit-code 0 \
@@ -133,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security
@@ -195,7 +198,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pin SHA for security
+        uses: actions/checkout@v5  # pin SHA for security
 
       - name: Set up Python
         uses: actions/setup-python@v6  # pin SHA for security
