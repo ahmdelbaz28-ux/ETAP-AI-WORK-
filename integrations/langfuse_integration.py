@@ -51,7 +51,7 @@ import logging
 import os
 import threading
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -70,16 +70,10 @@ except ImportError:
 
 from integrations._observability_base import NoOpContext as _NoOpContext
 from integrations._observability_base import build_health_check
+from integrations._observability_base import env_truthy as _env_truthy
 
 
-def _env_truthy(var: str, default: bool = False) -> bool:
-    """Delegate to shared ``core.utils.env_truthy`` to eliminate duplication."""
-    from core.utils import env_truthy
-
-    return env_truthy(var, default)
-
-
-def _truncate_for_capture(text: Any, max_chars: int) -> Optional[str]:
+def _truncate_for_capture(text: Any, max_chars: int) -> str | None:
     """Truncate text to ``max_chars`` chars. Return ``None`` if capture disabled."""
     if max_chars <= 0:
         return None
@@ -121,7 +115,7 @@ class LangfuseTracker:
         # LAZY init: client is created on first use, not at construction.
         # This allows env vars loaded later (e.g., by python-dotenv) to
         # take effect, and it prevents network errors at import time.
-        self._client: Optional[Langfuse] = None
+        self._client: Langfuse | None = None
         self._client_lock = threading.Lock()
         self._client_init_attempted = False
 
@@ -135,7 +129,7 @@ class LangfuseTracker:
 
     # ─── Lazy client init ────────────────────────────────────────────────
 
-    def _get_client(self) -> Optional[Langfuse]:
+    def _get_client(self) -> Langfuse | None:
         """Lazily create the Langfuse client on first use (thread-safe)."""
         if not self.enabled:
             return None
@@ -170,13 +164,13 @@ class LangfuseTracker:
     def track(
         self,
         name: str,
-        input_text: Optional[str] = None,
-        output_text: Optional[str] = None,
-        metadata: Optional[dict] = None,
-        model: Optional[str] = None,
-        agent: Optional[str] = None,
-        user_id: Optional[str] = None,  # NOSONAR unused param kept for API compatibility
-        session_id: Optional[str] = None,  # NOSONAR unused param kept for API compatibility
+        input_text: str | None = None,
+        output_text: str | None = None,
+        metadata: dict | None = None,
+        model: str | None = None,
+        agent: str | None = None,
+        user_id: str | None = None,  # NOSONAR unused param kept for API compatibility
+        session_id: str | None = None,  # NOSONAR unused param kept for API compatibility
     ) -> None:
         """Manually log a single LLM interaction as a Langfuse trace."""
         client = self._get_client()
@@ -204,9 +198,9 @@ class LangfuseTracker:
     def get_context_manager(
         self,
         name: str,
-        metadata: Optional[dict] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        metadata: dict | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
     ):
         """Return a Langfuse observation context manager (or no-op)."""
         client = self._get_client()
@@ -232,8 +226,8 @@ class LangfuseTracker:
         self,
         name: str,
         label: str = "production",
-        fallback: Optional[str] = None,
-    ) -> Optional[str]:
+        fallback: str | None = None,
+    ) -> str | None:
         """Fetch a production prompt from Langfuse.
 
         This is a SYNCHRONOUS call and may block for up to ``self.timeout``
@@ -368,12 +362,12 @@ atexit.register(_atexit_flush)
 
 def track_llm_call(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     name: str,
-    agent: Optional[str] = None,
-    model: Optional[str] = None,
+    agent: str | None = None,
+    model: str | None = None,
     capture_input: bool = True,
     capture_output: bool = True,
-    user_id: Optional[str] = None,
-    session_id: Optional[str] = None,
+    user_id: str | None = None,
+    session_id: str | None = None,
 ) -> Callable:
     """
     Decorator to automatically track LLM calls via Langfuse.
@@ -506,9 +500,9 @@ def track_llm_call(  # NOSONAR cognitive complexity; scheduled for refactoring s
 
 def get_prompt_from_langfuse(
     name: str,
-    fallback: Optional[str] = None,
+    fallback: str | None = None,
     label: str = "production",
-) -> Optional[str]:
+) -> str | None:
     """Module-level helper around ``LangfuseTracker.get_prompt``."""
     return langfuse_tracker.get_prompt(name=name, label=label, fallback=fallback)
 

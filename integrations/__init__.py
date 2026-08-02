@@ -1,4 +1,23 @@
-"""Integrations package for AhmedETAP external service connections."""
+"""Integrations package for AhmedETAP external service connections.
+
+Aggregates all external integrations (Langfuse, LangWatch, Smithery, Supabase)
+into a single import surface, plus provides:
+
+- ``health_check_all()`` — aggregated health of all integrations
+- ``flush_all()`` / ``aclose_all()`` — graceful shutdown helpers
+- ``__version__`` — package version (mirrors pyproject.toml)
+"""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import logging
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+__version__ = "2.1.0"
 
 # Supabase (managed Postgres + Storage + optional Auth)
 # Primary observability — Langfuse (unlimited prompts on free Hobby plan)
@@ -143,4 +162,131 @@ __all__ = [
     "send_magic_link",
     "link_or_create_local_user",
     "supabase_auth_health_check",
+    # Package-level helpers
+    "__version__",
+    "health_check_all",
+    "flush_all",
+    "aclose_all",
 ]
+
+
+# ─── Aggregated health-check & shutdown helpers ─────────────────────────────
+
+
+def health_check_all() -> dict[str, Any]:
+    """Aggregate health_check() output from all integrations.
+
+    Returns a dict keyed by integration name. Each value is the
+    integration's own ``health_check()`` output. Failures during a
+    health_check call are caught and recorded as ``{"error": "..."}``
+    so one broken integration doesn't break the aggregate.
+
+    Example::
+
+        >>> from integrations import health_check_all
+        >>> health_check_all()
+        {
+            "langfuse": {"enabled": True, ...},
+            "langwatch": {"enabled": False, ...},
+            "smithery": {"enabled": True, ...},
+            "supabase": {"enabled": True, ...},
+            "supabase_auth": {"enabled": True, ...},
+        }
+    """
+    results: dict[str, Any] = {}
+
+    # Each (name, callable) — callable takes no args and returns a dict.
+    checks: list[tuple[str, Any]] = [
+        ("langfuse", lambda: langfuse_tracker.health_check()),
+        ("langwatch", lambda: langwatch_tracker.health_check()),
+        ("smithery", lambda: smithery_client.health_check()),
+        ("supabase", lambda: supabase_health_check()),
+        ("supabase_auth", lambda: supabase_auth_health_check()),
+    ]
+
+    for name, check in checks:
+        try:
+            results[name] = check()
+        except Exception as e:
+            logger.warning("health_check failed for %s: %s", name, e)
+            results[name] = {"enabled": False, "error": str(e)}
+
+    # Overall status: "healthy" if all enabled integrations are healthy,
+    # "degraded" if some are unhealthy, "down" if all are.
+    enabled_count = sum(1 for v in results.values() if v.get("enabled"))
+    error_count = sum(1 for v in results.values() if "error" in v)
+    if enabled_count == 0:
+        overall = "down"
+    elif error_count == 0:
+        overall = "healthy"
+    else:
+        overall = "degraded"
+
+    return {
+        "overall": overall,
+        "integrations": results,
+        "version": __version__,
+    }
+
+
+def flush_all() -> None:
+    """Flush pending events from all observability integrations (blocking).
+
+    Safe to call from an atexit handler or before shutdown. All exceptions
+    are suppressed — one integration's flush failure must not block others.
+    """
+    for name, flush_fn in [
+        ("langfuse", lambda: langfuse_tracker.flush()),
+        ("langwatch", lambda: langwatch_tracker.flush()),
+    ]:
+        with contextlib.suppress(Exception):
+            flush_fn()
+            logger.debug("Flushed %s", name)
+
+
+async def aclose_all() -> None:
+    """Async close for all integrations that hold resources (HTTP clients, etc.).
+
+    Call from FastAPI's shutdown event. Flushes observability buffers
+    and closes HTTP connection pools.
+    """
+    # Sync flush first
+    flush_all()
+
+    # Close async resources
+    for name, close_coro in [
+        ("smithery", smithery_client.aclose()),
+    ]:
+        try:
+            await close_coro
+            logger.debug("Closed %s", name)
+        except Exception as e:
+            logger.warning("Close failed for %s: %s", name, e)
+
+
+def _atexit_flush_all() -> None:
+    """Module-level atexit handler — flushes all integrations on shutdown.
+
+    For async resources (e.g., Smithery's HTTP client), each integration
+    registers its own atexit handler that creates a fresh event loop if
+    needed. This function only handles sync flushes.
+    """
+    with contextlib.suppress(Exception):
+        flush_all()
+
+
+atexit_handler_registered = False
+try:
+    import atexit as _atexit
+
+    _atexit.register(_atexit_flush_all)
+    atexit_handler_registered = True
+except Exception:  # pragma: no cover — atexit always available in CPython
+    pass
+
+
+logger.debug(
+    "integrations package initialized (version=%s, atexit=%s)",
+    __version__,
+    atexit_handler_registered,
+)
