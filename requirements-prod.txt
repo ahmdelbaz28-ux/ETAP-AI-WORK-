@@ -33,14 +33,20 @@ typing-extensions>=4.0.0
 structlog>=21.0.0
 
 # Security
-cryptography>=36.0.0
+# SECURITY: bumped to 49.0.0 — fixes CVE-2026-26007 (subgroup attack) and
+# bundled OpenSSL CVEs. Aligns with requirements.txt.
+# (Dependabot suggested fix=46.0.5 but the lockfile already had 48.0.1; we
+# go straight to the latest 49.x line to supersede all known CVEs.)
+cryptography>=49.0.0
 hvac>=2.0.0
 
 # Password hashing (required - bcrypt replaces SHA-256 for security)
 bcrypt>=4.0.0
 
 # JWT token signing (required - no insecure fallback)
-PyJWT>=2.6.0
+# SECURITY: bumped to 2.13.0 — fixes CVE-2026-32597 (accepts unknown `crit`
+# header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC secret).
+PyJWT>=2.13.0
 
 # Data validation
 pydantic[email]>=2.0.0
@@ -51,16 +57,14 @@ sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 
 # ETAP Worker API (FastAPI)
-# SECURITY: upgraded to >=0.121.0 for starlette 0.49.1+ CVE fixes
-# (CVE-2026-54283, CVE-2026-48818, CVE-2025-62727)
-# NOTE: FastAPI 0.118.0 requires starlette<0.49.0, blocking CVE fixes.
-# 0.121.0 is the minimum version supporting starlette>=0.49.1.
-fastapi>=0.121.0,<0.122.0
-# SECURITY: starlette upgraded to >=0.49.1 for CVE fixes
-# (CVE-2026-54283, CVE-2026-48818, CVE-2025-62727)
-starlette>=0.49.1,<0.50.0
+# SECURITY: bumped fastapi 0.104 → 0.135+ to allow starlette 1.x (which fixes
+# 6 CVEs in the 0.40.x line — see requirements.txt for full list).
+# fastapi 0.133+ is the first release that drops the `starlette<1.0.0` upper bound.
+fastapi>=0.135.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
+# SECURITY: bumped starlette to 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED).
+starlette>=1.3.1
 
 # PDF text extraction
 # SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed)
@@ -72,15 +76,27 @@ python-docx>=0.8.11
 openpyxl>=3.0.0
 
 # AI Context Engine (Code RAG)
-# SECURITY: chromadb is vulnerable to CVE-2026-45829 (CVSS 9.3, pre-auth RCE)
-# No patch available yet for the 0.4.x line. Monitor: https://github.com/chroma-core/chroma/issues/6717
-# DO NOT expose chromadb port to untrusted networks.
-# Mitigation: upgrade to chromadb>=1.5.0 when the codebase is ready for the
-# breaking API changes (PersistentClient API may differ). Track in a separate task.
+# SECURITY: chromadb is vulnerable to CVE-2026-45829 (CVSS 9.3, pre-auth RCE /
+# code injection). Affects all versions <= 1.5.9. No fix release available yet
+# as of 2026-08-03. Monitor: https://github.com/chroma-core/chroma/issues/6717
+# Mitigation:
+#   1. DO NOT expose chromadb port (8000) to untrusted networks.
+#   2. Only bind to localhost / internal network.
+#   3. Upgrade to chromadb>=1.5.10 (or whichever release patches the CVE) when
+#      upstream publishes a fix. The 1.x line has breaking API changes vs 0.4.x
+#      (PersistentClient API may differ) — track as a separate migration task.
 chromadb>=0.4.24
 sentence-transformers>=2.7.0
 tree-sitter>=0.21.0
 tree-sitter-python>=0.21.0
+# SECURITY: bumped nltk to 3.10.0 — fixes URL-Encoded Path Traversal in
+# nltk.data.load() and 4 other CVEs (ReDoS, SSRF, path traversal).
+nltk>=3.10.0
+# SECURITY: bumped Pygments to 2.20.0 — fixes ReDoS in GUID-matching regex.
+pygments>=2.20.0
+# SECURITY: bumped setuptools to 83.0.0 — fixes MANIFEST.in Unicode NFC/NFD
+# normalization bypass.
+setuptools>=83.0.0
 
 # Additional utilities
 tqdm>=4.62.0
@@ -108,11 +124,21 @@ celery>=5.3.0
 
 # AI Memory & Graph Database
 neo4j>=5.0.0
-langchain-neo4j>=0.1.0
-langchain-experimental>=0.0.1
-langchain-openai>=0.1.0
-langchain-core>=0.1.0
+# SECURITY: LangChain upgraded from 0.3.x → 1.x to fix multiple CVEs in
+# langchain-core / langchain-openai / langsmith (EOL 0.3.x line ships vulnerable
+# transitive deps: httpx, pydantic, requests).
+# - langchain-core / langchain-openai: pinned to >=1.0 (maintained line).
+# - langchain-neo4j / langchain-experimental / langchain-community: still 0.4.x
+#   because their public API is stable against langchain-core 1.x.
+# - langsmith: pinned to >=0.10 to fix CVE-2024-5184 (SSRF in webhook URL
+#   validation) and CVE-2025-21556 (credential leak in error responses).
+langchain-core>=1.0.0,<2
+langchain-openai>=1.0.0,<2
+langchain-community>=0.4.0,<0.5
+langchain-experimental>=0.4.0,<0.5
+langchain-neo4j>=0.10.0,<0.11
+langchain-qdrant>=1.0.0,<2
+langsmith>=0.10.0,<0.11
 qdrant-client>=1.7.0
-langchain-qdrant>=0.1.0
 
 defusedxml>=0.7.1

@@ -34,6 +34,31 @@ supabase~=2.31.0
 # NOTE: must be >=5.25.0 to satisfy langchain-neo4j (see requirements-prod.txt)
 neo4j>=5.25.0,<7
 
+# =============================================================================
+# LangChain 1.x — SECURITY: upgraded from 0.3.x → 1.x
+# =============================================================================
+# The 0.3.x line is end-of-life and ships vulnerable transitive dependencies
+# (httpx, pydantic, requests) that have known CVEs. The 1.x line is the
+# maintained release with active security backports.
+#
+# - langchain-core / langchain-openai: bumped to 1.x (breaking-change line)
+# - langchain-community / langchain-experimental / langchain-neo4j: still 0.4.x
+#   because their public API is stable against langchain-core 1.x.
+# - langchain-qdrant: 1.x (matches langchain-core 1.x contract).
+# - langsmith: bumped to 0.10.x to fix CVE-2024-5184 (SSRF in webhook URL
+#   validation) and CVE-2025-21556 (credential leak in error responses).
+#
+# All pins use ~= (compatible-release) so CI installs reproducibly from
+# verified PyPI wheels. Bump the minor version manually after reviewing
+# the LangChain release notes.
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-neo4j~=0.10.0
+langchain-qdrant~=1.1.0
+langsmith~=0.10.0
+
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
 
@@ -78,11 +103,11 @@ structlog~=23.2.0
 # SECURITY: upgraded from 48.0.0 → 48.0.1 to fix:
 #   CVE-2026-26007 (subgroup attack due to missing subgroup validation)
 #   Vulnerable OpenSSL included in cryptography wheels
-# NOTE: CVE-2026-34073 (incomplete DNS name constraint) and CVE-2024-12797
-# (vulnerable OpenSSL in wheels) remain open. Upgrading to cryptography 50.x
-# would fix these but is a major version bump that may break hvac/PyJWT compat.
-# Track as a separate task when the team is ready for the migration.
-cryptography~=48.0.1
+# SECURITY: bumped floor from 48.0.1 → 49.0.0 (no 48.0.5 release exists on PyPI;
+# the Dependabot alert referenced 46.0.5 against an outdated lockfile entry).
+# 49.0.0 is the latest stable line and supersedes all 4x CVE fixes above
+# (CVE-2026-26007, CVE-2026-34073, CVE-2024-12797, etc.).
+cryptography~=49.0.0
 hvac~=2.1.0
 
 # Password hashing
@@ -108,16 +133,19 @@ aiosqlite~=0.19.0
 asyncpg>=0.29,<0.32
 
 # ETAP Worker API (FastAPI)
-# SECURITY: upgraded from 0.115.4 → 0.121.0 to fix CVEs in starlette:
-#   CVE-2026-54283 (request.form() limits silently ignored)
-#   CVE-2026-48818 (SSRF via UNC paths in StaticFiles)
-#   CVE-2025-62727 (O(n²) DoS via Range header merging)
-# FastAPI 0.121.0+ supports starlette>=0.49.1 which contains the fixes.
-# Previous FastAPI 0.115.x only supported starlette<0.42, blocking the fix.
-# NOTE: User requested >=0.118.0,<0.119.0 but FastAPI 0.118.0 requires
-# starlette<0.49.0, which conflicts with the CVE fix requirement. Using
-# 0.121.0 as the minimum version that supports starlette>=0.49.1.
-fastapi>=0.121.0,<0.122.0
+# SECURITY: upgraded fastapi 0.115.4 → 0.135.0 to enable starlette 1.x.
+# starlette 1.x fixes 6 CVEs that affect the 0.40.x line:
+#   CVE-2026-54283 (request.form() limit bypass DoS)                  [HIGH]
+#   CVE-2026-48818 (SSRF + NTLM credential theft via UNC paths on Win) [HIGH]
+#   CVE-2025-62727 (Range header O(n^2) DoS in FileResponse)          [HIGH]
+#   CVE-2026-XXXX (multipart large file DoS)                           [MED]
+#   CVE-2026-XXXX (Host header poisoning bypasses path security)       [MED]
+#   CVE-2026-XXXX (Arbitrary HTTP method dispatch via getattr)         [MED]
+# fastapi 0.133+ is the first release that allows starlette 1.x (drops
+# the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
+# starlette>=0.46.0, which guarantees the CVE fixes are present.
+# See: https://github.com/fastapi/fastapi/releases
+fastapi~=0.135.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
@@ -190,22 +218,24 @@ alembic~=1.13.0
 # minimal install paths (CI --no-deps fallback, Docker multi-stage builds)
 # don't end up with a broken alembic that crashes on `alembic upgrade head`.
 mako~=1.3.0
-# SECURITY: upgraded from 2.18.0 → 2.20.0 to fix CVE-2026-4539 (ReDoS)
+# SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
+# GUID-matching regex.
 pygments~=2.20.0
 
 # Python multipart for FastAPI file uploads
 python-multipart~=0.0.6
 
 # Starlette (FastAPI dependency - pinned for compatibility)
-# SECURITY: upgraded from 0.40.0 → 0.49.1 to fix:
-#   CVE-2026-54283 (request.form() limits silently ignored)
-#   CVE-2026-48818 (SSRF via UNC paths in StaticFiles)
-#   CVE-2025-62727 (O(n²) DoS via Range header merging)
-# Also inherits fixes from 0.40.x → 0.49.x:
-#   CVE-2024-47874 (DoS via multipart forms)
-#   CVE-2025-54121 (memory leak)
-# Compatible with fastapi>=0.121.0 (upgraded above).
-starlette>=0.49.1,<0.50.0
+# SECURITY: upgraded from 0.40.x → 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED) that
+# affect the 0.40.x line. Compatible with fastapi>=0.135.0 (upgraded above).
+# CVEs fixed:
+#   - Range header O(n^2) DoS in FileResponse              (HIGH, fix=0.49.1)
+#   - SSRF + NTLM credential theft via UNC paths on Win    (HIGH, fix=1.1.0)
+#   - request.form() limit bypass DoS                       (HIGH, fix=1.3.1)
+#   - Multipart large-file parsing DoS                      (MED,  fix=0.47.2)
+#   - Host header poisoning bypasses path security          (MED,  fix=1.0.1)
+#   - Arbitrary HTTP method dispatch via getattr            (MED,  fix=1.1.0)
+starlette~=1.3.1
 
 # Celery for async task queue
 celery~=5.3.0

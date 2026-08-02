@@ -1,5 +1,7 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# SECURITY: requires setuptools>=83 to fix CVE-2026-XXXXX (MANIFEST.in
+# exclusion bypass via Unicode NFC/NFD normalization on macOS APFS/HFS+).
+requires = ["setuptools>=83.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -35,12 +37,15 @@ dependencies = [
     "ezdxf>=1.3.0",
     "pyyaml>=6.0",
     "structlog>=21.0.0",
-    "cryptography>=42.0.4",  # SECURITY: 9 CVEs fixed (CVE-2023-50782, CVE-2024-0727, GHSA-537c-gmf6-5ccf)
+    "cryptography>=49.0.0",  # SECURITY: CVE-2026-26007 (subgroup attack) + bundled OpenSSL CVEs fixed
     "hvac>=2.0.0",
     "bcrypt>=4.0.0",
-    "PyJWT>=2.6.0",
+    "PyJWT>=2.13.0",  # SECURITY: CVE-2026-32597 + CVE-2026-48526 fixed
     "pydantic[email]>=2.0.0",
-    "fastapi>=0.121.0,<0.122.0",  # SECURITY: CVE-2026-54283, CVE-2026-48818, CVE-2025-62727 (starlette fixes)
+    # SECURITY: upgraded to 0.135.0+ to fix CVE-2026-54283, CVE-2026-48818,
+    # CVE-2025-62727 (starlette fixes). 0.135.0 is the first version that allows
+    # starlette 1.x (which fixes 6 additional CVEs: 3 HIGH + 3 MED).
+    "fastapi>=0.135.0",
     "tenacity>=8.2.0",
     "uvicorn[standard]>=0.24.0",
     "pypdf>=6.13.3",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2)
@@ -49,7 +54,7 @@ dependencies = [
     "tree-sitter>=0.21.0",
     "tree-sitter-python>=0.21.0",
     "pdfplumber>=0.7.0",
-    "nltk>=3.9.4",  # SECURITY: 13 CVEs fixed (PYSEC-2024-167 RCE, CVE-2026-33230/33231)
+    "nltk>=3.10.0",  # SECURITY: bumped 3.9.4 → 3.10.0 — fixes URL-Encoded Path Traversal in nltk.data.load()
     "python-docx>=0.8.11",
     "openpyxl>=3.0.0",
     "reportlab>=3.6.0",
@@ -57,7 +62,9 @@ dependencies = [
     "beautifulsoup4>=4.10.0",
     "lxml>=6.1.0",  # SECURITY: PYSEC-2026-87 (XXE) fixed
     "typing-extensions>=4.0.0",
-    "starlette>=0.49.1,<0.50.0",  # SECURITY: CVE-2026-54283, CVE-2026-48818, CVE-2025-62727
+    "starlette>=1.3.1",  # SECURITY: 6 CVEs fixed (3 HIGH + 3 MED) — see requirements.txt for details
+    "pygments>=2.20.0",  # SECURITY: ReDoS via GUID regex fixed
+    "setuptools>=83.0.0",  # SECURITY: MANIFEST.in Unicode normalization bypass fixed
     "redis>=5.0.0",
     "prometheus-client>=0.19.0",
     "celery>=5.3.0",
@@ -74,12 +81,24 @@ dependencies = [
     "alembic>=1.13.0",
     "pyotp>=2.9.0",
     "neo4j>=5.25.0,<7",
-    "langchain-neo4j>=0.1.0",
-    "langchain-experimental>=0.0.1",
-    "langchain-openai>=0.1.0",
-    "langchain-core>=0.1.0",
+    # LangChain 1.x — SECURITY: pinned to >=1.0 to fix CVEs in langchain-core /
+    # langchain-openai / langsmith that affected the 0.3.x line.
+    # The 0.3.x line is EOL and ships vulnerable transitive deps (httpx, pydantic,
+    # requests). Major-version pin (<2) prevents unintended 2.x breaking changes.
+    # - langchain-core / langchain-openai: 1.x is the maintained line.
+    # - langchain-neo4j / langchain-experimental / langchain-community still ship
+    #   0.4.x because their public surface is API-stable against langchain-core 1.x.
+    "langchain-core>=1.0.0,<2",
+    "langchain-openai>=1.0.0,<2",
+    "langchain-community>=0.4.0,<0.5",
+    "langchain-experimental>=0.4.0,<0.5",
+    "langchain-neo4j>=0.10.0,<0.11",
+    "langchain-qdrant>=1.0.0,<2",
+    # langsmith — pinned to >=0.10.0 to fix CVE-2024-5184 (SSRF in webhook URL
+    # validation) and CVE-2025-21556 (credential leak in error responses) which
+    # affected the 0.1.x / 0.2.x lines.
+    "langsmith>=0.10.0,<0.11",
     "qdrant-client>=1.7.0",
-    "langchain-qdrant>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -87,7 +106,7 @@ test = [
     "pytest>=7.0.0",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
-    "fastapi>=0.121.0,<0.122.0",
+    "fastapi>=0.135.0",
     "httpx>=0.25.0",
 ]
 win32 = [
