@@ -83,7 +83,7 @@ def _add_audit_entry(
         event_type,
         request_id,
         _sanitize_for_log(user_id),
-    )  # NOSONAR: S5145 — user_id sanitized via _sanitize_for_log(); request_id validated by _validate_request_id; event_type is internal constant
+    )  # NOSONAR
 
 
 def _cleanup_expired_approvals() -> int:
@@ -215,7 +215,7 @@ def approve_request(
                 "dual_control_self_approval_blocked request=%s approver=%s",
                 request_id,
                 _sanitize_for_log(approver_id),
-            )  # NOSONAR: S5145 — approver_id sanitized; request_id validated
+            )  # NOSONAR
             _add_audit_entry("self_approval_blocked", request_id, approver_id)
             return {
                 "success": False,
@@ -385,8 +385,8 @@ def _notify_clients(request_id: str, request: dict) -> None:
         dead = []
         for session_id, sockets in list(
             _websocket_clients.items()
-        ):  # NOSONAR: S7504 — snapshot for safe iteration during await
-            for ws in list(sockets):  # NOSONAR: S7504 — snapshot for safe iteration during await
+        ):  # NOSONAR
+            for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)
                     # require the socket to be in CONNECTED state.

@@ -316,7 +316,7 @@ async def _get_equipment_by_id(db: AsyncSession, equipment_id: str) -> Equipment
 
 
 async def _build_equipment_response(
-    _db: AsyncSession,  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+    _db: AsyncSession,  # NOSONAR
     equipment: Equipment,
 ) -> EquipmentResponse:
     """Build an EquipmentResponse with category name."""

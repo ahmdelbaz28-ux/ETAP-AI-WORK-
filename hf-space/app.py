@@ -11,10 +11,8 @@ are defined in one place and reused by both the HF Space and the main API.
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_DOCS_PATH = "/docs"  # NOSONAR: extracted constant (S1192)
-_REDOC_PATH = "/redoc"  # NOSONAR: extracted constant (S1192)
-
-# datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
+_DOCS_PATH = "/docs"  # NOSONAR
+_REDOC_PATH = "/redoc"  # NOSONAR datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
 # (pyproject.toml) in production, but local testing may run on Python <3.11.
 # The polyfill is restored with a noqa comment to suppress Ruff UP017 checks.
 import datetime
@@ -142,8 +140,8 @@ app = FastAPI(
     version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
     license_info={"name": "MIT"},
-    docs_url=_DOCS_PATH,  # NOSONAR: S1192 literal kept inline for readability
-    redoc_url=_REDOC_PATH,  # NOSONAR: S1192 literal kept inline for readability
+    docs_url=_DOCS_PATH,  # NOSONAR
+    redoc_url=_REDOC_PATH,  # NOSONAR
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
@@ -651,7 +649,7 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
 )
 async def etap_gui_execute(
     request: Request,
-):  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+):  # NOSONAR
     """Execute the REAL CUA Loop (Computer Use Agent).
 
     AUTO-DETECTS THE ENVIRONMENT:
@@ -1158,7 +1156,7 @@ async def etap_gui_siem_events(limit: int = 50):
         return {
             "success": True,
             "data": {"events": [], "total": 0, "message": "No events yet"},
-        }  # NOSONAR: aiofiles.open is async; S7493 false positive
+        }  # NOSONAR
 
     limit = min(max(limit, 1), 200)
     events = []
@@ -1266,7 +1264,7 @@ async def benchmark():
         size = 200
         # SonarCloud python:S6711: use numpy.random.Generator (modern API)
         # instead of the legacy np.random.rand function.
-        rng = np.random.default_rng(seed=42)  # NOSONAR: S6709: explicit seed for reproducibility
+        rng = np.random.default_rng(seed=42)  # NOSONAR
         t0 = time.perf_counter()
         a = rng.random((size, size))
         b = rng.random((size, size))

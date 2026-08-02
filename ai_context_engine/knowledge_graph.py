@@ -149,7 +149,7 @@ class KnowledgeGraph:
 
         return {"nodes": impacted_nodes, "edges": impacted_edges}
 
-    def scan_file_for_relations(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def scan_file_for_relations(  # NOSONAR
         self, filepath: Path, repo_root: Path
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Parse file imports and class structure using AST to populate the graph.
@@ -220,7 +220,7 @@ class KnowledgeGraph:
         except Exception as e:
             logger.exception("Failed to scan %s for KG: %s", filepath, e)
 
-    def resolve_references(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def resolve_references(  # NOSONAR
         self,
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Resolve module imports and class references to their actual file and class nodes."""

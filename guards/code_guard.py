@@ -148,7 +148,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-03: Intent-revealing names (heuristic: single-letter vars outside loops)
     # ------------------------------------------------------------------
-    def _check_intent_revealing_names(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _check_intent_revealing_names(  # NOSONAR
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation
@@ -285,7 +285,7 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-04: Boolean flag arguments
     # ------------------------------------------------------------------
-    def _check_boolean_flags(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _check_boolean_flags(  # NOSONAR
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation
@@ -333,28 +333,46 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-06: CQS violation — function returns value AND mutates state
     # ------------------------------------------------------------------
-    def _check_cqs_violations(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-        self, tree: ast.AST, _source: str
-    ) -> list[
-        GuardViolation
-    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    MUTATING_METHODS = {
+        "append",
+        "extend",
+        "insert",
+        "remove",
+        "pop",
+        "clear",
+        "sort",
+        "reverse",
+        "update",
+        "add",
+        "discard",
+    }
+
+    @staticmethod
+    def _is_nonlocal_mutation(obj: ast.AST, func_node: ast.AST) -> bool:
+        """Check if a mutation target is on a non-local object (self.x or param.x)."""
+        if isinstance(obj, ast.Name):
+            param_names = {
+                a.arg for a in func_node.args.args if a.arg not in ("self", "cls")
+            }
+            if obj.id in param_names or obj.id == "self":
+                return True
+        elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
+            if obj.value.id == "self":
+                return True
+        return False
+
+    @staticmethod
+    def _describe_mutation(obj: ast.AST, method_name: str) -> str:
+        """Build a human-readable description of the mutation."""
+        if isinstance(obj, ast.Attribute):
+            return f"self.{obj.attr}.{method_name}()"
+        return f"{obj.id}.{method_name}()"
+
+    def _check_cqs_violations(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         """Heuristic: functions that both return a value and call mutating
         methods (append, extend, update, remove, pop, clear, sort) on
         non-local objects."""
         violations: list[GuardViolation] = []
-        MUTATING_METHODS = {
-            "append",
-            "extend",
-            "insert",
-            "remove",
-            "pop",
-            "clear",
-            "sort",
-            "reverse",
-            "update",
-            "add",
-            "discard",
-        }
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -367,27 +385,12 @@ class CodeGuard(BaseGuard):
                 if (
                     isinstance(child, ast.Call)
                     and isinstance(child.func, ast.Attribute)
-                    and child.func.attr in MUTATING_METHODS
+                    and child.func.attr in CodeGuard.MUTATING_METHODS
                 ):
-                    # Check if this is a mutation on a non-local object
-                    # self.x.method() or param.method() or external.method()
                     obj = child.func.value
-                    is_nonlocal = False
-                    if isinstance(obj, ast.Name):
-                        param_names = {
-                            a.arg for a in node.args.args if a.arg not in ("self", "cls")
-                        }
-                        if obj.id in param_names or obj.id == "self":
-                            is_nonlocal = True
-                    elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
-                        if obj.value.id == "self":
-                            is_nonlocal = True
-                    if is_nonlocal:
+                    if self._is_nonlocal_mutation(obj, node):
                         has_mutation = True
-                        if isinstance(obj, ast.Attribute):
-                            mutation_evidence = f"self.{obj.attr}.{child.func.attr}()"
-                        else:
-                            mutation_evidence = f"{obj.id}.{child.func.attr}()"
+                        mutation_evidence = self._describe_mutation(obj, child.func.attr)
 
             if has_return_value and has_mutation:
                 violations.append(
@@ -419,7 +422,7 @@ class CodeGuard(BaseGuard):
             r"#\s*(?:if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
             r"#\s*\w+\s*=\s*",  # assignment
             r"#\s*\w+\.\w+\(",  # method call
-            r"#\s*print\s*\(",  # NOSONAR: S8786 — regex pattern string, not a comment; print statement detection
+            r"#\s*print\s*\(",  # NOSONAR
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()

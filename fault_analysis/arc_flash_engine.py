@@ -342,7 +342,7 @@ class ArcFlashEngine:
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
             v_enc = (
                 enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm
-            )  # NOSONAR: mm^3  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
             v_ref = (
                 508.0**3

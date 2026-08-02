@@ -188,7 +188,7 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> str:
         if str(resolved_ip) in (
             "169.254.169.254",
             "fd00:ec2::254",
-        ):  # NOSONAR: cloud metadata endpoints (AWS/GCP) - intentional blocklist (S1313)
+        ):  # NOSONAR
             raise _SSRFBlockedError(
                 f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
             )
@@ -553,7 +553,7 @@ def register_endpoint(
     body: RegisterEndpointRequest,
     user: CurrentUser = Depends(
         require_role("admin", "service")
-    ),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
+    ),  # NOSONAR
 ) -> JSONResponse:
     """Register a new webhook endpoint to receive forwarded email events.
 
@@ -603,7 +603,7 @@ def register_endpoint(
 def list_endpoints(
     user: CurrentUser = Depends(
         require_role("admin", "service")
-    ),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
+    ),  # NOSONAR
 ) -> JSONResponse:
     """List all registered outbound webhook endpoints.
 
@@ -638,7 +638,7 @@ def delete_endpoint(
     endpoint_id: str,
     user: CurrentUser = Depends(
         require_role("admin", "service")
-    ),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
+    ),  # NOSONAR
 ) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent).
 
@@ -671,7 +671,7 @@ async def test_endpoint(
     endpoint_id: str,
     user: CurrentUser = Depends(
         require_role("admin", "service")
-    ),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
+    ),  # NOSONAR
 ) -> JSONResponse:
     """Send a test event to a webhook endpoint.
 
@@ -717,7 +717,7 @@ def list_events(
     limit: int = 50,
     user: CurrentUser = Depends(
         require_role("admin", "service")
-    ),  # NOSONAR: FastAPI Depends injection — Annotated migration requires param reordering (S8410)
+    ),  # NOSONAR
 ) -> JSONResponse:
     """List recent inbound webhook events.
 

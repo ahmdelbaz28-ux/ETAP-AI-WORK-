@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Module-level string constants (extracted to satisfy S1192).
-_STUDY_TYPE_3BUS_LF = "3-Bus LF"  # NOSONAR: extracted constant (S1192)
+_STUDY_TYPE_3BUS_LF = "3-Bus LF"  # NOSONAR
 """Full Verification and Validation Campaign for Power Protection System"""
 
 import os
@@ -36,7 +36,7 @@ class ValidationCampaign:
         self.failed = 0
         self.warnings = 0
 
-    # NOSONAR: nested ternary kept for readability — single-expression mapping (S3358)
+    # NOSONAR
     def _record(self, category, test_name, passed, detail="", warning=False):
         if passed:
             status = "PASS"
@@ -120,7 +120,7 @@ class ValidationCampaign:
             _STUDY_TYPE_3BUS_LF,
             "Convergence",
             converged,
-            f"Converged={converged}",  # NOSONAR: S1192 literal kept inline for readability
+            f"Converged={converged}",  # NOSONAR
         )  # NOSONAR intentional repetition (audit constant)
 
         if converged:
@@ -142,7 +142,7 @@ class ValidationCampaign:
             # Slack bus picks up the difference
             p_loss = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 total_gen - total_load
-            )  # NOSONAR: should be positive (losses)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            )  # NOSONAR
             self._record(
                 _STUDY_TYPE_3BUS_LF,
                 "Power Balance",
@@ -322,7 +322,7 @@ class ValidationCampaign:
                 else "Some out of range",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
             )
 
-    def validate_ieee_30bus(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def validate_ieee_30bus(  # NOSONAR
         self,
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """IEEE 30-Bus Load Flow Validation (Simplified)."""
@@ -542,7 +542,7 @@ class ValidationCampaign:
         )
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
-        Ith = if_3ph  # NOSONAR: Simplified  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Ith = if_3ph  # NOSONAR
         self._record("SC", "Thermal Current", Ith > 0, f"Ith={Ith:.4f} pu")
 
         # SLG fault

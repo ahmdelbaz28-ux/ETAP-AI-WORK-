@@ -289,11 +289,39 @@ class IntentParser:
         confidence = min(best_score, 1.0)
         return best_type, confidence
 
-    def _extract_parameters(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-        self, text: str
-    ) -> dict[
-        str, Any
-    ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    @staticmethod
+    def _simplify_values(values: list) -> Any:
+        """Return single value if list has one element, else the list."""
+        return values[0] if len(values) == 1 else values
+
+    def _convert_param_values(self, param_name: str, values: list, text: str, params: dict) -> None:
+        """Convert and store parameter values based on type."""
+        if param_name == "voltage_kv":
+            values = [v * 1000 for v in values]  # kV → V
+            params["voltage"] = self._simplify_values(values)
+        elif param_name == "voltage_v":
+            # V values stay as-is, but only if no kV values were already extracted
+            if "voltage" not in params:
+                params["voltage"] = self._simplify_values(values)
+        elif param_name == "power":
+            if "mw" in text.lower() or "mva" in text.lower():
+                values = [v * 1000 for v in values]  # MW → kW
+            params[param_name] = self._simplify_values(values)
+        else:
+            params[param_name] = self._simplify_values(values)
+
+    def _interpret_current_list(self, params: dict, text: str) -> None:
+        """Interpret current list as [main_breaker_a, feeder_a]."""
+        if "current" not in params or not isinstance(params["current"], list):
+            return
+        currents = params["current"]
+        params["main_current"] = currents[0]
+        if len(currents) > 1:
+            params["feeder_current"] = currents[1]
+        elif "feeder" in text.lower():
+            params["feeder_current"] = currents[0]
+
+    def _extract_parameters(self, text: str) -> dict[str, Any]:
         """Extract numerical and categorical parameters from text."""
         import re
 
@@ -301,40 +329,15 @@ class IntentParser:
 
         for param_name, pattern in self.PARAM_PATTERNS.items():
             matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                values = [float(m) if "." in m or m.isdigit() else m for m in matches]
-                # Convert units
-                if param_name == "voltage_kv":
-                    values = [v * 1000 for v in values]  # kV → V
-                    params["voltage"] = values[0] if len(values) == 1 else values
-                elif param_name == "voltage_v":
-                    # V values stay as-is, but only if no kV values were already extracted
-                    if "voltage" not in params:
-                        params["voltage"] = values[0] if len(values) == 1 else values
-                    else:
-                        # Merge: kV values are primary, V values are secondary
-                        pass
-                elif param_name == "power":
-                    if "mw" in text.lower() or "mva" in text.lower():
-                        values = [v * 1000 for v in values]  # MW → kW
-                    params[param_name] = values[0] if len(values) == 1 else values
-                else:
-                    params[param_name] = values[0] if len(values) == 1 else values
+            if not matches:
+                continue
+            values = [float(m) if "." in m or m.isdigit() else m for m in matches]
+            self._convert_param_values(param_name, values, text, params)
 
-        # Special handling: when `current` is a list, interpret as [main_breaker_a, feeder_a]
-        # E.g. "2000A main with 200A feeders" → main=2000, feeder=200
-        # E.g. "6 outgoing feeders each 200A" → feeder=200
-        if "current" in params and isinstance(params["current"], list):
-            currents = params["current"]
-            params["main_current"] = currents[0]
-            if len(currents) > 1:
-                params["feeder_current"] = currents[1]
-            elif "feeder" in text.lower():
-                params["feeder_current"] = currents[0]
-
+        self._interpret_current_list(params, text)
         return params
 
-    def _extract_entities(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _extract_entities(  # NOSONAR
         self, text: str
     ) -> list[
         dict
@@ -407,9 +410,118 @@ class IntentParser:
 class GraphBuilder:
     """Builds an engineering knowledge graph from parsed intents."""
 
-    def build(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-        self, intent: EngineeringIntent
-    ) -> EngineeringGraph:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    @staticmethod
+    def _determine_panel_type(raw_lower: str) -> str:
+        """Determine panel type from text."""
+        if "lighting" in raw_lower:
+            return "LP"
+        if "power panel" in raw_lower:
+            return "POWER_PANEL"
+        if "motor control" in raw_lower:
+            return "MCC"
+        if "incoming panel" in raw_lower or "main panel" in raw_lower:
+            return "MDP"
+        return "MDP"
+
+    @staticmethod
+    def _determine_transformer_type(raw_lower: str) -> str:
+        """Determine transformer type from text."""
+        if "step up" in raw_lower:
+            return "step_up"
+        if "main transformer" in raw_lower or "power transformer" in raw_lower:
+            return "power"
+        return "step_down"
+
+    @staticmethod
+    def _determine_generator_type(raw_lower: str) -> str:
+        """Determine generator type from text."""
+        if "emergency" in raw_lower or "standby" in raw_lower:
+            return "diesel"
+        return "synchronous"
+
+    def _add_entity_nodes(self, graph: EngineeringGraph, root_id: str, entities: list) -> None:
+        """Add entity nodes from the parsed intent to the graph."""
+        for entity in entities:
+            entity_id = f"{entity['type']}_{uuid.uuid4().hex[:8]}"
+            entity["id"] = entity_id
+            graph.nodes[entity_id] = entity
+            graph.edges.append({"from": root_id, "to": entity_id, "type": "creates"})
+
+    def _add_missing_panel_node(self, graph: EngineeringGraph, root_id: str, raw_text: str) -> None:
+        """Add a panel node if missing from entity extraction."""
+        panel_id = f"panel_{uuid.uuid4().hex[:8]}"
+        panel_type = self._determine_panel_type(raw_text.lower())
+        graph.nodes[panel_id] = {
+            "id": panel_id,
+            "type": "panel",
+            "panel_type": panel_type,
+            "label": "auto panel from " + raw_text[:40],
+        }
+        graph.edges.append({"from": root_id, "to": panel_id, "type": "creates"})
+
+    def _add_missing_transformer_node(self, graph: EngineeringGraph, root_id: str, raw_text: str) -> None:
+        """Add a transformer node if missing and substation intent."""
+        xf_id = f"transformer_{uuid.uuid4().hex[:8]}"
+        xf_type = self._determine_transformer_type(raw_text.lower())
+        graph.nodes[xf_id] = {
+            "id": xf_id,
+            "type": "transformer",
+            "transformer_type": xf_type,
+            "label": "auto xf from " + raw_text[:40],
+        }
+        graph.edges.append({"from": root_id, "to": xf_id, "type": "supplies"})
+
+    def _add_missing_generator_node(self, graph: EngineeringGraph, root_id: str, raw_text: str) -> None:
+        """Add a generator node if missing and text mentions generator."""
+        gen_id = f"generator_{uuid.uuid4().hex[:8]}"
+        gen_type = self._determine_generator_type(raw_text.lower())
+        graph.nodes[gen_id] = {
+            "id": gen_id,
+            "type": "generator",
+            "generator_type": gen_type,
+            "label": "auto gen from " + raw_text[:40],
+        }
+        graph.edges.append({"from": root_id, "to": gen_id, "type": "supplies"})
+
+    def _add_missing_nodes(self, graph: EngineeringGraph, root_id: str, intent: EngineeringIntent) -> None:
+        """Add missing entity nodes for panel/substation intents."""
+        if intent.type not in (
+            EngineeringIntentType.CREATE_PANEL,
+            EngineeringIntentType.CREATE_SUBSTATION,
+        ):
+            return
+        raw_lower = intent.raw_text.lower()
+        has_panel = any(n.get("type") == "panel" for n in graph.nodes.values())
+        has_xf = any(n.get("type") == "transformer" for n in graph.nodes.values())
+        has_gen = any(n.get("type") == "generator" for n in graph.nodes.values())
+
+        if not has_panel:
+            self._add_missing_panel_node(graph, root_id, intent.raw_text)
+        if not has_xf and intent.type == EngineeringIntentType.CREATE_SUBSTATION:
+            self._add_missing_transformer_node(graph, root_id, intent.raw_text)
+        if not has_gen and ("generator" in raw_lower or "genset" in raw_lower):
+            self._add_missing_generator_node(graph, root_id, intent.raw_text)
+
+    @staticmethod
+    def _apply_parameters_to_nodes(graph: EngineeringGraph, parameters: dict) -> None:
+        """Apply extracted parameters to relevant graph nodes."""
+        if not parameters:
+            return
+        _PARAM_KEYS = ("voltage", "power", "count", "feeder_count", "main_current", "feeder_current")
+        for node_id in graph.nodes:
+            if graph.nodes[node_id].get("type") not in ("panel", "transformer", "bus"):
+                continue
+            for key in _PARAM_KEYS:
+                if key in parameters:
+                    graph.nodes[node_id][key] = parameters[key]
+            # Also set from raw `current` for backward compatibility
+            if "current" in parameters:
+                c = parameters["current"]
+                if isinstance(c, (int, float)):
+                    graph.nodes[node_id]["main_current"] = c
+                    graph.nodes[node_id]["feeder_current"] = c
+
+    def build(self, intent: EngineeringIntent) -> EngineeringGraph:
         """Build an engineering graph from a parsed intent.
 
         Creates nodes for each entity and edges for their relationships.
@@ -425,101 +537,9 @@ class GraphBuilder:
             "label": intent.raw_text[:80],
         }
 
-        for entity in intent.entities:
-            entity_id = f"{entity['type']}_{uuid.uuid4().hex[:8]}"
-            entity["id"] = entity_id
-            graph.nodes[entity_id] = entity
-            graph.edges.append(
-                {
-                    "from": root_id,
-                    "to": entity_id,
-                    "type": "creates",
-                },
-            )
-
-        # If intent is panel/substation-related but no entity was extracted,
-        # create nodes from the intent type alone
-        create_panel = not any(n.get("type") == "panel" for n in graph.nodes.values())
-        create_xf = not any(n.get("type") == "transformer" for n in graph.nodes.values())
-        create_gen = not any(n.get("type") == "generator" for n in graph.nodes.values())
-
-        if intent.type in (
-            EngineeringIntentType.CREATE_PANEL,
-            EngineeringIntentType.CREATE_SUBSTATION,
-        ):
-            raw_lower = intent.raw_text.lower()
-
-            # Create panel node if missing
-            if create_panel:
-                panel_id = f"panel_{uuid.uuid4().hex[:8]}"
-                panel_type = "MDP"
-                if "lighting" in raw_lower:
-                    panel_type = "LP"
-                elif "power panel" in raw_lower:
-                    panel_type = "POWER_PANEL"
-                elif "motor control" in raw_lower:
-                    panel_type = "MCC"
-                elif "incoming panel" in raw_lower or "main panel" in raw_lower:
-                    panel_type = "MDP"
-                graph.nodes[panel_id] = {
-                    "id": panel_id,
-                    "type": "panel",
-                    "panel_type": panel_type,
-                    "label": "auto panel from " + intent.raw_text[:40],
-                }
-                graph.edges.append({"from": root_id, "to": panel_id, "type": "creates"})
-
-            # Create transformer node if missing and substation intent
-            if create_xf and intent.type == EngineeringIntentType.CREATE_SUBSTATION:
-                xf_id = f"transformer_{uuid.uuid4().hex[:8]}"
-                xf_type = "step_down"
-                if "step up" in raw_lower:
-                    xf_type = "step_up"
-                elif "main transformer" in raw_lower or "power transformer" in raw_lower:
-                    xf_type = "power"
-                graph.nodes[xf_id] = {
-                    "id": xf_id,
-                    "type": "transformer",
-                    "transformer_type": xf_type,
-                    "label": "auto xf from " + intent.raw_text[:40],
-                }
-                graph.edges.append({"from": root_id, "to": xf_id, "type": "supplies"})
-
-            # Create generator node if missing and substation text mentions generator
-            if create_gen and ("generator" in raw_lower or "genset" in raw_lower):
-                gen_id = f"generator_{uuid.uuid4().hex[:8]}"
-                graph.nodes[gen_id] = {
-                    "id": gen_id,
-                    "type": "generator",
-                    "generator_type": "diesel"
-                    if "emergency" in raw_lower or "standby" in raw_lower
-                    else "synchronous",
-                    "label": "auto gen from " + intent.raw_text[:40],
-                }
-                graph.edges.append({"from": root_id, "to": gen_id, "type": "supplies"})
-
-        # Apply parameters to nodes
-        if intent.parameters:
-            for node_id in graph.nodes:
-                if graph.nodes[node_id].get("type") in ("panel", "transformer", "bus"):
-                    if "voltage" in intent.parameters:
-                        graph.nodes[node_id]["voltage"] = intent.parameters["voltage"]
-                    if "power" in intent.parameters:
-                        graph.nodes[node_id]["power"] = intent.parameters["power"]
-                    if "count" in intent.parameters:
-                        graph.nodes[node_id]["count"] = intent.parameters["count"]
-                    if "feeder_count" in intent.parameters:
-                        graph.nodes[node_id]["feeder_count"] = intent.parameters["feeder_count"]
-                    if "main_current" in intent.parameters:
-                        graph.nodes[node_id]["main_current"] = intent.parameters["main_current"]
-                    if "feeder_current" in intent.parameters:
-                        graph.nodes[node_id]["feeder_current"] = intent.parameters["feeder_current"]
-                    # Also set from raw `current` for backward compatibility
-                    if "current" in intent.parameters:
-                        c = intent.parameters["current"]
-                        if isinstance(c, (int, float)):
-                            graph.nodes[node_id]["main_current"] = c
-                            graph.nodes[node_id]["feeder_current"] = c
+        self._add_entity_nodes(graph, root_id, intent.entities)
+        self._add_missing_nodes(graph, root_id, intent)
+        self._apply_parameters_to_nodes(graph, intent.parameters)
 
         graph.validated = len(graph.validation_errors) == 0
         return graph
@@ -845,7 +865,7 @@ class AIDrawingEngine:
 
         self._history: list[dict] = []
 
-    def process(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def process(  # NOSONAR
         self, natural_language_request: str
     ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Process a natural language engineering request end-to-end.

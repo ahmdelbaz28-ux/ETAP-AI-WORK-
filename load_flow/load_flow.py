@@ -97,7 +97,7 @@ class LoadFlowSolver:
         P, Q = self._calculate_power(v)
         return p_sch - P, q_sch - Q
 
-    def _build_jacobian(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def _build_jacobian(  # NOSONAR
         self,
         v,
         p_sch=None,
@@ -171,13 +171,13 @@ class LoadFlowSolver:
         # Voltage magnitude products
         v_i = vmag[
             :, np.newaxis
-        ]  # NOSONAR: (n, 1)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ]  # NOSONAR
         v_j = vmag[
             np.newaxis, :
-        ]  # NOSONAR: (1, n)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ]  # NOSONAR
         v_i_v_j = (
             v_i * v_j
-        )  # NOSONAR: (n, n)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(v)
@@ -214,7 +214,7 @@ class LoadFlowSolver:
         V_i_col = vmag[:, None]  # NOSONAR physics/engineering notation
         j2_off = -V_i_col * (
             GC + BS
-        )  # NOSONAR: dP/dV off-diagonal  # — domain-specific naming for J2_off
+        )  # NOSONAR
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
@@ -226,7 +226,7 @@ class LoadFlowSolver:
         #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
         j4_off = (
             -V_i_col * (GS - BC)
-        )  # NOSONAR: dQ/dV off-diagonal  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # ── Diagonal helpers ────────────────────────────────────────────
         B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -400,7 +400,7 @@ class LoadFlowSolver:
         prev = mismatch_history[-2 * self.oscillation_window : -self.oscillation_window]
         return np.mean(recent) > self.oscillation_threshold * np.mean(prev)
 
-    def solve(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def solve(  # NOSONAR
         self, max_iter=100, tol=1e-6, mode="engineering"
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         if mode == "high_accuracy":

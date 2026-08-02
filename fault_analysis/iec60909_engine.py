@@ -50,12 +50,12 @@ class ShortCircuitResult:
 
     fault_type: str
     fault_bus_index: int
-    ik_initial: complex  # NOSONAR: Initial symmetrical current (kA)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ik_initial_magnitude: float  # NOSONAR: magnitude of initial symmetrical current (kA)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    ik_initial: complex  # NOSONAR
+    Ik_initial_magnitude: float  # NOSONAR
     ip_peak: float  # Peak current (kA)
-    Ib_breaking: float  # NOSONAR: Breaking current (kA)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ik_steady: float  # NOSONAR: Steady-state current (kA)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    Ith_thermal: float  # NOSONAR: Thermal equivalent current (kA)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    Ib_breaking: float  # NOSONAR
+    Ik_steady: float  # NOSONAR
+    Ith_thermal: float  # NOSONAR
     voltage_factor_c: float  # Voltage factor used
     fault_location: str = ""
     # Sequence currents
@@ -319,7 +319,7 @@ class IEC60909Engine:
         # Pre-fault voltage (per-unit)
         v_pre = (
             c_factor * 1.0
-        )  # NOSONAR: c * Un/Un = c in per-unit  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Positive sequence driving point impedance
         Z1 = self.Zbus_pos[bus_index, bus_index]

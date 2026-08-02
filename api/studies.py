@@ -64,7 +64,7 @@ from core_model.transformer import Transformer
 # (see import block at the top of this file).
 
 
-def _to_jsonable(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def _to_jsonable(  # NOSONAR
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Recursively convert numpy types (and other engine outputs) to native
@@ -106,7 +106,7 @@ def _to_jsonable(  # NOSONAR: S3776 cognitive complexity intentional; logic vali
         return str(obj)
 
 
-def _build_system_from_spec(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def _build_system_from_spec(  # NOSONAR
     spec: SystemSpec,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
@@ -479,6 +479,136 @@ def pre_flight_check(system: dict) -> Optional[dict]:
     return _pre_flight_voltage_bounds(buses)
 
 
+_TYPES_REQUIRING_SYSTEM = {
+    "load_flow",
+    "short_circuit",
+    "protection_coordination",
+    "motor_starting",
+    "harmonic_analysis",
+    "optimal_power_flow",
+    "transient_stability",
+    "cable_sizing",
+    "earth_grid",
+    "renewable_integration",
+    "battery_storage",
+    "scada",
+}
+
+
+def _validate_study_request(payload: StudyRequest) -> None:
+    """Validate study request: feature flag, system required, pre-flight check.
+    Raises HTTPException on validation failure."""
+    if not is_feature_enabled(payload.study_type):
+        flag_info = FEATURE_FLAGS.get(payload.study_type, {})
+        raise HTTPException(  # NOSONAR
+            status_code=400,
+            detail=f"This study type is currently disabled in production. Status: {flag_info.get('status', 'unknown')}. Description: {flag_info.get('description', 'No description')}",
+        )
+
+    if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
+        raise HTTPException(  # NOSONAR
+            status_code=400,
+            detail="System configuration is required. Please provide a valid power system model.",
+        )
+
+    if payload.system is not None:
+        pf_result = pre_flight_check(payload.system.model_dump())
+        if pf_result is not None:
+            raise HTTPException(
+                status_code=400, detail=pf_result["error"]
+            )  # NOSONAR
+
+
+def _build_cache_params(payload: StudyRequest) -> dict:
+    """Build cache parameters dict from the study request."""
+    cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
+    if payload.system:
+        import hashlib as _hashlib
+
+        system_json = json.dumps(
+            payload.system.model_dump(),
+            sort_keys=True,
+            default=str,
+        )
+        cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
+    return cache_params
+
+
+async def _lookup_cache(study_cache, payload: StudyRequest, trace_id: str) -> tuple[dict, bool]:
+    """Look up study result in cache. Returns (data, cache_hit)."""
+    if not study_cache or payload.use_etap:
+        return {}, False
+    try:
+        cache_params = _build_cache_params(payload)
+        cached_result = await study_cache.get(payload.study_type, cache_params)
+        if cached_result:
+            from logging import getLogger
+            logger = getLogger("engineering_service")
+            logger.info(  # NOSONAR
+                "study_cache_hit study_type=%s task_id=%s",
+                payload.study_type,
+                trace_id,
+                extra={"trace_id": trace_id},
+            )
+            return json.loads(cached_result), True
+    except Exception:
+        pass
+    return {}, False
+
+
+async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
+    """Execute an ETAP study. Returns (data, warnings, errors)."""
+    if not payload.etap_project_path:
+        raise ValueError("etap_project_path is required when use_etap=True")
+
+    from etap_integration.etap_provider import get_etap_provider, ETAPStudyType
+
+    provider = get_etap_provider()
+
+    mapping = {
+        "etap_load_flow": ETAPStudyType.LOAD_FLOW,
+        "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
+        "etap_arc_flash": ETAPStudyType.ARC_FLASH,
+        "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
+        "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
+        "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
+        "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
+    }
+    etap_study = mapping.get(payload.study_type)
+    if etap_study is None:
+        raise ValueError(f"No ETAP mapping for study type: {payload.study_type}")
+
+    from compat import to_thread
+
+    data = await to_thread(
+        provider.execute_study,
+        payload.etap_project_path,
+        etap_study,
+    )
+    warnings = data.pop("warnings", [])
+    errors = data.pop("errors", [])
+    if not data.pop("success", True):
+        errors.append("ETAP study reported failure")
+    return data, warnings, errors
+
+
+async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, trace_id: str) -> None:
+    """Store study result in cache (non-fatal on failure)."""
+    if not study_cache:
+        return
+    try:
+        cache_params = _build_cache_params(payload)
+        await study_cache.set(payload.study_type, cache_params, data)
+    except Exception as cache_err:
+        from logging import getLogger
+        logger = getLogger("engineering_service")
+        logger.debug(
+            "Cache store failed (non-fatal): %s",
+            cache_err,
+            extra={"trace_id": trace_id},
+        )
+
+
 @router.post(
     "/run",
     response_model=StudyResult,
@@ -486,65 +616,19 @@ def pre_flight_check(system: dict) -> Optional[dict]:
 )
 @count_executions(skill_name="study")
 @track_skill_operation("study")
-async def run_study(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+async def run_study(
     req: Request,
     payload: StudyRequest,
     _: str = Depends(
         get_api_key
-    ),  # NOSONAR: S8410 Depends injection kept non-Annotated for consistency  # — S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
-):  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    ),
+):
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
 
-    # --- Feature flag check (Item 9) ---
-    if not is_feature_enabled(payload.study_type):
-        flag_info = FEATURE_FLAGS.get(payload.study_type, {})
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
-            status_code=400,
-            detail=f"This study type is currently disabled in production. Status: {flag_info.get('status', 'unknown')}. Description: {flag_info.get('description', 'No description')}",
-        )
+    _validate_study_request(payload)
 
-    # --- System required check (Item 11) ---
-    # NOTE: arc_flash is intentionally NOT in this set — it computes from
-    # explicit parameters (voltage_kv, bolted_fault_current_ka, etc.) and
-    # does NOT require a power-system model.  Previously arc_flash was
-    # listed here, which caused test_arc_flash (and any caller that sent
-    # arc_flash parameters without a system) to get HTTP 400.  Fixed
-    # 2026-07-26.
-    _TYPES_REQUIRING_SYSTEM = {
-        "load_flow",
-        "short_circuit",
-        "protection_coordination",
-        "motor_starting",
-        "harmonic_analysis",
-        "optimal_power_flow",
-        "transient_stability",
-        "cable_sizing",
-        "earth_grid",
-        "renewable_integration",
-        "battery_storage",
-        "scada",
-    }
-    if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
-            status_code=400,
-            detail="System configuration is required. Please provide a valid power system model.",
-        )
-
-    # --- Pre-flight check (Item 7) ---
-    if payload.system is not None:
-        pf_result = pre_flight_check(payload.system.model_dump())
-        if pf_result is not None:
-            raise HTTPException(
-                status_code=400, detail=pf_result["error"]
-            )  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
-
-    # Initialise result containers BEFORE any branch that may append to them.
-    # Previous code called `warnings.append(...)` below before this assignment,
-    # which raised NameError at runtime whenever a PE-stamp-required study
-    # type (arc_flash, protection_coordination, etc.) was submitted without
-    # a pe_stamp field — i.e. the default happy path for most callers.
     warnings: list[str] = []
     errors: list[str] = []
     data: dict[str, Any] = {}
@@ -587,27 +671,7 @@ async def run_study(  # NOSONAR: S3776 cognitive complexity intentional; logic v
         # --- Cache lookup for native studies (non-ETAP) ---
         if not payload.use_etap:
             try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
-                if payload.system:
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(),
-                        sort_keys=True,
-                        default=str,
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if study_cache:
-                    cached_result = await study_cache.get(payload.study_type, cache_params)
-                    if cached_result:
-                        data = json.loads(cached_result)
-                        cache_hit = True
-                        logger.info(  # NOSONAR logging injection; user input is sanitized upstream
-                            "study_cache_hit study_type=%s task_id=%s",
-                            payload.study_type,
-                            task_id,
-                            extra={"trace_id": trace_id},
-                        )
+                data, cache_hit = await _lookup_cache(study_cache, payload, trace_id)
             except Exception as cache_err:
                 logger.debug(
                     "Cache lookup failed (non-fatal): %s",
@@ -619,86 +683,22 @@ async def run_study(  # NOSONAR: S3776 cognitive complexity intentional; logic v
             # Use cached data
             pass
         elif payload.use_etap:
-            if not payload.etap_project_path:
-                raise ValueError("etap_project_path is required when use_etap=True")
             provider_name = "etap"
-            # Offload the synchronous ETAP call to a thread so it doesn't
-            # block the async event loop (ETAP COM calls can take 5-60 sec).
-            from etap_integration.etap_provider import get_etap_provider
-
-            # SonarCloud python:S5864: get_etap_provider() returns a ready
-            # IEtapProvider instance; the previous code stored it in a
-            # variable named "provider_factory" and then CALLED it, which
-            # raised TypeError at runtime.
-            provider = get_etap_provider()
-
-            from etap_integration.etap_provider import ETAPStudyType
-
-            # Map generic study type to ETAP study type
-            mapping = {
-                "etap_load_flow": ETAPStudyType.LOAD_FLOW,
-                "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
-                "etap_arc_flash": ETAPStudyType.ARC_FLASH,
-                "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
-                "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
-                "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
-                "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
-            }
-            etap_study = mapping.get(payload.study_type)
-            if etap_study is None:
-                raise ValueError(f"No ETAP mapping for study type: {payload.study_type}")
-
-            from compat import to_thread
-
-            data = await to_thread(
-                provider.execute_study,
-                payload.etap_project_path,
-                etap_study,
-            )
-            warnings = data.pop("warnings", [])
-            errors = data.pop("errors", [])
-            if not data.pop("success", True):
-                errors.append("ETAP study reported failure")
+            data, warnings, errors = await _run_etap_study(payload)
         else:
             system = None
             if payload.system:
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+                    raise HTTPException(  # NOSONAR
                         status_code=400, detail=f"System spec error: {ve}"
-                    ) from ve  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+                    ) from ve  # NOSONAR
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
             # --- Store result in cache ---
-            try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
-                if payload.system:
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(),
-                        sort_keys=True,
-                        default=str,
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if study_cache:
-                    # StudyCache.set(study_type, params, result) expects
-                    # `result` as a dict — it serializes internally.
-                    # Previously we passed a pre-serialized JSON string
-                    # (SonarCloud S5655: type mismatch). Pass the raw dict.
-                    await study_cache.set(
-                        payload.study_type,
-                        cache_params,
-                        data,
-                    )
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache store failed (non-fatal): %s",
-                    cache_err,
-                    extra={"trace_id": trace_id},
-                )
+            await _store_cache_result(study_cache, payload, data, trace_id)
 
         _increment_counter("success")
         status = "success"
@@ -716,7 +716,7 @@ async def run_study(  # NOSONAR: S3776 cognitive complexity intentional; logic v
         )
         raise HTTPException(
             status_code=400, detail="Invalid study request parameters"
-        ) from ve  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+        ) from ve  # NOSONAR
     except Exception as e:
         _increment_counter("failed")
         logger.exception(  # NOSONAR logging injection; user input is sanitized upstream

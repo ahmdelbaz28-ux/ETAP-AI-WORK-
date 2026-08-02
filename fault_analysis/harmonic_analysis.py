@@ -419,7 +419,7 @@ class HarmonicAnalysisEngine:
         thd_voltage: dict[str, float],
         _tdd_current: dict[
             str, float
-        ],  # NOSONAR: S1172 param retained for interface consistency  # — S1172: parameter is part of interface contract / protocol; removal would break callers
+        ],  # NOSONAR
         voltage_kv: float,  # NOSONAR unused param kept for API compatibility
     ) -> dict[str, bool]:
         """
@@ -571,11 +571,11 @@ class HarmonicAnalysisEngine:
         # Assume we want to provide low impedance path at tuned frequency
 
         # Choose capacitor rating (typical values)
-        Q_cap_MVAR = 1.0  # NOSONAR: 1 MVAR capacitor bank  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        V_ll = 13.8  # NOSONAR: Line-to-line voltage in kV (example)  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        Q_cap_MVAR = 1.0  # NOSONAR
+        V_ll = 13.8  # NOSONAR
         v_phase = (
             V_ll / np.sqrt(3)
-        )  # NOSONAR: Phase voltage in kV  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        )  # NOSONAR
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C

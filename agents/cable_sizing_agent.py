@@ -330,7 +330,7 @@ class CableSizingAgent(BaseAgent):
         # Adjust resistance to operating temperature (≈ 80 °C for XLPE)
         alpha = 0.00393 if conductor_material == "Cu" else 0.00403  # temperature coefficient
         T_op = 80.0  # NOSONAR
-        r_op = R20 * (1.0 + alpha * (T_op - 20.0))  # NOSONAR: Ω/km  #
+        r_op = R20 * (1.0 + alpha * (T_op - 20.0))  # NOSONAR
 
         # Reactance approximation (per IEC 60364-5-52 Annex G)
         # X ≈ 0.08 Ω/km for cables up to 300 mm² (conservative)
@@ -435,7 +435,7 @@ class CableSizingAgent(BaseAgent):
             theta_f = 160.0
 
         S = cross_section_mm2
-        i_fault = fault_current_kA * 1000.0  # NOSONAR: Convert to A  #
+        i_fault = fault_current_kA * 1000.0  # NOSONAR
         t = fault_duration_s
 
         # Permissible short-circuit energy (I²t)

@@ -14,11 +14,58 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_agent_class_structure(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-    filepath: str,
-) -> list[
-    str
-]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _check_inherits_base(agent_class: ast.ClassDef) -> list[str]:
+    """Check if an agent class inherits from BaseAgent."""
+    for base in agent_class.bases:
+        is_base = (
+            isinstance(base, ast.Name) and base.id == "BaseAgent"
+            or isinstance(base, ast.Attribute) and base.attr == "BaseAgent"
+        )
+        if is_base:
+            return []
+    return [f"Class {agent_class.name} doesn't inherit from BaseAgent"]
+
+
+def _check_prompt_handle(agent_class: ast.ClassDef) -> list[str]:
+    """Check if an agent class has a prompt_handle assignment."""
+    for item in agent_class.body:
+        if isinstance(item, ast.Assign):
+            if any(isinstance(t, ast.Name) and t.id == "prompt_handle" for t in item.targets):
+                return []
+        elif (
+            isinstance(item, ast.AnnAssign)
+            and isinstance(item.target, ast.Name)
+            and item.target.id == "prompt_handle"
+        ):
+            return []
+    return [f"Class {agent_class.name} doesn't have prompt_handle attribute"]
+
+
+def _check_required_methods(agent_class: ast.ClassDef) -> list[str]:
+    """Check if an agent class has __init__ and execute methods."""
+    methods = {
+        item.name
+        for item in agent_class.body
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    issues = []
+    if "__init__" not in methods:
+        issues.append(f"Class {agent_class.name} doesn't have __init__ method")
+    if "execute" not in methods:
+        issues.append(f"Class {agent_class.name} doesn't have execute method")
+    return issues
+
+
+def _check_agent_class(agent_class: ast.ClassDef, filepath: str) -> list[str]:
+    """Run all checks on a single agent class."""
+    issues = []
+    issues.extend(_check_inherits_base(agent_class))
+    issues.extend(_check_prompt_handle(agent_class))
+    issues.extend(_check_required_methods(agent_class))
+    return issues
+
+
+def check_agent_class_structure(filepath: str) -> list[str]:
     """Check if an agent file has a properly structured agent class."""
     issues = []
 
@@ -29,71 +76,17 @@ def check_agent_class_structure(  # NOSONAR: S3776 cognitive complexity intentio
         tree = ast.parse(content)
 
         # Find all class definitions that end with 'Agent'
-        agent_classes = []
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef) and node.name.endswith("Agent"):
-                agent_classes.append(node)
+        agent_classes = [
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.ClassDef) and node.name.endswith("Agent")
+        ]
 
         if not agent_classes:
             issues.append(f"No class ending with 'Agent' found in {filepath}")
             return issues
 
         for agent_class in agent_classes:
-            # Check if the class inherits from BaseAgent
-            inherits_from_base = False
-            for base in agent_class.bases:
-                if (
-                    isinstance(base, ast.Name)
-                    and base.id == "BaseAgent"
-                    or isinstance(base, ast.Attribute)
-                    and base.attr == "BaseAgent"
-                ):
-                    inherits_from_base = True
-
-            if not inherits_from_base:
-                issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't inherit from BaseAgent",
-                )
-
-            # Check for prompt_handle assignment
-            prompt_handle_found = False
-            for item in agent_class.body:
-                if isinstance(item, ast.Assign):
-                    for target in item.targets:
-                        if isinstance(target, ast.Name) and target.id == "prompt_handle":
-                            prompt_handle_found = True
-                            break
-                elif (
-                    isinstance(item, ast.AnnAssign)
-                    and isinstance(item.target, ast.Name)
-                    and item.target.id == "prompt_handle"
-                ):
-                    prompt_handle_found = True
-                    break
-
-            if not prompt_handle_found:
-                issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't have prompt_handle attribute",
-                )
-
-            # Check for __init__ method
-            init_method_found = False
-            execute_method_found = False
-
-            for item in agent_class.body:
-                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    if item.name == "__init__":
-                        init_method_found = True
-                    elif item.name == "execute":
-                        execute_method_found = True
-
-            if not init_method_found:
-                issues.append(
-                    f"Class {agent_class.name} in {filepath} doesn't have __init__ method",
-                )
-
-            if not execute_method_found:
-                issues.append(f"Class {agent_class.name} in {filepath} doesn't have execute method")
+            issues.extend(_check_agent_class(agent_class, filepath))
 
     except SyntaxError as e:
         issues.append(f"Syntax error in {filepath}: {str(e)}")

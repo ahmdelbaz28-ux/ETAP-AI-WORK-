@@ -241,7 +241,7 @@ async def preview_digest(
     """Render the digest HTML without sending it (admin/debug)."""
     # Authorization: users can only preview their own digest; admins can preview any
     if user.email.lower() != email.lower() and user.role != "admin":
-        raise HTTPException(  # NOSONAR: HTTPException responses documented via FastAPI OpenAPI auto-generation (S8415)
+        raise HTTPException(  # NOSONAR
             status_code=status.HTTP_403_FORBIDDEN,
             detail="cannot_preview_other_user",
         )

@@ -405,7 +405,7 @@ class DocsGuard(BaseGuard):
                 # Anchor link — check if a matching heading exists
                 anchor = link_target[1:].lower()
                 # Look for markdown headings that match this anchor.
-                heading_pattern = r"^#+\s+[^\n]+$"  # NOSONAR: S8786 — regex input size bounded; safe in practice; intentionally comprehensive — simplification would lose match coverage
+                heading_pattern = r"^#+\s+[^\n]+$"  # NOSONAR
                 headings = [
                     re.sub(r"^#+\s+", "", m.group().lower()).strip()
                     for m in re.finditer(heading_pattern, source, re.MULTILINE)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Module-level string constants (extracted to satisfy S1192).
-_HF_GUARD_TEST_IMAGE = "hf-guard-test:latest"  # NOSONAR: extracted constant (S1192)
+_HF_GUARD_TEST_IMAGE = "hf-guard-test:latest"  # NOSONAR
 """
 HF Space Build Guard
 ====================
@@ -155,7 +155,7 @@ def check_docker_build():
         warnings.append(
             "Docker not available locally - skipping build check (will be validated on GitHub Actions)",
         )
-        return None  # NOSONAR: None = warning, not failure  # — inline doc comment
+        return None  # NOSONAR
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Copy hf-space to temp dir for isolated build
@@ -174,7 +174,7 @@ def check_docker_build():
                 "docker",
                 "build",
                 "-t",
-                _HF_GUARD_TEST_IMAGE,  # NOSONAR: S1192 literal kept inline for readability
+                _HF_GUARD_TEST_IMAGE,  # NOSONAR
                 tmpdir,
             ],  # NOSONAR intentional repetition (audit constant)
             capture_output=True,
@@ -198,7 +198,7 @@ def check_health_endpoint():
         warnings.append(
             "Docker not available locally - skipping health check (will be validated on GitHub Actions)",
         )
-        return None  # NOSONAR: None = warning, not failure  # — inline doc comment
+        return None  # NOSONAR
 
     try:
         # Stop any existing container

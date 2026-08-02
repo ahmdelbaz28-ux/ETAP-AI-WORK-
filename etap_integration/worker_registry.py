@@ -58,7 +58,7 @@ Usage (on Linux gateway)
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_REDIS_DEFAULT_URL = "redis://localhost:6379/0"  # NOSONAR: extracted constant (S1192)
+_REDIS_DEFAULT_URL = "redis://localhost:6379/0"  # NOSONAR
 
 import asyncio
 import contextlib
@@ -162,7 +162,7 @@ class ETAPWorkerHeartbeat:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
         self.redis_url = redis_url or os.getenv(
             "REDIS_URL",
-            _REDIS_DEFAULT_URL,  # NOSONAR: S1192 literal kept inline for readability
+            _REDIS_DEFAULT_URL,  # NOSONAR
         )  # NOSONAR intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
@@ -351,7 +351,7 @@ async def register_worker(worker_id: str, host: str, port: int = 8081):
     """  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR
             status_code=503, detail="Registry unavailable — Redis not connected"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -377,7 +377,7 @@ async def worker_heartbeat(worker_id: str):
     """  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     r = await _get_async_redis(_REDIS_URL)
     if r is None:
-        raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR
             status_code=503, detail="Registry unavailable"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
@@ -391,7 +391,7 @@ async def worker_heartbeat(worker_id: str):
         )
         await r.set(key, json.dumps(info), ex=_WORKER_TTL)
     else:
-        raise HTTPException(  # NOSONAR: S8415 exception responses are standard HTTP codes documented in FastAPI OpenAPI
+        raise HTTPException(  # NOSONAR
             status_code=404, detail=f"Worker '{worker_id}' not registered"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 

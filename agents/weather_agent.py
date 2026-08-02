@@ -201,7 +201,7 @@ class WeatherAgent(BaseAgent):
         # Simplified for wind perpendicular to conductor
 
         # Air properties at film temperature
-        t_film = (T_c + T_a) / 2.0 + 273.15  # NOSONAR: K  #
+        t_film = (T_c + T_a) / 2.0 + 273.15  # NOSONAR
         k_air = 0.0242 + 7.0e-5 * (t_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (t_film - 300.0)  # Kinematic viscosity m²/s
 
@@ -210,7 +210,7 @@ class WeatherAgent(BaseAgent):
 
         # Forced convection coefficient (simplified IEEE 738)
         if re > 0:
-            nu = 0.3 + 0.62 * re**0.5 * 0.71 ** (1.0 / 3.0)  # NOSONAR: Simplified  #
+            nu = 0.3 + 0.62 * re**0.5 * 0.71 ** (1.0 / 3.0)  # NOSONAR
             h_conv = nu * k_air / D
         else:
             # Natural convection (no wind)

@@ -373,7 +373,7 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.NOT_CONVERGED
 
     def test_check_redundancy_sufficient(self):
-        # NOSONAR: Need redundancy >= 1.5: with n=3, need m >= 8 for 2*3-1=5 states  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # NOSONAR
         measurements = {
             "voltage_mag": {0: (1.0, 0.01), 1: (1.0, 0.01), 2: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},

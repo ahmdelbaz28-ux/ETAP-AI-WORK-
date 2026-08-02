@@ -484,9 +484,54 @@ class InputValidator:
     FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
-    def validate_python_code(  # S3776 cognitive complexity intentional; logic validated by tests
+    def _check_forbidden_ast_node(node: ast.AST) -> bool:
+        """Return True if node is a forbidden AST type."""
+        if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
+            logger.warning("Forbidden AST node type: %s", type(node).__name__)
+            return True
+        return False
+
+    @staticmethod
+    def _check_imports(node: ast.AST, allowed_imports: set) -> bool:
+        """Return True if import is unauthorized."""
+        if not isinstance(node, (ast.Import, ast.ImportFrom)):
+            return False
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                module = alias.name.split(".")[0]
+                if module not in allowed_imports:
+                    logger.warning("Unauthorized import: %s", module)
+                    return True
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            module = node.module.split(".")[0]
+            if module not in allowed_imports:
+                logger.warning("Unauthorized import: %s", module)
+                return True
+        return False
+
+    @staticmethod
+    def _check_forbidden_calls_and_attrs(node: ast.AST) -> bool:
+        """Return True if node contains forbidden calls or attribute access."""
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id in InputValidator.FORBIDDEN_CALLS:
+                logger.warning("Forbidden function call: %s", func.id)
+                return True
+            if isinstance(func, ast.Attribute) and func.attr in InputValidator.FORBIDDEN_ATTRS:
+                logger.warning("Forbidden attribute access: %s", func.attr)
+                return True
+        if isinstance(node, ast.Attribute) and node.attr in InputValidator.FORBIDDEN_ATTRS:
+            logger.warning("Forbidden attribute access: %s", node.attr)
+            return True
+        if isinstance(node, ast.Name) and node.id in InputValidator.FORBIDDEN_CALLS:
+            logger.warning("Forbidden name reference: %s", node.id)
+            return True
+        return False
+
+    @staticmethod
+    def validate_python_code(
         code: str, allowed_imports: set[str] = None
-    ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    ) -> bool:
         """
         Validate Python code for safety using AST parsing.
 
@@ -519,40 +564,11 @@ class InputValidator:
             return False
 
         for node in ast.walk(tree):
-            if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
-                logger.warning("Forbidden AST node type: %s", type(node).__name__)
+            if InputValidator._check_forbidden_ast_node(node):
                 return False
-
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                if isinstance(node, ast.Import):
-                    for alias in node.names:
-                        module = alias.name.split(".")[0]
-                        if module not in allowed_imports:
-                            logger.warning("Unauthorized import: %s", module)
-                            return False
-                elif isinstance(node, ast.ImportFrom) and node.module:
-                    module = node.module.split(".")[0]
-                    if module not in allowed_imports:
-                        logger.warning("Unauthorized import: %s", module)
-                        return False
-
-            if isinstance(node, ast.Call):
-                func = node.func
-                if isinstance(func, ast.Name) and func.id in InputValidator.FORBIDDEN_CALLS:
-                    logger.warning("Forbidden function call: %s", func.id)
-                    return False
-                if isinstance(func, ast.Attribute):
-                    if func.attr in InputValidator.FORBIDDEN_ATTRS:
-                        logger.warning("Forbidden attribute access: %s", func.attr)
-                        return False
-
-            if isinstance(node, ast.Attribute):
-                if node.attr in InputValidator.FORBIDDEN_ATTRS:
-                    logger.warning("Forbidden attribute access: %s", node.attr)
-                    return False
-
-            if isinstance(node, ast.Name) and node.id in InputValidator.FORBIDDEN_CALLS:
-                logger.warning("Forbidden name reference: %s", node.id)
+            if InputValidator._check_imports(node, allowed_imports):
+                return False
+            if InputValidator._check_forbidden_calls_and_attrs(node):
                 return False
 
         return True

@@ -37,6 +37,8 @@ from typing import Any, Optional
 
 from compat import StrEnum
 
+_REDACTED_REPLACEMENT = r"\1***REDACTED***"
+
 # ---------------------------------------------------------------------------
 # Error-code registry
 # ---------------------------------------------------------------------------
@@ -666,12 +668,12 @@ def _redact_secrets(text: str) -> str:
     patterns = [
         (
             r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?',
-            r"\1***REDACTED***",  # NOSONAR: S1192 literal kept inline for readability
+            _REDACTED_REPLACEMENT,  # NOSONAR
         ),  # NOSONAR intentional repetition (audit constant)
-        (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r"\1***REDACTED***"),
-        (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r"\1***REDACTED***"),
-        (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
-        (r"(bearer\s+)[\w\-\.]+", r"\1***REDACTED***"),
+        (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', _REDACTED_REPLACEMENT),
+        (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', _REDACTED_REPLACEMENT),
+        (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', _REDACTED_REPLACEMENT),
+        (r"(bearer\s+)[\w\-\.]+", _REDACTED_REPLACEMENT),
     ]
 
     result = text

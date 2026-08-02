@@ -486,7 +486,7 @@ class PredictiveAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-    async def execute(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    async def execute(  # NOSONAR
         self, task: EngineeringTask
     ) -> AgentResult:  # NOSONAR
         """

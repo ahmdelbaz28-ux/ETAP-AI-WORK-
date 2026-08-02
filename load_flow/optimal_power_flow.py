@@ -270,7 +270,7 @@ class OptimalPowerFlowEngine:
                 generator_dispatch = {}
                 for i, gid in enumerate(gen_ids):
                     self.gen_buses[gid]
-                    Q_gen = 0  # NOSONAR: DC OPF doesn't optimize Q  # — physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                    Q_gen = 0  # NOSONAR
                     generator_dispatch[gid] = complex(P_gen[i], Q_gen)
 
                 # Calculate losses (approximate)
@@ -324,7 +324,7 @@ class OptimalPowerFlowEngine:
                 convergence_status="error",
             )
 
-    def solve_ac_opf_interior_point(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def solve_ac_opf_interior_point(  # NOSONAR
         self, max_iter: int = 100, tol: float = 1e-6
     ) -> OPFResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """

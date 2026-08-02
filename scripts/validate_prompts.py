@@ -84,13 +84,88 @@ ENGINEERING_STANDARDS = {
 }
 
 
-def validate_prompt_file(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
-    filepath: Path,
-) -> tuple[
-    bool, list[str]
-]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    """
-    Validate a single YAML prompt file.
+_NO_STANDARDS_EXCEPTIONS = frozenset({
+    "sample_prompt.yaml",
+    "fallback_agent.prompt.yaml",
+    "weather_activity_planner.prompt.yaml",
+    "goal_planner_agent.yaml",
+    "etap_gui_agent.prompt.yaml",
+    "code_guard_agent.prompt.yaml",
+})
+
+
+def _validate_required_fields(parsed: dict, issues: list) -> None:
+    """Check required top-level fields."""
+    for field in REQUIRED_FIELDS:
+        if field not in parsed:
+            issues.append(f"ERROR: Missing required field '{field}'")
+
+
+def _validate_model(parsed: dict, issues: list) -> None:
+    """Validate model name if present."""
+    model = parsed.get("model", "")
+    if model and model not in VALID_MODELS:
+        issues.append(
+            f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})",
+        )
+
+
+def _validate_temperature(parsed: dict, issues: list) -> None:
+    """Validate temperature range if present."""
+    temp = parsed.get("temperature")
+    if temp is None:
+        return
+    try:
+        t = float(temp)
+        if t < 0.0 or t > 2.0:
+            issues.append(f"WARNING: Temperature {t} outside typical range [0.0, 2.0]")
+    except (ValueError, TypeError):
+        issues.append(f"WARNING: Temperature '{temp}' is not a valid number")
+
+
+def _validate_messages(parsed: dict, issues: list) -> bool:
+    """Validate messages field. Returns True if system message found."""
+    messages = parsed.get("messages", [])
+    if not isinstance(messages, list):
+        issues.append("ERROR: 'messages' must be a list")
+        return False
+
+    has_system = False
+    for i, msg in enumerate(messages):
+        if not isinstance(msg, dict):
+            issues.append(f"ERROR: Message at index {i} is not a dictionary")
+            continue
+        for field in REQUIRED_MESSAGE_FIELDS:
+            if field not in msg:
+                issues.append(f"ERROR: Message at index {i} missing required field '{field}'")
+        role = msg.get("role", "")
+        if role not in VALID_ROLES:
+            issues.append(f"WARNING: Message at index {i} has unknown role '{role}'")
+        if role == "system":
+            has_system = True
+
+    if not has_system:
+        issues.append("WARNING: No system message found — agents should have system instructions")
+    return has_system
+
+
+def _check_engineering_standards(messages: list, has_system: bool, filepath: Path, issues: list) -> None:
+    """Check for engineering standards references in system messages."""
+    if not has_system:
+        return
+    found_standards = set()
+    for msg in messages:
+        if isinstance(msg, dict) and msg.get("role") == "system":
+            content_str = str(msg.get("content", ""))
+            for std in ENGINEERING_STANDARDS:
+                if std.lower() in content_str.lower():
+                    found_standards.add(std)
+    if not found_standards and filepath.name not in _NO_STANDARDS_EXCEPTIONS:
+        issues.append("INFO: No engineering standard reference found in system prompt")
+
+
+def validate_prompt_file(filepath: Path) -> tuple[bool, list[str]]:
+    """Validate a single YAML prompt file.
 
     Returns (passed, list_of_issues).
     """
@@ -115,69 +190,11 @@ def validate_prompt_file(  # NOSONAR: S3776 cognitive complexity intentional; lo
         issues.append("CRITICAL: Root element must be a dictionary")
         return False, issues
 
-    # Check required top-level fields
-    for field in REQUIRED_FIELDS:
-        if field not in parsed:
-            issues.append(f"ERROR: Missing required field '{field}'")
-
-    # Validate model name if present
-    model = parsed.get("model", "")
-    if model and model not in VALID_MODELS:
-        issues.append(
-            f"WARNING: Model '{model}' not in known valid list ({', '.join(sorted(VALID_MODELS))})",
-        )
-
-    # Validate temperature range if present
-    temp = parsed.get("temperature")
-    if temp is not None:
-        try:
-            t = float(temp)
-            if t < 0.0 or t > 2.0:
-                issues.append(f"WARNING: Temperature {t} outside typical range [0.0, 2.0]")
-        except (ValueError, TypeError):
-            issues.append(f"WARNING: Temperature '{temp}' is not a valid number")
-
-    # Validate messages
-    messages = parsed.get("messages", [])
-    if not isinstance(messages, list):
-        issues.append("ERROR: 'messages' must be a list")
-    else:
-        has_system = False
-        for i, msg in enumerate(messages):
-            if not isinstance(msg, dict):
-                issues.append(f"ERROR: Message at index {i} is not a dictionary")
-                continue
-            for field in REQUIRED_MESSAGE_FIELDS:
-                if field not in msg:
-                    issues.append(f"ERROR: Message at index {i} missing required field '{field}'")
-            role = msg.get("role", "")
-            if role not in VALID_ROLES:
-                issues.append(f"WARNING: Message at index {i} has unknown role '{role}'")
-            if role == "system":
-                has_system = True
-        if not has_system:
-            issues.append(
-                "WARNING: No system message found — agents should have system instructions",
-            )
-
-    # Check for engineering standards references in system messages
-    if has_system:
-        found_standards = set()
-        for msg in messages:
-            if isinstance(msg, dict) and msg.get("role") == "system":
-                content_str = str(msg.get("content", ""))
-                for std in ENGINEERING_STANDARDS:
-                    if std.lower() in content_str.lower():
-                        found_standards.add(std)
-        if not found_standards and filepath.name not in (
-            "sample_prompt.yaml",
-            "fallback_agent.prompt.yaml",
-            "weather_activity_planner.prompt.yaml",
-            "goal_planner_agent.yaml",
-            "etap_gui_agent.prompt.yaml",
-            "code_guard_agent.prompt.yaml",
-        ):
-            issues.append("INFO: No engineering standard reference found in system prompt")
+    _validate_required_fields(parsed, issues)
+    _validate_model(parsed, issues)
+    _validate_temperature(parsed, issues)
+    has_system = _validate_messages(parsed, issues)
+    _check_engineering_standards(parsed.get("messages", []), has_system, filepath, issues)
 
     # Check for excessive token length (rough estimate)
     total_chars = len(content)
@@ -189,7 +206,7 @@ def validate_prompt_file(  # NOSONAR: S3776 cognitive complexity intentional; lo
     ) == 0, issues
 
 
-def validate_all_prompts(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def validate_all_prompts(  # NOSONAR
     strict: bool = False,
 ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Validate all YAML prompt files in the prompts directory."""

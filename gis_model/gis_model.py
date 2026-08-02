@@ -149,7 +149,7 @@ class PolylineGeometry:
         # For the boundary returns, check the original `fraction` value
         # (not `clamped`) — this avoids any floating-point equality
         # comparison on a derived value (SonarCloud python:S1244). The
-        # NOSONAR: `#
+        # NOSONAR
         # value analysis incorrectly infers that `fraction <= 0.0` is
         # always true (the function accepts any float, including values
         # > 0.0, so this is a false positive).

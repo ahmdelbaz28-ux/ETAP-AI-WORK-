@@ -17,7 +17,7 @@ Usage:
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR: extracted constant (S1192)
+_PROMPT_NAME_LABEL = "Prompt name"  # NOSONAR
 
 import argparse
 import base64
@@ -202,7 +202,7 @@ def main() -> None:
     p_versions = sub.add_parser("versions", help="Show all versions of a prompt")
     p_versions.add_argument(
         "name",
-        help=_PROMPT_NAME_LABEL,  # NOSONAR: S1192 literal kept inline for readability
+        help=_PROMPT_NAME_LABEL,  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     p_versions.set_defaults(func=cmd_versions)
 

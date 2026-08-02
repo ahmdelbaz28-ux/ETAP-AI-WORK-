@@ -45,6 +45,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api._messages import MSG_USER_NOT_FOUND
 from api.database import Base, get_db
 from api.dependencies import (
+
+_SET_NULL_ACTION = "SET NULL"
+_TENANTS_ID_REF = "tenants.id"
     CurrentUser,
     PaginationParams,
     get_current_user_from_header,
@@ -64,7 +67,7 @@ class Role(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
-        ForeignKey("tenants.id", ondelete="SET NULL"),
+        ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
         index=True,
     )
@@ -94,7 +97,7 @@ class Permission(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
-        ForeignKey("tenants.id", ondelete="SET NULL"),
+        ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
         index=True,
     )
@@ -134,7 +137,7 @@ class UserRole(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
-        ForeignKey("tenants.id", ondelete="SET NULL"),
+        ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
         index=True,
     )

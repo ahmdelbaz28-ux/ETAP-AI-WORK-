@@ -28,12 +28,12 @@ import numpy as np
 class ZIPCoefficients:
     """ZIP load model coefficients."""
 
-    aZ: float = 0.0  # NOSONAR: Constant impedance fraction (active power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    aI: float = 0.0  # NOSONAR: Constant current fraction (active power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    aP: float = 1.0  # NOSONAR: Constant power fraction (active power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    bZ: float = 0.0  # NOSONAR: Constant impedance fraction (reactive power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    bI: float = 0.0  # NOSONAR: Constant current fraction (reactive power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    bP: float = 1.0  # NOSONAR: Constant power fraction (reactive power)  # — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    aZ: float = 0.0  # NOSONAR
+    aI: float = 0.0  # NOSONAR
+    aP: float = 1.0  # NOSONAR
+    bZ: float = 0.0  # NOSONAR
+    bI: float = 0.0  # NOSONAR
+    bP: float = 1.0  # NOSONAR
 
     def __post_init__(self):
         """Validate that coefficients sum to 1.0."""

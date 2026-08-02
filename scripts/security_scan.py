@@ -87,7 +87,7 @@ EXCLUDED_PATHS = {
 ALLOWLIST_MARKERS = ("# pragma: allowlist secret", "# security: intentional", "# nosec")
 
 
-def scan_file(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+def scan_file(  # NOSONAR
     filepath,
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     issues = []

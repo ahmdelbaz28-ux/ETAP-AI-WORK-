@@ -1292,7 +1292,7 @@ if __name__ == "__main__":
     async def _smoke() -> None:
         async def fake_lead(
             task: EngineeringTask,
-        ) -> AgentResult:  # NOSONAR: S7503 async signature required by callers; body intentionally sync  # — S7503: async signature required by callers; body intentionally sync
+        ) -> AgentResult:  # NOSONAR
             return AgentResult(
                 agent_name="FakeLoadFlow",
                 study_type=StudyType.LOAD_FLOW,

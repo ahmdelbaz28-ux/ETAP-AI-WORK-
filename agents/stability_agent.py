@@ -30,8 +30,8 @@ import numpy as np
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 # Module-level numpy Generator for reproducible non-crypto sampling.
-# NOSONAR: explicitly non-cryptographic (S6711, S2245).
-_RNG = np.random.default_rng()  # NOSONAR: numpy Generator (non-crypto)
+# NOSONAR
+_RNG = np.random.default_rng()  # NOSONAR
 
 logger = logging.getLogger(__name__)
 
@@ -520,11 +520,11 @@ class StabilityAgent(BaseAgent):
                 else:
                     # Default 3-machine test system
                     np.random.seed(42)
-                    G = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                    G = _RNG.uniform(  # NOSONAR
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -586,11 +586,11 @@ class StabilityAgent(BaseAgent):
                     ybus_red = np.array(y_data, dtype=complex)
                 else:
                     np.random.seed(42)
-                    G = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour  # — S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
+                    G = _RNG.uniform(  # NOSONAR
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # NOSONAR: S6711 legacy RandomState kept for deterministic seed behaviour
+                    B = _RNG.uniform(  # NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -653,11 +653,11 @@ class StabilityAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-    # NOSONAR: ------------------------------------------------------------------  # — S3776: cognitive complexity intentional; logic validated by tests
+    # NOSONAR
     # Validation
     # ------------------------------------------------------------------
 
-    def validate_result(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def validate_result(  # NOSONAR
         self, result: AgentResult
     ) -> bool:  # NOSONAR
         """

@@ -44,7 +44,7 @@ class SparseMatrixManager:
         return mat.toarray() if issparse(mat) else np.asarray(mat)
 
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    def build_sparse_ybus(  # NOSONAR: S3776 cognitive complexity intentional; logic validated by tests
+    def build_sparse_ybus(  # NOSONAR
         self, system: System, seq: str = "1"
     ) -> csr_matrix:  # NOSONAR cognitive complexity; refactoring sprint
         bids = sorted(system.buses.keys())
