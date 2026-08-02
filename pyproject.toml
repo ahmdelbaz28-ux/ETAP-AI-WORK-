@@ -1,5 +1,7 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# SECURITY: requires setuptools>=83 to fix CVE-2026-XXXXX (MANIFEST.in
+# exclusion bypass via Unicode NFC/NFD normalization on macOS APFS/HFS+).
+requires = ["setuptools>=83.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -35,12 +37,12 @@ dependencies = [
     "ezdxf>=1.3.0",
     "pyyaml>=6.0",
     "structlog>=21.0.0",
-    "cryptography>=42.0.4",  # SECURITY: 9 CVEs fixed (CVE-2023-50782, CVE-2024-0727, GHSA-537c-gmf6-5ccf)
+    "cryptography>=49.0.0",  # SECURITY: CVE-2026-26007 (subgroup attack) + bundled OpenSSL CVEs fixed
     "hvac>=2.0.0",
     "bcrypt>=4.0.0",
-    "PyJWT>=2.6.0",
+    "PyJWT>=2.13.0",  # SECURITY: CVE-2026-32597 + CVE-2026-48526 fixed
     "pydantic[email]>=2.0.0",
-    "fastapi>=0.104.0",
+    "fastapi>=0.135.0",  # SECURITY: required for starlette 1.x (first version that drops the <1.0 upper bound)
     "tenacity>=8.2.0",
     "uvicorn[standard]>=0.24.0",
     "pypdf>=6.13.3",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2)
@@ -49,7 +51,7 @@ dependencies = [
     "tree-sitter>=0.21.0",
     "tree-sitter-python>=0.21.0",
     "pdfplumber>=0.7.0",
-    "nltk>=3.9.4",  # SECURITY: 13 CVEs fixed (PYSEC-2024-167 RCE, CVE-2026-33230/33231)
+    "nltk>=3.10.0",  # SECURITY: bumped 3.9.4 → 3.10.0 — fixes URL-Encoded Path Traversal in nltk.data.load()
     "python-docx>=0.8.11",
     "openpyxl>=3.0.0",
     "reportlab>=3.6.0",
@@ -57,7 +59,9 @@ dependencies = [
     "beautifulsoup4>=4.10.0",
     "lxml>=6.1.0",  # SECURITY: PYSEC-2026-87 (XXE) fixed
     "typing-extensions>=4.0.0",
-    "starlette>=0.40.0",  # SECURITY: CVE-2024-47874 (DoS), CVE-2025-54121 (memory leak)
+    "starlette>=1.3.1",  # SECURITY: 6 CVEs fixed (3 HIGH + 3 MED) — see requirements.txt for details
+    "pygments>=2.20.0",  # SECURITY: ReDoS via GUID regex fixed
+    "setuptools>=83.0.0",  # SECURITY: MANIFEST.in Unicode normalization bypass fixed
     "redis>=5.0.0",
     "prometheus-client>=0.19.0",
     "celery>=5.3.0",

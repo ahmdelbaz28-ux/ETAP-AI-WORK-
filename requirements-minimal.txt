@@ -26,16 +26,29 @@ requests~=2.32.3
 pyyaml~=6.0.2
 
 # Security
-cryptography~=43.0.1
+# SECURITY: bumped floor to 49.0.0 — fixes CVE-2026-26007 (subgroup attack on
+# SECT curves) and bundled OpenSSL CVEs. (Dependabot said fix=46.0.5 but we
+# go straight to 49.x to supersede all known CVEs.)
+cryptography~=49.0.0
 bcrypt~=4.2.1
-PyJWT~=2.9.0
+# SECURITY: upgraded from 2.9.0 → 2.13.0 to fix CVE-2026-32597 (accepts unknown
+# `crit` header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC
+# secret enables forged HS256 tokens).
+PyJWT~=2.13.0
 
 # Data validation
-pydantic~=2.9.2
+pydantic~=2.11.7
 
 # Web framework (Engineering Service)
-fastapi~=0.115.4
+# SECURITY: upgraded fastapi 0.115.4 → 0.135.0 to allow starlette 1.x which
+# fixes CVE-2026-XXXX (Range header DoS), CVE-2026-XXXX (SSRF via UNC paths),
+# and CVE-2026-XXXX (form() limit bypass DoS).
+# fastapi 0.133+ is the first release that drops the `starlette<1.0.0` upper bound.
+fastapi~=0.135.0
 uvicorn~=0.32.1
+# SECURITY: upgraded starlette to 1.3.1 — fixes 3 high + 3 medium CVEs that
+# affect 0.40.x line. See requirements.txt for full CVE list.
+starlette~=1.3.1
 
 # Database
 sqlalchemy[asyncio]~=2.0.36
@@ -48,3 +61,8 @@ structlog~=24.4.0
 typing-extensions~=4.12.2
 tqdm~=4.67.0
 tenacity~=9.0.0
+# SECURITY: bumped setuptools to 83.0.0 — fixes CVE-2026-XXXXX (MANIFEST.in
+# exclusion bypass via Unicode NFC/NFD normalization on macOS APFS/HFS+).
+setuptools~=83.0.0
+# SECURITY: bumped Pygments to 2.20.0 — fixes ReDoS in GUID-matching regex.
+Pygments~=2.20.0

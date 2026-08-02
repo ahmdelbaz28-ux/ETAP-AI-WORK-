@@ -32,14 +32,20 @@ typing-extensions>=4.0.0
 structlog>=21.0.0
 
 # Security
-cryptography>=36.0.0
+# SECURITY: bumped to 49.0.0 — fixes CVE-2026-26007 (subgroup attack) and
+# bundled OpenSSL CVEs. Aligns with requirements.txt.
+# (Dependabot suggested fix=46.0.5 but the lockfile already had 48.0.1; we
+# go straight to the latest 49.x line to supersede all known CVEs.)
+cryptography>=49.0.0
 hvac>=2.0.0
 
 # Password hashing (required - bcrypt replaces SHA-256 for security)
 bcrypt>=4.0.0
 
 # JWT token signing (required - no insecure fallback)
-PyJWT>=2.6.0
+# SECURITY: bumped to 2.13.0 — fixes CVE-2026-32597 (accepts unknown `crit`
+# header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC secret).
+PyJWT>=2.13.0
 
 # Data validation
 pydantic[email]>=2.0.0
@@ -50,9 +56,14 @@ sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 
 # ETAP Worker API (FastAPI)
-fastapi>=0.104.0
+# SECURITY: bumped fastapi 0.104 → 0.135+ to allow starlette 1.x (which fixes
+# 6 CVEs in the 0.40.x line — see requirements.txt for full list).
+# fastapi 0.133+ is the first release that drops the `starlette<1.0.0` upper bound.
+fastapi>=0.135.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
+# SECURITY: bumped starlette to 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED).
+starlette>=1.3.1
 
 # PDF text extraction
 # SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed)
@@ -64,10 +75,22 @@ python-docx>=0.8.11
 openpyxl>=3.0.0
 
 # AI Context Engine (Code RAG)
+# NOTE: chromadb has an unpatched critical CVE (pre-auth code injection,
+# affects <= 1.5.9). No fix release available yet as of 2026-08-03.
+# Mitigation: only expose chromadb on localhost/internal network; never
+# expose port 8000 to the public internet. Track upstream for a patched release.
 chromadb>=0.4.24
 sentence-transformers>=2.7.0
 tree-sitter>=0.21.0
 tree-sitter-python>=0.21.0
+# SECURITY: bumped nltk to 3.10.0 — fixes URL-Encoded Path Traversal in
+# nltk.data.load() and 4 other CVEs (ReDoS, SSRF, path traversal).
+nltk>=3.10.0
+# SECURITY: bumped Pygments to 2.20.0 — fixes ReDoS in GUID-matching regex.
+pygments>=2.20.0
+# SECURITY: bumped setuptools to 83.0.0 — fixes MANIFEST.in Unicode NFC/NFD
+# normalization bypass.
+setuptools>=83.0.0
 
 # Additional utilities
 tqdm>=4.62.0
