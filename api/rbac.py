@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -45,14 +45,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api._messages import MSG_USER_NOT_FOUND
 from api.database import Base, get_db
 from api.dependencies import (
-
-_SET_NULL_ACTION = "SET NULL"
-_TENANTS_ID_REF = "tenants.id"
     CurrentUser,
     PaginationParams,
     get_current_user_from_header,
     pagination_params,
 )
+
+_SET_NULL_ACTION = "SET NULL"
+_TENANTS_ID_REF = "tenants.id"
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM models
@@ -65,14 +65,14 @@ class Role(Base):
     __tablename__ = "roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
         index=True,
     )
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -95,7 +95,7 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
@@ -103,7 +103,7 @@ class Permission(Base):
     )
     resource: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -135,7 +135,7 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
@@ -147,7 +147,7 @@ class UserRole(Base):
     role_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    assigned_by: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    assigned_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -170,7 +170,7 @@ class RoleCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
-    description: Optional[str] = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=500)
     permission_ids: list[str] = Field(default_factory=list)
 
 
@@ -179,11 +179,9 @@ class RoleUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(
-        default=None, min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$"
-    )
-    description: Optional[str] = Field(default=None, max_length=500)
-    permission_ids: Optional[list[str]] = None
+    name: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
+    description: str | None = Field(default=None, max_length=500)
+    permission_ids: list[str] | None = None
 
 
 class RoleResponse(BaseModel):
@@ -193,11 +191,11 @@ class RoleResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     is_system: bool = False
     permission_ids: list[str] = Field(default_factory=list)
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class RoleListResponse(BaseModel):
@@ -218,7 +216,7 @@ class PermissionCreateRequest(BaseModel):
 
     resource: str = Field(min_length=1, max_length=128)
     action: str = Field(min_length=1, max_length=64)
-    description: Optional[str] = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=500)
 
 
 class PermissionResponse(BaseModel):
@@ -229,8 +227,8 @@ class PermissionResponse(BaseModel):
     id: str
     resource: str
     action: str
-    description: Optional[str] = None
-    created_at: Optional[datetime] = None
+    description: str | None = None
+    created_at: datetime | None = None
 
 
 class PermissionListResponse(BaseModel):
