@@ -10,12 +10,21 @@ Capabilities:
 - Starting torque and acceleration time estimation
 - Starting method comparison (DOL, star-delta, auto-transformer, VFD)
 - NEMA motor starting code letter analysis
+- Transient voltage drop during motor starting (CRITICAL FIX)
 
 Standards:
 - IEEE 399-1997: Recommended Practice for Industrial and Commercial
   Power System Analysis (Brown Book)
 - NEMA MG-1: Motors and Generators
 - IEC 60034: Rotating Electrical Machines
+
+CRITICAL FIX — Motor Transient Undervoltage Drop:
+- Added calculate_transient_voltage_drop() method that accounts for
+  source impedance (Z_source) when computing the terminal voltage
+  during motor starting. The previous implementation assumed nominal
+  voltage (V = 1.0 pu), which produces misleading reports that
+  indicate successful motor starting while in reality the voltage
+  dip may cause thermal trip-outs or stalling of adjacent motors.
 """
 
 from __future__ import annotations
@@ -271,6 +280,111 @@ class MotorStartingAgent(BaseAgent):
         else:
             return "Severe — motor may stall; reduced-voltage starting required"
 
+    def calculate_transient_voltage_drop(
+        self,
+        v_nominal_v: float,
+        z_source_ohms: complex,
+        motor_rated_mva: float,
+        motor_rated_voltage_v: float,
+        starting_method: str = "DOL",
+        nema_code: str = "F",
+        motor_hp: float = 100.0,
+    ) -> dict[str, Any]:
+        """
+        Calculate the transient voltage drop at the motor terminals during starting.
+
+        CRITICAL FIX — Motor Transient Undervoltage Drop:
+        This method accounts for the source impedance (Z_source) when computing
+        the terminal voltage during motor starting. The previous implementation
+        assumed nominal voltage (V = 1.0 pu), which ignores the transient voltage
+        dip caused by the high starting current (I_start ≈ 6 × I_n) flowing
+        through the source impedance. This produces misleading reports that
+        indicate successful motor starting while in reality the voltage dip may
+        cause thermal trip-outs or stalling of adjacent motors.
+
+        Equation:
+            V_terminal = V_nominal - I_start × Z_source
+
+        Where I_start is the locked-rotor current (complex, including phase
+        angle from the starting power factor), and Z_source is the Thevenin
+        equivalent source impedance (transformer + generator + cable).
+
+        Parameters
+        ----------
+        v_nominal_v : float
+            Nominal system voltage in volts (line-to-line).
+        z_source_ohms : complex
+            Source Thevenin impedance in ohms (R + jX).
+        motor_rated_mva : float
+            Motor rated MVA.
+        motor_rated_voltage_v : float
+            Motor rated voltage in volts.
+        starting_method : str
+            Starting method applied (affects starting current magnitude).
+        nema_code : str
+            NEMA starting code letter (A–V).
+        motor_hp : float
+            Motor rated horsepower.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Dictionary with 'v_terminal_volts', 'v_terminal_pu',
+            'v_drop_volts', 'v_drop_percent', 'is_startable',
+            'assessment', and input parameters.
+        """
+        # Calculate starting current (locked-rotor current)
+        sc_result = self.calculate_starting_current(
+            motor_hp=motor_hp,
+            voltage_v=v_nominal_v,
+            nema_code=nema_code,
+            starting_method=starting_method,
+        )
+        lra_a = sc_result["lra_a"]
+
+        # Starting current with phase angle (starting PF ≈ 0.20)
+        starting_pf = 0.20  # Typical starting power factor for induction motors
+        pf_angle = np.arccos(starting_pf)
+        i_start_complex = complex(
+            lra_a * np.cos(pf_angle),
+            lra_a * np.sin(pf_angle),
+        )
+
+        # Calculate voltage drop across source impedance
+        v_drop = i_start_complex * z_source_ohms
+        v_drop_magnitude = abs(v_drop)
+
+        # Terminal voltage at motor bus
+        v_terminal = v_nominal_v - v_drop_magnitude
+
+        # Per-unit and percentage calculations
+        v_terminal_pu = v_terminal / v_nominal_v if v_nominal_v > 0 else 0.0
+        v_drop_percent = (v_drop_magnitude / v_nominal_v * 100.0) if v_nominal_v > 0 else 0.0
+
+        # IEEE 399: Motor starting requires at least 80% of nominal voltage
+        is_startable = v_terminal_pu >= 0.80
+
+        # Assessment
+        assessment = self._assess_voltage_dip(v_terminal_pu)
+
+        return {
+            "v_terminal_volts": round(v_terminal, 2),
+            "v_terminal_pu": round(v_terminal_pu, 4),
+            "v_drop_volts": round(v_drop_magnitude, 2),
+            "v_drop_percent": round(v_drop_percent, 2),
+            "is_startable": is_startable,
+            "assessment": assessment,
+            "v_nominal_volts": v_nominal_v,
+            "starting_current_a": lra_a,
+            "starting_method": starting_method,
+            "nema_code": nema_code,
+            "z_source_ohms": {
+                "r": round(z_source_ohms.real, 6),
+                "x": round(z_source_ohms.imag, 6),
+                "magnitude": round(abs(z_source_ohms), 6),
+            },
+        }
+
     def calculate_starting_torque(
         self,
         rated_torque_nm: float,
@@ -439,6 +553,26 @@ class MotorStartingAgent(BaseAgent):
                 )
                 results["voltage_dip"] = vd_result
 
+                # CRITICAL FIX — Transient voltage drop with source impedance
+                # Calculate the actual terminal voltage at the motor bus during
+                # starting, accounting for Z_source. This is the real-world
+                # voltage that the motor will experience, not the nominal.
+                z_source_r_ohms = float(task.parameters.get("z_source_r_ohms", 0.01))
+                z_source_x_ohms = float(task.parameters.get("z_source_x_ohms", 0.05))
+                z_source_ohms = complex(z_source_r_ohms, z_source_x_ohms)
+
+                if abs(z_source_ohms) > 0:
+                    tvd_result = self.calculate_transient_voltage_drop(
+                        v_nominal_v=voltage_v,
+                        z_source_ohms=z_source_ohms,
+                        motor_rated_mva=motor_mva,
+                        motor_rated_voltage_v=voltage_v,
+                        starting_method=starting_method,
+                        nema_code=nema_code,
+                        motor_hp=motor_hp,
+                    )
+                    results["transient_voltage_drop"] = tvd_result
+
             # --- Starting torque ---
             if analysis_type in ("torque", "full"):
                 rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
@@ -530,6 +664,20 @@ class MotorStartingAgent(BaseAgent):
             v_pu = vd_data.get("motor_bus_voltage_pu", 1.0)
             if v_pu <= 0 or v_pu > 1.5:
                 errors.append(f"Motor bus voltage out of range: {v_pu:.4f} pu")
+
+        # CRITICAL FIX — Validate transient voltage drop results
+        tvd_data = result.data.get("transient_voltage_drop")
+        if tvd_data is not None:
+            tv_pu = tvd_data.get("v_terminal_pu", 1.0)
+            if tv_pu <= 0 or tv_pu > 1.5:
+                errors.append(f"Transient terminal voltage out of range: {tv_pu:.4f} pu")
+            tv_drop_pct = tvd_data.get("v_drop_percent", 0.0)
+            if tv_drop_pct < 0 or tv_drop_pct > 100:
+                errors.append(f"Transient voltage drop out of range: {tv_drop_pct:.2f}%")
+            if not tvd_data.get("is_startable", True):
+                # This is a warning, not an error — the motor may not start
+                # but the calculation itself is valid
+                errors.append(f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal")
 
         acc_data = result.data.get("acceleration_time")
         if acc_data is not None:

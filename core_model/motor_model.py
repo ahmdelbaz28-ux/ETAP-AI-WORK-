@@ -7,9 +7,18 @@ Supports:
 - Acceleration time estimation
 - Voltage dip contribution
 - Short circuit contribution
+- Transient voltage drop during motor starting (CRITICAL FIX)
 
 Reference: IEEE Std 399 "IEEE Recommended Practice for Industrial and
 Commercial Power Systems Analysis" (Brown Book)
+
+CRITICAL FIX — Motor Transient Undervoltage Drop:
+- Added calculate_starting_voltage_drop() to compute the terminal voltage
+  at the motor bus during starting, accounting for the source impedance
+  (Z_source). The previous implementation assumed nominal voltage (V=1.0 pu)
+  during starting current calculations, which produces misleading reports
+  that indicate successful motor starting while in reality the voltage
+  dip may cause thermal trip-outs or stalling of adjacent motors.
 """
 
 from __future__ import annotations
@@ -238,6 +247,90 @@ class MotorModel:
         dip_percent = (1.0 - v_motor_mag) * 100.0
 
         return dip_percent, v_motor_mag
+
+    def calculate_starting_voltage_drop(
+        self,
+        v_nominal: float,
+        z_source_ohms: complex,
+        i_start_amps: complex,
+    ) -> dict:
+        """
+        Calculate the terminal voltage at the motor bus during starting,
+        accounting for the source impedance (Z_source).
+
+        CRITICAL FIX — Motor Transient Undervoltage Drop:
+        The previous implementation calculated starting current assuming
+        nominal voltage (V = 1.0 pu), which ignores the transient voltage
+        dip caused by the high starting current (I_start ≈ 6 × I_n)
+        flowing through the source impedance. This produces misleading
+        reports that indicate successful motor starting while in reality
+        the voltage dip may cause thermal trip-outs or stalling of
+        adjacent motors.
+
+        Equation:
+            V_terminal = V_nominal - I_start × Z_source
+
+        Parameters:
+        v_nominal (float): Nominal system voltage in volts (line-to-line).
+        z_source_ohms (complex): Source Thevenin impedance in ohms
+            (includes transformer, generator, and cable impedances).
+        i_start_amps (complex): Motor starting current in amps (complex,
+            including phase angle from starting power factor).
+
+        Returns:
+        dict: Dictionary containing:
+            - v_terminal_volts: Terminal voltage at motor bus (V)
+            - v_terminal_pu: Terminal voltage as fraction of nominal
+            - v_drop_volts: Voltage drop magnitude (V)
+            - v_drop_percent: Voltage drop as percentage of nominal
+            - is_startable: Whether voltage is above 80% of nominal
+              (minimum for successful motor starting per IEEE 399)
+            - assessment: Human-readable assessment string
+        """
+        # Calculate voltage drop across source impedance
+        v_drop = i_start_amps * z_source_ohms
+        v_drop_magnitude = abs(v_drop)
+
+        # Terminal voltage at motor bus
+        v_terminal = v_nominal - v_drop_magnitude
+
+        # Per-unit and percentage calculations
+        v_terminal_pu = v_terminal / v_nominal if v_nominal > 0 else 0.0
+        v_drop_percent = (v_drop_magnitude / v_nominal * 100.0) if v_nominal > 0 else 0.0
+
+        # IEEE 399: Motor starting requires at least 80% of nominal voltage
+        # to develop sufficient torque to overcome load and accelerate.
+        # Below 70%, contactors may drop out, and the motor may stall.
+        is_startable = v_terminal_pu >= 0.80
+
+        # Assessment per IEEE 399 guidelines
+        if v_terminal_pu >= 0.90:
+            assessment = "Acceptable — motor should start successfully"
+        elif v_terminal_pu >= 0.80:
+            assessment = "Marginal — motor may start but with reduced torque; verify load requirements"
+        elif v_terminal_pu >= 0.70:
+            assessment = "Concerning — risk of contactor drop-out and process disruption"
+        else:
+            assessment = "Severe — motor will likely stall; reduced-voltage starting required"
+
+        return {
+            "v_terminal_volts": round(v_terminal, 2),
+            "v_terminal_pu": round(v_terminal_pu, 4),
+            "v_drop_volts": round(v_drop_magnitude, 2),
+            "v_drop_percent": round(v_drop_percent, 2),
+            "is_startable": is_startable,
+            "assessment": assessment,
+            "v_nominal_volts": v_nominal,
+            "z_source_ohms": {
+                "r": round(z_source_ohms.real, 6),
+                "x": round(z_source_ohms.imag, 6),
+                "magnitude": round(abs(z_source_ohms), 6),
+            },
+            "i_start_amps": {
+                "magnitude": round(abs(i_start_amps), 2),
+                "angle_deg": round(np.degrees(np.angle(i_start_amps)), 2),
+            },
+        }
 
     def short_circuit_contribution(
         self,

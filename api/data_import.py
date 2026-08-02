@@ -43,6 +43,10 @@ from pydantic import BaseModel, Field
 
 from api.dependencies import get_api_key, get_current_user_from_header
 
+# Global hard limit for maximum file uploads (50 MB) to prevent OOM.
+# This is the absolute ceiling regardless of per-format limits.
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 Megabytes
+
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
 
 _DECODE_WARNING = "File was not valid UTF-8; decoded as Latin-1."
@@ -612,7 +616,11 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
     POST /api/v1/projects/.
 
     Supported formats: CIM/XML, PSS/E RAW, MATPOWER, ETAP JSON, JSON, CSV.
-    Maximum file size: 20 MB.
+    Maximum file size: per-format limit (10-20 MB) with a global hard cap of 50 MB.
+
+    CRITICAL FIX — OOM Protection:
+    Files are read in 1 MB chunks with a two-tier size limit enforced
+    during streaming to prevent memory exhaustion and OOM Killer crashes.
     """
     if not file.filename:
         raise HTTPException(
@@ -640,7 +648,14 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
     # SECURITY: Stream-read with size limit to prevent zip-bomb / memory exhaustion.
     # Read in chunks up to max_bytes + 1 (the +1 lets us detect if the file
     # exceeds the limit without reading the entire file first).
-    max_bytes = fmt.max_size_mb * 1024 * 1024
+    #
+    # CRITICAL FIX — OOM Protection:
+    # Two-tier size enforcement:
+    #   1. Per-format limit (fmt.max_size_mb): e.g. 20 MB for CIM/XML, 10 MB for CSV
+    #   2. Global hard limit (MAX_FILE_SIZE = 50 MB): absolute ceiling regardless of format
+    # This prevents a malicious or misconfigured format from allowing uploads
+    # that consume excessive RAM and trigger the Linux OOM Killer.
+    max_bytes = min(fmt.max_size_mb * 1024 * 1024, MAX_FILE_SIZE)
     chunks: list[bytes] = []
     total_read = 0
     while True:
@@ -651,7 +666,7 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         if total_read > max_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large: exceeds {fmt.max_size_mb} MB limit for {fmt.name}",
+                detail=f"File too large: exceeds {fmt.max_size_mb} MB limit for {fmt.name} (global max: {MAX_FILE_SIZE // (1024 * 1024)} MB)",
             )
         chunks.append(chunk)
     content = b"".join(chunks)
