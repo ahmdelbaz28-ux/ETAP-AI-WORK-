@@ -50,7 +50,14 @@ sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 
 # ETAP Worker API (FastAPI)
-fastapi>=0.104.0
+# SECURITY: upgraded to >=0.121.0 for starlette 0.49.1+ CVE fixes
+# (CVE-2026-54283, CVE-2026-48818, CVE-2025-62727)
+# NOTE: FastAPI 0.118.0 requires starlette<0.49.0, blocking CVE fixes.
+# 0.121.0 is the minimum version supporting starlette>=0.49.1.
+fastapi>=0.121.0,<0.122.0
+# SECURITY: starlette upgraded to >=0.49.1 for CVE fixes
+# (CVE-2026-54283, CVE-2026-48818, CVE-2025-62727)
+starlette>=0.49.1,<0.50.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 
