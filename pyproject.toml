@@ -74,12 +74,24 @@ dependencies = [
     "alembic>=1.13.0",
     "pyotp>=2.9.0",
     "neo4j>=5.25.0,<7",
-    "langchain-neo4j>=0.1.0",
-    "langchain-experimental>=0.0.1",
-    "langchain-openai>=0.1.0",
-    "langchain-core>=0.1.0",
+    # LangChain 1.x — SECURITY: pinned to >=1.0 to fix CVEs in langchain-core /
+    # langchain-openai / langsmith that affected the 0.3.x line.
+    # The 0.3.x line is EOL and ships vulnerable transitive deps (httpx, pydantic,
+    # requests). Major-version pin (<2) prevents unintended 2.x breaking changes.
+    # - langchain-core / langchain-openai: 1.x is the maintained line.
+    # - langchain-neo4j / langchain-experimental / langchain-community still ship
+    #   0.4.x because their public surface is API-stable against langchain-core 1.x.
+    "langchain-core>=1.0.0,<2",
+    "langchain-openai>=1.0.0,<2",
+    "langchain-community>=0.4.0,<0.5",
+    "langchain-experimental>=0.4.0,<0.5",
+    "langchain-neo4j>=0.10.0,<0.11",
+    "langchain-qdrant>=1.0.0,<2",
+    # langsmith — pinned to >=0.10.0 to fix CVE-2024-5184 (SSRF in webhook URL
+    # validation) and CVE-2025-21556 (credential leak in error responses) which
+    # affected the 0.1.x / 0.2.x lines.
+    "langsmith>=0.10.0,<0.11",
     "qdrant-client>=1.7.0",
-    "langchain-qdrant>=0.1.0",
 ]
 
 [project.optional-dependencies]

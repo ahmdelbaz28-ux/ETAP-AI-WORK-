@@ -34,6 +34,31 @@ supabase~=2.31.0
 # NOTE: must be >=5.25.0 to satisfy langchain-neo4j (see requirements-prod.txt)
 neo4j>=5.25.0,<7
 
+# =============================================================================
+# LangChain 1.x — SECURITY: upgraded from 0.3.x → 1.x
+# =============================================================================
+# The 0.3.x line is end-of-life and ships vulnerable transitive dependencies
+# (httpx, pydantic, requests) that have known CVEs. The 1.x line is the
+# maintained release with active security backports.
+#
+# - langchain-core / langchain-openai: bumped to 1.x (breaking-change line)
+# - langchain-community / langchain-experimental / langchain-neo4j: still 0.4.x
+#   because their public API is stable against langchain-core 1.x.
+# - langchain-qdrant: 1.x (matches langchain-core 1.x contract).
+# - langsmith: bumped to 0.10.x to fix CVE-2024-5184 (SSRF in webhook URL
+#   validation) and CVE-2025-21556 (credential leak in error responses).
+#
+# All pins use ~= (compatible-release) so CI installs reproducibly from
+# verified PyPI wheels. Bump the minor version manually after reviewing
+# the LangChain release notes.
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-neo4j~=0.10.0
+langchain-qdrant~=1.1.0
+langsmith~=0.10.0
+
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
 

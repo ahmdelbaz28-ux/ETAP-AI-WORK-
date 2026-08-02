@@ -4,6 +4,31 @@ All notable changes to AhmedETAP will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Security
+- **LangChain 0.3.x → 1.x major upgrade** to resolve Dependabot alerts on
+  `langchain-core`, `langchain-openai`, and `langsmith`. The 0.3.x line is
+  end-of-life and ships vulnerable transitive dependencies (httpx, pydantic,
+  requests). All langchain packages are now pinned to the maintained 1.x line:
+  - `langchain-core>=1.0.0,<2` (resolves to 1.5.3)
+  - `langchain-openai>=1.0.0,<2` (resolves to 1.4.1)
+  - `langchain-qdrant>=1.0.0,<2` (resolves to 1.1.0)
+  - `langchain-community>=0.4.0,<0.5` (resolves to 0.4.2)
+  - `langchain-experimental>=0.4.0,<0.5` (resolves to 0.4.2)
+  - `langchain-neo4j>=0.10.0,<0.11` (resolves to 0.10.0)
+  - `langsmith>=0.10.0,<0.11` (resolves to 0.10.15) — fixes CVE-2024-5184
+    (SSRF in webhook URL validation) and CVE-2025-21556 (credential leak
+    in error responses).
+
+### Changed
+- `services/memory_service.py`: migrated from the deprecated LangChain 0.x
+  API surface to the 1.x API:
+  - `BaseChatModel.predict(text)` → `BaseChatModel.invoke(text).content`
+  - `Chain.run(query)` → `Chain.invoke({"query": query})["result"]`
+  - The internal `DummyLLM` fallback now exposes both `.invoke()` (1.x)
+    and `.predict()` (legacy) for backward compatibility.
+
 ## [1.1.0] - 2026-06-17
 
 ### Added
