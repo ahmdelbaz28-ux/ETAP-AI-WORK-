@@ -27,10 +27,10 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -79,7 +79,7 @@ jobs:
           fi
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: '24'
           cache: 'npm'
@@ -144,19 +144,19 @@ jobs:
             echo "::warning::SONAR_TOKEN not set — skipping SonarCloud analysis"
           fi
 
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         if: steps.has_token.outputs.has_token == 'true'
         with:
           python-version: '3.12'
           cache: 'pip'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         if: steps.has_token.outputs.has_token == 'true'
         with:
           node-version: '24'
@@ -175,7 +175,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@v4  # pin SHA for security
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
         with:
           name: coverage-report
           path: .
@@ -254,10 +254,10 @@ jobs:
     needs: lint
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: '24'
           cache: 'npm'
@@ -292,7 +292,7 @@ jobs:
         run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
-        uses: actions/upload-artifact@v4  # pin SHA for security
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         if: failure()
         with:
           name: playwright-screenshots-${{ github.sha }}
@@ -329,10 +329,10 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -403,7 +403,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact for SonarCloud
-        uses: actions/upload-artifact@v4  # pin SHA for security
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         if: always()
         with:
           name: coverage-report
@@ -417,10 +417,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
 
@@ -489,7 +489,7 @@ jobs:
     name: ⎈ Helm Chart Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Install Helm
         uses: azure/setup-helm@59b1c81c6280f5abebb1fb1bc585696daa7dfb42  # SECURITY R7-C2: pinned to commit SHA of tag v5 — resolves S7637
@@ -539,10 +539,10 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python '3.12'
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -594,7 +594,7 @@ jobs:
             --summary-output=load-test-results/k6/ci-summary.json
 
       - name: Upload k6 results
-        uses: actions/upload-artifact@v4  # pin SHA for security
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         if: always()
         with:
           name: k6-load-test-results-${{ github.sha }}
@@ -612,10 +612,10 @@ jobs:
     needs: [python-tests, security-scan]
     if: ${{ !cancelled() }}
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: '24'
           cache: 'npm'
@@ -634,7 +634,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@v4  # pin SHA for security
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -651,14 +651,14 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Download UI build artifact
         # The Dockerfile copies ui-dist/ into the image (line 87:
         # `COPY ui-dist/ /app/ui-dist/`). The build-ui job produces this as
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
-        uses: actions/download-artifact@v4  # pin SHA for security
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -733,7 +733,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Sanitize Docker image name (must match docker-build job)
         id: sanitize
@@ -770,7 +770,7 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38  # v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -784,7 +784,7 @@ jobs:
           output: 'sbom.json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4  # pin SHA for security
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json
@@ -801,10 +801,10 @@ jobs:
       url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Node.js '24'
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: '24'
 
@@ -852,13 +852,13 @@ jobs:
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
           lfs: true
 
       - name: Set up Python
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
 
@@ -978,11 +978,11 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-python@v6  # pin SHA for security
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: '3.12'
 
