@@ -91,6 +91,27 @@ except ImportError:
 # can be imported in minimal environments where opentelemetry is not installed.
 
 
+def _env_int(var: str, default: int) -> int:
+    """Read an int from an env var with a default. Logs and falls back on parse error.
+
+    Mirrors the helper in ``integrations.smithery_mcp._env_int`` so both
+    observability modules apply the same defensive parsing — a misconfigured
+    env var (e.g. ``LANGWATCH_TIMEOUT=5s``) must NEVER crash module import,
+    because that would take down the entire integrations package and any
+    service that imports it.
+    """
+    raw = os.environ.get(var)
+    if raw is None or raw.strip() == "":
+        return default
+    try:
+        return int(float(raw))
+    except (TypeError, ValueError):
+        logger.warning(
+            "Invalid int for %s=%r — using default %d", var, raw, default
+        )
+        return default
+
+
 def _truncate_for_capture(text: Any, max_chars: int) -> str | None:
     """Truncate text to ``max_chars`` chars. Return ``None`` if capture disabled.
 
@@ -140,10 +161,13 @@ class LangWatchTracker:
         self.api_key = os.getenv("LANGWATCH_API_KEY", "")
         self.project = os.getenv("LANGWATCH_PROJECT", "AhmedETAP")
         self.endpoint = os.getenv("LANGWATCH_ENDPOINT", "https://app.langwatch.ai")
-        # Handle float strings (e.g. "5.0") — int("5.0") raises ValueError.
-        self.timeout = int(float(os.getenv("LANGWATCH_TIMEOUT", "5")))
-        self.max_capture_chars = int(os.getenv("LANGWATCH_MAX_CAPTURE_CHARS", "4096"))
-        self.max_retries = int(os.getenv("LANGWATCH_MAX_RETRIES", "3"))
+        # Robust int parsing — a misconfigured env var (e.g. "5s" or "abc")
+        # falls back to the default instead of crashing module import.
+        # (Original code used int(float(...)) directly which raised ValueError
+        #  on bad input, taking down the entire integrations package.)
+        self.timeout = _env_int("LANGWATCH_TIMEOUT", 5)
+        self.max_capture_chars = _env_int("LANGWATCH_MAX_CAPTURE_CHARS", 4096)
+        self.max_retries = _env_int("LANGWATCH_MAX_RETRIES", 3)
 
         # Explicit disable flag takes precedence
         self.enabled = (
@@ -338,11 +362,25 @@ class LangWatchTracker:
                     **(metadata or {}),
                 },
             )
+            # Defensive: validate that langwatch.trace() returned a usable
+            # trace object. If it returned None or a non-trace object (e.g.
+            # a dict from a mocked SDK), accessing .update() / .send() would
+            # raise AttributeError. That exception is technically caught by
+            # the retry wrapper (as non-retryable), but it's cleaner to
+            # short-circuit here and log the anomaly — matching the
+            # defensive pattern used in get_context_manager().
+            if trace is None or not hasattr(trace, "send"):
+                logger.debug(
+                    "LangWatch trace() returned non-trace object (%r) — skipping track(%s)",
+                    type(trace).__name__ if trace is not None else "None",
+                    name,
+                )
+                return
             captured_input = _truncate_for_capture(input_text, self.max_capture_chars)
             captured_output = _truncate_for_capture(output_text, self.max_capture_chars)
-            if captured_input is not None:
+            if captured_input is not None and hasattr(trace, "update"):
                 trace.update(input=captured_input)
-            if captured_output is not None:
+            if captured_output is not None and hasattr(trace, "update"):
                 trace.update(output=captured_output)
             trace.send()
 
