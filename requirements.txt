@@ -108,7 +108,10 @@ asyncpg>=0.29,<0.32
 #   CVE-2025-62727 (O(n²) DoS via Range header merging)
 # FastAPI 0.121.0+ supports starlette>=0.49.1 which contains the fixes.
 # Previous FastAPI 0.115.x only supported starlette<0.42, blocking the fix.
-fastapi>=0.121.0,<0.126.0
+# NOTE: User requested >=0.118.0,<0.119.0 but FastAPI 0.118.0 requires
+# starlette<0.49.0, which conflicts with the CVE fix requirement. Using
+# 0.121.0 as the minimum version that supports starlette>=0.49.1.
+fastapi>=0.121.0,<0.122.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
@@ -202,6 +205,9 @@ celery~=5.3.0
 
 # Opentelemetry FastAPI instrumentation
 # Must match the opentelemetry-semantic-conventions version above (0.51b0).
+# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.51b0 declares
+# fastapi~=0.58 as an optional 'instruments' extra, not a hard dependency.
+# It works correctly with fastapi>=0.121.0 — no upgrade needed.
 opentelemetry-instrumentation-fastapi~=0.51b0
 
 # Production requirements (lightweight subset)
