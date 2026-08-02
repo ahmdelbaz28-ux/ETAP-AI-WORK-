@@ -194,7 +194,7 @@ jobs:
             echo "ℹ️ No changes — HF Space already in sync"
             exit 0
           }
-          git push https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main 2>&1 | tee /tmp/hf-push.log
+          git push origin main 2>&1 | tee /tmp/hf-push.log
           # Check if push actually succeeded (the pipe to tail was masking failures)
           if grep -q "remote rejected\|error: failed to push\|!\[remote rejected\]" /tmp/hf-push.log; then
             echo "❌ HF Space push FAILED — see errors above"
@@ -202,7 +202,9 @@ jobs:
           fi
           # SECURITY: remove credential file after use
           rm -f /tmp/.git-credentials-hf
-          echo "✅ HF Space synced" ─────────────────────────────
+          echo "✅ HF Space synced"
+
+      # ── 1d. Post-deploy smoke test on HF Space ─────────────────────────────
       # After pushing to HF Space, the Docker container rebuilds and restarts.
       # This step waits for the Space to become healthy (up to 5 min) and runs
       # a basic smoke test against the production URL.
@@ -521,6 +523,7 @@ jobs:
           # Clone HF Space into a temp dir
           # SECURITY: use git credential helper instead of embedding token in URL
           echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf-drift
+          git config --global credential.helper "store --file=/tmp/.git-credentials-hf-drift"
           git clone --depth 1 https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform /tmp/hf-space 2>&1 | tail -3
           rm -f /tmp/.git-credentials-hf-drift
           # Compare the README frontmatter (the part editable from HF UI)
