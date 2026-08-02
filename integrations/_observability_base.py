@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ def build_health_check(
     provider_name: str,
     project: str,
     sdk_available: bool,
-    dashboard_url: Optional[str] = None,
+    dashboard_url: str | None = None,
     **extra: Any,
 ) -> dict[str, Any]:
     """Build a standardized health_check response for observability trackers.

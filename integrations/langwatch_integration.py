@@ -62,7 +62,7 @@ import os
 import threading
 import time
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ except ImportError:
 # can be imported in minimal environments where opentelemetry is not installed.
 
 
-def _truncate_for_capture(text: Any, max_chars: int) -> Optional[str]:
+def _truncate_for_capture(text: Any, max_chars: int) -> str | None:
     """Truncate text to ``max_chars`` chars. Return ``None`` if capture disabled.
 
     Mirrors the Langfuse integration's redaction helper so both observability
@@ -120,9 +120,7 @@ def _is_retryable_exception(exc: BaseException) -> bool:
     # httpx.HTTPStatusError — check status code without hard-importing httpx
     # (avoids a hard dependency if a different HTTP client is used in tests).
     status = getattr(getattr(exc, "response", None), "status_code", None)
-    if isinstance(status, int) and 500 <= status < 600:
-        return True
-    return False
+    return isinstance(status, int) and 500 <= status < 600
 
 
 # ─── LangWatchTracker ──────────────────────────────────────────────────────
@@ -174,7 +172,7 @@ class LangWatchTracker:
 
     # ─── Lazy client init ────────────────────────────────────────────────
 
-    def _get_client(self) -> Optional[Any]:
+    def _get_client(self) -> Any | None:
         """Lazily configure the LangWatch SDK on first use (thread-safe).
 
         LangWatch's SDK uses module-level state (``langwatch.api_key`` /
@@ -231,9 +229,7 @@ class LangWatchTracker:
         """Return a snapshot of metrics counters."""
         with self._metrics_lock:
             avg_latency_ms = (
-                self._total_latency_ms / self._total_calls
-                if self._total_calls > 0
-                else 0.0
+                self._total_latency_ms / self._total_calls if self._total_calls > 0 else 0.0
             )
             return {
                 "total_calls": self._total_calls,
@@ -245,7 +241,7 @@ class LangWatchTracker:
 
     # ─── Internal: retry wrapper ─────────────────────────────────────────
 
-    def _call_with_retry(self, operation: Callable[[], Any], op_name: str) -> Optional[Any]:
+    def _call_with_retry(self, operation: Callable[[], Any], op_name: str) -> Any | None:
         """Execute an operation with retry + exponential backoff.
 
         Args:
@@ -255,7 +251,6 @@ class LangWatchTracker:
         Returns:
             The operation result, or ``None`` on failure.
         """
-        last_exc: Optional[BaseException] = None
         for attempt in range(self.max_retries + 1):
             start = time.monotonic()
             try:
@@ -270,7 +265,6 @@ class LangWatchTracker:
                     )
                 return result
             except BaseException as exc:  # noqa: BLE001 — broad on purpose
-                last_exc = exc
                 latency_ms = (time.monotonic() - start) * 1000
                 if not _is_retryable_exception(exc):
                     # Non-retryable — fail fast
@@ -310,11 +304,11 @@ class LangWatchTracker:
     def track(
         self,
         name: str,
-        input_text: Optional[str] = None,
-        output_text: Optional[str] = None,
-        metadata: Optional[dict] = None,
-        model: Optional[str] = None,
-        agent: Optional[str] = None,
+        input_text: str | None = None,
+        output_text: str | None = None,
+        metadata: dict | None = None,
+        model: str | None = None,
+        agent: str | None = None,
     ) -> None:
         """Manually log a single LLM interaction to LangWatch.
 
@@ -347,7 +341,7 @@ class LangWatchTracker:
     def get_context_manager(
         self,
         name: str,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
         **kwargs: Any,
     ):
         """Return a LangWatch trace context manager (or no-op).
@@ -440,8 +434,8 @@ atexit.register(_atexit_flush)
 
 def track_llm_call(
     name: str,
-    agent: Optional[str] = None,
-    model: Optional[str] = None,
+    agent: str | None = None,
+    model: str | None = None,
     capture_input: bool = True,
     capture_output: bool = True,
 ) -> Callable:
@@ -526,11 +520,7 @@ def track_llm_call(
                                 input_text, langwatch_tracker.max_capture_chars
                             )
                         )
-                    if (
-                        capture_output
-                        and langwatch_tracker.enabled
-                        and hasattr(trace, "update")
-                    ):
+                    if capture_output and langwatch_tracker.enabled and hasattr(trace, "update"):
                         trace.update(
                             output=_truncate_for_capture(
                                 result, langwatch_tracker.max_capture_chars

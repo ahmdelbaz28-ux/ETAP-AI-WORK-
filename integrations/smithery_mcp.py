@@ -64,7 +64,8 @@ import os
 import threading
 import time
 import uuid
-from typing import Any, Optional
+from collections.abc import Callable
+from typing import Any
 
 import httpx
 
@@ -115,9 +116,7 @@ def _is_retryable_exception(exc: BaseException) -> bool:
         return True
     if isinstance(exc, (httpx.ConnectError, httpx.TimeoutException, httpx.PoolTimeout)):
         return True
-    if isinstance(exc, (ConnectionError, TimeoutError, OSError)):
-        return True
-    return False
+    return isinstance(exc, (ConnectionError, TimeoutError, OSError))
 
 
 # ─── Token-bucket rate limiter ─────────────────────────────────────────────
@@ -130,7 +129,7 @@ class _TokenBucket:
     per second. Blocks (with timeout) until a token is available.
     """
 
-    def __init__(self, rate: float, capacity: Optional[float] = None) -> None:
+    def __init__(self, rate: float, capacity: float | None = None) -> None:
         self.rate = rate
         self.capacity = capacity if capacity is not None else rate
         self._tokens = self.capacity
@@ -171,7 +170,7 @@ def _get_circuit_breaker(
     name: str,
     failure_threshold: int,
     recovery_timeout: float,
-) -> Optional[Any]:
+) -> Any | None:
     """Get or create a circuit breaker from the canonical engine.resilience registry.
 
     Returns None if engine.resilience isn't importable (e.g., in minimal
@@ -242,7 +241,7 @@ class SmitheryClient:
         )
 
         # Lazy-init shared httpx client (for connection pooling)
-        self._http_client: Optional[httpx.AsyncClient] = None
+        self._http_client: httpx.AsyncClient | None = None
         self._http_client_lock = threading.Lock()
         self._http_client_init_attempted = False
 
@@ -338,7 +337,7 @@ class SmitheryClient:
 
     # ─── Input validation ───────────────────────────────────────────────
 
-    def _validate_arguments(self, arguments: dict[str, Any]) -> Optional[str]:
+    def _validate_arguments(self, arguments: dict[str, Any]) -> str | None:
         """Validate tool arguments. Returns error string on failure, None on success."""
         if not isinstance(arguments, dict):
             return f"arguments must be a dict, got {type(arguments).__name__}"
@@ -417,7 +416,7 @@ class SmitheryClient:
         import asyncio
         import random
 
-        last_exc: Optional[BaseException] = None
+        last_exc: BaseException | None = None
         for attempt in range(self.max_retries + 1):
             try:
                 result = await asyncio.wait_for(operation(), timeout=timeout)
@@ -471,7 +470,7 @@ class SmitheryClient:
 
     # ─── Public API ──────────────────────────────────────────────────────
 
-    async def list_servers(self, query: Optional[str] = None) -> list[dict]:
+    async def list_servers(self, query: str | None = None) -> list[dict]:
         """List available MCP servers from Smithery registry.
 
         Returns an empty list when disabled. On transport errors, returns
@@ -614,9 +613,7 @@ class ETAPMCPRegistry:
     def __init__(self, client: SmitheryClient) -> None:
         self.client = client
         # Configurable server IDs (override via env vars)
-        self.server_standards_db = os.getenv(
-            "SMITHERY_SERVER_STANDARDS_DB", "etap-standards-db"
-        )
+        self.server_standards_db = os.getenv("SMITHERY_SERVER_STANDARDS_DB", "etap-standards-db")
         self.server_equipment = os.getenv("SMITHERY_SERVER_EQUIPMENT", "equipment-catalog")
         self.server_report_gen = os.getenv("SMITHERY_SERVER_REPORT_GEN", "report-generator")
 
@@ -691,7 +688,7 @@ class _suppress_context:
     ``contextlib.suppress(Exception)`` but localized for clarity.
     """
 
-    def __enter__(self) -> "_suppress_context":
+    def __enter__(self) -> _suppress_context:
         return self
 
     def __exit__(self, *exc_info: Any) -> bool:
