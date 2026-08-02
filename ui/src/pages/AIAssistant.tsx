@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import remarkGfm from "remark-gfm";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { useNotify } from "../context/NotificationContext";

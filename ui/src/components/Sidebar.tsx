@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router";
 import { useTheme } from "../context/ThemeContext";
 import { type HealthResponse, fetchHealth } from "../lib/api";
 import { useAppStore } from "../store";

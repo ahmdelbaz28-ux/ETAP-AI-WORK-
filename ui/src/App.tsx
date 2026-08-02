@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState, type ComponentType } from "react";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CommandPalette } from "./components/command/CommandPalette";

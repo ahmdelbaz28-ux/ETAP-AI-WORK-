@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { BrandLogo } from "../components/BrandLogo";
 import { useNotify } from "../context/NotificationContext";
 import { useAuth } from "../hooks/useAuth";
