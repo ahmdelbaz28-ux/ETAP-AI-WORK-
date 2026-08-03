@@ -50,7 +50,9 @@ jobs:
         with:
           languages: javascript-typescript, python
       - name: Build Python
-        run: "pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
+        # S8541/S8544: --only-binary prevents source-build setup.py execution;
+        # --requirement loads pinned versions from requirements.txt lock file
+        run: "pip install --only-binary :all: --requirement requirements.txt"
         continue-on-error: true
       - name: Build TypeScript
         run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
