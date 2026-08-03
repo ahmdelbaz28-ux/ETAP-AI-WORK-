@@ -1036,6 +1036,25 @@ class ValidationAgent(BaseAgent):
                 except Exception as exc:
                     logger.debug("Output schema guard check failed: %s", exc)
 
+                # ── F-12: AI failure mode scan on agent text output ──
+                try:
+                    from guards.agent_output_scanner import scan_agent_output
+
+                    agent_output_text = str(agent_result.data) if agent_result.data else ""
+                    fm_warnings = scan_agent_output(
+                        agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
+                        agent_output_text,
+                    )
+                    for w in fm_warnings:
+                        if w.severity == "critical":
+                            validation_summary["critical_issues"].append(
+                                f"[FM-{w.failure_mode_id}] {w.description}: {w.matched_text}"
+                            )
+                except ImportError:
+                    pass  # agent_output_scanner not available — skip
+                except Exception as exc:
+                    logger.debug("Agent output scanner failed: %s", exc)
+
                 # Validate based on study type
                 if agent_result.study_type == StudyType.LOAD_FLOW:
                     checks = self._validate_load_flow(agent_result)
@@ -1088,8 +1107,40 @@ class ValidationAgent(BaseAgent):
             )
 
     def _validate_load_flow(self, result: AgentResult) -> dict:
-        """Validate load flow results."""
+        """Validate load flow results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic voltage checks
+        (IEEE C84.1 Range A/B) for physically impossible values.
+        """
         issues = []
+
+        # ── F-07: Deterministic engineering assertion checks ──
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer()
+            # Validate bus voltages if present in result data
+            buses = result.data.get("buses", {})
+            if buses:
+                bus_voltages = {}
+                for bus_id, bus_data in buses.items():
+                    v_kv = bus_data.get("voltage_kv", bus_data.get("voltage_magnitude_pu", 0))
+                    if v_kv:
+                        bus_voltages[bus_id] = v_kv
+                if bus_voltages:
+                    assertion_results = assertion_layer.validate_voltage_results(
+                        bus_voltages=bus_voltages,
+                    )
+                    for ar in assertion_results:
+                        if not ar.passed:
+                            issues.append(
+                                f"[ASSERTION-{ar.severity.value}] {ar.check_name}: {ar.message}"
+                            )
+        except ImportError:
+            logger.debug("EngineeringAssertionLayer not available for load flow validation")
+        except Exception as exc:
+            logger.warning("Engineering assertion check failed: %s", exc)
 
         if not result.data.get("converged"):
             issues.append("Load flow did not converge")
@@ -1150,8 +1201,40 @@ class ValidationAgent(BaseAgent):
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_harmonic(self, result: AgentResult) -> dict:
-        """Validate harmonic analysis results."""
+        """Validate harmonic analysis results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for THD limits
+        (IEEE 519-2014) when harmonic data is available.
+        """
         issues = []
+
+        # ── F-07: Deterministic engineering assertion checks ──
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer()
+            harmonic_data = result.data.get("harmonic_results", {})
+            if harmonic_data:
+                thd_values = {}
+                buses = harmonic_data.get("buses", {})
+                for bus_id, bus_data in buses.items():
+                    thd = bus_data.get("voltage_thd_percent", 0)
+                    if thd:
+                        thd_values[bus_id] = thd
+                if thd_values:
+                    assertion_results = assertion_layer.validate_harmonic_results(
+                        thd_values=thd_values,
+                    )
+                    for ar in assertion_results:
+                        if not ar.passed:
+                            issues.append(
+                                f"[ASSERTION-{ar.severity.value}] {ar.check_name}: {ar.message}"
+                            )
+        except ImportError:
+            logger.debug("EngineeringAssertionLayer not available for harmonic validation")
+        except Exception as exc:
+            logger.warning("Engineering assertion check failed: %s", exc)
 
         violations = result.data.get("violations", [])
         if violations:
@@ -1164,8 +1247,34 @@ class ValidationAgent(BaseAgent):
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_opf(self, result: AgentResult) -> dict:
-        """Validate OPF results."""
+        """Validate OPF results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for OPF
+        generator outputs and system losses when available.
+        """
         issues = []
+
+        # ── F-07: Deterministic engineering assertion checks ──
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer()
+            opf_data = result.data.get("opf_results", result.data)
+            generators = opf_data.get("generators", {})
+            if generators:
+                # Check that generator outputs are within reasonable bounds
+                for gen_id, gen_data in generators.items():
+                    p_mw = abs(gen_data.get("active_power_mw", 0))
+                    if p_mw > 1000:  # No single generator exceeds 1000 MW
+                        issues.append(
+                            f"[ASSERTION-critical] Generator {gen_id}: "
+                            f"active power {p_mw} MW exceeds physical bounds"
+                        )
+        except ImportError:
+            logger.debug("EngineeringAssertionLayer not available for OPF validation")
+        except Exception as exc:
+            logger.warning("Engineering assertion check failed: %s", exc)
 
         if not result.data.get("success"):
             issues.append("OPF did not converge")

@@ -338,11 +338,22 @@ class AIMemoryService:
             return False
 
     def query_graph(self, query: str) -> str:
-        """Run a Cypher query chain on Neo4j Graph DB."""
+        """Run a Cypher query chain on Neo4j Graph DB.
+
+        ARCHITECTURE AUDIT FIX (F-01): Refuses to query with DummyLLM,
+        which would produce empty/meaningless Cypher results.
+        """
         if not self._initialized_neo4j and not self.initialize_neo4j():
             return "AI Memory Service is not connected to Neo4j."
         try:
             llm = self._get_llm()
+            # F-01: Reject DummyLLM at call site
+            if getattr(llm, "IS_DUMMY", False):
+                logger.error(
+                    "Refusing to query Neo4j graph with DummyLLM — "
+                    "results would be silently empty. Set OPENAI_API_KEY."
+                )
+                return "Graph query unavailable: LLM service is using a dummy fallback. Set OPENAI_API_KEY."
             chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
             # LangChain 1.x: Chain.run() was removed; use invoke({"query": ...}).
             # Returns a dict like {"query": "...", "result": "..."}.
@@ -355,12 +366,25 @@ class AIMemoryService:
             return f"Error querying graph database: {exc}"
 
     def save_to_vector_memory(self, fact_text: str, index_name: str = "ai_memory_index") -> bool:
-        """Convert a fact text into embeddings and save it to the Qdrant Vector index."""
+        """Convert a fact text into embeddings and save it to the Qdrant Vector index.
+
+        ARCHITECTURE AUDIT FIX (F-02): Refuses to save with
+        DeterministicFallbackEmbeddings, which would pollute the vector
+        index with semantically meaningless vectors.
+        """
         if not self._initialized_qdrant and not self.initialize_qdrant():
             logger.error("Qdrant not initialized.")
             return False
         try:
             embeddings = self._get_embeddings()
+            # F-02: Reject unsafe fallback embeddings at save time
+            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False):
+                logger.error(
+                    "Refusing to save to vector memory with DeterministicFallbackEmbeddings — "
+                    "would pollute index with semantically meaningless vectors. "
+                    "Set EMBEDDING_API_KEY or OPENAI_API_KEY."
+                )
+                return False
 
             # Programmatically check and create collection if it doesn't exist
             # Check dimension of the selected embedding model

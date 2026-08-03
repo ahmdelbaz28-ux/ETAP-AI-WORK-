@@ -144,6 +144,86 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
             "severity": "warning",
         },
     ],
+    "harmonic_agent": [
+        {
+            "rule_id": "HM-M1",
+            "description": "Must contain harmonic analysis results (THD values)",
+            "check": "dict_keys_contain",
+            "required_keys": ["harmonic_results"],
+            "severity": "error",
+        },
+        {
+            "rule_id": "HM-M2",
+            "description": "Must reference IEEE 519-2014 compliance (declared mandatory)",
+            "check": "field_value_contains_if_present",
+            "key": "standard",
+            "expected_substring": "IEEE 519",
+            "severity": "warning",
+        },
+    ],
+    "opf_agent": [
+        {
+            "rule_id": "OPF-M1",
+            "description": "Must contain optimization results",
+            "check": "dict_keys_contain",
+            "required_keys": ["opf_results"],
+            "severity": "error",
+        },
+    ],
+    "motor_starting_agent": [
+        {
+            "rule_id": "MS-M1",
+            "description": "Must contain motor starting results (voltage dip, acceleration)",
+            "check": "dict_keys_contain",
+            "required_keys": ["motor_results"],
+            "severity": "error",
+        },
+    ],
+    "battery_storage_agent": [
+        {
+            "rule_id": "BS-M1",
+            "description": "Must contain battery storage sizing results",
+            "check": "dict_keys_contain",
+            "required_keys": ["battery_results"],
+            "severity": "error",
+        },
+    ],
+    "renewable_agent": [
+        {
+            "rule_id": "RN-M1",
+            "description": "Must contain renewable energy analysis results",
+            "check": "dict_keys_contain",
+            "required_keys": ["renewable_results"],
+            "severity": "error",
+        },
+    ],
+    "digital_twin_agent": [
+        {
+            "rule_id": "DT-M1",
+            "description": "Must contain digital twin model results",
+            "check": "dict_keys_contain",
+            "required_keys": ["twin_results"],
+            "severity": "error",
+        },
+    ],
+    "qgis_agent": [
+        {
+            "rule_id": "QG-M1",
+            "description": "Must contain GIS/geospatial analysis results",
+            "check": "dict_keys_contain",
+            "required_keys": ["gis_results"],
+            "severity": "error",
+        },
+    ],
+    "validation_agent": [
+        {
+            "rule_id": "VA-M1",
+            "description": "Must contain validation status (pass/fail)",
+            "check": "dict_keys_contain",
+            "required_keys": ["validation_status"],
+            "severity": "error",
+        },
+    ],
 }
 
 
