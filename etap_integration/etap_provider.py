@@ -532,6 +532,20 @@ class NullEtapProvider(IEtapProvider):
             ),
             "_study_type": str(study_type.value) if hasattr(study_type, "value") else str(study_type),
         }
+
+        # F-05: CRITICAL alert in production — NullEtapProvider means no real
+        # ETAP backend is available, which is a safety-critical gap for an
+        # engineering platform. Every execute_study call that returns synthetic
+        # results in production is logged at CRITICAL so alerting systems can page.
+        if _is_production():
+            logger.critical(
+                "⚠️ F-05: NullEtapProvider.execute_study() called in PRODUCTION for "
+                "study_type=%s. No real ETAP backend is available — results are "
+                "synthetic/empty. This is a safety-critical observability gap. "
+                "Configure ETAP_WORKER_URL or install ETAP COM.",
+                study_type.value if hasattr(study_type, "value") else str(study_type),
+            )
+
         if not self.use_etap:
             return ETAPResult(
                 False,

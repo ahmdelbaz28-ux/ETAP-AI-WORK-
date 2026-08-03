@@ -305,6 +305,11 @@ def safe_openai_chat(
     _validate_input(messages, metadata)
     _validate_model(model)
 
+    # F-04: If using plain (untraced) SDK, increment counter for observability alerting
+    _is_traced = hasattr(openai, 'langfuse') or (hasattr(openai, '__name__') and 'langfuse' in openai.__name__)
+    if not _is_traced:
+        increment_untraced_call()
+
     # 2. Inject Langfuse tracing metadata
     # The Langfuse-wrapped OpenAI SDK accepts ``metadata`` and ``langfuse_*``
     # kwargs to attach the call to a trace.
@@ -374,6 +379,11 @@ def safe_anthropic_message(
 
     _validate_input(messages, metadata)
     _validate_model(model)
+
+    # F-04: If using plain (untraced) SDK, increment counter for observability alerting
+    _is_traced = hasattr(anthropic, 'langfuse') or (hasattr(anthropic, '__name__') and 'langfuse' in anthropic.__name__)
+    if not _is_traced:
+        increment_untraced_call()
 
     call_kwargs = dict(kwargs)
     call_kwargs["model"] = model

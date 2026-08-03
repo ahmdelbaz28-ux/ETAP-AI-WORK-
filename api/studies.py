@@ -732,6 +732,22 @@ async def run_study(
     # Strip numpy types so FastAPI / Pydantic can serialize the response
     data = _to_jsonable(data)
 
+    # --- F-12: AI Failure Mode Detection at API boundary ---
+    # Scan AI-generated content in the response for the 14 systematic
+    # LLM failure patterns (catch-all swallowing, hardcoded success,
+    # package hallucination, etc.) before returning to the client.
+    if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
+        _ai_fm_violations = _scan_ai_failure_modes(data, payload.study_type)
+        if _ai_fm_violations:
+            _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
+            if _must_fix:
+                errors.insert(0, (
+                    f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
+                    f"violations detected (F-12). See ai_failure_mode_violations in data."
+                ))
+                status = "failed"
+            data["ai_failure_mode_violations"] = _ai_fm_violations
+
     # --- Risk scoring (Item 3) ---
     if status == "success":
         risk_info = compute_risk(payload.study_type, data)
@@ -774,3 +790,82 @@ async def get_study_types(request: Request):
         "study_types": [t for t in STUDY_TYPES if t not in disabled],
         "disabled_studies": get_disabled_studies(),
     }
+
+
+def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[str, str]]:
+    """Scan study result data for AI failure mode patterns (F-12).
+
+    ARCHITECTURE AUDIT FIX (F-12): The 14 AI failure mode detectors
+    (FM-01 through FM-14) were previously only enforced in the
+    code_guard_agent and secure_executor — not at the API boundary.
+    This meant AI-generated code or results with systematic failure
+    patterns (e.g. catch-all exception swallowing, hardcoded success
+    returns, hallucinated package imports) could reach the client
+    without detection.
+
+    This function provides a lightweight scan at the API boundary,
+    converting the result data to a string representation and scanning
+    it with AIFailureModeDetector. Only violations with severity
+    MUST_FIX are surfaced in the response; SHOULD_FIX violations
+    are logged but not blocking.
+
+    Parameters
+    ----------
+    data : dict
+        The study result data to scan.
+    study_type : str
+        The study type (for logging context).
+
+    Returns
+    -------
+    list[dict]
+        List of violation dicts with keys: rule_id, severity, description.
+    """
+    try:
+        from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
+    except ImportError:
+        return []
+
+    # Convert data to string for scanning
+    import json as _json
+
+    try:
+        data_str = _json.dumps(data, default=str, indent=2)
+    except Exception:
+        data_str = str(data)
+
+    # Skip very short results (nothing to scan)
+    if len(data_str) < 50:
+        return []
+
+    try:
+        detector = AIFailureModeDetector()
+        result = detector.scan(data_str, language="python")
+
+        violations = []
+        for v in result.violations:
+            violations.append({
+                "rule_id": v.rule_id,
+                "severity": v.severity.value,
+                "description": v.description[:200],
+            })
+
+        if violations:
+            _must_fix_count = sum(1 for v in violations if v["severity"] == "must_fix")
+            if _must_fix_count:
+                logger.error(
+                    "F-12: AI failure mode scan found %d MUST_FIX violations in %s result",
+                    _must_fix_count,
+                    study_type,
+                )
+            else:
+                logger.info(
+                    "F-12: AI failure mode scan found %d SHOULD_FIX violations in %s result",
+                    len(violations),
+                    study_type,
+                )
+
+        return violations
+    except Exception as scan_err:
+        logger.warning("F-12: AI failure mode scan failed (non-blocking): %s", scan_err)
+        return []

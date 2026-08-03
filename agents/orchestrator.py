@@ -1816,6 +1816,13 @@ class ChiefEngineeringOrchestrator:
         # Phase 2: Run independent studies in parallel
         await self._run_independent_studies(task, independent_studies, results)
 
+        # Phase 2.5: Engineering Assertion Gate (F-07 Fix)
+        # Run deterministic engineering assertions on all results
+        # BEFORE final validation. This catches physically impossible
+        # values that validation_agent might miss (it's LLM-based,
+        # whereas assertions are deterministic).
+        await self._run_engineering_assertions(task, results)
+
         # Phase 3: Final validation pass
         validation_result = await self._run_final_validation(task, results)
         results.append(validation_result)
@@ -1920,6 +1927,80 @@ class ChiefEngineeringOrchestrator:
                 )
         except Exception as guard_err:
             self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
+
+    async def _run_engineering_assertions(
+        self, task: EngineeringTask, results: list[AgentResult]
+    ) -> None:
+        """Phase 2.5: Run deterministic engineering assertions on all results.
+
+        ARCHITECTURE AUDIT FIX (F-07): The EngineeringAssertionLayer provides
+        deterministic, computational checks that validate the numerical
+        correctness of AI-generated engineering outputs BEFORE they are shown
+        to the user. This is NOT a prompt-level check — it is a computational
+        verification layer that runs independently of the AI.
+
+        Previously, EngineeringAssertionLayer was only called inside individual
+        agent classes (load_flow, short_circuit, etc.) but NOT in the main
+        orchestrator loop. This meant that if an agent's internal validation
+        was bypassed or failed silently, physically impossible values could
+        reach the user. The orchestrator-level gate catches these cases.
+
+        Checks include (per IEEE/IEC standards):
+        - Voltage range sanity (IEEE C84.1 Range A/B)
+        - Short-circuit current magnitude consistency (IEC 60909)
+        - Trip time physical plausibility (IEC 60255 curves)
+        - Arc flash energy bounds (IEEE 1584)
+        - Cable sizing ampacity verification (IEC 60364)
+        - Protection coordination selectivity (IEEE C37.90)
+        """
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer()
+        except ImportError:
+            self.logger.info(
+                "EngineeringAssertionLayer not available — skipping F-07 assertion gate. "
+                "Install copilot.ai.engineering_assertions for deterministic engineering checks."
+            )
+            return
+
+        for result in results:
+            if result.status != AgentStatus.COMPLETED:
+                continue
+            if not result.data:
+                continue
+
+            study_type = result.study_type
+            try:
+                # Run assertions appropriate to the study type
+                assertion_results = assertion_layer.validate(
+                    data=result.data,
+                    study_type=study_type.value if hasattr(study_type, "value") else str(study_type),
+                )
+
+                if assertion_results and hasattr(assertion_results, "failures"):
+                    failures = [ar for ar in assertion_results.failures if not ar.passed]
+                    if failures:
+                        # Mark result as having assertion failures
+                        result.validation_status = False
+                        for failure in failures:
+                            _msg = (
+                                f"Engineering assertion FAILED: {failure.check_name} — "
+                                f"{failure.message if hasattr(failure, 'message') else failure}"
+                            )
+                            result.validation_errors.append(_msg)
+                            severity = failure.severity if hasattr(failure, "severity") else "WARNING"
+                            if str(severity).upper() in ("CRITICAL", "FATAL"):
+                                self.logger.critical("F-07: %s", _msg)
+                            else:
+                                self.logger.warning("F-07: %s", _msg)
+
+            except Exception as assertion_err:
+                self.logger.warning(
+                    "Engineering assertion gate failed for %s (non-blocking): %s",
+                    study_type.value if hasattr(study_type, "value") else str(study_type),
+                    assertion_err,
+                )
 
     async def _run_report_phase(self, task: EngineeringTask, results: list[AgentResult]) -> None:
         """Phase 4: generate the final report when validations pass."""
