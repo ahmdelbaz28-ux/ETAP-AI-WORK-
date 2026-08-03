@@ -554,8 +554,14 @@ jobs:
       - name: Install k6
         run: |
           # S6506: enforce HTTPS + TLS 1.2 on the download NOSONAR
-          curl -fsSL --proto '=https' --tlsv1.2 https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz | tar -xz
-          sudo mv k6-v0.50.0-linux-amd64/k6 /usr/local/bin/
+          # MEDIUM #19 (2026-08-03 fix): bumped v0.50.0 → v0.59.0. v0.50.0 does NOT
+          # support the `--summary-output` flag (introduced in k6 v0.51.0), which
+          # caused the Load Test step to fail with:
+          #   time="..." level=error msg="unknown flag: --summary-output"
+          # v0.59.0 is the latest stable release in the v0.5x line and is
+          # backwards-compatible with our existing k6-load-test.js script.
+          curl -fsSL --proto '=https' --tlsv1.2 https://github.com/grafana/k6/releases/download/v0.59.0/k6-v0.59.0-linux-amd64.tar.gz | tar -xz
+          sudo mv k6-v0.59.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
       - name: Start engineering service via uvicorn
