@@ -21,7 +21,11 @@ opentelemetry-exporter-otlp-proto-http~=1.30.0
 langfuse~=2.51.0
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
-openai~=1.50.0
+# SECURITY: openai bumped from 1.50.0 → 2.52.0 because langchain-openai 1.4.x
+# (pinned below for the LangChain 1.x security upgrade) requires openai>=2.45.0,<3.
+# The 1.x openai line is incompatible with langchain-openai 1.x and would cause
+# a ResolutionImpossible at install time.
+openai~=2.52.0
 anthropic~=0.116.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
@@ -196,7 +200,11 @@ httpx~=0.27.0
 kubernetes~=29.0.0
 
 # Phase 3: WebSocket
-websockets~=12.0
+# SECURITY: bumped from 12.0 → 15.0 because langsmith 0.10.x (pinned above
+# for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
+# Range <16 satisfies the `realtime` package (sub-dep of supabase) which
+# requires websockets>=11,<16.
+websockets~=15.0
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
