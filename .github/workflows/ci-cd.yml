@@ -559,8 +559,19 @@ jobs:
           k6 version
 
       - name: Start engineering service via uvicorn
+        # MEDIUM #18 (2026-08-03 fix): The previous command
+        # `uvicorn engineering_service:app` failed with:
+        #   ERROR: Error loading ASGI app. Attribute "app" not found in
+        #         module "engineering_service".
+        # because `engineering_service.py` is a thin runner script that calls
+        # `uvicorn.run("api.routes:app", ...)` in its main() — it does NOT
+        # export an `app` symbol. The canonical FastAPI app instance lives in
+        # `api/routes.py` (line 76: `app = FastAPI(...)`).
+        # Fix: invoke the canonical app directly via uvicorn.
+        # See: engineering_service.py docstring ("This file is a thin runner
+        # that imports api.routes:app and runs it via uvicorn").
         run: |
-          uvicorn engineering_service:app --host 0.0.0.0 --port 8000 &
+          uvicorn api.routes:app --host 0.0.0.0 --port 8000 &
           UVICORN_PID=$!
           echo "UVICORN_PID=$UVICORN_PID" >> "$GITHUB_ENV"
           # Wait for the service to become healthy (up to 120s)

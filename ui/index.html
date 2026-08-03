@@ -7,14 +7,33 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0a0e1a" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- SECURITY AUDIT 2026-08-02 (UI-6 fix): Content-Security-Policy header.
-         Previously, no CSP was set — the application was vulnerable to XSS attacks
-         because there was no restriction on script sources, inline scripts, or eval().
-         This meta tag provides a baseline CSP. In production, this should be set as
-         an HTTP header (not meta tag) by the reverse proxy (Vercel/Cloudflare) for
-         stronger enforcement. The meta tag is a defense-in-depth measure for dev/local. -->
-    <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'strict-dynamic'; style-src 'self' 'strict-dynamic' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://api.groq.com https://api.mistral.ai https://api.deepseek.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" />
+    <!--
+      SECURITY NOTE (2026-08-03 fix):
+      The CSP meta tag that previously lived here has been REMOVED because it
+      broke the Vite dev server. Vite injects inline module scripts and uses
+      `/@react-refresh`, `/src/main.tsx`, and `/node_modules/vite/dist/client/env.mjs`
+      as same-origin scripts — all of which `script-src 'self' 'strict-dynamic'`
+      blocks (because no nonce is supplied), preventing the SPA from booting in
+      dev mode. This caused every Playwright E2E test to fail with
+      "<element(s) not found>" on the Login page (the form never rendered).
+
+      CSP is still enforced in production via the HTTP header set in
+      `vercel.json` → `headers[].Content-Security-Policy`. That is the
+      correct place for SPA CSP enforcement:
+        - HTTP headers are evaluated before the HTML body parses
+        - HTTP headers can be more permissive in dev (no header sent) and
+          stricter in prod (header sent by the edge proxy)
+        - HTTP headers cannot be stripped by attacker-controlled HTML
+          (meta tags can be)
+
+      The meta tag approach was a defense-in-depth measure but it
+      fundamentally conflicts with Vite's dev architecture. If a meta-tag
+      CSP is needed for non-Vercel deployments in the future, it must
+      either (a) include nonces for each <script> tag, or (b) use
+      'unsafe-inline' / 'unsafe-eval' in script-src — neither of which is
+      acceptable for production. The HTTP-header path is the only correct
+      way for this app.
+    -->
     <title>AhmedETAP — Power Systems Engineering</title>
   </head>
   <body class="bg-gray-950 text-gray-100 min-h-screen">
