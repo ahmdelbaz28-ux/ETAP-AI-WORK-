@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { BrandLogo } from "../components/BrandLogo";
 import { LoginBackground } from "../components/LoginBackground";
 import { useNotify } from "../context/NotificationContext";

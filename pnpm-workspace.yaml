@@ -1,6 +1,72 @@
 packages:
   - "ui"
 
+# =============================================================================
+# pnpm overrides — SECURITY: force upgraded versions of vulnerable transitive
+# dependencies. pnpm 11+ reads overrides from pnpm-workspace.yaml (NOT from
+# the `pnpm.overrides` field in package.json — that field is ignored).
+# Source of the vulnerability list: GitHub Dependabot alerts on this repo
+# (fetched 2026-08-03). Each entry below corresponds to one or more open
+# alerts that are fixed by the pinned version.
+# =============================================================================
+overrides:
+  # CRITICAL: protobufjs 8.0.1 had Arbitrary Code Execution (CVE) — 25 alerts.
+  # Was pinned to 8.0.1 via the old `overrides` block in package.json, which
+  # is exactly the vulnerable version. Bumping to 8.6.6 fixes all 25 alerts.
+  protobufjs: ^8.6.6
+  # HIGH: langsmith SDK SSRF + prototype pollution + redaction bypass (8 alerts).
+  # The langwatch package transitively pulls langsmith 0.3.87 (vulnerable).
+  # Dependabot suggested fix>=0.6.0, but latest npm release is 0.8.9 — using ^0.8.0.
+  langsmith: ^0.8.0
+  # HIGH: axios prototype pollution + proxy inheritance + body limit bypass (10 alerts)
+  axios: ^1.18.0
+  # HIGH: brace-expansion DoS via exponential-time expansion (8 alerts)
+  brace-expansion: ^5.0.8
+  # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts)
+  fast-uri: ^3.1.4
+  # HIGH: hono CORS reflection + XSS + path traversal + body limit bypass (8 alerts)
+  hono: ^4.12.27
+  # HIGH: js-yaml quadratic CPU consumption on merge-key chains (3 alerts)
+  js-yaml: ^4.3.0
+  # HIGH: linkify-it quadratic DoS in mailto validator (1 alert)
+  linkify-it: ^5.0.2
+  # HIGH: liquidjs memory-limit bypass in `pop` filter (1 alert)
+  liquidjs: ^10.27.1
+  # HIGH: postCSS path traversal via sourceMappingURL (1 alert)
+  postcss: ^8.5.18
+  # HIGH: shell-quote quadratic DoS in parse() (1 alert)
+  shell-quote: ^1.9.0
+  # MEDIUM: tar uncontrolled recursion in mapHas/filesFilter (1 alert)
+  tar: ^7.5.21
+  # MEDIUM: uuid missing buffer bounds check in v3/v5/v6 (2 alerts)
+  uuid: ^11.1.1
+  # LOW: body-parser DoS when invalid limit silently disables size enforcement (1 alert)
+  body-parser: ^2.3.0
+  # HIGH: OpenTelemetry Prometheus exporter crash via malformed HTTP (2 alerts)
+  '@opentelemetry/exporter-prometheus': ^0.217.0
+  # HIGH: OpenTelemetry sdk-node same Prometheus exporter issue (2 alerts)
+  '@opentelemetry/sdk-node': ^0.217.0
+  # HIGH: OpenTelemetry JaegerPropagator DoS via malformed header (2 alerts)
+  '@opentelemetry/propagator-jaeger': ^2.9.0
+  # MEDIUM: OpenTelemetry Core unbounded memory in W3C Baggage (2 alerts)
+  '@opentelemetry/core': ^2.8.0
+  # MEDIUM: @hono/node-server path traversal via encoded backslash on Windows (2 alerts)
+  '@hono/node-server': ^2.0.5
+  # NOTE: @ai-sdk/provider-utils (LOW, GHSA-866g-f22w-33x8) — the direct
+  # dependency was bumped to 5.0.18 via override, but @mastra/core uses
+  # package aliases (@ai-sdk/provider-utils-v5 / -v6) that resolve to
+  # older 3.x / 4.x versions which pnpm overrides do NOT rewrite.
+  # Mitigation: this is a LOW-severity DoS via uncontrolled resource
+  # consumption; the vulnerable code path is only reachable from
+  # streaming LLM responses. Track @mastra/core upstream for an upgrade
+  # that drops the aliased deps.
+  # NOTE: react-router / react-router-dom (RSC CSRF bypass, GHSA-qwww-vcr4-c8h2)
+  # has NO fix available yet — the patched version (8.3.0) has not been
+  # published to npm. Currently installed: 7.18.1 (vulnerable range 7.12.0 - 8.3.0).
+  # Mitigation: this app does NOT use React Server Components mode (RSC), so
+  # the vulnerable code path is not reachable. Track upstream for 8.3.0 release.
+  # Do NOT add an override here — it would break `pnpm install` (no 8.x exists on npm).
+
 allowBuilds:
   '@biomejs/biome': true
   '@tailwindcss/oxide': true

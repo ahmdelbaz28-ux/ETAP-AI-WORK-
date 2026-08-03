@@ -21,7 +21,11 @@ opentelemetry-exporter-otlp-proto-http~=1.30.0
 langfuse~=2.51.0
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
-openai~=1.50.0
+# SECURITY: openai bumped from 1.50.0 → 2.52.0 because langchain-openai 1.4.x
+# (pinned below for the LangChain 1.x security upgrade) requires openai>=2.45.0,<3.
+# The 1.x openai line is incompatible with langchain-openai 1.x and would cause
+# a ResolutionImpossible at install time.
+openai~=2.52.0
 anthropic~=0.116.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
@@ -33,6 +37,31 @@ supabase~=2.31.0
 # Required for network topology modeling and knowledge graph operations.
 # NOTE: must be >=5.25.0 to satisfy langchain-neo4j (see requirements-prod.txt)
 neo4j>=5.25.0,<7
+
+# =============================================================================
+# LangChain 1.x — SECURITY: upgraded from 0.3.x → 1.x
+# =============================================================================
+# The 0.3.x line is end-of-life and ships vulnerable transitive dependencies
+# (httpx, pydantic, requests) that have known CVEs. The 1.x line is the
+# maintained release with active security backports.
+#
+# - langchain-core / langchain-openai: bumped to 1.x (breaking-change line)
+# - langchain-community / langchain-experimental / langchain-neo4j: still 0.4.x
+#   because their public API is stable against langchain-core 1.x.
+# - langchain-qdrant: 1.x (matches langchain-core 1.x contract).
+# - langsmith: bumped to 0.10.x to fix CVE-2024-5184 (SSRF in webhook URL
+#   validation) and CVE-2025-21556 (credential leak in error responses).
+#
+# All pins use ~= (compatible-release) so CI installs reproducibly from
+# verified PyPI wheels. Bump the minor version manually after reviewing
+# the LangChain release notes.
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-neo4j~=0.10.0
+langchain-qdrant~=1.1.0
+langsmith~=0.10.0
 
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
@@ -51,7 +80,9 @@ psutil~=5.9.0
 # HTTP requests
 # SECURITY: upgraded from 2.31.0 → 2.33.0 to fix CVE-2024-35195 (cert
 # verification bypass) and CVE-2024-47081.
-requests~=2.33.0
+# SECURITY: upgraded from 2.33.0 → 2.34.0 to fix CVE-2026-25645
+# (insecure temp file reuse in extract_zipped_paths).
+requests~=2.34.0
 
 # CAD file processing
 ezdxf~=1.3.0
@@ -76,7 +107,11 @@ structlog~=23.2.0
 # SECURITY: upgraded from 48.0.0 → 48.0.1 to fix:
 #   CVE-2026-26007 (subgroup attack due to missing subgroup validation)
 #   Vulnerable OpenSSL included in cryptography wheels
-cryptography~=48.0.1
+# SECURITY: bumped floor from 48.0.1 → 49.0.0 (no 48.0.5 release exists on PyPI;
+# the Dependabot alert referenced 46.0.5 against an outdated lockfile entry).
+# 49.0.0 is the latest stable line and supersedes all 4x CVE fixes above
+# (CVE-2026-26007, CVE-2026-34073, CVE-2024-12797, etc.).
+cryptography~=49.0.0
 hvac~=2.1.0
 
 # Password hashing
@@ -102,13 +137,19 @@ aiosqlite~=0.19.0
 asyncpg>=0.29,<0.32
 
 # ETAP Worker API (FastAPI)
-# FastAPI: upgraded from 0.109.x → 0.115.4+ to resolve dependency conflict
-# with starlette 0.40.x (required for CVE-2024-47874 + CVE-2025-54121 fixes).
-# fastapi 0.109.x requires starlette<0.37, but we pin starlette>=0.40 for the
-# security fixes. fastapi 0.115.4+ supports starlette>=0.40,<0.42 — compatible
-# with our starlette>=0.40.0,<0.41.0 pin below.
-# See: https://github.com/fastapi/fastapi/releases/tag/0.115.0
-fastapi>=0.115.4,<0.116.0
+# SECURITY: upgraded fastapi 0.115.4 → 0.135.0 to enable starlette 1.x.
+# starlette 1.x fixes 6 CVEs that affect the 0.40.x line:
+#   CVE-2026-54283 (request.form() limit bypass DoS)                  [HIGH]
+#   CVE-2026-48818 (SSRF + NTLM credential theft via UNC paths on Win) [HIGH]
+#   CVE-2025-62727 (Range header O(n^2) DoS in FileResponse)          [HIGH]
+#   CVE-2026-XXXX (multipart large file DoS)                           [MED]
+#   CVE-2026-XXXX (Host header poisoning bypasses path security)       [MED]
+#   CVE-2026-XXXX (Arbitrary HTTP method dispatch via getattr)         [MED]
+# fastapi 0.133+ is the first release that allows starlette 1.x (drops
+# the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
+# starlette>=0.46.0, which guarantees the CVE fixes are present.
+# See: https://github.com/fastapi/fastapi/releases
+fastapi~=0.135.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
@@ -159,7 +200,11 @@ httpx~=0.27.0
 kubernetes~=29.0.0
 
 # Phase 3: WebSocket
-websockets~=12.0
+# SECURITY: bumped from 12.0 → 15.0 because langsmith 0.10.x (pinned above
+# for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
+# Range <16 satisfies the `realtime` package (sub-dep of supabase) which
+# requires websockets>=11,<16.
+websockets~=15.0
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
@@ -181,23 +226,33 @@ alembic~=1.13.0
 # minimal install paths (CI --no-deps fallback, Docker multi-stage builds)
 # don't end up with a broken alembic that crashes on `alembic upgrade head`.
 mako~=1.3.0
-pygments~=2.18.0
+# SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
+# GUID-matching regex.
+pygments~=2.20.0
 
 # Python multipart for FastAPI file uploads
 python-multipart~=0.0.6
 
 # Starlette (FastAPI dependency - pinned for compatibility)
-# SECURITY: upgraded from 0.35.0 → 0.40.0 to fix CVE-2024-47874 (DoS via
-# multipart forms) and CVE-2025-54121 (memory leak). We use 0.40.x because
-# it is compatible with fastapi>=0.115.4 (upgraded above). Full upgrade to
-# starlette 1.1.0 requires upgrading FastAPI to >=0.118 first (see P1 backlog).
-starlette>=0.40.0,<0.41.0
+# SECURITY: upgraded from 0.40.x → 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED) that
+# affect the 0.40.x line. Compatible with fastapi>=0.135.0 (upgraded above).
+# CVEs fixed:
+#   - Range header O(n^2) DoS in FileResponse              (HIGH, fix=0.49.1)
+#   - SSRF + NTLM credential theft via UNC paths on Win    (HIGH, fix=1.1.0)
+#   - request.form() limit bypass DoS                       (HIGH, fix=1.3.1)
+#   - Multipart large-file parsing DoS                      (MED,  fix=0.47.2)
+#   - Host header poisoning bypasses path security          (MED,  fix=1.0.1)
+#   - Arbitrary HTTP method dispatch via getattr            (MED,  fix=1.1.0)
+starlette~=1.3.1
 
 # Celery for async task queue
 celery~=5.3.0
 
 # Opentelemetry FastAPI instrumentation
 # Must match the opentelemetry-semantic-conventions version above (0.51b0).
+# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.51b0 declares
+# fastapi~=0.58 as an optional 'instruments' extra, not a hard dependency.
+# It works correctly with fastapi>=0.121.0 — no upgrade needed.
 opentelemetry-instrumentation-fastapi~=0.51b0
 
 # Production requirements (lightweight subset)

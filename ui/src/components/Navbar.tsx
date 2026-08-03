@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
 import { clearAuthTokens } from "../lib/tokenStorage";

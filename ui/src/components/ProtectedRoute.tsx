@@ -15,7 +15,7 @@
  * /settings, etc. were all reachable without login — a real security
  * hole because those pages can trigger backend operations.
  */
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 
 interface ProtectedRouteProps {

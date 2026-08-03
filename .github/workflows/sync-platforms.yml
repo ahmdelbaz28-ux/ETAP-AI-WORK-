@@ -59,12 +59,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v6  # pin SHA for security
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -73,7 +73,7 @@ jobs:
             package-lock.json
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -158,7 +158,11 @@ jobs:
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
           test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build step failed"; exit 1; }
 
-          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
+          # SECURITY: use git credential helper instead of embedding token in URL.
+          # Must be configured BEFORE `git clone` so the clone can authenticate.
+          echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
+          git config credential.helper "store --file=/tmp/.git-credentials-hf"
+          git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
           cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # README.hf.md is the HF frontmatter README; rename to README.md on the Space
@@ -191,12 +195,14 @@ jobs:
             echo "ℹ️ No changes — HF Space already in sync"
             exit 0
           }
-          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main 2>&1 | tee /tmp/hf-push.log
+          git push origin main 2>&1 | tee /tmp/hf-push.log
           # Check if push actually succeeded (the pipe to tail was masking failures)
           if grep -q "remote rejected\|error: failed to push\|!\[remote rejected\]" /tmp/hf-push.log; then
             echo "❌ HF Space push FAILED — see errors above"
             exit 1
           fi
+          # SECURITY: remove credential file after use
+          rm -f /tmp/.git-credentials-hf
           echo "✅ HF Space synced"
 
       # ── 1d. Post-deploy smoke test on HF Space ─────────────────────────────
@@ -401,12 +407,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 1
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v6  # pin SHA for security
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -501,7 +507,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v5  # pin SHA for security
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
@@ -516,7 +522,11 @@ jobs:
             exit 0
           fi
           # Clone HF Space into a temp dir
-          git clone --depth 1 https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform /tmp/hf-space 2>&1 | tail -3
+          # SECURITY: use git credential helper instead of embedding token in URL
+          echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf-drift
+          git config --global credential.helper "store --file=/tmp/.git-credentials-hf-drift"
+          git clone --depth 1 https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform /tmp/hf-space 2>&1 | tail -3
+          rm -f /tmp/.git-credentials-hf-drift
           # Compare the README frontmatter (the part editable from HF UI)
           if ! diff -q README.hf.md /tmp/hf-space/README.md > /dev/null 2>&1; then
             echo "⚠️ Drift detected on HF Space README"

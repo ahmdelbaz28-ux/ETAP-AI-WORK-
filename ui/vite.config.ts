@@ -36,7 +36,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Split vendor libraries into separate chunks for better caching
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "react-vendor": ["react", "react-dom", "react-router"],
           "charts-vendor": ["recharts"],
           "animation-vendor": ["framer-motion"],
           "icons-vendor": ["lucide-react", "react-icons"],

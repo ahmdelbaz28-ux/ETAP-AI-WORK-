@@ -1,6 +1,6 @@
 // UI components are intentionally complex for feature-rich DX
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 // ============================================================================
 // Keyboard Shortcuts System

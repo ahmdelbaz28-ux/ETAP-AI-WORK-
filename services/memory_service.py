@@ -214,11 +214,21 @@ class AIMemoryService:
         except Exception as exc:
             logger.warning("Failed to initialize ChatOpenAI (%s). Using dummy LLM.", exc)
 
+            class _DummyAIMessage:
+                """Mimics langchain_core.messages.AIMessage for the dummy LLM."""
+
+                content: str = ""
+
             class DummyLLM:
-                def predict(
-                    self, _prompt: str, **_kwargs
-                ) -> str:  # NOSONAR param kept for LLM-predict interface compatibility
-                    # Simple echo or placeholder implementation.
+                # LangChain 1.x: BaseChatModel.predict() was removed;
+                # callers use .invoke(prompt) which returns an AIMessage-like
+                # object exposing `.content`.
+                def invoke(self, _prompt: Any, **_kwargs: Any) -> _DummyAIMessage:
+                    return _DummyAIMessage()
+
+                # Kept for backward compat with any external caller that still
+                # uses the legacy .predict() interface (langchain 0.x).
+                def predict(self, _prompt: str, **_kwargs: Any) -> str:
                     return ""
 
             return DummyLLM()
@@ -247,7 +257,12 @@ class AIMemoryService:
         try:
             llm = self._get_llm()
             chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
-            return chain.run(query)
+            # LangChain 1.x: Chain.run() was removed; use invoke({"query": ...}).
+            # Returns a dict like {"query": "...", "result": "..."}.
+            result = chain.invoke({"query": query})
+            if isinstance(result, dict):
+                return str(result.get("result", result.get("query", "")))
+            return str(result)
         except Exception as exc:
             logger.exception("Cypher query execution failed: %s", exc)
             return f"Error querying graph database: {exc}"
@@ -323,8 +338,12 @@ class AIMemoryService:
             context = "\n".join([doc.page_content for doc in docs])
             llm = self._get_llm()
             prompt = f"Answer the question based only on this context:\n{context}\n\nQuestion: {question}"
-            response = llm.predict(prompt)
-            return response
+            # LangChain 1.x: BaseChatModel.predict() was removed; use invoke().
+            # invoke() returns an AIMessage; .content extracts the text.
+            response = llm.invoke(prompt)
+            if hasattr(response, "content"):
+                return str(response.content)
+            return str(response)
         except Exception as exc:
             logger.exception("Vector retrieval query failed: %s", exc)
             return f"Error searching vector memory: {exc}"

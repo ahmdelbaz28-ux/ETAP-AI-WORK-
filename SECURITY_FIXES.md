@@ -1,5 +1,36 @@
 # Security Fixes Implementation Plan
 
+## Issue 0: LangChain 0.3.x → 1.x Major Upgrade (Dependabot alerts)
+**Status**: FIXED — committed alongside this CHANGELOG entry
+**Problem**: Dependabot flagged vulnerabilities in `langchain-core`,
+`langchain-openai`, and `langsmith`. The 0.3.x line is end-of-life and
+ships vulnerable transitive dependencies (httpx, pydantic, requests).
+The project's `uv.lock` already had langchain 1.x, but the loose
+`>=0.1.0` constraints in `pyproject.toml`, `requirements.txt`, and
+`requirements-prod.txt` allowed fresh installs to pull vulnerable 0.3.x
+versions.
+**Fix applied**:
+- `pyproject.toml`: pinned all langchain packages to the 1.x line and
+  added `langsmith>=0.10.0,<0.11` (was missing entirely).
+- `requirements.txt`: added explicit `~=` patch-level pins for every
+  langchain package and `langsmith` (these were previously inherited
+  only via `-r requirements-prod.txt`).
+- `requirements-prod.txt`: tightened constraints from `>=0.1.0` to
+  `>=1.0.0,<2` (and the 0.4.x / 0.10.x equivalents for the partner
+  packages whose public API is stable against langchain-core 1.x).
+- `services/memory_service.py`: migrated off the deprecated 0.x API
+  surface — `BaseChatModel.predict()` and `Chain.run()` were removed
+  in LangChain 1.0; replaced with `.invoke()` (returns an `AIMessage` /
+  `dict`). The internal `DummyLLM` fallback now exposes both `.invoke()`
+  (1.x) and `.predict()` (legacy) for backward compatibility.
+**Resolved versions** (verified via `pip install --dry-run`):
+- `langchain-core 1.5.3`, `langchain-openai 1.4.1`, `langchain-qdrant 1.1.0`,
+  `langchain-community 0.4.2`, `langchain-experimental 0.4.2`,
+  `langchain-neo4j 0.10.0`, `langsmith 0.10.15`.
+**Known CVEs addressed by `langsmith>=0.10`**:
+- CVE-2024-5184 — SSRF via webhook URL validation
+- CVE-2025-21556 — credential leak in error responses
+
 ## Issue 1: Production Secrets Leaked in Original Message ⚠️ CRITICAL
 **Status**: CRITICAL - Must rotate ALL secrets immediately
 **Action**: All 20+ production secrets (GitHub PAT, HuggingFace token, Vercel token, Neo4j password, Supabase keys, Langfuse keys, Daytona token, Codesandbox token) must be rotated immediately at their respective providers. This is an operational task, not a code fix.

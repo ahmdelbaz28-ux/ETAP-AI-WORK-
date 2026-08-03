@@ -251,12 +251,20 @@ class TestQdrantIntegrationMocked:
         mock_doc = MagicMock()
         mock_doc.page_content = "T1 transformer rated 50MVA"
         mock_retriever = MagicMock()
+        # LangChain 1.x: retriever.invoke() replaces get_relevant_documents().
+        # Production code falls back to get_relevant_documents() only if invoke()
+        # raises AttributeError, so we set both to keep the test robust.
+        mock_retriever.invoke.return_value = [mock_doc]
         mock_retriever.get_relevant_documents.return_value = [mock_doc]
         mock_vs = MagicMock()
         mock_vs.as_retriever.return_value = mock_retriever
 
         mock_llm = MagicMock()
-        mock_llm.predict.return_value = "T1 transformer rating is 50MVA."
+        # LangChain 1.x: llm.invoke() replaces predict() and returns an
+        # AIMessage object whose .content attribute holds the text.
+        mock_response = MagicMock()
+        mock_response.content = "T1 transformer rating is 50MVA."
+        mock_llm.invoke.return_value = mock_response
 
         with patch("services.memory_service.QdrantClient", return_value=mock_client):
             with patch("services.memory_service.QdrantVectorStore", return_value=mock_vs):
@@ -266,7 +274,10 @@ class TestQdrantIntegrationMocked:
                     answer = svc.query_vector_memory("What is T1 rating?", index_name="test_col")
 
         assert answer == "T1 transformer rating is 50MVA."
-        mock_llm.predict.assert_called_once()
+        # Production code prefers retriever.invoke(); get_relevant_documents
+        # is only the legacy fallback.
+        mock_retriever.invoke.assert_called_once_with("What is T1 rating?")
+        mock_llm.invoke.assert_called_once()
 
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_query_returns_message_if_collection_missing(self):
@@ -344,7 +355,12 @@ class TestNeo4jIntegrationMocked:
                 with patch("services.memory_service.ChatOpenAI"):
                     MockGraph.return_value = MagicMock()
                     mock_chain = MagicMock()
-                    mock_chain.run.return_value = "Bus 1 and Bus 2 are connected via Line 10."
+                    # LangChain 1.x: Chain.run() was removed; invoke({"query": ...})
+                    # returns a dict like {"query": "...", "result": "..."}.
+                    mock_chain.invoke.return_value = {
+                        "query": "Are Bus 1 and Bus 2 connected?",
+                        "result": "Bus 1 and Bus 2 are connected via Line 10.",
+                    }
                     MockChain.from_llm.return_value = mock_chain
 
                     svc = AIMemoryService()
@@ -352,7 +368,9 @@ class TestNeo4jIntegrationMocked:
                     answer = svc.query_graph("Are Bus 1 and Bus 2 connected?")
 
         assert answer == "Bus 1 and Bus 2 are connected via Line 10."
-        mock_chain.run.assert_called_once_with("Are Bus 1 and Bus 2 connected?")
+        mock_chain.invoke.assert_called_once_with(
+            {"query": "Are Bus 1 and Bus 2 connected?"}
+        )
 
 
 # ---------------------------------------------------------------------------
