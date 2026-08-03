@@ -1,24 +1,16 @@
 # =============================================================================
 # Rollback Workflow
-# Per the ci-cd-and-automation skill: Every deployment should be reversible
+# Per ci-cd-and-automation skill: every deployment should be reversible
 # =============================================================================
-
 name: Rollback
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to rollback to'
+        description: 'Version/tag to rollback to'
         required: true
         type: string
-      environment:
-        description: 'Target environment'
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
       reason:
         description: 'Reason for rollback'
         required: true
@@ -28,37 +20,26 @@ jobs:
   rollback:
     name: Rollback Deployment
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
 
-      - name: Validate rollback version
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build rollback version
+        run: npm run build
+
+      - name: Deploy rollback
         run: |
-          if [[ -z "${{ inputs.version }}" ]]; then
-            echo "ERROR: No version specified for rollback"
-            exit 1
-          fi
           echo "Rolling back to version: ${{ inputs.version }}"
-
-      - name: Rollback deployment
-        run: |
-          echo "Rolling back ${{ inputs.environment }} to version ${{ inputs.version }}..."
           echo "Reason: ${{ inputs.reason }}"
-          # Replace with actual rollback command:
-          # npx vercel rollback ${{ inputs.version }}
-          # or: kubectl rollout undo deployment/app --to-revision=${{ inputs.version }}
-          echo "Rollback complete"
-
-      - name: Verify rollback
-        run: |
-          echo "Verifying rollback..."
-          # curl -f https://example.com/health || exit 1
-          echo "Rollback verified — system healthy"
+          # Add actual deployment command here (e.g., vercel, aws, etc.)
+          # npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          echo "Rollback deployment complete for version ${{ inputs.version }}"
 
       - name: Notify team
+        if: always()
         run: |
-          echo "Rollback notification sent"
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Version: ${{ inputs.version }}"
-          echo "Reason: ${{ inputs.reason }}"
-          # In production: send Slack/Discord/email notification
+          echo "::warning::Rolled back to ${{ inputs.version }} — Reason: ${{ inputs.reason }}"

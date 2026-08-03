@@ -1,0 +1,2 @@
+# Pre-commit hook — runs lint-staged per ci-cd-and-automation skill
+npx lint-staged

@@ -44,3 +44,9 @@ test-results/
 # Temp files
 tmp/
 temp/
+
+# Verification reports
+verification-report.txt
+
+# Database
+db/

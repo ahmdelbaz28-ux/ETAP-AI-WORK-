@@ -26,6 +26,8 @@
     "audit:fix": "npm audit fix",
     "bundlesize": "node scripts/check-bundlesize.js",
     "validate": "npm run lint && npm run typecheck && npm run test:ci && npm run build && npm run audit",
+    "validate:all": "npm run lint && npm run typecheck && npm run test:ci && npm run build && npm run audit && npm run bundlesize && bash scripts/scan-secrets.sh --strict",
+    "scan-secrets": "bash scripts/scan-secrets.sh --strict",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -1,8 +1,7 @@
 # =============================================================================
 # Dependabot Configuration
-# Per the ci-cd-and-automation skill: Automate dependency updates
+# Per ci-cd-and-automation skill: automate dependency updates
 # =============================================================================
-
 version: 2
 updates:
   # npm dependencies
@@ -13,18 +12,19 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     reviewers:
-      - maintainer
+      - maintainers
     labels:
       - dependencies
       - automated
 
-  # GitHub Actions
+  # GitHub Actions versions
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 3
     labels:
+      - ci
       - dependencies
-      - ci-cd
       - automated

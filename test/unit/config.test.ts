@@ -14,7 +14,7 @@ describe('loadConfig', () => {
 
   it('should load config with required environment variables', () => {
     process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
-    process.env['JWT_SECRET'] = 'test-secret-key';
+    process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32chars';
     process.env['PORT'] = '4000';
     process.env['NODE_ENV'] = 'production';
 
@@ -22,13 +22,13 @@ describe('loadConfig', () => {
 
     expect(config.port).toBe(4000);
     expect(config.databaseUrl).toBe('postgresql://localhost:5432/testdb');
-    expect(config.jwtSecret).toBe('test-secret-key');
+    expect(config.jwtSecret).toBe('a-very-long-secret-key-for-testing-purposes-32chars');
     expect(config.nodeEnv).toBe('production');
   });
 
   it('should use default values for optional variables', () => {
     process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
-    process.env['JWT_SECRET'] = 'test-secret-key';
+    process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32chars';
     delete process.env['PORT'];
     delete process.env['NODE_ENV'];
     delete process.env['LOG_LEVEL'];
@@ -42,7 +42,7 @@ describe('loadConfig', () => {
 
   it('should throw error when DATABASE_URL is missing', () => {
     delete process.env['DATABASE_URL'];
-    process.env['JWT_SECRET'] = 'test-secret-key';
+    process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32chars';
 
     expect(() => loadConfig()).toThrow('Missing required environment variable: DATABASE_URL');
   });
@@ -56,12 +56,40 @@ describe('loadConfig', () => {
 
   it('should parse PORT as integer', () => {
     process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
-    process.env['JWT_SECRET'] = 'test-secret-key';
+    process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32chars';
     process.env['PORT'] = '8080';
 
     const config = loadConfig();
 
     expect(config.port).toBe(8080);
     expect(typeof config.port).toBe('number');
+  });
+
+  it('should throw error for wildcard CORS in production', () => {
+    process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
+    process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32chars';
+    process.env['NODE_ENV'] = 'production';
+    process.env['CORS_ORIGIN'] = '*';
+
+    expect(() => loadConfig()).toThrow('CORS_ORIGIN cannot be "*" in production');
+  });
+
+  it('should throw error for short JWT secret in production', () => {
+    process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
+    process.env['JWT_SECRET'] = 'short-secret';
+    process.env['NODE_ENV'] = 'production';
+
+    expect(() => loadConfig()).toThrow('JWT_SECRET must be at least 32 characters in production');
+  });
+
+  it('should allow short JWT secret in development', () => {
+    process.env['DATABASE_URL'] = 'postgresql://localhost:5432/testdb';
+    process.env['JWT_SECRET'] = 'short-secret';
+    process.env['NODE_ENV'] = 'development';
+
+    const config = loadConfig();
+
+    expect(config.jwtSecret).toBe('short-secret');
+    expect(config.nodeEnv).toBe('development');
   });
 });
