@@ -252,6 +252,7 @@ jobs:
     if: always()
     steps:
       - name: Check all gates passed
+        working-directory: ${{ github.workspace }}
         run: |
           if [[ "${{ needs.lint.result }}" == "success" && \
                 "${{ needs.typecheck.result }}" == "success" && \
