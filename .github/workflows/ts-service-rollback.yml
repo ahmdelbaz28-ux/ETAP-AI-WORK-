@@ -1,8 +1,8 @@
 # =============================================================================
-# Rollback Workflow
+# Rollback Workflow for TS Service
 # Per ci-cd-and-automation skill: every deployment should be reversible
 # =============================================================================
-name: Rollback
+name: TS Service Rollback
 
 on:
   workflow_dispatch:
@@ -16,6 +16,10 @@ on:
         required: true
         type: string
 
+defaults:
+  run:
+    working-directory: ts-service
+
 jobs:
   rollback:
     name: Rollback Deployment
@@ -24,6 +28,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
         run: npm ci

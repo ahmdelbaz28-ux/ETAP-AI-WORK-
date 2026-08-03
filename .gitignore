@@ -46,6 +46,14 @@ Thumbs.db
 node_modules
 .env
 
+# TS Service generated files
+coverage/
+ts-service/dist/
+ts-service/node_modules/
+
+# Agent skills (never committed)
+skills/springboot-verification/
+
 # Multi-agent workflow dev artifacts (explorer/worker/reviewer/sentinel
 # conversation briefings, handoffs, progress reports — never shipped)
 .agents/
