@@ -31,7 +31,10 @@ pyyaml~=6.0.2
 # SECURITY: bumped floor to 49.0.0 — fixes CVE-2026-26007 (subgroup attack on
 # SECT curves) and bundled OpenSSL CVEs. (Dependabot said fix=46.0.5 but we
 # go straight to 49.x to supersede all known CVEs.)
-cryptography~=49.0.0
+# SECURITY: bumped from 49.0.0 → 50.0.0 to fix CVE-2026-69247 (HIGH):
+#   PKCS#7 EnvelopedData decryption exposes a Bleichenbacher oracle through
+#   distinguishable errors and timing. Affects cryptography >=44.0.0, <50.0.0.
+cryptography~=50.0.0
 bcrypt~=4.2.1
 # SECURITY: upgraded from 2.9.0 → 2.13.0 to fix CVE-2026-32597 (accepts unknown
 # `crit` header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC

@@ -111,7 +111,10 @@ structlog~=23.2.0
 # the Dependabot alert referenced 46.0.5 against an outdated lockfile entry).
 # 49.0.0 is the latest stable line and supersedes all 4x CVE fixes above
 # (CVE-2026-26007, CVE-2026-34073, CVE-2024-12797, etc.).
-cryptography~=49.0.0
+# SECURITY: bumped from 49.0.0 → 50.0.0 to fix CVE-2026-69247 (HIGH):
+#   PKCS#7 EnvelopedData decryption exposes a Bleichenbacher oracle through
+#   distinguishable errors and timing. Affects cryptography >=44.0.0, <50.0.0.
+cryptography~=50.0.0
 hvac~=2.1.0
 
 # Password hashing
