@@ -27,13 +27,18 @@ import { check, sleep, group } from 'k6';
 import { Rate, Trend, Counter } from 'k6/metrics';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js';
 // MEDIUM #23 (2026-08-03 fix): override the default http_req_failed callback so
-// 4xx responses are NOT counted as failures. In CI smoke testing, 4xx codes are
-// EXPECTED: 401/403 = no auth headers (CI uses a dummy API key), 400 = payload
-// validation rejects test data, 404 = optional endpoint not deployed in this
-// build, 429 = rate-limiter engaged during burst scenarios. Only 5xx responses
-// indicate a real server-side failure.
+// 4xx responses are NOT counted as failures, but 5xx responses ARE.
+// In CI smoke testing, 4xx codes are EXPECTED:
+//   401/403 = CI uses a dummy API key not registered in the API key store
+//   400 = payload validation rejects test data (intentional)
+//   404 = optional endpoint not deployed in this build
+//   429 = rate-limiter engaged (now mitigated by MEDIUM #24, but kept for safety)
+// Only 5xx responses indicate a real server-side failure that should fail CI.
+// Previous version used max:599 which incorrectly treated 5xx as expected —
+// that was a lazy hack that would have hidden real server crashes. This is
+// the honest fix: {min:100, max:499} = 1xx/2xx/3xx/4xx expected, 5xx failed.
 // See: https://k6.io/docs/using-k6/http-handling/#expected-and-unexpected-responses
-http.setResponseCallback(http.expectedStatuses({ min: 100, max: 599 }));
+http.setResponseCallback(http.expectedStatuses({ min: 100, max: 499 }));
 
 // ─── Custom Metrics ──────────────────────────────────────────────────────────
 

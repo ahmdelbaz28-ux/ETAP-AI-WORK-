@@ -526,6 +526,16 @@ jobs:
       DATABASE_URL: sqlite+aiosqlite:///./test.db
       REDIS_URL: redis://localhost:6379/0
       JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
+      # MEDIUM #24 (2026-08-03 fix): raise rate limit for the CI smoke test.
+      # The default is 100 req/60s per client IP. In CI, all k6 VUs originate
+      # from 127.0.0.1 (single IP), so 100 VUs exhaust the budget in <1s and
+      # every subsequent request returns 429 for the next 60s. This made
+      # /metrics, /api/v1/info, /api/v1/knowledge, /api/v1/agents all return
+      # 429 under load, causing http_req_failed=60%.
+      # Fix: raise to 10000 req/60s for the CI smoke test only. Production
+      # deployments set their own limits via these same env vars.
+      ENGINEERING_SERVICE_RATE_LIMIT_MAX: '10000'
+      ENGINEERING_SERVICE_RATE_LIMIT_WINDOW: '60'
 
     services:
       redis:
