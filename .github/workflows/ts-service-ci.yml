@@ -65,9 +65,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-  # ── Gate 3: Unit Tests ───────────────────────────────────────────────────
-  unit-tests:
-    name: Unit Tests
+  # ── Gate 3: Tests with Coverage ─────────────────────────────────────────
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,8 +81,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests with coverage
-        run: npm run test:unit -- --coverage
+      - name: Run all tests with coverage
+        run: npm run test:ci
         env:
           NODE_ENV: test
 
@@ -121,29 +121,7 @@ jobs:
           path: ts-service/dist/
           retention-days: 3
 
-  # ── Gate 5: Integration Tests ────────────────────────────────────────────
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: ts-service/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Integration tests
-        run: npm run test:integration
-        env:
-          NODE_ENV: test
-
-  # ── Gate 6: E2E Tests (optional) ────────────────────────────────────────
+  # ── Gate 5: E2E Tests (optional) ────────────────────────────────────────
   # Skipped until Playwright is configured. Uncomment when ready.
   # e2e-tests:
   #   name: E2E Tests
@@ -270,25 +248,23 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, unit-tests, integration-tests, security-audit, bundle-size]
+    needs: [lint, typecheck, tests, security-audit, bundle-size]
     if: always()
     steps:
       - name: Check all gates passed
         run: |
           if [[ "${{ needs.lint.result }}" == "success" && \
                 "${{ needs.typecheck.result }}" == "success" && \
-                "${{ needs.unit-tests.result }}" == "success" && \
-                "${{ needs.integration-tests.result }}" == "success" && \
+                "${{ needs.tests.result }}" == "success" && \
                 "${{ needs.security-audit.result }}" == "success" && \
                 "${{ needs.bundle-size.result }}" == "success" ]]; then
-            echo "All 8 quality gates passed"
+            echo "All quality gates passed"
             exit 0
           else
             echo "One or more quality gates failed"
             echo "Lint: ${{ needs.lint.result }}"
             echo "TypeCheck: ${{ needs.typecheck.result }}"
-            echo "Unit Tests: ${{ needs.unit-tests.result }}"
-            echo "Integration: ${{ needs.integration-tests.result }}"
+            echo "Tests: ${{ needs.tests.result }}"
             echo "Security: ${{ needs.security-audit.result }}"
             echo "Bundle Size: ${{ needs.bundle-size.result }}"
             exit 1
