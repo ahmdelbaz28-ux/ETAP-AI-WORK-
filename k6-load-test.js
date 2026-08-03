@@ -20,8 +20,14 @@ const failedStudyRequests = new Counter('study_requests_failed');
 // ─── Configuration ───────────────────────────────────────────────────────────
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8000';
-const K6_VUS = Number.parseInt(__ENV.K6_VUS || '100', 10);
-const K6_DURATION = __ENV.K6_DURATION || '2m';
+// MEDIUM #20 (2026-08-03 fix): renamed K6_VUS/K6_DURATION → SMOKE_VUS/SMOKE_DURATION.
+// k6 reserves K6_VUS and K6_DURATION as system env vars that *replace* the
+// entire `scenarios` config with a single default-scenario executor — which
+// then fails because our script does not export a `default` function.
+// Using non-reserved names lets the script keep its multi-scenario config
+// while still allowing CI to scale down VUs/duration for a smoke test.
+const SMOKE_VUS = Number.parseInt(__ENV.SMOKE_VUS || '100', 10);
+const SMOKE_DURATION = __ENV.SMOKE_DURATION || '2m';
 
 const API_HEADERS = {
   'Content-Type': 'application/json',
@@ -103,8 +109,8 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: Math.round(K6_VUS * 0.3) },
-        { duration: K6_DURATION, target: K6_VUS },
+        { duration: '30s', target: Math.round(SMOKE_VUS * 0.3) },
+        { duration: SMOKE_DURATION, target: SMOKE_VUS },
         { duration: '30s', target: 0 },
       ],
       gracefulRampDown: '15s',
