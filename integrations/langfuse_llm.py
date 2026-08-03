@@ -155,7 +155,13 @@ _import_attempted = False
 
 
 def _get_openai_client():
-    """Return the Langfuse-wrapped OpenAI client (lazy)."""
+    """Return the Langfuse-wrapped OpenAI client (lazy).
+
+    ARCHITECTURE AUDIT FIX (F-04): When Langfuse is configured but the
+    wrapper import fails, log CRITICAL (not just warning) and increment
+    an untraced-call counter. In production with LANGFUSE_ENABLED=true,
+    this is a safety observability gap.
+    """
     global _openai_client, _import_attempted
     if _openai_client is not None:
         return _openai_client
@@ -165,13 +171,23 @@ def _get_openai_client():
             from langfuse.openai import openai as lf_openai  # type: ignore
 
             _openai_client = lf_openai
-            logger.info("✅ Langfuse-wrapped OpenAI client loaded")
+            logger.info("Langfuse-wrapped OpenAI client loaded")
         except ImportError as e:
-            logger.warning(
-                "langfuse.openai not available — falling back to plain openai. "
-                "LLM calls will NOT be traced. Error: %s",
-                e,
-            )
+            _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+            if _langfuse_configured:
+                logger.critical(
+                    "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.openai "
+                    "import failed! LLM calls will proceed WITHOUT tracing — "
+                    "safety-critical observability gap. Error: %s. "
+                    "Fix: ensure langfuse package version is compatible.",
+                    e,
+                )
+            else:
+                logger.warning(
+                    "langfuse.openai not available — falling back to plain openai. "
+                    "LLM calls will NOT be traced. Error: %s",
+                    e,
+                )
             try:
                 import openai as _openai_module  # type: ignore
 
@@ -182,7 +198,10 @@ def _get_openai_client():
 
 
 def _get_anthropic_client():
-    """Return the Langfuse-wrapped Anthropic client (lazy)."""
+    """Return the Langfuse-wrapped Anthropic client (lazy).
+
+    ARCHITECTURE AUDIT FIX (F-04): Same untraced-call alerting as OpenAI.
+    """
     global _anthropic_client
     if _anthropic_client is not None:
         return _anthropic_client
@@ -190,12 +209,20 @@ def _get_anthropic_client():
         from langfuse.anthropic import anthropic as lf_anthropic  # type: ignore
 
         _anthropic_client = lf_anthropic
-        logger.info("✅ Langfuse-wrapped Anthropic client loaded")
+        logger.info("Langfuse-wrapped Anthropic client loaded")
     except ImportError as e:
-        logger.warning(
-            "langfuse.anthropic not available — Anthropic calls will NOT be traced. Error: %s",
-            e,
-        )
+        _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+        if _langfuse_configured:
+            logger.critical(
+                "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.anthropic "
+                "import failed! Anthropic calls will proceed WITHOUT tracing. Error: %s",
+                e,
+            )
+        else:
+            logger.warning(
+                "langfuse.anthropic not available — Anthropic calls will NOT be traced. Error: %s",
+                e,
+            )
         try:
             import anthropic as _anthropic_module  # type: ignore
 

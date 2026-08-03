@@ -12,5 +12,9 @@ export const shortCircuitAgent = new Agent({
   instructions: promptContent,
   model: getActiveModelConfig() as any,
   tools: { run_python },
-  memory: new Memory(),
+  // ARCHITECTURE AUDIT FIX (F-06): Memory configured with TTL and limits
+  memory: new Memory({
+    maxMessages: 30,
+    ttl: 3600, // 1 hour for engineering sessions
+  }),
 });

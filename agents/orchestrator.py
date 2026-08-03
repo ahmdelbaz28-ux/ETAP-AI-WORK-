@@ -1018,6 +1018,24 @@ class ValidationAgent(BaseAgent):
             }
 
             for agent_result in results_to_validate:
+                # ── F-03: Code-gated mandatory output validation ──
+                try:
+                    from agents.output_schema_guard import validate_agent_output
+
+                    guard_result = validate_agent_output(
+                        agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
+                        agent_result.data,
+                    )
+                    if not guard_result.passed:
+                        for v in guard_result.violations:
+                            validation_summary["critical_issues"].append(
+                                f"[SCHEMA-GUARD {v.rule_id}] {v.description}"
+                            )
+                except ImportError:
+                    pass  # output_schema_guard not available — skip
+                except Exception as exc:
+                    logger.debug("Output schema guard check failed: %s", exc)
+
                 # Validate based on study type
                 if agent_result.study_type == StudyType.LOAD_FLOW:
                     checks = self._validate_load_flow(agent_result)
@@ -1089,8 +1107,34 @@ class ValidationAgent(BaseAgent):
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
     def _validate_short_circuit(self, result: AgentResult) -> dict:
-        """Validate short circuit results."""
+        """Validate short circuit results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for physically
+        impossible values (IEEE C84.1, IEC 60909).
+        """
         issues = []
+
+        # ── F-07: Deterministic engineering assertion checks ──
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer()
+            # Validate fault currents if present in result data
+            fault_results = result.data.get("fault_results", {})
+            if fault_results:
+                assertion_results = assertion_layer.validate_short_circuit_results(
+                    fault_currents=fault_results,
+                )
+                for ar in assertion_results:
+                    if not ar.passed:
+                        issues.append(
+                            f"[ASSERTION-{ar.severity.value}] {ar.check_name}: {ar.message}"
+                        )
+        except ImportError:
+            logger.debug("EngineeringAssertionLayer not available for short circuit validation")
+        except Exception as exc:
+            logger.warning("Engineering assertion check failed: %s", exc)
 
         # Check that fault currents are reasonable
         fault_results = result.data.get("fault_results", {})

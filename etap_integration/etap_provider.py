@@ -499,7 +499,15 @@ class MockEtapProvider(IEtapProvider):
 
 
 class NullEtapProvider(IEtapProvider):
-    """Fallback provider when no ETAP is available."""
+    """Fallback provider when no ETAP is available.
+
+    ARCHITECTURE AUDIT FIX (F-05): Results now include sentinel markers
+    so downstream agents and UI can detect that ETAP is unavailable and
+    results are synthetic/empty.
+    """
+
+    # Sentinel for downstream detection
+    IS_NULL_PROVIDER: bool = True
 
     def __init__(self):
         self.use_etap = _is_etap_enabled()
@@ -515,16 +523,31 @@ class NullEtapProvider(IEtapProvider):
         study_type: ETAPStudyType,
         visible: bool = False,
     ) -> ETAPResult:
+        # F-05: Sentinel markers in result data
+        _null_sentinel = {
+            "_null_provider": True,
+            "_warning": (
+                "ETAP COM is not available on this platform. "
+                "Results are synthetic/empty — do NOT use for engineering decisions."
+            ),
+            "_study_type": str(study_type.value) if hasattr(study_type, "value") else str(study_type),
+        }
         if not self.use_etap:
             return ETAPResult(
                 False,
-                {},
+                _null_sentinel,
                 [],
                 ["ETAP functionality is disabled via USE_ETAP environment variable"],
                 0.0,
             )
         else:
-            return ETAPResult(False, {}, [], ["No ETAP provider configured or available"], 0.0)
+            return ETAPResult(
+                False,
+                _null_sentinel,
+                [],
+                ["No ETAP provider configured or available — results are synthetic"],
+                0.0,
+            )
 
 
 def get_etap_provider() -> IEtapProvider:
