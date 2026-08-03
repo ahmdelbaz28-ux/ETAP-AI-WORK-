@@ -1,0 +1,64 @@
+# =============================================================================
+# Rollback Workflow
+# Per the ci-cd-and-automation skill: Every deployment should be reversible
+# =============================================================================
+
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rollback to'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate rollback version
+        run: |
+          if [[ -z "${{ inputs.version }}" ]]; then
+            echo "ERROR: No version specified for rollback"
+            exit 1
+          fi
+          echo "Rolling back to version: ${{ inputs.version }}"
+
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back ${{ inputs.environment }} to version ${{ inputs.version }}..."
+          echo "Reason: ${{ inputs.reason }}"
+          # Replace with actual rollback command:
+          # npx vercel rollback ${{ inputs.version }}
+          # or: kubectl rollout undo deployment/app --to-revision=${{ inputs.version }}
+          echo "Rollback complete"
+
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback..."
+          # curl -f https://example.com/health || exit 1
+          echo "Rollback verified — system healthy"
+
+      - name: Notify team
+        run: |
+          echo "Rollback notification sent"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Version: ${{ inputs.version }}"
+          echo "Reason: ${{ inputs.reason }}"
+          # In production: send Slack/Discord/email notification

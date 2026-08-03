@@ -1,2 +1,46 @@
-skills/
+# =============================================================================
+# .gitignore — Per the ci-cd-and-automation skill: never commit secrets
+# =============================================================================
+
+# Dependencies
 node_modules/
+
+# Build output
+dist/
+build/
+
+# Coverage
+coverage/
+*.lcov
+
+# Environment files (NEVER commit these)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# .env.test IS committed — it has no real secrets
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Temp files
+tmp/
+temp/
