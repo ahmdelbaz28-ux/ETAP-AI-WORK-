@@ -144,7 +144,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7'  # NOSONAR: single-use security scanner tools with pinned versions
+        # safety 3.2.7 crashes on Python 3.12+ with TypeError in typer/click.
+        # Upgraded to safety>=3.8.1 which resolves the incompatibility.
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety>=3.8.1'  # NOSONAR: single-use security scanner tools with pinned versions
 
       - name: Run Bandit security scan
         run: |

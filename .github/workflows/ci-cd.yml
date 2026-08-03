@@ -425,13 +425,12 @@ jobs:
           python-version: '3.12'
 
       - name: Install security tools
-        # safety 3.2.7 has incompatibilities with typer >=0.12 (rich_utils removed
-        # in typer 0.12+) and typer 0.10-0.11 (Secondary flag TypeError on auth_app
-        # subcommand). The only known-working version is typer 0.9.4 (last 0.9.x).
-        # Pin all three to known-working versions to keep the Safety step stable.
-        # Also keep the install strictly binary-first: no source-build fallback
-        # (SonarCloud S8541).
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety==3.2.7 typer==0.9.4'
+        # safety 3.2.7 crashes on Python 3.12+ with TypeError in typer/click
+        # (Secondary flag is not valid for non-boolean flag). Upgraded to
+        # safety>=3.8.1 which resolves the typer/click incompatibility without
+        # needing a separate typer pin. Also keep the install strictly
+        # binary-first: no source-build fallback (SonarCloud S8541).
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety>=3.8.1'
 
       - name: Bandit SAST scan
         # Uses .bandit ini file (skips B104/B108/B608/B102/B310/etc.)
