@@ -158,11 +158,12 @@ jobs:
           test -f README.hf.md || { echo "README.hf.md (HF YAML frontmatter) missing"; exit 1; }
           test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build step failed"; exit 1; }
 
-          git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
-          cd hf-space-repo
-          # SECURITY: use git credential helper instead of embedding token in URL
+          # SECURITY: use git credential helper instead of embedding token in URL.
+          # Must be configured BEFORE `git clone` so the clone can authenticate.
           echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
           git config credential.helper "store --file=/tmp/.git-credentials-hf"
+          git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo 2>&1 | tail -5
+          cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           # README.hf.md is the HF frontmatter README; rename to README.md on the Space
           cp ../README.hf.md ./README.md
