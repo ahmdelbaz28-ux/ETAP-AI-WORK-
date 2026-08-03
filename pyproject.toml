@@ -49,7 +49,7 @@ dependencies = [
     "tenacity>=8.2.0",
     "uvicorn[standard]>=0.24.0",
     "pypdf>=6.13.3",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2)
-    "chromadb>=0.4.24",  # SECURITY: CVE-2026-45829 (CVSS 9.3, pre-auth RCE) — no patch yet
+    "chromadb>=0.4.24,<1.0.0",  # SECURITY: CVE-2026-45829 (CVSS 9.3, pre-auth RCE) — pins to 0.x line; 1.0+ allows unauthenticated RCE via trust_remote_code=True
     "sentence-transformers>=2.7.0",
     "tree-sitter>=0.21.0",
     "tree-sitter-python>=0.21.0",

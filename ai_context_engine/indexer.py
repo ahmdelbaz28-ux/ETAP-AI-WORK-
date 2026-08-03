@@ -22,6 +22,14 @@ logger = logging.getLogger("ai_context_engine")
 try:
     import chromadb
 
+    # SECURITY (CVE-2026-45829): Refuse chromadb 1.0+ (pre-auth RCE)
+    _chromadb_version = getattr(chromadb, "__version__", "0.0.0")
+    if _chromadb_version.startswith("1.") or _chromadb_version >= "1.0.0":
+        raise RuntimeError(
+            f"SECURITY: chromadb {_chromadb_version} is VULNERABLE to CVE-2026-45829 "
+            f"(pre-auth RCE). Pin chromadb<1.0.0."
+        )
+
     CHROMA_AVAILABLE = True
 except (ImportError, RuntimeError) as e:
     CHROMA_AVAILABLE = False

@@ -230,16 +230,33 @@ class VectorDatabase:
             self._init_memory()
 
     def _init_chroma(self):
-        """Initialize ChromaDB."""
+        """Initialize ChromaDB.
+
+        SECURITY (CVE-2026-45829): ChromaDB 1.0+ has a pre-auth RCE vulnerability
+        when trust_remote_code=True. We enforce three defenses:
+        1. Version pin: pyproject.toml pins chromadb<1.0.0
+        2. Runtime version check: refuse to run on 1.0+
+        3. trust_remote_code is NEVER set to True anywhere in this codebase
+        """
         try:
             import chromadb
+
+            # SECURITY: Runtime version check — refuse to run on chromadb 1.0+
+            # which is vulnerable to CVE-2026-45829 (pre-auth RCE)
+            _version = getattr(chromadb, "__version__", "0.0.0")
+            if _version.startswith("1.") or _version >= "1.0.0":
+                raise RuntimeError(
+                    f"SECURITY: chromadb {_version} is VULNERABLE to CVE-2026-45829 "
+                    f"(pre-auth RCE). Pin chromadb<1.0.0 in pyproject.toml. "
+                    f"See: https://nvd.nist.gov/vuln/detail/CVE-2026-45829"
+                )
 
             self.client = chromadb.PersistentClient(path=self.db_path)
             self.collection = self.client.get_or_create_collection(
                 name="engineering_knowledge",
                 metadata={"description": "Power system engineering standards"},
             )
-            logger.info("Initialized ChromaDB vector database")
+            logger.info("Initialized ChromaDB vector database (version %s, CVE-safe)", _version)
         except ImportError:
             logger.warning("ChromaDB not available. Using memory storage.")
             self._init_memory()
