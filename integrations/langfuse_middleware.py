@@ -36,6 +36,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
@@ -67,10 +68,53 @@ _SAFETY_CRITICAL_PATHS = frozenset(
 
 _MAX_BODY_CAPTURE = int(os.environ.get("LANGFUSE_HTTP_MAX_BODY", "4096"))
 
+# ARCHITECTURE AUDIT FIX (F-10): Route-level capture policy.
+# Routes marked 'no_capture' will not have bodies sent to Langfuse.
+# Routes marked 'capture_metadata_only' will only send metadata (method, path, status).
+# Routes marked 'capture_full' (default for safety-critical) capture everything.
+_NO_CAPTURE_ROUTES = frozenset(
+    p.strip()
+    for p in os.environ.get(
+        "LANGFUSE_NO_CAPTURE_ROUTES",
+        "/auth/login,/auth/token,/auth/refresh,/api/keys",
+    ).split(",")
+    if p.strip()
+)
+
+# PII patterns to redact before sending to Langfuse
+_PII_PATTERNS = [
+    # API keys and tokens in headers or JSON bodies
+    (re.compile(r'(api[_-]?key|token|secret|password|authorization)["\s:=]+["\']?([\w\-]{8,})["\']?', re.IGNORECASE), r'\1=**REDACTED**'),
+    # Bearer tokens
+    (re.compile(r'Bearer\s+[\w\-\.]+', re.IGNORECASE), r'Bearer **REDACTED**'),
+    # Email addresses
+    (re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}'), r'**EMAIL_REDACTED**'),
+]
+
 
 def _is_safety_critical(path: str) -> bool:
     """Return True if the request path is safety-critical."""
     return any(path.startswith(p) for p in _SAFETY_CRITICAL_PATHS)
+
+
+def _is_no_capture(path: str) -> bool:
+    """Return True if the request path should not have bodies captured.
+
+    ARCHITECTURE AUDIT FIX (F-10): Auth/login routes should never
+    have their bodies sent to Langfuse (contains credentials).
+    """
+    return any(path.startswith(p) for p in _NO_CAPTURE_ROUTES)
+
+
+def _redact_pii(text: str) -> str:
+    """Redact PII from text before sending to Langfuse.
+
+    ARCHITECTURE AUDIT FIX (F-10): API keys, tokens, passwords,
+    and email addresses are replaced with **REDACTED** markers.
+    """
+    for pattern, replacement in _PII_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
 
 
 def _truncate_body(body: bytes, max_chars: int = _MAX_BODY_CAPTURE) -> Optional[str]:
@@ -146,6 +190,8 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         session_id = request.headers.get("X-Session-ID")
         study_type = request.headers.get("X-Study-Type", "")
         safety_critical = _is_safety_critical(path)
+        # F-10: Check if body capture should be skipped for this route
+        no_capture = _is_no_capture(path)
 
         # Read request body (for capture)
         body_bytes = await request.body()
@@ -160,6 +206,9 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         }
         if study_type:
             trace_metadata["study_type"] = study_type
+        # F-10: Mark no-capture routes
+        if no_capture:
+            trace_metadata["body_capture"] = "disabled (sensitive route)"
 
         # Start a Langfuse trace
         trace_name = f"{method} {path}"
@@ -178,11 +227,13 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
 
             obs = client.start_as_current_observation(**trace_kwargs)
 
-            # Capture input
-            input_text = _truncate_body(body_bytes)
-            if input_text:
-                with contextlib.suppress(Exception):
-                    obs.update(input=input_text)
+            # Capture input — F-10: Skip body capture for no-capture routes, redact PII otherwise
+            if not no_capture:
+                input_text = _truncate_body(body_bytes)
+                if input_text:
+                    input_text = _redact_pii(input_text)  # F-10: PII redaction
+                    with contextlib.suppress(Exception):
+                        obs.update(input=input_text)
         except Exception as e:
             logger.debug("Langfuse trace start failed (non-critical): %s", e)
             return await call_next(request)
@@ -248,9 +299,12 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
 
             # Capture output + status — best-effort, must not break the response
             with contextlib.suppress(Exception):
-                output_text = _truncate_body(response_body)
-                if output_text:
-                    obs.update(output=output_text)
+                # F-10: Redact PII from output and skip for no-capture routes
+                if not no_capture:
+                    output_text = _truncate_body(response_body)
+                    if output_text:
+                        output_text = _redact_pii(output_text)  # F-10: PII redaction
+                        obs.update(output=output_text)
                 obs.update(
                     metadata={
                         "http.status_code": status_code,

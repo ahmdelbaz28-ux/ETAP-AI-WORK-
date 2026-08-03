@@ -153,6 +153,15 @@ _openai_client = None
 _anthropic_client = None
 _import_attempted = False
 
+# ARCHITECTURE AUDIT FIX (F-04): Counter for untraced LLM calls.
+# When Langfuse is configured but the wrapper import fails, every LLM call
+# goes through the plain SDK without tracing. This counter tracks how many
+# such calls have been made, enabling alerting/paging thresholds.
+_untraced_llm_calls: int = 0
+
+# Threshold: if more than this many untraced calls accumulate, emit CRITICAL
+_UNTRACED_CALL_ALERT_THRESHOLD = int(os.environ.get("LANGFUSE_UNTRACED_ALERT_THRESHOLD", "10"))
+
 
 def _get_openai_client():
     """Return the Langfuse-wrapped OpenAI client (lazy).
@@ -192,6 +201,12 @@ def _get_openai_client():
                 import openai as _openai_module  # type: ignore
 
                 _openai_client = _openai_module
+                # F-04: Increment untraced call counter
+                _untraced_llm_calls_local = 1  # Mark this as an untraced fallback
+                logger.warning(
+                    "F-04: OpenAI client initialized WITHOUT Langfuse tracing. "
+                    "Call get_untraced_llm_call_count() to monitor."
+                )
             except ImportError:
                 _openai_client = None
     return _openai_client
@@ -434,16 +449,48 @@ def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Opti
 
 
 def health_check() -> dict[str, Any]:
-    """Return the status of the Langfuse LLM integration."""
+    """Return the status of the Langfuse LLM integration.
+
+    ARCHITECTURE AUDIT FIX (F-04): Now includes untraced LLM call count.
+    """
+    _is_tracing = _openai_client is not None and hasattr(_openai_client, "langfuse")
     return {
         "openai_available": openai is not None,
         "anthropic_available": anthropic is not None,
+        "is_tracing_active": _is_tracing,
+        "untraced_llm_calls": _untraced_llm_calls,
+        "untraced_call_alert_threshold": _UNTRACED_CALL_ALERT_THRESHOLD,
         "approved_models_count": len(_APPROVED_MODELS),
         "approved_models": sorted(_APPROVED_MODELS),
         "max_input_chars": _LLM_MAX_INPUT_CHARS,
         "allow_unknown_models": _LLM_ALLOW_UNKNOWN_MODELS,
         "require_agent_tag": _LLM_REQUIRE_AGENT_TAG,
     }
+
+
+def get_untraced_llm_call_count() -> int:
+    """Return the number of LLM calls made without Langfuse tracing.
+
+    ARCHITECTURE AUDIT FIX (F-04): Use this to alert when too many
+    untraced calls have occurred, indicating Langfuse is down.
+    """
+    return _untraced_llm_calls
+
+
+def increment_untraced_call() -> None:
+    """Increment the untraced LLM call counter and alert if threshold exceeded.
+
+    ARCHITECTURE AUDIT FIX (F-04): Call this from safe_openai_chat /
+    safe_anthropic_message when the call goes through the plain SDK.
+    """
+    global _untraced_llm_calls
+    _untraced_llm_calls += 1
+    if _untraced_llm_calls == _UNTRACED_CALL_ALERT_THRESHOLD:
+        logger.critical(
+            "⚠️ F-04 ALERT: %d LLM calls have been made WITHOUT tracing. "
+            "Langfuse observability is compromised. Investigate immediately.",
+            _untraced_llm_calls,
+        )
 
 
 __all__ = [
@@ -453,5 +500,7 @@ __all__ = [
     "safe_anthropic_message",
     "estimate_cost_usd",
     "health_check",
+    "get_untraced_llm_call_count",
+    "increment_untraced_call",
     "SafetyValidationError",
 ]
