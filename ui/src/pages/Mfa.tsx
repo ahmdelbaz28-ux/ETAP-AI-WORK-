@@ -23,7 +23,6 @@
 
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   CheckCircle2,
   KeyRound,
   Loader2,
@@ -35,10 +34,17 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { type ReactNode, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ErrorBanner,
+  LoadingRow,
+  StatRow,
+  inputClass,
+  labelClass,
+} from "../components/admin-primitives";
 import { Badge, Button, Card, CardHeader, CardSection, EmptyState, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { adminFetch } from "../lib/admin-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/mfa.py
@@ -81,97 +87,8 @@ type TabId = "setup" | "verify-totp" | "verify-backup";
 // ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-async function mfaFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const callerHeaders = init?.headers;
-  const mergedHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
-  };
-  if (callerHeaders instanceof Headers) {
-    callerHeaders.forEach((v, k) => {
-      mergedHeaders[k] = v;
-    });
-  } else if (Array.isArray(callerHeaders)) {
-    for (const [k, v] of callerHeaders) {
-      mergedHeaders[k] = v;
-    }
-  } else if (callerHeaders && typeof callerHeaders === "object") {
-    Object.assign(mergedHeaders, callerHeaders as Record<string, string>);
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: mergedHeaders,
-  });
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed?.detail) detail = `${detail}: ${parsed.detail}`;
-      else if (parsed?.message) detail = `${detail}: ${parsed.message}`;
-      else if (parsed?.error) detail = `${detail}: ${parsed.error}`;
-    } catch {
-      if (text) detail = `${detail}: ${text.slice(0, 200)}`;
-    }
-    throw new Error(detail);
-  }
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return text as unknown as T;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Small UI primitives (local — kept here to avoid bloating shared ui/)
-// ---------------------------------------------------------------------------
-
-function StatRow({ label, value }: { readonly label: string; readonly value: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-[var(--border-primary)] last:border-0 gap-3">
-      <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-zinc-100 font-mono text-right break-all">{value}</span>
-    </div>
-  );
-}
-
-function ErrorBanner({ message }: { readonly message: string }) {
-  return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
-    >
-      <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-      <span className="break-words">{message}</span>
-    </div>
-  );
-}
-
-function LoadingRow({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      <span>{label}</span>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const inputClass =
-  "w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-500/50";
-const labelClass = "block text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-1";
+// Replaced with shared adminFetch from lib/admin-fetch.ts.
+// Ref: fix/admin-pages-hardening (#4 + #6)
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -179,6 +96,7 @@ const labelClass = "block text-xs uppercase tracking-wider text-zinc-400 font-se
 
 export default function MfaPage() {
   const { notify } = useNotify();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabId>("setup");
 
   // ─── Setup tab state ────────────────────────────────────────────────
@@ -210,18 +128,20 @@ export default function MfaPage() {
       // No body needed — TOTP secret is generated for the JWT subject.
       // We deliberately omit user_id (F-04: body user_id must match
       // JWT subject or 403; safer to omit entirely).
-      const res = await mfaFetch<SetupResponse>("/api/v1/auth/mfa/totp/setup", {
+      const res = await adminFetch<SetupResponse>("/api/v1/auth/mfa/totp/setup", {
         method: "POST",
         body: JSON.stringify({}),
       });
       setSetupResult(res);
       if (res.success) {
-        notify(
-          "success",
-          "MFA setup complete — QR code generated. MFA auto-enabled on your account.",
-        );
+        notify("success", t("adminPages.mfa.setup.success"));
       } else {
-        notify("error", `Setup failed: ${res.errors?.[0] ?? res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.mfa.setup.failed", {
+            error: res.errors?.[0] ?? res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -230,7 +150,7 @@ export default function MfaPage() {
     } finally {
       setSetupLoading(false);
     }
-  }, [notify]);
+  }, [notify, t]);
 
   const handleVerifyTotp = useCallback(async () => {
     if (!totpCode.trim()) {
@@ -246,15 +166,20 @@ export default function MfaPage() {
     setTotpResult(null);
     try {
       // Omit user_id — backend uses JWT subject (F-04 fix).
-      const res = await mfaFetch<VerifyTotpResponse>("/api/v1/auth/mfa/totp/verify", {
+      const res = await adminFetch<VerifyTotpResponse>("/api/v1/auth/mfa/totp/verify", {
         method: "POST",
         body: JSON.stringify({ code: totpCode.trim() }),
       });
       setTotpResult(res);
       if (res.success) {
-        notify("success", "TOTP code verified successfully.");
+        notify("success", t("adminPages.mfa.verifyTotp.success"));
       } else {
-        notify("error", `Verify failed: ${res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.mfa.verifyTotp.failed", {
+            error: res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -263,7 +188,7 @@ export default function MfaPage() {
     } finally {
       setTotpLoading(false);
     }
-  }, [totpCode, notify]);
+  }, [totpCode, notify, t]);
 
   const handleVerifyBackup = useCallback(async () => {
     if (!backupCode.trim()) {
@@ -279,15 +204,20 @@ export default function MfaPage() {
     setBackupResult(null);
     try {
       // Omit user_id — backend uses JWT subject (F-04 fix).
-      const res = await mfaFetch<VerifyBackupResponse>("/api/v1/auth/mfa/backup/verify", {
+      const res = await adminFetch<VerifyBackupResponse>("/api/v1/auth/mfa/backup/verify", {
         method: "POST",
         body: JSON.stringify({ code: backupCode.trim() }),
       });
       setBackupResult(res);
       if (res.success) {
-        notify("success", "Backup code verified successfully.");
+        notify("success", t("adminPages.mfa.verifyBackup.success"));
       } else {
-        notify("error", `Verify failed: ${res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.mfa.verifyBackup.failed", {
+            error: res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -296,7 +226,7 @@ export default function MfaPage() {
     } finally {
       setBackupLoading(false);
     }
-  }, [backupCode, notify]);
+  }, [backupCode, notify, t]);
 
   // -------------------------------------------------------------------------
   // Render
@@ -309,17 +239,17 @@ export default function MfaPage() {
   }[] = [
     {
       id: "setup",
-      label: "Setup TOTP",
+      label: t("adminPages.mfa.tabs.setup"),
       icon: <QrCode className="w-4 h-4" />,
     },
     {
       id: "verify-totp",
-      label: "Verify TOTP",
+      label: t("adminPages.mfa.tabs.verifyTotp"),
       icon: <Smartphone className="w-4 h-4" />,
     },
     {
       id: "verify-backup",
-      label: "Verify Backup",
+      label: t("adminPages.mfa.tabs.verifyBackup"),
       icon: <ShieldCheck className="w-4 h-4" />,
     },
   ];
@@ -331,11 +261,10 @@ export default function MfaPage() {
           <KeyRound className="w-5 h-5 text-brand-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">MFA</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">
-            Multi-factor authentication — TOTP setup, verify, and backup code recovery (all
-            endpoints require JWT)
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            {t("adminPages.mfa.title")}
+          </h1>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t("adminPages.mfa.subtitle")}</p>
         </div>
       </div>
 
@@ -388,6 +317,7 @@ function SetupTab({
   readonly result: SetupResponse | null;
   readonly onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -395,21 +325,16 @@ function SetupTab({
           title={
             <span className="flex items-center gap-2">
               <QrCode className="w-4 h-4" />
-              Setup TOTP
+              {t("adminPages.mfa.setup.cardTitle")}
             </span>
           }
-          subtitle="POST /totp/setup — requires JWT, auto-enables MFA"
+          subtitle={t("adminPages.mfa.setup.cardSubtitle")}
         />
         <CardSection className="p-4 space-y-4">
-          <p className="text-sm text-zinc-400">
-            Generates a new TOTP secret for your account and returns a QR code URI. Scan it with
-            your authenticator app (Google Authenticator, Authy, 1Password, etc.). Backup codes are
-            also generated server-side (stored hashed, not exposed in the response).
-          </p>
+          <p className="text-sm text-zinc-400">{t("adminPages.mfa.setup.description")}</p>
           <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2">
             <ShieldAlert className="w-3 h-3 inline mr-1" />
-            This will overwrite any existing TOTP secret for your account. MFA is automatically
-            enabled after setup (V-10 fix).
+            {t("adminPages.mfa.setup.warning")}
           </p>
 
           {error && <ErrorBanner message={error} />}
@@ -421,24 +346,27 @@ function SetupTab({
               ) : (
                 <QrCode className="w-4 h-4" />
               )}
-              Generate TOTP Secret
+              {t("adminPages.mfa.setup.submit")}
             </Button>
           </div>
         </CardSection>
       </Card>
 
       <Card>
-        <CardHeader title="Result" subtitle="Response from POST /totp/setup" />
+        <CardHeader
+          title={t("adminPages.common.result")}
+          subtitle={t("adminPages.mfa.setup.resultSubtitle")}
+        />
         <CardSection className="p-4">
           {loading ? (
-            <LoadingRow label="Generating TOTP secret…" />
+            <LoadingRow label={t("adminPages.mfa.setup.loading")} />
           ) : result ? (
             <SetupResultCard result={result} />
           ) : (
             <EmptyState
               icon={<QrCode className="w-5 h-5 text-zinc-500" />}
-              title="No setup yet"
-              description="Click the button to generate a TOTP secret and QR code."
+              title={t("adminPages.mfa.setup.emptyTitle")}
+              description={t("adminPages.mfa.setup.emptyDescription")}
             />
           )}
         </CardSection>
@@ -448,6 +376,7 @@ function SetupTab({
 }
 
 function SetupResultCard({ result }: { readonly result: SetupResponse }) {
+  const { t } = useTranslation();
   const ok = result.success;
   const qrUri = result.data?.qr_code_uri;
   return (
@@ -461,16 +390,21 @@ function SetupResultCard({ result }: { readonly result: SetupResponse }) {
         ) : (
           <XCircle className="w-4 h-4 text-red-400" />
         )}
-        <span className="text-sm font-semibold text-zinc-100">{ok ? "Success" : "Failed"}</span>
+        <span className="text-sm font-semibold text-zinc-100">
+          {ok ? t("adminPages.common.success") : t("adminPages.common.failed")}
+        </span>
         {ok && (
           <Badge className="ml-auto" variant="brand">
-            MFA enabled
+            {t("adminPages.mfa.setup.mfaEnabledBadge")}
           </Badge>
         )}
       </div>
       {qrUri && (
         <div className="space-y-2 py-2">
-          <StatRow label="QR URI" value={<span className="text-xs break-all">{qrUri}</span>} />
+          <StatRow
+            label={t("adminPages.mfa.setup.qrUri")}
+            value={<span className="text-xs break-all">{qrUri}</span>}
+          />
           {/*
             Client-side QR renderer (qrcode.react). Previously this sent
             the otpauth:// URI — which contains the TOTP secret in
@@ -486,19 +420,25 @@ function SetupResultCard({ result }: { readonly result: SetupResponse }) {
               bgColor="#ffffff"
               fgColor="#000000"
               role="img"
-              aria-label={`TOTP QR code — scan with your authenticator app to import the secret for ${qrUri.match(/otpauth:\/\/totp\/([^?]+)/)?.[1] ?? "this account"}`}
+              aria-label={t("adminPages.mfa.setup.qrAriaLabel", {
+                account:
+                  qrUri.match(/otpauth:\/\/totp\/([^?]+)/)?.[1] ??
+                  t("adminPages.mfa.setup.thisAccount"),
+              })}
               className="w-48 h-48"
             />
           </div>
-          <p className="text-xs text-zinc-500 text-center">Scan with your authenticator app</p>
+          <p className="text-xs text-zinc-500 text-center">{t("adminPages.mfa.setup.scanHelp")}</p>
         </div>
       )}
       {result.errors && result.errors.length > 0 && (
-        <StatRow label="Errors" value={result.errors.join("; ")} />
+        <StatRow label={t("adminPages.mfa.setup.errors")} value={result.errors.join("; ")} />
       )}
-      {result.error && <StatRow label="Error" value={result.error} />}
-      {result.message && <StatRow label="Message" value={result.message} />}
-      {result.trace_id && <StatRow label="Trace ID" value={result.trace_id} />}
+      {result.error && <StatRow label={t("adminPages.common.error")} value={result.error} />}
+      {result.message && <StatRow label={t("adminPages.common.message")} value={result.message} />}
+      {result.trace_id && (
+        <StatRow label={t("adminPages.common.traceId")} value={result.trace_id} />
+      )}
     </div>
   );
 }

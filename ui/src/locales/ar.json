@@ -234,5 +234,165 @@
     "errorPasswordsMismatch": "كلمتا المرور غير متطابقتين",
     "errorPasswordLength": "يجب أن لا تقل كلمة المرور عن 8 خانات",
     "errorRegisterFields": "يرجى تعبئة جميع الحقول المطلوبة بشكل صحيح"
+  },
+  "adminPages": {
+    "common": {
+      "result": "النتيجة",
+      "success": "نجاح",
+      "failed": "فشل",
+      "verified": "تم التحقق",
+      "message": "الرسالة",
+      "error": "الخطأ",
+      "traceId": "معرف التتبع",
+      "expiresIn": "تنتهي خلال",
+      "retryAfter": "أعد المحاولة بعد",
+      "testToken": "رمز اختبار",
+      "testCode": "رمز اختبار",
+      "testMode": "وضع اختبار",
+      "emailAddress": "البريد الإلكتروني",
+      "userId": "معرف المستخدم",
+      "username": "اسم المستخدم",
+      "role": "الدور",
+      "accessToken": "رمز الوصول",
+      "refreshToken": "رمز التحديث",
+      "invalidated": "تم الإلغاء",
+      "user": "مستخدم",
+      "unknownError": "خطأ غير معروف"
+    },
+    "magicLinks": {
+      "title": "الروابط السحرية",
+      "subtitle": "مصادقة بدون كلمة مرور عبر روابط بريد إلكتروني أحادية الاستخدام (طلب/تحقق عام · إلغاء للمشرفين فقط)",
+      "tabs": {
+        "request": "طلب",
+        "verify": "تحقق",
+        "invalidate": "إلغاء"
+      },
+      "request": {
+        "cardTitle": "طلب رابط سحري",
+        "cardSubtitle": "POST /request — عام، يُرجع 200 دائماً (منع التعداد)",
+        "help": "إذا كان البريد موجوداً، سيُرسل رابط سحري. يُرجع 200 دائماً لمنع تعداد المستخدمين.",
+        "submit": "طلب رابط سحري",
+        "resultSubtitle": "استجابة من POST /request",
+        "loading": "جاري إرسال الرابط السحري…",
+        "emptyTitle": "لا يوجد طلب بعد",
+        "emptyDescription": "املأ البريد وأرسل لطلب رابط سحري.",
+        "success": "تم طلب رابط سحري لـ {{email}}{{note}}",
+        "failed": "فشل الطلب: {{error}}"
+      },
+      "verify": {
+        "cardTitle": "تحقق من الرابط السحري",
+        "cardSubtitle": "POST /verify — عام، يُصدر JWT عند النجاح",
+        "tokenLabel": "رمز الرابط السحري",
+        "tokenPlaceholder": "الصق الرمز من عنوان URL للرابط السحري (مثل ?token=…)",
+        "help": "الرموز سلاسل عشوائية آمنة للـ URL بطول 32 بايت، صالحة لمدة 15 دقيقة، للاستخدام مرة واحدة.",
+        "submit": "تحقق من الرمز",
+        "resultSubtitle": "استجابة من POST /verify",
+        "loading": "جاري التحقق من الرابط السحري…",
+        "emptyTitle": "لا يوجد تحقق بعد",
+        "emptyDescription": "الصق رمزاً وأرسل للتحقق منه.",
+        "success": "تم التحقق من الرابط السحري لـ {{email}}.",
+        "failed": "فشل التحقق: {{error}}"
+      },
+      "invalidate": {
+        "cardTitle": "إلغاء الروابط المعلّقة",
+        "cardSubtitle": "POST /invalidate — يتطلب JWT",
+        "help": "يتطلب JWT. جميع الروابط السحرية غير المستخدمة (المعلّقة) لهذا البريد سيتم إلغاؤها. الروابط المستخدمة غير متأثرة.",
+        "submit": "إلغاء الروابط المعلّقة",
+        "resultSubtitle": "استجابة من POST /invalidate",
+        "loading": "جاري الإلغاء…",
+        "emptyTitle": "لا يوجد إلغاء بعد",
+        "emptyDescription": "أدخل بريداً وأرسل لإلغاء روابطه المعلّقة.",
+        "success": "تم إلغاء {{count}} رابط سحري معلّق لـ {{email}}.",
+        "failed": "فشل الإلغاء: {{error}}"
+      }
+    },
+    "mfa": {
+      "title": "المصادقة الثنائية",
+      "subtitle": "مصادقة متعددة العوامل — إعداد TOTP، تحقق، واستعادة رمز النسخ الاحتياطي (جميع النقاط تتطلب JWT)",
+      "tabs": {
+        "setup": "إعداد TOTP",
+        "verifyTotp": "تحقق TOTP",
+        "verifyBackup": "تحقق النسخ الاحتياطي"
+      },
+      "common": {
+        "valid": "صالح",
+        "invalid": "غير صالح"
+      },
+      "setup": {
+        "cardTitle": "إعداد TOTP",
+        "cardSubtitle": "POST /totp/setup — يتطلب JWT، يُفعّل MFA تلقائياً",
+        "description": "يُنشئ سرّ TOTP جديد لحسابك ويُرجع URI لرمز QR. امسحه بتطبيق المصادقة الخاص بك (Google Authenticator، Authy، 1Password، إلخ). تُنشأ رموز النسخ الاحتياطي أيضاً من جهة الخادم (مخزّنة مجزّأة، غير مكشوفة في الاستجابة).",
+        "warning": "سيؤدي هذا إلى استبدال أي سرّ TOTP موجود لحسابك. يتم تفعيل MFA تلقائياً بعد الإعداد (إصلاح V-10).",
+        "submit": "توليد سرّ TOTP",
+        "resultSubtitle": "استجابة من POST /totp/setup",
+        "loading": "جاري توليد سرّ TOTP…",
+        "emptyTitle": "لا يوجد إعداد بعد",
+        "emptyDescription": "انقر الزر لتوليد سرّ TOTP ورمز QR.",
+        "success": "اكتمل إعداد MFA — تم توليد رمز QR. تم تفعيل MFA تلقائياً على حسابك.",
+        "failed": "فشل الإعداد: {{error}}",
+        "mfaEnabledBadge": "MFA مُفعّل",
+        "qrUri": "URI رمز QR",
+        "qrAriaLabel": "رمز QR لـ TOTP — امسحه بتطبيق المصادقة لاستيراد السرّ لـ {{account}}",
+        "thisAccount": "هذا الحساب",
+        "scanHelp": "امسحه بتطبيق المصادقة الخاص بك",
+        "errors": "الأخطاء"
+      },
+      "verifyTotp": {
+        "cardTitle": "تحقق من رمز TOTP",
+        "cardSubtitle": "POST /totp/verify — يتطلب JWT، محمي من الهجوم العنيف",
+        "codeLabel": "رمز TOTP",
+        "help": "رمز من 6 أرقام من تطبيق المصادقة الخاص بك. الرموز صالحة لمدة 30 ثانية ويمكن استخدامها مرة واحدة فقط (حماية V-12 من إعادة التشغيل). 5 محاولات فاشلة تُفعّل قفل 15 دقيقة.",
+        "submit": "تحقق من الرمز",
+        "resultSubtitle": "استجابة من POST /totp/verify",
+        "loading": "جاري التحقق من رمز TOTP…",
+        "emptyTitle": "لا يوجد تحقق بعد",
+        "emptyDescription": "أدخل رمزاً وأرسل للتحقق منه.",
+        "success": "تم التحقق من رمز TOTP بنجاح.",
+        "failed": "فشل التحقق: {{error}}"
+      },
+      "verifyBackup": {
+        "cardTitle": "تحقق من رمز النسخ الاحتياطي",
+        "cardSubtitle": "POST /backup/verify — يتطلب JWT، تدفق الاستعادة",
+        "codeLabel": "رمز الاستعادة الاحتياطي",
+        "help": "رمز نسخ احتياطي من 8-16 حرف يُعرض مرة واحدة أثناء إعداد TOTP. تُجزّأ الرموز بـ SHA-256 قبل المقارنة (V-9). نفس قفل الهجوم العنيف كـ TOTP ينطبق.",
+        "submit": "تحقق من رمز النسخ الاحتياطي",
+        "resultSubtitle": "استجابة من POST /backup/verify",
+        "loading": "جاري التحقق من رمز النسخ الاحتياطي…",
+        "emptyTitle": "لا يوجد تحقق بعد",
+        "emptyDescription": "أدخل رمز نسخ احتياطي وأرسل للتحقق منه.",
+        "success": "تم التحقق من رمز النسخ الاحتياطي بنجاح.",
+        "failed": "فشل التحقق: {{error}}"
+      }
+    },
+    "emailOtp": {
+      "send": {
+        "success": "تم إرسال OTP إلى {{email}}{{note}}",
+        "failed": "فشل الإرسال: {{error}}"
+      },
+      "verify": {
+        "success": "تم التحقق من OTP لـ {{email}}.",
+        "failed": "فشل التحقق: {{error}}"
+      },
+      "invalidate": {
+        "success": "تم إلغاء OTP لـ {{email}} ({{purpose}}).",
+        "failed": "فشل الإلغاء: {{error}}"
+      }
+    },
+    "emailDigest": {
+      "generate": {
+        "success": "تم توليد الملخص لـ {{email}} ({{period}}).",
+        "failed": "فشل التوليد: {{error}}"
+      },
+      "scheduleRun": {
+        "success": "اكتمل تشغيل الجدولة: تم إرسال {{sent}}، فشل {{failed}}.",
+        "failed": "فشل تشغيل الجدولة: {{error}}"
+      },
+      "config": {
+        "loadFailed": "فشل تحميل التكوين: {{error}}"
+      },
+      "preview": {
+        "loadFailed": "فشل تحميل المعاينة: {{error}}"
+      }
+    }
   }
 }

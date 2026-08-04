@@ -21,7 +21,6 @@
 
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   Ban,
   CheckCircle2,
   Link2,
@@ -33,10 +32,17 @@ import {
   XCircle,
 } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ErrorBanner,
+  LoadingRow,
+  StatRow,
+  inputClass,
+  labelClass,
+} from "../components/admin-primitives";
 import { Badge, Button, Card, CardHeader, CardSection, EmptyState, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { adminFetch } from "../lib/admin-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/magic_links.py
@@ -85,99 +91,11 @@ interface InvalidateResponse {
 type TabId = "request" | "verify" | "invalidate";
 
 // ---------------------------------------------------------------------------
-// Fetch helper
-// ---------------------------------------------------------------------------
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-async function magicFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const callerHeaders = init?.headers;
-  const mergedHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
-  };
-  if (callerHeaders instanceof Headers) {
-    callerHeaders.forEach((v, k) => {
-      mergedHeaders[k] = v;
-    });
-  } else if (Array.isArray(callerHeaders)) {
-    for (const [k, v] of callerHeaders) {
-      mergedHeaders[k] = v;
-    }
-  } else if (callerHeaders && typeof callerHeaders === "object") {
-    Object.assign(mergedHeaders, callerHeaders as Record<string, string>);
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: mergedHeaders,
-  });
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed?.detail) detail = `${detail}: ${parsed.detail}`;
-      else if (parsed?.message) detail = `${detail}: ${parsed.message}`;
-      else if (parsed?.error) detail = `${detail}: ${parsed.error}`;
-    } catch {
-      if (text) detail = `${detail}: ${text.slice(0, 200)}`;
-    }
-    throw new Error(detail);
-  }
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return text as unknown as T;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Small UI primitives (local — kept here to avoid bloating shared ui/)
-// ---------------------------------------------------------------------------
-
-function StatRow({ label, value }: { readonly label: string; readonly value: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-[var(--border-primary)] last:border-0 gap-3">
-      <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-zinc-100 font-mono text-right break-all">{value}</span>
-    </div>
-  );
-}
-
-function ErrorBanner({ message }: { readonly message: string }) {
-  return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
-    >
-      <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-      <span className="break-words">{message}</span>
-    </div>
-  );
-}
-
-function LoadingRow({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      <span>{label}</span>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const inputClass =
-  "w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-500/50";
-const labelClass = "block text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-1";
+// Re-exported from admin-primitives for backward compat with the
+// per-page inputClass / labelClass references below.
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -185,6 +103,7 @@ const labelClass = "block text-xs uppercase tracking-wider text-zinc-400 font-se
 
 export default function MagicLinksPage() {
   const { notify } = useNotify();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabId>("request");
 
   // ─── Request tab state ──────────────────────────────────────────────
@@ -218,25 +137,41 @@ export default function MagicLinksPage() {
     setReqError(null);
     setReqResult(null);
     try {
-      const res = await magicFetch<RequestResponse>("/api/v1/auth/magic-link/request", {
+      const res = await adminFetch<RequestResponse>("/api/v1/auth/magic-link/request", {
         method: "POST",
         body: JSON.stringify({ email: reqEmail.trim() }),
       });
       setReqResult(res);
       if (res.success) {
-        const tokenNote = res.test_token ? ` (test token: ${res.test_token.slice(0, 8)}…)` : "";
-        notify("success", `Magic link requested for ${reqEmail.trim()}.${tokenNote}`);
+        // SECURITY: only reveal the test token in the toast when
+        // running in dev (import.meta.env.DEV). In production builds
+        // the token must never appear in the DOM or toast history,
+        // even if the backend accidentally has test_mode enabled.
+        // Ref: fix/admin-pages-hardening (#3)
+        const tokenNote =
+          import.meta.env.DEV && res.test_token
+            ? ` (test token: ${res.test_token.slice(0, 8)}…)`
+            : "";
+        notify(
+          "success",
+          t("adminPages.magicLinks.request.success", { email: reqEmail.trim(), note: tokenNote }),
+        );
       } else {
-        notify("error", `Request failed: ${res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.magicLinks.request.failed", {
+            error: res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setReqError(msg);
-      notify("error", `Request failed: ${msg}`);
+      notify("error", t("adminPages.magicLinks.request.failed", { error: msg }));
     } finally {
       setReqLoading(false);
     }
-  }, [reqEmail, notify]);
+  }, [reqEmail, notify, t]);
 
   const handleVerify = useCallback(async () => {
     if (!verifyToken.trim()) {
@@ -247,24 +182,34 @@ export default function MagicLinksPage() {
     setVerifyError(null);
     setVerifyResult(null);
     try {
-      const res = await magicFetch<VerifyResponse>("/api/v1/auth/magic-link/verify", {
+      const res = await adminFetch<VerifyResponse>("/api/v1/auth/magic-link/verify", {
         method: "POST",
         body: JSON.stringify({ token: verifyToken.trim() }),
       });
       setVerifyResult(res);
       if (res.success) {
-        notify("success", `Magic link verified for ${res.user?.email ?? "user"}.`);
+        notify(
+          "success",
+          t("adminPages.magicLinks.verify.success", {
+            email: res.user?.email ?? t("adminPages.common.user"),
+          }),
+        );
       } else {
-        notify("error", `Verify failed: ${res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.magicLinks.verify.failed", {
+            error: res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setVerifyError(msg);
-      notify("error", `Verify failed: ${msg}`);
+      notify("error", t("adminPages.magicLinks.verify.failed", { error: msg }));
     } finally {
       setVerifyLoading(false);
     }
-  }, [verifyToken, notify]);
+  }, [verifyToken, notify, t]);
 
   const handleInvalidate = useCallback(async () => {
     if (!invEmail.trim()) {
@@ -277,7 +222,7 @@ export default function MagicLinksPage() {
     try {
       // Invalidate accepts email via JSON body (preferred over query
       // param to avoid leaking it in URL logs).
-      const res = await magicFetch<InvalidateResponse>("/api/v1/auth/magic-link/invalidate", {
+      const res = await adminFetch<InvalidateResponse>("/api/v1/auth/magic-link/invalidate", {
         method: "POST",
         body: JSON.stringify({ email: invEmail.trim() }),
       });
@@ -285,19 +230,27 @@ export default function MagicLinksPage() {
       if (res.success) {
         notify(
           "success",
-          `Invalidated ${res.invalidated ?? 0} pending magic link(s) for ${invEmail.trim()}.`,
+          t("adminPages.magicLinks.invalidate.success", {
+            count: res.invalidated ?? 0,
+            email: invEmail.trim(),
+          }),
         );
       } else {
-        notify("error", `Invalidate failed: ${res.message ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.magicLinks.invalidate.failed", {
+            error: res.message ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setInvError(msg);
-      notify("error", `Invalidate failed: ${msg}`);
+      notify("error", t("adminPages.magicLinks.invalidate.failed", { error: msg }));
     } finally {
       setInvLoading(false);
     }
-  }, [invEmail, notify]);
+  }, [invEmail, notify, t]);
 
   // -------------------------------------------------------------------------
   // Render
@@ -308,15 +261,19 @@ export default function MagicLinksPage() {
     readonly label: string;
     readonly icon: ReactNode;
   }[] = [
-    { id: "request", label: "Request", icon: <Send className="w-4 h-4" /> },
+    {
+      id: "request",
+      label: t("adminPages.magicLinks.tabs.request"),
+      icon: <Send className="w-4 h-4" />,
+    },
     {
       id: "verify",
-      label: "Verify",
+      label: t("adminPages.magicLinks.tabs.verify"),
       icon: <LogIn className="w-4 h-4" />,
     },
     {
       id: "invalidate",
-      label: "Invalidate",
+      label: t("adminPages.magicLinks.tabs.invalidate"),
       icon: <Ban className="w-4 h-4" />,
     },
   ];
@@ -328,10 +285,11 @@ export default function MagicLinksPage() {
           <Link2 className="w-5 h-5 text-brand-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Magic Links</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            {t("adminPages.magicLinks.title")}
+          </h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
-            Passwordless authentication via one-time-use email links (public request/verify ·
-            admin-only invalidate)
+            {t("adminPages.magicLinks.subtitle")}
           </p>
         </div>
       </div>
@@ -391,6 +349,7 @@ function RequestTab({
   readonly result: RequestResponse | null;
   readonly onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -398,15 +357,15 @@ function RequestTab({
           title={
             <span className="flex items-center gap-2">
               <Send className="w-4 h-4" />
-              Request Magic Link
+              {t("adminPages.magicLinks.request.cardTitle")}
             </span>
           }
-          subtitle="POST /request — public, always returns 200 (no enumeration)"
+          subtitle={t("adminPages.magicLinks.request.cardSubtitle")}
         />
         <CardSection className="p-4 space-y-4">
           <div>
             <label htmlFor="req-email" className={labelClass}>
-              Email address
+              {t("adminPages.common.emailAddress")}
             </label>
             <input
               id="req-email"
@@ -418,10 +377,7 @@ function RequestTab({
               placeholder="user@example.com"
               autoComplete="email"
             />
-            <p className="text-xs text-zinc-500 mt-1">
-              If the email exists, a magic link will be sent. Always returns 200 to prevent user
-              enumeration.
-            </p>
+            <p className="text-xs text-zinc-500 mt-1">{t("adminPages.magicLinks.request.help")}</p>
           </div>
 
           {error && <ErrorBanner message={error} />}
@@ -433,24 +389,27 @@ function RequestTab({
               ) : (
                 <Send className="w-4 h-4" />
               )}
-              Request Magic Link
+              {t("adminPages.magicLinks.request.submit")}
             </Button>
           </div>
         </CardSection>
       </Card>
 
       <Card>
-        <CardHeader title="Result" subtitle="Response from POST /request" />
+        <CardHeader
+          title={t("adminPages.common.result")}
+          subtitle={t("adminPages.magicLinks.request.resultSubtitle")}
+        />
         <CardSection className="p-4">
           {loading ? (
-            <LoadingRow label="Sending magic link…" />
+            <LoadingRow label={t("adminPages.magicLinks.request.loading")} />
           ) : result ? (
             <RequestResultCard result={result} />
           ) : (
             <EmptyState
               icon={<Mail className="w-5 h-5 text-zinc-500" />}
-              title="No request yet"
-              description="Fill the email and submit to request a magic link."
+              title={t("adminPages.magicLinks.request.emptyTitle")}
+              description={t("adminPages.magicLinks.request.emptyDescription")}
             />
           )}
         </CardSection>
@@ -460,6 +419,7 @@ function RequestTab({
 }
 
 function RequestResultCard({ result }: { readonly result: RequestResponse }) {
+  const { t } = useTranslation();
   const ok = result.success;
   return (
     <div
@@ -472,28 +432,41 @@ function RequestResultCard({ result }: { readonly result: RequestResponse }) {
         ) : (
           <XCircle className="w-4 h-4 text-red-400" />
         )}
-        <span className="text-sm font-semibold text-zinc-100">{ok ? "Success" : "Failed"}</span>
-        {result.test_mode && (
+        <span className="text-sm font-semibold text-zinc-100">
+          {ok ? t("adminPages.common.success") : t("adminPages.common.failed")}
+        </span>
+        {/* SECURITY: test_mode badge is dev-only. In production we
+            must not advertise that test mode is active, even if the
+            backend accidentally has it enabled — doing so would
+            signal to an attacker that tokens are predictable.
+            Ref: fix/admin-pages-hardening (#3) */}
+        {import.meta.env.DEV && result.test_mode && (
           <Badge className="ml-auto" variant="brand">
-            test mode
+            {t("adminPages.common.testMode")}
           </Badge>
         )}
       </div>
-      {result.message && <StatRow label="Message" value={result.message} />}
+      {result.message && <StatRow label={t("adminPages.common.message")} value={result.message} />}
       {result.expires_in_seconds !== undefined && (
-        <StatRow label="Expires in" value={`${result.expires_in_seconds}s`} />
+        <StatRow label={t("adminPages.common.expiresIn")} value={`${result.expires_in_seconds}s`} />
       )}
-      {result.test_token && (
+      {/* SECURITY: test_token is dev-only. Ref: fix/admin-pages-hardening (#3) */}
+      {import.meta.env.DEV && result.test_token && (
         <StatRow
-          label="Test token"
+          label={t("adminPages.common.testToken")}
           value={<span title={result.test_token}>{result.test_token.slice(0, 16)}…</span>}
         />
       )}
       {result.retry_after_seconds !== undefined && (
-        <StatRow label="Retry after" value={`${result.retry_after_seconds}s`} />
+        <StatRow
+          label={t("adminPages.common.retryAfter")}
+          value={`${result.retry_after_seconds}s`}
+        />
       )}
-      {result.error && <StatRow label="Error" value={result.error} />}
-      {result.trace_id && <StatRow label="Trace ID" value={result.trace_id} />}
+      {result.error && <StatRow label={t("adminPages.common.error")} value={result.error} />}
+      {result.trace_id && (
+        <StatRow label={t("adminPages.common.traceId")} value={result.trace_id} />
+      )}
     </div>
   );
 }
@@ -513,6 +486,7 @@ function VerifyTab({
   readonly result: VerifyResponse | null;
   readonly onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -520,15 +494,15 @@ function VerifyTab({
           title={
             <span className="flex items-center gap-2">
               <LogIn className="w-4 h-4" />
-              Verify Magic Link
+              {t("adminPages.magicLinks.verify.cardTitle")}
             </span>
           }
-          subtitle="POST /verify — public, mints JWT on success"
+          subtitle={t("adminPages.magicLinks.verify.cardSubtitle")}
         />
         <CardSection className="p-4 space-y-4">
           <div>
             <label htmlFor="verify-token" className={labelClass}>
-              Magic-link token
+              {t("adminPages.magicLinks.verify.tokenLabel")}
             </label>
             <textarea
               id="verify-token"
@@ -536,12 +510,10 @@ function VerifyTab({
               value={token}
               onChange={(e) => setToken(e.target.value)}
               className={`${inputClass} font-mono text-xs`}
-              placeholder="Paste the token from the magic-link URL (e.g. ?token=…)"
+              placeholder={t("adminPages.magicLinks.verify.tokenPlaceholder")}
               rows={4}
             />
-            <p className="text-xs text-zinc-500 mt-1">
-              Tokens are 32-byte URL-safe random strings, valid for 15 minutes, single-use.
-            </p>
+            <p className="text-xs text-zinc-500 mt-1">{t("adminPages.magicLinks.verify.help")}</p>
           </div>
 
           {error && <ErrorBanner message={error} />}
@@ -557,24 +529,27 @@ function VerifyTab({
               ) : (
                 <LogIn className="w-4 h-4" />
               )}
-              Verify Token
+              {t("adminPages.magicLinks.verify.submit")}
             </Button>
           </div>
         </CardSection>
       </Card>
 
       <Card>
-        <CardHeader title="Result" subtitle="Response from POST /verify" />
+        <CardHeader
+          title={t("adminPages.common.result")}
+          subtitle={t("adminPages.magicLinks.verify.resultSubtitle")}
+        />
         <CardSection className="p-4">
           {loading ? (
-            <LoadingRow label="Verifying magic link…" />
+            <LoadingRow label={t("adminPages.magicLinks.verify.loading")} />
           ) : result ? (
             <VerifyResultCard result={result} />
           ) : (
             <EmptyState
               icon={<ShieldCheck className="w-5 h-5 text-zinc-500" />}
-              title="No verification yet"
-              description="Paste a token and submit to verify it."
+              title={t("adminPages.magicLinks.verify.emptyTitle")}
+              description={t("adminPages.magicLinks.verify.emptyDescription")}
             />
           )}
         </CardSection>
@@ -584,6 +559,7 @@ function VerifyTab({
 }
 
 function VerifyResultCard({ result }: { readonly result: VerifyResponse }) {
+  const { t } = useTranslation();
   const ok = result.success;
   return (
     <div
@@ -596,36 +572,40 @@ function VerifyResultCard({ result }: { readonly result: VerifyResponse }) {
         ) : (
           <XCircle className="w-4 h-4 text-red-400" />
         )}
-        <span className="text-sm font-semibold text-zinc-100">{ok ? "Verified" : "Failed"}</span>
+        <span className="text-sm font-semibold text-zinc-100">
+          {ok ? t("adminPages.common.verified") : t("adminPages.common.failed")}
+        </span>
         {result.token_type && (
           <Badge className="ml-auto" variant="brand">
             {result.token_type}
           </Badge>
         )}
       </div>
-      {result.message && <StatRow label="Message" value={result.message} />}
+      {result.message && <StatRow label={t("adminPages.common.message")} value={result.message} />}
       {result.access_token && (
         <StatRow
-          label="Access token"
+          label={t("adminPages.common.accessToken")}
           value={<span title={result.access_token}>{result.access_token.slice(0, 16)}…</span>}
         />
       )}
       {result.refresh_token && (
         <StatRow
-          label="Refresh token"
+          label={t("adminPages.common.refreshToken")}
           value={<span title={result.refresh_token}>{result.refresh_token.slice(0, 16)}…</span>}
         />
       )}
       {result.user && (
         <>
-          <StatRow label="User ID" value={result.user.id} />
-          <StatRow label="Email" value={result.user.email} />
-          <StatRow label="Username" value={result.user.username} />
-          <StatRow label="Role" value={result.user.role} />
+          <StatRow label={t("adminPages.common.userId")} value={result.user.id} />
+          <StatRow label={t("adminPages.common.emailAddress")} value={result.user.email} />
+          <StatRow label={t("adminPages.common.username")} value={result.user.username} />
+          <StatRow label={t("adminPages.common.role")} value={result.user.role} />
         </>
       )}
-      {result.error && <StatRow label="Error" value={result.error} />}
-      {result.trace_id && <StatRow label="Trace ID" value={result.trace_id} />}
+      {result.error && <StatRow label={t("adminPages.common.error")} value={result.error} />}
+      {result.trace_id && (
+        <StatRow label={t("adminPages.common.traceId")} value={result.trace_id} />
+      )}
     </div>
   );
 }
@@ -645,6 +625,7 @@ function InvalidateTab({
   readonly result: InvalidateResponse | null;
   readonly onSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -652,15 +633,15 @@ function InvalidateTab({
           title={
             <span className="flex items-center gap-2">
               <Ban className="w-4 h-4" />
-              Invalidate Pending Links
+              {t("adminPages.magicLinks.invalidate.cardTitle")}
             </span>
           }
-          subtitle="POST /invalidate — requires JWT"
+          subtitle={t("adminPages.magicLinks.invalidate.cardSubtitle")}
         />
         <CardSection className="p-4 space-y-4">
           <div>
             <label htmlFor="inv-email" className={labelClass}>
-              Email address
+              {t("adminPages.common.emailAddress")}
             </label>
             <input
               id="inv-email"
@@ -673,8 +654,7 @@ function InvalidateTab({
               autoComplete="email"
             />
             <p className="text-xs text-zinc-500 mt-1">
-              Requires JWT. All unused (pending) magic links for this email will be invalidated.
-              Used links are unaffected.
+              {t("adminPages.magicLinks.invalidate.help")}
             </p>
           </div>
 
@@ -688,24 +668,27 @@ function InvalidateTab({
               variant="danger"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
-              Invalidate Pending Links
+              {t("adminPages.magicLinks.invalidate.submit")}
             </Button>
           </div>
         </CardSection>
       </Card>
 
       <Card>
-        <CardHeader title="Result" subtitle="Response from POST /invalidate" />
+        <CardHeader
+          title={t("adminPages.common.result")}
+          subtitle={t("adminPages.magicLinks.invalidate.resultSubtitle")}
+        />
         <CardSection className="p-4">
           {loading ? (
-            <LoadingRow label="Invalidating…" />
+            <LoadingRow label={t("adminPages.magicLinks.invalidate.loading")} />
           ) : result ? (
             <InvalidateResultCard result={result} />
           ) : (
             <EmptyState
               icon={<Ban className="w-5 h-5 text-zinc-500" />}
-              title="No invalidation yet"
-              description="Enter an email and submit to invalidate its pending links."
+              title={t("adminPages.magicLinks.invalidate.emptyTitle")}
+              description={t("adminPages.magicLinks.invalidate.emptyDescription")}
             />
           )}
         </CardSection>
@@ -715,6 +698,7 @@ function InvalidateTab({
 }
 
 function InvalidateResultCard({ result }: { readonly result: InvalidateResponse }) {
+  const { t } = useTranslation();
   const ok = result.success;
   return (
     <div
@@ -727,14 +711,18 @@ function InvalidateResultCard({ result }: { readonly result: InvalidateResponse 
         ) : (
           <XCircle className="w-4 h-4 text-red-400" />
         )}
-        <span className="text-sm font-semibold text-zinc-100">{ok ? "Success" : "Failed"}</span>
+        <span className="text-sm font-semibold text-zinc-100">
+          {ok ? t("adminPages.common.success") : t("adminPages.common.failed")}
+        </span>
       </div>
       {result.invalidated !== undefined && (
-        <StatRow label="Invalidated" value={String(result.invalidated)} />
+        <StatRow label={t("adminPages.common.invalidated")} value={String(result.invalidated)} />
       )}
-      {result.email && <StatRow label="Email" value={result.email} />}
-      {result.message && <StatRow label="Message" value={result.message} />}
-      {result.trace_id && <StatRow label="Trace ID" value={result.trace_id} />}
+      {result.email && <StatRow label={t("adminPages.common.emailAddress")} value={result.email} />}
+      {result.message && <StatRow label={t("adminPages.common.message")} value={result.message} />}
+      {result.trace_id && (
+        <StatRow label={t("adminPages.common.traceId")} value={result.trace_id} />
+      )}
     </div>
   );
 }

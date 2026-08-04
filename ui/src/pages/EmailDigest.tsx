@@ -18,11 +18,9 @@
 
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   Eye,
-  Loader2,
   Mail,
   PlayCircle,
   RefreshCw,
@@ -30,7 +28,9 @@ import {
   Settings as SettingsIcon,
   XCircle,
 } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ErrorBanner, LoadingRow, StatRow } from "../components/admin-primitives";
 import {
   Badge,
   Button,
@@ -42,8 +42,7 @@ import {
   Tabs,
 } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { adminFetch, authHeaders } from "../lib/admin-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/email_digest.py
@@ -92,88 +91,12 @@ interface ScheduleRunResult {
 type TabId = "overview" | "generate" | "preview";
 
 // ---------------------------------------------------------------------------
-// Fetch helpers
+// Fetch helper + UI primitives
 // ---------------------------------------------------------------------------
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-async function digestFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const callerHeaders = init?.headers;
-  const mergedHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
-  };
-  if (callerHeaders instanceof Headers) {
-    callerHeaders.forEach((v, k) => {
-      mergedHeaders[k] = v;
-    });
-  } else if (Array.isArray(callerHeaders)) {
-    for (const [k, v] of callerHeaders) {
-      mergedHeaders[k] = v;
-    }
-  } else if (callerHeaders && typeof callerHeaders === "object") {
-    Object.assign(mergedHeaders, callerHeaders);
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: mergedHeaders });
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    // Try to parse a JSON error body — fall back to HTTP status text.
-    let detail = `HTTP ${res.status}`;
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed?.error) detail = `${detail}: ${parsed.error}`;
-      else if (parsed?.message) detail = `${detail}: ${parsed.message}`;
-    } catch {
-      if (text) detail = `${detail}: ${text.slice(0, 200)}`;
-    }
-    throw new Error(detail);
-  }
-  // Some endpoints return non-JSON (preview returns HTML). Caller is
-  // responsible for choosing the right generic T.
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return text as unknown as T;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Small UI primitives (local — kept here to avoid bloating shared ui/)
-// ---------------------------------------------------------------------------
-
-function StatRow({ label, value }: { readonly label: string; readonly value: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-[var(--border-primary)] last:border-0">
-      <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">{label}</span>
-      <span className="text-sm text-zinc-100 font-mono">{value}</span>
-    </div>
-  );
-}
-
-function ErrorBanner({ message }: { readonly message: string }) {
-  return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
-    >
-      <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-      <span className="break-words">{message}</span>
-    </div>
-  );
-}
-
-function LoadingRow({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      <span>{label}</span>
-    </div>
-  );
-}
+// Replaced with shared adminFetch from lib/admin-fetch.ts and
+// StatRow/ErrorBanner/LoadingRow/inputClass/labelClass from
+// components/admin-primitives.tsx.
+// Ref: fix/admin-pages-hardening (#4 + #6)
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -186,6 +109,7 @@ const PERIOD_OPTIONS: { readonly value: "daily" | "weekly"; readonly label: stri
 
 export default function EmailDigestPage() {
   const { notify } = useNotify();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabId>("overview");
 
   // ─── Config state (Overview tab) ────────────────────────────────────
@@ -222,7 +146,7 @@ export default function EmailDigestPage() {
     setConfigLoading(true);
     setConfigError(null);
     try {
-      const res = await digestFetch<ConfigResponse>("/api/v1/email-digest/config");
+      const res = await adminFetch<ConfigResponse>("/api/v1/email-digest/config");
       setConfig(res.config);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -245,14 +169,17 @@ export default function EmailDigestPage() {
     setRunError(null);
     setRunResult(null);
     try {
-      const res = await digestFetch<ScheduleRunResult>("/api/v1/email-digest/schedule/run", {
+      const res = await adminFetch<ScheduleRunResult>("/api/v1/email-digest/schedule/run", {
         method: "POST",
       });
       setRunResult(res);
       if (res.success && res.recipients_count !== undefined) {
         notify(
           "success",
-          `Processed ${res.recipients_count} recipient(s): ${res.sent ?? 0} sent, ${res.failed ?? 0} failed.`,
+          t("adminPages.emailDigest.scheduleRun.success", {
+            sent: res.sent ?? 0,
+            failed: res.failed ?? 0,
+          }),
         );
       } else if (res.success && res.message) {
         notify("info", res.message);
@@ -262,11 +189,11 @@ export default function EmailDigestPage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setRunError(msg);
-      notify("error", `Schedule run failed: ${msg}`);
+      notify("error", t("adminPages.emailDigest.scheduleRun.failed", { error: msg }));
     } finally {
       setRunLoading(false);
     }
-  }, [notify]);
+  }, [notify, t]);
 
   const handleGenerate = useCallback(async () => {
     if (!genEmail.trim()) {
@@ -282,26 +209,37 @@ export default function EmailDigestPage() {
         period: genPeriod,
         ...(genName.trim() ? { user_name: genName.trim() } : {}),
       };
-      const res = await digestFetch<GenerateResult>("/api/v1/email-digest/generate", {
+      const res = await adminFetch<GenerateResult>("/api/v1/email-digest/generate", {
         method: "POST",
         body: JSON.stringify(body),
       });
       setGenResult(res);
       if (res.success && (res.total_count ?? 0) > 0) {
-        notify("success", `Digest sent to ${genEmail.trim()} (${res.total_count} updates).`);
+        notify(
+          "success",
+          t("adminPages.emailDigest.generate.success", {
+            email: genEmail.trim(),
+            period: genPeriod,
+          }),
+        );
       } else if (res.success && res.message) {
         notify("info", res.message);
       } else {
-        notify("error", `Digest send failed: ${res.error ?? "unknown error"}`);
+        notify(
+          "error",
+          t("adminPages.emailDigest.generate.failed", {
+            error: res.error ?? t("adminPages.common.unknownError"),
+          }),
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setGenError(msg);
-      notify("error", `Generate failed: ${msg}`);
+      notify("error", t("adminPages.emailDigest.generate.failed", { error: msg }));
     } finally {
       setGenLoading(false);
     }
-  }, [genEmail, genPeriod, genName, notify]);
+  }, [genEmail, genPeriod, genName, notify, t]);
 
   const handlePreview = useCallback(async () => {
     if (!prevEmail.trim()) {
@@ -312,27 +250,28 @@ export default function EmailDigestPage() {
     setPrevError(null);
     setPrevHtml(null);
     try {
-      // Preview returns HTML — bypass JSON parsing in digestFetch.
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/email-digest/preview/${encodeURIComponent(prevEmail.trim())}?period=${prevPeriod}`,
+      // Preview returns HTML — use adminFetch with allowPlainText so we
+      // get the raw response body without a JSON-parse error.
+      // Ref: fix/admin-pages-hardening (#6 — no unsafe cast)
+      const html = await adminFetch<string>(
+        `/api/v1/email-digest/preview/${encodeURIComponent(prevEmail.trim())}?period=${prevPeriod}`,
         { headers: authHeaders() },
+        { allowPlainText: true },
       );
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
-      }
-      const html = await res.text();
       setPrevHtml(html);
       setPrevOpen(true);
-      notify("success", "Digest preview loaded.");
+      notify(
+        "success",
+        t("adminPages.emailDigest.preview.loaded", { defaultValue: "Digest preview loaded." }),
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setPrevError(msg);
-      notify("error", `Preview failed: ${msg}`);
+      notify("error", t("adminPages.emailDigest.preview.loadFailed", { error: msg }));
     } finally {
       setPrevLoading(false);
     }
-  }, [prevEmail, prevPeriod, notify]);
+  }, [prevEmail, prevPeriod, notify, t]);
 
   // -------------------------------------------------------------------------
   // Render
