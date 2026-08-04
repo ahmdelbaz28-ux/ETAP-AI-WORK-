@@ -165,6 +165,12 @@ const navItems: NavItem[] = [
     section: "system",
   },
   {
+    to: "/admin/mfa",
+    icon: ShieldCheck,
+    labelKey: "sidebar.mfa",
+    section: "system",
+  },
+  {
     to: "/admin/agents",
     icon: Bot,
     labelKey: "sidebar.agentsControlPanel",

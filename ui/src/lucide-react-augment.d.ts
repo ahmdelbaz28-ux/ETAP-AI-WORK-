@@ -67,4 +67,14 @@ declare module "lucide-react" {
       ref?: React.Ref<SVGSVGElement>;
     }
   >;
+  export const QrCode: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const Smartphone: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
 }

@@ -66,6 +66,7 @@ const EmailDigestPage = lazyLoad(() => import("./pages/EmailDigest"));
 const StudyVersionsPage = lazyLoad(() => import("./pages/StudyVersions"));
 const EmailOtpPage = lazyLoad(() => import("./pages/EmailOtp"));
 const MagicLinksPage = lazyLoad(() => import("./pages/MagicLinks"));
+const MfaPage = lazyLoad(() => import("./pages/Mfa"));
 const AgentsControlPanelPage = lazyLoad(() => import("./pages/AgentsControlPanel"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
@@ -208,6 +209,7 @@ export default function App() {
                 <Route path="/admin/study-versions" element={<StudyVersionsPage />} />
                 <Route path="/admin/email-otp" element={<EmailOtpPage />} />
                 <Route path="/admin/magic-links" element={<MagicLinksPage />} />
+                <Route path="/admin/mfa" element={<MfaPage />} />
                 <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
                 <Route path="/equipment" element={<EquipmentManagementPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

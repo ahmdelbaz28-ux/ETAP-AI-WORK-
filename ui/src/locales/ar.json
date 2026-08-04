@@ -40,7 +40,8 @@
     "system": "النظام",
     "studyVersions": "إصدارات الدراسة",
     "emailOtp": "OTP البريد",
-    "magicLinks": "الروابط السحرية"
+    "magicLinks": "الروابط السحرية",
+    "mfa": "المصادقة الثنائية"
   },
   "navbar": {
     "welcome": "مرحباً",
