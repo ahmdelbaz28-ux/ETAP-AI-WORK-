@@ -58,6 +58,7 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.assetManagement",
     section: "engineering",
   },
+  { to: "/equipment", icon: Package, labelKey: "sidebar.equipment", section: "engineering" },
   { to: "/etap", icon: Plug, labelKey: "sidebar.etapIntegration", section: "integration" },
   { to: "/gis", icon: Map, labelKey: "sidebar.gisIntegration", section: "integration" },
   { to: "/scada", icon: Activity, labelKey: "sidebar.scadaIntegration", section: "integration" },

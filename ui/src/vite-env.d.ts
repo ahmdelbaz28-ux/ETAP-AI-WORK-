@@ -143,6 +143,7 @@ declare module "lucide-react" {
   // Objects
   export const Box: Icon;
   export const Package: Icon;
+  export const Boxes: Icon;
   export const Archive: Icon;
   export const BookOpen: Icon;
   export const Bookmark: Icon;
