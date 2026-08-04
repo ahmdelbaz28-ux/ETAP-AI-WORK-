@@ -33,6 +33,7 @@ import {
   Smartphone,
   XCircle,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { type ReactNode, useCallback, useState } from "react";
 import { Badge, Button, Card, CardHeader, CardSection, EmptyState, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
@@ -470,12 +471,22 @@ function SetupResultCard({ result }: { readonly result: SetupResponse }) {
       {qrUri && (
         <div className="space-y-2 py-2">
           <StatRow label="QR URI" value={<span className="text-xs break-all">{qrUri}</span>} />
-          {/* QR code render: use a public QR code API for visual
-                                            convenience. The URI itself is the source of truth. */}
+          {/*
+            Client-side QR renderer (qrcode.react). Previously this sent
+            the otpauth:// URI — which contains the TOTP secret in
+            plaintext — to https://api.qrserver.com, leaking the user's
+            MFA secret to a third party. SVG renderer is purely
+            client-side; no network egress. Ref: fix/mfa-qr-leak.
+          */}
           <div className="flex justify-center py-3 bg-white rounded-md">
-            <img
-              alt="TOTP QR code"
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUri)}`}
+            <QRCodeSVG
+              value={qrUri}
+              size={200}
+              level="M"
+              bgColor="#ffffff"
+              fgColor="#000000"
+              role="img"
+              aria-label={`TOTP QR code — scan with your authenticator app to import the secret for ${qrUri.match(/otpauth:\/\/totp\/([^?]+)/)?.[1] ?? "this account"}`}
               className="w-48 h-48"
             />
           </div>
