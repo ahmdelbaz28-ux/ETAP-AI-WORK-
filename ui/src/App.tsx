@@ -61,6 +61,7 @@ const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
 const RbacAdminPage = lazyLoad(() => import("./pages/RbacAdmin"));
 const EquipmentManagementPage = lazyLoad(() => import("./pages/EquipmentManagement"));
+const EmailDashboardPage = lazyLoad(() => import("./pages/EmailDashboard"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
@@ -197,6 +198,7 @@ export default function App() {
                 <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
                 <Route path="/admin/rbac" element={<RbacAdminPage />} />
+                <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
                 <Route path="/equipment" element={<EquipmentManagementPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
