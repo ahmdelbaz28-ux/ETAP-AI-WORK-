@@ -152,8 +152,15 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
         notify("error", t("auth.errorMissingFields"));
         return;
       }
-      setLoading(true);
+      // Issue #9: Clear ALL previous results BEFORE setting loading state,
+      // so the user never sees stale error/results from a prior attempt.
       setAuthError(null);
+      if (forgotOpen) {
+        setForgotOpen(false);
+        setForgotSent(false);
+        setForgotEmail("");
+      }
+      setLoading(true);
       appendLog(`SEC-AUTH: Initiating login request for user <${email}>...`);
       try {
         await login(email, password);
@@ -162,6 +169,9 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
         const from = searchParams.get("from") || "/dashboard";
         navigate(from, { replace: true });
       } catch (err) {
+        // Issue #8: Ignore AbortError — it means the request was cancelled
+        // (e.g. user navigated away or re-submitted). Don't show an error.
+        if (err instanceof DOMException && err.name === "AbortError") return;
         const message = err instanceof Error ? err.message : "Unknown error";
         setAuthError(message);
         appendLog(`SEC-AUTH: Authentication failed for <${email}>: ${message}`);

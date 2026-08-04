@@ -37,12 +37,26 @@ const colorMap = {
 export function NotificationProvider({ children }: { readonly children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // Issue #7/#12: Deduplication — prevent the same (type+message) from
+  // appearing twice simultaneously. This avoids banner + toast showing
+  // the identical error text, which confuses users.
   const notify = useCallback((type: Notification["type"], message: string) => {
-    const id = crypto.randomUUID();
-    setNotifications((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id)); // NOSONAR — S2004: 5-level nesting (Callback > setTimeout > arrow > filter); acceptable for auto-dismiss pattern
-    }, 5000);
+    // Strip any redundant prefix (e.g. "Error: " or "خطأ: ") that the
+    // caller might have added — the toast icon already conveys the type.
+    const cleanMessage = message.replace(/^(Error|Warning|Info|Success|خطأ|تحذير)\s*:\s*/i, "");
+
+    setNotifications((prev) => {
+      // Deduplicate: if an active notification with the same type+message
+      // already exists, skip creating a duplicate.
+      const alreadyShown = prev.some((n) => n.type === type && n.message === cleanMessage);
+      if (alreadyShown) return prev;
+
+      const id = crypto.randomUUID();
+      setTimeout(() => {
+        setNotifications((prev2) => prev2.filter((n) => n.id !== id)); // NOSONAR — S2004: auto-dismiss
+      }, 5000);
+      return [...prev, { id, type, message: cleanMessage }];
+    });
   }, []);
 
   const dismiss = useCallback((id: string) => {

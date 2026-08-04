@@ -1,6 +1,6 @@
 // NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, createElement, useContext, useEffect, useState } from "react";
+import { createContext, createElement, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
 
 // SECURITY AUDIT 2026-08-02 (UI-1 fix):
@@ -129,6 +129,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Issue #8: AbortController for login/register requests.
+  // If the user navigates away or re-submits, the in-flight request is
+  // cancelled to prevent stale responses from overwriting state.
+  const loginAbortRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight login/register request on unmount.
+  useEffect(() => {
+    return () => {
+      loginAbortRef.current?.abort();
+    };
+  }, []);
+
   // Check if user is logged in on initial load
   useEffect(() => {
     const token = TOKEN_STORAGE.getItem(AUTH_TOKEN_KEY);
@@ -166,6 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
+    // Issue #8: Cancel any in-flight login before starting a new one.
+    loginAbortRef.current?.abort();
+    const controller = new AbortController();
+    loginAbortRef.current = controller;
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
       headers: {
@@ -175,6 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // username) + `password`. Send email as username since that's what
       // the UI collects.
       body: JSON.stringify({ username: email, password }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -198,6 +216,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (email: string, password: string, name: string) => {
+    // Issue #8: Cancel any in-flight register/login before starting a new one.
+    loginAbortRef.current?.abort();
+    const controller = new AbortController();
+    loginAbortRef.current = controller;
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
       method: "POST",
       headers: {
@@ -215,6 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
       }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
