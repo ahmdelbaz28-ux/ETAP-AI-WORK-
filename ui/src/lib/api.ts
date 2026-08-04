@@ -375,6 +375,45 @@ export async function fetchMcpServers(): Promise<McpServersResponse> {
   return request<McpServersResponse>("/api/v1/agents/mcp-servers");
 }
 
+// ============ Feature Flags ============
+
+export interface FeatureFlag {
+  key: string;
+  enabled: boolean;
+  status: string;
+  description: string;
+  effective_enabled: boolean;
+}
+
+export interface FeatureFlagListResponse {
+  success: boolean;
+  data: FeatureFlag[];
+  total: number;
+  env: string;
+  trace_id?: string;
+}
+
+export interface FeatureFlagPatchResponse {
+  success: boolean;
+  data: FeatureFlag & { previous_enabled: boolean; env: string };
+  trace_id?: string;
+}
+
+export async function fetchFeatureFlags(): Promise<FeatureFlagListResponse> {
+  return request<FeatureFlagListResponse>("/api/v1/feature-flags");
+}
+
+export async function patchFeatureFlag(
+  key: string,
+  enabled: boolean,
+): Promise<FeatureFlagPatchResponse> {
+  return request<FeatureFlagPatchResponse>(`/api/v1/feature-flags/${key}`, {
+    method: "PATCH",
+    body: JSON.stringify({ enabled }),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // ============ Projects ============
 
 export interface Project {
