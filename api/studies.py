@@ -8,6 +8,7 @@ Separated from main engineering service for better modularity.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import time
@@ -21,6 +22,12 @@ from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
 from api.pe_stamp import requires_stamp
 from api.risk_scoring import compute_risk
 from core.metrics import count_executions, track_skill_operation
+
+# Module-level logger — fixes NameError in _scan_ai_failure_modes (lines
+# 856/862/870 referenced `logger` without it being defined in that function
+# scope). Pre-existing bug on main; surfaced by test_study_execution_endpoint
+# when the AI failure mode scan raises an exception.
+logger = logging.getLogger("engineering_service")
 
 # SonarCloud duplicated_lines_density: ALL Spec/Request/Result classes are now
 # defined ONCE in core_model/specs.py and imported here. Previously ~210 lines
