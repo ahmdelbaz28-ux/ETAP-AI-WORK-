@@ -47,6 +47,7 @@ declare module "lucide-react" {
   export const Save: Icon;
   export const Edit: Icon;
   export const Edit3: Icon;
+  export const Pencil: Icon;
   export const Trash2: Icon;
   export const Trash: Icon;
   export const Copy: Icon;
@@ -105,6 +106,7 @@ declare module "lucide-react" {
   export const Lock: Icon;
   export const Unlock: Icon;
   export const Key: Icon;
+  export const KeyRound: Icon;
   export const Eye: Icon;
   export const EyeOff: Icon;
   export const Wifi: Icon;
@@ -166,6 +168,7 @@ declare module "lucide-react" {
   export const User: Icon;
   export const Users: Icon;
   export const UserCheck: Icon;
+  export const UserCog: Icon;
   export const UserX: Icon;
   export const UserCircle: Icon;
   export const UserCircle2: Icon;

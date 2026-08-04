@@ -15,6 +15,7 @@
     "reports": "Reports",
     "settings": "Settings",
     "administration": "Administration",
+    "rbacAdmin": "RBAC Admin",
     "diagnostics": "Diagnostics",
     "etapIntegration": "ETAP Integration",
     "gisIntegration": "GIS Integration",

@@ -59,6 +59,7 @@ const CodeGuardPage = lazyLoad(() => import("./pages/CodeGuard"));
 const ContextEnginePage = lazyLoad(() => import("./pages/ContextEngine"));
 const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
+const RbacAdminPage = lazyLoad(() => import("./pages/RbacAdmin"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
@@ -194,6 +195,7 @@ export default function App() {
                 <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
+                <Route path="/admin/rbac" element={<RbacAdminPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>

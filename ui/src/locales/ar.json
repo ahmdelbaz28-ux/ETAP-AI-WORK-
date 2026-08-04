@@ -15,6 +15,7 @@
     "reports": "التقارير",
     "settings": "الإعدادات",
     "administration": "الإدارة",
+    "rbacAdmin": "إدارة الصلاحيات",
     "diagnostics": "التشخيصات",
     "etapIntegration": "تكامل ETAP",
     "gisIntegration": "تكامل GIS",

@@ -67,6 +67,7 @@ const navItems: NavItem[] = [
   { to: "/data-export", icon: Download, labelKey: "sidebar.dataExport", section: "system" },
   { to: "/settings", icon: Settings, labelKey: "sidebar.settings", section: "system" },
   { to: "/admin", icon: ShieldCheck, labelKey: "sidebar.administration", section: "system" },
+  { to: "/admin/rbac", icon: Shield, labelKey: "sidebar.rbacAdmin", section: "system" },
   { to: "/admin/cua-monitor", icon: ShieldAlert, labelKey: "sidebar.cuaMonitor", section: "system" },
   { to: "/diagnostics", icon: Bug, labelKey: "sidebar.diagnostics", section: "system" },
   { to: "/code-guard", icon: Shield, labelKey: "sidebar.codeGuard", section: "system" },
