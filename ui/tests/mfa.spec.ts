@@ -186,6 +186,17 @@ test.describe("MFA page (TASK-9c)", () => {
   });
 
   test("Setup tab POSTs /totp/setup and shows qr_code_uri + MFA enabled", async ({ page }) => {
+    // Regression guard for fix/mfa-qr-leak: the QR must NOT be rendered
+    // via a third-party network call (previously api.qrserver.com).
+    // Fail this test if ANY request goes to that host during the test.
+    const thirdPartyRequests: string[] = [];
+    page.on("request", (req) => {
+      const url = req.url();
+      if (url.includes("api.qrserver.com") || url.includes("qrserver.com")) {
+        thirdPartyRequests.push(url);
+      }
+    });
+
     await mockMfaBackend(page);
     await page.goto("/admin/mfa");
 
@@ -208,6 +219,17 @@ test.describe("MFA page (TASK-9c)", () => {
     // qr_code_uri should be rendered (the otpauth:// URI)
     await expect(result.getByText(/otpauth:\/\/totp\//)).toBeVisible();
     await expect(result.getByText("trace-setup-001")).toBeVisible();
+
+    // The QR must be rendered client-side as an inline SVG (qrcode.react),
+    // not as a third-party <img>. Assert the SVG is present with role=img
+    // and a descriptive aria-label.
+    const qrSvg = result.getByRole("img", { name: /TOTP QR code/i });
+    await expect(qrSvg).toBeVisible({ timeout: 5_000 });
+    // SVG element specifically (not <img>)
+    await expect(qrSvg.locator("xpath=self::*[name()='svg']")).toHaveCount(1);
+
+    // No third-party QR requests should have been made.
+    expect(thirdPartyRequests, "third-party QR service was called — TOTP secret leak").toEqual([]);
 
     // Success toast
     await expect(page.getByText(/MFA setup complete/i).last()).toBeVisible({ timeout: 5_000 });
