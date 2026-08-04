@@ -1,5 +1,15 @@
 import { motion } from "framer-motion";
-import { Activity, Clock, Flag, Key, RefreshCw, Shield, TrendingUp, Users, Zap } from "lucide-react";
+import {
+  Activity,
+  Clock,
+  Flag,
+  Key,
+  RefreshCw,
+  Shield,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   type AgentMeta,
@@ -65,9 +75,7 @@ export default function Administration() {
       setFlagToggling(key);
       try {
         const resp = await patchFeatureFlag(key, !current);
-        setFeatureFlags((prev) =>
-          prev.map((f) => (f.key === key ? { ...f, ...resp.data } : f)),
-        );
+        setFeatureFlags((prev) => prev.map((f) => (f.key === key ? { ...f, ...resp.data } : f)));
         setFlagEnv(resp.data.env);
         const isDev = resp.data.env?.match(/^(dev|test|development)$/);
         notify(
@@ -386,9 +394,7 @@ export default function Administration() {
           <Card padding="lg">
             <CardHeader
               title="Feature Flags"
-              subtitle={`Toggle study-type feature flags${
-                flagEnv ? ` · ENV=${flagEnv}` : ""
-              }`}
+              subtitle={`Toggle study-type feature flags${flagEnv ? ` · ENV=${flagEnv}` : ""}`}
               icon={<Flag className="w-4 h-4" />}
               action={
                 <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
@@ -397,9 +403,10 @@ export default function Administration() {
                 </Button>
               }
             />
-            {flagEnv && flagEnv.match(/^(dev|test|development)$/i) && (
+            {flagEnv?.match(/^(dev|test|development)$/i) && (
               <div className="mt-2 mb-3 px-3 py-2 rounded-md bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs">
-                ⚠ Dev/test environment detected — all flags are <code>effective_enabled = true</code>
+                ⚠ Dev/test environment detected — all flags are{" "}
+                <code>effective_enabled = true</code>
                 regardless of the toggled value. Toggle is still persisted for production.
               </div>
             )}
@@ -418,10 +425,7 @@ export default function Administration() {
                         <code className="text-sm font-mono text-[var(--text-primary)]">
                           {flag.key}
                         </code>
-                        <Badge
-                          variant={flag.status === "alpha" ? "warning" : "neutral"}
-                          size="sm"
-                        >
+                        <Badge variant={flag.status === "alpha" ? "warning" : "neutral"} size="sm">
                           {flag.status}
                         </Badge>
                         {isDevOverride && !flag.enabled && (
@@ -445,9 +449,7 @@ export default function Administration() {
                         aria-label={`Toggle feature flag ${flag.key}`}
                         className={cn(
                           "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 focus:ring-offset-[var(--bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed",
-                          flag.enabled
-                            ? "bg-brand-500"
-                            : "bg-[var(--border-primary)]",
+                          flag.enabled ? "bg-brand-500" : "bg-[var(--border-primary)]",
                         )}
                       >
                         <span

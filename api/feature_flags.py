@@ -25,6 +25,7 @@ SECURITY:
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -35,6 +36,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/v1/feature-flags", tags=["feature-flags"])
+
+logger = logging.getLogger(__name__)
 
 
 # ─── Defaults (loaded on first import or when DB file is missing) ────────
@@ -155,26 +158,47 @@ class FeatureFlagPatch(BaseModel):
 
 
 # ─── Auth dependency (admin) ─────────────────────────────────────────────
-def _require_admin():
-    """Return a dependency that requires admin role, falling back to API key.
+def _require_permission(resource: str, action: str):
+    """Return a dependency that enforces RBAC permission on feature flags.
 
-    We try to import ``require_admin`` from api.rbac; if unavailable for
-    any reason (e.g. rbac module not yet loaded), we fall back to
-    ``get_api_key`` from api.dependencies so the endpoint is still
-    protected rather than open.
+    Production: delegates to ``api.rbac.require_permission(resource, action)``
+    which validates the JWT in the Authorization header and checks the user
+    has the named permission (or has role=admin for bypass).
+
+    Fallback (only when api.rbac cannot be imported — e.g. during unit
+    tests that build a minimal FastAPI app without the DB layer): falls
+    back to ``api.dependencies.get_api_key`` so the endpoint is still
+    protected by API-key auth rather than left open. The fallback is
+    logged at WARNING level so it is visible in production deployments.
     """
     try:
-        from api.rbac import require_admin  # type: ignore[import]
+        from api.rbac import require_permission  # type: ignore[import]
 
-        return require_admin
-    except Exception:  # pragma: no cover — defensive fallback
+        return require_permission(resource, action)
+    except Exception as e:  # pragma: no cover — defensive fallback
+        logger.warning(
+            "api.rbac.require_permission unavailable (%s); falling back to "
+            "get_api_key for %s:%s — configure RBAC for production use",
+            e,
+            resource,
+            action,
+        )
         from api.dependencies import get_api_key
 
         return get_api_key
 
 
+def _require_admin():
+    """Convenience wrapper: require feature-flags write permission.
+
+    Kept for backwards-compat with the original TASK-9 implementation
+    that called ``_require_admin()`` directly.
+    """
+    return _require_permission("feature_flags", "write")
+
+
 # ─── Endpoints ───────────────────────────────────────────────────────────
-@router.get("")
+@router.get("", dependencies=[Depends(_require_permission("feature_flags", "read"))])
 async def list_feature_flags(request: Request):
     """List all feature flags with their effective state for the current ENV."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -204,7 +228,7 @@ async def list_feature_flags(request: Request):
     )
 
 
-@router.get("/{key}")
+@router.get("/{key}", dependencies=[Depends(_require_permission("feature_flags", "read"))])
 async def get_feature_flag(request: Request, key: str):
     """Return a single feature flag by key."""
     trace_id = getattr(request.state, "trace_id", "unknown")
