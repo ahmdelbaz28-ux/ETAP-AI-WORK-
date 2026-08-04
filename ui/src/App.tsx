@@ -17,25 +17,23 @@ import { useAppStore } from "./store";
 import "./i18n";
 
 const LoadingFallback = () => (
-	<div className="flex items-center justify-center h-64">
-		<div className="flex flex-col items-center gap-3">
-			<div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-			<span className="text-sm text-[var(--text-muted)]">Loading...</span>
-		</div>
-	</div>
+  <div className="flex items-center justify-center h-64">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm text-[var(--text-muted)]">Loading...</span>
+    </div>
+  </div>
 );
 
-function lazyLoad(
-	importFn: () => Promise<{ default: ComponentType<Record<string, unknown>> }>,
-) {
-	const Component = lazy(importFn);
-	return function LazyLoaded(props: Record<string, unknown>) {
-		return (
-			<Suspense fallback={<LoadingFallback />}>
-				<Component {...props} />
-			</Suspense>
-		);
-	};
+function lazyLoad(importFn: () => Promise<{ default: ComponentType<Record<string, unknown>> }>) {
+  const Component = lazy(importFn);
+  return function LazyLoaded(props: Record<string, unknown>) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  };
 }
 
 const DashboardPage = lazyLoad(() => import("./pages/Dashboard"));
@@ -62,214 +60,182 @@ const ContextEnginePage = lazyLoad(() => import("./pages/ContextEngine"));
 const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
 const RbacAdminPage = lazyLoad(() => import("./pages/RbacAdmin"));
-const EquipmentManagementPage = lazyLoad(
-	() => import("./pages/EquipmentManagement"),
-);
+const EquipmentManagementPage = lazyLoad(() => import("./pages/EquipmentManagement"));
 const EmailDashboardPage = lazyLoad(() => import("./pages/EmailDashboard"));
 const EmailDigestPage = lazyLoad(() => import("./pages/EmailDigest"));
 const StudyVersionsPage = lazyLoad(() => import("./pages/StudyVersions"));
 const EmailOtpPage = lazyLoad(() => import("./pages/EmailOtp"));
-const AgentsControlPanelPage = lazyLoad(
-	() => import("./pages/AgentsControlPanel"),
-);
+const MagicLinksPage = lazyLoad(() => import("./pages/MagicLinks"));
+const AgentsControlPanelPage = lazyLoad(() => import("./pages/AgentsControlPanel"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
 function KeyboardShortcutsHandler() {
-	useKeyboardShortcuts();
-	return null;
+  useKeyboardShortcuts();
+  return null;
 }
 
 export default function App() {
-	const { i18n } = useTranslation();
-	const { lastError, setLastError } = useAppStore();
-	const [helpOpen, setHelpOpen] = useState(false);
-	const [helpContext, setHelpContext] = useState<string | undefined>();
-	const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const { i18n } = useTranslation();
+  const { lastError, setLastError } = useAppStore();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpContext, setHelpContext] = useState<string | undefined>();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-	useEffect(() => {
-		document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
-		document.documentElement.lang = i18n.language;
-	}, [i18n.language]);
+  useEffect(() => {
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
-	useEffect(() => {
-		if (window.electronAPI) {
-			window.electronAPI.onNavigate((path: string) => {
-				window.location.hash = path;
-			});
-		}
-	}, []);
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onNavigate((path: string) => {
+        window.location.hash = path;
+      });
+    }
+  }, []);
 
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "F1") {
-				e.preventDefault();
-				setHelpOpen((prev) => !prev);
-				setHelpContext(undefined);
-			}
-			if ((e.ctrlKey || e.metaKey) && e.key === "h") {
-				e.preventDefault();
-				setHelpOpen((prev) => !prev);
-				setHelpContext(undefined);
-			}
-		};
-		globalThis.addEventListener("keydown", handleKeyDown);
-		return () => globalThis.removeEventListener("keydown", handleKeyDown);
-	}, []);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F1") {
+        e.preventDefault();
+        setHelpOpen((prev) => !prev);
+        setHelpContext(undefined);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "h") {
+        e.preventDefault();
+        setHelpOpen((prev) => !prev);
+        setHelpContext(undefined);
+      }
+    };
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-	useEffect(() => {
-		const handler = () => setShortcutsOpen((prev) => !prev);
-		globalThis.addEventListener("toggle-shortcuts-panel", handler);
-		return () =>
-			globalThis.removeEventListener("toggle-shortcuts-panel", handler);
-	}, []);
+  useEffect(() => {
+    const handler = () => setShortcutsOpen((prev) => !prev);
+    globalThis.addEventListener("toggle-shortcuts-panel", handler);
+    return () => globalThis.removeEventListener("toggle-shortcuts-panel", handler);
+  }, []);
 
-	useEffect(() => {
-		const handler = () => {
-			const current = document.documentElement.classList.contains("dark")
-				? "dark"
-				: "light";
-			const next = current === "dark" ? "light" : "dark";
-			document.documentElement.classList.remove(current);
-			document.documentElement.classList.add(next);
-			localStorage.setItem("etap-theme", next);
-		};
-		globalThis.addEventListener("toggle-theme", handler);
-		return () => globalThis.removeEventListener("toggle-theme", handler);
-	}, []);
+  useEffect(() => {
+    const handler = () => {
+      const current = document.documentElement.classList.contains("dark") ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.classList.remove(current);
+      document.documentElement.classList.add(next);
+      localStorage.setItem("etap-theme", next);
+    };
+    globalThis.addEventListener("toggle-theme", handler);
+    return () => globalThis.removeEventListener("toggle-theme", handler);
+  }, []);
 
-	useEffect(() => {
-		const handler = () => {
-			const newLang = i18n.language === "ar" ? "en" : "ar";
-			i18n.changeLanguage(newLang);
-			document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
-			document.documentElement.lang = newLang;
-		};
-		globalThis.addEventListener("toggle-language", handler);
-		return () => globalThis.removeEventListener("toggle-language", handler);
-	}, [i18n]);
+  useEffect(() => {
+    const handler = () => {
+      const newLang = i18n.language === "ar" ? "en" : "ar";
+      i18n.changeLanguage(newLang);
+      document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = newLang;
+    };
+    globalThis.addEventListener("toggle-language", handler);
+    return () => globalThis.removeEventListener("toggle-language", handler);
+  }, [i18n]);
 
-	useEffect(() => {
-		const handler = (e: Event) => {
-			const customEvent = e as CustomEvent;
-			if (customEvent.detail?.contextId) {
-				setHelpContext(customEvent.detail.contextId);
-				setHelpOpen(true);
-			}
-		};
-		globalThis.addEventListener("open-smart-help", handler);
-		return () => globalThis.removeEventListener("open-smart-help", handler);
-	}, []);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.contextId) {
+        setHelpContext(customEvent.detail.contextId);
+        setHelpOpen(true);
+      }
+    };
+    globalThis.addEventListener("open-smart-help", handler);
+    return () => globalThis.removeEventListener("open-smart-help", handler);
+  }, []);
 
-	useEffect(() => {
-		const handler = () => {
-			setHelpOpen((prev) => !prev);
-			setHelpContext(undefined);
-		};
-		globalThis.addEventListener("toggle-smart-help", handler);
-		return () => globalThis.removeEventListener("toggle-smart-help", handler);
-	}, []);
+  useEffect(() => {
+    const handler = () => {
+      setHelpOpen((prev) => !prev);
+      setHelpContext(undefined);
+    };
+    globalThis.addEventListener("toggle-smart-help", handler);
+    return () => globalThis.removeEventListener("toggle-smart-help", handler);
+  }, []);
 
-	return (
-		<ThemeProvider>
-			<NotificationProvider>
-				<AuthProvider>
-					<BrowserRouter>
-						<Routes>
-							<Route path="/login" element={<LoginPage />} />
-							<Route path="/register" element={<RegisterPage />} />
+  return (
+    <ThemeProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-							<Route
-								element={
-									<ProtectedRoute>
-										<Layout />
-									</ProtectedRoute>
-								}
-							>
-								<Route
-									path="/"
-									element={<Navigate to="/dashboard" replace />}
-								/>
-								<Route path="/dashboard" element={<DashboardPage />} />
-								<Route path="/studies" element={<StudiesPage />} />
-								<Route path="/grid-editor" element={<GridEditorPage />} />
-								<Route path="/studies/:studyType" element={<StudyRunPage />} />
-								<Route
-									path="/asset-management"
-									element={<AssetManagementPage />}
-								/>
-								<Route path="/assistant" element={<AIAssistantPage />} />
-								<Route path="/projects" element={<ProjectsPage />} />
-								<Route path="/etap" element={<EtapIntegrationPage />} />
-								<Route path="/gis" element={<GisIntegrationPage />} />
-								<Route path="/scada" element={<ScadaIntegrationPage />} />
-								<Route path="/reports" element={<ReportsPage />} />
-								<Route path="/settings" element={<SettingsPage />} />
-								<Route path="/admin" element={<AdministrationPage />} />
-								<Route path="/diagnostics" element={<DiagnosticsPage />} />
-								<Route path="/digital-twin" element={<DigitalTwinPage />} />
-								<Route path="/data-import" element={<DataImportPage />} />
-								<Route path="/data-export" element={<DataExportPage />} />
-								<Route path="/logs" element={<LogsPage />} />
-								<Route path="/code-guard" element={<CodeGuardPage />} />
-								<Route path="/context-engine" element={<ContextEnginePage />} />
-								<Route path="/templates" element={<TemplatesPage />} />
-								<Route path="/asset-library" element={<AssetLibraryPage />} />
-								<Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
-								<Route path="/admin/rbac" element={<RbacAdminPage />} />
-								<Route
-									path="/admin/email-dashboard"
-									element={<EmailDashboardPage />}
-								/>
-								<Route
-									path="/admin/email-digest"
-									element={<EmailDigestPage />}
-								/>
-								<Route
-									path="/admin/study-versions"
-									element={<StudyVersionsPage />}
-								/>
-								<Route path="/admin/email-otp" element={<EmailOtpPage />} />
-								<Route
-									path="/admin/agents"
-									element={<AgentsControlPanelPage />}
-								/>
-								<Route
-									path="/equipment"
-									element={<EquipmentManagementPage />}
-								/>
-								<Route
-									path="*"
-									element={<Navigate to="/dashboard" replace />}
-								/>
-							</Route>
-						</Routes>
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/studies" element={<StudiesPage />} />
+                <Route path="/grid-editor" element={<GridEditorPage />} />
+                <Route path="/studies/:studyType" element={<StudyRunPage />} />
+                <Route path="/asset-management" element={<AssetManagementPage />} />
+                <Route path="/assistant" element={<AIAssistantPage />} />
+                <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/etap" element={<EtapIntegrationPage />} />
+                <Route path="/gis" element={<GisIntegrationPage />} />
+                <Route path="/scada" element={<ScadaIntegrationPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin" element={<AdministrationPage />} />
+                <Route path="/diagnostics" element={<DiagnosticsPage />} />
+                <Route path="/digital-twin" element={<DigitalTwinPage />} />
+                <Route path="/data-import" element={<DataImportPage />} />
+                <Route path="/data-export" element={<DataExportPage />} />
+                <Route path="/logs" element={<LogsPage />} />
+                <Route path="/code-guard" element={<CodeGuardPage />} />
+                <Route path="/context-engine" element={<ContextEnginePage />} />
+                <Route path="/templates" element={<TemplatesPage />} />
+                <Route path="/asset-library" element={<AssetLibraryPage />} />
+                <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
+                <Route path="/admin/rbac" element={<RbacAdminPage />} />
+                <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
+                <Route path="/admin/email-digest" element={<EmailDigestPage />} />
+                <Route path="/admin/study-versions" element={<StudyVersionsPage />} />
+                <Route path="/admin/email-otp" element={<EmailOtpPage />} />
+                <Route path="/admin/magic-links" element={<MagicLinksPage />} />
+                <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
+                <Route path="/equipment" element={<EquipmentManagementPage />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Route>
+            </Routes>
 
-						<KeyboardShortcutsHandler />
-						<CommandPalette />
-						<OnboardingTour />
-						<SmartHelpDrawer
-							open={helpOpen}
-							onClose={() => {
-								setHelpOpen(false);
-								setHelpContext(undefined);
-							}}
-							initialContextId={helpContext}
-						/>
-						<ShortcutsPanel
-							open={shortcutsOpen}
-							onClose={() => setShortcutsOpen(false)}
-						/>
-						<MagicHelpInspector />
-					</BrowserRouter>
+            <KeyboardShortcutsHandler />
+            <CommandPalette />
+            <OnboardingTour />
+            <SmartHelpDrawer
+              open={helpOpen}
+              onClose={() => {
+                setHelpOpen(false);
+                setHelpContext(undefined);
+              }}
+              initialContextId={helpContext}
+            />
+            <ShortcutsPanel open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+            <MagicHelpInspector />
+          </BrowserRouter>
 
-					<ErrorRecovery
-						error={lastError}
-						onDismiss={() => setLastError(null)}
-						onRetry={() => globalThis.location.reload()}
-					/>
-				</AuthProvider>
-			</NotificationProvider>
-		</ThemeProvider>
-	);
+          <ErrorRecovery
+            error={lastError}
+            onDismiss={() => setLastError(null)}
+            onRetry={() => globalThis.location.reload()}
+          />
+        </AuthProvider>
+      </NotificationProvider>
+    </ThemeProvider>
+  );
 }
