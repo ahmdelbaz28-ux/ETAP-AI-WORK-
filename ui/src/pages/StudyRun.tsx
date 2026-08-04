@@ -345,7 +345,9 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRunning(true);
-    setResult(null);
+    // Don't clear the previous result immediately — keep it visible (but
+    // dimmed via the `running` flag) so the user doesn't see a flash of
+    // the empty state. The result will be replaced once the new one arrives.
     const formData = new FormData(e.currentTarget);
     const params: Record<string, unknown> = {};
     formData.forEach((v, k) => {
@@ -359,6 +361,9 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
       const notifyMsg = getStudyStatusMessage(res.status, t);
       notify(notifyType, notifyMsg);
     } catch (err) {
+      // On failure, clear the stale result so the empty state is shown
+      // (the error is communicated via toast, not the result panel).
+      setResult(null);
       notify(
         "error",
         `${t("studyRun.failed")}: ${err instanceof Error ? err.message : "Unknown error"}`,
@@ -456,6 +461,8 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
         <div className="space-y-4">
           {result ? (
             <>
+              {/* Dim overlay when re-running so user sees stale data is being replaced */}
+              <div className={cn(running && "opacity-50 pointer-events-none transition-opacity")}>
               {/* Result Status */}
               <Card
                 padding="md"
@@ -552,6 +559,7 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
                   )}
                 </TabPanels>
               </Card>
+              </div>
             </>
           ) : (
             <Card padding="lg">

@@ -45,6 +45,7 @@ async function proxyFetch(
   apiKey: string,
   body: Record<string, unknown>,
   customHeaders?: Record<string, string>,
+  signal?: AbortSignal,
 ): Promise<Response> {
   const proxyUrl = "/api/llm-proxy";
   const proxyBody = {
@@ -58,6 +59,7 @@ async function proxyFetch(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(proxyBody),
+    signal,
   });
 
   return res;
@@ -162,6 +164,7 @@ export function getConfiguredProviders(): { id: string; name: string; model: str
 export async function chatWithLLM(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>,
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
   const activeProvider = getActiveProvider();
@@ -173,17 +176,17 @@ export async function chatWithLLM(
 
   switch (provider.apiType) {
     case "openai":
-      return callOpenAICompatible(messages, provider);
+      return callOpenAICompatible(messages, provider, signal);
     case "anthropic":
-      return callAnthropic(messages, provider);
+      return callAnthropic(messages, provider, signal);
     case "gemini":
-      return callGemini(messages, provider);
+      return callGemini(messages, provider, signal);
     case "cloudflare":
-      return callCloudflare(messages, provider);
+      return callCloudflare(messages, provider, signal);
     case "zhipu":
-      return callZhipu(messages, provider);
+      return callZhipu(messages, provider, signal);
     case "cohere":
-      return callCohere(messages, provider);
+      return callCohere(messages, provider, signal);
     default:
       throw new Error(`Unsupported provider type: ${provider.apiType}`);
   }
@@ -193,6 +196,7 @@ export async function chatWithLLM(
 async function callOpenAICompatible(
   messages: ChatMessage[],
   provider: ProviderConfig,
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const endpoint = `${provider.baseUrl}/chat/completions`;
   const res = await proxyFetch(endpoint, provider.apiKey, {
@@ -200,7 +204,7 @@ async function callOpenAICompatible(
     messages,
     max_tokens: 4096,
     temperature: 0.7,
-  });
+  }, undefined, signal);
 
   if (!res.ok) {
     const text = await res.text().catch((error) => {
@@ -219,6 +223,7 @@ async function callOpenAICompatible(
 async function callAnthropic(
   messages: ChatMessage[],
   provider: ProviderConfig,
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const endpoint = `${provider.baseUrl}/messages`;
   const systemMsg = messages.find((m) => m.role === "system")?.content || "";
@@ -237,6 +242,7 @@ async function callAnthropic(
       "x-api-key": provider.apiKey,
       "anthropic-version": "2023-06-01",
     },
+    signal,
   );
 
   if (!res.ok) {
@@ -253,7 +259,7 @@ async function callAnthropic(
 }
 
 // --- section ---
-async function callGemini(messages: ChatMessage[], provider: ProviderConfig): Promise<ChatResult> {
+async function callGemini(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
   const model = provider.model.replace("google/", "");
   const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`;
 
@@ -283,6 +289,7 @@ async function callGemini(messages: ChatMessage[], provider: ProviderConfig): Pr
       body,
       headers: {},
     }),
+    signal,
   });
 
   if (!res.ok) {
@@ -302,6 +309,7 @@ async function callGemini(messages: ChatMessage[], provider: ProviderConfig): Pr
 async function callCloudflare(
   messages: ChatMessage[],
   provider: ProviderConfig,
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const settings = getSettings();
   const accountId = settings.PROVIDER_CLOUDFLARE_ACCOUNT_ID || "";
@@ -310,7 +318,7 @@ async function callCloudflare(
   }
 
   const url = `${provider.baseUrl}/${accountId}/ai/run/${provider.model}`;
-  const res = await proxyFetch(url, provider.apiKey, { messages });
+  const res = await proxyFetch(url, provider.apiKey, { messages }, undefined, signal);
 
   if (!res.ok) {
     const text = await res.text().catch((error) => {
@@ -327,17 +335,17 @@ async function callCloudflare(
 
 // --- section ---
 // Zhipu uses the same OpenAI-compatible /chat/completions API shape.
-async function callZhipu(messages: ChatMessage[], provider: ProviderConfig): Promise<ChatResult> {
-  return callOpenAICompatible(messages, provider);
+async function callZhipu(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
+  return callOpenAICompatible(messages, provider, signal);
 }
 
 // --- section ---
-async function callCohere(messages: ChatMessage[], provider: ProviderConfig): Promise<ChatResult> {
+async function callCohere(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
   const endpoint = `${provider.baseUrl}/chat`;
   const res = await proxyFetch(endpoint, provider.apiKey, {
     model: provider.model,
     messages,
-  });
+  }, undefined, signal);
 
   if (!res.ok) {
     const text = await res.text().catch((error) => {
@@ -642,6 +650,7 @@ async function diagnoseHttpError(
 async function* streamFromAnthropic(
   provider: ProviderConfig,
   messages: ChatMessage[],
+  signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
   const endpoint = `${provider.baseUrl}/messages`;
   const systemMsg = messages.find((m) => m.role === "system")?.content || "";
@@ -666,6 +675,7 @@ async function* streamFromAnthropic(
       },
       stream: true,
     }),
+    signal,
   });
 
   if (!res.ok) {
@@ -682,6 +692,7 @@ async function* streamFromAnthropic(
 
   if (!reader) return;
   while (true) {
+    if (signal?.aborted) return;
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -720,12 +731,14 @@ function yieldFromAnthropicLine(line: string): string | undefined {
 async function* streamFromGemini(
   provider: ProviderConfig,
   messages: ChatMessage[],
+  signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
   // Gemini streaming is different — fall back to non-streaming and
   // simulate streaming by yielding word by word.
-  const result = await chatWithLLM(messages, provider);
+  const result = await chatWithLLM(messages, provider, signal);
   const words = result.content.split(/(\s+)/);
   for (const word of words) {
+    if (signal?.aborted) return;
     yield word;
     await new Promise((r) => setTimeout(r, 20));
   }
@@ -761,6 +774,7 @@ function buildOpenAIError(provider: ProviderConfig, status: number, text: string
 async function* streamFromOpenAICompatible(
   provider: ProviderConfig,
   messages: ChatMessage[],
+  signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
   const endpoint = `${provider.baseUrl}/chat/completions`;
   const res = await fetch("/api/llm-proxy?stream=true", {
@@ -778,6 +792,7 @@ async function* streamFromOpenAICompatible(
       },
       stream: true,
     }),
+    signal,
   });
 
   if (!res.ok) {
@@ -800,6 +815,7 @@ async function* streamFromOpenAICompatible(
   // keeps the cognitive complexity of this function under 15 (S3776).
   let done = false;
   while (!done) {
+    if (signal?.aborted) return;
     const readResult = await reader.read();
     done = readResult.done;
     if (done) break;
@@ -872,6 +888,7 @@ function consumeOpenAILine(line: string): ConsumeResult {
 export async function* chatWithLLMStream(
   messages: ChatMessage[],
   config?: Partial<ProviderConfig>,
+  signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
   // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
   const activeProvider = getActiveProvider();
@@ -882,15 +899,15 @@ export async function* chatWithLLMStream(
   }
 
   if (provider.apiType === "anthropic") {
-    yield* streamFromAnthropic(provider, messages);
+    yield* streamFromAnthropic(provider, messages, signal);
     return;
   }
 
   if (provider.apiType === "gemini") {
-    yield* streamFromGemini(provider, messages);
+    yield* streamFromGemini(provider, messages, signal);
     return;
   }
 
   // Default: OpenAI-compatible streaming (OpenCode Zen, OpenAI, DeepSeek, Groq, etc.)
-  yield* streamFromOpenAICompatible(provider, messages);
+  yield* streamFromOpenAICompatible(provider, messages, signal);
 }
