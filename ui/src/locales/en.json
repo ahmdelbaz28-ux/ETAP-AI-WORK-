@@ -17,6 +17,7 @@
     "administration": "Administration",
     "rbacAdmin": "RBAC Admin",
     "emailDashboard": "Email Dashboard",
+    "emailDigest": "Email Digest",
     "agentsControlPanel": "Agents Control Panel",
     "diagnostics": "Diagnostics",
     "etapIntegration": "ETAP Integration",
