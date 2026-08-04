@@ -40,7 +40,8 @@
     "system": "System",
     "studyVersions": "Study Versions",
     "emailOtp": "Email OTP",
-    "magicLinks": "Magic Links"
+    "magicLinks": "Magic Links",
+    "mfa": "MFA"
   },
   "navbar": {
     "welcome": "Welcome",
