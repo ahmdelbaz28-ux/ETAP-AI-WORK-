@@ -20,14 +20,14 @@
 import { motion } from "framer-motion";
 import { Activity, AlertCircle, Clock, Play, RotateCcw } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { Badge, Button, Card, CardHeader } from "../components/ui";
+import { useNotify } from "../context/NotificationContext";
 import {
   AI_ML_CAPABILITIES,
   type AiMlCapabilityInfo,
   type AiMlResult,
   callAiMlEndpoint,
 } from "../lib/api";
-import { Badge, Button, Card, CardHeader } from "../components/ui";
-import { useNotify } from "../context/NotificationContext";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
@@ -44,7 +44,10 @@ interface RunRecord {
   inputPreview: string;
 }
 
-function validateJson(input: string, schema: Record<string, unknown>): { ok: boolean; parsed?: unknown; error?: string } {
+function validateJson(
+  input: string,
+  schema: Record<string, unknown>,
+): { ok: boolean; parsed?: unknown; error?: string } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(input);
@@ -76,14 +79,23 @@ function RateLimitIndicator({ result }: { readonly result: AiMlResult }) {
       <Clock className="w-3.5 h-3.5" />
       <span>
         Rate limit:
-        {limit !== null && <code className="ml-1 font-mono">{remaining ?? "?"}/{limit}</code>}
-        {rl.reset_at && <span className="ml-2">· resets {new Date(rl.reset_at).toLocaleTimeString()}</span>}
+        {limit !== null && (
+          <code className="ml-1 font-mono">
+            {remaining ?? "?"}/{limit}
+          </code>
+        )}
+        {rl.reset_at && (
+          <span className="ml-2">· resets {new Date(rl.reset_at).toLocaleTimeString()}</span>
+        )}
       </span>
     </div>
   );
 }
 
-function ResultViewer({ result, error }: { readonly result: AiMlResult | null; readonly error: string | null }) {
+function ResultViewer({
+  result,
+  error,
+}: { readonly result: AiMlResult | null; readonly error: string | null }) {
   if (error) {
     return (
       <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-mono whitespace-pre-wrap break-words">
@@ -137,7 +149,7 @@ export default function AIPlayground() {
   const { notify } = useNotify();
 
   const activeCapability = useMemo(
-    () => AI_ML_CAPABILITIES.find((c) => c.id === activeTab)!,
+    () => AI_ML_CAPABILITIES.find((c) => c.id === activeTab) ?? AI_ML_CAPABILITIES[0],
     [activeTab],
   );
 
@@ -227,8 +239,8 @@ export default function AIPlayground() {
             AI/ML Playground
           </h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Interactive playground for 5 AI/ML endpoints. Each tab covers one capability with
-            JSON input, schema validation, and a structured result viewer.
+            Interactive playground for 5 AI/ML endpoints. Each tab covers one capability with JSON
+            input, schema validation, and a structured result viewer.
           </p>
         </div>
         <ContextHelpButton helpId="ai-playground" />
@@ -309,9 +321,7 @@ export default function AIPlayground() {
               <textarea
                 id={`json-input-${activeTab}`}
                 value={inputs[activeTab]}
-                onChange={(e) =>
-                  setInputs((prev) => ({ ...prev, [activeTab]: e.target.value }))
-                }
+                onChange={(e) => setInputs((prev) => ({ ...prev, [activeTab]: e.target.value }))}
                 disabled={running}
                 spellCheck={false}
                 className={cn(
