@@ -33,6 +33,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
   type VisionKeyConfig,
   deleteVisionKey,
+  fetchMcpServers,
   fetchVisionKeys,
   saveVisionKey,
   testVisionKey,
@@ -939,7 +940,7 @@ interface MCPConfig {
   tools: string[];
 }
 
-const MCP_SERVERS: MCPConfig[] = [
+const MCP_SERVERS_FALLBACK: MCPConfig[] = [
   {
     id: "weather",
     name: "Weather MCP Server",
@@ -993,6 +994,52 @@ const MCP_SERVERS: MCPConfig[] = [
 ];
 
 function MCPSettingsPanel() {
+  const [servers, setServers] = useState<MCPConfig[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await fetchMcpServers();
+        if (cancelled) return;
+        const list = resp?.data?.servers ?? [];
+        if (list.length === 0) {
+          // No .mcp.json configured — show fallback (documented) so the UI is not empty.
+          setServers(MCP_SERVERS_FALLBACK);
+          setUsingFallback(true);
+        } else {
+          // Map server-side MCP info into the MCPConfig shape the renderer expects.
+          setServers(
+            list.map((s) => ({
+              id: s.id,
+              name: s.name || s.id,
+              status: s.status === "configured" ? "connected" : "standby",
+              type: s.type || "stdio",
+              urlOrPath: s.command || "(no command)",
+              description: `Args: ${(s.args ?? []).join(" ") || "(none)"} · Env keys: ${s.env_keys?.join(", ") || "(none)"}`,
+              tools: s.env_keys ?? [],
+            })),
+          );
+          setUsingFallback(false);
+        }
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load MCP servers");
+        setServers(MCP_SERVERS_FALLBACK);
+        setUsingFallback(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "connected":
@@ -1016,6 +1063,19 @@ function MCPSettingsPanel() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6 col-span-2">
+        <Card padding="md">
+          <div className="flex items-center gap-3 text-[var(--text-secondary)]">
+            <div className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading MCP servers from backend…</span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 col-span-2">
       <Card padding="md">
@@ -1023,7 +1083,7 @@ function MCPSettingsPanel() {
           <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
             <Database className="w-5 h-5 text-brand-400" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-base font-semibold text-[var(--text-primary)]">
               Model Context Protocol (MCP) Servers
             </h3>
@@ -1031,11 +1091,29 @@ function MCPSettingsPanel() {
               The platform utilizes MCP to expose local files, databases, SCADA bridges, and
               engineering scripts to AI specialist agents as secure tools.
             </p>
+            {error && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+                Backend unreachable: {error}. Showing documented fallback list. Configure
+                .mcp.json or set MCP_CONFIG_PATH to enable server-side discovery.
+              </div>
+            )}
+            {!error && usingFallback && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs">
+                No .mcp.json configured on backend — showing documented fallback list. Create
+                .mcp.json at the repo root (see .mcp.json.example) to switch to live discovery.
+              </div>
+            )}
+            {!error && !usingFallback && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-green-500/10 border border-green-500/20 text-green-300 text-xs">
+                Loaded from <code className="font-mono">/api/v1/agents/mcp-servers</code>.
+                Env values are redacted server-side for security.
+              </div>
+            )}
           </div>
         </div>
 
         <div className="space-y-4">
-          {MCP_SERVERS.map((srv) => (
+          {(servers ?? []).map((srv) => (
             <div
               key={srv.id}
               className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl hover:border-brand-500/30 transition-all"

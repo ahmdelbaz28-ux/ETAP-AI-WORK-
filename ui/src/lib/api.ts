@@ -347,6 +347,34 @@ export async function testVisionKey(
   });
 }
 
+// ============ MCP Servers ============
+
+export interface McpServerInfo {
+  id: string;
+  name: string;
+  type: string;
+  command: string;
+  args: string[];
+  env_keys: string[];
+  env_redacted: Record<string, string>;
+  status: string;
+}
+
+export interface McpServersResponse {
+  success: boolean;
+  data: {
+    servers: McpServerInfo[];
+    total: number;
+    config_path?: string;
+    message?: string;
+  };
+  trace_id?: string;
+}
+
+export async function fetchMcpServers(): Promise<McpServersResponse> {
+  return request<McpServersResponse>("/api/v1/agents/mcp-servers");
+}
+
 // ============ Projects ============
 
 export interface Project {
