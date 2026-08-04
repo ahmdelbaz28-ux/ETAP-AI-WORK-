@@ -38,7 +38,8 @@
 		"engineering": "الهندسة",
 		"integration": "التكامل",
 		"system": "النظام",
-		"studyVersions": "إصدارات الدراسة"
+		"studyVersions": "إصدارات الدراسة",
+		"emailOtp": "OTP البريد"
 	},
 	"navbar": {
 		"welcome": "مرحباً",

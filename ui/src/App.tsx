@@ -68,6 +68,7 @@ const EquipmentManagementPage = lazyLoad(
 const EmailDashboardPage = lazyLoad(() => import("./pages/EmailDashboard"));
 const EmailDigestPage = lazyLoad(() => import("./pages/EmailDigest"));
 const StudyVersionsPage = lazyLoad(() => import("./pages/StudyVersions"));
+const EmailOtpPage = lazyLoad(() => import("./pages/EmailOtp"));
 const AgentsControlPanelPage = lazyLoad(
 	() => import("./pages/AgentsControlPanel"),
 );
@@ -228,6 +229,7 @@ export default function App() {
 									path="/admin/study-versions"
 									element={<StudyVersionsPage />}
 								/>
+								<Route path="/admin/email-otp" element={<EmailOtpPage />} />
 								<Route
 									path="/admin/agents"
 									element={<AgentsControlPanelPage />}

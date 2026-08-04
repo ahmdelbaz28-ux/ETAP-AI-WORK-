@@ -47,4 +47,14 @@ declare module "lucide-react" {
 			ref?: React.Ref<SVGSVGElement>;
 		}
 	>;
+	export const KeyRound: React.ForwardRefExoticComponent<
+		Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+			ref?: React.Ref<SVGSVGElement>;
+		}
+	>;
+	export const Ban: React.ForwardRefExoticComponent<
+		Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+			ref?: React.Ref<SVGSVGElement>;
+		}
+	>;
 }
