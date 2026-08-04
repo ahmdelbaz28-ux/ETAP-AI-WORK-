@@ -26,6 +26,7 @@ import {
   ScrollText,
   Search,
   Settings,
+  Sparkles,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -180,6 +181,12 @@ const navItems: NavItem[] = [
     to: "/admin/cua-monitor",
     icon: ShieldAlert,
     labelKey: "sidebar.cuaMonitor",
+    section: "system",
+  },
+  {
+    to: "/admin/ai-playground",
+    icon: Sparkles,
+    labelKey: "sidebar.aiPlayground",
     section: "system",
   },
   {

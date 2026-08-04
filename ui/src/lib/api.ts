@@ -414,6 +414,174 @@ export async function patchFeatureFlag(
   });
 }
 
+// ============ AI/ML Playground ============
+
+export interface AiMlResult {
+  success: boolean;
+  data?: unknown;
+  errors?: string[];
+  trace_id?: string;
+  rate_limit?: {
+    remaining?: number;
+    reset_at?: string;
+    limit?: number;
+  };
+}
+
+export type AiMlCapability =
+  | "predict/load"
+  | "predict/fault"
+  | "predict/anomaly"
+  | "gnn/predict"
+  | "rag/query";
+
+export interface AiMlCapabilityInfo {
+  id: AiMlCapability;
+  label: string;
+  method: "POST";
+  path: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+  sampleInput: unknown;
+}
+
+export const AI_ML_CAPABILITIES: AiMlCapabilityInfo[] = [
+  {
+    id: "predict/load",
+    label: "Load Forecast",
+    method: "POST",
+    path: "/api/v1/predict/load",
+    description:
+      "Predict future load using Prophet / LSTM / Linear LoadForecaster. Pass historical_data array + horizon_hours (1–168).",
+    inputSchema: {
+      type: "object",
+      required: ["historical_data"],
+      properties: {
+        historical_data: { type: "array", items: { type: "number" }, maxItems: 10000 },
+        horizon_hours: { type: "integer", minimum: 1, maximum: 168, default: 24 },
+        method: { type: "string", enum: ["auto", "prophet", "lstm", "linear"], default: "auto" },
+      },
+    },
+    sampleInput: {
+      historical_data: [120, 132, 145, 158, 162, 170, 168, 175, 182, 190, 188, 195],
+      horizon_hours: 6,
+      method: "auto",
+    },
+  },
+  {
+    id: "predict/fault",
+    label: "Fault Prediction",
+    method: "POST",
+    path: "/api/v1/predict/fault",
+    description:
+      "Predict fault probability using XGBoost with SHAP explanations. Pass features object + optional model_version.",
+    inputSchema: {
+      type: "object",
+      required: ["features"],
+      properties: {
+        features: { type: "object" },
+        model_version: { type: "string" },
+      },
+    },
+    sampleInput: {
+      features: {
+        voltage_pu: 0.94,
+        current_a: 410,
+        power_factor: 0.85,
+        temperature_c: 78,
+        harmonic_thd: 0.08,
+        load_pct: 0.92,
+      },
+    },
+  },
+  {
+    id: "predict/anomaly",
+    label: "Anomaly Detection",
+    method: "POST",
+    path: "/api/v1/predict/anomaly",
+    description:
+      "Detect anomalies using Isolation Forest / PyOD. Pass data array + method + contamination.",
+    inputSchema: {
+      type: "object",
+      required: ["data"],
+      properties: {
+        data: { type: "array", items: { type: "number" }, maxItems: 10000 },
+        method: {
+          type: "string",
+          enum: ["iforest", "pyod_iforest", "pyod_knn", "pyod_autoencoder"],
+          default: "iforest",
+        },
+        contamination: { type: "number", minimum: 0.01, maximum: 0.5, default: 0.05 },
+      },
+    },
+    sampleInput: {
+      data: [10, 12, 11, 13, 12, 14, 11, 50, 12, 13, 11, 12, 75, 12, 13, 11],
+      method: "iforest",
+      contamination: 0.1,
+    },
+  },
+  {
+    id: "gnn/predict",
+    label: "GNN Power Grid",
+    method: "POST",
+    path: "/api/v1/gnn/predict",
+    description:
+      "Run Graph Neural Network analysis on the power grid topology. Pass nodes + edges.",
+    inputSchema: {
+      type: "object",
+      required: ["nodes"],
+      properties: {
+        nodes: { type: "array" },
+        edges: { type: "array" },
+        target: { type: "string" },
+      },
+    },
+    sampleInput: {
+      nodes: [
+        { id: "bus1", type: "bus", voltage_pu: 1.0 },
+        { id: "bus2", type: "bus", voltage_pu: 0.98 },
+        { id: "line1", type: "line" },
+      ],
+      edges: [
+        { source: "bus1", target: "line1" },
+        { source: "line1", target: "bus2" },
+      ],
+      target: "voltage_stability",
+    },
+  },
+  {
+    id: "rag/query",
+    label: "RAG Query",
+    method: "POST",
+    path: "/api/v1/rag/query",
+    description: "Run Retrieval-Augmented Generation query against the ETAP knowledge base.",
+    inputSchema: {
+      type: "object",
+      required: ["query"],
+      properties: {
+        query: { type: "string", maxLength: 1000 },
+        top_k: { type: "integer", minimum: 1, maximum: 20, default: 5 },
+        filter_tags: { type: "array", items: { type: "string" } },
+      },
+    },
+    sampleInput: {
+      query: "What is the IEEE 519 harmonic limit for voltage distortion?",
+      top_k: 3,
+    },
+  },
+];
+
+export async function callAiMlEndpoint(
+  path: string,
+  body: unknown,
+): Promise<AiMlResult> {
+  return request<AiMlResult>(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // ============ Projects ============
 
 export interface Project {
