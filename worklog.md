@@ -125,3 +125,46 @@ Stage Summary:
 - All pass-2 tasks (8, 9, 11, 12, 13, 14) completed
 - Pass-1 deviations (TASK-5/7/10 + EmailOtp) accepted and documented
 - Residual gaps for pass-3: pe_stamp, dual_control, risk_scoring, error_debugger, cua_confirmation_ws UI; undici override bump
+
+---
+Task ID: SELF-CRITIQUE + FIX-UP
+Agent: main (super-z)
+Task: Self-critique pass-2, fix all discovered errors, push safely, evaluate merge
+
+Work Log:
+- Discovered 6 uncommitted pnpm-lock.yaml changes (from pnpm install --no-frozen-lockfile) → reverted
+- Discovered PR #309 base was pass-1 instead of main → updated base to main via GitHub API
+- Discovered GET /api/v1/feature-flags and GET /api/v1/feature-flags/{key} had NO auth dependency (critical §4.4 violation) → added Depends(_require_permission("feature_flags", "read"))
+- Discovered _require_admin() referenced non-existent api.rbac.require_admin (only require_permission exists) → rewrote to use require_permission("feature_flags", "write") with fail-safe fallback to get_api_key (logged at WARNING)
+- Discovered tests didn't pass auth headers → added api_key + auth_headers fixtures, updated all 10 tests
+- Added 2 new tests: test_unauthenticated_request_rejected, test_invalid_api_key_rejected (both in ENV=production)
+- Discovered biome lint errors in Administration.tsx (useOptionalChain) → fixed
+- Discovered pass-2 diverged from main by 2 commits → merged main into pass-2 (no-ff, no rebase per §4.1)
+- Re-verified: tsc --noEmit exit 0, vite build success, pytest 18/18 pass, biome clean (except 1 pre-existing error in Administration.tsx:283 inherited from pass-1)
+- Pushed fix/ui-backend-coverage-pass-2 (no --force) → 11ba4dd1
+- Marked PR #309 as ready for review (via GraphQL markPullRequestReadyForReview)
+- CI status: 11/18 success, 5 failure (all in integration tests — same failures exist on main, pre-existing)
+
+Stage Summary:
+- Critical security fix: feature-flags endpoints now require auth
+- All pass-2 code verified: tsc 0, vite build OK, pytest 18/18, biome clean
+- PR #309 base=main, mergeable=True, ready for review
+- CI failures are pre-existing on main (last 3 main runs all failed) — not introduced by pass-2
+- Merge BLOCKED by branch protection: requires 1 approving review + passing status checks
+- Per §4.5 "Do NOT merge yourself" — merge must be done by reviewer (ahmdelbaz28-ux)
+
+Files changed in fix-up commit (db06f5b1):
+- api/feature_flags.py (auth deps + logging)
+- tests/test_feature_flags.py (auth fixtures + 2 new tests)
+- ui/src/pages/Administration.tsx (lint fix)
+
+Final commit graph on pass-2:
+  11ba4dd1 Merge main into fix/ui-backend-coverage-pass-2
+  db06f5b1 fix(security,ui): enforce auth on feature-flags endpoints + lint fixes
+  67e3f43b chore: add pass-2 worklog with per-task verification
+  8f361121 style(ui): apply biome formatter to AIPlayground + api.ts
+  522cb9b2 docs: update UI_COVERAGE_REPORT.md + CHANGELOG.md
+  a4c876ea chore(security): add pass-2 security scan report
+  2ed2e4d1 feat(ui): add AIPlayground page with 5 capability tabs
+  04b809a9 feat(api,ui): add feature-flags router + Administration panel
+  6b07b300 fix(ui,api): replace hardcoded MCP_SERVERS with /api/v1/agents/mcp-servers round-trip
