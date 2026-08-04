@@ -239,7 +239,7 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
           : "Zenon SCADA server configurations updated.",
       );
     } catch (err: any) {
-      notify("error", `Error: ${err.message}`);
+      notify("error", err.message || "Unknown error");
     }
   };
 

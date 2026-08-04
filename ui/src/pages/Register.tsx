@@ -69,10 +69,9 @@ export default function Register() {
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setAuthError(message);
-        notify(
-          "error",
-          `${i18n.language === "ar" ? "فشل إنشاء الحساب" : "Registration failed"}: ${message}`,
-        );
+        // Only use the inline error banner — NOT a toast. Dual error UI
+        // (banner + toast) confuses users. The banner is context-bound to
+        // the form and more appropriate for auth errors.
       } finally {
         setLoading(false);
       }
