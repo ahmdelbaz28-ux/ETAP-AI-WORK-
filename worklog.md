@@ -168,3 +168,46 @@ Final commit graph on pass-2:
   2ed2e4d1 feat(ui): add AIPlayground page with 5 capability tabs
   04b809a9 feat(api,ui): add feature-flags router + Administration panel
   6b07b300 fix(ui,api): replace hardcoded MCP_SERVERS with /api/v1/agents/mcp-servers round-trip
+
+---
+Task ID: PASS-3-SELF-CRITIQUE
+Agent: main (super-z)
+Task: Honest self-critique of pass-2 — find every skipped error, fix all, push clean
+
+Work Log:
+- Re-read entire pass-2 worklog with skeptical eye
+- Verified NotificationContext.tsx (389 lines) — properly wires GET /api/v1/notifications + WS /ws/notifications; claims in worklog accurate
+- Verified feature_flags.py auth enforcement: in production env with JWT_SECRET_KEY + ENGINEERING_SERVICE_API_KEY set, _require_permission() returns api.rbac._check_permission (real RBAC) — NOT the get_api_key fallback. Fallback only triggers when rbac can't be imported. Tests pass: 18/18.
+- Re-ran endpoint counter: 150 HTTP + 4 WS = 154 total (was 147 HTTP before pass-2 added 3 new endpoints: 2 feature-flags + 1 agents/mcp-servers). Worklog §12 figure matches.
+- TypeScript: tsc --noEmit → 0 errors (verified twice)
+- Vite build: success, AIPlayground + all new page chunks generated
+- Biome lint: 100 errors + 55 warnings on our branch. Main has 102 errors. Pass-2 added ZERO new biome errors; actually reduced by 2. Prior worklog claim "biome clean (except 1 pre-existing)" was an OVERSTATEMENT. The truth: 100 pre-existing errors remain on main and were not in pass-2 scope. The 4 errors in Sidebar.tsx and the 1 in Templates.tsx that pass-2 touched are all pre-existing (verified by checking origin/main version).
+- Integration tests: 11/12 passed initially. Discovered real bug: api/studies.py:856/862/870 references `logger` but _scan_ai_failure_modes never imports or defines it. Pre-existing on main (verified). When AI failure mode scan raises exception, NameError propagates instead of graceful non-blocking return. This was masked in CI because the scan rarely raises.
+- Fixed: added `import logging` + `logger = logging.getLogger("engineering_service")` at module top of api/studies.py (commit 6be1a17a)
+- After fix: 12/12 integration tests pass; 45/45 related unit tests (feature_flags + security_fixes + backward_compat) pass
+- Pre-existing failures NOT introduced by pass-2 (verified on main):
+  * tests/test_audit_phase2_fixes.py::TestRelayBoundaryS22::test_s22_curves_use_strict_greater
+  * tests/test_audit_phase6_round4_fixes.py::TestCurvesSingularity (3 tests)
+  * tests/test_auth_api.py — 38 errors due to sqlalchemy NoReferencedTableError 'tenants' (DB schema issue, unrelated to pass-2)
+
+Stage Summary:
+- 1 real bug fixed: api/studies.py module-level logger (commit 6be1a17a)
+- 0 new biome errors introduced (100 pre-existing remain, all on main)
+- 0 new test regressions (4 pre-existing failures remain, all on main)
+- tsc: 0 errors. Vite build: OK. pytest: 12/12 integration + 45/45 related unit.
+- Prior worklog "biome clean" claim corrected to "no new biome errors introduced"
+- Branch state: clean working tree, 14 commits ahead of origin/pass-1, 1 commit ahead of origin/pass-2 (logger fix not yet pushed)
+- Next: push fix to origin/pass-2
+
+Final commit graph on pass-2 (after self-critique):
+  6be1a17a fix(api): define module-level logger in studies.py — fixes NameError
+  5f7472c1 chore: update worklog with self-critique and fix-up entry
+  11ba4dd1 Merge main into fix/ui-backend-coverage-pass-2
+  db06f5b1 fix(security,ui): enforce auth on feature-flags endpoints + lint fixes
+  67e3f43b chore: add pass-2 worklog with per-task verification
+  8f361121 style(ui): apply biome formatter to AIPlayground + api.ts
+  522cb9b2 docs: update UI_COVERAGE_REPORT.md + CHANGELOG.md
+  a4c876ea chore(security): add pass-2 security scan report
+  2ed2e4d1 feat(ui): add AIPlayground page with 5 capability tabs
+  04b809a9 feat(api,ui): add feature-flags router + Administration panel
+  6b07b300 fix(ui,api): replace hardcoded MCP_SERVERS with /api/v1/agents/mcp-servers round-trip
