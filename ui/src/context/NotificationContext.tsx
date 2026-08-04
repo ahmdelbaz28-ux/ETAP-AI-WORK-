@@ -365,6 +365,9 @@ export function NotificationProvider({ children }: { readonly children: ReactNod
                 exit={{ opacity: 0, x: 120, scale: 0.9 }}
                 transition={{ type: "spring", damping: 20, stiffness: 300 }}
                 onClick={() => dismiss(n.id)}
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
                 className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-3 cursor-pointer border backdrop-blur-md ${colorMap[n.type]}`}
                 style={{ minWidth: "280px" }}
               >

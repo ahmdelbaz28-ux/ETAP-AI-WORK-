@@ -21,11 +21,11 @@ overrides:
   # HIGH: axios prototype pollution + proxy inheritance + body limit bypass (10 alerts)
   axios: ^1.18.0
   # HIGH: brace-expansion DoS via exponential-time expansion (8 alerts)
-  brace-expansion: ^5.0.8
+  brace-expansion: ^5.0.9
   # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts)
-  fast-uri: ^3.1.4
+  fast-uri: ^3.1.5
   # HIGH: hono CORS reflection + XSS + path traversal + body limit bypass (8 alerts)
-  hono: ^4.12.27
+  hono: ^4.12.34
   # HIGH: js-yaml quadratic CPU consumption on merge-key chains (3 alerts)
   js-yaml: ^4.3.0
   # HIGH: linkify-it quadratic DoS in mailto validator (1 alert)
@@ -52,14 +52,16 @@ overrides:
   '@opentelemetry/core': ^2.8.0
   # MEDIUM: @hono/node-server path traversal via encoded backslash on Windows (2 alerts)
   '@hono/node-server': ^2.0.5
-  # NOTE: @ai-sdk/provider-utils (LOW, GHSA-866g-f22w-33x8) — the direct
-  # dependency was bumped to 5.0.18 via override, but @mastra/core uses
-  # package aliases (@ai-sdk/provider-utils-v5 / -v6) that resolve to
-  # older 3.x / 4.x versions which pnpm overrides do NOT rewrite.
-  # Mitigation: this is a LOW-severity DoS via uncontrolled resource
-  # consumption; the vulnerable code path is only reachable from
-  # streaming LLM responses. Track @mastra/core upstream for an upgrade
-  # that drops the aliased deps.
+  # CRITICAL: undici — 12 Dependabot alerts (3 HIGH, 8 MEDIUM, 1 LOW) across
+  # WebSocket DoS, CRLF injection, HTTP smuggling, cookie injection, etc.
+  # Node.js embeds undici internally but pnpm resolves a separate copy.
+  # Override forces all transitive references to the patched v7.29.0+.
+  undici: ^7.29.0
+  # HIGH: @ai-sdk/provider-utils uncontrolled resource consumption (2 alerts, same CVE)
+  # @mastra/core uses aliased versions (-v5/-v6) that resolve to older 3.x/4.x;
+  # the override covers direct references but aliases may still pull old versions.
+  # LOW severity — code path only reachable from streaming LLM responses.
+  '@ai-sdk/provider-utils': ^5.0.0
   # NOTE: react-router / react-router-dom (RSC CSRF bypass, GHSA-qwww-vcr4-c8h2)
   # has NO fix available yet — the patched version (8.3.0) has not been
   # published to npm. Currently installed: 7.18.1 (vulnerable range 7.12.0 - 8.3.0).
@@ -73,7 +75,7 @@ allowBuilds:
   electron: set this to true or false
   electron-winstaller: true
   esbuild: true
-  ffmpeg-static: set this to true or false
+  ffmpeg-static: false
   protobufjs: true
 
 onlyBuiltDependencies: ''

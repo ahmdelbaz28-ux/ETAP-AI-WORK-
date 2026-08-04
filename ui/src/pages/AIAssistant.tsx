@@ -13,7 +13,7 @@ import {
   Settings as SettingsIcon,
   Sparkles,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { useNavigate } from "react-router";
 import remarkGfm from "remark-gfm";
@@ -165,6 +165,11 @@ export default function AIAssistant() {
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // AbortController for cancelling in-flight chat/stream requests.
+  // When the user sends a new message or navigates away, any pending
+  // request is aborted via this controller. On unmount the effect
+  // cleanup also cancels to avoid state updates on unmounted components.
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Check if any provider API key is configured in localStorage settings
   useEffect(() => {
@@ -220,6 +225,13 @@ export default function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Abort any in-flight request on unmount.
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
   // Helper: replace a single message by id with a patch object.
   // Extracted to reduce cognitive complexity of `handleSend` (SonarCloud S3776).
   const patchMessage = (id: string, patch: Partial<Message>) => {
@@ -228,14 +240,18 @@ export default function AIAssistant() {
 
   // Helper: stream the LLM response into the placeholder message,
   // falling back to non-streaming chatWithLLM if streaming yields no content.
+  // Accepts an AbortSignal so the caller can cancel the request.
   // Returns true if the message was finalized, false if both paths failed.
   const streamResponse = async (
     chatMessages: ChatMessage[],
     assistantMsgId: string,
+    signal?: AbortSignal,
   ): Promise<void> => {
     let accumulatedContent = "";
     try {
-      for await (const chunk of chatWithLLMStream(chatMessages)) {
+      for await (const chunk of chatWithLLMStream(chatMessages, undefined, signal)) {
+        // If aborted mid-stream, keep partial content and stop.
+        if (signal?.aborted) break;
         accumulatedContent += chunk;
         patchMessage(assistantMsgId, { content: accumulatedContent });
       }
@@ -244,6 +260,15 @@ export default function AIAssistant() {
         streaming: false,
       });
     } catch (_streamErr) {
+      // If the user aborted the request, keep partial content (if any) and
+      // silently finalize — no error banner needed for a user-initiated cancel.
+      if (signal?.aborted) {
+        patchMessage(assistantMsgId, {
+          content: accumulatedContent || "(cancelled)",
+          streaming: false,
+        });
+        return;
+      }
       console.warn("Streaming error, falling back to non-streaming:", _streamErr instanceof Error ? _streamErr.message : String(_streamErr));
       if (accumulatedContent) {
         // Partial content was already streamed — keep it.
@@ -253,7 +278,7 @@ export default function AIAssistant() {
       // No content from streaming — try non-streaming ONCE.
       // This is the ONLY fallback. No double API calls.
       try {
-        const result = await chatWithLLM(chatMessages);
+        const result = await chatWithLLM(chatMessages, undefined, signal);
         patchMessage(assistantMsgId, {
           content: result.content || "(empty response)",
           streaming: false,
@@ -272,6 +297,13 @@ export default function AIAssistant() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+
+    // Abort any in-flight request from a previous send.
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     // Check if a provider is configured
     const provider = getActiveProvider();
@@ -320,14 +352,14 @@ export default function AIAssistant() {
         },
       ]);
 
-      await streamResponse(chatMessages, assistantMsgId);
+      await streamResponse(chatMessages, assistantMsgId, controller.signal);
     } catch (err) {
       // This catch only fires if something OUTSIDE the streaming/fallback fails
       // (e.g., building the chat messages, creating the placeholder).
       // The streaming and fallback errors are already handled by the inner catch.
       // DO NOT add a new message here — that causes duplicate error messages.
       const errMsg = err instanceof Error ? err.message : "Unknown error";
-      notify("error", `Chat failed: ${errMsg}`);
+      notify("error", errMsg);
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);

@@ -407,7 +407,7 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
         notify("error", isRtl ? "فشل التحقق من صحة الشبكة" : "Grid failed validation checks");
       }
     } catch (err: any) {
-      notify("error", `Error: ${err.message}`);
+      notify("error", err.message || "Unknown error");
     } finally {
       setIsLoading(false);
     }
@@ -456,7 +456,7 @@ export default function GridEditor() {  // NOSONAR(S3776): main component render
         notify("error", isRtl ? "سريان الحمل لم يتقارب!" : "Load flow failed to converge!");
       }
     } catch (err: any) {
-      notify("error", `Error: ${err.message}`);
+      notify("error", err.message || "Unknown error");
     } finally {
       setIsLoading(false);
     }
