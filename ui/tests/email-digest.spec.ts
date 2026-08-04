@@ -262,8 +262,9 @@ test.describe("Email Digest page (TASK-6)", () => {
     await expect(resultCard.getByText("msg-digest-001")).toBeVisible(); // message_id
     await expect(resultCard.getByText("trace-gen-001")).toBeVisible(); // trace_id
 
-    // Success toast
-    await expect(page.getByText(/Digest sent to user@example\.com/)).toBeVisible({
+    // Success toast — i18n key adminPages.emailDigest.generate.success
+    // renders as "Digest generated for user@example.com (daily)."
+    await expect(page.getByText(/Digest generated for user@example\.com/)).toBeVisible({
       timeout: 5_000,
     });
   });
@@ -319,8 +320,9 @@ test.describe("Email Digest page (TASK-6)", () => {
     await expect(runResult.getByText("1").first()).toBeVisible(); // failed
     await expect(runResult.getByText("trace-run-001")).toBeVisible(); // trace_id
 
-    // Success toast
-    await expect(page.getByText(/Processed 8 recipient\(s\): 7 sent, 1 failed/)).toBeVisible({
+    // Success toast — i18n key adminPages.emailDigest.scheduleRun.success
+    // renders as "Schedule run complete: 7 sent, 1 failed."
+    await expect(page.getByText(/Schedule run complete: 7 sent, 1 failed/)).toBeVisible({
       timeout: 5_000,
     });
   });

@@ -234,5 +234,165 @@
     "errorPasswordsMismatch": "Passwords do not match",
     "errorPasswordLength": "Password must be at least 8 characters long",
     "errorRegisterFields": "Please fill in all required fields correctly"
+  },
+  "adminPages": {
+    "common": {
+      "result": "Result",
+      "success": "Success",
+      "failed": "Failed",
+      "verified": "Verified",
+      "message": "Message",
+      "error": "Error",
+      "traceId": "Trace ID",
+      "expiresIn": "Expires in",
+      "retryAfter": "Retry after",
+      "testToken": "Test token",
+      "testCode": "Test code",
+      "testMode": "test mode",
+      "emailAddress": "Email address",
+      "userId": "User ID",
+      "username": "Username",
+      "role": "Role",
+      "accessToken": "Access token",
+      "refreshToken": "Refresh token",
+      "invalidated": "Invalidated",
+      "user": "user",
+      "unknownError": "unknown error"
+    },
+    "magicLinks": {
+      "title": "Magic Links",
+      "subtitle": "Passwordless authentication via one-time-use email links (public request/verify · admin-only invalidate)",
+      "tabs": {
+        "request": "Request",
+        "verify": "Verify",
+        "invalidate": "Invalidate"
+      },
+      "request": {
+        "cardTitle": "Request Magic Link",
+        "cardSubtitle": "POST /request — public, always returns 200 (no enumeration)",
+        "help": "If the email exists, a magic link will be sent. Always returns 200 to prevent user enumeration.",
+        "submit": "Request Magic Link",
+        "resultSubtitle": "Response from POST /request",
+        "loading": "Sending magic link…",
+        "emptyTitle": "No request yet",
+        "emptyDescription": "Fill the email and submit to request a magic link.",
+        "success": "Magic link requested for {{email}}{{note}}",
+        "failed": "Request failed: {{error}}"
+      },
+      "verify": {
+        "cardTitle": "Verify Magic Link",
+        "cardSubtitle": "POST /verify — public, mints JWT on success",
+        "tokenLabel": "Magic-link token",
+        "tokenPlaceholder": "Paste the token from the magic-link URL (e.g. ?token=…)",
+        "help": "Tokens are 32-byte URL-safe random strings, valid for 15 minutes, single-use.",
+        "submit": "Verify Token",
+        "resultSubtitle": "Response from POST /verify",
+        "loading": "Verifying magic link…",
+        "emptyTitle": "No verification yet",
+        "emptyDescription": "Paste a token and submit to verify it.",
+        "success": "Magic link verified for {{email}}.",
+        "failed": "Verify failed: {{error}}"
+      },
+      "invalidate": {
+        "cardTitle": "Invalidate Pending Links",
+        "cardSubtitle": "POST /invalidate — requires JWT",
+        "help": "Requires JWT. All unused (pending) magic links for this email will be invalidated. Used links are unaffected.",
+        "submit": "Invalidate Pending Links",
+        "resultSubtitle": "Response from POST /invalidate",
+        "loading": "Invalidating…",
+        "emptyTitle": "No invalidation yet",
+        "emptyDescription": "Enter an email and submit to invalidate its pending links.",
+        "success": "Invalidated {{count}} pending magic link(s) for {{email}}.",
+        "failed": "Invalidate failed: {{error}}"
+      }
+    },
+    "mfa": {
+      "title": "MFA",
+      "subtitle": "Multi-factor authentication — TOTP setup, verify, and backup code recovery (all endpoints require JWT)",
+      "tabs": {
+        "setup": "Setup TOTP",
+        "verifyTotp": "Verify TOTP",
+        "verifyBackup": "Verify Backup"
+      },
+      "common": {
+        "valid": "valid",
+        "invalid": "invalid"
+      },
+      "setup": {
+        "cardTitle": "Setup TOTP",
+        "cardSubtitle": "POST /totp/setup — requires JWT, auto-enables MFA",
+        "description": "Generates a new TOTP secret for your account and returns a QR code URI. Scan it with your authenticator app (Google Authenticator, Authy, 1Password, etc.). Backup codes are also generated server-side (stored hashed, not exposed in the response).",
+        "warning": "This will overwrite any existing TOTP secret for your account. MFA is automatically enabled after setup (V-10 fix).",
+        "submit": "Generate TOTP Secret",
+        "resultSubtitle": "Response from POST /totp/setup",
+        "loading": "Generating TOTP secret…",
+        "emptyTitle": "No setup yet",
+        "emptyDescription": "Click the button to generate a TOTP secret and QR code.",
+        "success": "MFA setup complete — QR code generated. MFA auto-enabled on your account.",
+        "failed": "Setup failed: {{error}}",
+        "mfaEnabledBadge": "MFA enabled",
+        "qrUri": "QR URI",
+        "qrAriaLabel": "TOTP QR code — scan with your authenticator app to import the secret for {{account}}",
+        "thisAccount": "this account",
+        "scanHelp": "Scan with your authenticator app",
+        "errors": "Errors"
+      },
+      "verifyTotp": {
+        "cardTitle": "Verify TOTP Code",
+        "cardSubtitle": "POST /totp/verify — requires JWT, brute-force protected",
+        "codeLabel": "TOTP code",
+        "help": "6-digit code from your authenticator app. Codes are valid for 30 seconds and can only be used once (V-12 replay protection). 5 failed attempts trigger a 15-minute lockout.",
+        "submit": "Verify Code",
+        "resultSubtitle": "Response from POST /totp/verify",
+        "loading": "Verifying TOTP code…",
+        "emptyTitle": "No verification yet",
+        "emptyDescription": "Enter a code and submit to verify it.",
+        "success": "TOTP code verified successfully.",
+        "failed": "Verify failed: {{error}}"
+      },
+      "verifyBackup": {
+        "cardTitle": "Verify Backup Code",
+        "cardSubtitle": "POST /backup/verify — requires JWT, recovery flow",
+        "codeLabel": "Backup recovery code",
+        "help": "8-16 character backup code shown once during TOTP setup. Codes are SHA-256 hashed before comparison (V-9). Same brute-force lockout as TOTP applies.",
+        "submit": "Verify Backup Code",
+        "resultSubtitle": "Response from POST /backup/verify",
+        "loading": "Verifying backup code…",
+        "emptyTitle": "No verification yet",
+        "emptyDescription": "Enter a backup code and submit to verify it.",
+        "success": "Backup code verified successfully.",
+        "failed": "Verify failed: {{error}}"
+      }
+    },
+    "emailOtp": {
+      "send": {
+        "success": "OTP sent to {{email}}{{note}}",
+        "failed": "Send failed: {{error}}"
+      },
+      "verify": {
+        "success": "OTP verified for {{email}}.",
+        "failed": "Verify failed: {{error}}"
+      },
+      "invalidate": {
+        "success": "OTP invalidated for {{email}} ({{purpose}}).",
+        "failed": "Invalidate failed: {{error}}"
+      }
+    },
+    "emailDigest": {
+      "generate": {
+        "success": "Digest generated for {{email}} ({{period}}).",
+        "failed": "Generate failed: {{error}}"
+      },
+      "scheduleRun": {
+        "success": "Schedule run complete: {{sent}} sent, {{failed}} failed.",
+        "failed": "Schedule run failed: {{error}}"
+      },
+      "config": {
+        "loadFailed": "Failed to load config: {{error}}"
+      },
+      "preview": {
+        "loadFailed": "Failed to load preview: {{error}}"
+      }
+    }
   }
 }
