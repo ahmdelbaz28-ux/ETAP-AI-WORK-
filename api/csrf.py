@@ -61,6 +61,15 @@ _CSRF_HEADER = "x-csrf-token"
 # per-process random key.
 _SENTINEL_DEFAULT = "change-me-csrf-secret-in-production"
 
+# Development-only random secret, generated ONCE per process and cached.
+# SECURITY FIX (2026-08-06): previously `_get_secret()` generated a fresh
+# random key on every call, so `generate_csrf_token()` signed with secret A
+# while `validate_csrf_token()` recomputed with a new secret B — every
+# token was rejected as invalid, breaking all state-changing endpoints in
+# development (no CSRF_SECRET configured). Caching the key per-process
+# makes generation and validation use the same secret.
+_dev_random_secret: str = ""
+
 
 def _is_production_env() -> bool:
     """Return True when running in a production-like environment."""
@@ -99,15 +108,18 @@ def _get_secret() -> str:
         )
 
     # Development only: per-process random key (not stable across restarts,
-    # but at least not the publicly known placeholder).
-    import secrets as _secrets
+    # but at least not the publicly known placeholder). Generated once and
+    # cached so token generation and validation share the same secret.
+    global _dev_random_secret
+    if not _dev_random_secret:
+        import secrets as _secrets
 
-    random_secret = _secrets.token_hex(32)
-    logger.warning(
-        "CSRF_SECRET not set — generated per-process random key. "
-        "CSRF tokens will NOT survive a restart. Set CSRF_SECRET in production."
-    )
-    return random_secret
+        _dev_random_secret = _secrets.token_hex(32)
+        logger.warning(
+            "CSRF_SECRET not set — generated per-process random key. "
+            "CSRF tokens will NOT survive a restart. Set CSRF_SECRET in production."
+        )
+    return _dev_random_secret
 
 
 def generate_csrf_token() -> str:

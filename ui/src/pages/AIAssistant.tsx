@@ -13,7 +13,7 @@ import {
   Settings as SettingsIcon,
   Sparkles,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type ExtraProps } from "react-markdown";
 import { useNavigate } from "react-router";
 import remarkGfm from "remark-gfm";
