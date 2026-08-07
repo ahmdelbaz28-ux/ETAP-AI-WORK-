@@ -108,7 +108,11 @@ _MIN_WORKERS = int(os.environ.get("CELERY_MIN_WORKERS", "2"))
 _MAX_WORKERS = int(os.environ.get("CELERY_MAX_WORKERS", "8"))
 
 app.conf.update(
-    worker_autoscale=f"{_MAX_WORKERS},{_MIN_WORKERS}",
+    # Celery expects "min,max" — NOT "max,min".
+    # Previously this was inverted, causing autoscaler to start at the
+    # MAX and shrink to the MIN (the opposite of what users configured
+    # via CELERY_MIN_WORKERS / CELERY_MAX_WORKERS).
+    worker_autoscale=f"{_MIN_WORKERS},{_MAX_WORKERS}",
 )
 
 # ---------------------------------------------------------------------------
