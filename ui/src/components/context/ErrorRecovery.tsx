@@ -178,11 +178,14 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-[90] w-96 max-w-[calc(100vw-2rem)]",
+        "fixed bottom-4 left-4 z-[90] w-96 max-w-[calc(100vw-2rem)]",
         "bg-[var(--bg-secondary)] border border-red-500/30 rounded-xl shadow-xl shadow-red-500/10",
         "transition-all duration-300",
         expanded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none",
       )}
+      role="alertdialog"
+      aria-modal="false"
+      aria-label={help.title}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-primary)]">
@@ -197,13 +200,14 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
           type="button"
           onClick={onDismiss}
           className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"
+          aria-label="Dismiss error"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Body */}
-      <div className="px-4 py-3">
+      <div className="px-4 py-3" role="alert" aria-live="assertive" aria-atomic="true">
         <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{help.description}</p>
       </div>
 

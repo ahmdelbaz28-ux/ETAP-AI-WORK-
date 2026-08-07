@@ -55,8 +55,9 @@ export default function Register() {
         notify("error", t("auth.errorPasswordLength"));
         return;
       }
-      setLoading(true);
+      // Issue #9: Clear previous error BEFORE setting loading state.
       setAuthError(null);
+      setLoading(true);
       try {
         await register(email, password, name);
         notify(
@@ -67,6 +68,8 @@ export default function Register() {
         );
         navigate("/dashboard");
       } catch (err) {
+        // Issue #8: Ignore AbortError — request was cancelled.
+        if (err instanceof DOMException && err.name === "AbortError") return;
         const message = err instanceof Error ? err.message : "Unknown error";
         setAuthError(message);
         // Only use the inline error banner — NOT a toast. Dual error UI
