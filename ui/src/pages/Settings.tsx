@@ -30,6 +30,10 @@ import { testProviderConnection } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
+import AISettingsPanel from "../components/AISettingsPanel";
+import StorageManagement from "../components/StorageManagement";
+import NotificationSettings from "../components/NotificationSettings";
 import {
   type VisionKeyConfig,
   deleteVisionKey,
@@ -927,6 +931,26 @@ const TAB_SECTIONS: Record<
     label: "Vision API Keys",
     icon: <Eye className="w-4 h-4" />,
     sections: [],
+  },
+  engineeringEngine: {
+    label: "Engineering Engine",
+    icon: <Wrench className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — EngineeringEngineSettings
+  },
+  aiCopilot: {
+    label: "AI Copilot",
+    icon: <Bot className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — AISettingsPanel
+  },
+  storage: {
+    label: "Storage & Backup",
+    icon: <Database className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — StorageManagement
+  },
+  notifications: {
+    label: "Notifications",
+    icon: <Zap className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — NotificationSettings
   },
 };
 
@@ -2837,6 +2861,10 @@ export default function Settings() {
                 />
               );
             if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
+            if (activeTab === "engineeringEngine") return <EngineeringEngineSettings />;
+            if (activeTab === "aiCopilot") return <AISettingsPanel />;
+            if (activeTab === "storage") return <StorageManagement />;
+            if (activeTab === "notifications") return <NotificationSettings />;
             return (
               <>
                 {currentSections.map((section) => (

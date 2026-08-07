@@ -644,4 +644,291 @@ export async function deleteProject(projectId: string): Promise<void> {
   });
 }
 
+// ============ Solver Parameters API ============
+
+export interface SolverParameters {
+  convergence_tolerance: number;
+  max_iterations: number;
+  acceleration_factor: number;
+  zbus_calculation_enabled: boolean;
+  zbus_iteration_limit: number;
+  zbus_voltage_threshold: number;
+}
+
+export async function fetchSolverParameters(): Promise<SolverParameters> {
+  return request<SolverParameters>("/api/v1/studies/parameters");
+}
+
+export async function updateSolverParameters(
+  params: Partial<SolverParameters>,
+): Promise<SolverParameters> {
+  return request<SolverParameters>("/api/v1/studies/parameters", {
+    method: "PUT",
+    body: JSON.stringify(params),
+  });
+}
+
+// ============ Copilot Config API ============
+
+export interface CopilotConfig {
+  primary_model: string;
+  llm_temperature: number;
+  max_tokens: number;
+  fallback_chain: string[];
+  fallback_notification_enabled: boolean;
+}
+
+export async function fetchCopilotConfig(): Promise<CopilotConfig> {
+  return request<CopilotConfig>("/api/v1/copilot/config");
+}
+
+export async function updateCopilotConfig(
+  config: Partial<CopilotConfig>,
+): Promise<CopilotConfig> {
+  return request<CopilotConfig>("/api/v1/copilot/config", {
+    method: "PUT",
+    body: JSON.stringify(config),
+  });
+}
+
+// ============ Storage Management API ============
+
+export interface StorageMetrics {
+  total_size_bytes: number;
+  total_objects: number;
+  by_prefix: Record<string, { count: number; size_bytes: number }>;
+  retention_days: number;
+}
+
+export async function fetchStorageMetrics(): Promise<StorageMetrics> {
+  return request<StorageMetrics>("/api/v1/storage/metrics");
+}
+
+export async function purgeStorage(options?: {
+  prefix?: string;
+  older_than_days?: number;
+  dry_run?: boolean;
+  confirm?: boolean;
+}): Promise<{ deleted_count: number; freed_bytes: number; dry_run: boolean }> {
+  return request("/api/v1/storage/purge", {
+    method: "POST",
+    body: JSON.stringify(options ?? { dry_run: true }),
+  });
+}
+
+export async function clearCADArtifacts(): Promise<{
+  deleted_count: number;
+  freed_bytes: number;
+  dry_run: boolean;
+}> {
+  return request("/api/v1/storage/artifacts/cad", {
+    method: "DELETE",
+    body: JSON.stringify({ dry_run: false, confirm: true }),
+  });
+}
+
+// ============ Notification Config API ============
+
+export interface NotificationConfig {
+  digest: {
+    period: string;
+    schedule_time: string;
+    timezone: string;
+    enabled: boolean;
+  };
+  alerts: Array<{
+    alert_type: string;
+    enabled: boolean;
+    severity_threshold: string;
+  }>;
+  webhooks: Array<{
+    id: string;
+    url: string;
+    events: string[];
+    enabled: boolean;
+  }>;
+}
+
+export async function fetchNotificationConfig(): Promise<NotificationConfig> {
+  return request<NotificationConfig>("/api/v1/notifications/digest/config");
+}
+
+export async function updateNotificationConfig(
+  config: Partial<NotificationConfig>,
+): Promise<NotificationConfig> {
+  return request<NotificationConfig>("/api/v1/notifications/digest/config", {
+    method: "PUT",
+    body: JSON.stringify(config),
+  });
+}
+
+// ============ Autodesk Connector API ============
+
+export interface ConnectorStatus {
+  connector_type: string;
+  connected: boolean;
+  host: string;
+  port: number;
+  last_check: string | null;
+  error: string | null;
+}
+
+export interface ConnectorHealthResponse {
+  autocad_status: ConnectorStatus;
+  revit_status: ConnectorStatus;
+  overall_healthy: boolean;
+}
+
+export async function fetchConnectorHealth(): Promise<ConnectorHealthResponse> {
+  return request<ConnectorHealthResponse>("/api/v1/connectors/autodesk/status");
+}
+
+export async function testConnectorConnection(
+  connectorType: "autocad" | "revit",
+  timeoutSeconds = 5,
+): Promise<{ success: boolean; latency_ms: number; error: string | null; connector_type: string }> {
+  return request("/api/v1/connectors/autodesk/test-connection", {
+    method: "POST",
+    body: JSON.stringify({ connector_type: connectorType, timeout_seconds: timeoutSeconds }),
+  });
+}
+
+// ============ Audit Logs API ============
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  severity: string;
+  action: string;
+  user: string;
+  ip_address: string;
+  resource: string;
+  details: string;
+  trace_id: string;
+}
+
+export interface AuditLogListResponse {
+  entries: AuditLogEntry[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export async function fetchAuditLogs(params?: {
+  page?: number;
+  page_size?: number;
+  severity?: string;
+  action?: string;
+  user?: string;
+  search?: string;
+  start_date?: string;
+  end_date?: string;
+}): Promise<AuditLogListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined) searchParams.set(k, String(v));
+    });
+  }
+  const qs = searchParams.toString();
+  return request<AuditLogListResponse>(`/api/v1/security/audit-logs${qs ? `?${qs}` : ""}`);
+}
+
+// ============ Feature Flags API ============
+
+export interface FeatureFlag {
+  flag_id: string;
+  enabled: boolean;
+  status: string;
+  description: string;
+}
+
+export async function fetchFeatureFlags(): Promise<{
+  flags: FeatureFlag[];
+  total: number;
+  enabled_count: number;
+}> {
+  return request("/api/v1/feature-flags");
+}
+
+export async function updateFeatureFlag(
+  flagId: string,
+  update: { enabled?: boolean; status?: string; description?: string },
+): Promise<FeatureFlag> {
+  return request(`/api/v1/feature-flags/${encodeURIComponent(flagId)}`, {
+    method: "PUT",
+    body: JSON.stringify(update),
+  });
+}
+
+// ============ ZIP Load & Generator Config API ============
+
+export interface ZIPLoadConfig {
+  id: string;
+  name: string;
+  p0: number;
+  q0: number;
+  aZ: number;
+  aI: number;
+  aP: number;
+  bZ: number;
+  bI: number;
+  bP: number;
+  preset: string | null;
+}
+
+export interface ZIPPreset {
+  name: string;
+  aZ: number;
+  aI: number;
+  aP: number;
+  bZ: number;
+  bI: number;
+  bP: number;
+}
+
+export async function fetchZIPLoads(): Promise<{ loads: ZIPLoadConfig[] }> {
+  return request("/api/v1/equipment/zip-generators/zip-loads");
+}
+
+export async function fetchZIPPrests(): Promise<{ presets: ZIPPreset[] }> {
+  return request("/api/v1/equipment/zip-generators/zip-presets");
+}
+
+export async function createZIPLoad(
+  load: Omit<ZIPLoadConfig, "id">,
+): Promise<ZIPLoadConfig> {
+  return request("/api/v1/equipment/zip-generators/zip-loads", {
+    method: "POST",
+    body: JSON.stringify(load),
+  });
+}
+
+export async function updateZIPLoad(
+  loadId: string,
+  load: Partial<ZIPLoadConfig>,
+): Promise<ZIPLoadConfig> {
+  return request(`/api/v1/equipment/zip-generators/zip-loads/${encodeURIComponent(loadId)}`, {
+    method: "PUT",
+    body: JSON.stringify(load),
+  });
+}
+
+export async function deleteZIPLoad(loadId: string): Promise<void> {
+  await request(`/api/v1/equipment/zip-generators/zip-loads/${encodeURIComponent(loadId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function previewZIPLoad(
+  loadId: string,
+  voltage: number,
+): Promise<{ P: number; Q: number; voltage: number }> {
+  return request(`/api/v1/equipment/zip-generators/zip-loads/${encodeURIComponent(loadId)}/preview`, {
+    method: "POST",
+    body: JSON.stringify({ voltage }),
+  });
+}
+
 // ============ End of API client ============
