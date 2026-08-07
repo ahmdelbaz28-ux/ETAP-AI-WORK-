@@ -30,10 +30,7 @@ const MAX_RETRIES = 3;
 /**
  * Submit a study job to the queue for async processing.
  */
-export async function submitStudyJob(
-  env: Env,
-  message: StudyJobMessage
-): Promise<void> {
+export async function submitStudyJob(env: Env, message: StudyJobMessage): Promise<void> {
   if (!env.STUDY_QUEUE) {
     throw new Error('STUDY_QUEUE is not configured');
   }
@@ -43,10 +40,7 @@ export async function submitStudyJob(
 /**
  * Queue consumer handler for async study execution.
  */
-export async function handleStudyQueueMessage(
-  message: StudyJobMessage,
-  env: Env
-): Promise<void> {
+export async function handleStudyQueueMessage(message: StudyJobMessage, env: Env): Promise<void> {
   const { taskId, studyType, parameters, traceId, retryCount } = message;
 
   // Update task status to running

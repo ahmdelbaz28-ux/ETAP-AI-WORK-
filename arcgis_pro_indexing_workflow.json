@@ -42,13 +42,13 @@
         "doc_type": "document",
         "mappings": {
           "properties": {
-            "title": {"type": "text"},
-            "url": {"type": "keyword"},
-            "content": {"type": "text"},
-            "level": {"type": "integer"},
-            "parent": {"type": "keyword"},
-            "license_required": {"type": "text"},
-            "embedding_vector": {"type": "dense_vector", "dims": 768}
+            "title": { "type": "text" },
+            "url": { "type": "keyword" },
+            "content": { "type": "text" },
+            "level": { "type": "integer" },
+            "parent": { "type": "keyword" },
+            "license_required": { "type": "text" },
+            "embedding_vector": { "type": "dense_vector", "dims": 768 }
           }
         }
       }

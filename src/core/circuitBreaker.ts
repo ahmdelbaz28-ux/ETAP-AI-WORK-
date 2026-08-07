@@ -54,7 +54,7 @@ export async function loadCircuitBreakers(env: Env): Promise<void> {
   try {
     const list = await env.METRICS_KV.list({ prefix: 'circuit:' });
     for (const key of list.keys) {
-      const raw = await env.METRICS_KV.get(key.name, { type: 'json' }) as BreakerState | null;
+      const raw = (await env.METRICS_KV.get(key.name, { type: 'json' })) as BreakerState | null;
       if (raw) {
         const name = key.name.replaceAll('circuit:', '');
         _breakers.set(name, raw);
@@ -67,10 +67,16 @@ export async function loadCircuitBreakers(env: Env): Promise<void> {
 }
 
 /** Save a single breaker state to KV (best-effort). */
-async function _saveBreaker(env: Env | undefined, name: string, state: BreakerState): Promise<void> {
+async function _saveBreaker(
+  env: Env | undefined,
+  name: string,
+  state: BreakerState,
+): Promise<void> {
   if (!env?.METRICS_KV) return;
   try {
-    await env.METRICS_KV.put(_kvKey(name), JSON.stringify(state), { expirationTtl: 7 * 24 * 60 * 60 });
+    await env.METRICS_KV.put(_kvKey(name), JSON.stringify(state), {
+      expirationTtl: 7 * 24 * 60 * 60,
+    });
   } catch {
     // silent
   }
