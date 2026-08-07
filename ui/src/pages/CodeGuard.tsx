@@ -127,7 +127,8 @@ export default function CodeGuard() {
                         ? "bg-purple-500 text-white"
                         : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
-                   type="button">
+                    type="button"
+                  >
                     <Icon className="w-3.5 h-3.5" />
                     {label}
                   </button>
@@ -148,7 +149,8 @@ export default function CodeGuard() {
               onClick={handleReview}
               disabled={loading || !source.trim()}
               className="flex items-center gap-2 px-6 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-             type="button">
+              type="button"
+            >
               <Send className="w-4 h-4" />
               {loading ? "Scanning..." : "Run Guard Review"}
             </button>

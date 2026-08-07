@@ -34,10 +34,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 
 // Resolve a study status code into a localized user-facing message.
 // Extracted to a helper to avoid nested ternaries inline.
-function getStudyStatusMessage(
-  status: string,
-  t: (key: string) => string,
-): string {
+function getStudyStatusMessage(status: string, t: (key: string) => string): string {
   if (status === "dry_run") return t("studyRun.dryRunCompleted");
   if (status === "completed") return t("studyRun.completed");
   return `${t("studyRun.failed")}: ${status}`;
@@ -46,7 +43,10 @@ function getStudyStatusMessage(
 // Select options for study parameters (extracted from StudyRun to reduce
 // its cognitive complexity — the chain of conditional option groups now
 // lives in a flat lookup map instead of 6 nested conditions).
-const STUDY_SELECT_OPTIONS: Record<string, ReadonlyArray<{ readonly value: string; readonly label: string }>> = {
+const STUDY_SELECT_OPTIONS: Record<
+  string,
+  ReadonlyArray<{ readonly value: string; readonly label: string }>
+> = {
   method: [
     { value: "newton-raphson", label: "Newton-Raphson" },
     { value: "gauss-seidel", label: "Gauss-Seidel" },
@@ -78,7 +78,9 @@ function renderSelectOptions(paramName: string, defaultValue: unknown): React.Re
   const options = STUDY_SELECT_OPTIONS[paramName];
   if (options) {
     return options.map((o) => (
-      <option key={o.value} value={o.value}>{o.label}</option>
+      <option key={o.value} value={o.value}>
+        {o.label}
+      </option>
     ));
   }
   // Fallback for unknown select params: show the default value as the only option
@@ -97,7 +99,14 @@ function OneLineDiagram() {
           Simplified View
         </Badge>
       </div>
-      <svg viewBox="0 0 600 300" className="w-full h-auto" style={{ minHeight: 200 }}>
+      <svg
+        viewBox="0 0 600 300"
+        className="w-full h-auto"
+        style={{ minHeight: 200 }}
+        role="img"
+        aria-label="Study diagram"
+      >
+        <title>Study diagram</title>
         {/* Grid */}
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -315,7 +324,8 @@ function ResultSummary({ result }: { readonly result: Record<string, unknown> })
   );
 }
 
-export default function StudyRun() {  // NOSONAR(S3776): Study run page — complexity from polling state machine + multi-step form; decomposition tracked as separate refactor
+export default function StudyRun() {
+  // NOSONAR(S3776): Study run page — complexity from polling state machine + multi-step form; decomposition tracked as separate refactor
   const { studyType } = useParams<{ studyType: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -335,7 +345,8 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
         <button
           onClick={() => navigate("/studies")}
           className="mt-3 text-brand-400 hover:underline text-sm"
-         type="button">
+          type="button"
+        >
           &larr; {t("studyRun.backToStudies")}
         </button>
       </div>
@@ -357,7 +368,8 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
     try {
       const res = await runStudy(studyType, params, dryRun);
       setResult(res as unknown as Record<string, unknown> | null);
-      const notifyType = res.status === "dry_run" || res.status === "completed" ? "success" : "error";
+      const notifyType =
+        res.status === "dry_run" || res.status === "completed" ? "success" : "error";
       const notifyMsg = getStudyStatusMessage(res.status, t);
       notify(notifyType, notifyMsg);
     } catch (err) {
@@ -420,9 +432,9 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
             <div className="grid grid-cols-1 gap-4">
               {category.params.map((p) => (
                 <div key={p.name}>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
+                  <span className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
                     {p.label || p.name.replaceAll("_", " ")}
-                  </label>
+                  </span>
                   {p.type === "select" ? (
                     <select
                       name={p.name}
@@ -500,10 +512,14 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
                           <span
                             className={cn(
                               "w-1.5 h-1.5 rounded-full",
-                              (result.data as Record<string, unknown>).risk_score === "low" && "bg-green-400",
-                              (result.data as Record<string, unknown>).risk_score === "medium" && "bg-yellow-400",
-                              (result.data as Record<string, unknown>).risk_score === "high" && "bg-orange-400",
-                              (result.data as Record<string, unknown>).risk_score === "critical" && "bg-red-400",
+                              (result.data as Record<string, unknown>).risk_score === "low" &&
+                                "bg-green-400",
+                              (result.data as Record<string, unknown>).risk_score === "medium" &&
+                                "bg-yellow-400",
+                              (result.data as Record<string, unknown>).risk_score === "high" &&
+                                "bg-orange-400",
+                              (result.data as Record<string, unknown>).risk_score === "critical" &&
+                                "bg-red-400",
                             )}
                           />
                           {(result.data as Record<string, unknown>).risk_score as string}
@@ -540,7 +556,8 @@ export default function StudyRun() {  // NOSONAR(S3776): Study run page — comp
                       <button
                         onClick={() => setShowFullResult(!showFullResult)}
                         className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                       type="button">
+                        type="button"
+                      >
                         {showFullResult ? (
                           <ChevronUp className="w-4 h-4" />
                         ) : (

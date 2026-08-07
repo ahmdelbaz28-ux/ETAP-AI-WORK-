@@ -64,9 +64,11 @@ export default function Studies() {
   const [disabledStudies, setDisabledStudies] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetchStudyTypes().then((data) => {
-      setDisabledStudies(new Set((data.disabled_studies || []).map((d) => d.study_type)));
-    }).catch(() => {});
+    fetchStudyTypes()
+      .then((data) => {
+        setDisabledStudies(new Set((data.disabled_studies || []).map((d) => d.study_type)));
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -90,7 +92,8 @@ export default function Studies() {
         {studyCategories.map((s, index) => {
           const isDisabled = disabledStudies.has(s.id);
           const LucideIcon = studyIconMap[s.lucideIcon] || Zap;
-          const iconBgColor = categoryIconBgColors[s.id] || "bg-brand-500/10 border-brand-500/20 text-brand-400";
+          const iconBgColor =
+            categoryIconBgColors[s.id] || "bg-brand-500/10 border-brand-500/20 text-brand-400";
 
           return (
             <motion.div

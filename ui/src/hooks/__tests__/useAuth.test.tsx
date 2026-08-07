@@ -19,7 +19,8 @@ vi.stubGlobal("fetch", mockFetch);
 function toError(e: unknown): Error {
   if (e instanceof Error) return e;
   if (typeof e === "object" && e !== null) return new Error(JSON.stringify(e));
-  if (typeof e === "string" || typeof e === "number" || typeof e === "boolean") return new Error(String(e));
+  if (typeof e === "string" || typeof e === "number" || typeof e === "boolean")
+    return new Error(String(e));
   return new Error(`Unknown error (${typeof e})`);
 }
 
@@ -104,14 +105,14 @@ describe("useAuth", () => {
     });
 
     await act(async () => {
-      await result.current.login("engineer@etap.com", "test-password-123");  // NOSONAR — S2068: test credentials, not a real password
+      await result.current.login("engineer@etap.com", "test-password-123"); // NOSONAR — S2068: test credentials, not a real password
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }),  // NOSONAR — S2068: test-only credential
+        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }), // NOSONAR — S2068: test-only credential
       }),
     );
 

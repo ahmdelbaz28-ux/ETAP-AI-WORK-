@@ -244,7 +244,8 @@ export function OnboardingTour() {
             onClick={handleSkip}
             aria-label="Close tour"
             className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
-           type="button">
+            type="button"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -302,7 +303,8 @@ export function OnboardingTour() {
           <button
             onClick={handleSkip}
             className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors px-2 py-1.5 -ml-2"
-           type="button">
+            type="button"
+          >
             Skip tour
           </button>
 
@@ -311,7 +313,8 @@ export function OnboardingTour() {
               <button
                 onClick={handlePrev}
                 className="flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-               type="button">
+                type="button"
+              >
                 <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} />
                 Back
               </button>
@@ -325,7 +328,8 @@ export function OnboardingTour() {
                   ? "bg-green-600 hover:bg-green-500 text-white shadow-green-900/30"
                   : "bg-[var(--accent-primary)] hover:brightness-110 text-black shadow-cyan-900/30",
               )}
-             type="button">
+              type="button"
+            >
               {isLast ? "Get Started" : "Next"}
               {isLast ? (
                 <CheckCircle className="w-4 h-4" strokeWidth={2.5} />

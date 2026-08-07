@@ -280,7 +280,7 @@ export default function Administration() {
                       { count: number; avgMs: number; failureRate: number }
                     >,
                   ).map(([name, p]) => {
-                    let latencyColor;
+                    let latencyColor: string;
                     if (p.avgMs < 500) latencyColor = "bg-green-500";
                     else if (p.avgMs < 1000) latencyColor = "bg-amber-500";
                     else latencyColor = "bg-red-500";

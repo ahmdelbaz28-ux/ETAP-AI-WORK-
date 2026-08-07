@@ -90,14 +90,14 @@ export function Modal({
               )}
               {subtitle && <p className="text-sm text-[var(--text-tertiary)] mt-0.5">{subtitle}</p>}
             </div>
-<button
-               onClick={onClose}
-               className="p-2 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-               aria-label="Close"
-               type="button"
-             >
-               <X className="w-5 h-5" />
-             </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+              aria-label="Close"
+              type="button"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         )}
 

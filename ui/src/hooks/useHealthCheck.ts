@@ -10,7 +10,7 @@ export interface TelemetryState {
   backendVersion: string | null;
 }
 
-export function useHealthCheck(pollIntervalMs: number = 5000) {
+export function useHealthCheck(pollIntervalMs = 5000) {
   const [telemetry, setTelemetry] = useState<TelemetryState>({
     serverStatus: "checking",
     latency: null,

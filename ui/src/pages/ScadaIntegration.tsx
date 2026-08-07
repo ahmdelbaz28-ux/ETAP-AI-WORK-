@@ -162,7 +162,8 @@ async function testScadaConnection(
   );
 }
 
-export default function ScadaIntegration() {  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
+export default function ScadaIntegration() {
+  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
@@ -245,7 +246,15 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
 
   // REST API connection probe (delegated to module-scope helper)
   const testConnection = () =>
-    testScadaConnection(apiKey, isRtl, notify, addLog, setConnectionStatus, setLatency, setTelemetryPoints);
+    testScadaConnection(
+      apiKey,
+      isRtl,
+      notify,
+      addLog,
+      setConnectionStatus,
+      setLatency,
+      setTelemetryPoints,
+    );
 
   // Start / Stop Live Telemetry sync
   const toggleLiveSync = () => {
@@ -491,7 +500,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
       {isSimulation && (
         <div className="w-full bg-red-600/90 border-2 border-red-400 rounded-lg px-4 py-3 text-center shadow-lg shadow-red-600/30">
           <p className="text-white font-bold text-sm uppercase tracking-widest">
-            {isRtl ? "⚠️ بيانات محاكاة — ليست بيانات حقيقية من النظام" : "⚠️ SIMULATED DATA — NOT REAL PRODUCTION TELEMETRY"}
+            {isRtl
+              ? "⚠️ بيانات محاكاة — ليست بيانات حقيقية من النظام"
+              : "⚠️ SIMULATED DATA — NOT REAL PRODUCTION TELEMETRY"}
           </p>
           <p className="text-red-100 text-[10px] mt-0.5">
             {isRtl
@@ -514,9 +525,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
 
             <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[var(--text-tertiary)] mb-1">
+                <span className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "رابط خادم زينون (Zenon URL)" : "Zenon Server URL"}
-                </label>
+                </span>
                 <input
                   type="text"
                   value={scadaUrl}
@@ -526,9 +537,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
               </div>
 
               <div>
-                <label className="block text-[var(--text-tertiary)] mb-1">
+                <span className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "مفتاح واجهة برمجة التطبيقات (API Key)" : "SCADA API Key / Token"}
-                </label>
+                </span>
                 <input
                   type="password"
                   value={apiKey}
@@ -540,9 +551,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[var(--text-tertiary)] mb-1">
+                  <span className="block text-[var(--text-tertiary)] mb-1">
                     {isRtl ? "اسم مشروع زينون" : "Project Name"}
-                  </label>
+                  </span>
                   <input
                     type="text"
                     value={projectName}
@@ -551,9 +562,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
                   />
                 </div>
                 <div>
-                  <label className="block text-[var(--text-tertiary)] mb-1">
+                  <span className="block text-[var(--text-tertiary)] mb-1">
                     {isRtl ? "معدل التحديث (ثانية)" : "Sync Rate (sec)"}
-                  </label>
+                  </span>
                   <input
                     type="number"
                     value={syncInterval}
@@ -732,7 +743,8 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
                 <button
                   className="text-[10px] text-blue-400 hover:underline"
                   onClick={() => setLogs([])}
-                 type="button">
+                  type="button"
+                >
                   {isRtl ? "تفريغ" : "Clear"}
                 </button>
               </div>

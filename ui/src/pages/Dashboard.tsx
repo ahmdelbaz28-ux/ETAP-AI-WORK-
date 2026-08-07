@@ -41,10 +41,10 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 const mulberry32 = (seed: number): (() => number) => {
   let s = Math.trunc(seed);
   return () => {
-    s = Math.trunc(s + 0x6D2B79F5);
-    let t = Math.imul(s ^ s >>> 15, 1 | s);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    s = Math.trunc(s + 0x6d2b79f5);
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 };
 
@@ -129,9 +129,18 @@ interface ReadonlyStatCardProps {
   readonly sparklineData?: number[];
   readonly onClick?: () => void;
 }
-type StatCardProps = Readonly<ReadonlyStatCardProps>
+type StatCardProps = Readonly<ReadonlyStatCardProps>;
 
-function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineData, onClick }: StatCardProps) {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sublabel,
+  color,
+  trend,
+  sparklineData,
+  onClick,
+}: StatCardProps) {
   const colorMap = {
     green: "bg-green-500/10 text-green-400 border-green-500/20",
     blue: "bg-brand-500/10 text-brand-400 border-brand-500/20",
@@ -166,11 +175,17 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineD
       className={cn(
         "stat-card-enhanced stat-accent-line bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] overflow-hidden",
         "transition-all duration-200 group relative card-shimmer-hover",
-        onClick && "cursor-pointer hover:border-[var(--accent-primary)]/20 hover:shadow-[var(--shadow-lg)] hover:transform hover:-translate-y-1",
+        onClick &&
+          "cursor-pointer hover:border-[var(--accent-primary)]/20 hover:shadow-[var(--shadow-lg)] hover:transform hover:-translate-y-1",
       )}
     >
       {/* Subtle top accent glow */}
-      <div className={cn("absolute top-0 left-0 right-0 h-[2px] opacity-60 bg-gradient-to-r", iconBgColors[color])} />
+      <div
+        className={cn(
+          "absolute top-0 left-0 right-0 h-[2px] opacity-60 bg-gradient-to-r",
+          iconBgColors[color],
+        )}
+      />
 
       <div className="p-5">
         <div className="flex items-start justify-between mb-2">
@@ -198,9 +213,7 @@ function StatCard({ icon: Icon, label, value, sublabel, color, trend, sparklineD
             {value}
           </p>
           <p className="text-sm text-[var(--text-tertiary)] mt-0.5">{label}</p>
-          {sublabel && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">{sublabel}</p>
-          )}
+          {sublabel && <p className="text-xs text-[var(--text-muted)] mt-0.5">{sublabel}</p>}
         </div>
 
         {/* Sparkline mini-chart */}
@@ -232,7 +245,12 @@ function MiniGauge({
   value,
   max,
   color,
-}: { readonly label: string; readonly value: number; readonly max: number; readonly color: string }) {
+}: {
+  readonly label: string;
+  readonly value: number;
+  readonly max: number;
+  readonly color: string;
+}) {
   const pct = Math.round((value / max) * 100);
   return (
     <motion.div
@@ -242,7 +260,13 @@ function MiniGauge({
       className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-[var(--bg-elevated)]/50 transition-colors"
     >
       <div className="relative w-12 h-12">
-        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+        <svg
+          className="w-12 h-12 -rotate-90"
+          viewBox="0 0 36 36"
+          role="img"
+          aria-label={`${label} gauge: ${pct}%`}
+        >
+          <title>{`${label}: ${pct}%`}</title>
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
@@ -277,11 +301,7 @@ function getGaugeColor(value: number): string {
 
 function DashboardSkeleton() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
@@ -297,7 +317,10 @@ function DashboardSkeleton() {
       {/* Stat cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {["skel-stat-0", "skel-stat-1", "skel-stat-2", "skel-stat-3"].map((key) => (
-          <div key={key} className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]">
+          <div
+            key={key}
+            className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3 border border-[var(--border-primary)]"
+          >
             <div className="w-10 h-10 skeleton rounded-lg" />
             <div className="space-y-2">
               <div className="h-8 w-20 skeleton rounded" />
@@ -311,7 +334,10 @@ function DashboardSkeleton() {
       {/* Charts skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {["skel-chart-0", "skel-chart-1"].map((key) => (
-          <div key={key} className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]">
+          <div
+            key={key}
+            className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-primary)]"
+          >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 skeleton rounded-lg" />
               <div className="space-y-1.5">
@@ -370,7 +396,10 @@ export default function Dashboard() {
       className="space-y-6"
     >
       {/* ─── Page Header ─────────────────────────────────────────────── */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between flex-wrap gap-3">
+      <motion.div
+        variants={itemVariants}
+        className="flex items-center justify-between flex-wrap gap-3"
+      >
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t("dashboard.title")}</h2>
           <div className="flex items-center gap-2 mt-0.5">
@@ -496,7 +525,8 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/studies")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                 type="button">
+                  type="button"
+                >
                   View All <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -564,7 +594,8 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/studies")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                 type="button">
+                  type="button"
+                >
                   {t("dashboard.viewAll")} <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -575,7 +606,8 @@ export default function Dashboard() {
                   key={s.id}
                   onClick={() => navigate(`/studies/${s.id}`)}
                   className="flex items-center gap-2 px-3 py-2.5 text-sm text-left rounded-lg bg-[var(--bg-elevated)] hover:bg-brand-600/20 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all group border border-transparent hover:border-brand-500/30"
-                 type="button">
+                  type="button"
+                >
                   <span className="text-lg shrink-0">{s.icon}</span>
                   <span className="text-xs font-medium leading-tight line-clamp-2">{s.name}</span>
                 </button>
@@ -594,7 +626,8 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate("/assistant")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
-                 type="button">
+                  type="button"
+                >
                   {t("dashboard.viewAll")} <ArrowRight className="w-3 h-3" />
                 </button>
               }
@@ -606,7 +639,8 @@ export default function Dashboard() {
                     key={agent.id}
                     onClick={() => navigate("/assistant")}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors text-left group"
-                   type="button">
+                    type="button"
+                  >
                     <div className="p-1.5 rounded-md bg-brand-500/10 shrink-0">
                       <Bot className="w-4 h-4 text-brand-400" />
                     </div>

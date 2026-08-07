@@ -290,7 +290,8 @@ export default function DataImport() {
                   onClick={() => setResult(null)}
                   className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
                   aria-label="Dismiss"
-                 type="button">
+                  type="button"
+                >
                   <X className="w-4 h-4" />
                 </button>
               }
