@@ -19,7 +19,8 @@ vi.stubGlobal("fetch", mockFetch);
 function toError(e: unknown): Error {
   if (e instanceof Error) return e;
   if (typeof e === "object" && e !== null) return new Error(JSON.stringify(e));
-  if (typeof e === "string" || typeof e === "number" || typeof e === "boolean") return new Error(String(e));
+  if (typeof e === "string" || typeof e === "number" || typeof e === "boolean")
+    return new Error(String(e));
   return new Error(`Unknown error (${typeof e})`);
 }
 
@@ -47,7 +48,7 @@ function createWrapper() {
 describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    sessionStorage.clear();
     // Default: no token, so no validate call needed
     mockFetch.mockResolvedValue(
       mockResponse({
@@ -104,19 +105,19 @@ describe("useAuth", () => {
     });
 
     await act(async () => {
-      await result.current.login("engineer@etap.com", "test-password-123");  // NOSONAR — S2068: test credentials, not a real password
+      await result.current.login("engineer@etap.com", "test-password-123"); // NOSONAR — S2068: test credentials, not a real password
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }),  // NOSONAR — S2068: test-only credential
+        body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }), // NOSONAR — S2068: test-only credential
       }),
     );
 
-    expect(localStorage.getItem("authToken")).toBe("test-access-token");
-    expect(localStorage.getItem("refreshToken")).toBe("test-refresh-token");
+    expect(sessionStorage.getItem("authToken")).toBe("test-access-token");
+    expect(sessionStorage.getItem("refreshToken")).toBe("test-refresh-token");
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.isAuthenticated).toBe(true);
   });
@@ -177,12 +178,12 @@ describe("useAuth", () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
-    expect(localStorage.getItem("authToken")).toBeNull();
-    expect(localStorage.getItem("refreshToken")).toBeNull();
+    expect(sessionStorage.getItem("authToken")).toBeNull();
+    expect(sessionStorage.getItem("refreshToken")).toBeNull();
   });
 
   it("validates existing token on mount and sets user", async () => {
-    localStorage.setItem("authToken", "existing-token");
+    sessionStorage.setItem("authToken", "existing-token");
     const mockUser = { id: "2", email: "existing@etap.com", name: "Existing User", role: "user" };
     mockFetch.mockResolvedValueOnce(
       mockResponse({
@@ -211,7 +212,7 @@ describe("useAuth", () => {
   });
 
   it("removes invalid token on mount", async () => {
-    localStorage.setItem("authToken", "invalid-token");
+    sessionStorage.setItem("authToken", "invalid-token");
     mockFetch.mockResolvedValueOnce(
       mockResponse({
         ok: false,
@@ -226,13 +227,13 @@ describe("useAuth", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(localStorage.getItem("authToken")).toBeNull();
+    expect(sessionStorage.getItem("authToken")).toBeNull();
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
   });
 
   it("refreshes token successfully", async () => {
-    localStorage.setItem("refreshToken", "old-refresh-token");
+    sessionStorage.setItem("refreshToken", "old-refresh-token");
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -260,12 +261,12 @@ describe("useAuth", () => {
       }),
     );
 
-    expect(localStorage.getItem("authToken")).toBe("new-access-token");
+    expect(sessionStorage.getItem("authToken")).toBe("new-access-token");
   });
 
   it("logs out when refresh token fails", async () => {
-    localStorage.setItem("authToken", "old-token");
-    localStorage.setItem("refreshToken", "expired-refresh-token");
+    sessionStorage.setItem("authToken", "old-token");
+    sessionStorage.setItem("refreshToken", "expired-refresh-token");
 
     // Mount validation succeeds
     mockFetch.mockResolvedValueOnce(
