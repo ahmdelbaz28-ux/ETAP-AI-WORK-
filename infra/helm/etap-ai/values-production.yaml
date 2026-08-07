@@ -1,0 +1,139 @@
+# ==========================================================================
+# ETAP AI — PRODUCTION overrides.
+# Copy to my-values.yaml and edit before `helm upgrade --install`.
+# ==========================================================================
+
+global:
+  imageRegistry: "ghcr.io/"
+  imagePullSecrets:
+    - name: ghcr-pull-secret
+  storageClass: "premium-rwo"   # fast SSD for Postgres + Redis
+
+image:
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"               # pin to a real semver, NOT :latest
+
+# ---------- API ----------
+api:
+  replicaCount: 5              # start at 5 across 3 AZs
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 3           # 60% always available
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/rate-limit-burst: "200"
+      nginx.ingress.kubernetes.io/limit-connections: "50"
+    hosts:
+      - host: etap-ai.your-domain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: etap-ai-tls
+        hosts:
+          - etap-ai.your-domain.com
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: api
+
+# ---------- Worker ----------
+worker:
+  replicaCount: 4
+  terminationGracePeriodSeconds: 900   # 15 min for long-running studies
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 4
+    maxReplicas: 60
+    targetCPUUtilizationPercentage: 70
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/component: worker
+
+# ---------- Flower ----------
+flower:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: flower-basic-auth
+    hosts:
+      - host: flower.etap-ai.your-domain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: flower-tls
+        hosts:
+          - flower.etap-ai.your-domain.com
+
+# ---------- External services ----------
+redis:
+  url: "redis://etap-redis-cluster:6379/0"
+  existingSecret: "etap-redis-cluster"
+  existingSecretPasswordKey: "redis-password"
+
+database:
+  url: "postgresql://etap_user@etap-postgres-rw.etap:5432/etap_db"
+  existingSecret: "etap-postgres-app"
+  existingSecretUserKey: "username"
+  existingSecretPasswordKey: "password"
+
+env:
+  ENVIRONMENT: production
+  USE_ETAP: "true"
+  PRIVACY_MODE: "true"
+  LOG_LEVEL: "INFO"
+  PROMETHEUS_METRICS_ENABLED: "true"
+
+# ---------- Observability ----------
+observability:
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  tracing:
+    enabled: true
+    otlpEndpoint: "http://otel-collector.observability:4317"
+
+networkPolicy:
+  enabled: true
+  egressToInternet: true   # API needs to call external LLM providers

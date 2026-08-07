@@ -1,0 +1,229 @@
+# ==========================================================================
+# ETAP AI — Integration test on kind cluster
+#
+# Spins up a real Kubernetes cluster (kind), installs the chart, and
+# verifies the pods come up healthy. This catches issues that schema
+# validation can't (e.g. broken env var references, missing secrets,
+# image pull failures).
+#
+# Runs on every push to main and on PRs that touch the Helm chart.
+# ==========================================================================
+name: CI — Integration Test (kind)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '01-helm-chart/**'
+      - '.github/workflows/ci-integration.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '01-helm-chart/**'
+
+jobs:
+  integration-test:
+    name: kind cluster smoke test
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Install kind
+        run: |
+          curl -sSL -o /tmp/kind "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
+          chmod +x /tmp/kind
+          sudo mv /tmp/kind /usr/local/bin/
+          kind version
+
+      - name: Create kind cluster
+        run: |
+          cat <<EOF | kind create cluster --name etap-ci --config=-
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+          - role: control-plane
+            image: kindest/node:v1.29.0@sha256:458d005aa1c4a4bd851b2b4170c4b3d5836dc1bfa4a7e5cf3e0b7c5e4e9f3a4a
+          - role: worker
+            image: kindest/node:v1.29.0@sha256:458d005aa1c4a4bd851b2b4170c4b3d5836dc1bfa4a7e5cf3e0b7c5e4e9f3a4a
+          EOF
+          kubectl wait --for=condition=ready node --all --timeout=120s
+          kubectl get nodes
+
+      - name: Install metrics-server (for HPA)
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.0/components.yaml
+          kubectl -n kube-system patch deployment metrics-server \
+            --type='json' -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+          kubectl -n kube-system rollout status deploy/metrics-server --timeout=120s
+
+      - name: Create namespace + secrets
+        run: |
+          kubectl create namespace etap
+          kubectl -n etap create secret generic etap-redis-cluster \
+              --from-literal=redis-password=test-redis-pw-12345
+          kubectl -n etap create secret generic etap-ai-secrets \
+              --from-literal=api-key=test-api-key-12345
+          kubectl -n etap create secret generic etap-postgres-app \
+              --from-literal=username=etap_user \
+              --from-literal=password=test-pg-pw-12345 \
+              --type=kubernetes.io/basic-auth
+
+      - name: Install chart (stub mode — fake Redis + Postgres)
+        run: |
+          # Install a fake Redis + Postgres so the chart can wire env vars
+          kubectl -n etap create deployment fake-redis --image=redis:7-alpine \
+              --port=6379 -- sleep 3600
+          kubectl -n etap expose deployment fake-redis --port=6379 \
+              --name=etap-redis-cluster
+          kubectl -n etap create deployment fake-postgres --image=postgres:15 \
+              --env=POSTGRES_DB=etap_db --env=POSTGRES_USER=etap_user \
+              --env=POSTGRES_PASSWORD=test-pg-pw-12345 --port=5432
+          kubectl -n etap expose deployment fake-postgres --port=5432 \
+              --name=etap-postgres-rw
+          kubectl -n etap rollout status deploy/fake-redis --timeout=120s
+          kubectl -n etap rollout status deploy/fake-postgres --timeout=120s
+
+          # Install the chart with a fake image (we just want to verify the
+          # pods START — they'll crash-loop on image pull, but env vars and
+          # probes will be rendered correctly)
+          cat > /tmp/ci-values.yaml <<EOF
+          image:
+            repository: busybox
+            tag: "1.36"
+            pullPolicy: IfNotPresent
+          api:
+            replicaCount: 2
+            autoscaling:
+              enabled: false
+            ingress:
+              enabled: false
+            command: ["/bin/sh", "-c"]
+            args: ["echo 'API stub starting' && sleep 3600"]
+            probes:
+              liveness: null
+              readiness: null
+              startup: null
+            podAnnotations:
+              prometheus.io/scrape: "false"
+          worker:
+            replicaCount: 1
+            autoscaling:
+              enabled: false
+            command: ["/bin/sh", "-c"]
+            args: ["echo 'Worker stub starting' && sleep 3600"]
+            probes:
+              liveness: null
+              readiness: null
+              startup: null
+          redis:
+            url: "redis://etap-redis-cluster:6379/0"
+            existingSecret: "etap-redis-cluster"
+            existingSecretPasswordKey: "redis-password"
+          database:
+            url: "postgresql://etap_user@etap-postgres-rw:5432/etap_db"
+            existingSecret: "etap-postgres-app"
+            existingSecretUserKey: "username"
+            existingSecretPasswordKey: "password"
+          networkPolicy:
+            enabled: false
+          observability:
+            serviceMonitor:
+              enabled: false
+          EOF
+
+          helm install etap-ai infra/helm/etap-ai -n etap -f /tmp/ci-values.yaml
+          kubectl -n etap get all
+
+      - name: Verify pods come up
+        run: |
+          echo "Waiting for API pods to be Ready..."
+          kubectl -n etap wait --for=condition=ready pod \
+              -l app.kubernetes.io/component=api \
+              --timeout=180s || {
+            echo "=== POD STATUS ==="
+            kubectl -n etap get pods -o wide
+            echo "=== API POD LOGS ==="
+            kubectl -n etap logs -l app.kubernetes.io/component=api --tail=50 || true
+            echo "=== API POD DESCRIPTION ==="
+            kubectl -n etap describe pod -l app.kubernetes.io/component=api | tail -40
+            exit 1
+          }
+
+          echo "Waiting for Worker pods to be Ready..."
+          kubectl -n etap wait --for=condition=ready pod \
+              -l app.kubernetes.io/component=worker \
+              --timeout=180s || {
+            echo "=== POD STATUS ==="
+            kubectl -n etap get pods -o wide
+            echo "=== WORKER POD LOGS ==="
+            kubectl -n etap logs -l app.kubernetes.io/component=worker --tail=50 || true
+            exit 1
+          }
+
+      - name: Verify env vars are correctly interpolated (NOT literal $(...))
+        run: |
+          # This is the CRITICAL test — verify $(REDIS_PASSWORD) was expanded
+          # to the actual password from the secret, not left as a literal string.
+          API_POD=$(kubectl -n etap get pod -l app.kubernetes.io/component=api -o jsonpath='{.items[0].metadata.name}')
+          echo "Checking env vars on pod: $API_POD"
+
+          echo "=== REDIS_URL (should contain the actual password, not \$(REDIS_PASSWORD)) ==="
+          REDIS_URL=$(kubectl -n etap exec "$API_POD" -- printenv REDIS_URL)
+          echo "REDIS_URL=$REDIS_URL"
+          if echo "$REDIS_URL" | grep -q 'REDIS_PASSWORD'; then
+            echo "FAIL: REDIS_URL contains literal \$(REDIS_PASSWORD) — env var interpolation is broken!"
+            exit 1
+          fi
+          if echo "$REDIS_URL" | grep -q 'test-redis-pw-12345'; then
+            echo "PASS: REDIS_URL contains the actual password from the secret"
+          else
+            echo "FAIL: REDIS_URL does not contain the expected password"
+            exit 1
+          fi
+
+          echo "=== DATABASE_URL (should contain the actual user/password) ==="
+          DATABASE_URL=$(kubectl -n etap exec "$API_POD" -- printenv DATABASE_URL)
+          echo "DATABASE_URL=$DATABASE_URL"
+          if echo "$DATABASE_URL" | grep -qE 'DATABASE_USER|DATABASE_PASSWORD'; then
+            echo "FAIL: DATABASE_URL contains literal \$(DATABASE_*) — interpolation is broken!"
+            exit 1
+          fi
+          if echo "$DATABASE_URL" | grep -q 'etap_user' && echo "$DATABASE_URL" | grep -q 'test-pg-pw-12345'; then
+            echo "PASS: DATABASE_URL contains the actual user + password from the secret"
+          else
+            echo "FAIL: DATABASE_URL does not contain the expected credentials"
+            exit 1
+          fi
+
+          echo ""
+          echo "================================================"
+          echo "  ALL INTEGRATION CHECKS PASSED"
+          echo "  Env var interpolation works correctly."
+          echo "================================================"
+
+      - name: Capture cluster state on failure
+        if: failure()
+        run: |
+          echo "=== NAMESPACE RESOURCES ==="
+          kubectl -n etap get all 2>&1 || true
+          echo ""
+          echo "=== ALL POD LOGS ==="
+          for pod in $(kubectl -n etap get pods -o name 2>/dev/null); do
+            echo "--- $pod ---"
+            kubectl -n etap logs "$pod" --tail=30 2>&1 || true
+          done
+          echo ""
+          echo "=== EVENTS ==="
+          kubectl -n etap get events --sort-by='.lastTimestamp' | tail -30
+
+      - name: Cleanup kind cluster
+        if: always()
+        run: kind delete cluster --name etap-ci

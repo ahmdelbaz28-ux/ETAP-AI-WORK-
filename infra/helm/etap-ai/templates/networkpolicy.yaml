@@ -1,0 +1,140 @@
+{{- if .Values.networkPolicy.enabled -}}
+{{- $fullName := include "etap-ai.fullname" . -}}
+# ---------- Default-deny ingress into the namespace ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullName }}-default-deny-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress: []
+---
+# ---------- Allow ingress-controller -> API ----------
+{{- if .Values.networkPolicy.ingressFromIngress }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullName }}-api-allow-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: {{ .Values.api.service.targetPort }}
+    # Also allow Prometheus scrape
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - protocol: TCP
+          port: {{ .Values.api.service.targetPort }}
+{{- end }}
+---
+# ---------- Allow API -> Worker (Flower / metrics) ----------
+{{- if .Values.networkPolicy.ingressFromAPI }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullName }}-worker-allow-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: api
+{{- end }}
+---
+# ---------- Egress policy ----------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullName }}-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    {{- if .Values.networkPolicy.egressToDns }}
+    # DNS to kube-dns
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- end }}
+    {{- if .Values.networkPolicy.egressToRedis }}
+    # Redis Cluster
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis-cluster
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 16379   # cluster bus
+    {{- end }}
+    {{- if .Values.networkPolicy.egressToPostgres }}
+    # Postgres (CloudNativePG)
+    - to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: etap-postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- end }}
+    {{- if .Values.networkPolicy.egressToInternet }}
+    # Outbound internet (LLM providers, package downloads, etc.)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+    {{- end }}
+{{- end -}}

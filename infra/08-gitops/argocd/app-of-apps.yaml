@@ -1,0 +1,43 @@
+---
+# ArgoCD App-of-Apps — top-level Application that deploys all ETAP components.
+#
+# Apply once:
+#   kubectl apply -f 08-gitops/argocd/app-of-apps.yaml -n argocd
+#
+# Then ArgoCD will automatically create child Applications for each component
+# (Helm chart, Redis Cluster, Postgres HA, Velero, KEDA, Chaos Mesh) and
+# keep them in sync with this Git repo.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: etap-enterprise-root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+    targetRevision: main
+    path: 08-gitops/argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

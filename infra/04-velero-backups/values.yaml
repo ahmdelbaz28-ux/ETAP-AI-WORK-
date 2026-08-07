@@ -1,0 +1,119 @@
+# ==========================================================================
+# Velero — Kubernetes-native backup & restore.
+#
+# Install the Velero server with the AWS plugin. For other clouds
+# (Azure / GCP / vSphere) swap the plugin and credential secret accordingly.
+#
+# Prerequisites:
+#   - An S3-compatible bucket (e.g. `etap-velero-backups`)
+#   - IAM credentials with s3:GetObject / s3:PutObject / s3:DeleteObject
+#     on the bucket, plus ec2:CreateVolume / ec2:AttachVolume if using CSI
+#     snapshots for volume backups.
+#
+# Install:
+#   velero install \
+#       --provider aws \
+#       --plugins velero/velero-plugin-for-aws:v1.10.0 \
+#       --bucket etap-velero-backups \
+#       --backup-location-config region=us-east-1 \
+#       --snapshot-location-config region=us-east-1 \
+#       --secret-file ./credentials-velero \
+#       --use-restic             # for filesystem-level volume backups
+#                               # (set --use-volume-snapshots=false if you only want Restic)
+#       --namespace velero
+#
+# Or via Helm:
+#   helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+#   helm upgrade --install velero vmware-tanzu/velero \
+#       -n velero --create-namespace \
+#       -f 04-velero-backups/values.yaml
+# ==========================================================================
+
+configuration:
+  provider: aws
+  backupStorageLocation:
+    - name: default
+      provider: aws
+      bucket: etap-velero-backups
+      defaultRegion: us-east-1
+      config:
+        region: us-east-1
+        s3ForcePathStyle: false
+  volumeSnapshotLocation:
+    - name: default
+      provider: aws
+      config:
+        region: us-east-1
+
+credentials:
+  useSecret: true
+  secretContents:
+    cloud: |
+      [default]
+      aws_access_key_id = REPLACE_ME
+      aws_secret_access_key = REPLACE_ME
+
+# Enable Restic for filesystem-level backups of PVCs that don't support
+# CSI snapshots (or for cross-cloud portability). Velero >= 1.10 calls
+# this "node agent" — same mechanism, new name.
+deployNodeAgent: true
+nodeAgent:
+  podVolumePath: /var/lib/kubelet/pods
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# Snapshots
+snapshotsEnabled: true
+
+# Schedule + retention
+schedules:
+  daily-etap-namespace:
+    disabled: false
+    schedule: "0 2 * * *"     # 02:00 daily
+    template:
+      includedNamespaces:
+        - etap
+      ttl: "720h"              # 30 days
+      snapshotVolumes: true
+      includeClusterResources: false
+      labels:
+        schedule: daily
+        component: etap
+
+  weekly-full-cluster:
+    disabled: false
+    schedule: "0 1 * * 0"     # 01:00 every Sunday
+    template:
+      ttl: "8760h"            # 365 days
+      snapshotVolumes: true
+      includeClusterResources: true
+      includedNamespaces:
+        - etap
+        - etap-infra
+      labels:
+        schedule: weekly-full
+        component: etap
+
+# Resource limits for the Velero server pod
+resources:
+  requests:
+    cpu: 500m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+# Upgrade policy
+upgradeCRDs: true
+
+# Clean up old Velero CRDs on uninstall — DO NOT enable in production
+cleanUpCRDs: false
+
+# Strict mode — fail backups if PV snapshot fails
+# (default is to log a warning and continue with Restic-only backup)
+strictMode: true

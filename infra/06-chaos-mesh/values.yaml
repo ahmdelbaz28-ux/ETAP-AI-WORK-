@@ -1,0 +1,53 @@
+# ==========================================================================
+# Chaos Mesh — installation values.
+#
+# Install:
+#   helm repo add chaos-mesh https://charts.chaos-mesh.org
+#   helm upgrade --install chaos-mesh chaos-mesh/chaos-mesh \
+#       -n etap-infra --create-namespace \
+#       -f 06-chaos-mesh/values.yaml
+# ==========================================================================
+
+chaosDnsServer:
+  enabled: false    # disable if you don't need DNS-based network chaos
+
+# Allow chaos experiments to target the etap namespace only
+# (other namespaces are protected by default)
+controlledNamespaces: '["etap", "etap-infra"]'
+
+# CRDs
+crds:
+  create: true
+
+# Resource limits
+resources:
+  limits:   { cpu: 500m,  memory: 1Gi }
+  requests: { cpu: 100m,  memory: 256Mi }
+
+# Use the chaos-daemon as DaemonSet (default) — one per node
+chaosDaemon:
+  socketPath: /run/chaosdaemon/chaosdaemon.sock
+  runtime: containerd
+  socketPathOfContainerd: /run/containerd/containerd.sock
+
+# Dashboard — disable in production if you don't want a UI exposed
+chaosDashboard:
+  create: true
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+    host: chaos.etap-ai.example.com
+
+# Watch only specified namespaces
+controllerManager:
+  replicaCount: 2   # HA for the controller itself
+  leaderElection:
+    enabled: true
+
+# Webhook — required for the chaos-mesh operator to validate CRDs
+webhook:
+  FailurePolicy: Fail

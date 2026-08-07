@@ -1,0 +1,76 @@
+---
+# ==========================================================================
+# API ScaledObject — scale the FastAPI deployment on Prometheus metric
+# `http_requests_per_second`, falling back to CPU via the standard HPA.
+#
+# KEDA takes over the HPA it creates, so DISABLE the api.autoscaling.enabled
+# flag in your Helm values when you apply this ScaledObject. Otherwise both
+# KEDA and Helm will fight over the same Deployment.
+#
+#   helm upgrade etap-ai ./01-helm-chart/etap-ai -n etap \
+#       -f my-values.yaml \
+#       --set api.autoscaling.enabled=false \
+#       --set worker.autoscaling.enabled=false
+# ==========================================================================
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: etap-ai-api
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    app.kubernetes.io/component: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: etap-ai-api
+  minReplicaCount: 3
+  maxReplicaCount: 50
+  pollingInterval: 15          # seconds between metric polls
+  cooldownPeriod: 300          # seconds before scale-down can happen
+  idleReplicaCount: 3          # never go below this even if metric = 0
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: etap-ai-api-hpa
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 30
+            - type: Pods
+              value: 5
+              periodSeconds: 30
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 25
+              periodSeconds: 120
+  triggers:
+    # Primary: HTTP request rate from Prometheus (app must expose
+    # `http_requests_total` counter — FastAPI's prometheus_fastapi_instrumentator
+    # does this out of the box).
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.observability:9090
+        metricName: http_requests_per_second
+        threshold: "100"           # scale up by 1 pod per 100 req/s
+        query: |
+          sum(rate(http_requests_total{namespace="etap",job="etap-ai-api"}[1m]))
+
+    # Secondary: CPU utilization (so we still scale on CPU even if the
+    # Prometheus metric is unavailable).
+    - type: cpu
+      metadata:
+        type: Utilization
+        value: "70"
+
+    # Tertiary: memory utilization
+    - type: memory
+      metadata:
+        type: Utilization
+        value: "80"

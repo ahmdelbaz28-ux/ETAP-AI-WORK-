@@ -1,0 +1,145 @@
+---
+# ==========================================================================
+# Weekly Chaos Schedule — runs all experiments in sequence on Saturday 1 AM.
+#
+# This is a GAME DAY schedule. Apply this AFTER you've validated each
+# experiment individually during business hours. Once you're confident
+# the system survives each failure mode, this schedule automates the
+# weekly resilience test.
+#
+# Each experiment has its own cron schedule (per-experiment files). This
+# Workflow runs them in sequence as a single orchestrated game day, with
+# a 60-second pause between experiments for the system to stabilize.
+#
+# Prerequisite: install the Chaos Mesh Workflow CRD (included by default
+# in the chaos-mesh Helm chart).
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: weekly-game-day
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/workflow: game-day
+spec:
+  entry: game-day
+  templates:
+    - name: game-day
+      templateType: Serial
+      children:
+        - api-pod-kill-step
+        - worker-pod-kill-step
+        - redis-latency-step
+        - postgres-network-loss-step
+        - api-cpu-stress-step
+        - cleanup-step
+
+    - name: api-pod-kill-step
+      templateType: Chaos
+      chaosTemplate:
+        apiVersion: chaos-mesh.org/v1alpha1
+        kind: PodChaos
+        spec:
+          action: pod-kill
+          mode: one
+          selector:
+            namespaces: [etap]
+            labelSelectors:
+              "app.kubernetes.io/component": api
+          duration: "30s"
+
+    - name: worker-pod-kill-step
+      templateType: Chaos
+      chaosTemplate:
+        apiVersion: chaos-mesh.org/v1alpha1
+        kind: PodChaos
+        spec:
+          action: pod-kill
+          mode: one
+          selector:
+            namespaces: [etap]
+            labelSelectors:
+              "app.kubernetes.io/component": worker
+          duration: "30s"
+
+    - name: redis-latency-step
+      templateType: Chaos
+      chaosTemplate:
+        apiVersion: chaos-mesh.org/v1alpha1
+        kind: NetworkChaos
+        spec:
+          action: delay
+          mode: all
+          selector:
+            namespaces: [etap]
+            labelSelectors:
+              "app.kubernetes.io/name": redis-cluster
+          delay:
+            latency: "200ms"
+          direction: to
+          target:
+            pods:
+              etap:
+                - selector:
+                    matchLabels:
+                      "app.kubernetes.io/component": api
+                  mode: all
+          duration: "2m"
+
+    - name: postgres-network-loss-step
+      templateType: Chaos
+      chaosTemplate:
+        apiVersion: chaos-mesh.org/v1alpha1
+        kind: NetworkChaos
+        spec:
+          action: loss
+          mode: all
+          selector:
+            namespaces: [etap]
+            labelSelectors:
+              "cnpg.io/cluster": etap-postgres
+          loss:
+            loss: "20"
+          direction: to
+          target:
+            pods:
+              etap:
+                - selector:
+                    matchLabels:
+                      "app.kubernetes.io/component": api
+                  mode: all
+          duration: "2m"
+
+    - name: api-cpu-stress-step
+      templateType: Chaos
+      chaosTemplate:
+        apiVersion: chaos-mesh.org/v1alpha1
+        kind: StressChaos
+        spec:
+          mode: one
+          selector:
+            namespaces: [etap]
+            labelSelectors:
+              "app.kubernetes.io/component": api
+          stressors:
+            cpu:
+              workers: 1
+              load: 80
+          containerNames: [api]
+          duration: "60s"
+
+    - name: cleanup-step
+      templateType: Serial
+      children:
+        - sleep-step
+
+    - name: sleep-step
+      templateType: Suspend
+      duration: "60s"
+
+  schedule:
+    schedule: "0 1 * * 6"   # Saturday 01:00
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 4
+    failedJobsHistoryLimit: 4
