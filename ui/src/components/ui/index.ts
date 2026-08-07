@@ -16,3 +16,24 @@ export {
   GlowCard,
   Sparkline,
 } from "./Visual";
+
+/* Primitive form components */
+export { Input } from "./Input";
+export { Textarea } from "./Textarea";
+export { Select } from "./Select";
+export { Checkbox } from "./Checkbox";
+export { RadioGroup } from "./RadioGroup";
+export { NumberInput } from "./NumberInput";
+export { DatePicker } from "./DatePicker";
+export { FileUpload } from "./FileUpload";
+
+/* Composite components */
+export { DataTable } from "./DataTable";
+export { Accordion } from "./Accordion";
+export { Tooltip } from "./Tooltip";
+export { DropdownMenu } from "./DropdownMenu";
+export { Avatar } from "./Avatar";
+export { Tag } from "./Tag";
+export { Divider } from "./Divider";
+export { Progress } from "./Progress";
+export { Pagination } from "./Pagination";

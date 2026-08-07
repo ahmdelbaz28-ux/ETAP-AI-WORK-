@@ -29,11 +29,18 @@
 
   --color-success: #22c55e;
   --color-success-light: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
   --color-warning: #f59e0b;
   --color-warning-light: #fbbf24;
+  --color-warning-500: #f59e0b;
   --color-danger: #ef4444;
   --color-danger-light: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
   --color-info: #3b82f6;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
   --color-primary: #2563eb;
   --color-secondary: #3b82f6;
   --color-cta: #f97316;
@@ -133,14 +140,30 @@
    so that Tailwind v4.0.0's broken max-w-* → --spacing-* mapping is overridden.
    The !important fallbacks below ensure backwards compatibility if the @theme
    variables don't propagate to utility classes (depends on Tailwind v4 version). */
-.max-w-3xs { max-width: var(--container-3xs) !important; }
-.max-w-2xs { max-width: var(--container-2xs) !important; }
-.max-w-xs  { max-width: var(--container-xs)  !important; }
-.max-w-sm  { max-width: var(--container-sm)  !important; }
-.max-w-md  { max-width: var(--container-md)  !important; }
-.max-w-lg  { max-width: var(--container-lg)  !important; }
-.max-w-xl  { max-width: var(--container-xl)  !important; }
-.max-w-2xl { max-width: var(--container-2xl) !important; }
+.max-w-3xs {
+  max-width: var(--container-3xs) !important;
+}
+.max-w-2xs {
+  max-width: var(--container-2xs) !important;
+}
+.max-w-xs {
+  max-width: var(--container-xs) !important;
+}
+.max-w-sm {
+  max-width: var(--container-sm) !important;
+}
+.max-w-md {
+  max-width: var(--container-md) !important;
+}
+.max-w-lg {
+  max-width: var(--container-lg) !important;
+}
+.max-w-xl {
+  max-width: var(--container-xl) !important;
+}
+.max-w-2xl {
+  max-width: var(--container-2xl) !important;
+}
 
 /* ============================
    DARK MODE (Default)
@@ -150,10 +173,10 @@
   --bg-primary: #0a0e1a;
 
   /* Light mode defaults (for contrast) */
-  --bg-secondary: #F8FAFC;
-  --text-primary: #1E293B;
-  --text-secondary: #3B82F6;
-  --text-muted: #64748B;
+  --bg-secondary: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #3b82f6;
+  --text-muted: #64748b;
   --cta: #f97316;
   --primary: #2563eb;
   --secondary: #3b82f6;
@@ -282,8 +305,14 @@ body {
 
 /* Sparkle / particle burst — used on hover states */
 @keyframes sparkle {
-  0% { transform: scale(0) rotate(0deg); opacity: 1; }
-  100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0;
+  }
 }
 .animate-sparkle {
   animation: sparkle 0.6s ease-out forwards;
@@ -291,9 +320,15 @@ body {
 
 /* Progress bar indeterminate */
 @keyframes indeterminate {
-  0% { transform: translateX(-100%) scaleX(0.3); }
-  40% { transform: translateX(0%) scaleX(0.6); }
-  100% { transform: translateX(100%) scaleX(0.3); }
+  0% {
+    transform: translateX(-100%) scaleX(0.3);
+  }
+  40% {
+    transform: translateX(0%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.3);
+  }
 }
 .animate-indeterminate {
   animation: indeterminate 1.8s ease-in-out infinite;
@@ -301,8 +336,14 @@ body {
 
 /* Scale up from center (for modals) */
 @keyframes scale-up-center {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .animate-scale-up-center {
   animation: scale-up-center 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -688,14 +729,23 @@ body {
 
 /* Card shimmer sweep on hover — subtle gradient sweep across card top */
 @keyframes card-shimmer-sweep {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .card-shimmer-hover::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%);
+  background: linear-gradient(
+    90deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 60%
+  );
   background-size: 200% 100%;
   pointer-events: none;
   opacity: 0;
@@ -709,8 +759,12 @@ body {
 
 /* Stat value pulse on change */
 @keyframes stat-flash {
-  0% { background-color: rgba(0, 212, 255, 0.15); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: rgba(0, 212, 255, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 .stat-flash {
   animation: stat-flash 0.6s ease-out;
@@ -728,7 +782,7 @@ body {
   overflow: hidden;
 }
 .stat-accent-line::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1165,23 +1219,20 @@ a:focus-visible {
 /* ─── Card Interactive Enhancement ────────────────────────────── */
 .card-interactive {
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    background-color 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color
+    0.25s ease, background-color 0.25s ease;
 }
 
 .card-interactive:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.3),
-    0 0 0 1px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.3), 0 0 0 1px
+    color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 .card-interactive:focus-visible {
   transform: translateY(-1px);
-  box-shadow: 0 0 0 2px var(--accent-primary),
-    0 8px 16px -4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 8px 16px -4px rgba(0, 0, 0, 0.2);
 }
 
 /* ─── Stat Card Micro-Animation ───────────────────────────────── */
@@ -1189,8 +1240,7 @@ a:focus-visible {
 .stat-card-enhanced {
   position: relative;
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
 .stat-card-enhanced:hover {
@@ -1329,19 +1379,29 @@ a:focus-visible {
 
 /* ─── Responsive Breakpoint Helpers ────────────────────────────── */
 @media (max-width: 640px) {
-  .hide-xs { display: none !important; }
+  .hide-xs {
+    display: none !important;
+  }
   /* Smaller padding on mobile for main content */
-  .mobile-p-compact { padding: 12px !important; }
+  .mobile-p-compact {
+    padding: 12px !important;
+  }
   /* Full-width cards on mobile */
-  .mobile-grid-full { grid-template-columns: 1fr !important; }
+  .mobile-grid-full {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 1024px) {
-  .hide-lg-down { display: none !important; }
+  .hide-lg-down {
+    display: none !important;
+  }
 }
 
 @media (min-width: 1025px) {
-  .hide-lg-up { display: none !important; }
+  .hide-lg-up {
+    display: none !important;
+  }
 }
 
 /* ─── Smooth Page Transition ───────────────────────────────────── */
@@ -1435,8 +1495,12 @@ a:focus-visible {
 /* ─── Dark/Light Mode Scrollbar Enhancement ─────────────────────── */
 /* Merged into existing :root / .light declarations above; these
    rules repeat for clarity since they live far from line 148. */
-:root { scrollbar-color: var(--color-surface-600) transparent; }  /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
-.light { scrollbar-color: var(--color-surface-400) transparent; }  /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
+:root {
+  scrollbar-color: var(--color-surface-600) transparent;
+} /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
+.light {
+  scrollbar-color: var(--color-surface-400) transparent;
+} /* NOSONAR S4666: duplicate selector is an intentional override for theme variants */
 
 /* ─── Glass Card Backdrop Enhancement ──────────────────────────── */
 /* NOTE: .glass-premium and .glass-elevated already exist at line ~769.
@@ -1463,9 +1527,7 @@ a:focus-visible {
   background: color-mix(in srgb, var(--bg-input) 90%, transparent);
   border: 1px solid var(--border-primary);
   border-radius: 10px;
-  transition: border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .login-input-enhanced:focus {

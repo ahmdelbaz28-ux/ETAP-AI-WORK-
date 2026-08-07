@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   AlertTriangle,
@@ -19,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
 // Types for local components representation

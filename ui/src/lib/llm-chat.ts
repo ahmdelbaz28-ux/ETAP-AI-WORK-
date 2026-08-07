@@ -199,12 +199,18 @@ async function callOpenAICompatible(
   signal?: AbortSignal,
 ): Promise<ChatResult> {
   const endpoint = `${provider.baseUrl}/chat/completions`;
-  const res = await proxyFetch(endpoint, provider.apiKey, {
-    model: provider.model,
-    messages,
-    max_tokens: 4096,
-    temperature: 0.7,
-  }, undefined, signal);
+  const res = await proxyFetch(
+    endpoint,
+    provider.apiKey,
+    {
+      model: provider.model,
+      messages,
+      max_tokens: 4096,
+      temperature: 0.7,
+    },
+    undefined,
+    signal,
+  );
 
   if (!res.ok) {
     const text = await res.text().catch((error) => {
@@ -259,7 +265,11 @@ async function callAnthropic(
 }
 
 // --- section ---
-async function callGemini(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
+async function callGemini(
+  messages: ChatMessage[],
+  provider: ProviderConfig,
+  signal?: AbortSignal,
+): Promise<ChatResult> {
   const model = provider.model.replace("google/", "");
   const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`;
 
@@ -335,17 +345,31 @@ async function callCloudflare(
 
 // --- section ---
 // Zhipu uses the same OpenAI-compatible /chat/completions API shape.
-async function callZhipu(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
+async function callZhipu(
+  messages: ChatMessage[],
+  provider: ProviderConfig,
+  signal?: AbortSignal,
+): Promise<ChatResult> {
   return callOpenAICompatible(messages, provider, signal);
 }
 
 // --- section ---
-async function callCohere(messages: ChatMessage[], provider: ProviderConfig, signal?: AbortSignal): Promise<ChatResult> {
+async function callCohere(
+  messages: ChatMessage[],
+  provider: ProviderConfig,
+  signal?: AbortSignal,
+): Promise<ChatResult> {
   const endpoint = `${provider.baseUrl}/chat`;
-  const res = await proxyFetch(endpoint, provider.apiKey, {
-    model: provider.model,
-    messages,
-  }, undefined, signal);
+  const res = await proxyFetch(
+    endpoint,
+    provider.apiKey,
+    {
+      model: provider.model,
+      messages,
+    },
+    undefined,
+    signal,
+  );
 
   if (!res.ok) {
     const text = await res.text().catch((error) => {

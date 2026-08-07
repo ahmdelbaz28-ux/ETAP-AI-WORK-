@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -16,6 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";

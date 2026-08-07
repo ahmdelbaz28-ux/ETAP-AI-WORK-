@@ -475,107 +475,107 @@ export default function StudyRun() {
             <>
               {/* Dim overlay when re-running so user sees stale data is being replaced */}
               <div className={cn(running && "opacity-50 pointer-events-none transition-opacity")}>
-              {/* Result Status */}
-              <Card
-                padding="md"
-                className={cn(
-                  result.status === "completed" || result.status === "dry_run"
-                    ? "border-green-500/30 bg-green-500/5"
-                    : "border-red-500/30 bg-red-500/5",
-                )}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  {result.status === "completed" || result.status === "dry_run" ? (
-                    <CheckCircle className="text-green-400 w-5 h-5" />
-                  ) : (
-                    <XCircle className="text-red-400 w-5 h-5" />
+                {/* Result Status */}
+                <Card
+                  padding="md"
+                  className={cn(
+                    result.status === "completed" || result.status === "dry_run"
+                      ? "border-green-500/30 bg-green-500/5"
+                      : "border-red-500/30 bg-red-500/5",
                   )}
-                  <h3 className="text-base font-semibold text-[var(--text-primary)]">
-                    {t("studyRun.studyResult")}
-                  </h3>
-                  <div className="flex items-center gap-2 ml-auto">
-                    {!!(result as Record<string, unknown>)?.data &&
-                      !!(result.data as Record<string, unknown>)?.risk_score && (
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider",
-                            (result.data as Record<string, unknown>).risk_score === "low" &&
-                              "bg-green-500/20 text-green-400 border border-green-500/30",
-                            (result.data as Record<string, unknown>).risk_score === "medium" &&
-                              "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-                            (result.data as Record<string, unknown>).risk_score === "high" &&
-                              "bg-orange-500/20 text-orange-400 border border-orange-500/30",
-                            (result.data as Record<string, unknown>).risk_score === "critical" &&
-                              "bg-red-500/20 text-red-400 border border-red-500/30",
-                          )}
-                        >
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    {result.status === "completed" || result.status === "dry_run" ? (
+                      <CheckCircle className="text-green-400 w-5 h-5" />
+                    ) : (
+                      <XCircle className="text-red-400 w-5 h-5" />
+                    )}
+                    <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                      {t("studyRun.studyResult")}
+                    </h3>
+                    <div className="flex items-center gap-2 ml-auto">
+                      {!!(result as Record<string, unknown>)?.data &&
+                        !!(result.data as Record<string, unknown>)?.risk_score && (
                           <span
                             className={cn(
-                              "w-1.5 h-1.5 rounded-full",
+                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider",
                               (result.data as Record<string, unknown>).risk_score === "low" &&
-                                "bg-green-400",
+                                "bg-green-500/20 text-green-400 border border-green-500/30",
                               (result.data as Record<string, unknown>).risk_score === "medium" &&
-                                "bg-yellow-400",
+                                "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
                               (result.data as Record<string, unknown>).risk_score === "high" &&
-                                "bg-orange-400",
+                                "bg-orange-500/20 text-orange-400 border border-orange-500/30",
                               (result.data as Record<string, unknown>).risk_score === "critical" &&
-                                "bg-red-400",
+                                "bg-red-500/20 text-red-400 border border-red-500/30",
                             )}
-                          />
-                          {(result.data as Record<string, unknown>).risk_score as string}
-                        </span>
-                      )}
-                    <Badge
-                      variant={
-                        result.status === "completed" || result.status === "dry_run"
-                          ? "success"
-                          : "danger"
-                      }
-                    >
-                      {String(result.status)}
-                    </Badge>
-                  </div>
-                </div>
-                <ResultSummary result={result} />
-              </Card>
-
-              {/* Tabs for different views */}
-              <Card padding="md">
-                <Tabs
-                  tabs={[
-                    { id: "diagram", label: "One-Line Diagram" },
-                    { id: "data", label: "Raw Data" },
-                  ]}
-                  activeTab={activeTab}
-                  onChange={setActiveTab}
-                />
-                <TabPanels>
-                  {activeTab === "diagram" && <OneLineDiagram />}
-                  {activeTab === "data" && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowFullResult(!showFullResult)}
-                        className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                        type="button"
-                      >
-                        {showFullResult ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
+                          >
+                            <span
+                              className={cn(
+                                "w-1.5 h-1.5 rounded-full",
+                                (result.data as Record<string, unknown>).risk_score === "low" &&
+                                  "bg-green-400",
+                                (result.data as Record<string, unknown>).risk_score === "medium" &&
+                                  "bg-yellow-400",
+                                (result.data as Record<string, unknown>).risk_score === "high" &&
+                                  "bg-orange-400",
+                                (result.data as Record<string, unknown>).risk_score ===
+                                  "critical" && "bg-red-400",
+                              )}
+                            />
+                            {(result.data as Record<string, unknown>).risk_score as string}
+                          </span>
                         )}
-                      </button>
-                      <pre
-                        className={cn(
-                          "text-xs text-[var(--text-secondary)] overflow-x-auto bg-[var(--bg-primary)] rounded-lg p-4 font-mono leading-relaxed border border-[var(--border-primary)]",
-                          !showFullResult && "max-h-96 overflow-y-auto",
-                        )}
+                      <Badge
+                        variant={
+                          result.status === "completed" || result.status === "dry_run"
+                            ? "success"
+                            : "danger"
+                        }
                       >
-                        {JSON.stringify(result, null, 2)}
-                      </pre>
+                        {String(result.status)}
+                      </Badge>
                     </div>
-                  )}
-                </TabPanels>
-              </Card>
+                  </div>
+                  <ResultSummary result={result} />
+                </Card>
+
+                {/* Tabs for different views */}
+                <Card padding="md">
+                  <Tabs
+                    tabs={[
+                      { id: "diagram", label: "One-Line Diagram" },
+                      { id: "data", label: "Raw Data" },
+                    ]}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                  />
+                  <TabPanels>
+                    {activeTab === "diagram" && <OneLineDiagram />}
+                    {activeTab === "data" && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowFullResult(!showFullResult)}
+                          className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                          type="button"
+                        >
+                          {showFullResult ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
+                        <pre
+                          className={cn(
+                            "text-xs text-[var(--text-secondary)] overflow-x-auto bg-[var(--bg-primary)] rounded-lg p-4 font-mono leading-relaxed border border-[var(--border-primary)]",
+                            !showFullResult && "max-h-96 overflow-y-auto",
+                          )}
+                        >
+                          {JSON.stringify(result, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </TabPanels>
+                </Card>
               </div>
             </>
           ) : (

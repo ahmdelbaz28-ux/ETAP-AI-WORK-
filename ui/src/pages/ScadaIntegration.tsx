@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
@@ -16,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 interface TelemetryPoint {
   tag: string;
@@ -84,7 +84,7 @@ function handleConnectionFailure(
   isRtl: boolean,
   notify: NotifyFn,
   addLog: AddLogFn,
-  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,  // NOSONAR S4323: small union type; inline is clearer than a type alias for a single-use case
+  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void, // NOSONAR S4323: small union type; inline is clearer than a type alias for a single-use case
   setLatency: (n: number | null) => void,
 ): void {
   setConnectionStatus("disconnected");

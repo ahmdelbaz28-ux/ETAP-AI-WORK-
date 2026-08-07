@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import { Database, Filter, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
@@ -7,6 +6,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 interface Asset {
   id: string;

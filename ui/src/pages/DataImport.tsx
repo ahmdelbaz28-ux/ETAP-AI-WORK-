@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -18,6 +17,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 interface FormatInfo {
   id: string;

@@ -24,9 +24,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { clearAuthTokens } from "../lib/tokenStorage";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
-import { clearAuthTokens } from "../lib/tokenStorage";
 import { BrandLogo } from "./BrandLogo";
 
 interface NotificationItem {

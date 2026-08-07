@@ -499,7 +499,7 @@ export function LoginBackground({
 
         {/* --- INTERACTIVE CIRCUIT BREAKER (CB-101) --- */}
         <g
-          className="cursor-pointer group/cb"
+          className="cursor-pointer group/cb" tabIndex={0}
           onClick={handleBreakerToggle}
           onMouseEnter={(e) => handleComponentHover("breaker", e)}
           onMouseLeave={() => handleComponentHover(null)}

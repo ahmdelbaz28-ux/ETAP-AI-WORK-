@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * NotificationContext — wires the toast UI to the backend notification system.
  *
@@ -18,6 +19,20 @@
  *
  * Ref: TASK-3
  */
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertTriangle, CheckCircle, Info, WifiOff, X, XCircle } from "lucide-react";
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle, Info, WifiOff, X, XCircle } from "lucide-react";
@@ -42,6 +57,7 @@ interface ToastNotification {
   id: string;
   type: "success" | "error" | "warning" | "info";
   message: string;
+  read?: boolean;
 }
 
 interface BackendNotification {
@@ -70,6 +86,7 @@ interface NotificationContextType {
   notifications: ToastNotification[];
   notify: (type: ToastNotification["type"], message: string) => void;
   dismiss: (id: string) => void;
+<<<<<<< HEAD
   /** True when the backend notification feed is reachable; false when degraded. */
   backendReachable: boolean;
 }
@@ -78,6 +95,7 @@ const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
   notify: () => {},
   dismiss: () => {},
+<<<<<<< HEAD
   backendReachable: true,
 });
 
@@ -155,6 +173,7 @@ function buildWsUrl(token: string): string {
 // ---------------------------------------------------------------------------
 
 export function NotificationProvider({ children }: { readonly children: ReactNode }) {
+<<<<<<< HEAD
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [backendReachable, setBackendReachable] = useState(true);
   // Track which backend notification IDs we've already toasted, so we don't
@@ -330,14 +349,30 @@ export function NotificationProvider({ children }: { readonly children: ReactNod
   const contextValue = useMemo(
     () => ({ notifications, notify, dismiss, backendReachable }),
     [notifications, notify, dismiss, backendReachable],
+=======
+  const contextValue = useMemo(
+    () => ({ notifications, notify, dismiss, backendReachable }),
+    [notifications, notify, dismiss, backendReachable],
+>>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
   );
 
   return (
     <NotificationContext.Provider value={contextValue}>
       {children}
-      {/* Notification container — bottom-right of viewport.
-          Uses inline styles for positioning + z-index to avoid Tailwind v4
-          utility fallback issues (max-w-sm / z-index var() bugs). */}
+      {backendDegraded && (
+        {!backendReachable && (
+          <button
+            type="button"
+            className="pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 cursor-pointer border backdrop-blur-md bg-amber-600/90 border-amber-400/30 text-white"
+            onClick={() => setBackendReachable(true)}
+            title="Click to dismiss — real-time push will retry automatically"
+          >
+            <WifiOff className="w-4 h-4 shrink-0" />
+            <span className="flex-1 text-left">Real-time notifications offline — retrying</span>
+            <X className="w-3.5 h-3.5 text-white/60 hover:text-white transition-colors shrink-0" />
+          </button>
+        )}
+      )}
       <div
         style={{
           position: "fixed",
@@ -397,7 +432,6 @@ export function NotificationProvider({ children }: { readonly children: ReactNod
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useNotify() {
   return useContext(NotificationContext);
 }
