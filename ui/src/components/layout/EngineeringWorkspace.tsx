@@ -3,32 +3,14 @@ import { cn } from '../../utils/helpers';
 import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react';
 
 interface EngineeringWorkspaceProps {
-  leftPanel?: ReactNode;
-  centerPanel: ReactNode;
-  rightPanel?: ReactNode;
-  leftTitle?: string;
-  rightTitle?: string;
-  defaultLeftWidth?: number;
-  defaultRightWidth?: number;
-  minPanelWidth?: number;
-}
-
-export function EngineeringWorkspace({
-  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-
-import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react'
-import { cn } from '../../utils/helpers'
-import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react'
-
-interface EngineeringWorkspaceProps {
-  leftPanel?: ReactNode
-  centerPanel: ReactNode
-  rightPanel?: ReactNode
-  leftTitle?: string
-  rightTitle?: string
-  defaultLeftWidth?: number
-  defaultRightWidth?: number
-  minPanelWidth?: number
+  readonly leftPanel?: ReactNode;
+  readonly centerPanel: ReactNode;
+  readonly rightPanel?: ReactNode;
+  readonly leftTitle?: string;
+  readonly rightTitle?: string;
+  readonly defaultLeftWidth?: number;
+  readonly defaultRightWidth?: number;
+  readonly minPanelWidth?: number;
 }
 
 export function EngineeringWorkspace({
@@ -93,49 +75,6 @@ export function EngineeringWorkspace({
     };
   }, [dragging, leftWidth, rightWidth, minPanelWidth]);
 
-  const [leftWidth, setLeftWidth] = useState(defaultLeftWidth)
-  const [rightWidth, setRightWidth] = useState(defaultRightWidth)
-  const [leftCollapsed, setLeftCollapsed] = useState(false)
-  const [rightCollapsed, setRightCollapsed] = useState(!rightPanel)
-  const [dragging, setDragging] = useState<'left' | 'right' | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  const handleMouseDown = useCallback((panel: 'left' | 'right') => (e: React.MouseEvent) => {
-    e.preventDefault()
-    setDragging(panel)
-  }, [])
-
-  useEffect(() => {
-    if (!dragging) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return
-      const rect = containerRef.current.getBoundingClientRect()
-
-      if (dragging === 'left') {
-        const newWidth = Math.max(minPanelWidth, Math.min(e.clientX - rect.left, rect.width - rightWidth - 100))
-        setLeftWidth(newWidth)
-      } else if (dragging === 'right') {
-        const newWidth = Math.max(minPanelWidth, Math.min(rect.right - e.clientX, rect.width - leftWidth - 100))
-        setRightWidth(newWidth)
-      }
-    }
-
-    const handleMouseUp = () => setDragging(null)
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-  }, [dragging, leftWidth, rightWidth, minPanelWidth])
-
   return (
     <div ref={containerRef} className="flex h-full overflow-hidden">
       {/* Left Panel */}
@@ -151,6 +90,7 @@ export function EngineeringWorkspace({
             {leftCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => setLeftCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -165,6 +105,7 @@ export function EngineeringWorkspace({
                     {leftTitle}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setLeftCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
@@ -173,17 +114,13 @@ export function EngineeringWorkspace({
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">{leftPanel}</div>
-
-                <div className="flex-1 overflow-y-auto">
-                  {leftPanel}
-                </div>
               </>
             )}
           </div>
 
           {/* Left Resize Handle */}
           {!leftCollapsed && (
-            <div // NOSONAR — S6848: non-interactive DOM role; intentional
+            <div // NOSONAR — S6848/S1082: non-interactive resize handle; intentional drag UX
               onMouseDown={handleMouseDown('left')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
@@ -199,16 +136,12 @@ export function EngineeringWorkspace({
       {/* Center Panel */}
       <div className="flex-1 overflow-auto min-w-0">{centerPanel}</div>
 
-      <div className="flex-1 overflow-auto min-w-0">
-        {centerPanel}
-      </div>
-
       {/* Right Panel */}
       {rightPanel && (
         <>
           {/* Right Resize Handle */}
           {!rightCollapsed && (
-            <div // NOSONAR — S6848: non-interactive DOM role; intentional
+            <div // NOSONAR — S6848/S1082: non-interactive resize handle; intentional drag UX
               onMouseDown={handleMouseDown('right')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
@@ -229,6 +162,7 @@ export function EngineeringWorkspace({
             {rightCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => setRightCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -243,6 +177,7 @@ export function EngineeringWorkspace({
                     {rightTitle}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setRightCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
@@ -251,10 +186,6 @@ export function EngineeringWorkspace({
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">{rightPanel}</div>
-
-                <div className="flex-1 overflow-y-auto">
-                  {rightPanel}
-                </div>
               </>
             )}
           </div>

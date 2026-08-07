@@ -1,6 +1,6 @@
 // NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, createElement, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
 
 // SECURITY AUDIT 2026-08-02 (UI-1 fix):

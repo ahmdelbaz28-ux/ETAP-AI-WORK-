@@ -358,17 +358,17 @@ function SetupTab({
           subtitle={t("adminPages.mfa.setup.resultSubtitle")}
         />
         <CardSection className="p-4">
-          {loading ? (
-            <LoadingRow label={t("adminPages.mfa.setup.loading")} />
-          ) : result ? (
-            <SetupResultCard result={result} />
-          ) : (
-            <EmptyState
-              icon={<QrCode className="w-5 h-5 text-zinc-500" />}
-              title={t("adminPages.mfa.setup.emptyTitle")}
-              description={t("adminPages.mfa.setup.emptyDescription")}
-            />
-          )}
+          {(() => {
+            if (loading) return <LoadingRow label={t("adminPages.mfa.setup.loading")} />;
+            if (result) return <SetupResultCard result={result} />;
+            return (
+              <EmptyState
+                icon={<QrCode className="w-5 h-5 text-zinc-500" />}
+                title={t("adminPages.mfa.setup.emptyTitle")}
+                description={t("adminPages.mfa.setup.emptyDescription")}
+              />
+            );
+          })()}
         </CardSection>
       </Card>
     </div>
@@ -422,7 +422,7 @@ function SetupResultCard({ result }: { readonly result: SetupResponse }) {
               role="img"
               aria-label={t("adminPages.mfa.setup.qrAriaLabel", {
                 account:
-                  qrUri.match(/otpauth:\/\/totp\/([^?]+)/)?.[1] ??
+                  /otpauth:\/\/totp\/([^?]+)/.exec(qrUri)?.[1] ??
                   t("adminPages.mfa.setup.thisAccount"),
               })}
               className="w-48 h-48"
@@ -512,17 +512,17 @@ function VerifyTotpTab({
       <Card>
         <CardHeader title="Result" subtitle="Response from POST /totp/verify" />
         <CardSection className="p-4">
-          {loading ? (
-            <LoadingRow label="Verifying TOTP code…" />
-          ) : result ? (
-            <VerifyResultCard result={result} testId="totp-result" successLabel="Verified" />
-          ) : (
-            <EmptyState
-              icon={<Smartphone className="w-5 h-5 text-zinc-500" />}
-              title="No verification yet"
-              description="Enter a code and submit to verify it."
-            />
-          )}
+          {(() => {
+            if (loading) return <LoadingRow label="Verifying TOTP code…" />;
+            if (result) return <VerifyResultCard result={result} testId="totp-result" successLabel="Verified" />;
+            return (
+              <EmptyState
+                icon={<Smartphone className="w-5 h-5 text-zinc-500" />}
+                title="No verification yet"
+                description="Enter a code and submit to verify it."
+              />
+            );
+          })()}
         </CardSection>
       </Card>
     </div>
@@ -601,17 +601,17 @@ function VerifyBackupTab({
       <Card>
         <CardHeader title="Result" subtitle="Response from POST /backup/verify" />
         <CardSection className="p-4">
-          {loading ? (
-            <LoadingRow label="Verifying backup code…" />
-          ) : result ? (
-            <VerifyResultCard result={result} testId="backup-result" successLabel="Verified" />
-          ) : (
-            <EmptyState
-              icon={<ShieldCheck className="w-5 h-5 text-zinc-500" />}
-              title="No verification yet"
-              description="Enter a backup code and submit to verify it."
-            />
-          )}
+          {(() => {
+            if (loading) return <LoadingRow label="Verifying backup code…" />;
+            if (result) return <VerifyResultCard result={result} testId="backup-result" successLabel="Verified" />;
+            return (
+              <EmptyState
+                icon={<ShieldCheck className="w-5 h-5 text-zinc-500" />}
+                title="No verification yet"
+                description="Enter a backup code and submit to verify it."
+              />
+            );
+          })()}
         </CardSection>
       </Card>
     </div>

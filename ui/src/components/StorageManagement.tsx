@@ -31,7 +31,7 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 // ─── Component ───────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ export default function StorageManagement() {
         object_count: data.object_count ?? 0,
         categories: Array.isArray(data.categories)
           ? data.categories.map((c: Record<string, unknown>) => ({
-              name: String(c.name ?? "Unknown"),
+              name: typeof c.name === "string" ? c.name : "Unknown",
               size_bytes: Number(c.size_bytes ?? 0),
               count: Number(c.count ?? 0),
               retention_days: Number(c.retention_days ?? 30),

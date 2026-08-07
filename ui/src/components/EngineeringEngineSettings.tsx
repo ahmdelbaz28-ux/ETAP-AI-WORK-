@@ -198,11 +198,12 @@ export default function EngineeringEngineSettings() {
             <div className="space-y-6">
               {/* Convergence Tolerance — logarithmic slider */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="conv-tolerance" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Convergence Tolerance
                 </label>
                 <div className="flex items-center gap-4">
                   <input
+                    id="conv-tolerance"
                     type="range"
                     min={0}
                     max={100}
@@ -226,11 +227,12 @@ export default function EngineeringEngineSettings() {
 
               {/* Max Iterations */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="max-iterations" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Max Iterations
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="max-iterations"
                     type="number"
                     min={10}
                     max={200}
@@ -248,11 +250,12 @@ export default function EngineeringEngineSettings() {
 
               {/* Acceleration Factor */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="accel-factor" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Acceleration Factor
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="accel-factor"
                     type="number"
                     min={1.0}
                     max={2.0}
@@ -307,11 +310,12 @@ export default function EngineeringEngineSettings() {
 
               {/* ZBus Iteration Limit */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="zbus-iter-limit" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   ZBus Iteration Limit
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="zbus-iter-limit"
                     type="number"
                     min={10}
                     max={500}
@@ -329,11 +333,12 @@ export default function EngineeringEngineSettings() {
 
               {/* ZBus Voltage Threshold */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="zbus-voltage-threshold" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Voltage Threshold (pu)
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="zbus-voltage-threshold"
                     type="number"
                     min={0.0001}
                     max={0.1}

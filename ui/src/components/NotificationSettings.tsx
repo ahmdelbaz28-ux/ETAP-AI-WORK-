@@ -105,8 +105,8 @@ export default function NotificationSettings() {
         },
         webhooks: Array.isArray(data.webhooks)
           ? data.webhooks.map((w: Record<string, unknown>) => ({
-              id: String(w.id ?? crypto.randomUUID()),
-              url: String(w.url ?? ""),
+              id: typeof w.id === "string" ? w.id : crypto.randomUUID(),
+              url: typeof w.url === "string" ? w.url : "",
               events: Array.isArray(w.events) ? w.events.map(String) : [],
               enabled: Boolean(w.enabled ?? true),
             }))
@@ -327,10 +327,11 @@ export default function NotificationSettings() {
                 <>
                   {/* Cron schedule */}
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    <label htmlFor="cron-schedule" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                       Cron Schedule
                     </label>
                     <input
+                      id="cron-schedule"
                       type="text"
                       value={config.email_digest.cron_schedule}
                       onChange={(e) =>
@@ -349,11 +350,12 @@ export default function NotificationSettings() {
 
                   {/* Recipients */}
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    <label htmlFor="digest-recipients" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                       Recipients
                     </label>
                     <div className="flex items-center gap-2">
                       <input
+                        id="digest-recipients"
                         type="email"
                         value={newRecipient}
                         onChange={(e) => setNewRecipient(e.target.value)}

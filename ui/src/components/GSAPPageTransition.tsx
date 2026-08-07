@@ -7,10 +7,10 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
 interface GSAPPageTransitionProps {
-  children: React.ReactNode;
-  animationType?: "slide" | "fade" | "scale" | "engineering";
-  duration?: number;
-  delay?: number;
+  readonly children: React.ReactNode;
+  readonly animationType?: "slide" | "fade" | "scale" | "engineering";
+  readonly duration?: number;
+  readonly delay?: number;
 }
 
 /**
@@ -108,7 +108,7 @@ export function GSAPPageTransition({
  * GSAP-powered route transition component for React Router
  * @param children - The route content to animate
  */
-export function GSAPRouteTransition({ children }: { children: React.ReactNode }) {
+export function GSAPRouteTransition({ children }: { readonly children: React.ReactNode }) {
   return (
     <GSAPPageTransition animationType="engineering">
       {children}

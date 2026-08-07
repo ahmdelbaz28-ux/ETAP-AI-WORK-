@@ -42,9 +42,8 @@ export function DemoModeBanner() {
         letterSpacing: '0.2px',
       }}
     >
-      ⚠ DEMO MODE — Backend غير متصل. البيانات المعروضة تجريبية ولن تُحفظ.
+      <span>⚠ DEMO MODE — Backend غير متصل. البيانات المعروضة تجريبية ولن تُحفظ. </span>
       <span style={{ opacity: 0.85, marginRight: '8px', fontWeight: 400 }}>
-        {' '}
         .Configure VITE_API_URL to enable the live backend.
       </span>
     </div>

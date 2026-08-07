@@ -533,7 +533,8 @@ function CategoryModal({ open, onClose, onSaved, editingCategory }: CategoryModa
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -790,7 +791,8 @@ function EquipmentTab({
     setSelectedIds(new Set());
     setConfirmBulkDelete(false);
     setBulkDeleting(false);
-    if (ok > 0) notify("success", `Deleted ${ok} equipment${fail > 0 ? ` (${fail} failed)` : ""}`);
+    const failSuffix = fail > 0 ? ` (${fail} failed)` : "";
+    if (ok > 0) notify("success", `Deleted ${ok} equipment${failSuffix}`);
     else if (fail > 0) notify("error", `Failed to delete ${fail} equipment`);
     onDeleted();
   };
@@ -1368,7 +1370,7 @@ export default function EquipmentManagement() {
       a.download = `equipment-export-${Date.now()}.json`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       URL.revokeObjectURL(url);
       notify("success", "Equipment exported");
     } catch (err) {

@@ -6,6 +6,14 @@ import { gsap } from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+// Secure pseudorandom helper (Web Crypto CSPRNG).
+// Animation-only usage, routed through CSPRNG to satisfy typescript:S2245.
+function secureRandom(): number {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 4294967296;
+}
+
 // Type helpers for GSAP - avoid self-referencing type annotation issues
 type GSAPAnimation = gsap.core.Animation | gsap.core.Animation[];
 
@@ -275,17 +283,18 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
     // Create particles
     const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
+      const angle = secureRandom() * Math.PI * 2;
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+        x: secureRandom() * canvas.width,
+        y: secureRandom() * canvas.height,
         size: particleSize,
-        baseX: Math.random() * canvas.width,
-        baseY: Math.random() * canvas.height,
-        speed: particleSpeed * (Math.random() * 0.5 + 0.5),
-        directionAngle: Math.random() * Math.PI * 2,
+        baseX: secureRandom() * canvas.width,
+        baseY: secureRandom() * canvas.height,
+        speed: particleSpeed * (secureRandom() * 0.5 + 0.5),
+        directionAngle: angle,
         velocity: {
-          x: Math.cos(Math.random() * Math.PI * 2) * particleSpeed,
-          y: Math.sin(Math.random() * Math.PI * 2) * particleSpeed
+          x: Math.cos(angle) * particleSpeed,
+          y: Math.sin(angle) * particleSpeed
         }
       });
     }
@@ -320,7 +329,7 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
           for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const distance = Math.hypot(dx, dy);
 
             if (distance < connectionDistance) {
               ctx.beginPath();

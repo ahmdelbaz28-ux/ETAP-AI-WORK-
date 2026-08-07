@@ -7,7 +7,7 @@
  *   - Unmounting the component aborts pending requests
  *   - The abort signal is correctly propagated to llm-chat functions
  */
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -117,10 +117,11 @@ describe("AIAssistant AbortController integration", () => {
   it("aborts previous request when sending a new message while one is in-flight", async () => {
     // Make the first stream very slow (never resolves on its own)
     const firstStreamController: AbortController | null = null;
-    let firstSignal: AbortSignal | undefined;
 
     mockChatWithLLMStream.mockImplementationOnce(async function* (_msgs, _config, signal) {
-      firstSignal = signal;
+      // Capture the signal for later assertion via mock.calls; no need to
+      // stash it here as well (would be a useless assignment per S1854).
+      void signal;
       // Simulate a slow stream that waits
       yield "First ";
       await new Promise(() => {}); // Never resolves — simulates pending
@@ -165,6 +166,7 @@ describe("AIAssistant AbortController integration", () => {
     // Simulate an aborted stream that throws AbortError
     mockChatWithLLMStream.mockImplementationOnce(async function* () {
       throw new DOMException("The user aborted a request.", "AbortError");
+      yield; // eslint-disable-line no-unreachable -- S3531: generator must contain a yield
     });
 
     // Fallback also aborted

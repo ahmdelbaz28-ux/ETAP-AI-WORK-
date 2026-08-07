@@ -182,6 +182,12 @@ async function dashboardFetch<T>(path: string, init?: RequestInit): Promise<T> {
 // Small UI primitives (kept local to avoid bloating the shared ui/ folder)
 // ---------------------------------------------------------------------------
 
+function successRateTone(rate: number): "success" | "warning" | "danger" {
+  if (rate >= 95) return "success";
+  if (rate >= 80) return "warning";
+  return "danger";
+}
+
 function StatCard({
   label,
   value,
@@ -189,11 +195,11 @@ function StatCard({
   tone = "neutral",
   icon,
 }: {
-  label: string;
-  value: ReactNode;
-  sub?: ReactNode;
-  tone?: "success" | "danger" | "warning" | "neutral";
-  icon?: ReactNode;
+  readonly label: string;
+  readonly value: ReactNode;
+  readonly sub?: ReactNode;
+  readonly tone?: "success" | "danger" | "warning" | "neutral";
+  readonly icon?: ReactNode;
 }) {
   const toneClass = {
     success: "text-green-400",
@@ -564,13 +570,7 @@ export default function EmailDashboardPage() {
                   label="Success Rate"
                   value={`${stats.success_rate}%`}
                   sub={`${stats.succeeded} succeeded`}
-                  tone={
-                    stats.success_rate >= 95
-                      ? "success"
-                      : stats.success_rate >= 80
-                        ? "warning"
-                        : "danger"
-                  }
+                  tone={successRateTone(stats.success_rate)}
                   icon={<TrendingUp className="h-5 w-5" />}
                 />
                 <StatCard
@@ -780,19 +780,25 @@ export default function EmailDashboardPage() {
               </div>
             )}
 
-            {recentLoading && recent.length === 0 ? (
-              <div className="flex items-center gap-2 text-zinc-400">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading recent sends…
-              </div>
-            ) : recent.length === 0 ? (
-              <EmptyState
-                icon={<Mail className="h-8 w-8" />}
-                title="No sends logged"
-                description="No email send records match the current filter."
-              />
-            ) : (
-              <Card>
+            {(() => {
+              if (recentLoading && recent.length === 0) {
+                return (
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading recent sends…
+                  </div>
+                );
+              }
+              if (recent.length === 0) {
+                return (
+                  <EmptyState
+                    icon={<Mail className="h-8 w-8" />}
+                    title="No sends logged"
+                    description="No email send records match the current filter."
+                  />
+                );
+              }
+              return (
                 <CardSection className="overflow-x-auto p-0">
                   <table className="w-full text-sm">
                     <thead>
@@ -843,7 +849,8 @@ export default function EmailDashboardPage() {
                   </table>
                 </CardSection>
               </Card>
-            )}
+              );
+            })()}
           </motion.div>
         )}
 
@@ -861,12 +868,17 @@ export default function EmailDashboardPage() {
               </div>
             )}
 
-            {configLoading ? (
-              <div className="flex items-center gap-2 text-zinc-400">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading config…
-              </div>
-            ) : config ? (
+            {(() => {
+              if (configLoading) {
+                return (
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading config…
+                  </div>
+                );
+              }
+              if (!config) return null;
+              return (
               <Card>
                 <CardHeader
                   title={
@@ -895,7 +907,8 @@ export default function EmailDashboardPage() {
                   </table>
                 </CardSection>
               </Card>
-            ) : null}
+              );
+            })()}
           </motion.div>
         )}
       </div>
@@ -907,12 +920,19 @@ export default function EmailDashboardPage() {
         title="Email Send Record"
         size="lg"
       >
-        {detailLoading ? (
-          <div className="flex items-center gap-2 p-6 text-zinc-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading record…
-          </div>
-        ) : detailRecord ? (
+        {(() => {
+          if (detailLoading) {
+            return (
+              <div className="flex items-center gap-2 p-6 text-zinc-400">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading record…
+              </div>
+            );
+          }
+          if (!detailRecord) {
+            return <p className="p-6 text-sm text-zinc-400">Record not found.</p>;
+          }
+          return (
           <div className="space-y-3 p-4">
             <div className="flex items-center gap-2">
               <SuccessBadge success={detailRecord.success} />
@@ -978,9 +998,8 @@ export default function EmailDashboardPage() {
               )}
             </dl>
           </div>
-        ) : (
-          <p className="p-6 text-sm text-zinc-400">Record not found.</p>
-        )}
+          );
+        })()}
       </Modal>
 
       {/* ─── Clear Old Records Modal ─────────────────────────────────── */}

@@ -263,11 +263,11 @@ function StatCard({
   tone = "neutral",
   icon,
 }: {
-  label: string;
-  value: ReactNode;
-  sub?: ReactNode;
-  tone?: "success" | "danger" | "warning" | "neutral";
-  icon?: ReactNode;
+  readonly label: string;
+  readonly value: ReactNode;
+  readonly sub?: ReactNode;
+  readonly tone?: "success" | "danger" | "warning" | "neutral";
+  readonly icon?: ReactNode;
 }) {
   const toneClass = {
     success: "text-green-400",
@@ -299,14 +299,17 @@ function StatCard({
   );
 }
 
+function agentStatusClass(s: string): string {
+  if (s === "active") return "bg-green-500/10 text-green-300 border-green-500/30";
+  if (s === "coming_soon" || s === "coming-soon" || s === "disabled") {
+    return "bg-amber-500/10 text-amber-300 border-amber-500/30";
+  }
+  return "bg-zinc-500/10 text-zinc-300 border-zinc-500/30";
+}
+
 function AgentStatusBadge({ status }: { readonly status: string }) {
   const s = status.toLowerCase();
-  const cls =
-    s === "active"
-      ? "bg-green-500/10 text-green-300 border-green-500/30"
-      : s === "coming_soon" || s === "coming-soon" || s === "disabled"
-        ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
-        : "bg-zinc-500/10 text-zinc-300 border-zinc-500/30";
+  const cls = agentStatusClass(s);
   return <Badge className={`border ${cls}`}>{status}</Badge>;
 }
 
@@ -515,19 +518,27 @@ export default function AgentsControlPanelPage() {
 
   // ─── Initial load + tab-triggered loads ────────────────────────────
   useEffect(() => {
-    if (tab === "agents" && agents.length === 0) {
-      loadAgents();
-      loadAgentsInfo();
-    }
-    if (tab === "cua" && !cuaHealth) {
-      loadCuaHealth();
-    }
-    if (tab === "siem") {
+    // SIEM tab needs two loaders; break out to keep main effect flat.
+    const loadSiemTabData = () => {
       if (!siemHealth) loadSiemHealth();
       if (siemEvents.length === 0) loadSiemEvents();
-    }
-    if (tab === "orchestration" && !ahmedInfo) {
-      loadAhmedInfo();
+    };
+    switch (tab) {
+      case "agents":
+        if (agents.length === 0) {
+          loadAgents();
+          loadAgentsInfo();
+        }
+        break;
+      case "cua":
+        if (!cuaHealth) loadCuaHealth();
+        break;
+      case "siem":
+        loadSiemTabData();
+        break;
+      case "orchestration":
+        if (!ahmedInfo) loadAhmedInfo();
+        break;
     }
   }, [
     tab,
@@ -547,11 +558,20 @@ export default function AgentsControlPanelPage() {
   // Auto-refresh (30s) for Agents + CUA health + SIEM events.
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(() => {
-      if (tab === "agents") loadAgents();
-      if (tab === "cua") loadCuaHealth();
-      if (tab === "siem") loadSiemEvents();
-    }, 30_000);
+    const reload = () => {
+      switch (tab) {
+        case "agents":
+          loadAgents();
+          break;
+        case "cua":
+          loadCuaHealth();
+          break;
+        case "siem":
+          loadSiemEvents();
+          break;
+      }
+    };
+    const id = setInterval(reload, 30_000);
     return () => clearInterval(id);
   }, [autoRefresh, tab, loadAgents, loadCuaHealth, loadSiemEvents]);
 
@@ -1225,25 +1245,25 @@ export default function AgentsControlPanelPage() {
                 />
                 <div className="flex flex-wrap items-center gap-4">
                   <label className="flex items-center gap-2 text-sm text-zinc-400">
-                    Max steps:
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={execMaxSteps}
-                      onChange={(e) => setExecMaxSteps(Number(e.target.value))}
-                      className="w-20 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100"
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-zinc-400">
-                    <input
-                      type="checkbox"
-                      checked={execConfirm}
-                      onChange={(e) => setExecConfirm(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    Require confirmation
-                  </label>
+                  <span>Max steps:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={execMaxSteps}
+                    onChange={(e) => setExecMaxSteps(Number(e.target.value))}
+                    className="w-20 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-sm text-zinc-400">
+                  <input
+                    type="checkbox"
+                    checked={execConfirm}
+                    onChange={(e) => setExecConfirm(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  <span>Require confirmation</span>
+                </label>
                   <Button variant="primary" onClick={runCuaExecute} disabled={execLoading}>
                     {execLoading ? (
                       <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -1424,7 +1444,7 @@ export default function AgentsControlPanelPage() {
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Study Type
+                    <span>Study Type</span>
                     <input
                       type="text"
                       value={orchStudyType}
@@ -1434,7 +1454,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Project Name
+                    <span>Project Name</span>
                     <input
                       type="text"
                       value={orchProjectName}
@@ -1443,7 +1463,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Lead Agent (optional)
+                    <span>Lead Agent (optional)</span>
                     <input
                       type="text"
                       value={orchLeadAgent}
@@ -1453,7 +1473,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Base MVA
+                    <span>Base MVA</span>
                     <input
                       type="number"
                       step="any"
@@ -1463,7 +1483,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Base kV
+                    <span>Base kV</span>
                     <input
                       type="number"
                       step="any"
@@ -1473,7 +1493,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Budget Tokens
+                    <span>Budget Tokens</span>
                     <input
                       type="number"
                       value={orchBudgetTokens}
@@ -1482,7 +1502,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Claim Value
+                    <span>Claim Value</span>
                     <input
                       type="number"
                       step="any"
@@ -1492,7 +1512,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Claim Unit
+                    <span>Claim Unit</span>
                     <input
                       type="text"
                       value={orchClaimUnit}
@@ -1501,7 +1521,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Quantity Kind
+                    <span>Quantity Kind</span>
                     <input
                       type="text"
                       value={orchQuantityKind}
@@ -1510,7 +1530,7 @@ export default function AgentsControlPanelPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-sm text-zinc-400">
-                    Expected Unit (optional)
+                    <span>Expected Unit (optional)</span>
                     <input
                       type="text"
                       value={orchExpectedUnit}
@@ -1572,47 +1592,49 @@ export default function AgentsControlPanelPage() {
         title="Agent Detail"
         size="lg"
       >
-        {detailLoading ? (
-          <LoadingInline label="Loading agent…" />
-        ) : detailAgent ? (
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-cyan-400" />
-              <span className="text-lg font-bold text-zinc-100">{detailAgent.name}</span>
-              <AgentStatusBadge status={detailAgent.status} />
-            </div>
-            <p className="text-zinc-400">{detailAgent.description}</p>
-            <dl className="grid grid-cols-2 gap-2 text-xs">
-              <dt className="text-zinc-500">ID</dt>
-              <dd className="font-mono text-zinc-300">{detailAgent.id}</dd>
-              <dt className="text-zinc-500">Standard</dt>
-              <dd className="text-zinc-300">{detailAgent.standard || "—"}</dd>
-              <dt className="text-zinc-500">Model</dt>
-              <dd className="text-zinc-300">{detailAgent.model || "—"}</dd>
-              <dt className="text-zinc-500">Provider</dt>
-              <dd className="text-zinc-300">{detailAgent.provider || "—"}</dd>
-            </dl>
-            <div>
-              <p className="mb-1 text-xs uppercase tracking-wider text-zinc-500">Capabilities</p>
-              <div className="flex flex-wrap gap-2">
-                {detailAgent.capabilities.length === 0 ? (
-                  <span className="text-zinc-500">—</span>
-                ) : (
-                  detailAgent.capabilities.map((c) => (
-                    <Badge
-                      key={c}
-                      className="bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
-                    >
-                      {c}
-                    </Badge>
-                  ))
-                )}
+        {(() => {
+          if (detailLoading) return <LoadingInline label="Loading agent…" />;
+          if (detailAgent) {
+            return (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-cyan-400" />
+                  <span className="text-lg font-bold text-zinc-100">{detailAgent.name}</span>
+                  <AgentStatusBadge status={detailAgent.status} />
+                </div>
+                <p className="text-zinc-400">{detailAgent.description}</p>
+                <dl className="grid grid-cols-2 gap-2 text-xs">
+                  <dt className="text-zinc-500">ID</dt>
+                  <dd className="font-mono text-zinc-300">{detailAgent.id}</dd>
+                  <dt className="text-zinc-500">Standard</dt>
+                  <dd className="text-zinc-300">{detailAgent.standard || "—"}</dd>
+                  <dt className="text-zinc-500">Model</dt>
+                  <dd className="text-zinc-300">{detailAgent.model || "—"}</dd>
+                  <dt className="text-zinc-500">Provider</dt>
+                  <dd className="text-zinc-300">{detailAgent.provider || "—"}</dd>
+                </dl>
+                <div>
+                  <p className="mb-1 text-xs uppercase tracking-wider text-zinc-500">Capabilities</p>
+                  <div className="flex flex-wrap gap-2">
+                    {detailAgent.capabilities.length === 0 ? (
+                      <span className="text-zinc-500">—</span>
+                    ) : (
+                      detailAgent.capabilities.map((c) => (
+                        <Badge
+                          key={c}
+                          className="bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
+                        >
+                          {c}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-zinc-500">No agent data.</p>
-        )}
+            );
+          }
+          return <p className="text-sm text-zinc-500">No agent data.</p>;
+        })()}
       </Modal>
 
       {/* ─── Kill-switch confirmation modal ──────────────────────── */}
@@ -1644,7 +1666,7 @@ export default function AgentsControlPanelPage() {
             after the safety issue has been resolved and reviewed.
           </div>
           <label className="flex flex-col gap-1 text-zinc-400">
-            Reason
+            <span>Reason</span>
             <input
               type="text"
               value={killReason}

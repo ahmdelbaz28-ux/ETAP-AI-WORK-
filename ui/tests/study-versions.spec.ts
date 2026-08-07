@@ -174,7 +174,7 @@ async function mockStudyVersionsBackend(
                         }
 
                         // POST /versions (create)
-                        if (/\/versions$/.test(url) && method === "POST") {
+                        if (url.endsWith("/versions") && method === "POST") {
                                 createCalled = true;
                                 try {
                                         createBody = route.request().postDataJSON() as {
@@ -192,7 +192,7 @@ async function mockStudyVersionsBackend(
                         }
 
                         // GET /versions (list)
-                        if (/\/versions$/.test(url) && method === "GET") {
+                        if (url.endsWith("/versions") && method === "GET") {
                                 listCalled = true;
                                 const match = url.match(
                                         /\/projects\/([^/]+)\/studies\/([^/]+)\/versions/,

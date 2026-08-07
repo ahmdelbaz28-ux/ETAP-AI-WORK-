@@ -31,7 +31,9 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-main().catch((error: unknown) => {
+try {
+  await main();
+} catch (error: unknown) {
   logger.error('Fatal error during startup', error);
   process.exit(1);
-});
+}

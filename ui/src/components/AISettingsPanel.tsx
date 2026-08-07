@@ -173,6 +173,7 @@ export default function AISettingsPanel() {
               {MODEL_CASCADES.map((cascade) => (
                 <label
                   key={cascade.id}
+                  htmlFor={`model-cascade-${cascade.id}`}
                   className={cn(
                     "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all",
                     config.model_cascade === cascade.id
@@ -181,6 +182,7 @@ export default function AISettingsPanel() {
                   )}
                 >
                   <input
+                    id={`model-cascade-${cascade.id}`}
                     type="radio"
                     name="model-cascade"
                     value={cascade.id}
@@ -210,10 +212,11 @@ export default function AISettingsPanel() {
               {/* Temperature slider */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-[var(--text-secondary)]">Temperature</label>
+                  <label htmlFor="ai-temperature" className="text-sm font-medium text-[var(--text-secondary)]">Temperature</label>
                   <span className="text-sm font-mono text-[var(--text-primary)]">{config.temperature.toFixed(2)}</span>
                 </div>
                 <input
+                  id="ai-temperature"
                   type="range"
                   min={0}
                   max={100}
@@ -231,10 +234,11 @@ export default function AISettingsPanel() {
               {/* Max Tokens slider */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-[var(--text-secondary)]">Max Tokens</label>
+                  <label htmlFor="ai-max-tokens" className="text-sm font-medium text-[var(--text-secondary)]">Max Tokens</label>
                   <span className="text-sm font-mono text-[var(--text-primary)]">{config.max_tokens.toLocaleString()}</span>
                 </div>
                 <input
+                  id="ai-max-tokens"
                   type="range"
                   min={0}
                   max={100}

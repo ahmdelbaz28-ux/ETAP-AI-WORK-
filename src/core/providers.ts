@@ -231,7 +231,7 @@ export async function generateOnce(
     const usage = data.usage as {
       prompt_tokens?: number;
       completion_tokens?: number;
-      prompt_tokens_details?: { cached_tokens?: number } | undefined;
+      prompt_tokens_details?: { cached_tokens?: number };
     } | undefined;
 
     const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;

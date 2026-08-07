@@ -65,16 +65,16 @@ export default function IntegrationsManager() {
       const fetched: AutodeskStatus = {
         plugins: Array.isArray(data.plugins)
           ? data.plugins.map((p: Record<string, unknown>) => ({
-              name: String(p.name ?? "Unknown"),
+              name: typeof p.name === "string" ? p.name : "Unknown",
               type: (p.type as "autocad" | "revit") ?? "autocad",
               status: (p.status as "connected" | "disconnected" | "error") ?? "disconnected",
-              version: String(p.version ?? "—"),
-              last_heartbeat: String(p.last_heartbeat ?? "—"),
+              version: typeof p.version === "string" ? p.version : "—",
+              last_heartbeat: typeof p.last_heartbeat === "string" ? p.last_heartbeat : "—",
               timeout_seconds: Number(p.timeout_seconds ?? 30),
             }))
           : [],
         pipe_connected: Boolean(data.pipe_connected ?? false),
-        server_version: String(data.server_version ?? "—"),
+        server_version: typeof data.server_version === "string" ? data.server_version : "—",
       };
       setStatus(fetched);
 
@@ -280,10 +280,11 @@ export default function IntegrationsManager() {
 
               {/* Timeout input */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="autocad-timeout" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Connection Timeout (seconds)
                 </label>
                 <input
+                  id="autocad-timeout"
                   type="number"
                   min={5}
                   max={120}
@@ -340,10 +341,11 @@ export default function IntegrationsManager() {
 
               {/* Timeout input */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label htmlFor="revit-timeout" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Connection Timeout (seconds)
                 </label>
                 <input
+                  id="revit-timeout"
                   type="number"
                   min={5}
                   max={120}

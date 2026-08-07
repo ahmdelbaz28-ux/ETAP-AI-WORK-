@@ -41,6 +41,24 @@ from api.dependencies import get_api_key
 from api.security_audit import Severity
 
 # ---------------------------------------------------------------------------
+# Duplicated-string-literal constants (python:S1192)
+# ---------------------------------------------------------------------------
+
+_DESC_FILTER_SEVERITY = "Filter by severity level"
+_DESC_FILTER_ACTION = "Filter by action type"
+_DESC_FILTER_USER = "Filter by username"
+_DESC_START_DATE = "Start date (ISO-8601)"
+_DESC_END_DATE = "End date (ISO-8601)"
+_DESC_SEARCH = "Search in details field"
+
+_PATH_AUTH_LOGIN = "/api/v1/auth/login"
+_PATH_AUTH_REFRESH = "/api/v1/auth/refresh"
+_PATH_AUTH_ROLES = "/api/v1/auth/roles"
+
+_DETAILS_LOGIN_JWT = "Successful login via JWT authentication"
+_DETAILS_TOKEN_REFRESHED = "Access token refreshed successfully"
+
+# ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
 
@@ -100,12 +118,12 @@ class AuditLogFilter(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    severity: Optional[str] = Field(default=None, description="Filter by severity level")
-    action: Optional[str] = Field(default=None, description="Filter by action type")
-    user: Optional[str] = Field(default=None, description="Filter by username")
-    start_date: Optional[str] = Field(default=None, description="Start date (ISO-8601)")
-    end_date: Optional[str] = Field(default=None, description="End date (ISO-8601)")
-    search: Optional[str] = Field(default=None, description="Search in details field")
+    severity: Optional[str] = Field(default=None, description=_DESC_FILTER_SEVERITY)
+    action: Optional[str] = Field(default=None, description=_DESC_FILTER_ACTION)
+    user: Optional[str] = Field(default=None, description=_DESC_FILTER_USER)
+    start_date: Optional[str] = Field(default=None, description=_DESC_START_DATE)
+    end_date: Optional[str] = Field(default=None, description=_DESC_END_DATE)
+    search: Optional[str] = Field(default=None, description=_DESC_SEARCH)
 
 
 class AuditLogListResponse(BaseModel):
@@ -205,7 +223,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "action": "login_failure",
         "user": "attacker",
         "ip_address": "203.0.113.42",
-        "resource": "/api/v1/auth/login",
+        "resource": _PATH_AUTH_LOGIN,
         "details": "Brute-force login attempt detected — 12 failed attempts in 60 seconds",
         "trace_id": _tid(),
     },
@@ -215,7 +233,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "permission_denied",
         "user": "jsmith",
-        "ip_address": "10.0.0.55",
+        "ip_address": "10.0.0.55",  # noqa: S1313
         "resource": "/api/v1/admin/users",
         "details": "User attempted to access admin user list without sufficient permissions",
         "trace_id": _tid(),
@@ -226,7 +244,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "config_change",
         "user": "admin",
-        "ip_address": "10.0.0.1",
+        "ip_address": "10.0.0.1",  # noqa: S1313
         "resource": "/api/v1/settings",
         "details": "Modified rate-limiting configuration from 100 req/min to 200 req/min",
         "trace_id": _tid(),
@@ -237,9 +255,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "alice",
-        "ip_address": "10.0.0.22",
-        "resource": "/api/v1/auth/login",
-        "details": "Successful login via JWT authentication",
+        "ip_address": "10.0.0.22",  # noqa: S1313
+        "resource": _PATH_AUTH_LOGIN,
+        "details": _DETAILS_LOGIN_JWT,
         "trace_id": _tid(),
     },
     {
@@ -248,9 +266,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "alice",
-        "ip_address": "10.0.0.22",
-        "resource": "/api/v1/auth/refresh",
-        "details": "Access token refreshed successfully",
+        "ip_address": "10.0.0.22",  # noqa: S1313
+        "resource": _PATH_AUTH_REFRESH,
+        "details": _DETAILS_TOKEN_REFRESHED,
         "trace_id": _tid(),
     },
     {
@@ -259,7 +277,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "secret_detected",
         "user": "ci-pipeline",
-        "ip_address": "10.0.0.100",
+        "ip_address": "10.0.0.100",  # noqa: S1313
         "resource": "/api/v1/security/scan",
         "details": "Hardcoded API key detected in src/config.py line 42",
         "trace_id": _tid(),
@@ -281,8 +299,8 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "role_change",
         "user": "admin",
-        "ip_address": "10.0.0.1",
-        "resource": "/api/v1/auth/roles",
+        "ip_address": "10.0.0.1",  # noqa: S1313
+        "resource": _PATH_AUTH_ROLES,
         "details": "User 'bob' promoted from 'viewer' to 'engineer' role",
         "trace_id": _tid(),
     },
@@ -292,8 +310,8 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "bob",
-        "ip_address": "10.0.0.33",
-        "resource": "/api/v1/auth/login",
+        "ip_address": "10.0.0.33",  # noqa: S1313
+        "resource": _PATH_AUTH_LOGIN,
         "details": "Successful login via email OTP",
         "trace_id": _tid(),
     },
@@ -303,9 +321,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "bob",
-        "ip_address": "10.0.0.33",
-        "resource": "/api/v1/auth/refresh",
-        "details": "Access token refreshed successfully",
+        "ip_address": "10.0.0.33",  # noqa: S1313
+        "resource": _PATH_AUTH_REFRESH,
+        "details": _DETAILS_TOKEN_REFRESHED,
         "trace_id": _tid(),
     },
     {
@@ -325,7 +343,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "rate_limit_exceeded",
         "user": "jsmith",
-        "ip_address": "10.0.0.55",
+        "ip_address": "10.0.0.55",  # noqa: S1313
         "resource": "/api/v1/studies",
         "details": "Rate limit exceeded — 350 requests in 60 seconds (limit: 200)",
         "trace_id": _tid(),
@@ -336,8 +354,8 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "admin",
-        "ip_address": "10.0.0.1",
-        "resource": "/api/v1/auth/login",
+        "ip_address": "10.0.0.1",  # noqa: S1313
+        "resource": _PATH_AUTH_LOGIN,
         "details": "Successful login via magic link",
         "trace_id": _tid(),
     },
@@ -358,8 +376,8 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "permission_denied",
         "user": "charlie",
-        "ip_address": "10.0.0.44",
-        "resource": "/api/v1/auth/roles",
+        "ip_address": "10.0.0.44",  # noqa: S1313
+        "resource": _PATH_AUTH_ROLES,
         "details": "Viewer role user attempted to create a new role",
         "trace_id": _tid(),
     },
@@ -369,7 +387,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "config_change",
         "user": "admin",
-        "ip_address": "10.0.0.1",
+        "ip_address": "10.0.0.1",  # noqa: S1313
         "resource": "/api/v1/settings",
         "details": "Enabled MFA requirement for all users",
         "trace_id": _tid(),
@@ -380,9 +398,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "alice",
-        "ip_address": "10.0.0.22",
-        "resource": "/api/v1/auth/refresh",
-        "details": "Access token refreshed successfully",
+        "ip_address": "10.0.0.22",  # noqa: S1313
+        "resource": _PATH_AUTH_REFRESH,
+        "details": _DETAILS_TOKEN_REFRESHED,
         "trace_id": _tid(),
     },
     {
@@ -391,9 +409,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "diana",
-        "ip_address": "10.0.0.55",
-        "resource": "/api/v1/auth/login",
-        "details": "Successful login via JWT authentication",
+        "ip_address": "10.0.0.55",  # noqa: S1313
+        "resource": _PATH_AUTH_LOGIN,
+        "details": _DETAILS_LOGIN_JWT,
         "trace_id": _tid(),
     },
     {
@@ -402,7 +420,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "secret_detected",
         "user": "ci-pipeline",
-        "ip_address": "10.0.0.100",
+        "ip_address": "10.0.0.100",  # noqa: S1313
         "resource": "/api/v1/security/scan",
         "details": "Exposed .env file detected in public directory — contains database credentials",
         "trace_id": _tid(),
@@ -414,7 +432,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "action": "intrusion_attempt",
         "user": "unknown",
         "ip_address": "198.51.100.23",
-        "resource": "/api/v1/auth/login",
+        "resource": _PATH_AUTH_LOGIN,
         "details": "Credential stuffing attack detected — 500 login attempts in 5 minutes using leaked password list",
         "trace_id": _tid(),
     },
@@ -424,7 +442,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "rate_limit_exceeded",
         "user": "diana",
-        "ip_address": "10.0.0.55",
+        "ip_address": "10.0.0.55",  # noqa: S1313
         "resource": "/api/v1/assets",
         "details": "Rate limit exceeded — 250 requests in 60 seconds (limit: 200)",
         "trace_id": _tid(),
@@ -435,9 +453,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "charlie",
-        "ip_address": "10.0.0.44",
-        "resource": "/api/v1/auth/refresh",
-        "details": "Access token refreshed successfully",
+        "ip_address": "10.0.0.44",  # noqa: S1313
+        "resource": _PATH_AUTH_REFRESH,
+        "details": _DETAILS_TOKEN_REFRESHED,
         "trace_id": _tid(),
     },
     {
@@ -446,9 +464,9 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "admin",
-        "ip_address": "10.0.0.1",
-        "resource": "/api/v1/auth/login",
-        "details": "Successful login via JWT authentication",
+        "ip_address": "10.0.0.1",  # noqa: S1313
+        "resource": _PATH_AUTH_LOGIN,
+        "details": _DETAILS_LOGIN_JWT,
         "trace_id": _tid(),
     },
     {
@@ -457,7 +475,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "permission_denied",
         "user": "eve",
-        "ip_address": "10.0.0.77",
+        "ip_address": "10.0.0.77",  # noqa: S1313
         "resource": "/api/v1/admin/backup",
         "details": "User attempted to trigger database backup without admin role",
         "trace_id": _tid(),
@@ -468,8 +486,8 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "role_change",
         "user": "admin",
-        "ip_address": "10.0.0.1",
-        "resource": "/api/v1/auth/roles",
+        "ip_address": "10.0.0.1",  # noqa: S1313
+        "resource": _PATH_AUTH_ROLES,
         "details": "User 'eve' demoted from 'engineer' to 'viewer' role due to policy violation",
         "trace_id": _tid(),
     },
@@ -558,16 +576,16 @@ def _apply_filters(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response_model=AuditLogListResponse, summary="List audit logs")
+@router.get("/", summary="List audit logs")
 async def list_audit_logs(
     page: int = Query(default=1, ge=1, description="1-based page number"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    severity: Optional[str] = Query(default=None, description="Filter by severity level"),
-    action: Optional[str] = Query(default=None, description="Filter by action type"),
-    user: Optional[str] = Query(default=None, description="Filter by username"),
-    start_date: Optional[str] = Query(default=None, description="Start date (ISO-8601)"),
-    end_date: Optional[str] = Query(default=None, description="End date (ISO-8601)"),
-    search: Optional[str] = Query(default=None, description="Search in details field"),
+    severity: Optional[str] = Query(default=None, description=_DESC_FILTER_SEVERITY),
+    action: Optional[str] = Query(default=None, description=_DESC_FILTER_ACTION),
+    user: Optional[str] = Query(default=None, description=_DESC_FILTER_USER),
+    start_date: Optional[str] = Query(default=None, description=_DESC_START_DATE),
+    end_date: Optional[str] = Query(default=None, description=_DESC_END_DATE),
+    search: Optional[str] = Query(default=None, description=_DESC_SEARCH),
 ) -> AuditLogListResponse:
     """List audit log entries with search, filter, and pagination support.
 
@@ -607,12 +625,12 @@ async def list_audit_logs(
     response_class=StreamingResponse,
 )
 async def export_audit_logs_csv(
-    severity: Optional[str] = Query(default=None, description="Filter by severity level"),
-    action: Optional[str] = Query(default=None, description="Filter by action type"),
-    user: Optional[str] = Query(default=None, description="Filter by username"),
-    start_date: Optional[str] = Query(default=None, description="Start date (ISO-8601)"),
-    end_date: Optional[str] = Query(default=None, description="End date (ISO-8601)"),
-    search: Optional[str] = Query(default=None, description="Search in details field"),
+    severity: Optional[str] = Query(default=None, description=_DESC_FILTER_SEVERITY),
+    action: Optional[str] = Query(default=None, description=_DESC_FILTER_ACTION),
+    user: Optional[str] = Query(default=None, description=_DESC_FILTER_USER),
+    start_date: Optional[str] = Query(default=None, description=_DESC_START_DATE),
+    end_date: Optional[str] = Query(default=None, description=_DESC_END_DATE),
+    search: Optional[str] = Query(default=None, description=_DESC_SEARCH),
 ) -> StreamingResponse:
     """Export filtered audit log entries as a CSV file download.
 
@@ -663,7 +681,7 @@ async def export_audit_logs_csv(
     )
 
 
-@router.get("/stats", response_model=AuditLogStats, summary="Get audit log statistics")
+@router.get("/stats", summary="Get audit log statistics")
 async def get_audit_log_stats() -> AuditLogStats:
     """Return aggregate statistics for audit log entries.
 
@@ -730,7 +748,6 @@ async def get_audit_log_stats() -> AuditLogStats:
 
 @router.get(
     "/{log_id}",
-    response_model=AuditLogEntry,
     summary="Get a specific audit log entry",
 )
 async def get_audit_log(log_id: str) -> AuditLogEntry:

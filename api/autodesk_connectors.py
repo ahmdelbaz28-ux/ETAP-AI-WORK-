@@ -268,7 +268,6 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
 
 @router.get(
     "/status",
-    response_model=ConnectorHealthResponse,
     summary="Get health status of all Autodesk connectors",
 )
 async def get_connector_status() -> ConnectorHealthResponse:
@@ -291,7 +290,6 @@ async def get_connector_status() -> ConnectorHealthResponse:
 
 @router.get(
     "/status/autocad",
-    response_model=ConnectorStatusResponse,
     summary="Get AutoCAD connector status",
 )
 async def get_autocad_status() -> ConnectorStatusResponse:
@@ -305,7 +303,6 @@ async def get_autocad_status() -> ConnectorStatusResponse:
 
 @router.get(
     "/status/revit",
-    response_model=ConnectorStatusResponse,
     summary="Get Revit connector status",
 )
 async def get_revit_status() -> ConnectorStatusResponse:
@@ -319,7 +316,6 @@ async def get_revit_status() -> ConnectorStatusResponse:
 
 @router.post(
     "/test-connection",
-    response_model=ConnectionTestResponse,
     summary="Test pipe connection to a specific connector",
 )
 async def test_connection(request: ConnectionTestRequest) -> ConnectionTestResponse:
@@ -391,7 +387,6 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
 
 @router.get(
     "/timeouts",
-    response_model=ConnectorTimeoutConfig,
     summary="Get current timeout configuration",
 )
 async def get_timeouts() -> ConnectorTimeoutConfig:
@@ -407,7 +402,6 @@ async def get_timeouts() -> ConnectorTimeoutConfig:
 
 @router.put(
     "/timeouts",
-    response_model=ConnectorTimeoutConfig,
     summary="Update timeout configuration",
 )
 async def update_timeouts(config: ConnectorTimeoutConfig) -> ConnectorTimeoutConfig:
