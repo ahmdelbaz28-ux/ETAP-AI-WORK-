@@ -1316,7 +1316,7 @@ class ETAPAutomation:
         if not file_path or not isinstance(file_path, str):
             logger.warning(
                 "Invalid project path type or empty: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
@@ -1330,7 +1330,7 @@ class ETAPAutomation:
         if not file_path.endswith(".edb"):
             logger.warning(
                 "Invalid project file extension: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
@@ -1347,7 +1347,7 @@ class ETAPAutomation:
         if file_path.startswith(("\\\\", "//")):
             logger.warning(
                 "UNC path not allowed (SMB relay risk): %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
@@ -1370,11 +1370,11 @@ class ETAPAutomation:
             # path handling for legitimate ETAP project files.
             resolved = normalised.resolve(
                 strict=False
-            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
+            )  # noqa: S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
         except (ValueError, RuntimeError):
             logger.warning(
                 "Invalid path format: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1386,7 +1386,7 @@ class ETAPAutomation:
             except ValueError:
                 logger.warning(
                     "Project path escapes CWD and HOME: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         if self._allowed_project_dirs:
@@ -1396,7 +1396,7 @@ class ETAPAutomation:
             if not is_allowed:
                 logger.warning(
                     "Project path outside allowed directories: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
         return True
@@ -1456,7 +1456,7 @@ class ETAPAutomation:
         if not self._validate_project_path(file_path):
             logger.error(
                 "Project path validation failed: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
             return None
 
         try:
@@ -1467,12 +1467,12 @@ class ETAPAutomation:
                 self._projects[file_path] = project
                 logger.info(
                     "Opened project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return project
             else:
                 logger.error(
                     "Failed to open project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                )  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return None
 
         except pythoncom.com_error as e:

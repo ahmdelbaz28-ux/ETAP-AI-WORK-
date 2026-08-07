@@ -287,9 +287,9 @@ def _filter_objects_by_age(
         except (ValueError, TypeError):
             logger.warning(
                 "storage_purge_skip_invalid_date key=%s last_modified=%s",
-                obj.get("key", "?"),
-                last_modified_str,
-            )
+                _sanitize_for_log(obj.get("key", "?")),
+                _sanitize_for_log(last_modified_str),
+            )  # noqa: S5145
             continue
     return filtered
 
@@ -401,7 +401,7 @@ async def purge_storage(
 
     logger.info(
         "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s",
-        prefix or "(all)",
+        _sanitize_for_log(prefix or "(all)"),
         older_than_days,
         request.dry_run,
     )
@@ -461,7 +461,7 @@ async def purge_storage(
         "storage_purge_completed deleted=%d freed_bytes=%d prefix=%s",
         deleted_count,
         freed_bytes,
-        prefix or "(all)",
+        _sanitize_for_log(prefix or "(all)"),
     )
 
     return StoragePurgeResponse(

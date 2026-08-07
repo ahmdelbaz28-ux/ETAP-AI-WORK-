@@ -389,7 +389,7 @@ async def create_zip_load(body: ZIPLoadConfigCreateRequest) -> Any:
         "preset": body.preset if body.coefficients is None else None,
     }
     _zip_loads[load_id] = entry
-    logger.info("zip_load_created id=%s name=%s", load_id, body.name)
+    logger.info("zip_load_created id=%s name=%s", _sanitize_for_log(load_id), _sanitize_for_log(body.name))
     return ZIPLoadConfigResponse(
         id=load_id,
         name=body.name,
@@ -430,7 +430,7 @@ async def update_zip_load(load_id: str, body: ZIPLoadConfigUpdateRequest) -> Any
         existing["coefficients"] = new_coefficients.model_dump()
         existing["preset"] = body.preset if body.coefficients is None else None
 
-    logger.info("zip_load_updated id=%s", load_id)
+    logger.info("zip_load_updated id=%s", _sanitize_for_log(load_id))
     return ZIPLoadConfigResponse(
         id=existing["id"],
         name=existing["name"],
@@ -450,7 +450,7 @@ async def delete_zip_load(load_id: str) -> None:
     """Delete a ZIP load configuration by ID."""
     _get_zip_load_or_404(load_id)
     del _zip_loads[load_id]
-    logger.info("zip_load_deleted id=%s", load_id)
+    logger.info("zip_load_deleted id=%s", _sanitize_for_log(load_id))
 
 
 @router.post(
@@ -526,7 +526,7 @@ async def create_generator(body: GeneratorCapabilityCreateRequest) -> Any:
         "min_power_reactive": body.min_power_reactive,
     }
     _generator_caps[gen_id] = entry
-    logger.info("generator_capability_created id=%s name=%s", gen_id, body.name)
+    logger.info("generator_capability_created id=%s name=%s", _sanitize_for_log(gen_id), _sanitize_for_log(body.name))
     return GeneratorCapabilityResponse(
         id=gen_id,
         name=body.name,
@@ -576,7 +576,7 @@ async def update_generator(gen_id: str, body: GeneratorCapabilityUpdateRequest) 
             f"min_power_reactive ({existing['min_power_reactive']})",
         )
 
-    logger.info("generator_capability_updated id=%s", gen_id)
+    logger.info("generator_capability_updated id=%s", _sanitize_for_log(gen_id))
     return GeneratorCapabilityResponse(
         id=existing["id"],
         name=existing["name"],

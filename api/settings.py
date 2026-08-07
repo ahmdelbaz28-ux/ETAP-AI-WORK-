@@ -262,7 +262,7 @@ async def save_key(
             },
         )
     except ValueError as exc:
-        logger.warning("api_key_save_validation_failed provider=%s error=%s", provider, str(exc))
+        logger.warning("api_key_save_validation_failed provider=%s error=%s", _sanitize_for_log(provider), _sanitize_for_log(str(exc)))
         raise HTTPException(status_code=400, detail="Invalid API key configuration") from exc
     except Exception:  # noqa: BLE001
         logger.exception("Failed to save API key")

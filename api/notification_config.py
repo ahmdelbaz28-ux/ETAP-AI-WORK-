@@ -351,7 +351,7 @@ async def update_notification_config(
     """
     if body.digest is not None:
         _store["digest"].update(body.digest.model_dump())
-        logger.info("digest_config_updated new_config=%s", body.digest.model_dump())
+        logger.info("digest_config_updated new_config=%s", _sanitize_for_log(body.digest.model_dump()))
 
     if body.alerts is not None:
         for alert_cfg in body.alerts:
@@ -387,7 +387,7 @@ async def update_digest_config(
     All fields of the digest schedule are replaced with the provided values.
     """
     _store["digest"].update(body.model_dump())
-    logger.info("digest_schedule_updated config=%s", body.model_dump())
+    logger.info("digest_schedule_updated config=%s", _sanitize_for_log(body.model_dump()))
     return DigestScheduleConfig(**_store["digest"])
 
 
@@ -431,7 +431,7 @@ async def update_alert_config(
         )
 
     _store["alerts"][alert_type] = body.model_dump()
-    logger.info("alert_config_updated alert_type=%s config=%s", alert_type, body.model_dump())
+    logger.info("alert_config_updated alert_type=%s config=%s", _sanitize_for_log(alert_type), _sanitize_for_log(body.model_dump()))
     return AlertTypeConfig(**_store["alerts"][alert_type])
 
 
@@ -479,9 +479,9 @@ async def create_webhook(
     _store["webhooks"][webhook_id] = webhook_data
     logger.info(
         "webhook_created id=%s url=%s events=%s",
-        webhook_id,
-        body.url,
-        body.events,
+        _sanitize_for_log(webhook_id),
+        _sanitize_for_log(body.url),
+        _sanitize_for_log(body.events),
     )
     return _webhook_to_response(webhook_data)
 
@@ -505,7 +505,7 @@ async def delete_webhook(
         )
 
     del _store["webhooks"][webhook_id]
-    logger.info("webhook_deleted id=%s", webhook_id)
+    logger.info("webhook_deleted id=%s", _sanitize_for_log(webhook_id))
 
 
 __all__ = ["router"]
