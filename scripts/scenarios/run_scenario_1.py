@@ -40,11 +40,30 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
+
+
+def _validate_cmd_args(args):
+    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
+
+    Only allows safe characters in each argument; raises ValueError if any
+    argument contains shell metacharacters or quotes.
+    """
+    safe_args = []
+    for a in args:
+        s = str(a)
+        if not _VALID_ARG_RE.match(s):
+            raise ValueError(f"Disallowed character in command arg: {s!r}")
+        safe_args.append(s)
+    return safe_args
+
 
 # Ensure project root is on path
 PROJECT_ROOT = Path(__file__).parent.parent.parent

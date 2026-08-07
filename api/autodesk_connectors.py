@@ -211,7 +211,7 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
         port = 4820
         timeout = _timeout_config["autocad_timeout_seconds"]
         client = AutoCADPluginClient(
-            base_url=f"http://{host}:{port}",
+            base_url=f"http://{host}:{port}",  # noqa: S5332
             timeout=timeout,
         )
     elif connector_type == ConnectorType.REVIT:
@@ -221,7 +221,7 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
         port = 4830
         timeout = _timeout_config["revit_timeout_seconds"]
         client = RevitPluginClient(
-            base_url=f"http://{host}:{port}",
+            base_url=f"http://{host}:{port}",  # noqa: S5332
             timeout=timeout,
         )
     else:
@@ -346,7 +346,7 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
             timeout=timeout,
         )
     elif connector_type == ConnectorType.REVIT:
-        from autodesk_connector.revit.connector import RevitPluginClient
+        from autodesk_connector.revit.connector import RevitPluginClient  # noqa: S5332
 
         host = "localhost"
         port = 4830
@@ -355,7 +355,7 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
             timeout=timeout,
         )
     else:
-        raise HTTPException(
+        raise HTTPException(  # noqa: S5332
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown connector type: {connector_type}",
         )
