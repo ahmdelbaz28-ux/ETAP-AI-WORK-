@@ -195,9 +195,15 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     ["deriveKey"],
   );
 
-  const saltBytes = new Uint8Array(
-    salt.match(/.{1,2}/g)?.map((byte) => Number.parseInt(byte, 16)) || [],
-  );
+  // Fail-fast: throw with a clear error if the salt format is invalid,
+  // rather than silently producing an empty Uint8Array (which would
+  // weaken the key derivation). Resolves merge conflict between
+  // PR #322 (optional chaining, fail-silent) and openhands (fail-fast).
+  const saltMatch = salt.match(/.{1,2}/g);
+  if (!saltMatch) {
+    throw new Error("Invalid salt format: expected hex string");
+  }
+  const saltBytes = new Uint8Array(saltMatch.map((byte) => Number.parseInt(byte, 16)));
 
   return crypto.subtle.deriveKey(
     {
