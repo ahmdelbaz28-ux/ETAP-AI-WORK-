@@ -26,10 +26,6 @@ def load_real_gis_project(
     qgis_project_path: Optional[str] = None,
     arcgis_project_path: Optional[str] = None,
 ) -> list[RealGISProject]:
-
-    qgis_project_path: str | None = None,
-    arcgis_project_path: str | None = None,
-) -> List[RealGISProject]:
     """
     Real GIS loader with lazy provider imports.
     No GIS SDK import at module-load time (only inside this function).
@@ -48,16 +44,6 @@ def load_real_gis_project(
             raise GISRuntimeError(f"QGIS provider unavailable: {exc}") from exc
 
         provider = get_gis_provider("qgis")
-
-    projects: List[RealGISProject] = []
-
-    if qgis_project_path:
-        try:
-            from gis_integration.providers.qgis_provider import QGISProvider  # lazy import
-        except Exception as exc:
-            raise GISRuntimeError(f"QGIS provider unavailable: {exc}") from exc
-
-        provider = QGISProvider()
         try:
             provider.load_project(qgis_project_path)
         except (GISProviderUnavailableError, GISDataExtractionError) as exc:

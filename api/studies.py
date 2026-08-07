@@ -13,11 +13,9 @@ import math
 import os
 import time
 import uuid
-from typing import Annotated, Any, Dict, Mapping
+from typing import Any, Dict, Mapping, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-
-logger = logging.getLogger(__name__)
 
 from api.dependencies import get_api_key
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
@@ -57,18 +55,6 @@ __all__ = [
     "SystemSpec",
     "TransformerSpec",
 ]
-
-import asyncio
-import json
-import time
-import uuid
-from typing import Any, Dict, List
-
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
-
-from api.dependencies import get_api_key
-from core.metrics import count_executions, track_skill_operation
 from engine.caching import StudyCache
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
@@ -88,200 +74,6 @@ from core_model.transformer import Transformer
 def _to_jsonable(  # NOSONAR
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-
-
-class BusSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    bus_id: int
-    voltage_magnitude: float = Field(
-        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm")
-    )
-    voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
-    load_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd")
-    )
-    load_power_imag: float = Field(
-        default=0.0,
-        validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
-    )
-    generation_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg")
-    )
-    generation_power_imag: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
-    )
-    bus_type: str = "pq"
-    base_kv: float | None = None
-    q_min: float = Field(
-        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
-    )
-    q_max: float = Field(
-        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
-    )
-    area: int | None = None
-    zone: int | None = None
-    voltage_setpoint: float | None = Field(
-        default=None,
-        validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
-    )
-
-    @field_validator("bus_type")
-    @classmethod
-    def validate_bus_type(cls, v: str) -> str:
-        v = v.lower().strip()
-        if v not in ("slack", "pv", "pq"):
-            raise ValueError("bus_type must be slack, pv, or pq")
-        return v
-
-
-class LineSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    line_id: int
-    from_bus_id: int = Field(validation_alias=AliasChoices("from_bus_id", "from"))
-    to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
-    r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
-    x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: float | None = None
-    x0: float | None = None
-    bshunt1: float = Field(
-        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
-    )
-    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: float | None = None
-
-
-class TransformerSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    transformer_id: int
-    from_bus_id: int
-    to_bus_id: int
-    r1: float = 0.0
-    x1: float = 0.05
-    tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
-    phase_shift_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
-    )
-
-
-class GeneratorSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    generator_id: int
-    bus_id: int
-    r1: float = 0.0
-    x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: float | None = None
-    x2: float | None = None
-    r0: float | None = None
-    x0: float | None = None
-    internal_voltage_mag: float = Field(
-        default=1.05,
-        validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
-    )
-    internal_voltage_ang_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
-    )
-    power_real: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_real", "pg")
-    )
-    power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_reactive", "qg")
-    )
-    max_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
-    )
-    min_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
-    )
-
-
-class LoadSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    load_id: int
-    bus_id: int
-    p_mw: float = Field(
-        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real")
-    )
-    q_mvar: float = Field(
-        default=0.0,
-        validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
-    )
-    constant_impedance: bool = False
-
-
-class SystemSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    base_mva: float = Field(
-        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva")
-    )
-    buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(
-        default_factory=list, validation_alias=AliasChoices("lines", "branches")
-    )
-    transformers: List[TransformerSpec] = Field(default_factory=list)
-    generators: List[GeneratorSpec] = Field(default_factory=list)
-    loads: List[LoadSpec] = Field(default_factory=list)
-
-
-class StudyRequest(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    study_type: str = Field(..., description="Type of study to run")
-    system: SystemSpec | None = None
-    parameters: Dict[str, Any] = Field(default_factory=dict)
-    task_id: str | None = None
-    use_etap: bool = Field(
-        default=False, description="If True, route to ETAP provider instead of native engine"
-    )
-    etap_project_path: str | None = None
-
-    @field_validator("study_type")
-    @classmethod
-    def validate_study_type(cls, v: str) -> str:
-        allowed = {
-            "load_flow",
-            "short_circuit",
-            "fault",
-            "arc_flash",
-            "protection_coordination",
-            "coordination",
-            "motor_starting",
-            "harmonic_analysis",
-            "optimal_power_flow",
-            "etap_load_flow",
-            "etap_short_circuit",
-            "etap_arc_flash",
-            "etap_harmonic_analysis",
-            "etap_optimal_power_flow",
-            "etap_motor_starting",
-            "etap_protection_coordination",
-            # ETAP Expert skill — 6-step workflow with Format A/B/C/D responses
-            "etap_expert",
-        }
-        v = v.lower().strip()
-        if v not in allowed:
-            raise ValueError(f"study_type must be one of {sorted(allowed)}")
-        return v
-
-
-class StudyResult(BaseModel):
-    success: bool
-    data: Dict[str, Any] = Field(default_factory=dict)
-    warnings: List[str] = Field(default_factory=list)
-    errors: List[str] = Field(default_factory=list)
-    execution_time_sec: float = 0.0
-    trace_id: str = ""
-    task_id: str | None = None
-    study_type: str = ""
-    provider: str = "native"
-
-
-def _to_jsonable(obj: Any) -> Any:
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     import numpy as np
@@ -420,7 +212,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
-    system: Any | None,
+    system: Optional[Any],
     parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
@@ -566,23 +358,6 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
             bolted_fault_current_ka=float(bolted_fault_current_ka),
             arc_duration_sec=float(arc_duration_sec),
             working_distance_mm=float(working_distance_mm),
-
-        required = (
-            "voltage_kv",
-            "bolted_fault_current_ka",
-            "arc_duration_sec",
-            "working_distance_mm",
-        )
-        missing = [k for k in required if k not in parameters]
-        if missing:
-            raise ValueError(
-                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
-            )
-        return engine.run_arc_flash(
-            voltage_kv=float(parameters["voltage_kv"]),
-            bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
-            arc_duration_sec=float(parameters["arc_duration_sec"]),
-            working_distance_mm=float(parameters["working_distance_mm"]),
             electrode_config=str(parameters.get("electrode_config", "VCB")),
             enclosure_type=str(parameters.get("enclosure_type", "box")),
             enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
@@ -634,7 +409,7 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
         )
 
 
-def _pre_flight_basic(system: dict) -> dict | None:
+def _pre_flight_basic(system: dict) -> Optional[dict]:
     """Check basic structural requirements. Returns error dict or None."""
     if not system:
         return {"error": "System configuration is required"}
@@ -650,7 +425,7 @@ def _pre_flight_basic(system: dict) -> dict | None:
     return None
 
 
-def _pre_flight_lines(lines: list, bus_ids: set) -> dict | None:
+def _pre_flight_lines(lines: list, bus_ids: set) -> Optional[dict]:
     """Check line impedance and bus references. Returns error dict or None."""
     for line in lines:
         if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
@@ -666,7 +441,7 @@ def _pre_flight_lines(lines: list, bus_ids: set) -> dict | None:
     return None
 
 
-def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> dict | None:
+def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> Optional[dict]:
     """Check for isolated buses (no line connections). Returns error dict or None."""
     connected_buses = set()
     for line in lines:
@@ -678,7 +453,7 @@ def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> dict | None:
     return None
 
 
-def _pre_flight_voltage_bounds(buses: list) -> dict | None:
+def _pre_flight_voltage_bounds(buses: list) -> Optional[dict]:
     """Check bus voltage magnitudes are in a realistic range. Returns error dict or None."""
     for bus in buses:
         v = bus.get("voltage_magnitude")
@@ -689,7 +464,7 @@ def _pre_flight_voltage_bounds(buses: list) -> dict | None:
     return None
 
 
-def pre_flight_check(system: dict) -> dict | None:
+def pre_flight_check(system: dict) -> Optional[dict]:
     """Validate system configuration before running a study.
     Returns None if OK, or an error dict if validation fails."""
     err = _pre_flight_basic(system)
@@ -746,7 +521,9 @@ def _validate_study_request(payload: StudyRequest) -> None:
     if payload.system is not None:
         pf_result = pre_flight_check(payload.system.model_dump())
         if pf_result is not None:
-            raise HTTPException(status_code=400, detail=pf_result["error"])  # NOSONAR
+            raise HTTPException(
+                status_code=400, detail=pf_result["error"]
+            )  # NOSONAR
 
 
 def _build_cache_params(payload: StudyRequest) -> dict:
@@ -773,7 +550,6 @@ async def _lookup_cache(study_cache, payload: StudyRequest, trace_id: str) -> tu
         cached_result = await study_cache.get(payload.study_type, cache_params)
         if cached_result:
             from logging import getLogger
-
             logger = getLogger("engineering_service")
             logger.info(  # NOSONAR
                 "study_cache_hit study_type=%s task_id=%s",
@@ -792,7 +568,7 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     if not payload.etap_project_path:
         raise ValueError("etap_project_path is required when use_etap=True")
 
-    from etap_integration.etap_provider import ETAPStudyType, get_etap_provider
+    from etap_integration.etap_provider import get_etap_provider, ETAPStudyType
 
     provider = get_etap_provider()
 
@@ -823,9 +599,7 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     return data, warnings, errors
 
 
-async def _store_cache_result(
-    study_cache, payload: StudyRequest, data: dict, trace_id: str
-) -> None:
+async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, trace_id: str) -> None:
     """Store study result in cache (non-fatal on failure)."""
     if not study_cache:
         return
@@ -834,128 +608,12 @@ async def _store_cache_result(
         await study_cache.set(payload.study_type, cache_params, data)
     except Exception as cache_err:
         from logging import getLogger
-
         logger = getLogger("engineering_service")
         logger.debug(
             "Cache store failed (non-fatal): %s",
             cache_err,
             extra={"trace_id": trace_id},
         )
-
-
-def _pe_stamp_warnings(payload: StudyRequest) -> list[str]:
-    """Collect PE-stamp advisory warnings (Item 5)."""
-    if requires_stamp(payload.study_type) and not payload.pe_stamp:
-        return [
-            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
-            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
-        ]
-    return []
-
-
-def _init_study_cache() -> StudyCache | None:
-    """Create the study cache instance (non-fatal on failure)."""
-    try:
-        return StudyCache(
-            redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
-            ttl=3600,
-        )
-    except Exception:
-        from logging import getLogger
-
-        getLogger("engineering_service").debug("StudyCache init failed (non-fatal)")
-        return None
-
-
-async def _execute_study(
-    payload: StudyRequest,
-    study_cache: StudyCache | None,
-    trace_id: str,
-    warnings: list[str],
-    errors: list[str],
-) -> tuple[dict[str, Any], list[str], list[str], str]:
-    """Execute a study via cache lookup, ETAP, or the native engine.
-
-    Returns (data, warnings, errors, provider_name). Raises HTTPException
-    for system spec errors; other validation errors propagate as ValueError.
-    """
-    data: dict[str, Any] = {}
-    provider_name = "native"
-    cache_hit = False
-
-    # --- Cache lookup for native studies (non-ETAP) ---
-    if not payload.use_etap:
-        try:
-            data, cache_hit = await _lookup_cache(study_cache, payload, trace_id)
-        except Exception as cache_err:
-            from logging import getLogger
-
-            getLogger("engineering_service").debug(
-                "Cache lookup failed (non-fatal): %s",
-                cache_err,
-                extra={"trace_id": trace_id},
-            )
-
-    if cache_hit:
-        return data, warnings, errors, provider_name
-    if payload.use_etap:
-        provider_name = "etap"
-        data, warnings, errors = await _run_etap_study(payload)
-        return data, warnings, errors, provider_name
-
-    system = None
-    if payload.system:
-        try:
-            system = _build_system_from_spec(payload.system)
-        except ValueError as ve:
-            raise HTTPException(  # NOSONAR
-                status_code=400, detail=f"System spec error: {ve}"
-            ) from ve  # NOSONAR
-    data = _run_native_study(payload.study_type, system, payload.parameters)
-    provider_name = "native"
-
-    # --- Store result in cache ---
-    await _store_cache_result(study_cache, payload, data, trace_id)
-    return data, warnings, errors, provider_name
-
-
-def _apply_ai_failure_scan(
-    data: dict[str, Any],
-    study_type: str,
-    status: str,
-    errors: list[str],
-) -> tuple[dict[str, Any], str]:
-    """Run the F-12 AI failure mode scan at the API boundary.
-
-    Scans AI-generated content in the response for the 14 systematic LLM
-    failure patterns (catch-all swallowing, hardcoded success, package
-    hallucination, etc.) before returning to the client.
-    Returns (data, status); inserts a blocking error when MUST_FIX is found.
-    """
-    if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
-        _ai_fm_violations = _scan_ai_failure_modes(data, study_type)
-        if _ai_fm_violations:
-            _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
-            if _must_fix:
-                errors.insert(
-                    0,
-                    (
-                        f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
-                        f"violations detected (F-12). See ai_failure_mode_violations in data."
-                    ),
-                )
-                status = "failed"
-            data["ai_failure_mode_violations"] = _ai_fm_violations
-    return data, status
-
-
-def _apply_risk_score(data: dict[str, Any], study_type: str, status: str) -> dict[str, Any]:
-    """Attach risk score and violations for successful studies (Item 3)."""
-    if status == "success":
-        risk_info = compute_risk(study_type, data)
-        data["risk_score"] = risk_info["risk_score"]
-        data["risk_violations"] = risk_info["risk_violations"]
-    return data
 
 
 @router.post(
@@ -968,7 +626,9 @@ def _apply_risk_score(data: dict[str, Any], study_type: str, status: str) -> dic
 async def run_study(
     req: Request,
     payload: StudyRequest,
-    _: Annotated[str, Depends(get_api_key)],
+    _: str = Depends(
+        get_api_key
+    ),
 ):
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
@@ -976,22 +636,18 @@ async def run_study(
 
     _validate_study_request(payload)
 
-    warnings: list[str] = _pe_stamp_warnings(payload)
+    warnings: list[str] = []
     errors: list[str] = []
     data: dict[str, Any] = {}
     provider_name = "native"
+    cache_hit = False
 
-
-        raise ValueError(f"Unsupported native study type: {study_type}")
-
-
-@router.post("/run", response_model=StudyResult)
-@count_executions(skill_name="study")
-@track_skill_operation("study")
-async def run_study(request: Request, payload: StudyRequest, _: str = Depends(get_api_key)):
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    task_id = payload.task_id or str(uuid.uuid4())
-    start = time.perf_counter()
+    # --- PE stamp check (Item 5) ---
+    if requires_stamp(payload.study_type) and not payload.pe_stamp:
+        warnings.append(
+            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
+            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
+        )
 
     from core.bootstrap import _add_execution_time, _increment_counter
 
@@ -1009,23 +665,11 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     )
 
     try:
-        study_cache = _init_study_cache()
-        data, warnings, errors, provider_name = await _execute_study(
-            payload, study_cache, trace_id, warnings, errors
-        )
-
-    warnings: List[str] = []
-    errors: List[str] = []
-    data: Dict[str, Any] = {}
-    provider_name = "native"
-    cache_hit = False
-
-    try:
         # Initialize study cache if needed
         study_cache = None
         try:
             study_cache = StudyCache(
-                redis_url="redis://localhost:6379",
+                redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
                 ttl=3600,
             )
         except Exception:
@@ -1034,95 +678,34 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         # --- Cache lookup for native studies (non-ETAP) ---
         if not payload.use_etap:
             try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
-                if payload.system:
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if study_cache:
-                    cached_result = await study_cache.get(payload.study_type, cache_params)
-                    if cached_result:
-                        data = json.loads(cached_result)
-                        cache_hit = True
-                        logger.info(
-                            "study_cache_hit study_type=%s task_id=%s",
-                            payload.study_type,
-                            task_id,
-                            extra={"trace_id": trace_id},
-                        )
+                data, cache_hit = await _lookup_cache(study_cache, payload, trace_id)
             except Exception as cache_err:
                 logger.debug(
-                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
+                    "Cache lookup failed (non-fatal): %s",
+                    cache_err,
+                    extra={"trace_id": trace_id},
                 )
 
         if cache_hit:
             # Use cached data
             pass
         elif payload.use_etap:
-            if not payload.etap_project_path:
-                raise ValueError("etap_project_path is required when use_etap=True")
             provider_name = "etap"
-            # Offload the synchronous ETAP call to a thread so it doesn't
-            # block the async event loop (ETAP COM calls can take 5-60 sec).
-            from etap_integration.etap_provider import get_etap_provider
-
-            provider_factory = get_etap_provider()
-            provider = provider_factory()
-
-            from etap_integration.etap_provider import ETAPStudyType
-
-            # Map generic study type to ETAP study type
-            mapping = {
-                "etap_load_flow": ETAPStudyType.LOAD_FLOW,
-                "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
-                "etap_arc_flash": ETAPStudyType.ARC_FLASH,
-                "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
-                "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
-                "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
-                "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
-            }
-            etap_study = mapping.get(payload.study_type)
-            if etap_study is None:
-                raise ValueError(f"No ETAP mapping for study type: {payload.study_type}")
-
-            data = await asyncio.to_thread(
-                provider.execute_study, payload.etap_project_path, etap_study
-            )
-            warnings = data.pop("warnings", [])
-            errors = data.pop("errors", [])
-            if not data.pop("success", True):
-                errors.append("ETAP study reported failure")
+            data, warnings, errors = await _run_etap_study(payload)
         else:
             system = None
             if payload.system:
                 try:
                     system = _build_system_from_spec(payload.system)
                 except ValueError as ve:
-                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
+                    raise HTTPException(  # NOSONAR
+                        status_code=400, detail=f"System spec error: {ve}"
+                    ) from ve  # NOSONAR
             data = _run_native_study(payload.study_type, system, payload.parameters)
             provider_name = "native"
 
             # --- Store result in cache ---
-            try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
-                if payload.system:
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(), sort_keys=True, default=str
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if study_cache:
-                    await study_cache.set(
-                        payload.study_type, cache_params, json.dumps(data, default=str)
-                    )
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
-                )
+            await _store_cache_result(study_cache, payload, data, trace_id)
 
         _increment_counter("success")
         status = "success"
@@ -1160,10 +743,23 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     # Scan AI-generated content in the response for the 14 systematic
     # LLM failure patterns (catch-all swallowing, hardcoded success,
     # package hallucination, etc.) before returning to the client.
-    data, status = _apply_ai_failure_scan(data, payload.study_type, status, errors)
+    if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
+        _ai_fm_violations = _scan_ai_failure_modes(data, payload.study_type)
+        if _ai_fm_violations:
+            _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
+            if _must_fix:
+                errors.insert(0, (
+                    f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
+                    f"violations detected (F-12). See ai_failure_mode_violations in data."
+                ))
+                status = "failed"
+            data["ai_failure_mode_violations"] = _ai_fm_violations
 
     # --- Risk scoring (Item 3) ---
-    data = _apply_risk_score(data, payload.study_type, status)
+    if status == "success":
+        risk_info = compute_risk(payload.study_type, data)
+        data["risk_score"] = risk_info["risk_score"]
+        data["risk_violations"] = risk_info["risk_violations"]
 
     elapsed_sec = time.perf_counter() - start
     _add_execution_time(elapsed_sec)
@@ -1233,7 +829,7 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
         List of violation dicts with keys: rule_id, severity, description.
     """
     try:
-        from guards.ai_failure_modes import AIFailureModeDetector
+        from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
     except ImportError:
         return []
 
@@ -1255,13 +851,11 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
 
         violations = []
         for v in result.violations:
-            violations.append(
-                {
-                    "rule_id": v.rule_id,
-                    "severity": v.severity.value,
-                    "description": v.description[:200],
-                }
-            )
+            violations.append({
+                "rule_id": v.rule_id,
+                "severity": v.severity.value,
+                "description": v.description[:200],
+            })
 
         if violations:
             _must_fix_count = sum(1 for v in violations if v["severity"] == "must_fix")

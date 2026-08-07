@@ -108,16 +108,6 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
 
 @router.get("/ml/capabilities", dependencies=[Depends(_get_api_key_or_user)])
 def ml_capabilities(request: Request):
-
-import numpy as np
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
-
-router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
-
-
-@router.get("/ml/capabilities")
-async def ml_capabilities():
     """Discover available ML/AI capabilities and their status."""
     try:
         from ml.predictive import get_ml_capabilities
@@ -148,12 +138,6 @@ def _clean_nan(obj: Any) -> Any:
 
 
 @router.post("/predict/load", dependencies=[Depends(_get_api_key_or_user)])
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
-
-
-@router.post("/predict/load")
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -181,16 +165,6 @@ async def predict_load(request: Request):
                 status_code=400, detail="horizon_hours must be between 1 and 168"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
-            raise HTTPException(status_code=400, detail="historical_data is required")
-        if not isinstance(historical, list):
-            raise HTTPException(status_code=400, detail="historical_data must be an array")
-        if len(historical) > 10000:
-            raise HTTPException(
-                status_code=400, detail="historical_data array too large (max 10000 points)"
-            )
-        if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
-            raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
-
         from ml.predictive import LoadForecaster
 
         lf = LoadForecaster(method=method)
@@ -217,21 +191,6 @@ async def predict_load(request: Request):
             ),
         )
 
-
-            content={
-                "success": True,
-                "data": {
-                    "predictions": predictions.tolist()
-                    if hasattr(predictions, "tolist")
-                    else list(predictions),
-                    "horizon_hours": horizon,
-                    "input_points": len(historical),
-                    "method": train_result.get("method", "unknown"),
-                    "metrics": metrics,
-                },
-                "trace_id": trace_id,
-            }
-        )
     except HTTPException:
         raise
     except Exception as e:
@@ -246,14 +205,6 @@ async def predict_load(request: Request):
 
 
 @router.post("/predict/fault", dependencies=[Depends(_get_api_key_or_user)])
-
-        logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/predict/fault")
 async def predict_fault(request: Request):
     """Predict fault type using XGBoost/RandomForest with optional SHAP explanation."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -312,14 +263,6 @@ async def predict_fault(request: Request):
 
 
 @router.post("/predict/fault/train", dependencies=[Depends(_get_api_key_or_user)])
-
-        logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/predict/fault/train")
 async def train_fault_predictor(request: Request):
     """Train fault prediction model with XGBoost/RandomForest + Optuna + SHAP."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -369,14 +312,6 @@ async def train_fault_predictor(request: Request):
 
 
 @router.post("/predict/anomaly", dependencies=[Depends(_get_api_key_or_user)])
-
-        logger.error("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/predict/anomaly")
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD multi-method detection."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -398,12 +333,6 @@ async def detect_anomalies(request: Request):
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="data array too large (max 10000 points)"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-
-            raise HTTPException(status_code=400, detail="data array is required")
-        if not isinstance(data, list):
-            raise HTTPException(status_code=400, detail="data must be an array")
-        if len(data) > 10000:
-            raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")
 
         from ml.predictive import AnomalyDetector
 
@@ -437,14 +366,6 @@ async def detect_anomalies(request: Request):
 
 
 @router.post("/gnn/predict", dependencies=[Depends(_get_api_key_or_user)])
-
-        logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/gnn/predict")
 async def gnn_predict(request: Request):
     """Predict using Graph Neural Network on power grid data."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -504,14 +425,6 @@ async def gnn_predict(request: Request):
 
 
 @router.post("/rag/query", dependencies=[Depends(_get_api_key_or_user)])
-
-        logger.error("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/rag/query")
 async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     trace_id = getattr(request.state, "trace_id", "unknown")

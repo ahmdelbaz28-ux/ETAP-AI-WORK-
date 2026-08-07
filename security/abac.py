@@ -37,11 +37,6 @@ from typing import Any, Union
 BUSINESS_HOURS_START = 8  # 8 AM local time
 BUSINESS_HOURS_END = 18  # 6 PM local time
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 from compat import StrEnum
 
 logger = logging.getLogger(__name__)
@@ -148,11 +143,6 @@ def _resolve_path(context: dict[str, Any], path: str) -> Any:
     current: Any = context
     for part in path.split("."):
         current = current.get(part) if isinstance(current, dict) else getattr(current, part, None)
-
-        if isinstance(current, dict):
-            current = current.get(part)
-        else:
-            current = getattr(current, part, None)
         if current is None:
             return None
     return current
@@ -198,14 +188,6 @@ class ABACPolicyEngine:
                 self.add_policy(p)
             return
 
-
-    def __init__(self, policies: List[ABACPolicy] | None = None) -> None:
-        self._policies: List[ABACPolicy] = policies or []
-
-    # -- policy management ---------------------------------------------------
-
-    def add_policy(self, policy: ABACPolicy) -> None:
-        """Add a policy to the engine."""
         self._policies.append(policy)
         self._policies.sort(key=lambda p: p.priority, reverse=True)
         logger.info(
@@ -251,10 +233,6 @@ class ABACPolicyEngine:
         elif rule.rule_type == RuleType.RESOURCE:
             context = {"resource": resource, **resource}
         elif rule.rule_type == RuleType.TIME or rule.rule_type == RuleType.IP:
-
-        elif rule.rule_type == RuleType.TIME:
-            context = environment
-        elif rule.rule_type == RuleType.IP:
             context = environment
         else:
             logger.warning("Unknown ABAC rule type: %s", rule.rule_type)
@@ -809,14 +787,6 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             ],
             priority=50,
         ),
-
-                "get:/api/studies",
-                "post:/api/studies",
-                "get:/api/projects",
-                "post:/api/projects",
-            ],
-            priority=50,
-        )
     )
 
     # Analyst read

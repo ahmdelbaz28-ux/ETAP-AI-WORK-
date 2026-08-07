@@ -63,11 +63,6 @@ class HarmonicResult:
     thd_voltage: dict[str, float]  # bus_id -> THD %
     thd_current: dict[str, float]  # branch_id -> THD %
 
-    bus_voltages: Dict[str, complex]  # bus_id -> voltage phasor
-    branch_currents: Dict[str, complex]  # branch_id -> current phasor
-    thd_voltage: Dict[str, float]  # bus_id -> THD %
-    thd_current: Dict[str, float]  # branch_id -> THD %
-
 
 @dataclass
 class HarmonicAnalysisResult:
@@ -82,14 +77,6 @@ class HarmonicAnalysisResult:
     resonance_frequencies: list[float]
     compliance_status: dict[str, bool]  # bus_id -> compliant (True/False)
     violations: list[str]
-
-    harmonic_results: List[HarmonicResult]
-    total_thd_voltage: Dict[str, float]  # bus_id -> Total THD %
-    total_tdd_current: Dict[str, float]  # bus_id -> Total TDD %
-    resonance_detected: bool
-    resonance_frequencies: List[float]
-    compliance_status: Dict[str, bool]  # bus_id -> compliant (True/False)
-    violations: List[str]
 
 
 class HarmonicAnalysisEngine:
@@ -146,13 +133,6 @@ class HarmonicAnalysisEngine:
         self,
         harmonic_order: int,
         ybus_fundamental: np.ndarray = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-            f"Added harmonic source: order={source.harmonic_order}, "
-            f"magnitude={source.magnitude_pu} pu"
-        )
-
-    def calculate_harmonic_impedance(
-        self, harmonic_order: int, Ybus_fundamental: np.ndarray = None
     ) -> np.ndarray:
         """
         Calculate system impedance matrix at a specific harmonic order.
@@ -180,16 +160,6 @@ class HarmonicAnalysisEngine:
         ybus_h = np.zeros(
             (n, n), dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        if Ybus_fundamental is None:
-            Ybus_fundamental = self.Ybus_fundamental
-
-        if Ybus_fundamental is None:
-            raise ValueError("Ybus matrix not set. Call set_system_data() first.")
-
-        h = harmonic_order
-        n = Ybus_fundamental.shape[0]
-        Ybus_h = np.zeros((n, n), dtype=complex)
 
         # IEEE 519-2022 frequency-dependent scaling:
         #   R(h) ≈ R(1) × sqrt(h)   (skin effect)
@@ -240,28 +210,6 @@ class HarmonicAnalysisEngine:
 
                 zbus_h[i, j] = complex(r_h, x_h)
 
-        Zbus_1 = np.linalg.inv(Ybus_fundamental)
-        Zbus_h = np.zeros_like(Zbus_1, dtype=complex)
-
-        for i in range(n):
-            for j in range(n):
-                Z_ij = Zbus_1[i, j]
-                R = Z_ij.real
-                X = Z_ij.imag
-
-                # Skin effect on resistance (approximate)
-                R_h = R * np.sqrt(h) if R != 0 else 0.0
-
-                # Reactance scaling: inductive X > 0, capacitive X < 0
-                if X > 0:  # Net inductive at this (i,j)
-                    X_h = X * h
-                elif X < 0:  # Net capacitive at this (i,j)
-                    X_h = X / h if h > 0 else X
-                else:
-                    X_h = 0.0
-
-                Zbus_h[i, j] = complex(R_h, X_h)
-
         # Rebuild Ybus from scaled Zbus.  For non-square or singular systems
         # use pseudo-inverse as a fallback.
         try:
@@ -310,19 +258,6 @@ class HarmonicAnalysisEngine:
             n, dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ybus_h = self.calculate_harmonic_impedance(h)
-
-        # Compute Zbus by inversion
-        try:
-            Zbus_h = np.linalg.inv(Ybus_h)
-        except np.linalg.LinAlgError:
-            logger.warning(f"Singular Ybus at harmonic {h}, using pseudo-inverse")
-            Zbus_h = np.linalg.pinv(Ybus_h)
-
-        # Build harmonic current injection vector
-        n = len(self.bus_ids)
-        I_h = np.zeros(n, dtype=complex)
-
         for source in self.harmonic_sources:
             if source.harmonic_order == h and source.source_type == "current":
                 if source.bus_id in self.bus_ids:
@@ -338,12 +273,6 @@ class HarmonicAnalysisEngine:
         v_h = (
             zbus_h @ i_h
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-                    I_injection = source.magnitude_pu * np.exp(1j * angle_rad)
-                    I_h[bus_idx] += I_injection
-
-        # Solve for voltages: V = Zbus * I
-        V_h = Zbus_h @ I_h
 
         # Create result dictionaries
         bus_voltages = {}
@@ -647,10 +576,6 @@ class HarmonicAnalysisEngine:
         v_phase = (
             V_ll / np.sqrt(3)
         )  # NOSONAR
-
-        Q_cap_MVAR = 1.0  # 1 MVAR capacitor bank
-        V_ll = 13.8  # Line-to-line voltage in kV (example)
-        V_phase = V_ll / np.sqrt(3)  # Phase voltage in kV
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C

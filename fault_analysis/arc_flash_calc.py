@@ -164,10 +164,6 @@ if __name__ == "__main__":
                         "error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}",
                     },
                 ),
-
-                        "error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}"
-                    }
-                )
             )
             sys.exit(1)
         # Parse and validate inputs before computation

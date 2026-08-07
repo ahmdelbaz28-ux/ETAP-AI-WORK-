@@ -27,11 +27,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -151,12 +146,6 @@ class PredictiveAgent(BaseAgent):
             L = l_new
             T = t_new
 
-            L_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
-            T_new = beta * (L_new - L) + (1 - beta) * T
-            S[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S[t % season_length]
-            L = L_new
-            T = T_new
-
         # Generate forecast
         forecast = []
         for h in range(1, horizon_hours + 1):
@@ -181,20 +170,6 @@ class PredictiveAgent(BaseAgent):
             s_f[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * s_f[t % season_length]
             l_f = l_new
             t_f = t_new
-
-        L_f = np.mean(y[:season_length])
-        T_f = (
-            np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
-        ) / season_length
-        S_f = y[:season_length] - L_f
-        for t in range(season_length, n):
-            f_val = L_f + T_f + S_f[t % season_length]
-            fitted.append(f_val)
-            L_new = alpha * (y[t] - S_f[t % season_length]) + (1 - alpha) * (L_f + T_f)
-            T_new = beta * (L_new - L_f) + (1 - beta) * T_f
-            S_f[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S_f[t % season_length]
-            L_f = L_new
-            T_f = T_new
 
         errors = y[season_length:n] - np.array(fitted)
         sigma = float(np.std(errors, ddof=1)) if len(errors) > 1 else 0.0
@@ -263,13 +238,6 @@ class PredictiveAgent(BaseAgent):
         growth_rate_annual: float = 0.03,
         confidence_level: float = 0.95,
     ) -> dict[str, Any]:
-
-        peak_loads_mw: List[float],
-        years: List[int],
-        forecast_years: int = 10,
-        growth_rate_annual: float = 0.03,
-        confidence_level: float = 0.95,
-    ) -> Dict[str, Any]:
         """
         Long-term load forecasting using compound growth rate model.
 
@@ -380,11 +348,6 @@ class PredictiveAgent(BaseAgent):
 
         # Hazard rate: h(t) = (β/η) × (t/η)^(β-1)
         hazard_rate = float(beta / eta * (age_years / eta) ** (beta - 1)) if age_years > 0 else 0.0
-
-        if age_years > 0:
-            hazard_rate = float((beta / eta) * (age_years / eta) ** (beta - 1))
-        else:
-            hazard_rate = 0.0
 
         # Median remaining useful life (time to F(t) = 0.5)
         median_life = eta * (np.log(2)) ** (1.0 / beta)

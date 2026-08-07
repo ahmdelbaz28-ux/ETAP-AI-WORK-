@@ -85,23 +85,6 @@ class ShortCircuitResult:
 # value (typically 10.0) for this edge case to avoid division by zero.
 _DEFAULT_RX_RATIO = 10.0
 
-    Ik_initial: complex  # Initial symmetrical current (kA)
-    Ik_initial_magnitude: float  # |Ik"| (kA)
-    ip_peak: float  # Peak current (kA)
-    Ib_breaking: float  # Breaking current (kA)
-    Ik_steady: float  # Steady-state current (kA)
-    Ith_thermal: float  # Thermal equivalent current (kA)
-    voltage_factor_c: float  # Voltage factor used
-    fault_location: str = ""
-    # Sequence currents
-    I_positive: complex = complex(0, 0)
-    I_negative: complex = complex(0, 0)
-    I_zero: complex = complex(0, 0)
-    # Phase currents
-    Ia: complex = complex(0, 0)
-    Ib: complex = complex(0, 0)
-    Ic: complex = complex(0, 0)
-
 
 class IEC60909Engine:
     """
@@ -125,15 +108,6 @@ class IEC60909Engine:
         r_override: dict[int, float] | None = None,
         frequency_hz: float = 50.0,
     ) -> None:
-
-        Ybus_pos,
-        Ybus_neg,
-        Ybus_zero,
-        base_mva=100.0,
-        base_kv=115.0,
-        generators=None,
-        r_override=None,
-    ):
         """
         Initialize the IEC 60909 engine.
 
@@ -150,11 +124,6 @@ class IEC60909Engine:
         self.Ybus_neg = ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_zero = ybus_zero  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = ybus_pos.shape[0]
-
-        self.Ybus_pos = Ybus_pos
-        self.Ybus_neg = Ybus_neg
-        self.Ybus_zero = Ybus_zero
-        self.n_buses = Ybus_pos.shape[0]
         self.base_mva = base_mva
         self.base_kv = base_kv
         self.generators = generators or []
@@ -190,23 +159,6 @@ class IEC60909Engine:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 
     def _get_voltage_factor(self, bus_kv: float, maximum: bool = True) -> float:
-
-    def _compute_zbus(self):
-        """Compute Zbus matrices from Ybus."""
-        try:
-            self.Zbus_pos = np.linalg.inv(self.Ybus_pos)
-        except np.linalg.LinAlgError:
-            self.Zbus_pos = np.linalg.pinv(self.Ybus_pos)
-        try:
-            self.Zbus_neg = np.linalg.inv(self.Ybus_neg)
-        except np.linalg.LinAlgError:
-            self.Zbus_neg = np.linalg.pinv(self.Ybus_neg)
-        try:
-            self.Zbus_zero = np.linalg.inv(self.Ybus_zero)
-        except np.linalg.LinAlgError:
-            self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
-
-    def _get_voltage_factor(self, bus_kv, maximum=True):
         """
         Get IEC 60909 voltage factor c.
 
@@ -246,14 +198,6 @@ class IEC60909Engine:
         return rx_ratio
 
     def _calculate_kappa(self, bus_index: int) -> float:
-
-        if z_pos.imag != 0:
-            rx_ratio = z_pos.real / abs(z_pos.imag)
-        else:
-            rx_ratio = 10.0  # default high R/X for pure resistance
-        return rx_ratio
-
-    def _calculate_kappa(self, bus_index):
         """
         Calculate the peak factor kappa per IEC 60909.
 
@@ -307,15 +251,6 @@ class IEC60909Engine:
         t_k: float = 1.0,
         m_factor: float = 1.0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> float:
-
-            mu = 0.84 + 0.26 * np.exp(-0.26 * min(Ik_initial_pu, 20.0))
-        elif t_min <= 0.05:
-            mu = 0.71 + 0.51 * np.exp(-0.30 * min(Ik_initial_pu, 20.0))
-        else:
-            mu = 0.62 + 0.72 * np.exp(-0.32 * min(Ik_initial_pu, 20.0))
-        return min(mu, 1.0)
-
-    def _calculate_thermal_factor(self, Ik_initial, ip, t_k=1.0, m_factor=1.0):
         """
         Calculate thermal equivalent current Ith per IEC 60909.
 
@@ -341,12 +276,6 @@ class IEC60909Engine:
             # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
             if ik_initial > 0:
                 n_simplified = (ip / ik_initial - 1.0) ** 2
-
-            f_50 = 50.0  # assume 50 Hz
-            n = 2.0 * (1.0 / (4.0 * f_50 * t_k)) * (1.0 - np.exp(-2.0 * f_50 * t_k))
-            # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
-            if Ik_initial > 0:
-                n_simplified = (ip / Ik_initial - 1.0) ** 2
                 n = min(n, n_simplified)
         else:
             n = 0.0
@@ -368,13 +297,6 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-
-        Ith = Ik_initial * np.sqrt(m + n)
-        return Ith
-
-    def calculate_three_phase_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
         """
         Calculate three-phase short-circuit current per IEC 60909.
 
@@ -439,30 +361,6 @@ class IEC60909Engine:
             ik_pu * np.exp(1j * (2 * np.pi / 3))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ik_pu = V_pre / Z1
-
-        # Convert to kA
-        Ik_kA = abs(Ik_pu) * self.base_i / 1000.0
-
-        # Peak current
-        kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
-
-        # Breaking current
-        mu = self._calculate_mu(abs(Ik_pu), t_min)
-        Ib = mu * Ik_kA
-
-        # Steady-state current (simplified: Ik = Ik" for far-from-generator faults)
-        Ik_steady = Ik_kA
-
-        # Thermal current
-        Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
-
-        # Phase currents (balanced three-phase fault)
-        Ia = Ik_pu
-        Ib_phase = Ik_pu * np.exp(1j * (-2 * np.pi / 3))
-        Ic_phase = Ik_pu * np.exp(1j * (2 * np.pi / 3))
-
         return ShortCircuitResult(
             fault_type=FaultType.THREE_PHASE.value,
             fault_bus_index=bus_index,
@@ -490,25 +388,6 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-
-            Ik_initial=Ik_pu,
-            Ik_initial_magnitude=Ik_kA,
-            ip_peak=ip,
-            Ib_breaking=Ib,
-            Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
-            voltage_factor_c=c_factor,
-            I_positive=Ik_pu,
-            I_negative=complex(0, 0),
-            I_zero=complex(0, 0),
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
-        )
-
-    def calculate_line_to_ground_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
         """
         Calculate single line-to-ground short-circuit current per IEC 60909.
 
@@ -577,29 +456,6 @@ class IEC60909Engine:
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ia = 3 * I1
-
-        # Convert to kA
-        Ik_kA = abs(Ia) * self.base_i / 1000.0
-
-        # Peak current (use positive sequence impedance for kappa)
-        kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
-
-        # Breaking current
-        mu = self._calculate_mu(abs(I1), t_min)
-        Ib = mu * Ik_kA
-
-        # Steady-state
-        Ik_steady = Ik_kA
-
-        # Thermal
-        Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
-
-        # Phase currents
-        Ib_phase = complex(0, 0)
-        Ic_phase = complex(0, 0)
-
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
@@ -627,25 +483,6 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-
-            Ik_initial=Ia,
-            Ik_initial_magnitude=Ik_kA,
-            ip_peak=ip,
-            Ib_breaking=Ib,
-            Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
-            voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
-        )
-
-    def calculate_line_to_line_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
         """
         Calculate line-to-line short-circuit current per IEC 60909.
 
@@ -717,30 +554,6 @@ class IEC60909Engine:
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ia = complex(0, 0)
-        a_op = np.exp(1j * 2 * np.pi / 3)
-        a2_op = np.exp(-1j * 2 * np.pi / 3)
-        Ib_phase = a2_op * I1 + a_op * I2 + I0
-        Ic_phase = a_op * I1 + a2_op * I2 + I0
-
-        # Magnitude of fault current
-        Ik_pu = abs(Ib_phase)
-        Ik_kA = Ik_pu * self.base_i / 1000.0
-
-        # Peak current
-        kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
-
-        # Breaking current
-        mu = self._calculate_mu(abs(I1), t_min)
-        Ib = mu * Ik_kA
-
-        # Steady-state
-        Ik_steady = Ik_kA
-
-        # Thermal
-        Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
-
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_LINE.value,
             fault_bus_index=bus_index,
@@ -768,25 +581,6 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-
-            Ik_initial=Ib_phase,
-            Ik_initial_magnitude=Ik_kA,
-            ip_peak=ip,
-            Ib_breaking=Ib,
-            Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
-            voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
-        )
-
-    def calculate_double_line_to_ground_fault(
-        self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
-    ):
         """
         Calculate double line-to-ground short-circuit current per IEC 60909.
 
@@ -858,27 +652,6 @@ class IEC60909Engine:
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ia = I1 + I2 + I0
-        Ib_phase = a2 * I1 + a * I2 + I0
-        Ic_phase = a * I1 + a2 * I2 + I0
-
-        # Use the larger of Ib and Ic for magnitude
-        Ik_kA = max(abs(Ib_phase), abs(Ic_phase)) * self.base_i / 1000.0
-
-        # Peak current
-        kappa = self._calculate_kappa(bus_index)
-        ip = np.sqrt(2) * kappa * Ik_kA
-
-        # Breaking current
-        mu = self._calculate_mu(abs(I1), t_min)
-        Ib = mu * Ik_kA
-
-        # Steady-state
-        Ik_steady = Ik_kA
-
-        # Thermal
-        Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
-
         return ShortCircuitResult(
             fault_type=FaultType.DOUBLE_LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
@@ -900,23 +673,6 @@ class IEC60909Engine:
     def calculate(
         self, fault_type: str | FaultType, bus_index: int, **kwargs: Any
     ) -> ShortCircuitResult:
-
-            Ik_initial=max(Ib_phase, Ic_phase, key=abs),
-            Ik_initial_magnitude=Ik_kA,
-            ip_peak=ip,
-            Ib_breaking=Ib,
-            Ik_steady=Ik_steady,
-            Ith_thermal=Ith,
-            voltage_factor_c=c_factor,
-            I_positive=I1,
-            I_negative=I2,
-            I_zero=I0,
-            Ia=Ia,
-            Ib=Ib_phase,
-            Ic=Ic_phase,
-        )
-
-    def calculate(self, fault_type, bus_index, **kwargs):
         """
         Calculate short-circuit current for a given fault type.
 

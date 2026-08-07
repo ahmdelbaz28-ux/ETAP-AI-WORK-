@@ -29,12 +29,6 @@ from typing import Any, Optional
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from pathlib import Path
-from typing import Dict, List, Tuple
-
 from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
@@ -284,14 +278,6 @@ class VaultSecretsManager:
             prefix = re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", f"{self.mount_path}__{path}__")
             services = self._fallback_store.list_services()
             keys: list[str] = []
-
-                logger.error("Vault list_secrets failed for %s: %s", path, exc)
-                return []
-        # For fallback, list all keys we have persisted under this (mount_path, path).
-        if self._fallback_store:
-            prefix = re.sub(r"[^a-zA-Z0-9_-]", "_", f"{self.mount_path}__{path}__")
-            services = self._fallback_store.list_services()
-            keys: List[str] = []
             for svc in services:
                 if svc.startswith(prefix):
                     keys.append(svc[len(prefix) :])
@@ -434,12 +420,6 @@ class LocalSecretsManager:
         """Return a list of service names that have stored API keys."""
         return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != _ENCRYPTION_KEY_FILENAME]
 
-            logger.error("Failed to delete API key for %s: %s", service_name, exc)
-            return False
-
-    def list_services(self) -> List[str]:
-        return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
-
 
 class KeyAccessAuditor:
     """
@@ -530,17 +510,6 @@ class KeyAccessAuditor:
         if not self._log_file.exists():
             return []
         records: list[dict] = []
-
-    def get_access_logs(
-        self,
-        key_name: str | None = None,
-        user_id: str | None = None,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None,
-    ) -> List[Dict]:
-        if not self._log_file.exists():
-            return []
-        records: List[Dict] = []
         try:
             raw = self._log_file.read_text(encoding="utf-8").strip().splitlines()
             for line in raw:
@@ -596,13 +565,6 @@ class EnvironmentValidator:
     def check_missing_secrets(self) -> list[str]:
         """Return a list of required secret names that are not configured."""
         missing: list[str] = []
-
-    def __init__(self, env_path: Path | None = None, required_secrets: List[str] | None = None):
-        self.env_path = env_path or Path.cwd() / ".env"
-        self.required_secrets = required_secrets or REQUIRED_SECRETS
-
-    def check_missing_secrets(self) -> List[str]:
-        missing: List[str] = []
         for secret in self.required_secrets:
             value = os.environ.get(secret, "")
             if not value or value.startswith("generate-") or "your-" in value.lower():

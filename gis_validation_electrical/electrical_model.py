@@ -36,13 +36,6 @@ class ElectricalModel:
 
 
 def _stable_float_from_str(s: str, *, min_val: float, max_val: float) -> float:
-
-    nodes: Dict[str, ElectricalNode]
-    edges: Dict[str, ElectricalEdge]
-    asset_to_node: Dict[str, str]  # ADMS asset_id -> electrical node_id
-
-
-def _stable_float_from_str(s: str, *, scale: float, min_val: float, max_val: float) -> float:
     """
     Deterministic numeric mapping without randomness.
     Uses a simple polynomial rolling hash to generate a stable float in [min_val, max_val].
@@ -81,10 +74,6 @@ def build_electrical_model(  # NOSONAR
     nodes: dict[str, ElectricalNode] = {}
     asset_to_node: dict[str, str] = {}
 
-    sub_coords: Dict[Tuple[float, float], str] = {}
-    nodes: Dict[str, ElectricalNode] = {}
-    asset_to_node: Dict[str, str] = {}
-
     for s in substations:
         geom = s.geometry
         coords = geom.get("coordinates")
@@ -103,16 +92,6 @@ def build_electrical_model(  # NOSONAR
     def endpoints_from_linestring(
         geom: dict[str, Any],
     ) -> tuple[tuple[float, float], tuple[float, float]] | None:
-
-                node_id=s.asset_id, voltage_level_kv=None, metadata=dict(s.metadata)
-            )
-            asset_to_node[s.asset_id] = s.asset_id
-
-    edges: Dict[str, ElectricalEdge] = {}
-
-    def endpoints_from_linestring(
-        geom: Dict[str, Any],
-    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
         if geom.get("type") != "LineString":
             return None
         coords = geom.get("coordinates")

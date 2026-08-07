@@ -151,12 +151,6 @@ class GPUSolver:
         self,
         ybus: Union[np.ndarray, csr_matrix] | Any,
         bus_data: list[BusData],
-
-
-    def newton_raphson_gpu(
-        self,
-        ybus: Union[np.ndarray, csr_matrix, Any],
-        bus_data: List[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -212,11 +206,6 @@ class GPUSolver:
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             else:
                 ybus_dense = _cp.asarray(np.asarray(ybus))
-
-            if sp_issparse(ybus):
-                Ybus_dense = _cp.asarray(ybus.toarray())
-            else:
-                Ybus_dense = _cp.asarray(np.asarray(ybus))
         else:
             V = np.array(
                 [b.voltage_magnitude * np.exp(1j * b.voltage_angle) for b in bus_data],
@@ -230,14 +219,6 @@ class GPUSolver:
         q_sch = xp.array(
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-
-            if sp_issparse(ybus):
-                Ybus_dense = ybus.toarray()
-            else:
-                Ybus_dense = np.asarray(ybus)
-
-        P_sch = xp.array([b.p_generation - b.p_load for b in bus_data], dtype=float)
-        Q_sch = xp.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
 
         # Set PV bus voltages to scheduled values
         for i in pv_idx:
@@ -265,16 +246,6 @@ class GPUSolver:
                 mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + k] = deltap[i]
-
-            # Mismatch
-            deltaP = P_sch - P
-            deltaQ = Q_sch - Q
-
-            mismatch = xp.zeros(n_unknowns)
-            for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
-            for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -300,12 +271,6 @@ class GPUSolver:
 
             # --- Solve linear system ---
             dx = self._solve_linear(j_sparse, mismatch, n_unknowns)
-
-            # --- Build sparse Jacobian ---
-            J_sparse = self._build_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
-
-            # --- Solve linear system ---
-            dx = self._solve_linear(J_sparse, mismatch, n_unknowns)
 
             # --- Update voltages ---
             for k, i in enumerate(pv_idx):
@@ -343,21 +308,6 @@ class GPUSolver:
             p_final = np.asarray(s_final.real)
             q_final = np.asarray(s_final.imag)
 
-        # --- Copy results back to host ---
-        if self._gpu_available:
-            V_host = _cp.asnumpy(V)
-        else:
-            V_host = np.asarray(V)
-
-        I_final = Ybus_dense @ V
-        S_final = V * xp.conj(I_final)
-        if self._gpu_available:
-            P_final = _cp.asnumpy(S_final.real)
-            Q_final = _cp.asnumpy(S_final.imag)
-        else:
-            P_final = np.asarray(S_final.real)
-            Q_final = np.asarray(S_final.imag)
-
         elapsed = time.perf_counter() - t0
 
         solver_tag = "gpu" if self._gpu_available else "cpu-fallback"
@@ -370,12 +320,6 @@ class GPUSolver:
             magnitudes=np.abs(v_host),
             active_power=p_final,
             reactive_power=q_final,
-
-            voltages=V_host,
-            angles=np.angle(V_host),
-            magnitudes=np.abs(V_host),
-            active_power=P_final,
-            reactive_power=Q_final,
             iteration_log=iteration_log,
             solver_type=solver_tag,
             solve_time_seconds=elapsed,
@@ -391,14 +335,6 @@ class GPUSolver:
         Ybus: Any,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         pv_idx: list[int],
         pq_idx: list[int],
-
-
-    def _build_jacobian(
-        self,
-        V: Any,
-        Ybus: Any,
-        pv_idx: List[int],
-        pq_idx: List[int],
         n_unknowns: int,
     ) -> Any:
         """Build the Jacobian in sparse format on the active device.
@@ -470,13 +406,6 @@ class GPUSolver:
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
                             ),
-
-                            Vmag[i]
-                            * Vmag[j]
-                            * (
-                                G[i, j] * xp.sin(Vang[i] - Vang[j])
-                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                            )
                         )
                         if not self._gpu_available
                         else float(
@@ -492,18 +421,6 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
-
-                                Vmag[i]
-                                * Vmag[j]
-                                * (
-                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
-                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                                )
-                            )
-                        )
-                    )
-                if self._gpu_available:
-                    if val != 0.0:
                         rows.append(row_k)
                         cols.append(col_k)
                         data.append(val)
@@ -529,13 +446,6 @@ class GPUSolver:
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
                             ),
-
-                            Vmag[i]
-                            * Vmag[j]
-                            * (
-                                G[i, j] * xp.cos(Vang[i] - Vang[j])
-                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                            )
                         )
                         if not self._gpu_available
                         else float(
@@ -551,18 +461,6 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
-
-                                Vmag[i]
-                                * Vmag[j]
-                                * (
-                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
-                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                                )
-                            )
-                        )
-                    )
-                if self._gpu_available:
-                    if val != 0.0:
                         rows.append(row_k)
                         cols.append(col)
                         data.append(val)
@@ -589,13 +487,6 @@ class GPUSolver:
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
                             ),
-
-                            -Vmag[i]
-                            * Vmag[j]
-                            * (
-                                G[i, j] * xp.cos(Vang[i] - Vang[j])
-                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                            )
                         )
                         if not self._gpu_available
                         else float(
@@ -611,18 +502,6 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
-
-                                -Vmag[i]
-                                * Vmag[j]
-                                * (
-                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
-                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
-                                )
-                            )
-                        )
-                    )
-                if self._gpu_available:
-                    if val != 0.0:
                         rows.append(row)
                         cols.append(col_k)
                         data.append(val)
@@ -648,13 +527,6 @@ class GPUSolver:
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
                             ),
-
-                            Vmag[i]
-                            * Vmag[j]
-                            * (
-                                G[i, j] * xp.sin(Vang[i] - Vang[j])
-                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                            )
                         )
                         if not self._gpu_available
                         else float(
@@ -670,18 +542,6 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
-
-                                Vmag[i]
-                                * Vmag[j]
-                                * (
-                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
-                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
-                                )
-                            )
-                        )
-                    )
-                if self._gpu_available:
-                    if val != 0.0:
                         rows.append(row)
                         cols.append(col)
                         data.append(val)
@@ -710,11 +570,6 @@ class GPUSolver:
     def _solve_linear(  # NOSONAR cognitive complexity; refactoring sprint
         self,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         A: Any,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-
-
-    def _solve_linear(
-        self,
-        A: Any,
         b: Any,
         n_unknowns: int,
     ) -> Any:
@@ -749,19 +604,6 @@ class GPUSolver:
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
                 x = _cp_spsolve(a_gpu, b_gpu)
-
-                if not isinstance(b, _cp.ndarray):
-                    b_gpu = _cp.asarray(np.asarray(b))
-                else:
-                    b_gpu = b
-
-                # Ensure A is a CuPy sparse matrix
-                if not _cp.sparse.issparse(A):
-                    A_gpu = _cp.sparse.csr_matrix(_cp.asarray(A))
-                else:
-                    A_gpu = A
-
-                x = _cp_spsolve(A_gpu, b_gpu)
                 return x
             except Exception as exc:
                 logger.warning(
@@ -777,14 +619,6 @@ class GPUSolver:
                     x_cpu = scipy_spsolve(a_cpu.tocsr(), b_cpu)
                 else:
                     x_cpu = np.linalg.solve(np.asarray(a_cpu), b_cpu)
-
-                # Fallback: transfer to CPU, solve, transfer back
-                A_cpu = A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
-                b_cpu = _cp.asnumpy(b) if isinstance(b, _cp.ndarray) else np.asarray(b)
-                if sp_issparse(A_cpu):
-                    x_cpu = scipy_spsolve(A_cpu.tocsr(), b_cpu)
-                else:
-                    x_cpu = np.linalg.solve(np.asarray(A_cpu), b_cpu)
                 return _cp.asarray(x_cpu)
         else:
             # CPU path

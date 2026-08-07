@@ -44,209 +44,6 @@ __all__ = [
     "TransformerSpec",
 ]
 
-# Pydantic schemas
-# ---------------------------------------------------------------------------
-
-
-class BusSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    bus_id: int
-    voltage_magnitude: float = Field(
-        default=1.0, validation_alias=AliasChoices("voltage_magnitude", "vm")
-    )
-    voltage_angle: float = Field(default=0.0, validation_alias=AliasChoices("voltage_angle", "va"))
-    load_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("load_power_real", "p_load", "pd")
-    )
-    load_power_imag: float = Field(
-        default=0.0,
-        validation_alias=AliasChoices("load_power_imag", "load_power_reactive", "q_load", "qd"),
-    )
-    generation_power_real: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_real", "power_real", "pg")
-    )
-    generation_power_imag: float = Field(
-        default=0.0, validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg")
-    )
-    bus_type: str = "pq"
-    base_kv: float | None = None
-    q_min: float = Field(
-        default=-999.0, validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q")
-    )
-    q_max: float = Field(
-        default=999.0, validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q")
-    )
-    area: int | None = None
-    zone: int | None = None
-    voltage_setpoint: float | None = Field(
-        default=None,
-        validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
-    )
-
-    @field_validator("bus_type")
-    @classmethod
-    def validate_bus_type(cls, v: str) -> str:
-        v = v.lower().strip()
-        if v not in ("slack", "pv", "pq"):
-            raise ValueError("bus_type must be slack, pv, or pq")
-        return v
-
-
-class LineSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    line_id: int
-    from_bus_id: int = Field(validation_alias=AliasChoices("from_bus_id", "from"))
-    to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
-    r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
-    x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: float | None = None
-    x0: float | None = None
-    bshunt1: float = Field(
-        default=0.02, validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance")
-    )
-    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: float | None = None
-
-
-class TransformerSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    transformer_id: int
-    from_bus_id: int
-    to_bus_id: int
-    r1: float = 0.0
-    x1: float = 0.05
-    tap_ratio: float = Field(default=1.0, validation_alias=AliasChoices("tap_ratio", "tap"))
-    phase_shift_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("phase_shift_deg", "phase_shift")
-    )
-
-
-class GeneratorSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    generator_id: int
-    bus_id: int
-    r1: float = 0.0
-    x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: float | None = None
-    x2: float | None = None
-    r0: float | None = None
-    x0: float | None = None
-    internal_voltage_mag: float = Field(
-        default=1.05,
-        validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
-    )
-    internal_voltage_ang_deg: float = Field(
-        default=0.0, validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle")
-    )
-    power_real: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_real", "pg")
-    )
-    power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("power_reactive", "qg")
-    )
-    max_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("max_power_reactive", "q_max")
-    )
-    min_power_reactive: float | None = Field(
-        default=None, validation_alias=AliasChoices("min_power_reactive", "q_min")
-    )
-
-
-class LoadSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    load_id: int
-    bus_id: int
-    p_mw: float = Field(
-        default=0.0, validation_alias=AliasChoices("p_mw", "power_real", "load_power_real")
-    )
-    q_mvar: float = Field(
-        default=0.0,
-        validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
-    )
-    constant_impedance: bool = False
-
-
-class SystemSpec(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    base_mva: float = Field(
-        default=100.0, validation_alias=AliasChoices("base_mva", "sbase", "base_mva")
-    )
-    buses: List[BusSpec] = Field(default_factory=list)
-    lines: List[LineSpec] = Field(
-        default_factory=list, validation_alias=AliasChoices("lines", "branches")
-    )
-    transformers: List[TransformerSpec] = Field(default_factory=list)
-    generators: List[GeneratorSpec] = Field(default_factory=list)
-    loads: List[LoadSpec] = Field(default_factory=list)
-
-
-class StudyRequest(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    study_type: str = Field(..., description="Type of study to run")
-    system: SystemSpec | None = None
-    parameters: Dict[str, Any] = Field(default_factory=dict)
-    task_id: str | None = None
-    use_etap: bool = Field(
-        default=False, description="If True, route to ETAP provider instead of native engine"
-    )
-    etap_project_path: str | None = None
-
-    @field_validator("study_type")
-    @classmethod
-    def validate_study_type(cls, v: str) -> str:
-        # Check if ETAP is enabled based on environment variable
-        use_etap_enabled = os.getenv("USE_ETAP", "false").lower() == "true"
-
-        allowed = {
-            "load_flow",
-            "short_circuit",
-            "fault",
-            "arc_flash",
-            "protection_coordination",
-            "coordination",
-            "motor_starting",
-            "harmonic_analysis",
-            "optimal_power_flow",
-        }
-
-        # Add ETAP-specific study types only if ETAP is enabled
-        if use_etap_enabled:
-            allowed.update(
-                {
-                    "etap_load_flow",
-                    "etap_short_circuit",
-                    "etap_arc_flash",
-                    "etap_harmonic_analysis",
-                    "etap_optimal_power_flow",
-                    "etap_motor_starting",
-                    "etap_protection_coordination",
-                }
-            )
-
-        v = v.lower().strip()
-        if v not in allowed:
-            raise ValueError(f"study_type must be one of {sorted(allowed)}")
-        return v
-
-
-class StudyResult(BaseModel):
-    success: bool
-    data: Dict[str, Any] = Field(default_factory=dict)
-    warnings: List[str] = Field(default_factory=list)
-    errors: List[str] = Field(default_factory=list)
-    execution_time_sec: float = 0.0
-    trace_id: str = ""
-    task_id: str | None = None
-    study_type: str = ""
-    provider: str = "native"
-
 
 # ---------------------------------------------------------------------------
 # System builder helper
@@ -436,10 +233,6 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
     system: Optional[Any],
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
-
-def _run_native_study(
-    study_type: str, system: Any | None, parameters: Dict[str, Any]
-) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
@@ -468,25 +261,6 @@ def _run_native_study(
             parameters["arc_duration_sec"] = 0.1
         if "working_distance_mm" not in parameters:
             parameters["working_distance_mm"] = 610.0
-
-    elif study_type in ("short_circuit", "fault"):
-        fault_type = parameters.get("fault_type", "three_phase")
-        bus_id = parameters.get("bus_id")
-        if bus_id is None:
-            raise ValueError("bus_id is required for fault analysis")
-        return engine.run_fault_analysis(fault_type, bus_id)
-    elif study_type == "arc_flash":
-        required = (
-            "voltage_kv",
-            "bolted_fault_current_ka",
-            "arc_duration_sec",
-            "working_distance_mm",
-        )
-        missing = [k for k in required if k not in parameters]
-        if missing:
-            raise ValueError(
-                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
-            )
         return engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
@@ -592,10 +366,6 @@ def execute_study_logic(  # NOSONAR
     warnings: list[str] = []
     errors: list[str] = []
     data: dict[str, Any] = {}
-
-    warnings: List[str] = []
-    errors: List[str] = []
-    data: Dict[str, Any] = {}
     provider_name = "native"
     cache_hit = False
 
@@ -690,13 +460,6 @@ def execute_study_logic(  # NOSONAR
                     "Cache store failed (non-fatal): %s",
                     cache_err,
                     extra={"trace_id": trace_id},
-
-                            payload.study_type, cache_params, json.dumps(data, default=str)
-                        )
-                    )
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
                 )
 
         _increment_counter("success")

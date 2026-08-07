@@ -27,11 +27,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -95,13 +90,6 @@ class DigitalTwinAgent(BaseAgent):
         measured: np.ndarray,
         covariance: Optional[np.ndarray] = None,
     ) -> dict[str, Any]:
-
-    def compute_model_deviation_index(
-        self,
-        predicted: np.ndarray,
-        measured: np.ndarray,
-        covariance: np.ndarray | None = None,
-    ) -> Dict[str, Any]:
         """
         Compute Model Deviation Index (MDI) between predicted and
         measured values.
@@ -185,11 +173,6 @@ class DigitalTwinAgent(BaseAgent):
         self,
         measurements: list[dict[str, Any]],
     ) -> dict[str, Any]:
-
-    def compute_data_quality_index(
-        self,
-        measurements: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
         """
         Compute Data Quality Index (DQI) for SCADA measurements.
 
@@ -484,38 +467,6 @@ class DigitalTwinAgent(BaseAgent):
         self._validate_model_deviation(result.data.get("model_deviation"), errors)
         self._validate_data_quality(result.data.get("data_quality"), errors)
         self._validate_predictive_confidence(result.data.get("predictive_confidence"), errors)
-
-        errors: List[str] = []
-
-        md_data = result.data.get("model_deviation")
-        if md_data is not None:
-            mdi = md_data.get("mdi", 0.0)
-            if mdi < 0:
-                errors.append(f"MDI is negative: {mdi:.6f}")
-            if not np.isfinite(mdi):
-                errors.append(f"MDI is not finite: {mdi}")
-            status = md_data.get("status", "")
-            valid_statuses = {
-                "synchronized",
-                "minor_drift",
-                "moderate_drift",
-                "significant_drift",
-                "critical_drift",
-            }
-            if status and status not in valid_statuses:
-                errors.append(f"Invalid synchronization status: {status}")
-
-        dq_data = result.data.get("data_quality")
-        if dq_data is not None:
-            dqi = dq_data.get("dqi_percent", 0.0)
-            if dqi < 0 or dqi > 100:
-                errors.append(f"DQI out of range: {dqi:.2f}%")
-
-        pcl_data = result.data.get("predictive_confidence")
-        if pcl_data is not None:
-            pcl = pcl_data.get("pcl_percent", 0.0)
-            if pcl < 0 or pcl > 100:
-                errors.append(f"PCL out of range: {pcl:.2f}%")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

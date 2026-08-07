@@ -34,10 +34,6 @@ class FaultAnalyzer:
         self.Ybus_zero = (
             ybus_zero if ybus_zero is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-
-        self.Ybus_pos = ybus_pos
-        self.Ybus_neg = ybus_neg if ybus_neg is not None else ybus_pos
-        self.Ybus_zero = ybus_zero if ybus_zero is not None else ybus_pos
         self.base_mva = base_mva
         self.base_kv = base_kv
 
@@ -52,10 +48,6 @@ class FaultAnalyzer:
             self.Zbus_pos = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
             self.Zbus_neg = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
             self.Zbus_zero = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-
-            self.Zbus_pos = None
-            self.Zbus_neg = None
-            self.Zbus_zero = None
         else:
             # Dense path: full inversion for backward compatibility
             self._use_lu = False
@@ -137,18 +129,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-
-        Vpre = complex(1.0, 0.0)
-        Zth = self._z(bus_index, "pos")
-        if abs(Zth) < 1e-12:
-            If = complex(float("inf"), 0)
-        else:
-            If = Vpre / Zth
-        return {
-            "fault_current": If,
-            "fault_current_magnitude": np.abs(If),
-            "fault_current_ka": self._pu_to_ka(If),
-            "fault_current_angle": np.angle(If, deg=True),
             "affected_bus_index": bus_index,
             "fault_type": "three_phase",
         }
@@ -178,16 +158,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-
-        if abs(denominator) < 1e-12:
-            If = complex(float("inf"), 0)
-        else:
-            If = 3 * Vpre / denominator
-        return {
-            "fault_current": If,
-            "fault_current_magnitude": np.abs(If),
-            "fault_current_ka": self._pu_to_ka(If),
-            "fault_current_angle": np.angle(If, deg=True),
             "affected_bus_index": bus_index,
             "fault_type": "line_to_ground",
         }
@@ -219,15 +189,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-
-            If = complex(float("inf"), 0)
-        else:
-            If = Vpre * np.sqrt(3) / denominator
-        return {
-            "fault_current": If,
-            "fault_current_magnitude": np.abs(If),
-            "fault_current_ka": self._pu_to_ka(If),
-            "fault_current_angle": np.angle(If, deg=True),
             "affected_bus_index": bus_index,
             "fault_type": "line_to_line",
         }
@@ -282,38 +243,6 @@ class FaultAnalyzer:
             "fault_current_c_magnitude": np.abs(ic),
             "fault_current_c_angle": np.angle(ic, deg=True),
             "fault_current_c_ka": self._pu_to_ka(ic),
-
-        Vpre = complex(1.0, 0.0)
-        Z1 = self._z(bus_index, "pos")
-        Z2 = self._z(bus_index, "neg")
-        Z0 = self._z(bus_index, "zero")
-        if abs(Z2 + Z0) > 1e-12:
-            Z20 = (Z2 * Z0) / (Z2 + Z0)
-        else:
-            # When both Z2 and Z0 are near zero, their parallel is also
-            # near zero — this is a short circuit, not an open circuit.
-            Z20 = complex(0, 0)
-        If1 = Vpre / (Z1 + Z20)
-        if abs(Z2 + Z0) > 1e-12:
-            If0 = -If1 * (Z2 / (Z2 + Z0))
-        else:
-            If0 = complex(0, 0)
-        If2 = -If1 - If0
-        a = complex(-0.5, np.sqrt(3) / 2)
-        a2 = complex(-0.5, -np.sqrt(3) / 2)
-        Ia = If1 + If2 + If0
-        Ib = a2 * If1 + a * If2 + If0
-        Ic = a * If1 + a2 * If2 + If0
-        return {
-            "fault_current": Ia,
-            "fault_current_a": Ia,
-            "fault_current_c": Ic,
-            "fault_current_b_magnitude": np.abs(Ib),
-            "fault_current_b_angle": np.angle(Ib, deg=True),
-            "fault_current_b_ka": self._pu_to_ka(Ib),
-            "fault_current_c_magnitude": np.abs(Ic),
-            "fault_current_c_angle": np.angle(Ic, deg=True),
-            "fault_current_c_ka": self._pu_to_ka(Ic),
             "affected_bus_index": bus_index,
             "fault_type": "double_line_to_ground",
         }

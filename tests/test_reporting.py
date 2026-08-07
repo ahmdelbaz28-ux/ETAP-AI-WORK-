@@ -55,14 +55,6 @@ class TestReportSection:
         assert s.include_tables is True
         assert s.data["chart_path"] == os.path.join(_TEST_REPORT_DIR, "chart.png")
 
-            title="Load Flow", content="Results", order=2,
-            include_charts=True, include_tables=True,
-            data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},
-        )
-        assert s.include_charts is True
-        assert s.include_tables is True
-        assert s.data["chart_path"] == "/tmp/chart.png"
-
     def test_ordering(self):
         s1 = ReportSection(title="B", content="", order=2)
         s2 = ReportSection(title="A", content="", order=1)
@@ -78,10 +70,6 @@ class TestReportSection:
 class TestReportMetadata:
     def test_defaults(self):
         m = ReportMetadata(report_id="RPT_001", title="Test", prepared_by="Engineer")
-
-        m = ReportMetadata(
-            report_id="RPT_001", title="Test", prepared_by="Engineer"
-        )
         assert m.report_id == "RPT_001"
         assert m.title == "Test"
         assert m.prepared_by == "Engineer"
@@ -197,11 +185,6 @@ class TestTableGenerator:
                 "active_power_mw": 30,
                 "reactive_power_mvar": 15,
             },
-
-            "B1": {"voltage_magnitude_pu": 1.01, "voltage_angle_deg": -2.0,
-                   "active_power_mw": 50, "reactive_power_mvar": 10},
-            "B2": {"voltage_magnitude_pu": 0.94, "voltage_angle_deg": -3.5,
-                   "active_power_mw": 30, "reactive_power_mvar": 15},
         }
         table = self.gen.generate_load_flow_table(bus_data)
         assert "LOAD FLOW RESULTS" in table
@@ -281,10 +264,6 @@ class TestPDFReportGenerator:
         try:
             gen = PDFReportGenerator()
             meta = ReportMetadata(report_id="TEST_001", title="Test", prepared_by="Engineer")
-
-            meta = ReportMetadata(
-                report_id="TEST_001", title="Test", prepared_by="Engineer"
-            )
             sections = [
                 ReportSection(title="Section 1", content="Content 1", order=1),
             ]

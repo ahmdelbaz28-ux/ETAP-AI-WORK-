@@ -38,12 +38,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -54,27 +48,6 @@ from curves.curves import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-
-# ---------------------------------------------------------------------------
-# IEC 60255 relay characteristic curve parameters
-# ---------------------------------------------------------------------------
-
-_IEC60255_CURVES: Dict[str, Dict[str, float]] = {
-    # Standard inverse-time characteristics: t = TMS × (k / ((I/Ips)ⁿ - 1))
-    # where TMS = time multiplier setting, I = fault current,
-    # Ips = pickup setting, k and n are curve constants
-    "standard_inverse": {"k": 0.140, "n": 0.020},
-    "very_inverse": {"k": 13.50, "n": 1.000},
-    "extremely_inverse": {"k": 80.00, "n": 2.000},
-    "long_time_inverse": {"k": 120.0, "n": 1.000},
-    # IEEE C37.112 curves: t = TD × (A / (M^p - 1) + B)
-    # where TD = time dial, M = I/Ips
-    "ieee_moderately_inverse": {"A": 0.0515, "B": 0.1140, "p": 0.0200},
-    "ieee_very_inverse": {"A": 19.61, "B": 0.4910, "p": 2.0000},
-    "ieee_extremely_inverse": {"A": 28.20, "B": 0.1217, "p": 2.0000},
-}
 
 
 class CoordinationAgent(BaseAgent):
@@ -206,53 +179,6 @@ class CoordinationAgent(BaseAgent):
             "time_multiplier": time_multiplier,
             "status": result["status"],
             "warnings": result.get("warnings", []),
-
-            'pickup_current_a', 'fault_current_a', 'multiples_of_pickup'.
-        """
-        M = fault_current_a / pickup_current_a if pickup_current_a > 0 else 0.0
-
-        if M <= 1.0:
-            return {
-                "operating_time_s": float("inf"),
-                "curve_type": curve_type,
-                "pickup_current_a": pickup_current_a,
-                "fault_current_a": fault_current_a,
-                "multiples_of_pickup": round(M, 4),
-                "status": "below_pickup",
-            }
-
-        curve_params = _IEC60255_CURVES.get(curve_type)
-        if curve_params is None:
-            raise ValueError(f"Unknown curve type: {curve_type}")
-
-        if curve_type.startswith("ieee_"):
-            # IEEE C37.112: t = TD × (A / (M^p - 1) + B)
-            A = curve_params["A"]
-            B = curve_params["B"]
-            p = curve_params["p"]
-            denominator = M**p - 1.0
-            if denominator <= 0:
-                op_time = float("inf")
-            else:
-                op_time = time_multiplier * (A / denominator + B)
-        else:
-            # IEC 60255: t = TMS × k / (M^n - 1)
-            k = curve_params["k"]
-            n = curve_params["n"]
-            denominator = M**n - 1.0
-            if denominator <= 0:
-                op_time = float("inf")
-            else:
-                op_time = time_multiplier * k / denominator
-
-        return {
-            "operating_time_s": round(float(op_time), 4),
-            "curve_type": curve_type,
-            "pickup_current_a": pickup_current_a,
-            "fault_current_a": fault_current_a,
-            "multiples_of_pickup": round(M, 4),
-            "time_multiplier": time_multiplier,
-            "status": "operates",
         }
 
     def verify_coordination(
@@ -261,11 +187,6 @@ class CoordinationAgent(BaseAgent):
         downstream_relay: dict[str, Any],
         fault_current_a: float,
     ) -> dict[str, Any]:
-
-        upstream_relay: Dict[str, Any],
-        downstream_relay: Dict[str, Any],
-        fault_current_a: float,
-    ) -> Dict[str, Any]:
         """
         Verify coordination between upstream and downstream relays.
 
@@ -402,10 +323,6 @@ class CoordinationAgent(BaseAgent):
         relay_chain: list[dict[str, Any]],
         fault_currents_a: list[float],
     ) -> dict[str, Any]:
-
-        relay_chain: List[Dict[str, Any]],
-        fault_currents_a: List[float],
-    ) -> Dict[str, Any]:
         """
         Analyze selectivity across a chain of coordinated relays.
 

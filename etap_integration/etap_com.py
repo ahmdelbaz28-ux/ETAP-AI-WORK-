@@ -141,22 +141,6 @@ from etap_integration.unified_etap_types import (  # noqa: E402
 __all__ = ["ETAPStudyType", "ETAPResult", "ETAPProject", "ETAPAutomation",
            "STUDY_TYPE_PARAMETER_SCHEMAS"]
 
-class ETAPStudyType(Enum):
-    """ETAP study types."""
-
-    LOAD_FLOW = "LoadFlow"
-    SHORT_CIRCUIT = "ShortCircuit"
-    MOTOR_ACCELERATION = "MotorAcceleration"
-    MOTOR_STARTING = "MotorStarting"
-    TRANSIENT_STABILITY = "TransientStability"
-    HARMONIC_ANALYSIS = "HarmonicAnalysis"
-    OPTIMAL_POWER_FLOW = "OptimalPowerFlow"
-    PROTECTION_COORDINATION = "ProtectionCoordination"
-    ARC_FLASH = "ArcFlash"
-    CABLE_AMACITY = "CableAmpacity"
-    GROUND_GRID = "GroundGrid"
-    RELIABILITY = "Reliability"
-
 
 # =============================================================================
 # Per-study-type parameter schemas
@@ -292,18 +276,6 @@ STUDY_TYPE_PARAMETER_SCHEMAS: dict[ETAPStudyType, dict[str, dict[str, Any]]] = {
 
 # NOTE: ETAPResult is now imported from unified_etap_types.py (see top of file).
 # The old local dataclass definition has been removed to avoid duplication.
-
-
-@dataclass
-class ETAPResult:
-    """Container for ETAP study results."""
-
-    study_type: str
-    success: bool
-    data: Dict[str, Any]
-    warnings: List[str]
-    errors: List[str]
-    timestamp: float
 
 
 class ETAPProject:
@@ -546,17 +518,6 @@ class ETAPProject:
                     "(tried both 'Harmonic' for ETAP 2021+ and "
                     "'HarmonicAnalysis' for older versions)"
                 )
-
-    def _run_harmonic_analysis(self, **kwargs) -> Dict[str, Any]:
-        """Run harmonic analysis study via ETAP COM.
-
-        Raises RuntimeError if COM module is unavailable or returns no data.
-        """
-        buses = {}
-        try:
-            harm_module = getattr(self._com_project, "HarmonicAnalysis", None)
-            if harm_module is None or not hasattr(harm_module, "Calculate"):
-                raise RuntimeError("HarmonicAnalysis module not available in ETAP project")
             harm_module.Calculate()
             for bus in self._com_project.Buses:
                 bus_id = str(getattr(bus, "ID", ""))
@@ -986,13 +947,6 @@ class ETAPProject:
         return None
 
     def get_all_buses(self) -> list[dict[str, Any]]:
-
-            logger.warning(f"COM error retrieving bus {bus_id} (timeout={self._com_timeout}s): {e}")
-        except Exception as e:
-            logger.warning(f"Could not retrieve bus {bus_id}: {e}")
-        return None
-
-    def get_all_buses(self) -> List[Dict[str, Any]]:
         """Get data for all buses."""
         buses = []
         try:
@@ -1009,13 +963,6 @@ class ETAPProject:
         return buses
 
     def save(self, file_path: Optional[str] = None) -> bool:
-
-            logger.error(f"COM error retrieving buses (timeout={self._com_timeout}s): {e}")
-        except Exception as e:
-            logger.error(f"Error retrieving buses: {e}")
-        return buses
-
-    def save(self, file_path: str | None = None) -> bool:
         """Save the project."""
         try:
             path = file_path or self.file_path
@@ -1085,13 +1032,6 @@ class ETAPAutomation:
         min_val: Optional[float] = None,
         max_val: Optional[float] = None,
         max_length: Optional[int] = None,
-
-    def _validate_input(
-        value,
-        value_type: str,
-        min_val: float | None = None,
-        max_val: float | None = None,
-        max_length: int | None = None,
     ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
@@ -1178,10 +1118,6 @@ class ETAPAutomation:
         study_type: ETAPStudyType,
         params: dict[str, Any],
     ) -> dict[str, Any]:
-
-    def _validate_study_parameters(
-        study_type: ETAPStudyType, params: Dict[str, Any]
-    ) -> Dict[str, Any]:
         """
         Validate study parameters against the per-study-type schema.
 
@@ -1354,10 +1290,6 @@ class ETAPAutomation:
         total = 0
         for _key, value in result_dict.items():
             if isinstance(value, (dict, list, tuple)):
-
-            if isinstance(value, dict):
-                total += len(value)
-            elif isinstance(value, (list, tuple)):
                 total += len(value)
             else:
                 total += 1
@@ -1456,21 +1388,6 @@ class ETAPAutomation:
                     "Project path escapes CWD and HOME: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
-
-
-            logger.warning(f"Invalid project file extension: {file_path}")
-            return False
-
-        try:
-            resolved = pathlib.Path(file_path).resolve()
-        except (ValueError, RuntimeError):
-            logger.warning(f"Invalid path format: {file_path}")
-            return False
-
-        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
-        if file_path.startswith("\\\\") or file_path.startswith("//"):
-            logger.warning(f"UNC path not allowed (SMB relay risk): {file_path}")
-            return False
 
         if self._allowed_project_dirs:
             is_allowed = any(
@@ -1571,23 +1488,6 @@ class ETAPAutomation:
             return None
 
     def create_project(self, project_name: str = "NewProject") -> Optional[ETAPProject]:
-
-                logger.info(f"Opened project: {file_path}")
-                return project
-            else:
-                logger.error(f"Failed to open project: {file_path}")
-                return None
-
-        except pythoncom.com_error as e:
-            logger.error(
-                f"COM error opening project {file_path} (timeout={self.com_timeout_seconds}s): {e}"
-            )
-            return None
-        except Exception as e:
-            logger.error(f"Error opening project {file_path}: {e}")
-            return None
-
-    def create_project(self, project_name: str = "NewProject") -> ETAPProject | None:
         """
         Create a new ETAP project.
 
@@ -1629,14 +1529,6 @@ class ETAPAutomation:
             return None
 
     def get_active_project(self) -> Optional[ETAPProject]:
-
-            logger.error(f"COM error creating project (timeout={self.com_timeout_seconds}s): {e}")
-            return None
-        except Exception as e:
-            logger.error(f"Error creating project: {e}")
-            return None
-
-    def get_active_project(self) -> ETAPProject | None:
         """Get the currently active project."""
         if not self.is_running:
             return None
@@ -1662,16 +1554,6 @@ class ETAPAutomation:
             )
         except Exception as e:
             logger.exception("Error getting active project: %s", e)
-
-                    com_project, "ActiveProject", com_timeout=self.com_timeout_seconds
-                )
-                return project
-        except pythoncom.com_error as e:
-            logger.error(
-                f"COM error getting active project (timeout={self.com_timeout_seconds}s): {e}"
-            )
-        except Exception as e:
-            logger.error(f"Error getting active project: {e}")
 
         return None
 
@@ -1725,14 +1607,6 @@ class ETAPAutomation:
             return False
 
     def get_version(self) -> Optional[str]:
-
-            logger.error(f"COM error shutting down ETAP (timeout={self.com_timeout_seconds}s): {e}")
-            return False
-        except Exception as e:
-            logger.error(f"Error shutting down ETAP: {e}")
-            return False
-
-    def get_version(self) -> str | None:
         """Get ETAP version information."""
         if not self.is_running:
             return None

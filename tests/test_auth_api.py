@@ -125,13 +125,6 @@ class TestRegister:
         assert (
             resp.status_code == 409
         ), f"Expected 409 for duplicate username, got {resp.status_code}"
-
-                "password": "S3cureP@ss!",
-            },
-        )
-        assert resp.status_code == 409, (
-            f"Expected 409 for duplicate username, got {resp.status_code}"
-        )
         assert "Username already registered" in resp.json()["detail"]
 
     def test_register_duplicate_email(self, client):
@@ -201,13 +194,6 @@ class TestRegister:
             resp.status_code == 422
         ), f"Expected 422 for password containing username, got {resp.status_code}"
 
-                "password": "mynameS3cure!",
-            },
-        )
-        assert resp.status_code == 422, (
-            f"Expected 422 for password containing username, got {resp.status_code}"
-        )
-
 
 # ===========================================================================
 # 2. POST /api/v1/auth/login
@@ -273,14 +259,6 @@ class TestLogin:
             "Invalid credentials" in resp.json()["detail"]
         ), "Error for non-existent user should be identical to wrong password error"
 
-            json={"username": "ghost_user", "password": "Whatever123!"},
-        )
-        assert resp.status_code == 401, f"Expected 401, got {resp.status_code}"
-        # Must be the SAME error message to avoid user enumeration
-        assert "Invalid credentials" in resp.json()["detail"], (
-            "Error for non-existent user should be identical to wrong password error"
-        )
-
     def test_login_rate_limiting(self, client):
         """After 5 failed login attempts, the 6th is rate-limited (429)."""
         username = "ratelimituser"
@@ -311,12 +289,6 @@ class TestLogin:
         assert (
             resp.status_code == 429
         ), f"Expected 429 after 5 failed attempts, got {resp.status_code}"
-
-            json={"username": username, "password": "WrongP@ss6!"},
-        )
-        assert resp.status_code == 429, (
-            f"Expected 429 after 5 failed attempts, got {resp.status_code}"
-        )
 
 
 # ===========================================================================
@@ -405,10 +377,6 @@ class TestRefresh:
         assert (
             resp.status_code == 401
         ), f"Access token should not be accepted as refresh token, got {resp.status_code}"
-
-        assert resp.status_code == 401, (
-            f"Access token should not be accepted as refresh token, got {resp.status_code}"
-        )
 
 
 # ===========================================================================

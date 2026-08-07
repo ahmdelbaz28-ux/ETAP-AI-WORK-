@@ -346,69 +346,6 @@ def _execute_powershell(script_path: str) -> None:
                 "Bypass",
                 "-File",
                 script_path,
-
-        logger.error(f"Failed to read command from stdin: {e}")
-        return None
-
-
-def main():
-    command = _read_command_from_stdin()
-    if command is None:
-        print(json.dumps({"error": "No command provided via stdin", "success": False}))
-        sys.exit(1)
-
-    # Limit command length to prevent resource exhaustion
-    MAX_COMMAND_LENGTH = 10000
-    if len(command) > MAX_COMMAND_LENGTH:
-        print(
-            json.dumps(
-                {
-                    "error": f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
-                    "success": False,
-                }
-            )
-        )
-        sys.exit(1)
-
-    audit = get_audit_logger()
-    validator = get_validator()
-
-    # P0 Validation - must pass before any execution
-    if not validator.validate_powershell_command(command):
-        audit.log_security_violation(
-            "agent_tool", "Forbidden PowerShell pattern detected", {"command_length": len(command)}
-        )
-        print(
-            json.dumps(
-                {
-                    "error": "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
-                    "success": False,
-                }
-            )
-        )
-        sys.exit(1)
-
-    audit.log_action("agent_tool", "execute_powershell", "restricted_sandbox", True)
-
-    # Execute validated command
-    # Security: Use -ExecutionPolicy AllSigned instead of Restricted for defense-in-depth.
-    # -NoProfile prevents profile scripts from running (potential attack vector).
-    # -NonInteractive prevents interactive prompts.
-    # WARNING: -Command mode still allows obfuscated commands. The AST validator
-    # above is the primary defense. For maximum security, consider using a
-    # constrained runspace or whitelisted cmdlet approach instead.
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-NonInteractive",
-                "-ExecutionPolicy",
-                "AllSigned",
-                "-Command",
-                command,
             ],
             capture_output=True,
             text=True,
@@ -424,11 +361,6 @@ def main():
             # Sanitize Windows file paths (e.g. C:\Users\...) from error
             # messages to avoid leaking internal directory structure.
             err_message = re.sub(r"[A-Z]:\\[^\s]+", "[path]", err_message)
-
-            # Sanitize paths from error messages
-            import re
-
-            err_message = re.sub(r"[A-Z]:\[^\s]+", "[path]", err_message)
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:
             print(json.dumps({"success": True, "output": output, "error": None}))

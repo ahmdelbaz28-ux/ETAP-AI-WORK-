@@ -25,12 +25,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -119,10 +113,6 @@ class WeatherAgent(BaseAgent):
         delta_ref = max_hotspot_temp_c - reference_temp_c
 
         if delta_ref <= 0 or delta_max <= 0:
-
-        if delta_ref <= 0:
-            rating_factor = 0.0
-        elif delta_max <= 0:
             rating_factor = 0.0
         else:
             rating_factor = float(np.sqrt(delta_max / delta_ref))
@@ -222,18 +212,6 @@ class WeatherAgent(BaseAgent):
         if re > 0:
             nu = 0.3 + 0.62 * re**0.5 * 0.71 ** (1.0 / 3.0)  # NOSONAR
             h_conv = nu * k_air / D
-
-        T_film = (T_c + T_a) / 2.0 + 273.15  # K
-        k_air = 0.0242 + 7.0e-5 * (T_film - 300.0)  # Thermal conductivity W/(m·K)
-        nu_air = 1.516e-5 + 4.0e-8 * (T_film - 300.0)  # Kinematic viscosity m²/s
-
-        # Reynolds number
-        Re = wind_speed_ms * D / nu_air if nu_air > 0 else 0.0
-
-        # Forced convection coefficient (simplified IEEE 738)
-        if Re > 0:
-            Nu = 0.3 + 0.62 * Re**0.5 * 0.71 ** (1.0 / 3.0)  # Simplified
-            h_conv = Nu * k_air / D
         else:
             # Natural convection (no wind)
             h_conv = 5.0  # W/(m²·K) approximate
@@ -245,10 +223,6 @@ class WeatherAgent(BaseAgent):
         t_c_k = T_c + 273.15  # NOSONAR
         t_a_k = T_a + 273.15  # NOSONAR
         q_rad = emissivity * sigma_sb * np.pi * D * (t_c_k**4 - t_a_k**4)
-
-        T_c_K = T_c + 273.15
-        T_a_K = T_a + 273.15
-        q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K**4 - T_a_K**4)
 
         # Solar heat gain
         q_solar = solar_absorptivity * solar_radiation_wm2 * D
@@ -265,15 +239,6 @@ class WeatherAgent(BaseAgent):
         # Rating increase vs static
         rating_increase = (
             (i_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
-
-        if q_joule > 0 and R > 0:
-            I_dynamic = float(np.sqrt(q_joule / R))
-        else:
-            I_dynamic = 0.0
-
-        # Rating increase vs static
-        rating_increase = (
-            (I_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
         )
 
         # Simple DLR as cross-check: I ∝ sqrt((T_max - T_amb) / (T_max - T_static_amb))
@@ -286,14 +251,6 @@ class WeatherAgent(BaseAgent):
         return {
             "dynamic_rating_a": round(i_dynamic, 1),
             "dynamic_rating_simple_a": round(i_dlr_simple, 1),
-
-            / max(1, (conductor_max_temp_c - static_rating_ambient_c))
-        )
-        I_dlr_simple = static_rating_a * dlr_factor
-
-        return {
-            "dynamic_rating_a": round(I_dynamic, 1),
-            "dynamic_rating_simple_a": round(I_dlr_simple, 1),
             "static_rating_a": static_rating_a,
             "rating_increase_percent": round(rating_increase, 2),
             "wind_speed_ms": wind_speed_ms,

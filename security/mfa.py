@@ -317,14 +317,6 @@ class TOTPProvider:
         user_id_or_secret : str
             User identifier (looked up in the credential store) OR
             a Base32-encoded TOTP secret string.
-
-    def verify_code(self, secret: str, code: str) -> bool:
-        """Verify a TOTP code with a ±1 window for clock drift.
-
-        Parameters
-        ----------
-        secret : str
-            Base32-encoded TOTP secret.
         code : str
             User-supplied TOTP code.
 
@@ -387,15 +379,6 @@ class TOTPProvider:
             self._secrets[user_id] = TOTPSecret(
                 user_id=user_id, secret="", backup_codes=code_hashes
             )
-
-            List of backup code strings.
-        """
-        codes = [secrets.token_hex(4).upper() for _ in range(count)]
-        entry = self._secrets.get(user_id)
-        if entry:
-            entry.backup_codes = codes
-        else:
-            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=codes)
         logger.info("Generated %d backup codes for user %s", count, user_id)
         return codes
 
@@ -527,13 +510,6 @@ class WebAuthnProvider:
     # -- registration --------------------------------------------------------
 
     def generate_registration_options(self, user_id: str) -> dict[str, Any]:
-
-        self._credentials: Dict[str, List[WebAuthnCredential]] = {}
-        self._challenges: Dict[str, str] = {}  # user_id -> challenge
-
-    # -- registration --------------------------------------------------------
-
-    def generate_registration_options(self, user_id: str) -> Dict[str, Any]:
         """Generate WebAuthn registration challenge.
 
         Parameters
@@ -662,29 +638,6 @@ class WebAuthnProvider:
     # -- authentication ------------------------------------------------------
 
     def generate_authentication_options(self, user_id: str) -> dict[str, Any]:
-
-        # Fallback: store credential without full crypto verification
-        cred_id = response.get("id", secrets.token_hex(16))
-        public_key_b64 = response.get("response", {}).get("publicKey", "")
-        try:
-            public_key = base64.urlsafe_b64decode(public_key_b64 + "==")
-        except Exception:
-            public_key = b""
-
-        credential = WebAuthnCredential(
-            credential_id=cred_id,
-            user_id=user_id,
-            public_key=public_key,
-            sign_count=0,
-            transports=response.get("transports", []),
-        )
-        self._credentials.setdefault(user_id, []).append(credential)
-        logger.info("WebAuthn credential registered (fallback) for user %s", user_id)
-        return {"credential_id": cred_id, "success": True}
-
-    # -- authentication ------------------------------------------------------
-
-    def generate_authentication_options(self, user_id: str) -> Dict[str, Any]:
         """Generate WebAuthn authentication challenge.
 
         Parameters
@@ -879,10 +832,6 @@ class MFAOrchestrator:
         totp_provider: Optional[TOTPProvider] = None,
         webauthn_provider: Optional[WebAuthnProvider] = None,
         require_mfa_for_roles: list[str] | None = None,
-
-        totp_provider: TOTPProvider | None = None,
-        webauthn_provider: WebAuthnProvider | None = None,
-        require_mfa_for_roles: List[str] | None = None,
     ) -> None:
         self.totp = totp_provider or TOTPProvider()
         self.webauthn = webauthn_provider or WebAuthnProvider()

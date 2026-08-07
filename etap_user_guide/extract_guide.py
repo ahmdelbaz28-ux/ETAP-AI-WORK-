@@ -25,13 +25,6 @@ try:
     import pypdf  # noqa: F401
     from pypdf import PdfReader
 
-from typing import Dict, List, Tuple
-
-# PDF processing libraries
-try:
-    import PyPDF2  # noqa: F401
-    from PyPDF2 import PdfReader
-
     PDF_AVAILABLE = True
 except ImportError:
     PDF_AVAILABLE = False

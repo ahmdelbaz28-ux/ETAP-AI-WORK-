@@ -9,18 +9,6 @@ from typing import Any, Optional
 from urllib.parse import urlparse
 
 try:
-
-from datetime import datetime
-from typing import Any, Dict, List
-from urllib.parse import urlparse
-
-try:
-    from bs4 import BeautifulSoup  # type: ignore
-except ImportError:  # pragma: no cover
-    BeautifulSoup = None  # type: ignore
-import re
-
-try:
     from sentence_transformers import SentenceTransformer  # type: ignore
 except ImportError:  # pragma: no cover
     SentenceTransformer = None  # type: ignore
@@ -78,13 +66,6 @@ class ArcGISProIndexingWorkflow:
         base_url: str,
         parent: Optional[str] = None,
     ) -> list[dict[str, Any]]:
-
-        self.logger.info(f"Fetched {len(docs_to_process)} documentation items")
-        return docs_to_process
-
-    def _extract_doc_items(
-        self, section: Dict[str, Any], base_url: str, parent: str | None = None
-    ) -> List[Dict[str, Any]]:
         """
         Recursively extract documentation items from nested sections.
         """
@@ -234,22 +215,6 @@ class ArcGISProIndexingWorkflow:
         self.logger.info("Successfully indexed %s documents", len(transformed_data))
 
     def post_process(self, stats: dict[str, Any]):
-
-            doc_id = hashlib.md5(item["url"].encode()).hexdigest()
-
-            try:
-                assert self.elastic_client is not None
-                self.elastic_client.index(index=index_name, id=doc_id, body=item)
-
-                if (i + 1) % 100 == 0:  # Log progress every 100 items
-                    self.logger.info(f"Indexed {i + 1}/{len(transformed_data)} items")
-
-            except Exception as e:
-                self.logger.error(f"Failed to index document {item['url']}: {str(e)}")
-
-        self.logger.info(f"Successfully indexed {len(transformed_data)} documents")
-
-    def post_process(self, stats: Dict[str, Any]):
         """
         Step 5: Post-processing activities like reporting.
         """

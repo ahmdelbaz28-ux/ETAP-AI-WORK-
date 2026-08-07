@@ -87,12 +87,6 @@ class TestAPIKeyBypass:
                 resp.status_code == 200
             ), f"Expected 200 with correct API key, got {resp.status_code}"
 
-                headers={**auth_headers, "X-API-Key": "test-secret-key"},
-            )
-            assert resp.status_code == 200, (
-                f"Expected 200 with correct API key, got {resp.status_code}"
-            )
-
     def test_project_list_with_wrong_api_key(self, client, auth_headers):
         """When an incorrect API key is provided, the request is rejected."""
         with patch("api.dependencies.API_KEY", "test-secret-key"):
@@ -103,12 +97,6 @@ class TestAPIKeyBypass:
             assert (
                 resp.status_code == 401
             ), f"Expected 401 with wrong API key, got {resp.status_code}"
-
-                headers={**auth_headers, "X-API-Key": "wrong-key"},
-            )
-            assert resp.status_code == 401, (
-                f"Expected 401 with wrong API key, got {resp.status_code}"
-            )
 
 
 # ===========================================================================
@@ -399,13 +387,6 @@ class TestRateLimitEnforcement:
         ), "Different user should not be affected by another's rate limit"
 
     @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
-
-            json={"username": "rl_user2", "password": "WrongPass!"},
-        )
-        assert resp2.status_code == 401, (
-            "Different user should not be affected by another's rate limit"
-        )
-
     def test_rate_limit_per_username_isolation(self, client):
         """Rate limiting for one username does not affect another."""
         client.post(
@@ -465,10 +446,6 @@ class TestBodySizeLimit:
             422,
             400,
         ), f"Server should handle large body gracefully, got {resp.status_code}"
-
-        assert resp.status_code in (201, 413, 422, 400), (
-            f"Server should handle large body gracefully, got {resp.status_code}"
-        )
 
     def test_normal_sized_body_works(self, client, auth_headers):
         """A normally-sized request body works fine."""
@@ -545,10 +522,6 @@ class TestABACPolicyEnforcement:
         assert (
             study_resp.status_code == 201
         ), f"Engineer should be able to run studies, got {study_resp.status_code}"
-
-        assert study_resp.status_code == 201, (
-            f"Engineer should be able to run studies, got {study_resp.status_code}"
-        )
 
     def test_abac_engine_deny_viewer_study(self):
         """Test the ABAC engine directly: viewer role is denied for study execution."""

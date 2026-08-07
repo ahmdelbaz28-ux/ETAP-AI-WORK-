@@ -78,14 +78,6 @@ class OPFResult:
     total_load: float  # Total load (MW)
     total_losses: float  # Total system losses (MW)
     constraint_violations: list[str]
-
-    generator_dispatch: Dict[int, complex]  # gen_id -> P + jQ (MW + jMVAR)
-    bus_voltages: Dict[int, complex]  # bus_id -> V (pu)
-    branch_flows: Dict[Tuple[int, int], complex]  # (from, to) -> S (MVA)
-    total_generation: float  # Total generation (MW)
-    total_load: float  # Total load (MW)
-    total_losses: float  # Total system losses (MW)
-    constraint_violations: List[str]
     iterations: int
     method_used: str
     convergence_status: str
@@ -149,31 +141,6 @@ class OptimalPowerFlowEngine:
         self.branch_limits = limits
 
     def _build_dc_approximation(self) -> tuple[np.ndarray, np.ndarray]:
-
-        self.load_data: Dict[int, complex] = {}  # bus_id -> S_load (MW + jMVAR)
-        self.gen_buses: Dict[int, int] = {}  # gen_id -> bus_id
-
-        # Limits
-        self.voltage_limits: Dict[int, Tuple[float, float]] = {}  # bus_id -> (Vmin, Vmax)
-        self.branch_limits: Dict[Tuple[int, int], float] = {}  # (from, to) -> S_max (MVA)
-
-    def set_load_data(self, load_data: Dict[int, complex]):
-        """Set load data for each bus."""
-        self.load_data = load_data
-
-    def set_generator_locations(self, gen_buses: Dict[int, int]):
-        """Map generators to buses."""
-        self.gen_buses = gen_buses
-
-    def set_voltage_limits(self, limits: Dict[int, Tuple[float, float]]):
-        """Set voltage magnitude limits per bus."""
-        self.voltage_limits = limits
-
-    def set_branch_limits(self, limits: Dict[Tuple[int, int], float]):
-        """Set thermal limits for branches."""
-        self.branch_limits = limits
-
-    def _build_dc_approximation(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Build DC power flow approximation matrices.
 
@@ -197,14 +164,6 @@ class OptimalPowerFlowEngine:
         for i, bus_id in enumerate(self.bus_ids[1:], start=0):
             # Generation
             P_gen = sum(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        B_prime = B[1:, 1:]
-
-        # Calculate net power injections
-        P_injection = np.zeros(self.n_buses - 1)
-        for i, bus_id in enumerate(self.bus_ids[1:], start=0):
-            # Generation
-            P_gen = sum(
                 self.generator_costs[gid].p_min
                 for gid, bid in self.gen_buses.items()
                 if bid == bus_id
@@ -216,11 +175,6 @@ class OptimalPowerFlowEngine:
             p_injection[i] = P_gen - p_load
 
         return b_prime, p_injection
-
-            P_load = self.load_data.get(bus_id, 0).real if bus_id in self.load_data else 0
-            P_injection[i] = P_gen - P_load
-
-        return B_prime, P_injection
 
     def solve_dc_opf(self) -> OPFResult:
         """
@@ -432,12 +386,6 @@ class OptimalPowerFlowEngine:
                     bus_id, 0
                 ).real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 return P_gen_bus - p_load
-
-                P_gen_bus = sum(
-                    x[i] for i, gid in enumerate(gen_ids) if self.gen_buses.get(gid) == bus_id
-                )
-                P_load = self.load_data.get(bus_id, 0).real
-                return P_gen_bus - P_load
 
             constraints.append({"type": "eq", "fun": active_power_constraint})
 

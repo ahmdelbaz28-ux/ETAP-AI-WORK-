@@ -103,26 +103,6 @@ class LoadFlowSolver:
         p_sch=None,
         q_sch=None,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-    def _calculate_power(self, V):
-        I = np.dot(self.Ybus, V)
-        S = V * np.conj(I)
-        return np.real(S), np.imag(S)
-
-    def _scheduled_power(self):
-        P_sch = np.zeros(self.n_buses)
-        Q_sch = np.zeros(self.n_buses)
-        for i, bid in enumerate(self.bus_ids):
-            bus = self.system.buses[bid]
-            P_sch[i] = bus.generation_power.real - bus.load_power.real
-            Q_sch[i] = bus.generation_power.imag - bus.load_power.imag
-        return P_sch, Q_sch
-
-    def _power_mismatch(self, V, P_sch, Q_sch):
-        P, Q = self._calculate_power(V)
-        return P_sch - P, Q_sch - Q
-
-    def _build_jacobian(self, V, P_sch=None, Q_sch=None):
         """
         Analytical Newton-Raphson Jacobian from Ybus elements.
 
@@ -202,22 +182,6 @@ class LoadFlowSolver:
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(v)
 
-        Vmag = np.abs(V)
-        Vang = np.angle(V)
-
-        # Angle differences
-        θ = Vang[:, np.newaxis] - Vang[np.newaxis, :]
-        cos_θ = np.cos(θ)
-        sin_θ = np.sin(θ)
-
-        # Voltage magnitude products
-        V_i = Vmag[:, np.newaxis]  # (n, 1)
-        V_j = Vmag[np.newaxis, :]  # (1, n)
-        V_i_V_j = V_i * V_j  # (n, n)
-
-        # Current power injections (P_calc, Q_calc)
-        P, Q = self._calculate_power(V)
-
         pv = self.pv_indices
         pq = self.pq_indices
         n_pv = len(pv)
@@ -269,13 +233,6 @@ class LoadFlowSolver:
         G_diag = G.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V2 = vmag**2
 
-        J4_off = -V_i * (GS - BC)
-
-        # ── Diagonal helpers ────────────────────────────────────────────
-        B_diag = B.diagonal()
-        G_diag = G.diagonal()
-        V2 = Vmag**2
-
         # ── J1: dΔP/dθ ──
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(th_col_buses):
@@ -293,11 +250,6 @@ class LoadFlowSolver:
                     J[ri, col] = -P[bus_i] / vmag[bus_i] - G_diag[bus_i] * vmag[bus_i]
                 else:
                     J[ri, col] = j2_off[bus_i, bus_k]
-
-                    # d(ΔP_i)/d|V|_i = -P_i/|V_i| - G_ii * |V_i|
-                    J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
-                else:
-                    J[ri, col] = J2_off[bus_i, bus_k]
 
         # ── J3: dΔQ/dθ ──
         # Rows start at n_pv + n_pq (after ΔP_pv and ΔP_pq)
@@ -328,15 +280,6 @@ class LoadFlowSolver:
         deltap,
         deltaq,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-                    # d(ΔQ_i)/d|V|_i = -Q_i/|V|_i + B_ii * |V_i|
-                    J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
-                else:
-                    J[row, col] = J4_off[bus_i, bus_k]
-
-        return J
-
-    def _build_mismatch_vector(self, deltaP, deltaQ):
         pv = self.pv_indices
         pq = self.pq_indices
         n_pv = len(pv)
@@ -346,10 +289,6 @@ class LoadFlowSolver:
         mismatch[:n_pv] = deltap[pv]
         mismatch[n_pv : n_pv + n_pq] = deltap[pq]
         mismatch[n_pv + n_pq :] = deltaq[pq]
-
-        mismatch[:n_pv] = deltaP[pv]
-        mismatch[n_pv : n_pv + n_pq] = deltaP[pq]
-        mismatch[n_pv + n_pq :] = deltaQ[pq]
         return mismatch
 
     def _apply_step_limiting(self, correction):
@@ -420,19 +359,6 @@ class LoadFlowSolver:
         v,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         _, Q = self._calculate_power(v)
-
-            Vmag_i = np.abs(self.V[bus_i])
-            self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
-
-        # Update magnitudes (PQ only)
-        for idx, bus_i in enumerate(pq):
-            Vmag_i = np.abs(self.V[bus_i])
-            Vmag_i += alpha * correction[n_pv + n_pq + idx]
-            theta_i = np.angle(self.V[bus_i])
-            self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
-
-    def _check_q_limits(self, V):
-        P, Q = self._calculate_power(V)
         switched = False
 
         for bus_i in self.original_pv_indices:
@@ -451,13 +377,6 @@ class LoadFlowSolver:
                 bus.bus_type = "pq"
                 bus.generation_power = complex(bus.generation_power.real, qmax)
                 event = f"PV->PQ (Q>Qmax): Bus {bid} Q={q_gen:.4f} > Qmax={qmax:.4f}"
-
-            Q_gen = Q[bus_i] + bus.load_power.imag
-
-            if bus.bus_type == "pv" and Q_gen > qmax:
-                bus.bus_type = "pq"
-                bus.generation_power = complex(bus.generation_power.real, qmax)
-                event = f"PV->PQ (Q>Qmax): Bus {bid} Q={Q_gen:.4f} > Qmax={qmax:.4f}"
                 self.switching_log.append(event)
                 logger.info(event)
                 switched = True
@@ -491,16 +410,6 @@ class LoadFlowSolver:
             p_sch,
             q_sch,
         ) = self._scheduled_power()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        if np.mean(recent) > self.oscillation_threshold * np.mean(prev):
-            return True
-        return False
-
-    def solve(self, max_iter=100, tol=1e-6, mode="engineering"):
-        if mode == "high_accuracy":
-            tol = min(tol, 1e-8)
-
-        P_sch, Q_sch = self._scheduled_power()
         mismatch_history = []
         self.iteration_log = []
         self.switching_log = []
@@ -544,23 +453,6 @@ class LoadFlowSolver:
                         "[LoadFlow] iter=%d Jacobian build debug failed: %s",
                         iteration,
                         e,
-
-                    f"[LoadFlow] iter={iteration} max_mismatch={max_mismatch:.6e} "
-                    f"n_pv={len(self.pv_indices)} n_pq={len(self.pq_indices)} "
-                    f"damping={self.damping_factor:.3f}"
-                )
-                try:
-                    J_dbg = self._build_jacobian(self.V)
-                    nan_count = int(np.isnan(J_dbg).sum())
-                    inf_count = int(np.isinf(J_dbg).sum())
-                    finite_all = bool(np.isfinite(J_dbg).all())
-                    logger.info(
-                        f"[LoadFlow] iter={iteration} Jacobian finite_all={finite_all} "
-                        f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}"
-                    )
-                except Exception as e:
-                    logger.exception(
-                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}"
                     )
 
             self.iteration_log.append(
@@ -642,12 +534,6 @@ class LoadFlowSolver:
                             corr_lm = np.linalg.solve(j_lm, -mismatch)
                         except np.linalg.LinAlgError:
                             corr_lm = np.linalg.lstsq(j_lm, -mismatch, rcond=None)[0]
-
-                        J_lm = J + lm_lambda * np.eye(J.shape[0])
-                        try:
-                            corr_lm = np.linalg.solve(J_lm, -mismatch)
-                        except np.linalg.LinAlgError:
-                            corr_lm = np.linalg.lstsq(J_lm, -mismatch, rcond=None)[0]
                         corr_lm = self._apply_step_limiting(corr_lm)
                         for alpha in [1.0, 0.5, 0.25, 0.1]:
                             self.V = V_prev.copy()
@@ -713,15 +599,4 @@ class LoadFlowSolver:
             iteration,
             max_mismatch,
         )
-
-                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})"
-                )
-                break
-
-        # Best-effort writeback even on non-convergence
-        P, Q = self._calculate_power(self.V)
-        for i, bid in enumerate(self.bus_ids):
-            bus = self.system.buses[bid]
-            bus.voltage = self.V[i]
-            bus.generation_power = complex(P[i] + bus.load_power.real, Q[i] + bus.load_power.imag)
         return False

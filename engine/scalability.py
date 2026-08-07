@@ -92,15 +92,6 @@ class LoadBalancer:
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = _RNG.uniform(0, total)  # NOSONAR
-
-                    healthy,
-                    key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
-                )
-            elif self._strategy == LoadBalancingStrategy.RANDOM:
-                return random.choice(list(healthy.keys()))
-            elif self._strategy == LoadBalancingStrategy.WEIGHTED:
-                total = sum(w.weight for w in healthy.values())
-                r = random.uniform(0, total)
                 cumulative = 0.0
                 for wid, w in healthy.items():
                     cumulative += w.weight
@@ -193,11 +184,6 @@ class DistributedTaskQueue:
         self._tasks: dict[str, TaskItem] = {}
         self._completed: dict[str, TaskItem] = {}
         self._failed: dict[str, TaskItem] = {}
-
-        self._queue: List[TaskItem] = []
-        self._tasks: Dict[str, TaskItem] = {}
-        self._completed: Dict[str, TaskItem] = {}
-        self._failed: Dict[str, TaskItem] = {}
         if queue_type == "redis":
             try:
                 from redis import Redis
@@ -323,20 +309,6 @@ class ClusterManager:
             )
 
     def discover_nodes(self) -> list[dict[str, Any]]:
-
-        self._nodes: Dict[str, ClusterNode] = {}
-        self._lock = threading.Lock()
-        self._failure_handlers: List[Callable[[str], None]] = []
-
-    def register_node(
-        self, node_id: str, host: str, port: int, capabilities: Dict[str, Any]
-    ) -> None:
-        with self._lock:
-            self._nodes[node_id] = ClusterNode(
-                node_id=node_id, host=host, port=port, capabilities=capabilities
-            )
-
-    def discover_nodes(self) -> List[Dict[str, Any]]:
         with self._lock:
             return [
                 {
@@ -456,12 +428,6 @@ class HorizontalScaler:
         self._lock = threading.Lock()
 
     def evaluate_scaling(self, current_load: float) -> Optional[str]:
-
-        self._scale_up_cbs: List[Callable[[int], None]] = []
-        self._scale_down_cbs: List[Callable[[int], None]] = []
-        self._lock = threading.Lock()
-
-    def evaluate_scaling(self, current_load: float) -> str | None:
         if current_load >= self.scale_up_threshold and self._current_nodes < self.max_nodes:
             return "scale_up"
         if current_load <= self.scale_down_threshold and self._current_nodes > self.min_nodes:
@@ -545,10 +511,6 @@ class Partition:
     boundary_buses: list[int]
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    buses: List[int]
-    boundary_buses: List[int]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
 
 class PartitionManager:
     def __init__(self, partition_type: str = "bus_based") -> None:
@@ -557,11 +519,6 @@ class PartitionManager:
         self._original_buses: list[int] = []
 
     def partition_system(self, system: Any, num_partitions: int) -> list[dict[str, Any]]:
-
-        self._partitions: Dict[str, Partition] = {}
-        self._original_buses: List[int] = []
-
-    def partition_system(self, system: Any, num_partitions: int) -> List[Dict[str, Any]]:
         bus_ids = self._extract_bus_ids(system)
         self._original_buses = list(bus_ids)
         self._partitions.clear()
@@ -669,14 +626,6 @@ class PartitionManager:
         system: Any,
     ) -> list[tuple[str, list[int], list[int]]]:
         kv_groups: dict[float, list[int]] = defaultdict(list)
-
-    def _zone_based(self, bus_ids: List[int], num: int) -> List[Tuple[str, List[int], List[int]]]:
-        return self._bus_based(sorted(bus_ids), num)
-
-    def _voltage_level(
-        self, bus_ids: List[int], num: int, system: Any
-    ) -> List[Tuple[str, List[int], List[int]]]:
-        kv_groups: Dict[float, List[int]] = defaultdict(list)
         for bid in bus_ids:
             kv = 13.8
             if hasattr(system, "get_bus_voltage"):
@@ -747,10 +696,6 @@ class Execution:
     completed_at: Optional[float] = None
     error: Optional[str] = None
     partial_results: dict[str, Any] = field(default_factory=dict)
-
-    completed_at: float | None = None
-    error: str | None = None
-    partial_results: Dict[str, Any] = field(default_factory=dict)
 
 
 class DistributedOrchestrator:

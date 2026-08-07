@@ -44,20 +44,6 @@ class NumericalBounds(Enum):
 
     @classmethod
     def get_bounds(cls, name: str) -> tuple[float, float]:
-
-    VOLTAGE_PU: Tuple[float, float] = (0.0, 2.0)
-    CURRENT_PU: Tuple[float, float] = (0.0, 100.0)
-    POWER_MW: Tuple[float, float] = (-1e6, 1e6)
-    POWER_MVAR: Tuple[float, float] = (-1e6, 1e6)
-    ANGLE_DEG: Tuple[float, float] = (-360.0, 360.0)
-    IMPEDANCE_PU: Tuple[float, float] = (1e-10, 1e6)
-    ADMITTANCE_PU: Tuple[float, float] = (1e-10, 1e6)
-    FREQUENCY_HZ: Tuple[float, float] = (0.0, 1000.0)
-    RATIO: Tuple[float, float] = (1e-6, 1e6)
-    ITERATIONS: Tuple[int, int] = (1, 100000)
-
-    @classmethod
-    def get_bounds(cls, name: str) -> Tuple[float, float]:
         """Retrieve bounds by parameter name.
 
         Parameters
@@ -322,10 +308,6 @@ class ConsistencyCheck:
         total_gen: float | np.ndarray,
         total_load: float | np.ndarray,
         total_losses: float | np.ndarray,
-
-        total_gen: Union[float, np.ndarray],
-        total_load: Union[float, np.ndarray],
-        total_losses: Union[float, np.ndarray],
         tolerance_mw: float = 1.0,
     ) -> dict[str, Any]:
         """Verify that generation = load + losses within tolerance_mw."""
@@ -411,10 +393,6 @@ class ConsistencyCheck:
         energy_in: float | np.ndarray,
         energy_out: float | np.ndarray,
         losses: float | np.ndarray,
-
-        energy_in: Union[float, np.ndarray],
-        energy_out: Union[float, np.ndarray],
-        losses: Union[float, np.ndarray],
         tolerance: float = 0.01,
     ) -> dict[str, Any]:
         """Verify energy_in = energy_out + losses within tolerance."""
@@ -504,19 +482,6 @@ class MatrixStabilizer:
 
     def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
         """Check if matrix is square Union[and, |A] - Union[A^T|, _inf] <= tolerance."""
-
-    def safe_solve(self, A: np.ndarray, b: np.ndarray, method: str = "lu") -> np.ndarray:
-        """Solve Ax = b with fallback to least-squares on singular systems."""
-        A_arr = np.asarray(A, dtype=float)
-        b_arr = np.asarray(b, dtype=float)
-        try:
-            return solve(A_arr, b_arr)
-        except LinAlgError:
-            self.log.warning("Linear solve failed — falling back to least-squares")
-            return lstsq(A_arr, b_arr, rcond=self.default_tolerance)[0]
-
-    def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
-        """Check if matrix is square and ||A - A^T||_inf <= tolerance."""
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance
         if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:

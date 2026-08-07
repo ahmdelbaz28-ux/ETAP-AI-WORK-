@@ -33,12 +33,6 @@ UTC = timezone.utc  # noqa: UP017
 from enum import Enum
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from enum import Enum
-from typing import Any, Dict, List
-
 import numpy as np
 
 from core.tracing import trace_operation
@@ -106,13 +100,6 @@ class EngineeringTask:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: AgentStatus = AgentStatus.IDLE
     results: list[AgentResult] = field(default_factory=list)
-
-    study_types: List[StudyType]
-    parameters: Dict[str, Any]
-    priority: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    status: AgentStatus = AgentStatus.IDLE
-    results: List[AgentResult] = field(default_factory=list)
 
 
 class BaseAgent:
@@ -275,12 +262,6 @@ class BaseAgent:
         return not result.validation_errors
 
     def log_execution(self, message: str, level: str = "INFO") -> None:
-
-        if result.validation_errors:
-            return False
-        return True
-
-    def log_execution(self, message: str, level: str = "INFO"):
         """Log execution details."""
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -470,10 +451,6 @@ class ShortCircuitAgent(BaseAgent):
             ybus_zero = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="0"
             )  # NOSONAR
-
-            Ybus_pos = system_data.get_ybus(seq="1")
-            Ybus_neg = system_data.get_ybus(seq="2")
-            Ybus_zero = system_data.get_ybus(seq="0")
 
             # Create fault analyzer
             base_mva = system_data.base_mva
@@ -785,12 +762,6 @@ class OptimalPowerFlowAgent(BaseAgent):
         )  # NOSONAR
 
         balance_error = abs(p_gen - p_load - p_losses)
-
-        P_gen = result.data.get("total_generation_mw", 0)
-        P_load = result.data.get("total_load_mw", 0)
-        P_losses = result.data.get("total_losses_mw", 0)
-
-        balance_error = abs(P_gen - P_load - P_losses)
         if balance_error > 1.0:  # Allow 1 MW tolerance
             result.validation_errors.append(f"Power balance error: {balance_error:.2f} MW")
             return False
@@ -1497,20 +1468,6 @@ class ReportGenerationAgent(BaseAgent):
             generator = PDFReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
             generator.generate_report(metadata, sections, file_path)
-
-    def _export_pdf(self, content: Dict, output_path: str) -> str:
-        """Export report as PDF using the reporting module."""
-        try:
-            from reporting.advanced_reports import PDFReportGenerator, ReportMetadata
-
-            metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
-            )
-            generator = PDFReportGenerator()
-            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.pdf"
-            generator.generate_report(metadata, content, file_path)
             self.log_execution(f"PDF report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1541,20 +1498,6 @@ class ReportGenerationAgent(BaseAgent):
             generator = DOCXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
             generator.generate_report(metadata, sections, file_path)
-
-    def _export_docx(self, content: Dict, output_path: str) -> str:
-        """Export report as DOCX using the reporting module."""
-        try:
-            from reporting.advanced_reports import DOCXReportGenerator, ReportMetadata
-
-            metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
-            )
-            generator = DOCXReportGenerator()
-            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.docx"
-            generator.generate_report(metadata, content, file_path)
             self.log_execution(f"DOCX report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1585,20 +1528,6 @@ class ReportGenerationAgent(BaseAgent):
             generator = XLSXReportGenerator()
             file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
             generator.generate_report(metadata, sections, file_path)
-
-    def _export_xlsx(self, content: Dict, output_path: str) -> str:
-        """Export report as XLSX using the reporting module."""
-        try:
-            from reporting.advanced_reports import ReportMetadata, XLSXReportGenerator
-
-            metadata = ReportMetadata(
-                title=content.get("title", "Engineering Report"),
-                author="AhmedETAP",
-                date=datetime.now(UTC).isoformat(),
-            )
-            generator = XLSXReportGenerator()
-            file_path = f"{output_path}/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.xlsx"
-            generator.generate_report(metadata, content, file_path)
             self.log_execution(f"XLSX report generated: {file_path}")
             return file_path
         except ImportError:
@@ -1644,10 +1573,6 @@ class ChiefEngineeringOrchestrator:
             "harmonic_analysis": HarmonicAnalysisAgent(),
             "optimal_power_flow": OptimalPowerFlowAgent(),
             "protection_coordination": ProtectionCoordinationAgent(),
-
-            "harmonic": HarmonicAnalysisAgent(),
-            "opf": OptimalPowerFlowAgent(),
-            "protection": ProtectionCoordinationAgent(),
             "etap_execution": ETAPExecutionAgent(),
             "validation": ValidationAgent(),
             "report": ReportGenerationAgent(),
@@ -1760,17 +1685,6 @@ class ChiefEngineeringOrchestrator:
 
         # Load orchestrator's own prompt for coordination guidance
         self._system_prompt: Optional[str] = None
-
-            self.logger.warning(
-                "ETAPExpertAgent not available — skill disabled: %s", exc
-            )
-
-        self.task_queue: List[EngineeringTask] = []
-        self.completed_tasks: Dict[str, EngineeringTask] = {}
-        self.logger = logging.getLogger("orchestrator")
-
-        # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: str | None = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1815,16 +1729,6 @@ class ChiefEngineeringOrchestrator:
         system_data: Any,
         parameters: Optional[dict] = None,
     ) -> dict[str, Any]:
-
-    async def submit_task(self, task: EngineeringTask):
-        """Submit engineering task for execution."""
-        self.task_queue.append(task)
-        self.logger.info(f"Task submitted: {task.task_id} - {task.description}")
-
-    @trace_operation("execute_autonomous_workflow", attributes={"component": "orchestrator"})
-    async def execute_autonomous_workflow(
-        self, user_goal: str, system_data: Any, parameters: Dict = None
-    ) -> Dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
 
@@ -1988,48 +1892,6 @@ class ChiefEngineeringOrchestrator:
         self, task: EngineeringTask, results: list[AgentResult]
     ) -> AgentResult:
         """Phase 3: final validation pass over all collected results."""
-
-        dependent_studies = []
-        independent_studies = []
-
-        for study_type in execution_order:
-            if study_type == StudyType.LOAD_FLOW:
-                dependent_studies.append(study_type)
-            else:
-                independent_studies.append(study_type)
-
-        # Phase 1: Run load flow first (dependency for others)
-        for study_type in dependent_studies:
-            agent = self._get_agent_for_study(study_type)
-            if agent:
-                self.logger.info(f"Executing {study_type.value} via {agent.agent_name}")
-                result = await agent.execute(task)
-                results.append(result)
-                if not result.validation_status:
-                    self.logger.warning(
-                        f"Validation failed for {study_type.value}: {result.validation_errors}"
-                    )
-
-        # Phase 2: Run independent studies in parallel
-        if independent_studies:
-            parallel_tasks = []
-            for study_type in independent_studies:
-                agent = self._get_agent_for_study(study_type)
-                if agent:
-                    self.logger.info(f"Executing {study_type.value} via {agent.agent_name}")
-                    parallel_tasks.append(agent.execute(task))
-
-            if parallel_tasks:
-                parallel_results = await asyncio.gather(*parallel_tasks, return_exceptions=True)
-                for pr in parallel_results:
-                    if isinstance(pr, Exception):
-                        self.logger.error(f"Parallel agent failed: {pr}")
-                    else:
-                        results.append(pr)
-                        if not pr.validation_status:
-                            self.logger.warning(f"Validation failed: {pr.validation_errors}")
-
-        # Phase 3: Final validation pass
         validation_task = EngineeringTask(
             task_id=f"validation_{task.task_id}",
             description="Final validation of all results",
@@ -2152,52 +2014,6 @@ class ChiefEngineeringOrchestrator:
         results.append(report_result)
 
     def _determine_execution_order(self, study_types: list[StudyType]) -> list[StudyType]:
-
-
-        validation_result = await self.agents["validation"].execute(validation_task)
-        results.append(validation_result)
-
-        # Phase 3.5: Guard-skills code quality review (if enabled)
-        # Automatically review any AI-generated code in the task parameters
-        if self._code_guard_agent:
-            try:
-                code_to_review = task.parameters.get("source", "")
-                if code_to_review:
-                    guard_task = EngineeringTask(
-                        task_id=f"guard_{task.task_id}",
-                        description="AI code quality guard review",
-                        study_types=[],
-                        parameters={
-                            "source": code_to_review,
-                            "guard_type": "all",
-                            "language": "python",
-                        },
-                    )
-                    guard_result = await self._code_guard_agent.execute(guard_task)
-                    results.append(guard_result)
-                    if not guard_result.validation_status:
-                        self.logger.warning(
-                            "Guard-skills review found MUST_FIX violations: %s",
-                            guard_result.data.get("must_fix_total", 0),
-                        )
-            except Exception as guard_err:
-                self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
-
-        # Phase 4: Generate report if all validations pass
-        if validation_result.validation_status:
-            report_task = EngineeringTask(
-                task_id=f"report_{task.task_id}",
-                description="Generate final report",
-                study_types=[],
-                parameters={"results": results, "format": "pdf", "output_path": "./reports"},
-            )
-
-            report_result = await self.agents["report"].execute(report_task)
-            results.append(report_result)
-
-        return results
-
-    def _determine_execution_order(self, study_types: List[StudyType]) -> List[StudyType]:
         """Determine optimal execution order based on dependencies."""
         # Load flow should run first (provides base case)
         # Then fault analysis, harmonics, OPF
@@ -2236,16 +2052,6 @@ class ChiefEngineeringOrchestrator:
         return self.agents.get(agent_key)
 
     def get_study_type_mapping(self) -> dict[str, str]:
-
-            StudyType.HARMONIC_ANALYSIS: "harmonic",
-            StudyType.OPTIMAL_POWER_FLOW: "opf",
-            StudyType.PROTECTION_COORDINATION: "protection",
-        }
-
-        agent_key = agent_mapping.get(study_type)
-        return self.agents.get(agent_key)
-
-    def get_study_type_mapping(self) -> Dict[str, str]:
         """Return mapping of study type strings to agent keys.
 
         Provides a convenience lookup for external callers that identify
@@ -2289,14 +2095,6 @@ class ChiefEngineeringOrchestrator:
             # Skill entry points
             "ahmed_etap": "ahmed_etap",
             "ahmed_etap_orchestration": "ahmed_etap",
-
-            "harmonic": "harmonic",
-            "harmonic_analysis": "harmonic",
-            "opf": "opf",
-            "optimal_power_flow": "opf",
-            "protection": "protection",
-            "protection_coordination": "protection",
-            "etap_execution": "etap_execution",
             "validation": "validation",
             "report": "report",
         }
@@ -2310,13 +2108,6 @@ class ChiefEngineeringOrchestrator:
         max_workers: int = 4,
         benchmark: bool = False,
     ) -> dict[str, Any]:
-
-        study_types: List[str],
-        system_data: Any,
-        parameters: Dict[str, Any] | None = None,
-        max_workers: int = 4,
-        benchmark: bool = False,
-    ) -> Dict[str, Any]:
         """Execute multiple independent studies in parallel.
 
         Accepts a list of study type strings, resolves each to the
@@ -2361,22 +2152,6 @@ class ChiefEngineeringOrchestrator:
         # -----------------------------------------------------------
         resolved = self._resolve_parallel_studies(study_types)
 
-        resolved: List[tuple] = []  # [(study_str, agent_key, agent)]
-        for study_str in study_types:
-            agent_key = study_type_map.get(study_str)
-            if agent_key is None:
-                self.logger.warning("Unknown study type '%s' – skipping", study_str)
-                continue
-            agent = self.agents.get(agent_key)
-            if agent is None:
-                self.logger.warning(
-                    "No agent registered for key '%s' (study '%s') – skipping",
-                    agent_key,
-                    study_str,
-                )
-                continue
-            resolved.append((study_str, agent_key, agent))
-
         if not resolved:
             self.logger.error("No valid study types resolved – nothing to execute")
             return {
@@ -2395,55 +2170,10 @@ class ChiefEngineeringOrchestrator:
         def _make_task(study_str: str, agent_key: str) -> EngineeringTask:
             return self._build_parallel_task(task_id, study_str, agent_key, system_data, parameters)
 
-            return EngineeringTask(
-                task_id=f"{task_id}_{study_str}",
-                description=f"Parallel study: {study_str}",
-                study_types=[s for s in StudyType if s.value == study_str or s.value == agent_key][
-                    :1
-                ],  # best-effort StudyType match
-                parameters={"system": system_data, **parameters},
-            )
-
         # -----------------------------------------------------------
         # Semaphore to cap concurrency at max_workers
         # -----------------------------------------------------------
         semaphore = asyncio.Semaphore(max_workers)
-
-
-        async def _run_with_semaphore(
-            study_str: str, agent: BaseAgent, task: EngineeringTask
-        ) -> tuple:
-            """Run a single agent.execute, bounded by the semaphore."""
-            async with semaphore:
-                self.logger.info(
-                    "[parallel] Starting %s via %s",
-                    study_str,
-                    agent.agent_name,
-                )
-                try:
-                    result = await agent.execute(task)
-                    self.logger.info(
-                        "[parallel] Completed %s (status=%s)",
-                        study_str,
-                        result.status.value,
-                    )
-                    return (study_str, result)
-                except Exception as exc:
-                    self.logger.error("[parallel] Failed %s: %s", study_str, exc)
-                    # Return a failure AgentResult instead of propagating
-                    return (
-                        study_str,
-                        AgentResult(
-                            agent_name=agent.agent_name,
-                            study_type=task.study_types[0]
-                            if task.study_types
-                            else StudyType.LOAD_FLOW,
-                            status=AgentStatus.FAILED,
-                            data={},
-                            validation_status=False,
-                            validation_errors=[str(exc)],
-                        ),
-                    )
 
         # -----------------------------------------------------------
         # Parallel execution
@@ -2468,16 +2198,6 @@ class ChiefEngineeringOrchestrator:
         parallel_results = self._collect_parallel_results(parallel_raw)
 
         result: dict[str, Any] = {
-
-        parallel_results: Dict[str, AgentResult] = {}
-        for item in parallel_raw:
-            if isinstance(item, Exception):
-                self.logger.error("[parallel] Unexpected exception: %s", item)
-                continue
-            study_str, result = item
-            parallel_results[study_str] = result
-
-        result: Dict[str, Any] = {
             "task_id": task_id,
             "study_types": [s for s, _, _ in resolved],
             "parallel_results": parallel_results,
@@ -2490,46 +2210,6 @@ class ChiefEngineeringOrchestrator:
         # -----------------------------------------------------------
         if benchmark:
             result.update(await self._run_sequential_benchmark(resolved, _make_task, parallel_time))
-
-            self.logger.info("Benchmark: running studies sequentially for comparison")
-            sequential_start = time.perf_counter()
-
-            sequential_results: Dict[str, AgentResult] = {}
-            for study_str, agent_key, agent in resolved:
-                task = _make_task(study_str, agent_key)
-                self.logger.info(
-                    "[sequential] Starting %s via %s",
-                    study_str,
-                    agent.agent_name,
-                )
-                try:
-                    seq_result = await agent.execute(task)
-                    sequential_results[study_str] = seq_result
-                except Exception as exc:
-                    self.logger.error("[sequential] Failed %s: %s", study_str, exc)
-                    sequential_results[study_str] = AgentResult(
-                        agent_name=agent.agent_name,
-                        study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
-                        status=AgentStatus.FAILED,
-                        data={},
-                        validation_status=False,
-                        validation_errors=[str(exc)],
-                    )
-
-            sequential_time = time.perf_counter() - sequential_start
-
-            speedup = sequential_time / parallel_time if parallel_time > 0 else float("inf")
-
-            result["sequential_results"] = sequential_results
-            result["sequential_time_seconds"] = round(sequential_time, 4)
-            result["speedup_factor"] = round(speedup, 2)
-
-            self.logger.info(
-                "Benchmark complete – parallel: %.4fs, sequential: %.4fs, speedup: %.2fx",
-                parallel_time,
-                sequential_time,
-                speedup,
-            )
 
         self.logger.info(
             "Parallel studies completed: task_id=%s, studies=%d, parallel_time=%.4fs",

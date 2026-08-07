@@ -167,12 +167,6 @@ class LoadForecaster:
         # stays at its default (24) for the next train() call.
         self._trained_window_size: Optional[int] = None
         self._fallback_weights: Optional[np.ndarray] = None
-
-        self.scaler: Any | None = None
-        self._is_lstm: bool = False
-        self._is_prophet: bool = False
-        self._window_size: int = 24
-        self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
         self._fallback_std: float = 1.0
@@ -331,15 +325,6 @@ class LoadForecaster:
             self._fallback_weights = np.linalg.solve(xtx, xty)
         except np.linalg.LinAlgError:
             self._fallback_weights = np.linalg.lstsq(x_flat, y, rcond=None)[0]
-
-        X_flat = X.reshape(X.shape[0], X.shape[1])
-
-        XtX = X_flat.T @ X_flat
-        Xty = X_flat.T @ y
-        try:
-            self._fallback_weights = np.linalg.solve(XtX, Xty)
-        except np.linalg.LinAlgError:
-            self._fallback_weights = np.linalg.lstsq(X_flat, y, rcond=None)[0]
         self._fallback_bias = 0.0
         self._is_lstm = False
         self._is_prophet = False
@@ -366,19 +351,6 @@ class LoadForecaster:
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
             x_arr = x_arr.reshape(x_arr.shape[0], x_arr.shape[1], 1)
         return x_arr, y_arr
-
-    def _create_sequences(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Create sliding-window sequences for supervised learning."""
-        X: List[np.ndarray] = []
-        y: List[float] = []
-        for i in range(len(data) - self._window_size):
-            X.append(data[i : i + self._window_size])
-            y.append(data[i + self._window_size])
-        X_arr = np.array(X)
-        y_arr = np.array(y)
-        if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
-            X_arr = X_arr.reshape(X_arr.shape[0], X_arr.shape[1], 1)
-        return X_arr, y_arr
 
     # ------------------------------------------------------------------
     # Prediction
@@ -437,10 +409,6 @@ class LoadForecaster:
         w = self._trained_window_size or self._window_size
         window = np.zeros(w)
         predictions: list[float] = []
-
-        """Autoregressive linear regression prediction."""
-        window = np.zeros(self._window_size)
-        predictions: List[float] = []
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)
             predictions.append(next_val)
@@ -461,14 +429,6 @@ class LoadForecaster:
 
         actuals: list[float] = []
         preds: list[float] = []
-
-    def evaluate(self, test_data: np.ndarray) -> Dict[str, float]:
-        """Evaluate model accuracy on test data."""
-        if len(test_data) < self._window_size + 1:
-            raise ValueError(f"Need at least {self._window_size + 1} test data points")
-
-        actuals: List[float] = []
-        preds: List[float] = []
 
         for i in range(self._window_size, len(test_data)):
             actuals.append(float(test_data[i]))
@@ -504,11 +464,6 @@ class LoadForecaster:
                     ),
                 )
                 * 100,
-
-                        / actuals_arr[nonzero_mask]
-                    )
-                )
-                * 100
             )
         else:
             mape = float("inf")
@@ -648,19 +603,6 @@ class FaultPredictor:
                     random_state=42,
                     n_jobs=-1,
                 )
-
-            self.model = RandomForestClassifier(
-                **(
-                    best_params
-                    if best_params
-                    else {
-                        "n_estimators": 100,
-                        "max_depth": 10,
-                        "random_state": 42,
-                        "n_jobs": -1,
-                    }
-                )
-            )
             self.model.fit(features, labels)
             method = "random_forest"
 
@@ -674,13 +616,6 @@ class FaultPredictor:
                 self._explainer = shap.TreeExplainer(self.model)
             except Exception as e:
                 logger.warning("Could not initialize SHAP explainer: %s", e)
-
-                if self._use_xgboost:
-                    self._explainer = shap.TreeExplainer(self.model)
-                else:
-                    self._explainer = shap.TreeExplainer(self.model)
-            except Exception as e:
-                logger.warning(f"Could not initialize SHAP explainer: {e}")
 
         result = {
             "n_samples": int(features.shape[0]),
@@ -765,13 +700,6 @@ class FaultPredictor:
         """Predict fault probability and type."""
         if not self._is_trained or self.model is None:
             raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
-
-        return study.best_params
-
-    def predict(self, features: np.ndarray) -> Dict[str, Any]:
-        """Predict fault probability and type."""
-        if not self._is_trained or self.model is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
 
         if features.ndim == 1:
             features = features.reshape(1, -1)
@@ -867,19 +795,6 @@ class FaultPredictor:
 
         n_features = min(len(self.FEATURE_NAMES), len(importances))
         result: dict[str, float] = {}
-
-    def feature_importance(self) -> Dict[str, float]:
-        """Return feature importance scores."""
-        if not self._is_trained or self.model is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
-
-        if self._use_xgboost:
-            importances = self.model.feature_importances_
-        else:
-            importances = self.model.feature_importances_
-
-        n_features = min(len(self.FEATURE_NAMES), len(importances))
-        result: Dict[str, float] = {}
         for i in range(n_features):
             result[self.FEATURE_NAMES[i]] = float(importances[i])
         for i in range(n_features, len(importances)):
@@ -918,16 +833,6 @@ class AnomalyDetector:
             return "iforest"
         return "statistical"
 
-    - Isolation Forest (sklearn, always available)
-    - PyOD IForest (enhanced isolation forest)
-    - PyOD KNN (k-nearest neighbors)
-    - PyOD AutoEncoder (deep learning based)
-    """
-
-    AVAILABLE_METHODS = ["iforest"]
-    if _HAS_PYOD:
-        AVAILABLE_METHODS.extend(["pyod_iforest", "pyod_knn", "pyod_autoencoder"])
-
     def __init__(self, contamination: float = 0.01, method: str = "iforest") -> None:
         """Initialize the detector.
 
@@ -962,21 +867,6 @@ class AnomalyDetector:
         self._train_std: Optional[float] = None
 
     def train(self, normal_data: np.ndarray) -> dict[str, Any]:
-
-            Detection method: 'iforest', 'pyod_iforest', 'pyod_knn',
-            or 'pyod_autoencoder'.
-        """
-        if not 0 < contamination <= 0.5:
-            raise ValueError("contamination must be in (0, 0.5]")
-        if method not in self.AVAILABLE_METHODS:
-            raise ValueError(f"Unknown method '{method}'. Available: {self.AVAILABLE_METHODS}")
-        self.model: Any = None
-        self.contamination = contamination
-        self.method = method
-        self._threshold: float | None = None
-        self._is_trained: bool = False
-
-    def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
         """Train on normal operating data.
 
         Parameters
@@ -1525,10 +1415,6 @@ def get_ml_capabilities() -> dict[str, Any]:
                 "linear",
             ],
             "best_available": _fc_best,
-
-            "best_available": "lstm"
-            if _HAS_TENSORFLOW
-            else ("prophet" if _HAS_PROPHET else "linear"),
         },
         "fault_prediction_methods": {
             "available": [
@@ -1539,12 +1425,5 @@ def get_ml_capabilities() -> dict[str, Any]:
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector._build_available_methods(),
-
-            "best_available": "xgboost"
-            if _HAS_XGBOOST
-            else ("random_forest" if _HAS_SKLEARN else "none"),
-        },
-        "anomaly_detection_methods": {
-            "available": AnomalyDetector.AVAILABLE_METHODS,
         },
     }

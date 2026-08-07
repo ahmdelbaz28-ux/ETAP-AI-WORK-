@@ -409,24 +409,6 @@ class ValidationSuite:
             "Three-Phase Fault at Bus 1",
             passed_3ph,
             f"If={if_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu",
-
-        Ybus_pos = system.get_ybus(seq="1")
-        Ybus_neg = system.get_ybus(seq="2")
-        Ybus_zero = system.get_ybus(seq="0")
-
-        fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
-
-        # Three-phase fault at bus 1
-        result_3ph = fault_analyzer.three_phase_fault(0)
-        If_3ph = abs(result_3ph["fault_current"])
-        # For a slack bus with Z=0+j0.2, expected If ~ 1.0/0.2 = 5.0 pu
-        expected_3ph = 1.0 / abs(complex(0, 0.2))
-        tolerance = 0.5  # Allow tolerance due to line contributions
-        passed_3ph = abs(If_3ph - expected_3ph) < tolerance
-        self._record(
-            "Three-Phase Fault at Bus 1",
-            passed_3ph,
-            f"If={If_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu",
         )
 
         # Line-to-ground fault at bus 1
@@ -456,24 +438,6 @@ class ValidationSuite:
             "Double Line-to-Ground Fault at Bus 1",
             ib > 0 and ic > 0,
             f"Ib={ib:.4f} pu, Ic={ic:.4f} pu",
-
-        If_lg = abs(result_lg["fault_current"])
-        # For SLG: If = 3*V / (Z1+Z2+Z0)
-        self._record("Line-to-Ground Fault at Bus 1", If_lg > 0, f"If={If_lg:.4f} pu")
-
-        # Line-to-line fault at bus 1
-        result_ll = fault_analyzer.line_to_line_fault(0)
-        If_ll = abs(result_ll["fault_current"])
-        self._record("Line-to-Line Fault at Bus 1", If_ll > 0, f"If={If_ll:.4f} pu")
-
-        # Double line-to-ground fault at bus 1
-        result_dlg = fault_analyzer.double_line_to_ground_fault(0)
-        Ib = abs(result_dlg["fault_current_b"])
-        Ic = abs(result_dlg["fault_current_c"])
-        self._record(
-            "Double Line-to-Ground Fault at Bus 1",
-            Ib > 0 and Ic > 0,
-            f"Ib={Ib:.4f} pu, Ic={Ic:.4f} pu",
         )
 
     # =========================================================================
@@ -686,23 +650,6 @@ class ValidationSuite:
 
         # Test symmetry (project validation expects symmetric Ybus, not conjugate-symmetric)
         passed_sym = np.allclose(ybus, ybus.T)
-
-        passed_diag = abs(Ybus[0, 0] - y) < 1e-10 and abs(Ybus[1, 1] - y) < 1e-10
-        self._record(
-            "Ybus Diagonal Elements",
-            passed_diag,
-            f"Y[0,0]={Ybus[0, 0]:.6f}, Y[1,1]={Ybus[1, 1]:.6f}, Expected y={y:.6f}",
-        )
-
-        passed_off = abs(Ybus[0, 1] - (-y)) < 1e-10 and abs(Ybus[1, 0] - (-y)) < 1e-10
-        self._record(
-            "Ybus Off-Diagonal Elements",
-            passed_off,
-            f"Y[0,1]={Ybus[0, 1]:.6f}, Y[1,0]={Ybus[1, 0]:.6f}, Expected -y={-y:.6f}",
-        )
-
-        # Test symmetry (project validation expects symmetric Ybus, not conjugate-symmetric)
-        passed_sym = np.allclose(Ybus, Ybus.T)
         self._record("Ybus Symmetry", passed_sym, "Ybus should be symmetric (Ybus == Ybus.T)")
 
     # =========================================================================

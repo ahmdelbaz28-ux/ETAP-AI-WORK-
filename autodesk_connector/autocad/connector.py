@@ -74,10 +74,6 @@ class AutoCADDrawingContext:
         self.layers: dict[str, dict] = {}
         self.blocks: dict[str, dict] = {}
         self.entities: list[dict] = []
-
-        self.layers: Dict[str, dict] = {}
-        self.blocks: Dict[str, dict] = {}
-        self.entities: List[dict] = []
         self.modified: bool = False
         self.locked: bool = False
         self.transaction_count: int = 0
@@ -621,14 +617,6 @@ class AutoCADConnector:
         loads: list[Load],
         output_path: str,
         options: Optional[dict] = None,
-
-        buses: List[Bus],
-        transformers: List[Transformer],
-        cables: List[Cable],
-        breakers: List[Breaker],
-        loads: List[Load],
-        output_path: str,
-        options: dict | None = None,
     ) -> dict:
         """Generate a complete single-line diagram from the unified model.
 
@@ -696,10 +684,6 @@ class AutoCADConnector:
                 f"Base: {opts.get('base_mva', 100)} MVA, "
                 f"System: {opts.get('frequency', 60)} Hz"
             ),
-
-            text=f"Generated: {time.strftime('%Y-%m-%d %H:%M')} | "
-            f"Base: {opts.get('base_mva', 100)} MVA | "
-            f"System: {opts.get('frequency', 60)} Hz",
             font_size=2.5,
             coordinates=Coordinates(x=start_x, y=start_y - bus_spacing_y),
         )

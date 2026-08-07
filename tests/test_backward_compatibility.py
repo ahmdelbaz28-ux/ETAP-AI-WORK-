@@ -31,10 +31,6 @@ def test_all_old_agents_still_registered():
         "harmonic_analysis",
         "optimal_power_flow",
         "protection_coordination",
-
-        "harmonic",
-        "opf",
-        "protection",
         "etap_execution",
         "validation",
         "report",
@@ -64,10 +60,6 @@ def test_old_agents_keep_correct_class_names():
     assert isinstance(orch.agents["harmonic_analysis"], HarmonicAnalysisAgent)
     assert isinstance(orch.agents["optimal_power_flow"], OptimalPowerFlowAgent)
     assert isinstance(orch.agents["protection_coordination"], ProtectionCoordinationAgent)
-
-    assert isinstance(orch.agents["harmonic"], HarmonicAnalysisAgent)
-    assert isinstance(orch.agents["opf"], OptimalPowerFlowAgent)
-    assert isinstance(orch.agents["protection"], ProtectionCoordinationAgent)
     assert isinstance(orch.agents["etap_execution"], ETAPExecutionAgent)
     assert isinstance(orch.agents["validation"], ValidationAgent)
     assert isinstance(orch.agents["report"], ReportGenerationAgent)
@@ -154,10 +146,6 @@ def test_etap_expert_does_not_interfere_with_orchestrator_get_agents_info():
         "validation",
         "report",
     ]:
-
-    # All old agents must still appear
-    for old_agent in ["load_flow", "short_circuit", "harmonic", "opf", "protection",
-                      "etap_execution", "validation", "report"]:
         assert old_agent in info["agents"], f"Agent '{old_agent}' missing from get_agents_info()"
 
 

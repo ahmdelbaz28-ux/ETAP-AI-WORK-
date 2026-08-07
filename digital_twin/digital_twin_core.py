@@ -129,14 +129,6 @@ class DigitalTwinState:
             timestamp=time.time(),
             source_event=source_event,
             correlation_id=correlation_id,
-
-    def adms(self):
-        return self._adms_engine
-
-    def capture_snapshot(self, source_event: str = "", correlation_id: str = "") -> StateSnapshot:
-        """Capture current state of all layers into a snapshot."""
-        snapshot = StateSnapshot(
-            timestamp=time.time(), source_event=source_event, correlation_id=correlation_id
         )
 
         # Capture GIS state
@@ -668,19 +660,6 @@ class ChangePropagationEngine:
             )
 
             results: dict[str, Any] = {}
-
-            from fault_analysis.fault import FaultAnalyzer
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq="1")
-            Ybus_neg = self.dt_state.system.get_ybus(seq="2")
-            Ybus_zero = self.dt_state.system.get_ybus(seq="0")
-
-            analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva
-            )
-
-            results: Dict[str, Any] = {}
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -706,16 +685,6 @@ class ChangePropagationEngine:
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 E = e_base * arc_duration / (working_distance_mm**x_ie)
                 boundary_mm = (e_base * arc_duration / 1.2) ** (1.0 / x_ie)
-
-                arc_duration = 0.2  # default 200ms clearing time
-                working_distance_mm = 610.0  # 24 inches
-                k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_Iarc = k1 + k2 * math.log10(fault_ka)
-                Iarc = 10**log_Iarc
-                log_E = 0.434 + (-0.262) * math.log10(Iarc)
-                E_base = 10**log_E
-                E = E_base * arc_duration / (working_distance_mm**x_ie)
-                boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
 
                 if E <= 1.2:
                     ppe = "0"
@@ -780,20 +749,6 @@ class ChangePropagationEngine:
 
             # Calculate fault currents at all buses
             fault_currents: list[float] = []
-
-            from relays.relay import OvercurrentRelay
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            Ybus_pos = self.dt_state.system.get_ybus(seq="1")
-            Ybus_neg = self.dt_state.system.get_ybus(seq="2")
-            Ybus_zero = self.dt_state.system.get_ybus(seq="0")
-
-            analyzer = FaultAnalyzer(
-                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=self.dt_state.system.base_mva
-            )
-
-            # Calculate fault currents at all buses
-            fault_currents: List[float] = []
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -1092,10 +1047,6 @@ class TimeSteppedSimulator:
         self._event_queue: list[dict[str, Any]] = []
         self._step_log: list[dict[str, Any]] = []
         self._scada_injector: Callable[[float], list[DomainEvent]] | None = None
-
-        self._event_queue: List[Dict[str, Any]] = []
-        self._step_log: List[Dict[str, Any]] = []
-        self._scada_injector: Callable[[float], List[DomainEvent]] | None = None
 
     def set_time_step(self, dt: float) -> None:
         """Set simulation time step in seconds."""

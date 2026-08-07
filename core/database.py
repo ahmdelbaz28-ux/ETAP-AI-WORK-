@@ -17,11 +17,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 from core.models import (
     ChangeSource,
     Conflict,
@@ -47,11 +42,6 @@ class UniversalDataModel:
         self._local = threading.local()
         self.elements: dict[str, UniversalElement] = {}
         self.conflicts: dict[str, Conflict] = {}
-
-        self._conn: sqlite3.Connection | None = None
-        self._local = threading.local()
-        self.elements: Dict[str, UniversalElement] = {}
-        self.conflicts: Dict[str, Conflict] = {}
         self._init_db()
         self._load_elements()
 
@@ -220,12 +210,6 @@ class UniversalDataModel:
             return None
 
     def _row_to_conflict(self, row: dict[str, Any]) -> Optional[Conflict]:
-
-        except Exception as e:
-            logger.error(f"Error converting row to element: {e}")
-            return None
-
-    def _row_to_conflict(self, row: Dict[str, Any]) -> Conflict | None:
         """Convert database row to Conflict."""
         try:
             return Conflict(
@@ -299,12 +283,6 @@ class UniversalDataModel:
                 return False
 
     def get_element(self, element_id: str) -> Optional[UniversalElement]:
-
-            except Exception as e:
-                logger.error(f"Error adding element: {e}")
-                return False
-
-    def get_element(self, element_id: str) -> UniversalElement | None:
         """Get an element by ID."""
         with self._lock:
             return self.elements.get(element_id)
@@ -320,13 +298,6 @@ class UniversalDataModel:
         updates: dict[str, Any],
         source: ChangeSource = ChangeSource.MANUAL,  # NOSONAR unused param kept for API compatibility
         reason: str = "",  # NOSONAR unused param kept for API compatibility
-
-    def update_element(
-        self,
-        element_id: str,
-        updates: Dict[str, Any],
-        source: ChangeSource = ChangeSource.MANUAL,
-        reason: str = "",
     ) -> bool:
         """Update an element."""
         with self._lock:
@@ -460,12 +431,6 @@ class UniversalDataModel:
                 return False
 
     def get_statistics(self) -> dict[str, Any]:
-
-            except Exception as e:
-                logger.error(f"Error resolving conflict: {e}")
-                return False
-
-    def get_statistics(self) -> Dict[str, Any]:
         """Get database statistics."""
         with self._lock:
             total = len(self.elements)

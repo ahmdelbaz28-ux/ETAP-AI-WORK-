@@ -244,21 +244,6 @@ class ValidationGateway:
                 ),
             )
 
-            )
-        )
-
-        # Switch operations require the switch to exist
-        if event_type in ("switch_opened", "switch_closed"):
-            if adms_engine is not None:
-                results.append(
-                    ValidationResult(
-                        rule=ValidationRule.ADMS_SWITCH_EXISTS_IN_TOPOLOGY,
-                        passed=True,  # Will be checked during event processing
-                        severity=ValidationSeverity.ERROR,
-                        message="Switch existence will be verified during processing",
-                    )
-                )
-
         return results
 
     def validate_post_mutation(
@@ -524,10 +509,6 @@ class ValidationGateway:
         _scada_db,  # NOSONAR
         adms_engine,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
-
-    def _validate_cross_layer_sync(
-        self, gis_db, system, scada_db, adms_engine
-    ) -> List[ValidationResult]:
         """Validate cross-layer synchronization (Three Truths Principle)."""
         results = []
 

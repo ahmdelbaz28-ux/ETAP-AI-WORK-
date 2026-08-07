@@ -25,12 +25,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List, Tuple
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -100,20 +94,6 @@ class RenewableAgent(BaseAgent):
         azimuth_deg: float = 180.0,
         latitude_deg: float = 33.0,
     ) -> dict[str, Any]:
-
-        irradiance_kw_m2: np.ndarray = None,
-        temperature_C: np.ndarray = None,
-        noct_C: float = 45.0,
-        temp_coeff_power_pctK: float = -0.40,
-        soiling_loss_pct: float = 2.0,
-        mismatch_loss_pct: float = 2.0,
-        wiring_loss_pct: float = 1.0,
-        inverter_efficiency_pct: float = 96.0,
-        availability_pct: float = 99.0,
-        tilt_deg: float = 25.0,
-        azimuth_deg: float = 180.0,
-        latitude_deg: float = 33.0,
-    ) -> Dict[str, Any]:
         """
         Perform solar PV integration analysis.
 
@@ -148,13 +128,6 @@ class RenewableAgent(BaseAgent):
         losses : PVSystemLossConfig, optional
             PV system loss and efficiency configuration. If None, defaults
             are used (see PVSystemLossConfig).
-
-        soiling_loss_pct, mismatch_loss_pct, wiring_loss_pct : float
-            System loss factors in percent.
-        inverter_efficiency_pct : float
-            Inverter weighted efficiency in percent.
-        availability_pct : float
-            System availability in percent.
         tilt_deg : float
             Array tilt angle in degrees.
         azimuth_deg : float
@@ -232,42 +205,6 @@ class RenewableAgent(BaseAgent):
 
         # Annual energy
         annual_energy_kwh = float(np.sum(p_ac_final))
-
-        if temperature_C is None:
-            # Synthetic temperature: sinusoidal daily pattern
-            temperature_C = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
-        else:
-            temperature_C = np.asarray(temperature_C, dtype=float)
-
-        G_stc = 1.0  # kW/m² (STC)
-        T_stc = 25.0  # °C
-
-        # Cell temperature per NOCT method (IEEE 1547 / IEC 61215)
-        # T_cell = T_amb + (NOCT - 20) × G / 800
-        T_cell = temperature_C + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0
-
-        # DC power output (kW)
-        gamma = temp_coeff_power_pctK / 100.0  # Convert %/°C to per-unit/°C
-        P_dc = dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (T_cell - T_stc))
-        P_dc = np.maximum(P_dc, 0.0)
-
-        # Inverter clipping
-        P_ac_pre_loss = P_dc * (inverter_efficiency_pct / 100.0)
-        P_ac_clipped = np.minimum(P_ac_pre_loss, ac_capacity_kw)
-        clipping_loss_kw = P_ac_pre_loss - P_ac_clipped
-
-        # System losses
-        loss_factor = (
-            (1.0 - soiling_loss_pct / 100.0)
-            * (1.0 - mismatch_loss_pct / 100.0)
-            * (1.0 - wiring_loss_pct / 100.0)
-            * (availability_pct / 100.0)
-        )
-
-        P_ac_final = P_ac_clipped * loss_factor
-
-        # Annual energy
-        annual_energy_kwh = float(np.sum(P_ac_final))
         capacity_factor = annual_energy_kwh / (dc_capacity_kw * hours) * 100.0
 
         # Inverter loading ratio (DC/AC)
@@ -282,11 +219,6 @@ class RenewableAgent(BaseAgent):
         clipping_energy = float(np.sum(clipping_loss_kw))
         system_losses = float(np.sum(p_ac_clipped)) - annual_energy_kwh
 
-        total_dc_energy = float(np.sum(P_dc))
-        inverter_loss = total_dc_energy - float(np.sum(P_ac_pre_loss))
-        clipping_energy = float(np.sum(clipping_loss_kw))
-        system_losses = float(np.sum(P_ac_clipped)) - annual_energy_kwh
-
         return {
             "dc_capacity_kw": dc_capacity_kw,
             "ac_capacity_kw": ac_capacity_kw,
@@ -299,12 +231,6 @@ class RenewableAgent(BaseAgent):
             "losses": {
                 "temperature_loss_kwh": float(
                     total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc)),
-
-            "peak_output_kw": float(np.max(P_ac_final)),
-            "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
-            "losses": {
-                "temperature_loss_kwh": float(
-                    total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))
                 ),
                 "inverter_loss_kwh": float(inverter_loss),
                 "clipping_loss_kwh": float(clipping_energy),
@@ -317,15 +243,6 @@ class RenewableAgent(BaseAgent):
             },
             "monthly_energy_kwh": [
                 float(np.sum(p_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
-
-                "soiling_pct": soiling_loss_pct,
-                "mismatch_pct": mismatch_loss_pct,
-                "wiring_pct": wiring_loss_pct,
-                "inverter_efficiency_pct": inverter_efficiency_pct,
-                "availability_pct": availability_pct,
-            },
-            "monthly_energy_kwh": [
-                float(np.sum(P_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
             ],
         }
 
@@ -531,10 +448,6 @@ class RenewableAgent(BaseAgent):
             "average_power_kw": float(p_avg),
             "betz_limit_power_kw": float(p_betz),
             "power_coefficient": float(p_avg / p_betz) if p_betz > 0 else 0.0,
-
-            "average_power_kw": float(P_avg),
-            "betz_limit_power_kw": float(P_betz),
-            "power_coefficient": float(P_avg / P_betz) if P_betz > 0 else 0.0,
             "availability_pct": availability_pct,
             "losses_pct": losses_pct,
             "power_curve": {
@@ -563,15 +476,6 @@ class RenewableAgent(BaseAgent):
         power_factor_range: tuple[float, float] = (0.9, 1.0),
         der_category: str = "II",
     ) -> dict[str, Any]:
-
-        point_of_interconnection_voltage_V: float,
-        voltage_regulation_pct: float,
-        frequency_response_Hz: float,
-        has_ride_through: bool = True,
-        has_anti_islanding: bool = True,
-        power_factor_range: Tuple[float, float] = (0.9, 1.0),
-        der_category: str = "II",
-    ) -> Dict[str, Any]:
         """
         Verify DER interconnection compliance per IEEE 1547-2018.
 
@@ -850,45 +754,6 @@ class RenewableAgent(BaseAgent):
             "limiting_constraint": limiting_constraint,
             "constraints": constraints,
             "penetration_at_HC_pct": float(penetration_at_hc),
-
-            HC_voltage = voltage_rise_budget / max_voltage_rise_pct_per_kw  # kW
-        else:
-            HC_voltage = float("inf")
-
-        # 2. Thermal-limited hosting capacity
-        thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct
-        HC_thermal = feeder_head_kva * (thermal_headroom_pct / 100.0)  # kVA
-        HC_thermal_kw = HC_thermal * pf_der  # Convert to kW at DER PF
-
-        # 3. Reverse power constraint
-        if reverse_power_allowed:
-            HC_reverse = float("inf")
-        else:
-            # DER can't exceed current load (no reverse flow)
-            HC_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
-
-        # 4. Protection coordination margin (conservative 80% of thermal)
-        HC_protection = HC_thermal_kw * 0.80
-
-        # Overall hosting capacity = minimum of all constraints
-        constraints = {
-            "voltage_limit_kw": float(HC_voltage),
-            "thermal_limit_kw": float(HC_thermal_kw),
-            "reverse_power_limit_kw": float(HC_reverse),
-            "protection_limit_kw": float(HC_protection),
-        }
-
-        HC_overall = min(HC_voltage, HC_thermal_kw, HC_reverse, HC_protection)
-        limiting_constraint = min(constraints, key=constraints.get)
-
-        penetration_at_HC = (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0
-
-        return {
-            "hosting_capacity_kw": float(HC_overall),
-            "hosting_capacity_kva": float(HC_overall / pf_der) if pf_der > 0 else 0.0,
-            "limiting_constraint": limiting_constraint,
-            "constraints": constraints,
-            "penetration_at_HC_pct": float(penetration_at_HC),
             "feeder_head_kva": feeder_head_kva,
             "voltage_range_pu": {"min": min_voltage_pu, "max": max_voltage_pu},
             "current_loading_pct": current_loading_pct,
@@ -922,18 +787,6 @@ class RenewableAgent(BaseAgent):
 
             if analysis_type in ("solar_pv", "full"):
                 pv_losses = PVSystemLossConfig(
-
-            results: Dict[str, Any] = {}
-            p = task.parameters
-
-            if analysis_type in ("solar_pv", "full"):
-                results["solar_pv"] = self.analyze_solar_pv(
-                    dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
-                    ac_capacity_kw=float(p.get("pv_ac_capacity_kw", 400)),
-                    irradiance_kw_m2=p.get("irradiance_profile"),
-                    temperature_C=p.get("temperature_profile"),
-                    noct_C=float(p.get("noct_C", 45.0)),
-                    temp_coeff_power_pctK=float(p.get("temp_coeff_pctK", -0.40)),
                     soiling_loss_pct=float(p.get("soiling_loss_pct", 2.0)),
                     mismatch_loss_pct=float(p.get("mismatch_loss_pct", 2.0)),
                     wiring_loss_pct=float(p.get("wiring_loss_pct", 1.0)),
@@ -1043,16 +896,6 @@ class RenewableAgent(BaseAgent):
             errors.append(
                 f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%",
             )
-
-                    f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%"
-                )
-
-        wind = result.data.get("wind")
-        if wind is not None:
-            if wind.get("capacity_factor_pct", 0) > 60:
-                errors.append(
-                    f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%"
-                )
 
         compliance = result.data.get("ieee1547_compliance")
         if compliance is not None and not compliance.get("overall_compliant", True):

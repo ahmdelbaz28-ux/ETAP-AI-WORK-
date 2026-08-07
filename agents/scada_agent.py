@@ -25,11 +25,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -199,12 +194,6 @@ class SCADAConnection:
         if not self.server or self.port <= 0 or self.port > 65535:
             self.connected = False
             return False
-
-        self.last_poll_time: datetime | None = None
-
-    def connect(self) -> bool:
-        """Simulate establishing a SCADA connection."""
-        # In production, this would open a real MMS/IEC 61850 connection
         self.connected = True
         return True
 
@@ -308,10 +297,6 @@ class SCADAAgent(BaseAgent):
         measurement_tags: list[str] | None = None,
         iec61850_refs: list[str] | None = None,
     ) -> dict[str, Any]:
-
-        measurement_tags: List[str] | None = None,
-        iec61850_refs: List[str] | None = None,
-    ) -> Dict[str, Any]:
         """
         Read measurements from SCADA server.
 
@@ -396,14 +381,6 @@ class SCADAAgent(BaseAgent):
         nominal_kv: float = 13.8,
         base_mva: float = 100.0,
     ) -> dict[str, Any]:
-
-    def map_to_bus_data(
-        self,
-        measurements: List[Dict[str, Any]],
-        bus_mapping: Dict[str, Dict[str, str]],
-        nominal_kv: float = 13.8,
-        base_mva: float = 100.0,
-    ) -> Dict[str, Any]:
         """
         Map SCADA measurements to power system bus data.
 
@@ -454,13 +431,6 @@ class SCADAAgent(BaseAgent):
 
         for bus_id, tag_map in bus_mapping.items():
             bus_entry: dict[str, Any] = {"bus_id": bus_id}
-
-        bus_data: Dict[str, Dict[str, Any]] = {}
-        mapping_issues: List[str] = []
-        base_kv = nominal_kv
-
-        for bus_id, tag_map in bus_mapping.items():
-            bus_entry: Dict[str, Any] = {"bus_id": bus_id}
 
             # Voltage magnitude
             v_tag = tag_map.get("voltage_tag")
@@ -565,15 +535,6 @@ class SCADAAgent(BaseAgent):
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,
     ) -> dict[str, Any]:
-
-    def process_realtime_data(
-        self,
-        measurements: List[Dict[str, Any]],
-        validation_rules: Dict[str, Dict[str, Any]] | None = None,
-        filter_type: str = "moving_average",
-        filter_window: int = 5,
-        anomaly_threshold_sigma: float = 3.0,
-    ) -> Dict[str, Any]:
         """
         Process real-time SCADA measurements.
 
@@ -791,13 +752,6 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 10
                     ),  # NOSONAR
-
-                )
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"A_{bus_id}_A",
-                    value=500 + np.random.normal(0, 10),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
@@ -811,13 +765,6 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.1
                     ),  # NOSONAR
-
-                )
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"P_{bus_id}_MW",
-                    value=5.0 + np.random.normal(0, 0.1),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
@@ -831,13 +778,6 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.05
                     ),  # NOSONAR
-
-                )
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"Q_{bus_id}_MVAR",
-                    value=1.0 + np.random.normal(0, 0.05),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
@@ -851,13 +791,6 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.01
                     ),  # NOSONAR
-
-                )
-            )
-            measurements.append(
-                SCADAMeasurement(
-                    tag=f"PF_{bus_id}",
-                    value=0.95 + np.random.normal(0, 0.01),
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
@@ -873,15 +806,6 @@ class SCADAAgent(BaseAgent):
                 + _RNG.normal(  # NOSONAR
                     0, 0.01
                 ),  # NOSONAR
-
-                )
-            )
-
-        # Frequency (system-wide)
-        measurements.append(
-            SCADAMeasurement(
-                tag="FREQ_HZ",
-                value=60.0 + np.random.normal(0, 0.01),
                 timestamp=timestamp,
                 quality="good",
                 iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",

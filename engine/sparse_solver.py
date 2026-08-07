@@ -168,11 +168,6 @@ class SparseYBus:
         self._branches: list[BranchData] = []
         self._bus_index: dict[int, int] = {}
 
-        self._ybus_sparse: csr_matrix | None = None
-        self._buses: List[BusData] = []
-        self._branches: List[BranchData] = []
-        self._bus_index: Dict[int, int] = {}
-
         if system is not None:
             self._import_system(system)
 
@@ -309,11 +304,6 @@ class SparseYBus:
         self,
         ybus: Optional[csr_matrix] = None,
         bus_data: list[BusData] | None = None,
-
-    def sparse_newton_raphson(
-        self,
-        ybus: csr_matrix | None = None,
-        bus_data: List[BusData] | None = None,
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -388,21 +378,6 @@ class SparseYBus:
         for iteration in range(max_iter):
             # --- Power calculations ---
             I = ybus_dense @ V
-
-        # Scheduled power
-        P_sch = np.array([b.p_generation - b.p_load for b in self._buses], dtype=float)
-        Q_sch = np.array([b.q_generation - b.q_load for b in self._buses], dtype=float)
-
-        iteration_log: List[Dict[str, Any]] = []
-        converged = False
-
-        # Convert Ybus to dense for power calculations (necessary for
-        # vectorised V * conj(Y*V) but Jacobian is kept sparse).
-        Ybus_dense = ybus.toarray() if issparse(ybus) else np.asarray(ybus)
-
-        for iteration in range(max_iter):
-            # --- Power calculations ---
-            I = Ybus_dense @ V
             S = V * np.conj(I)
             P = S.real
             Q = S.imag
@@ -419,17 +394,6 @@ class SparseYBus:
                 mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + k] = deltap[i]
-
-            # --- Mismatch ---
-            deltaP = P_sch - P
-            deltaQ = Q_sch - Q
-
-            # Build mismatch vector: [ΔP_pv, ΔP_pq, ΔQ_pq] / |V|
-            mismatch = np.zeros(n_unknowns)
-            for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
-            for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -465,10 +429,6 @@ class SparseYBus:
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                 dx = np.linalg.lstsq(j_dense, mismatch, rcond=None)[0]
 
-                # Fallback to least-squares
-                J_dense = J.toarray() if issparse(J) else np.asarray(J)
-                dx = np.linalg.lstsq(J_dense, mismatch, rcond=None)[0]
-
             # --- Update voltages ---
             # θ corrections for PV buses
             for k, i in enumerate(pv_idx):
@@ -485,10 +445,6 @@ class SparseYBus:
             # Corrections for PQ buses
             # just Union[Δ|V, depending] on formulation; here we use the
             # standard formulation: Union[Δ|V, is] directly updated)
-
-            # |V| corrections for PQ buses  (dx gives Δ|V|/|V| * |V| or
-            # just Δ|V| depending on formulation; here we use the
-            # standard formulation: Δ|V| is directly updated)
             for k, i in enumerate(pq_idx):
                 vmag = abs(V[i])
                 vmag += dx[n_pv + n_pq + k]
@@ -503,10 +459,6 @@ class SparseYBus:
         s_final = V * np.conj(
             i_final
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-
-        # Recompute final power
-        I_final = Ybus_dense @ V
-        S_final = V * np.conj(I_final)
 
         elapsed = time.perf_counter() - t0
 
@@ -534,13 +486,6 @@ class SparseYBus:
         Ybus: np.ndarray,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         pv_idx: list[int],
         pq_idx: list[int],
-
-    @staticmethod
-    def _build_sparse_jacobian(
-        V: np.ndarray,
-        Ybus: np.ndarray,
-        pv_idx: List[int],
-        pq_idx: List[int],
         n_unknowns: int,
     ) -> lil_matrix:
         """Construct the sparse Jacobian matrix analytically.
@@ -571,18 +516,6 @@ class SparseYBus:
 
             J4 diag:   Union[\u2212Q_i/|V_i, +] Union[B_ii|V_i, J4] off:    Union[\u2212, V_i|](G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
 
-            J1 diag:    Q_i + B_ii|V_i|\u00b2
-            J1 off:    \u2212|V_i||V_j|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
-
-            J2 diag:   \u2212P_i/|V_i| \u2212 G_ii|V_i|
-            J2 off:    \u2212|V_i|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
-
-            J3 diag:   \u2212P_i + G_ii|V_i|\u00b2
-            J3 off:     |V_i||V_j|(G_ij cos \u03b8_ij + B_ij sin \u03b8_ij)
-
-            J4 diag:   \u2212Q_i/|V_i| + B_ii|V_i|
-            J4 off:    \u2212|V_i|(G_ij sin \u03b8_ij \u2212 B_ij cos \u03b8_ij)
-
         Returns
         -------
         lil_matrix  (float, n_unknowns \u00d7 n_unknowns)
@@ -598,10 +531,6 @@ class SparseYBus:
             V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = np.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-
-        # Precompute intermediates for the analytical formulas
-        Vmag = np.abs(V)
-        Vang = np.angle(V)
         G = Ybus.real
         B = Ybus.imag
 
@@ -620,11 +549,6 @@ class SparseYBus:
         v_i_v_j = (
             v_i * v_j
         )  # NOSONAR
-
-        # Voltage products
-        V_i = Vmag[:, np.newaxis]  # (n, 1)
-        V_j = Vmag[np.newaxis, :]  # (1, n)
-        V_i_V_j = V_i * V_j  # (n, n)
 
         # Current power injections
         I = Ybus @ V
@@ -653,20 +577,6 @@ class SparseYBus:
         B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         G_diag = G.diagonal()  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         V2 = vmag**2
-
-        vm_col_buses = pq_idx  # \u0394|V| columns
-
-        # Precomputed products (vectorised, no Python loops over n\u00b2)
-        GS_minus_BC = G * sin_theta - B * cos_theta  # G_ij sin theta_ij - B_ij cos theta_ij
-        GS_minus_BC[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
-
-        GC_plus_BS = G * cos_theta + B * sin_theta  # G_ij cos theta_ij + B_ij sin theta_ij
-        GC_plus_BS[np.arange(n), np.arange(n)] = 0.0
-
-        # Diagonals
-        B_diag = B.diagonal()
-        G_diag = G.diagonal()
-        V2 = Vmag**2
 
         # ---- J1: d\u0394P/d\u03b8 ----
         # Row indices: 0..n_pv+n_pq-1  (all \u0394P rows)
@@ -720,10 +630,6 @@ class SparseYBus:
         buses: list[BusData] | None = None,
         branches: list[BranchData] | None = None,
     ) -> dict[str, Any]:
-
-        buses: List[BusData] | None = None,
-        branches: List[BranchData] | None = None,
-    ) -> Dict[str, Any]:
         """Compare memory usage of dense vs sparse Y-bus storage.
 
         Parameters
@@ -817,11 +723,6 @@ class SparseYBus:
                     )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
                     t0 = time.perf_counter()
                     self._dense_newton_raphson(ybus_dense, buses, max_iter=20, tol=1e-6)
-
-                try:
-                    Ybus_dense = ybus.toarray()
-                    t0 = time.perf_counter()
-                    self._dense_newton_raphson(Ybus_dense, buses, max_iter=20, tol=1e-6)
                     t_solve_dense = (time.perf_counter() - t0) * 1000
                     if t_solve_sparse > 0:
                         speedup = round(t_solve_dense / t_solve_sparse, 2)
@@ -851,11 +752,6 @@ class SparseYBus:
     def _dense_newton_raphson(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Ybus: np.ndarray,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         bus_data: list[BusData],
-
-    @staticmethod
-    def _dense_newton_raphson(
-        Ybus: np.ndarray,
-        bus_data: List[BusData],
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -879,10 +775,6 @@ class SparseYBus:
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
-        )
-        P_sch = np.array([b.p_generation - b.p_load for b in bus_data], dtype=float)
-        Q_sch = np.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
-
         converged = False
         for _iteration in range(max_iter):
             I = Ybus @ V
@@ -900,16 +792,6 @@ class SparseYBus:
                 mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + k] = deltap[i]
-
-
-            deltaP = P_sch - P
-            deltaQ = Q_sch - Q
-
-            mismatch = np.zeros(n_unknowns)
-            for k, i in enumerate(pv_idx):
-                mismatch[k] = deltaP[i]
-            for k, i in enumerate(pq_idx):
-                mismatch[n_pv + k] = deltaP[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -960,11 +842,6 @@ class SparseYBus:
     def _generate_synthetic_system(  # NOSONAR cognitive complexity; refactoring sprint
         n_buses: int,
     ) -> tuple[list[BusData], list[BranchData]]:
-
-    @staticmethod
-    def _generate_synthetic_system(
-        n_buses: int,
-    ) -> Tuple[List[BusData], List[BranchData]]:
         """Generate a synthetic radial/mesh network for benchmarking.
 
         Creates a ring topology with additional radial spurs to mimic a
@@ -1055,12 +932,6 @@ def _build_dense_jacobian(  # NOSONAR physics/engineering notation (I=current, V
     Ybus: np.ndarray,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
     pv_idx: list[int],
     pq_idx: list[int],
-
-def _build_dense_jacobian(
-    V: np.ndarray,
-    Ybus: np.ndarray,
-    pv_idx: List[int],
-    pq_idx: List[int],
     n_unknowns: int,
 ) -> np.ndarray:
     """Analytical dense Jacobian for standard NR load flow.
@@ -1074,14 +945,6 @@ def _build_dense_jacobian(
         M_ii = P_i - Union[G_ii, V_i|^2]
         M_ij = -N_ij
         L_ii = Q_i - Union[B_ii, V_i|^2]
-
-        H_ii = -Q_i - B_ii |V_i|^2
-        H_ij = |V_i||V_j| (G_ij sin θ_ij - B_ij cos θ_ij)
-        N_ii = P_i + G_ii |V_i|^2
-        N_ij = |V_i||V_j| (G_ij cos θ_ij + B_ij sin θ_ij)
-        M_ii = P_i - G_ii |V_i|^2
-        M_ij = -N_ij
-        L_ii = Q_i - B_ii |V_i|^2
         L_ij = H_ij
     """
     len(V)
@@ -1126,24 +989,6 @@ def _build_dense_jacobian(
                 J[row_k, col] = (
                     vmag[i]
                     * vmag[j]
-
-                J[row_k, col_k] = -Q[i] - B[i, i] * Vmag[i] ** 2
-            else:
-                J[row_k, col_k] = (
-                    Vmag[i]
-                    * Vmag[j]
-                    * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
-                )
-
-        # N: ∂P_i/∂|V|_j  (column over |V| unknowns, PQ only)
-        for col_k, j in enumerate(unknown_buses_v):
-            col = n_pv + n_pq + col_k
-            if i == j:
-                J[row_k, col] = P[i] + G[i, i] * Vmag[i] ** 2
-            else:
-                J[row_k, col] = (
-                    Vmag[i]
-                    * Vmag[j]
                     * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
                 )
 
@@ -1169,24 +1014,6 @@ def _build_dense_jacobian(
                 J[row, col] = (
                     vmag[i]
                     * vmag[j]
-
-                J[row, col_k] = P[i] - G[i, i] * Vmag[i] ** 2
-            else:
-                J[row, col_k] = (
-                    -Vmag[i]
-                    * Vmag[j]
-                    * (G[i, j] * np.cos(Vang[i] - Vang[j]) + B[i, j] * np.sin(Vang[i] - Vang[j]))
-                )
-
-        # L: ∂Q_i/∂|V|_j
-        for col_k, j in enumerate(unknown_buses_v):
-            col = n_pv + n_pq + col_k
-            if i == j:
-                J[row, col] = Q[i] - B[i, i] * Vmag[i] ** 2
-            else:
-                J[row, col] = (
-                    Vmag[i]
-                    * Vmag[j]
                     * (G[i, j] * np.sin(Vang[i] - Vang[j]) - B[i, j] * np.cos(Vang[i] - Vang[j]))
                 )
 

@@ -29,16 +29,6 @@ import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
-import numpy as np
-
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-
 logger = logging.getLogger(__name__)
 
 
@@ -169,15 +159,6 @@ class CableSizingAgent(BaseAgent):
         n_circuits: int = 1,
         soil_resistivity_KmW: float = 1.0,  # NOSONAR
     ) -> dict[str, Any]:
-
-        cross_section_mm2: int,
-        conductor_material: str = "Cu",
-        insulation: str = "XLPE",
-        installation_method: str = "in_air",
-        ambient_temp_C: float = 30.0,
-        n_circuits: int = 1,
-        soil_resistivity_KmW: float = 1.0,
-    ) -> Dict[str, Any]:
         """
         Calculate cable ampacity with derating factors per IEC 60364-5-52.
 
@@ -210,11 +191,6 @@ class CableSizingAgent(BaseAgent):
         """
         # Select base table
         base_table = _AL_XLPE_AIR_30C if conductor_material == "Al" else _CU_XLPE_AIR_30C
-
-        if conductor_material == "Al":
-            base_table = _AL_XLPE_AIR_30C
-        else:
-            base_table = _CU_XLPE_AIR_30C
 
         if cross_section_mm2 not in base_table:
             available = sorted(base_table.keys())
@@ -276,14 +252,6 @@ class CableSizingAgent(BaseAgent):
 
         i_derated = i_base * method_factor * Ca * Cg * cs  # NOSONAR
 
-            Cs = 1.0
-            method_factor = 0.78  # Conduit reduces ampacity
-        else:
-            Cs = 1.0
-            method_factor = 1.0
-
-        I_derated = I_base * method_factor * Ca * Cg * Cs
-
         return {
             "cross_section_mm2": cross_section_mm2,
             "conductor_material": conductor_material,
@@ -298,16 +266,6 @@ class CableSizingAgent(BaseAgent):
             "max_conductor_temp_C": max_temp,
             "n_circuits": n_circuits,
             "derated_ampacity_A": float(i_derated),
-
-            "base_ampacity_A": float(I_base),
-            "temperature_correction_Ca": float(Ca),
-            "grouping_correction_Cg": float(Cg),
-            "soil_correction_Cs": float(Cs),
-            "method_factor": float(method_factor),
-            "ambient_temp_C": ambient_temp_C,
-            "max_conductor_temp_C": max_temp,
-            "n_circuits": n_circuits,
-            "derated_ampacity_A": float(I_derated),
         }
 
     # ------------------------------------------------------------------
@@ -325,16 +283,6 @@ class CableSizingAgent(BaseAgent):
         n_phases: int = 3,
         frequency_Hz: float = 50.0,  # NOSONAR
     ) -> dict[str, Any]:
-
-        load_current_A: float,
-        cable_length_m: float,
-        cross_section_mm2: int,
-        conductor_material: str = "Cu",
-        system_voltage_V: float = 400.0,
-        power_factor: float = 0.85,
-        n_phases: int = 3,
-        frequency_Hz: float = 50.0,
-    ) -> Dict[str, Any]:
         """
         Calculate voltage drop per IEC 60364-5-52 Annex G.
 
@@ -398,15 +346,6 @@ class CableSizingAgent(BaseAgent):
             reference_V = system_voltage_V  # NOSONAR
         elif n_phases == 1:
             delta_v = 2.0 * load_current_A * l_km * (r_op * power_factor + X * sin_phi)
-
-        L_km = cable_length_m / 1000.0
-        sin_phi = np.sqrt(1.0 - power_factor**2)
-
-        if n_phases == 3:
-            delta_V = np.sqrt(3) * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
-            reference_V = system_voltage_V
-        elif n_phases == 1:
-            delta_V = 2.0 * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
             reference_V = (
                 system_voltage_V / np.sqrt(3) if system_voltage_V > 250 else system_voltage_V
             )
@@ -426,21 +365,6 @@ class CableSizingAgent(BaseAgent):
             "voltage_at_load_V": float(v_load),
             "resistance_per_km_ohm": r_op,
             "reactance_per_km_ohm": X,
-
-            delta_V = 2.0 * load_current_A * L_km * R_op
-            reference_V = system_voltage_V
-
-        delta_V_percent = (delta_V / reference_V) * 100.0 if reference_V > 0 else 0.0
-
-        # Voltage at load end
-        V_load = reference_V - delta_V
-
-        return {
-            "voltage_drop_V": float(delta_V),
-            "voltage_drop_percent": float(delta_V_percent),
-            "voltage_at_load_V": float(V_load),
-            "resistance_per_km_ohm": float(R_op),
-            "reactance_per_km_ohm": float(X),
             "cable_length_m": cable_length_m,
             "load_current_A": load_current_A,
             "power_factor": power_factor,
@@ -462,13 +386,6 @@ class CableSizingAgent(BaseAgent):
         fault_current_kA: float = 25.0,  # NOSONAR
         fault_duration_s: float = 1.0,
     ) -> dict[str, Any]:
-
-        cross_section_mm2: int,
-        conductor_material: str = "Cu",
-        insulation: str = "XLPE",
-        fault_current_kA: float = 25.0,
-        fault_duration_s: float = 1.0,
-    ) -> Dict[str, Any]:
         """
         Verify cable short-circuit temperature rating per IEC 60949.
 
@@ -532,21 +449,6 @@ class CableSizingAgent(BaseAgent):
 
         adequate = i2t_actual <= i2t_permissible
 
-        S = float(cross_section_mm2)
-        I_fault = fault_current_kA * 1000.0  # Convert to A
-        t = fault_duration_s
-
-        # Permissible short-circuit energy (I²t)
-        I2t_permissible = K**2 * S**2 * np.log((theta_f + beta) / (theta_i + beta))
-
-        # Actual short-circuit energy
-        I2t_actual = I_fault**2 * t
-
-        # Permissible short-circuit current for the given duration
-        I_permissible = np.sqrt(I2t_permissible / t) if t > 0 else float("inf")
-
-        adequate = I2t_actual <= I2t_permissible
-
         return {
             "cross_section_mm2": cross_section_mm2,
             "conductor_material": conductor_material,
@@ -560,14 +462,6 @@ class CableSizingAgent(BaseAgent):
             "final_temp_limit_C": theta_f,
             "utilization_ratio": float(i2t_actual / i2t_permissible)
             if i2t_permissible > 0
-
-            "actual_I2t_A2s": float(I2t_actual),
-            "permissible_I2t_A2s": float(I2t_permissible),
-            "permissible_fault_current_kA": float(I_permissible / 1000.0),
-            "initial_temp_C": theta_i,
-            "final_temp_limit_C": theta_f,
-            "utilization_ratio": float(I2t_actual / I2t_permissible)
-            if I2t_permissible > 0
             else float("inf"),
             "adequate": bool(adequate),
         }
@@ -592,14 +486,6 @@ class CableSizingAgent(BaseAgent):
         max_vdrop_percent: float = 5.0,
         n_phases: int = 3,
     ) -> dict[str, Any]:
-
-        ambient_temp_C: float = 40.0,
-        n_circuits: int = 1,
-        fault_current_kA: float = 25.0,
-        fault_duration_s: float = 1.0,
-        max_vdrop_percent: float = 5.0,
-        n_phases: int = 3,
-    ) -> Dict[str, Any]:
         """
         Recommend the smallest standard cable cross-section that satisfies
         all three criteria: ampacity, voltage drop, and short-circuit rating.
@@ -845,31 +731,6 @@ class CableSizingAgent(BaseAgent):
 
         rec = result.data.get("recommendation")
         if rec is not None and "No standard cable" in rec.get("recommendation", ""):  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
-
-        errors: List[str] = []
-
-        amp = result.data.get("ampacity")
-        if amp is not None:
-            if amp.get("derated_ampacity_A", 0) <= 0:
-                errors.append("Derated ampacity is zero or negative")
-
-        vd = result.data.get("voltage_drop")
-        if vd is not None:
-            if not vd.get("compliant_5pct", True):
-                errors.append(
-                    f"Voltage drop {vd.get('voltage_drop_percent', 0):.2f}% exceeds 5% limit"
-                )
-
-        sc = result.data.get("short_circuit")
-        if sc is not None:
-            if not sc.get("adequate", True):
-                errors.append(
-                    f"Short-circuit rating inadequate: utilization ratio "
-                    f"{sc.get('utilization_ratio', 0):.2f}"
-                )
-
-        rec = result.data.get("recommendation")
-        if rec is not None and "No standard cable" in rec.get("recommendation", ""):
             errors.append("No suitable cable found meeting all criteria")
 
         result.validation_errors.extend(errors)

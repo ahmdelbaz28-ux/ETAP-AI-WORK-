@@ -143,27 +143,6 @@ class CoordinationEngine:
             return result["operating_time_s"]
 
         best_TMS = None  # NOSONAR physics/engineering notation
-
-        # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
-        # This avoids the original bug where the relay's TMS was temporarily changed
-        # during the search loop, which could affect concurrent reads of the relay.
-        def _trip_time_for_tms(tms, relay, I):
-            # Use the relay's curve type and Ip, but override TMS locally
-            I_mag = abs(I)
-            if I_mag < relay.Ip:
-                return float("inf")
-            if relay.curve_type == "standard_inverse":
-                return relay.curves.standard_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == "very_inverse":
-                return relay.curves.very_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == "extremely_inverse":
-                return relay.curves.extremely_inverse(tms, I_mag, relay.Ip)
-            elif relay.curve_type == "long_inverse":
-                return relay.curves.long_inverse(tms, I_mag, relay.Ip)
-            else:
-                raise ValueError(f"Unknown curve type: {relay.curve_type}")
-
-        best_TMS = None
         min_violation = float("inf")
         # When upstream trips before downstream the margin is negative (or zero).
         # We penalise those cases heavily so the search will never prefer a TMS
@@ -177,12 +156,6 @@ class CoordinationEngine:
         ):
             violations = []
             for If in fault_currents:  # NOSONAR physics/engineering notation
-
-        for TMS_candidate in np.linspace(
-            self.tms_search_min, self.tms_search_max, self.tms_search_steps
-        ):
-            violations = []
-            for If in fault_currents:
                 t_up = _trip_time_for_tms(TMS_candidate, upstream_relay, If)
                 t_down = downstream_relay.trip_time(If)
 

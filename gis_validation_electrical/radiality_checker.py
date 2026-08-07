@@ -16,14 +16,6 @@ class RadialityIssue:
 
 def _undirected_adjacency(model: ElectricalModel) -> dict[str, set[str]]:
     adj: dict[str, set[str]] = {nid: set() for nid in model.nodes}
-
-    affected_nodes: List[str]
-    affected_edges: List[str]
-    details: Dict[str, object]
-
-
-def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
-    adj: Dict[str, Set[str]] = {nid: set() for nid in model.nodes.keys()}
     for e in model.edges.values():
         if e.from_node in adj and e.to_node in adj:
             adj[e.from_node].add(e.to_node)
@@ -39,15 +31,6 @@ def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
             continue
         stack = [start]
         comp: set[str] = set()
-
-def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
-    visited: Set[str] = set()
-    comps: List[Set[str]] = []
-    for start in adj.keys():
-        if start in visited:
-            continue
-        stack = [start]
-        comp: Set[str] = set()
         while stack:
             n = stack.pop()
             if n in visited:
@@ -77,12 +60,6 @@ def _has_undirected_loop(  # NOSONAR
     stack: list[tuple[str, Optional[str]]] = []
 
     for root in adj:
-
-    visited: Set[str] = set()
-    parent: Dict[str, str | None] = {}
-    stack: List[Tuple[str, str | None]] = []
-
-    for root in adj.keys():
         if root in visited:
             continue
         parent[root] = None

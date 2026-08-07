@@ -155,19 +155,6 @@ class ValidationCampaign:
             sym = np.allclose(Ybus, Ybus.T)
             self._record(_STUDY_TYPE_3BUS_LF, "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
 
-            P_loss = total_gen - total_load  # should be positive (losses)
-            self._record(
-                "3-Bus LF",
-                "Power Balance",
-                True,
-                f"Total Load={total_load:.4f}, Total Gen={total_gen:.4f}, Losses={P_loss:.4f} pu",
-            )
-
-            # Ybus symmetry check
-            Ybus = solver.Ybus
-            sym = np.allclose(Ybus, Ybus.conj().T)
-            self._record("3-Bus LF", "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
-
     def validate_ieee_5bus(self):
         """IEEE 5-Bus Load Flow Validation."""
         print("\n" + "=" * 70)
@@ -535,12 +522,6 @@ class ValidationCampaign:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
-
-        Ybus_pos = system.get_ybus(seq="1")
-        Ybus_neg = system.get_ybus(seq="2")
-        Ybus_zero = system.get_ybus(seq="0")
-
-        analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
         bus_idx = 1  # bus 2 index
 
         # Three-phase fault
@@ -562,19 +543,6 @@ class ValidationCampaign:
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
         Ith = if_3ph  # NOSONAR
-
-        If_3ph = abs(result_3ph["fault_current"])
-        self._record("SC", "3-Phase Fault Current > 0", If_3ph > 0, f"Ik''={If_3ph:.4f} pu")
-
-        # Peak current ip = kappa * sqrt(2) * Ik'' (IEC 60909, kappa ~ 1.8 for LV)
-        kappa = 1.8
-        ip = kappa * np.sqrt(2) * If_3ph
-        self._record(
-            "SC", "Peak Current Calculation", ip > If_3ph, f"ip={ip:.4f} pu (kappa={kappa})"
-        )
-
-        # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
-        Ith = If_3ph  # Simplified
         self._record("SC", "Thermal Current", Ith > 0, f"Ith={Ith:.4f} pu")
 
         # SLG fault
@@ -612,16 +580,6 @@ class ValidationCampaign:
             "DLG Fault Currents > 0",
             ib > 0 and ic > 0,
             f"Ib={ib:.4f}, Ic={ic:.4f} pu",
-
-        If_ll = abs(result_ll["fault_current"])
-        self._record("SC", "LL Fault Current > 0", If_ll > 0, f"I_LL={If_ll:.4f} pu")
-
-        # Double line-to-ground
-        result_dlg = analyzer.double_line_to_ground_fault(bus_idx)
-        Ib = abs(result_dlg["fault_current_b"])
-        Ic = abs(result_dlg["fault_current_c"])
-        self._record(
-            "SC", "DLG Fault Currents > 0", Ib > 0 and Ic > 0, f"Ib={Ib:.4f}, Ic={Ic:.4f} pu"
         )
 
     # =========================================================================
@@ -652,18 +610,6 @@ class ValidationCampaign:
             self._record("ArcFlash", "Iarc < Ibf", iarc < 20.0, f"Iarc={iarc:.4f} < Ibf=20.0 kA")
             # Reduced should be 85% of full
             ratio = iarc_red / iarc if iarc > 0 else 0
-
-            Iarc, Iarc_red = engine.calculate_arc_current(4.16, 20.0, ElectrodeConfig.VCB)
-            self._record(
-                "ArcFlash",
-                "Arc Current > 0 (4.16kV, 20kA)",
-                Iarc > 0,
-                f"Iarc={Iarc:.4f} kA, Iarc_red={Iarc_red:.4f} kA",
-            )
-            # Arc current should be less than bolted fault current
-            self._record("ArcFlash", "Iarc < Ibf", Iarc < 20.0, f"Iarc={Iarc:.4f} < Ibf=20.0 kA")
-            # Reduced should be 85% of full
-            ratio = Iarc_red / Iarc if Iarc > 0 else 0
             self._record(
                 "ArcFlash",
                 "Reduced = 85% of Full",
@@ -695,16 +641,6 @@ class ValidationCampaign:
                 "E_full > 0 and E_red > 0",
                 e_full > 0 and e_red > 0,
                 f"E_full={e_full:.4f}, E_red={e_red:.4f}",
-
-            E_final, E_full, E_red = engine.calculate_incident_energy(
-                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX
-            )
-            self._record("ArcFlash", "Incident Energy > 0", E_final > 0, f"E={E_final:.4f} cal/cm2")
-            self._record(
-                "ArcFlash",
-                "E_full > 0 and E_red > 0",
-                E_full > 0 and E_red > 0,
-                f"E_full={E_full:.4f}, E_red={E_red:.4f}",
             )
         except Exception as e:
             self._record("ArcFlash", "Incident Energy Calculation", False, f"Error: {e}")
@@ -875,12 +811,6 @@ class ValidationCampaign:
             complex(0.5, 0) * np.exp(1j * np.radians(-30))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         picked_up = dir_relay.pickup_logic(v_forward, i_forward)
-
-            relay_id=3, name="Dir-67", voltage_threshold=0.1, angle_offset=30
-        )
-        V_forward = complex(1.0, 0) * np.exp(1j * 0)
-        I_forward = complex(0.5, 0) * np.exp(1j * np.radians(-30))
-        picked_up = dir_relay.pickup_logic(V_forward, I_forward)
         self._record(
             "ProtCoord",
             "67 Relay Forward Direction",
@@ -909,19 +839,6 @@ class ValidationCampaign:
             "21 Relay Impedance Check",
             picked_up_dist == (abs(z_measured) < 0.5),
             f"Z={abs(z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
-
-        from relays.relay import DistanceRelay
-
-        dist_relay = DistanceRelay(relay_id=4, name="Dist-21", impedance_setting=0.5)
-        V_fault = complex(0.8, 0)
-        I_fault = complex(2.0, 0)
-        Z_measured = V_fault / I_fault
-        picked_up_dist = dist_relay.pickup_logic(V_fault, I_fault)
-        self._record(
-            "ProtCoord",
-            "21 Relay Impedance Check",
-            picked_up_dist == (abs(Z_measured) < 0.5),
-            f"Z={abs(Z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
         )
 
         # Test 87 Relay (Differential)

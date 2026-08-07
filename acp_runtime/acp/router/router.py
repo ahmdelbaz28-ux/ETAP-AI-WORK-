@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable, Optional
 
 from pydantic import ValidationError
 
@@ -46,8 +46,7 @@ JSONRPC_INTERNAL_ERROR = -32603
 
 
 # Type alias for an optional notification handler callback.
-if TYPE_CHECKING:
-    NotificationHandler = Callable[[dict], Any] | None
+NotificationHandler = Optional[Callable[[dict], Any]]
 
 # Type alias for auth validator (re-exported from security for convenience)
 # Type alias for audit logger (re-exported from security for convenience)
@@ -82,12 +81,12 @@ class RouterConfig:
         caller_scopes: set[str] | None = None,
         *,
         on_notification: NotificationHandler = None,
-        auth_validator: AuthValidator | None = None,
-        audit_logger: AuditLogger | None = None,
+        auth_validator: Optional[AuthValidator] = None,
+        audit_logger: Optional[AuditLogger] = None,
         require_auth_for_public: bool = False,
-        tracer: Any | None = None,
-        metrics: Any | None = None,
-        logger: Any | None = None,
+        tracer: Optional[Any] = None,
+        metrics: Optional[Any] = None,
+        logger: Optional[Any] = None,
     ) -> None:
         self.caller_scopes = set(caller_scopes or ())
         self.on_notification = on_notification
@@ -112,7 +111,7 @@ class Router:
         response_dict = await router.handle(incoming_dict)
     """
 
-    def __init__(self, runtime: AcpRuntime, config: RouterConfig | None = None) -> None:
+    def __init__(self, runtime: AcpRuntime, config: Optional[RouterConfig] = None) -> None:
         self._runtime = runtime
         self._config = config or RouterConfig()
         self._scope_validator = ScopeValidator(self._config.caller_scopes)
@@ -120,7 +119,7 @@ class Router:
 
     # ------------------------------------------------------------- public API
 
-    async def handle(self, envelope: dict) -> dict | None:
+    async def handle(self, envelope: dict) -> Optional[dict]:
         """Accept a JSON-RPC envelope dict, return a response dict (or None).
 
         Args:
@@ -170,7 +169,7 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    def _start_span(self, req: JsonRpcRequest) -> Any | None:
+    def _start_span(self, req: JsonRpcRequest) -> Optional[Any]:
         """Start an observability span for the request, if a tracer is configured."""
         if self._config.tracer is None:
             return None
@@ -183,7 +182,7 @@ class Router:
 
     async def _authenticate(
         self, req: JsonRpcRequest
-    ) -> tuple[str, ScopeValidator, tuple[int, str, Any | None] | None]:
+    ) -> tuple[str, ScopeValidator, Optional[tuple[int, str, Optional[Any]]]]:
         """Authenticate the request.
 
         Returns ``(caller_id, scope_validator, failure)`` where ``failure``
@@ -213,15 +212,15 @@ class Router:
     async def _fail_request(
         self,
         req: JsonRpcRequest,
-        span_ctx: Any | None,
+        span_ctx: Optional[Any],
         t0: float,
         code: int,
         message: str,
-        data: Any | None = None,
+        data: Optional[Any] = None,
         *,
         caller_id: str = "",
         outcome: str = "error",
-        audit_duration_ms: int | None = None,
+        audit_duration_ms: Optional[int] = None,
     ) -> dict:
         """Build an error response and finish observability.
 
@@ -246,132 +245,12 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        _span_ctx: Any | None,  # NOSONAR
+        _span_ctx: Optional[
+            Any
+        ],  # NOSONAR
         _t0: float,  # NOSONAR
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
-
-    async def _handle_request(self, req: JsonRpcRequest) -> dict:
-        """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
-        t0 = time.perf_counter()
-        caller_id = ""
-        outcome = "success"
-        error_code = 0
-
-        # Observability: start span
-        span_ctx = None
-        if self._config.tracer is not None:
-            from acp.observability.tracer import TraceContext
-
-            span_ctx = self._config.tracer.start_span(
-                "router.handle",
-                TraceContext.from_trace_id(req.trace_id) if req.trace_id else None,
-            )
-
-        # ---- params type check
-        if req.params is not None and not isinstance(req.params, dict):
-            resp = self._error_response(
-                req.id,
-                JSONRPC_INVALID_PARAMS,
-                "ACP params must be a dict (keyword arguments)",
-            )
-            await self._finish_observability(span_ctx, t0, req, "error", JSONRPC_INVALID_PARAMS)
-            return resp
-
-        # ---- authentication
-        scope_validator = self._scope_validator
-        if self._config.auth_validator is not None:
-            try:
-                identity = self._config.auth_validator(req.trace_id)
-                if hasattr(identity, "__await__"):
-                    identity = await identity  # type: ignore[operator]
-                caller_id = identity.caller_id
-                # Merge caller scopes from token with config scopes
-                scope_validator = ScopeValidator(self._config.caller_scopes | identity.scopes)
-            except AuthenticationRequired as e:
-                outcome = "denied"
-                error_code = AuthenticationRequired.code
-                await self._audit(
-                    req,
-                    caller_id="",
-                    outcome=outcome,
-                    error_code=error_code,
-                    duration_ms=0,
-                )
-                await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-                return self._error_response(
-                    req.id,
-                    AuthenticationRequired.code,
-                    e.message,
-                    e.data,
-                )
-            except Exception as e:
-                self._log.exception("auth validator failed for %s", req.id)
-                outcome = "denied"
-                error_code = AuthenticationRequired.code
-                await self._audit(
-                    req,
-                    caller_id="",
-                    outcome=outcome,
-                    error_code=error_code,
-                    duration_ms=0,
-                )
-                await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-                return self._error_response(
-                    req.id,
-                    AuthenticationRequired.code,
-                    f"Authentication failed: {e}",
-                )
-
-        # ---- capability exists
-        meta = self._runtime.get_meta(req.capability)
-        if meta is None:
-            outcome = "error"
-            error_code = CapabilityNotFound.code
-            resp = self._error_response(
-                req.id,
-                CapabilityNotFound.code,
-                f"Capability {req.capability!r} is not registered",
-                {"capability": req.capability, "available": self._runtime.capability_names},
-            )
-            await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
-            )
-            await self._finish_observability(span_ctx, t0, req, "error", error_code)
-            return resp
-
-        # ---- auth required for public?
-        if self._config.require_auth_for_public and not caller_id:
-            outcome = "denied"
-            error_code = AuthenticationRequired.code
-            resp = self._error_response(
-                req.id,
-                AuthenticationRequired.code,
-                "Authentication required for all capabilities",
-            )
-            await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
-            )
-            await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-            return resp
-
-        # ---- scope permission
-        if not scope_validator.is_permitted(meta.scopes):
-            outcome = "denied"
-            error_code = ScopeNotPermitted.code
-            resp = self._error_response(
-                req.id,
-                ScopeNotPermitted.code,
-                f"Scope not permitted for {req.capability!r}",
-                {"capability": req.capability, "required_scopes": meta.scopes},
-            )
-            await self._audit(
-                req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
-            )
-            await self._finish_observability(span_ctx, t0, req, "denied", error_code)
-            return resp
-
-        # ---- execute
         try:
             result = await self._runtime.execute(
                 req.capability,
@@ -475,27 +354,13 @@ class Router:
             outcome,
             error_code,
             int((time.perf_counter() - t0) * 1000),
-
-        except AcpError as e:
-            self._log.warning("acp error for %s: %s", req.id, e)
-            outcome = "error"
-            error_code = e.code
-            resp = self._error_response(req.id, e.code, e.message, e.data)
-        except Exception as e:
-            self._log.exception("unexpected error for request %s", req.id)
-            outcome = "error"
-            error_code = JSONRPC_INTERNAL_ERROR
-            resp = self._error_response(req.id, JSONRPC_INTERNAL_ERROR, f"Internal error: {e}")
-
-        await self._audit(
-            req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
         )
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
     async def _finish_observability(  # NOSONAR
         self,
-        span_ctx: Any | None,
+        span_ctx: Optional[Any],
         t0: float,
         req: JsonRpcRequest,
         outcome: str,
@@ -592,7 +457,7 @@ class Router:
         req_id: Any,
         code: int,
         message: str,
-        data: dict | None = None,
+        data: Optional[dict] = None,
     ) -> dict:
         return JsonRpcResponse(
             id=req_id,

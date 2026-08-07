@@ -89,15 +89,6 @@ class SecurityFinding:
     cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> dict[str, Any]:
-
-    file_path: str | None = None
-    line_number: int | None = None
-    endpoint: str | None = None
-    remediation: str = ""
-    references: List[str] = field(default_factory=list)
-    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
-
-    def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "id": self.id,
@@ -132,12 +123,6 @@ class SecurityAuditReport:
     scan_metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-
-    findings: List[SecurityFinding] = field(default_factory=list)
-    remediation_priority: List[Dict[str, Any]] = field(default_factory=list)
-    scan_metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -381,13 +366,6 @@ class SecurityAuditor:
         remediation: str = "",
         references: list[str] | None = None,
         cwe_id: Optional[str] = None,
-
-        file_path: str | None = None,
-        line_number: int | None = None,
-        endpoint: str | None = None,
-        remediation: str = "",
-        references: List[str] | None = None,
-        cwe_id: str | None = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -443,13 +421,6 @@ class SecurityAuditor:
             # Parse to find endpoint definitions
             current_endpoint: Optional[str] = None
             endpoint_line: Optional[int] = None
-
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                lines = fh.readlines()
-
-            # Parse to find endpoint definitions
-            current_endpoint: str | None = None
-            endpoint_line: int | None = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):
@@ -531,14 +502,6 @@ class SecurityAuditor:
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
         # NOSONAR
-
-    async def _check_cors_configuration(self) -> None:
-        """Check for CORS misconfigurations."""
-        service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
-        ]
-
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
@@ -831,25 +794,6 @@ class SecurityAuditor:
         for dirpath, dirnames, filenames in os.walk(self.project_root):
             dirnames[:] = [d for d in dirnames if d not in self._SKIP_DIRS]
 
-    async def _scan_hardcoded_secrets(self) -> None:
-        """Scan all Python source files for hardcoded secrets."""
-        skip_dirs = {
-            ".git",
-            "__pycache__",
-            "node_modules",
-            ".venv",
-            "venv",
-            ".tox",
-            ".mypy_cache",
-            ".pytest_cache",
-            "dist",
-            "build",
-            "acp_runtime",
-        }
-
-        for dirpath, dirnames, filenames in os.walk(self.project_root):
-            dirnames[:] = [d for d in dirnames if d not in skip_dirs]
-
             for fname in filenames:
                 if not fname.endswith(".py"):
                     continue
@@ -877,71 +821,6 @@ class SecurityAuditor:
                         break  # Only report once per line
 
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-
-                # Skip test files and self-referential modules
-                if (
-                    "test" in rel_path.lower()
-                    or "security_audit" in rel_path
-                    or "error_debugger" in rel_path
-                ):
-                    continue
-
-                try:
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:
-                        lines = fh.readlines()
-
-                    for i, line in enumerate(lines, 1):
-                        stripped = line.strip()
-
-                        # Skip comments and docstrings
-                        if (
-                            stripped.startswith("#")
-                            or stripped.startswith('"""')
-                            or stripped.startswith("'''")
-                        ):
-                            continue
-
-                        # Skip lines that are clearly safe context
-                        line_lower = stripped.lower()
-                        if any(re.search(pat, line_lower) for pat in _SAFE_CONTEXT_PATTERNS):
-                            continue
-
-                        # Check against secret patterns
-                        for pattern, description, severity in _SECRET_PATTERNS:
-                            if re.search(pattern, stripped, re.IGNORECASE):
-                                # Additional check: skip env var lookups
-                                if "os.environ" in stripped or "os.getenv" in stripped:
-                                    continue
-                                # Skip if value is empty or placeholder
-                                if '""' in stripped or "''" in stripped:
-                                    continue
-
-                                self._add_finding(
-                                    category=FindingCategory.HARDCODED_SECRET,
-                                    severity=severity,
-                                    title=description,
-                                    description=(
-                                        f"A potential hardcoded secret was detected in "
-                                        f"``{rel_path}`` at line {i}. Hardcoded secrets "
-                                        f"in source code are a critical security risk."
-                                    ),
-                                    file_path=rel_path,
-                                    line_number=i,
-                                    remediation=(
-                                        "Move the secret to an environment variable or "
-                                        "a secrets manager (e.g., HashiCorp Vault, AWS "
-                                        "Secrets Manager)."
-                                    ),
-                                    references=[
-                                        "OWASP API7:2023 Server Side Request Forgery",
-                                        "CWE-798",
-                                    ],
-                                    cwe_id="CWE-798",
-                                )
-                                break  # Only report once per line
-                except Exception:
-                    pass
-
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
@@ -986,10 +865,6 @@ class SecurityAuditor:
                     async with aiofiles.open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = await fh.readlines()
 
-                try:
-                    with open(file_path, encoding="utf-8", errors="replace") as fh:
-                        lines = fh.readlines()
-
                     for i, line in enumerate(lines, 1):
                         stripped = line.strip()
                         if stripped.startswith("#"):
@@ -1014,21 +889,12 @@ class SecurityAuditor:
                                     cwe_id="CWE-94",  # NOSONAR
                                 )
 
-                                    cwe_id="CWE-94",
-                                )
-                except Exception:
-                    pass
-
         # Check requirements.txt for known vulnerable packages
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
             with contextlib.suppress(Exception):
                 async with aiofiles.open(req_file, encoding="utf-8", errors="replace") as fh:
                     requirements = await fh.readlines()
-
-            try:
-                with open(req_file, encoding="utf-8", errors="replace") as fh:
-                    requirements = fh.readlines()
 
                 for line in requirements:
                     line = line.strip()
@@ -1051,11 +917,6 @@ class SecurityAuditor:
                             ),  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
                         )
 
-                            ),
-                        )
-            except Exception:
-                pass
-
     # ------------------------------------------------------------------
     # Check 7: Dead code
     # ------------------------------------------------------------------
@@ -1069,14 +930,6 @@ class SecurityAuditor:
         if os.path.exists(service_file):
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-
-    async def _check_dead_code(self) -> None:
-        """Check for dead code patterns (unreachable code, unused imports)."""
-        # Check for the specific dead ConnectionManager in the original
-        service_file = os.path.join(self.project_root, "engineering_service.py")
-        if os.path.exists(service_file):
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
                 lines = content.split("\n")
 
             # Check for duplicate RASP stats endpoint
@@ -1148,13 +1001,6 @@ class SecurityAuditor:
             os.path.join(
                 self.project_root, "api", "auth.py"
             ),  # NOSONAR
-
-    async def _check_weak_crypto(self) -> None:
-        """Check for weak cryptographic patterns."""
-        service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
-            os.path.join(self.project_root, "api", "auth.py"),
         ]
 
         for service_file in service_files:
@@ -1216,12 +1062,6 @@ class SecurityAuditor:
             os.path.join(
                 self.project_root, "api", _REFACTORED_SERVICE_FILENAME
             ),  # NOSONAR
-
-    async def _check_information_disclosure(self) -> None:
-        """Check for potential information disclosure vulnerabilities."""
-        service_files = [
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
         ]
 
         for service_file in service_files:
@@ -1320,13 +1160,6 @@ class SecurityAuditor:
 
         # Group findings by category
         by_category: dict[FindingCategory, list[SecurityFinding]] = {}
-
-    def _build_remediation_priority(self) -> List[Dict[str, Any]]:
-        """Build a prioritized list of remediation actions."""
-        priority: List[Dict[str, Any]] = []
-
-        # Group findings by category
-        by_category: Dict[FindingCategory, List[SecurityFinding]] = {}
         for f in self._findings:
             by_category.setdefault(f.category, []).append(f)
 
@@ -1440,13 +1273,6 @@ async def _main() -> (  # NOSONAR
             )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
-
-    if args.output == "-":
-        out = sys.stdout
-    else:
-        out = open(args.output, "w", encoding="utf-8")
-
-    try:
         if not args.json_only:
             print("=" * 72, file=out)
             print("AhmedETAP — Security Audit Report", file=out)
@@ -1508,10 +1334,6 @@ async def _main() -> (  # NOSONAR
         json.dump(report.to_dict(), out, indent=2, default=str)
         print(file=out)
     # ExitStack closes the file automatically when leaving the `with` block.
-
-    finally:
-        if args.output != "-":
-            out.close()
 
 
 if __name__ == "__main__":

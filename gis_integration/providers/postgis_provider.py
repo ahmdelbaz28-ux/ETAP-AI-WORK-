@@ -243,34 +243,6 @@ class PostGISProvider:
                         "ON {}.spatial_assets (electrical_id)",
                     ).format(sql.Identifier(self.schema)),
                 )
-
-        with self._conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
-                cur.execute(f"CREATE SCHEMA IF NOT EXISTS {self.schema}")
-                cur.execute(f"""
-                    CREATE TABLE IF NOT EXISTS {self.schema}.spatial_assets (
-                        asset_id TEXT PRIMARY KEY,
-                        asset_type TEXT NOT NULL,
-                        geometry GEOMETRY({_SPATIAL_REF_SYS}),
-                        properties JSONB DEFAULT '{{}}'::jsonb,
-                        electrical_id TEXT,
-                        created_at TIMESTAMPTZ DEFAULT NOW(),
-                        updated_at TIMESTAMPTZ DEFAULT NOW()
-                    )
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_type
-                    ON {self.schema}.spatial_assets (asset_type)
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_geom
-                    ON {self.schema}.spatial_assets USING GIST (geometry)
-                """)
-                cur.execute(f"""
-                    CREATE INDEX IF NOT EXISTS idx_spatial_assets_electrical
-                    ON {self.schema}.spatial_assets (electrical_id)
-                """)
             conn.commit()
 
     @contextmanager
@@ -353,18 +325,6 @@ class PostGISProvider:
                                 "    electrical_id = EXCLUDED.electrical_id, "
                                 "    updated_at = EXCLUDED.updated_at",
                             ).format(_psycopg2.sql.Identifier(self.schema)),
-
-                            f"""
-                            INSERT INTO {self.schema}.spatial_assets
-                            (asset_id, asset_type, geometry, properties, electrical_id, updated_at)
-                            VALUES (%s, %s, ST_SetSRID(ST_GeomFromGeoJSON(%s), {_SPATIAL_REF_SYS}), %s::jsonb, %s, to_timestamp(%s))
-                            ON CONFLICT (asset_id) DO UPDATE SET
-                                asset_type = EXCLUDED.asset_type,
-                                geometry = ST_SetSRID(ST_GeomFromGeoJSON(%s), {_SPATIAL_REF_SYS}),
-                                properties = EXCLUDED.properties,
-                                electrical_id = EXCLUDED.electrical_id,
-                                updated_at = EXCLUDED.updated_at
-                        """,
                             (
                                 asset.asset_id,
                                 asset.asset_type,
@@ -389,17 +349,6 @@ class PostGISProvider:
                                 "    electrical_id = EXCLUDED.electrical_id, "
                                 "    updated_at = EXCLUDED.updated_at",
                             ).format(_psycopg2.sql.Identifier(self.schema)),
-
-                            f"""
-                            INSERT INTO {self.schema}.spatial_assets
-                            (asset_id, asset_type, properties, electrical_id, updated_at)
-                            VALUES (%s, %s, %s::jsonb, %s, to_timestamp(%s))
-                            ON CONFLICT (asset_id) DO UPDATE SET
-                                asset_type = EXCLUDED.asset_type,
-                                properties = EXCLUDED.properties,
-                                electrical_id = EXCLUDED.electrical_id,
-                                updated_at = EXCLUDED.updated_at
-                        """,
                             (
                                 asset.asset_id,
                                 asset.asset_type,
@@ -445,36 +394,6 @@ class PostGISProvider:
             return None
 
     def query_by_type(self, asset_type: str) -> list[SpatialAsset]:
-
-            with self._conn() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
-                        SELECT asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties, electrical_id
-                        FROM {self.schema}.spatial_assets
-                        WHERE asset_id = %s
-                    """,
-                        (asset_id,),
-                    )
-                    row = cur.fetchone()
-                    if not row:
-                        return None
-                    return SpatialAsset(
-                        asset_id=row[0],
-                        asset_type=row[1],
-                        geometry=json.loads(row[2]) if row[2] else None,
-                        properties=row[3]
-                        if isinstance(row[3], dict)
-                        else (json.loads(row[3]) if row[3] else {}),
-                        electrical_id=row[4],
-                    )
-        except Exception as exc:
-            logger.error("PostGIS get failed: %s", exc)
-            return None
-
-    def query_by_type(self, asset_type: str) -> List[SpatialAsset]:
         """Get all assets of a given type."""
         if self._use_fallback:
             return self._fallback_query_by_type(asset_type)
@@ -507,38 +426,6 @@ class PostGISProvider:
             return []
 
     def query_within_radius(self, lat: float, lon: float, radius_m: float) -> list[SpatialAsset]:
-
-            with self._conn() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
-                        SELECT asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties, electrical_id
-                        FROM {self.schema}.spatial_assets
-                        WHERE asset_type = %s
-                    """,
-                        (asset_type,),
-                    )
-                    results = []
-                    for row in cur:
-                        results.append(
-                            SpatialAsset(
-                                asset_id=row[0],
-                                asset_type=row[1],
-                                geometry=json.loads(row[2]) if row[2] else None,
-                                properties=row[3]
-                                if isinstance(row[3], dict)
-                                else (json.loads(row[3]) if row[3] else {}),
-                                electrical_id=row[4],
-                            )
-                        )
-                    return results
-        except Exception as exc:
-            logger.error("PostGIS query_by_type failed: %s", exc)
-            return []
-
-    def query_within_radius(self, lat: float, lon: float, radius_m: float) -> List[SpatialAsset]:
         """Spatial query: find all assets within a radius (meters)."""
         if self._use_fallback:
             return self._fallback_query_radius(lat, lon, radius_m)
@@ -586,49 +473,6 @@ class PostGISProvider:
         max_lat: float,
         max_lon: float,
     ) -> list[SpatialAsset]:
-
-            with self._conn() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
-                        SELECT asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties, electrical_id,
-                               ST_Distance(
-                                   geometry::geography,
-                                   ST_SetSRID(ST_MakePoint(%s, %s), {_SPATIAL_REF_SYS})::geography
-                               ) AS dist_m
-                        FROM {self.schema}.spatial_assets
-                        WHERE ST_DWithin(
-                            geometry::geography,
-                            ST_SetSRID(ST_MakePoint(%s, %s), {_SPATIAL_REF_SYS})::geography,
-                            %s
-                        )
-                        ORDER BY dist_m
-                    """,
-                        (lon, lat, lon, lat, radius_m),
-                    )
-                    results = []
-                    for row in cur:
-                        results.append(
-                            SpatialAsset(
-                                asset_id=row[0],
-                                asset_type=row[1],
-                                geometry=json.loads(row[2]) if row[2] else None,
-                                properties=row[3]
-                                if isinstance(row[3], dict)
-                                else (json.loads(row[3]) if row[3] else {}),
-                                electrical_id=row[4],
-                            )
-                        )
-                    return results
-        except Exception as exc:
-            logger.error("PostGIS radius query failed: %s", exc)
-            return []
-
-    def query_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[SpatialAsset]:
         """Spatial query: find all assets within a bounding box."""
         if self._use_fallback:
             return self._fallback_query_bbox(min_lat, min_lon, max_lat, max_lon)
@@ -658,35 +502,6 @@ class PostGISProvider:
                 return results
         except Exception as exc:
             logger.exception("PostGIS bbox query failed: %s", exc)
-
-            with self._conn() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
-                        SELECT asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties, electrical_id
-                        FROM {self.schema}.spatial_assets
-                        WHERE geometry && ST_MakeEnvelope(%s, %s, %s, %s, {_SPATIAL_REF_SYS})
-                    """,
-                        (min_lon, min_lat, max_lon, max_lat),
-                    )
-                    results = []
-                    for row in cur:
-                        results.append(
-                            SpatialAsset(
-                                asset_id=row[0],
-                                asset_type=row[1],
-                                geometry=json.loads(row[2]) if row[2] else None,
-                                properties=row[3]
-                                if isinstance(row[3], dict)
-                                else (json.loads(row[3]) if row[3] else {}),
-                                electrical_id=row[4],
-                            )
-                        )
-                    return results
-        except Exception as exc:
-            logger.error("PostGIS bbox query failed: %s", exc)
             return []
 
     def delete_asset(self, asset_id: str) -> bool:
@@ -700,10 +515,6 @@ class PostGISProvider:
                         _psycopg2.sql.SQL(
                             "DELETE FROM {}.spatial_assets WHERE asset_id = %s",
                         ).format(_psycopg2.sql.Identifier(self.schema)),
-
-                        f"""
-                        DELETE FROM {self.schema}.spatial_assets WHERE asset_id = %s
-                    """,
                         (asset_id,),
                     )
                 conn.commit()
@@ -741,32 +552,6 @@ class PostGISProvider:
                 return results
         except Exception as exc:
             logger.exception("PostGIS get_all failed: %s", exc)
-
-            with self._conn() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(f"""
-                        SELECT asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties, electrical_id
-                        FROM {self.schema}.spatial_assets
-                        ORDER BY asset_type, asset_id
-                    """)
-                    results = []
-                    for row in cur:
-                        results.append(
-                            SpatialAsset(
-                                asset_id=row[0],
-                                asset_type=row[1],
-                                geometry=json.loads(row[2]) if row[2] else None,
-                                properties=row[3]
-                                if isinstance(row[3], dict)
-                                else (json.loads(row[3]) if row[3] else {}),
-                                electrical_id=row[4],
-                            )
-                        )
-                    return results
-        except Exception as exc:
-            logger.error("PostGIS get_all failed: %s", exc)
             return []
 
     # ------------------------------------------------------------------
@@ -808,17 +593,6 @@ class PostGISProvider:
                         (electrical_ids,),
                     )
                     result: dict[str, dict[str, Any]] = {}
-
-                        f"""
-                        SELECT electrical_id, asset_id, asset_type,
-                               ST_AsGeoJSON(geometry) AS geom_json,
-                               properties
-                        FROM {self.schema}.spatial_assets
-                        WHERE electrical_id = ANY(%s)
-                    """,
-                        (electrical_ids,),
-                    )
-                    result: Dict[str, Dict[str, Any]] = {}
                     for row in cur:
                         eid = row["electrical_id"]
                         geom = json.loads(row["geom_json"]) if row["geom_json"] else None

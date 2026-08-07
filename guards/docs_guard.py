@@ -105,10 +105,6 @@ class DocsGuard(BaseGuard):
             tree = ast.parse(python_source)
             for node in ast.walk(tree):
                 if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-
-                if isinstance(node, ast.ClassDef):
-                    defined_symbols.add(node.name)
-                elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     defined_symbols.add(node.name)
         except SyntaxError:
             return violations
@@ -212,15 +208,6 @@ class DocsGuard(BaseGuard):
             r"(?i)it\s+is\s+important\s+to\s+note\s+that",
             r"(?i)as\s+(Union[?:mentioned|noted, stated])\s+(Union[?:above|earlier, before])",
             r"(?i)please\s+(Union[?:note|be\s+aware, keep\s+in\s+mind])",
-
-    def _check_filler(self, source: str) -> List[GuardViolation]:
-        """Heuristic: paragraphs that add no information."""
-        violations: List[GuardViolation] = []
-        filler_phrases = [
-            r"(?i)in\s+(?:this\s+)?(?:section|chapter|document),\s+we\s+will\s+(?:discuss|cover|explore|look\s+at)",
-            r"(?i)it\s+is\s+important\s+to\s+note\s+that",
-            r"(?i)as\s+(?:mentioned|noted|stated)\s+(?:above|earlier|before)",
-            r"(?i)please\s+(?:note|be\s+aware|keep\s+in\s+mind)",
         ]
         for pat in filler_phrases:
             for match in re.finditer(pat, source):
@@ -276,13 +263,6 @@ class DocsGuard(BaseGuard):
         paraphrase_patterns = [
             r"(?i)according\s+to\s+the\s+(?:official\s+)?(Union[?:documentation|docs|spec|standard, RFC])",
             r"(?i)the\s+(?:official\s+)?(Union[?:documentation|docs, spec])\s+(Union[?:says|states, recommends])",
-
-    def _check_paraphrased_docs(self, source: str) -> List[GuardViolation]:
-        """Heuristic: patterns that suggest paraphrasing official docs."""
-        violations: List[GuardViolation] = []
-        paraphrase_patterns = [
-            r"(?i)according\s+to\s+the\s+(?:official\s+)?(?:documentation|docs|spec|standard|RFC)",
-            r"(?i)the\s+(?:official\s+)?(?:documentation|docs|spec)\s+(?:says|states|recommends)",
         ]
         for pat in paraphrase_patterns:
             for match in re.finditer(pat, source):

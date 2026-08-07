@@ -52,10 +52,6 @@ class StateEstimationResult:
     measurement_residuals: Optional[np.ndarray] = None
     covariance_matrix: Optional[np.ndarray] = None
 
-    bad_data_detected: List[int] = field(default_factory=list)
-    measurement_residuals: np.ndarray | None = None
-    covariance_matrix: np.ndarray | None = None
-
 
 class WLSEstimator:
     """
@@ -166,13 +162,6 @@ class WLSEstimator:
                 g_inv = np.linalg.inv(
                     G
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-            H_reduced = H[:, keep_cols]
-
-            # Gain matrix G = H^T W H
-            try:
-                G = H_reduced.T @ W @ H_reduced
-                G_inv = np.linalg.inv(G)
             except np.linalg.LinAlgError:
                 return StateEstimationResult(
                     status=StateEstimationStatus.SINGULAR_MATRIX,
@@ -223,11 +212,6 @@ class WLSEstimator:
                 g_final
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             covariance = g_inv_final
-
-            H_final_reduced = H_final[:, keep_cols]
-            G_final = H_final_reduced.T @ W @ H_final_reduced
-            G_inv_final = np.linalg.inv(G_final)
-            covariance = G_inv_final
         except np.linalg.LinAlgError:
             covariance = None
 
@@ -244,12 +228,6 @@ class WLSEstimator:
                     np.diag(np.diag(omega)) + np.eye(m) * 1e-10
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 norm_residuals = np.abs(omega_inv @ r_final) / (np.sqrt(np.diag(omega_inv)) + 1e-10)
-
-            S = H_final_reduced @ G_inv_final @ H_final_reduced.T @ W
-            Omega = np.eye(m) - S
-            try:
-                Omega_inv = np.linalg.inv(np.diag(np.diag(Omega)) + np.eye(m) * 1e-10)
-                norm_residuals = np.abs(Omega_inv @ r_final) / (np.sqrt(np.diag(Omega_inv)) + 1e-10)
                 bad_data = [int(i) for i in range(m) if norm_residuals[i] > self.bad_data_threshold]
             except np.linalg.LinAlgError:
                 norm_residuals = np.abs(r_final)
@@ -272,10 +250,6 @@ class WLSEstimator:
         _n: int,  # NOSONAR
         slack_idx: int,  # NOSONAR unused param kept for API compatibility
     ) -> tuple[np.ndarray, list, np.ndarray]:
-
-    def _build_measurement_vectors(
-        self, measurements: dict, n: int, slack_idx: int
-    ) -> Tuple[np.ndarray, list, np.ndarray]:
         """Build measurement vector z, index list, and weight vector."""
         z_list = []
         h_indices = []
@@ -320,28 +294,6 @@ class WLSEstimator:
         h_indices: list,
         n: int,
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        for bus_idx, (P, Q, sigma_P, sigma_Q) in measurements.get("power_injection", {}).items():
-            if bus_idx != slack_idx:
-                z_list.append(P)
-                h_indices.append(("P", bus_idx))
-                w_list.append(1.0 / (sigma_P**2) if sigma_P > 0 else 1e6)
-            z_list.append(Q)
-            h_indices.append(("Q", bus_idx))
-            w_list.append(1.0 / (sigma_Q**2) if sigma_Q > 0 else 1e6)
-
-        # Power flow measurements
-        for (i, j), (P, Q, sigma_P, sigma_Q) in measurements.get("power_flow", {}).items():
-            z_list.append(P)
-            h_indices.append(("Pij", i, j))
-            w_list.append(1.0 / (sigma_P**2) if sigma_P > 0 else 1e6)
-            z_list.append(Q)
-            h_indices.append(("Qij", i, j))
-            w_list.append(1.0 / (sigma_Q**2) if sigma_Q > 0 else 1e6)
-
-        return np.array(z_list), h_indices, np.array(w_list)
-
-    def _compute_h(self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int) -> np.ndarray:
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]
         V = x[n:]
@@ -415,25 +367,6 @@ class WLSEstimator:
         ybus: np.ndarray,
         h_indices: list,
         n: int,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                Pij = V[i] ** 2 * Gij - V[i] * V[j] * (
-                    Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
-                )
-                h[k] = Pij
-            elif idx_info[0] == "Qij":
-                _, i, j = idx_info
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                Qij = -(V[i] ** 2) * Bij - V[i] * V[j] * (
-                    Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
-                )
-                h[k] = Qij
-        return h
-
-    def _compute_jacobian(
-        self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int
     ) -> np.ndarray:
         """Compute Jacobian matrix H = dh/dx."""
         m = len(h_indices)
@@ -503,13 +436,6 @@ class WLSEstimator:
                         -V[i]
                         * V[j]
                         * (gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j]))
-
-                    Gij = Ybus[i, j].real
-                    Bij = Ybus[i, j].imag
-                    H[k, j] = (
-                        -V[i]
-                        * V[j]
-                        * (Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j]))
                     )
                 H[k, i] = sum(
                     V[i]
@@ -545,13 +471,6 @@ class WLSEstimator:
                     V[i]
                     * V[j]
                     * (gij * np.sin(theta[i] - theta[j]) + bij * np.cos(theta[i] - theta[j]))
-
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                H[k, i] = (
-                    V[i]
-                    * V[j]
-                    * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
                 )
                 H[k, j] = (
                     -V[i]
@@ -563,14 +482,6 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j])
-
-                    * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
-                )
-                H[k, n + i] = 2 * V[i] * Gij - V[j] * (
-                    Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
-                )
-                H[k, n + j] = -V[i] * (
-                    Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
                 )
 
             elif idx_info[0] == "Qij":
@@ -581,13 +492,6 @@ class WLSEstimator:
                     -V[i]
                     * V[j]
                     * (gij * np.cos(theta[i] - theta[j]) - bij * np.sin(theta[i] - theta[j]))
-
-                Gij = Ybus[i, j].real
-                Bij = Ybus[i, j].imag
-                H[k, i] = (
-                    -V[i]
-                    * V[j]
-                    * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
                 )
                 H[k, j] = (
                     V[i]
@@ -599,14 +503,6 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j])
-
-                    * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
-                )
-                H[k, n + i] = -2 * V[i] * Bij - V[j] * (
-                    Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
-                )
-                H[k, n + j] = -V[i] * (
-                    Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
                 )
 
         return H
@@ -672,13 +568,6 @@ class GNNStateEstimator:
         measurements: dict,
         bus_ids: list[str],
         edge_list: list[tuple[int, int]] | None = None,
-
-    def estimate_with_gnn(
-        self,
-        Ybus: np.ndarray,
-        measurements: dict,
-        bus_ids: List[str],
-        edge_list: List[Tuple[int, int]] | None = None,
         slack_bus_idx: int = 0,
     ) -> StateEstimationResult:
         """

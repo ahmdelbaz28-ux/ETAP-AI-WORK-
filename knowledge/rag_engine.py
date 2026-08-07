@@ -35,11 +35,6 @@ from typing import Optional
 UTC = timezone.utc  # noqa: UP017
 
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Dict, List
-
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -56,11 +51,6 @@ class EngineeringDocument:
     content: str = ""
     metadata: dict = field(default_factory=dict)
     embedding: Optional[np.ndarray] = None
-
-    standard_number: str | None = None
-    content: str = ""
-    metadata: Dict = field(default_factory=dict)
-    embedding: np.ndarray | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -319,17 +309,6 @@ class VectorDatabase:
                 ids=[doc_id],
                 embeddings=[embedding.tolist()],
                 metadatas=[metadata],
-
-            self.collection.add(
-                ids=[doc_id],
-                embeddings=[embedding.tolist()],
-                metadatas=[
-                    {
-                        "title": doc.title,
-                        "source": doc.source,
-                        "standard_number": doc.standard_number,
-                    }
-                ],
                 documents=[doc.content],
             )
         elif self.db_type == "faiss" and self.index is not None:

@@ -258,18 +258,6 @@ class TestMetricsEndpoint:
 class TestStudyRunEndpoint:
     # --- Existing tests (kept for regression) ---
 
-
-class TestStudyRunEndpoint:
-    async def test_study_run_returns_200(self, client):
-        resp = await client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
-        assert resp.status_code == 200
-
-    async def test_study_run_returns_json_with_trace_id(self, client):
-        resp = await client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
-        data = resp.json()
-        assert "trace_id" in data
-        assert data["success"] is False
-
     async def test_study_run_with_invalid_type_returns_422(self, client):
         resp = await client.post("/api/v1/studies/run", json={"study_type": "invalid"})
         assert resp.status_code == 422
@@ -855,22 +843,3 @@ class TestSystemValidateEndpoint:
         }
         resp = await client.post("/api/v1/system/validate", json=payload)
         assert resp.status_code == 200
-
-
-
-class TestCORS:
-    async def test_cors_headers_present(self, client):
-        # With restrictive CORS (no ENGINEERING_SERVICE_CORS_ORIGINS set),
-        # only explicitly allowed origins receive access-control-allow-origin.
-        # The preflight response should still include allow-methods/headers.
-        resp = await client.options(
-            "/health",
-            headers={
-                "Origin": "https://example.com",
-                "Access-Control-Request-Method": "GET",
-            },
-        )
-        # CORS middleware responds with 400 when origin not in allowed list
-        # (since default is restrictive, not wildcard). Key CORS headers
-        # should still be present in the response.
-        assert "access-control-allow-methods" in resp.headers

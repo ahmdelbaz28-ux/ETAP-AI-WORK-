@@ -427,16 +427,6 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                 e,
                 exc_info=True,
             )
-
-                    logger.info(f"Cache connection established (attempt {attempt + 1})")
-                    return cache
-                else:
-                    logger.warning(f"Cache connection failed (attempt {attempt + 1})")
-            else:
-                logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
-                return cache
-        except Exception as e:
-            logger.warning(f"Cache initialization failed (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")
                 # Return a basic in-memory cache as fallback
@@ -455,14 +445,5 @@ _study_cache: Any = None
 
 
 def get_logger() -> Any:
-
-
-
-def get_study_cache():
-    """Get the global study cache instance."""
-    return _study_cache
-
-
-def get_logger():
     """Get the configured logger instance."""
     return logger

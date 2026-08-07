@@ -120,15 +120,6 @@ class ChartGenerator:
             return ""
 
     def generate_fault_current_bar_chart(self, fault_data: dict, output_path: str) -> str:
-
-            self.logger.info(f"Voltage profile chart saved: {chart_path}")
-            return chart_path
-
-        except Exception as e:
-            self.logger.error(f"Failed to generate voltage chart: {e}")
-            return ""
-
-    def generate_fault_current_bar_chart(self, fault_data: Dict, output_path: str) -> str:
         """Generate bar chart of fault currents."""
         try:
             import matplotlib.pyplot as plt
@@ -184,15 +175,6 @@ class ChartGenerator:
             return ""
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: dict, output_path: str) -> str:
-
-            self.logger.info(f"Fault current chart saved: {chart_path}")
-            return chart_path
-
-        except Exception as e:
-            self.logger.error(f"Failed to generate fault chart: {e}")
-            return ""
-
-    def generate_harmonic_spectrum_chart(self, harmonic_data: Dict, output_path: str) -> str:
         """Generate harmonic spectrum chart."""
         try:
             import matplotlib.pyplot as plt
@@ -407,15 +389,6 @@ class PDFReportGenerator:
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-
-            return self._generate_with_reportlab(metadata, sections, output_path)
-
-        except ImportError:
-            self.logger.warning("ReportLab not available. Using fallback PDF generation.")
-            return self._generate_fallback_pdf(metadata, sections, output_path)
-
-    def _generate_with_reportlab(
-        self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
     ) -> str:
         """Generate PDF using ReportLab library."""
         # Import ReportLab components at method level to ensure availability
@@ -700,14 +673,6 @@ class ReportGenerationAgent:
         formats: list[str] = None,
         output_path: str = "./reports",
     ) -> dict[str, str]:
-
-    async def generate_complete_report(
-        self,
-        analysis_results: Dict,
-        metadata: ReportMetadata | None = None,
-        formats: List[str] = None,
-        output_path: str = "./reports",
-    ) -> Dict[str, str]:
         """
         Generate complete engineering report in multiple formats.
 
@@ -943,13 +908,6 @@ class ReportGenerationAgent:
                 raw_cells = re.split(r",\s*|\|", line)
                 cells = [cell.strip().strip('"').strip("'") for cell in raw_cells]
                 cells = [cell for cell in cells if cell]
-
-    def _convert_to_table_data(self, table_text: str) -> List[List[str]]:
-        """Convert text table to list of lists for Excel/Word."""
-        rows = []
-        for line in table_text.split("\n"):
-            if line.strip() and not line.startswith("=") and not line.startswith("-"):
-                cells = [cell.strip() for cell in line.split("|") if cell.strip()]
                 if cells:
                     rows.append(cells)
         return rows

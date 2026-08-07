@@ -123,15 +123,6 @@ def run_failure_injection_tests() -> list[ValidationReport]:
 
     results: list[ValidationReport] = []
 
-        )
-    ]
-
-
-def run_failure_injection_tests() -> List[ValidationReport]:
-    base_assets = generate_synthetic_grid(grid_type="urban", seed=1, crs="EPSG:4326")
-
-    results: List[ValidationReport] = []
-
     # Corrupted geometries should fail CRS normalization/transform or topology validation deterministically.
     corrupted = inject_corrupted_geometries(base_assets, seed=2, corruption_ratio=0.05)
     ok_topo, issues_topo = validate_adms_topology(corrupted)
@@ -173,11 +164,6 @@ def production_readiness_gate(  # NOSONAR cognitive complexity; scheduled for re
     qgis_project_path: Optional[str] = None,
     arcgis_project_path: Optional[str] = None,
     adms_output_path: Optional[str] = None,
-
-def production_readiness_gate(
-    qgis_project_path: str | None = None,
-    arcgis_project_path: str | None = None,
-    adms_output_path: str | None = None,
 ) -> bool:
     """
     Single authoritative production validation entry point.
@@ -228,14 +214,6 @@ def production_readiness_gate(
         # real ADMS export format. Fail-closed: return False when an ADMS output
         # path is provided, True otherwise.
         return not adms_output_path
-
-        # concrete ADMS output schema. In production, this must be wired to the real
-        # ADMS export format.
-        if adms_output_path:
-            # Comparison schema is not implemented; fail-closed to avoid silent approval.
-            return False
-
-        return True
 
     # If an ADMS output path is provided without real GIS inputs, fail closed as well.
     if adms_output_path is not None:

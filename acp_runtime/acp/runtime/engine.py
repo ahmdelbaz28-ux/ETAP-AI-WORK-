@@ -42,11 +42,6 @@ __all__ = ["AcpRuntime"]
 # it served no purpose (no typing-only imports were ever declared). Add it
 # back when you actually need a TYPE_CHECKING block here.
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
-
 
 class AcpRuntime:
     """Async execution engine for capabilities.
@@ -65,10 +60,6 @@ class AcpRuntime:
         tracer: Optional[Any] = None,
         metrics: Optional[Any] = None,
         logger: Optional[Any] = None,
-
-        tracer: Any | None = None,
-        metrics: Any | None = None,
-        logger: Any | None = None,
     ) -> None:
         self._handlers: list[Any] = list(handlers)
         self._registry: dict[str, tuple[Any, CapabilityMeta]] = {}

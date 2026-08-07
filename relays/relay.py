@@ -176,51 +176,6 @@ class OvercurrentRelay(Relay):
         i,
         t=0,
     ):  # NOSONAR physics/engineering notation
-
-    def __init__(
-        self, relay_id, name="OvercurrentRelay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
-    ):
-        """
-        Overcurrent relay (50/51).
-
-        Parameters:
-        relay_id (int): Unique identifier.
-        name (str): Name of the relay.
-        curve_type (str): IEC curve type: 'standard_inverse', 'very_inverse', 'extremely_inverse', 'long_inverse'.
-        TMS (float): Time multiplier setting.
-        Ip (float): Pickup current in per-unit.
-        """
-        super().__init__(relay_id, name)
-        self.curve_type = curve_type
-        self.TMS = TMS
-        self.Ip = Ip
-        self.curves = IEC60255Curves()
-
-    def pickup_logic(self, I):
-        """
-        Pickup if current meets or exceeds pickup setting.
-        """
-        return abs(I) >= self.Ip
-
-    def trip_time(self, I):
-        """
-        Calculate trip time based on IEC curve.
-        """
-        if not self.pickup_logic(I):
-            return float("inf")
-        I_mag = abs(I)
-        if self.curve_type == "standard_inverse":
-            return self.curves.standard_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == "very_inverse":
-            return self.curves.very_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == "extremely_inverse":
-            return self.curves.extremely_inverse(self.TMS, I_mag, self.Ip)
-        elif self.curve_type == "long_inverse":
-            return self.curves.long_inverse(self.TMS, I_mag, self.Ip)
-        else:
-            raise ValueError(f"Unknown curve type: {self.curve_type}")
-
-    def operate(self, I, t=0):
         """
         Operate the relay: if picked up and time exceeds trip time, then trip.
         For simplicity, we assume instantaneous trip if we pass the operate method with time.
@@ -267,23 +222,6 @@ class DistanceRelay(Relay):
         i=None,  # NOSONAR
     ):  # NOSONAR see pickup_logic; signature matches the relay's measurement quantities
         self.pickup = self.pickup_logic(v, i)
-
-    def pickup_logic(self, V, I):
-        """
-        Pickup if measured impedance is within the characteristic.
-        Simplified: we assume a circular characteristic.
-        """
-        if I == 0:
-            return False
-        Z = V / I
-        # Check if impedance magnitude is less than setting
-        return abs(Z) < self.impedance_setting
-
-    def operate(self, V, I):
-        """
-        Operate the distance relay.
-        """
-        self.pickup = self.pickup_logic(V, I)
         # For distance relays, trip is typically instantaneous if picked up.
         self.trip = self.pickup
         return self.trip
@@ -348,31 +286,6 @@ class DifferentialRelay(Relay):
         idiff = kwargs.pop("Idiff", idiff)  # NOSONAR physics/engineering notation
 
         self.pickup = self.pickup_logic(ibias, idiff)
-
-        self.Ip = Ip
-        self.slope1 = slope1
-        self.slope2 = slope2
-
-    def pickup_logic(self, Ibias, Idiff):
-        """
-        Pickup based on differential current and bias current.
-        Simplified characteristic: |Idiff| > Ip + slope1 * Ibias for Ibias < Ibias2, etc.
-        We'll implement a simple two-slope characteristic.
-        Assume Ibias2 = 2.0 for simplicity.
-        """
-        Ibias = abs(Ibias)
-        Idiff = abs(Idiff)
-        Ibias2 = 2.0  # breakpoint for slope2
-        if Ibias < Ibias2:
-            return Idiff > self.Ip + self.slope1 * Ibias
-        else:
-            return Idiff > self.Ip + self.slope1 * Ibias2 + self.slope2 * (Ibias - Ibias2)
-
-    def operate(self, Ibias, Idiff):
-        """
-        Operate the differential relay.
-        """
-        self.pickup = self.pickup_logic(Ibias, Idiff)
         # Differential relays are typically instantaneous.
         self.trip = self.pickup
         return self.trip
@@ -403,16 +316,6 @@ class DirectionalRelay(Relay):  # NOSONAR physics/engineering notation
         # Calculate the angle of VI
         S = v * np.conj(i)  # complex power  # NOSONAR physics/engineering notation
         angle_S = np.angle(S)  # NOSONAR physics notation
-
-    def pickup_logic(self, V, I):
-        """
-        Pickup if voltage is above threshold and the phase angle of VI is within the forward direction.
-        """
-        if abs(V) < self.voltage_threshold or abs(I) < 1e-3:
-            return False
-        # Calculate the angle of VI
-        S = V * np.conj(I)  # complex power
-        angle_S = np.angle(S)
         # Check if angle is within +/- 90 degrees of the offset angle (forward direction)
         angle_diff = angle_S - self.angle_offset
         # Normalize to [-180, 180]
@@ -426,12 +329,3 @@ class DirectionalRelay(Relay):  # NOSONAR physics/engineering notation
         # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
         self.trip = self.pickup
         return self.trip  # NOSONAR physics/engineering notation
-
-    def operate(self, V, I):
-        """
-        Operate the directional relay.
-        """
-        self.pickup = self.pickup_logic(V, I)
-        # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
-        self.trip = self.pickup
-        return self.trip

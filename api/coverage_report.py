@@ -80,13 +80,6 @@ class FunctionInfo:
     suggested_tests: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-
-    decorators: List[str] = field(default_factory=list)
-    has_test: bool = False
-    test_names: List[str] = field(default_factory=list)
-    suggested_tests: List[str] = field(default_factory=list)
-
-    def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return asdict(self)
 
@@ -135,12 +128,6 @@ class CoverageReport:
     suggestions: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-
-    modules: List[ModuleCoverage] = field(default_factory=list)
-    critical_gaps: List[Dict[str, Any]] = field(default_factory=list)
-    suggestions: List[Dict[str, Any]] = field(default_factory=list)
-
-    def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -402,11 +389,6 @@ class CoverageAnalyzer:
         self._test_names: set[str] = set()
         self._test_normalized: set[str] = set()
 
-        self._source_files: List[str] = []
-        self._test_files: List[str] = []
-        self._test_names: Set[str] = set()
-        self._test_normalized: Set[str] = set()
-
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -450,12 +432,6 @@ class CoverageAnalyzer:
         """Walk the project tree and classify files as source or test."""
         source_files: list[str] = []
         test_files: list[str] = []
-
-
-    async def _discover_files(self) -> None:
-        """Walk the project tree and classify files as source or test."""
-        source_files: List[str] = []
-        test_files: List[str] = []
 
         # Directories to skip
         skip_dirs = {
@@ -519,17 +495,6 @@ class CoverageAnalyzer:
                 # NOSONAR
                 async with aiofiles.open(test_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
-
-
-    async def _index_test_names(self) -> None:
-        """Parse all test files and collect test function/method names."""
-        test_names: Set[str] = set()
-        test_normalized: Set[str] = set()
-
-        for test_file in self._test_files:
-            try:
-                with open(test_file, encoding="utf-8", errors="replace") as fh:
-                    source = fh.read()
                 tree = ast.parse(source, filename=test_file)
 
                 for node in ast.walk(tree):
@@ -537,12 +502,6 @@ class CoverageAnalyzer:
                         if node.name.startswith("test_") or node.name.endswith("_test"):
                             test_names.add(node.name)
                             test_normalized.add(_normalize_name(node.name))
-
-            except SyntaxError:
-                # Skip files that can't be parsed
-                pass
-            except Exception:
-                pass
 
         self._test_names = test_names
         self._test_normalized = test_normalized
@@ -569,20 +528,11 @@ class CoverageAnalyzer:
                 # NOSONAR
                 async with aiofiles.open(src_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
-
-            try:
-                with open(src_file, encoding="utf-8", errors="replace") as fh:
-                    source = fh.read()
                 tree = ast.parse(source, filename=src_file)
 
                 extractor = _FunctionExtractor(module_name, src_file)
                 extractor.visit(tree)
                 all_functions.extend(extractor.functions)
-
-            except SyntaxError:
-                pass
-            except Exception:
-                pass
 
         return all_functions
 
@@ -624,14 +574,6 @@ class CoverageAnalyzer:
             by_module.setdefault(func.module, []).append(func)
 
         module_coverages: list[ModuleCoverage] = []
-
-    def _build_module_coverages(self, functions: List[FunctionInfo]) -> List[ModuleCoverage]:
-        """Group functions by module and compute per-module coverage."""
-        by_module: Dict[str, List[FunctionInfo]] = {}
-        for func in functions:
-            by_module.setdefault(func.module, []).append(func)
-
-        module_coverages: List[ModuleCoverage] = []
         for module_name, funcs in sorted(by_module.items()):
             total = len(funcs)
             tested = sum(1 for f in funcs if f.has_test)
@@ -717,13 +659,6 @@ class CoverageAnalyzer:
             kw in func.name for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
         ):
             return "endpoint"
-
-        if "engineering_service" in func.module:
-            if any(
-                kw in func.name
-                for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
-            ):
-                return "endpoint"
 
         # Integration module functions
         if any(kw in func.module for kw in ("etap_integration", "gis_integration", "scada_model")):
@@ -917,13 +852,6 @@ async def _main() -> (  # NOSONAR
             )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
-
-    if args.output == "-":
-        out = sys.stdout
-    else:
-        out = open(args.output, "w", encoding="utf-8")
-
-    try:
         report_dict = report.to_dict()
 
         if not args.json_only:
@@ -984,10 +912,6 @@ async def _main() -> (  # NOSONAR
         json.dump(report_dict, out, indent=2, default=str)
         print(file=out)
     # ExitStack closes the file automatically when leaving the `with` block.
-
-    finally:
-        if args.output != "-":
-            out.close()
 
 
 if __name__ == "__main__":

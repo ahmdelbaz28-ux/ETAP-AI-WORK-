@@ -24,18 +24,6 @@ from typing import Dict, List, Optional
 UTC = timezone.utc  # noqa: UP017
 
 from fastapi import Query, WebSocket, WebSocketDisconnect
-
-"""
-
-import asyncio
-import json
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import List
-
-from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
@@ -94,14 +82,6 @@ class SCADALiveFeed:
         logger.info(
             "New WebSocket connection established. Total connections: %d",
             len(self.active_connections),
-
-
-    async def connect(self, websocket: WebSocket):
-        """Add a new WebSocket connection to the active connections list."""
-        await websocket.accept()
-        self.active_connections.append(websocket)
-        logger.info(
-            f"New WebSocket connection established. Total connections: {len(self.active_connections)}"
         )
 
         # Start broadcasting if not already running
@@ -138,13 +118,6 @@ class SCADALiveFeed:
             logger.info(
                 "WebSocket connection closed. Total connections: %d",
                 len(self.active_connections),
-
-    def disconnect(self, websocket: WebSocket):
-        """Remove a WebSocket connection from the active connections list."""
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-            logger.info(
-                f"WebSocket connection closed. Total connections: {len(self.active_connections)}"
             )
 
         # Stop broadcasting if no active connections
@@ -174,14 +147,6 @@ class SCADALiveFeed:
                 await self.disconnect(websocket)
 
     async def broadcast_message(self, message: str) -> None:
-
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        """Send a personal message to a specific WebSocket client."""
-        if websocket.application_state == WebSocketState.CONNECTED:
-            await websocket.send_text(message)
-
-    async def broadcast_message(self, message: str):
         """Broadcast a message to all active WebSocket connections."""
         disconnected_clients = []
 
@@ -214,17 +179,6 @@ class SCADALiveFeed:
 
         scada_data = {
             "is_simulated": True,
-
-            self.disconnect(client)
-
-    async def _generate_scada_data(self) -> dict:
-        """Generate mock SCADA data for demonstration purposes.
-
-        In a real implementation, this would connect to actual SCADA systems.
-        """
-        import random
-
-        scada_data = {
             "timestamp": datetime.now(UTC).isoformat(),
             "measurements": {
                 "bus_voltages": [
@@ -298,17 +252,6 @@ class SCADALiveFeed:
                     "description": f"Simulated alarm for equipment {secrets.choice(['Transformer', 'Breaker', 'Line'])}",
                     "location": secrets.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
                 },
-
-        # Randomly add alarms occasionally
-        if random.random() < 0.1:  # 10% chance of alarm
-            scada_data["alarms"].append(
-                {
-                    "alarm_id": f"ALARM_{random.randint(1000, 9999)}",
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": "WARNING" if random.random() < 0.7 else "CRITICAL",
-                    "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
-                    "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
-                }
             )
 
         return scada_data
@@ -375,10 +318,6 @@ class SCADALiveFeed:
                 raise  # SonarCloud S7497: re-raise CancelledError so the caller's task sees the cancellation
             except Exception:
                 logger.exception("Error in SCADA broadcast loop: ")
-
-                break
-            except Exception as e:
-                logger.error(f"Error in SCADA broadcast loop: {e}")
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying
 
 
@@ -475,20 +414,3 @@ async def scada_websocket_endpoint(
     except Exception:
         logger.exception("WebSocket error: ")
         await scada_feed.disconnect(websocket)
-
-async def scada_websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time SCADA data."""
-    await scada_feed.connect(websocket)
-    try:
-        # Keep the connection alive
-        while True:
-            # We don't expect to receive messages from clients in this implementation
-            # Just keep the connection alive and send periodic updates
-            data = await websocket.receive_text()
-            # Optionally handle client messages if needed
-            await scada_feed.send_personal_message(f"Ack: {data}", websocket)
-    except WebSocketDisconnect:
-        scada_feed.disconnect(websocket)
-    except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-        scada_feed.disconnect(websocket)

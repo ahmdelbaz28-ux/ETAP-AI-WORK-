@@ -24,12 +24,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -182,16 +176,6 @@ class ArcFlashAgent(BaseAgent):
             log_iarc = (
                 k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
             )  # NOSONAR
-
-        Ibf = bolted_fault_current_ka
-        G = gap_mm
-
-        # Simplified IEEE 1584-2018 model coefficients for VCB
-        if voltage_kv <= 0.6:
-            # Low voltage model
-            k1 = 0.0
-            k2 = -0.028 if electrode_config == "VCB" else -0.028
-            log_Iarc = k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
@@ -209,20 +193,6 @@ class ArcFlashAgent(BaseAgent):
         return {
             "arc_current_ka": round(iarc, 4),
             "reduced_arc_current_ka": round(iarc_reduced, 4),
-
-            log_Iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
-        else:
-            # High voltage (> 2.7 kV up to 15 kV)
-            log_Iarc = np.log10(Ibf) * 0.978 + 0.001 * G
-
-        Iarc = float(10.0**log_Iarc)
-
-        # Reduced arc current (85% of Iarc for fuse / low-current evaluation)
-        Iarc_reduced = 0.85 * Iarc
-
-        return {
-            "arc_current_ka": round(Iarc, 4),
-            "reduced_arc_current_ka": round(Iarc_reduced, 4),
             "voltage_kv": voltage_kv,
             "bolted_fault_current_ka": bolted_fault_current_ka,
             "electrode_config": electrode_config,
@@ -300,18 +270,6 @@ class ArcFlashAgent(BaseAgent):
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = e_normalization * (t / 0.2) ** x
-
-            E_lee = 2.142e6 * voltage_kv * Iarc * t / (D**2)
-            return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
-
-        # IEEE 1584-2018 empirical model
-        log_E = (
-            c1 + c2 * np.log10(Iarc) + c3 * np.log10(G) + c4 * np.log10(Iarc) * G + c5 * np.log10(D)
-        )
-        E_normalization = 10.0**log_E
-
-        # Apply duration scaling: E = E_0.2 * (t / 0.2)
-        E = E_normalization * (t / 0.2) ** x
 
         return self._format_ie_result(E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018")
 
@@ -499,10 +457,6 @@ class ArcFlashAgent(BaseAgent):
             iarc = arc_data.get("arc_current_ka", 0.0)  # NOSONAR
             if iarc <= 0:
                 errors.append(f"Arc current is non-positive: {iarc:.4f} kA")
-
-            Iarc = arc_data.get("arc_current_ka", 0.0)
-            if Iarc <= 0:
-                errors.append(f"Arc current is non-positive: {Iarc:.4f} kA")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

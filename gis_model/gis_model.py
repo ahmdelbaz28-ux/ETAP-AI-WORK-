@@ -90,10 +90,6 @@ class GISZone:
     parent_zone_id: Optional[str] = None
     properties: dict[str, Any] = field(default_factory=dict)
 
-    boundary: List[GeoCoordinate] = field(default_factory=list)
-    parent_zone_id: str | None = None
-    properties: Dict[str, Any] = field(default_factory=dict)
-
     def contains_point(self, point: GeoCoordinate) -> bool:
         """Check if a point is inside the zone boundary using ray casting."""
         if not self.boundary or len(self.boundary) < 3:
@@ -165,13 +161,6 @@ class PolylineGeometry:
             return self.coordinates[-1]
         total = self.total_length_meters()
         target = clamped * total
-
-        if fraction <= 0:
-            return self.coordinates[0]
-        if fraction >= 1:
-            return self.coordinates[-1]
-        total = self.total_length_meters()
-        target = fraction * total
         accumulated = 0.0
         for i in range(len(self.coordinates) - 1):
             seg_len = self.coordinates[i].distance_to(self.coordinates[i + 1])
@@ -237,12 +226,6 @@ class GISAsset:
     zone_id: Optional[str] = None
     properties: dict[str, Any] = field(default_factory=dict)
 
-    electrical_id: str | None = None  # Link to electrical model ID
-    position: GeoCoordinate | None = None  # Point geometry
-    geometry: PolylineGeometry | None = None  # Line geometry
-    zone_id: str | None = None
-    properties: Dict[str, Any] = field(default_factory=dict)
-
     def to_dict(self) -> dict:
         d = {
             "asset_id": self.asset_id,
@@ -299,12 +282,6 @@ class GISDatabase:
         self.spatial_index: dict[tuple[int, int], list[str]] = {}
         self.feeder_routes: dict[str, PolylineGeometry] = {}
 
-        self.assets: Dict[str, GISAsset] = {}
-        self.zones: Dict[str, GISZone] = {}
-        self.grid_cell_size = grid_cell_size_deg
-        self.spatial_index: Dict[Tuple[int, int], List[str]] = {}
-        self.feeder_routes: Dict[str, PolylineGeometry] = {}
-
     # --- Asset Management ---
 
     def add_asset(self, asset: GISAsset) -> None:
@@ -331,16 +308,6 @@ class GISDatabase:
         return [a for a in self.assets.values() if a.zone_id == zone_id]
 
     def find_asset_by_electrical_id(self, electrical_id: str) -> Optional[GISAsset]:
-
-    def find_assets_by_type(self, asset_type: GISAssetType) -> List[GISAsset]:
-        """Find all assets of a given type."""
-        return [a for a in self.assets.values() if a.asset_type == asset_type]
-
-    def find_assets_by_zone(self, zone_id: str) -> List[GISAsset]:
-        """Find all assets in a given zone."""
-        return [a for a in self.assets.values() if a.zone_id == zone_id]
-
-    def find_asset_by_electrical_id(self, electrical_id: str) -> GISAsset | None:
         """Find GIS asset linked to an electrical model element."""
         for a in self.assets.values():
             if a.electrical_id == electrical_id:
@@ -408,10 +375,6 @@ class GISDatabase:
         coord: GeoCoordinate,
         radius_meters: float,
     ) -> list[tuple[GISAsset, float]]:
-
-    def find_nearby_assets(
-        self, coord: GeoCoordinate, radius_meters: float
-    ) -> List[Tuple[GISAsset, float]]:
         """
         Find all assets within a given radius of a coordinate.
 
@@ -620,30 +583,6 @@ class GISDatabase:
                 )
             if asset.asset_type in (GISAssetType.LINE,) and not asset.geometry:
                 errors.append(f"Line asset '{asset.asset_id}' missing polyline geometry")
-
-                    f"GIS asset '{asset.asset_id}' references non-existent electrical_id '{asset.electrical_id}'"
-                )
-        return errors
-
-    def validate_spatial_consistency(self) -> List[str]:
-        """Validate spatial consistency of all assets."""
-        errors = []
-        for asset in self.assets.values():
-            if asset.asset_type in (
-                GISAssetType.BUS,
-                GISAssetType.SUBSTATION,
-                GISAssetType.LOAD,
-                GISAssetType.GENERATOR,
-                GISAssetType.SWITCH,
-                GISAssetType.DER,
-            ):
-                if not asset.position:
-                    errors.append(
-                        f"Point asset '{asset.asset_id}' ({asset.asset_type.value}) missing position"
-                    )
-            if asset.asset_type in (GISAssetType.LINE,):
-                if not asset.geometry:
-                    errors.append(f"Line asset '{asset.asset_id}' missing polyline geometry")
         return errors
 
     # --- Statistics ---

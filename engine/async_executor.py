@@ -21,11 +21,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, List
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -69,14 +64,6 @@ class AsyncTask:
     error: Optional[str] = None
     tags: list[str] = field(default_factory=list)
     timeout: Optional[float] = None
-
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: datetime | None = None
-    completed_at: datetime | None = None
-    result: Any = None
-    error: str | None = None
-    tags: List[str] = field(default_factory=list)
-    timeout: float | None = None
 
 
 class _PriorityTaskQueue:
@@ -259,10 +246,6 @@ class AsyncExecutor:
         name: Optional[str] = None,
         tags: list[str] | None = None,
         timeout: Optional[float] = None,
-
-        name: str | None = None,
-        tags: List[str] | None = None,
-        timeout: float | None = None,
         **kwargs: Any,
     ) -> str:
         task_id = str(uuid.uuid4())
@@ -288,10 +271,6 @@ class AsyncExecutor:
         name: Optional[str] = None,
         tags: list[str] | None = None,
         timeout: Optional[float] = None,
-
-        name: str | None = None,
-        tags: List[str] | None = None,
-        timeout: float | None = None,
     ) -> str:
         task_id = str(uuid.uuid4())
         task = AsyncTask(
@@ -380,10 +359,6 @@ class AsyncExecutor:
         task_ids: list[str],
         timeout: Optional[float] = None,
     ) -> list[AsyncTask]:
-
-        task_ids: List[str],
-        timeout: float | None = None,
-    ) -> List[AsyncTask]:
         deadline = None if timeout is None else time.monotonic() + timeout
         pending = set(task_ids)
         results: list[AsyncTask] = []
@@ -558,38 +533,6 @@ class _TimeoutContext:
         return time.monotonic() > self._deadline
 
 
-
-class _RetryContext:
-    def __init__(self, max_retries: int, delay: float) -> None:
-        self._max_retries = max_retries
-        self._delay = delay
-        self._attempt = 0
-
-    def __enter__(self) -> _RetryContext:
-        return self
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
-        if exc_type is None:
-            return None
-        self._attempt += 1
-        if self._attempt < self._max_retries:
-            logger.warning(
-                "Retry attempt %d/%d after error: %s",
-                self._attempt,
-                self._max_retries,
-                exc_val,
-            )
-            time.sleep(self._delay)
-            return True
-        if _error_handler_available:
-            get_error_handler().handle_error(
-                component="async_context",
-                message=f"Retry exhausted after {self._max_retries} attempts: {exc_val}",
-                severity=ErrorSeverity.ERROR,
-            )
-        return False
-
-
 def async_timeout(seconds: float) -> _TimeoutContext:
     return _TimeoutContext(seconds)
 
@@ -745,10 +688,6 @@ def _timeout(seconds: float):
 _async_executor: Optional[AsyncExecutor] = None
 _thread_pool: Optional[ThreadPoolManager] = None
 _process_pool: Optional[ProcessPoolManager] = None
-
-_async_executor: AsyncExecutor | None = None
-_thread_pool: ThreadPoolManager | None = None
-_process_pool: ProcessPoolManager | None = None
 _singleton_lock = threading.Lock()
 
 

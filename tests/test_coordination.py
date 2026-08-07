@@ -28,15 +28,6 @@ class TestCoordinationEngine:
             curve_type="standard_inverse",
             TMS=downstream_TMS,
             Ip=downstream_Ip,
-
-    def make_relays(self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0):
-        upstream = OvercurrentRelay(
-            relay_id=1, name="Upstream", curve_type="standard_inverse",
-            TMS=upstream_TMS, Ip=upstream_Ip,
-        )
-        downstream = OvercurrentRelay(
-            relay_id=2, name="Downstream", curve_type="standard_inverse",
-            TMS=downstream_TMS, Ip=downstream_Ip,
         )
         return upstream, downstream
 
@@ -147,12 +138,6 @@ class TestCoordinationEngine:
         with pytest.raises(ValueError, match="Unknown curve type"):
             OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
 
-        up = OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
-        down = OvercurrentRelay(relay_id=2, curve_type="standard_inverse", TMS=0.2, Ip=1.0)
-        engine = CoordinationEngine()
-        with pytest.raises(ValueError, match="Unknown curve type"):
-            engine.suggest_tms_adjustment(up, down, fault_currents=[5.0], target_margin=0.2)
-
     def test_different_pickup_currents(self):
         up = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=2.0)
         down = OvercurrentRelay(relay_id=2, curve_type="standard_inverse", TMS=0.2, Ip=0.5)
@@ -170,13 +155,6 @@ class TestCoordinationEngine:
         engine = CoordinationEngine()
         assert engine.tms_search_min == pytest.approx(0.1)
         assert engine.tms_search_max == pytest.approx(10.0)
-
-        assert engine.default_margin_sec == 0.3
-
-    def test_tms_search_defaults(self):
-        engine = CoordinationEngine()
-        assert engine.tms_search_min == 0.1
-        assert engine.tms_search_max == 10.0
         assert engine.tms_search_steps == 100
 
     def test_tms_search_custom(self):

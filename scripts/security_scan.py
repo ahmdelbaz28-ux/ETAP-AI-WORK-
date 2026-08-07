@@ -46,13 +46,6 @@ EXCLUDED_FILES = {
     ".gitleaks.toml",
 }
 
-    (r"ghp_[a-zA-Z0-9]{30,}", "GitHub PAT"),
-    (r"admin123|password123|123456", "Weak default password"),
-]
-
-EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist"}
-EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"}
-
 # Files where weak passwords / test secrets are intentional and audited.
 # Each entry is a path relative to repo root.
 EXCLUDED_PATHS = {

@@ -204,10 +204,6 @@ def detect_language(
             else:
                 return lang
 
-        except Exception:
-            # Fall back to simple character-based detection
-            pass
-
     arabic_chars = 0
     english_chars = 0
 

@@ -35,14 +35,6 @@ logger = logging.getLogger(__name__)
 # forwarding health checks.
 HTTP_ERROR_THRESHOLD = 400
 
-
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Deque, Dict, List
-
-logger = logging.getLogger(__name__)
-
 # ---------------------------------------------------------------------------
 # Optional async HTTP libraries
 # ---------------------------------------------------------------------------
@@ -496,16 +488,6 @@ class SIEMForwarder:
                     raise RuntimeError(f"SIEM returned {response.status}: {text}")
 
     async def _send_urllib(self, payload: bytes, headers: dict[str, str]) -> None:
-
-    async def _send_aiohttp(self, payload: bytes, headers: Dict[str, str]) -> None:
-        """Send using ``aiohttp.ClientSession``."""
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.endpoint, data=payload, headers=headers) as response:
-                if response.status >= 400:
-                    text = await response.text()
-                    raise RuntimeError(f"SIEM returned {response.status}: {text}")
-
-    async def _send_urllib(self, payload: bytes, headers: Dict[str, str]) -> None:
         """Fallback: send using stdlib ``urllib`` in a thread.
 
         This is blocking, so we offload it via :func:`asyncio.to_thread`.
@@ -558,13 +540,6 @@ class SIEMForwarder:
         return json.dumps(payload, default=str).encode("utf-8")
 
     def _build_elk_payload(self, events: list[SecurityEvent]) -> bytes:
-
-                }
-            ]
-        }
-        return json.dumps(payload, default=str).encode("utf-8")
-
-    def _build_elk_payload(self, events: List[SecurityEvent]) -> bytes:
         """Build an Elasticsearch bulk-index payload.
 
         Each event is prefixed with an ``index`` action line.

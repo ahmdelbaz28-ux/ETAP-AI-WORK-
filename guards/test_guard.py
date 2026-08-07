@@ -63,13 +63,6 @@ class TestGuard(BaseGuard):
         context = context or {}
 
         tree: Optional[ast.AST] = None
-
-        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
-    ) -> GuardResult:
-        violations: List[GuardViolation] = []
-        context = context or {}
-
-        tree: ast.AST | None = None
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -163,14 +156,6 @@ class TestGuard(BaseGuard):
         internal_patch_patterns = [
             r'patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
             r'mock\.patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
-
-    def _check_unjustified_mocks(self, tree: ast.AST, source: str) -> List[GuardViolation]:
-        """Heuristic: patching internal modules/functions (not I/O boundaries)."""
-        violations: List[GuardViolation] = []
-        # Patterns suggesting internal patching
-        internal_patch_patterns = [
-            r'patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
-            r'mock\.patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
         ]
         for pat in internal_patch_patterns:
             for match in re.finditer(pat, source):
@@ -283,12 +268,6 @@ class TestGuard(BaseGuard):
                 r"assert\s+(Union[type|isinstance|len|str|int|float|dict, list])\s*\(",
                 "type/builtin check",
             ),
-
-    def _check_framework_guarantees(self, tree: ast.AST, source: str) -> List[GuardViolation]:
-        """Heuristic: test that only verifies Python built-in behavior."""
-        violations: List[GuardViolation] = []
-        framework_assert_patterns = [
-            (r"assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(", "type/builtin check"),
         ]
         for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):
@@ -389,14 +368,6 @@ class TestGuard(BaseGuard):
         # bug/issue/regression in their name
         skip_pattern = r"@(Union[skip, xfail])\b"
         regression_name_pattern = r"test_.*(Union[regression|bug|issue|fix|crash, error])_"
-
-    def _check_regression_tests(self, tree: ast.AST, source: str) -> List[GuardViolation]:
-        """Detect tests that skip or modify a regression test's core assertion."""
-        violations: List[GuardViolation] = []
-        # Heuristic: @skip or @xfail decorators on tests that reference
-        # bug/issue/regression in their name
-        skip_pattern = r"@(skip|xfail)\b"
-        regression_name_pattern = r"test_.*(regression|bug|issue|fix|crash|error)_"
         for match in re.finditer(skip_pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             # Check if nearby test name mentions regression
@@ -428,14 +399,6 @@ class TestGuard(BaseGuard):
         # Only flag if the test file looks like an integration test
         is_integration = bool(
             re.search(r"(Union[integration|e2e|end.to.end, system])", source, re.IGNORECASE),
-
-    def _check_infrastructure_mocking(self, tree: ast.AST, source: str) -> List[GuardViolation]:
-        """Heuristic: mocking database or message-queue interactions in
-        integration-like tests (test files containing 'integration' or 'e2e')."""
-        violations: List[GuardViolation] = []
-        # Only flag if the test file looks like an integration test
-        is_integration = bool(
-            re.search(r"(integration|e2e|end.to.end|system)", source, re.IGNORECASE)
         )
         if not is_integration:
             return violations
@@ -479,14 +442,6 @@ class TestGuard(BaseGuard):
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
         pattern = r'assert\s+[^\n]*(?:response|output|result|completion)[^\n]*==\s*["\']'  # NOSONAR
-
-    def _check_llm_test_patterns(self, source: str) -> List[GuardViolation]:
-        """Check for common anti-patterns in LLM application tests."""
-        violations: List[GuardViolation] = []
-
-        # T-L1: Test prompt contracts not content
-        # Heuristic: exact string match on LLM output
-        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(

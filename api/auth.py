@@ -32,7 +32,7 @@ import os
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Optional
 
 from api._messages import (
     MSG_PASSWORD_MIN_LENGTH,
@@ -83,20 +83,6 @@ import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func, select
-
-import os
-import time
-import uuid
-from datetime import UTC, datetime, timedelta
-
-UTC = UTC
-from typing import Any, Dict, List
-
-import bcrypt
-import jwt
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import Boolean, DateTime, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -140,17 +126,6 @@ _REPLICA_COUNT: int = max(1, int(os.getenv("REPLICA_COUNT", "1")))
 
 # ---------------------------------------------------------------------------
 # Token blacklist (Redis-backed with in-memory fallback)
-
-# ---------------------------------------------------------------------------
-# Rate-limiting (in-memory, per username)
-# ---------------------------------------------------------------------------
-
-_LOGIN_ATTEMPTS: Dict[str, List[float]] = {}
-_RATE_LIMIT_MAX_ATTEMPTS: int = 5
-_RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
-
-# ---------------------------------------------------------------------------
-# Token blacklist (Redis-backed)
 # ---------------------------------------------------------------------------
 
 try:
@@ -166,7 +141,7 @@ _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 
 # In-memory token blacklist fallback (with TTL cleanup)
 _token_blacklist_memory: dict[str, float] = {}  # jti -> expiry timestamp
-_token_blacklist_lock = threading.RLock()
+_token_blacklist_lock = threading.Lock()
 
 # Redis async client singleton. NOTE: this client binds to the event loop
 # that is current when first created. In tests with TestClient, each test
@@ -174,10 +149,10 @@ _token_blacklist_lock = threading.RLock()
 # stale and raises 'RuntimeError: Event loop is closed' on the next use.
 # The client fixture in tests/conftest.py resets this to None before each
 # test to force a fresh client on the new event loop.
-_redis_client: redis_async.Redis | None = None
+_redis_client: Optional[redis_async.Redis] = None
 
 
-def _get_redis_client() -> redis_async.Redis | None:
+def _get_redis_client() -> Optional[redis_async.Redis]:
     """Return the shared async Redis client, or None if Redis is unavailable.
 
     Reads REDIS_URL at call time (not import time) so tests using
@@ -203,7 +178,7 @@ def _cleanup_expired_blacklist() -> None:
             del _token_blacklist_memory[jti]
 
 
-async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
+async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
     """Blacklist a refresh token JTI using Redis (with TTL), with in-memory fallback."""
     r = _get_redis_client()
     if r is not None:
@@ -248,39 +223,6 @@ async def _is_token_blacklisted(jti: str) -> bool:
         if expiry is not None and expiry > time.time():
             return True
     return False
-
-_redis_client = None
-
-
-def _get_redis_client() -> redis_async.Redis | None:
-    global _redis_client
-    if not _REDIS_URL or not REDIS_AVAILABLE:
-        return None
-    if _redis_client is None:
-        _redis_client = redis_async.from_url(_REDIS_URL, decode_responses=True)
-    return _redis_client
-
-
-async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
-    """Blacklist a refresh token JTI using Redis (with TTL)."""
-    r = _get_redis_client()
-    if r is None:
-        return  # fallback: silently no-blacklist if REDIS_URL not configured or redis not available
-    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    if ttl_seconds and ttl_seconds > 0:
-        await r.set(key, "1", ex=int(ttl_seconds))
-    else:
-        await r.set(key, "1")
-
-
-async def _is_token_blacklisted(jti: str) -> bool:
-    """Check if token JTI is blacklisted in Redis."""
-    r = _get_redis_client()
-    if r is None:
-        return False
-    key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
-    val = await r.get(key)
-    return val is not None
 
 
 # ---------------------------------------------------------------------------
@@ -375,7 +317,7 @@ class User(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[str | None] = mapped_column(
+    tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
@@ -395,10 +337,10 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[datetime | None] = mapped_column(
+    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
@@ -432,14 +374,6 @@ class RegisterRequest(BaseModel):
         # Check if password contains the username (if available in validation context)
         if info.data and "username" in info.data and info.data["username"].lower() in v.lower():
             raise ValueError("Password must not contain the username")
-
-            raise ValueError("Password must be at least 8 characters")
-        if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
-        # Check if password contains the username (if available in validation context)
-        if info.data and "username" in info.data:
-            if info.data["username"].lower() in v.lower():
-                raise ValueError("Password must not contain the username")
         return v
 
 
@@ -463,8 +397,8 @@ class LoginRequest(BaseModel):
 
     username: str
     password: str
-    mfa_code: str | None = None
-    mfa_challenge_token: str | None = None
+    mfa_code: Optional[str] = None
+    mfa_challenge_token: Optional[str] = None
 
 
 class LoginResponse(BaseModel):
@@ -478,12 +412,12 @@ class LoginResponse(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    access_token: str | None = None
-    refresh_token: str | None = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
-    expires_in: int | None = None
+    expires_in: Optional[int] = None
     mfa_required: bool = False
-    mfa_challenge_token: str | None = None
+    mfa_challenge_token: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -519,13 +453,6 @@ class ChangePasswordRequest(BaseModel):
         """Validate password meets strength requirements."""
         return _validate_password_strength(v)
 
-        """Enforce password policy on the new password."""
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
-        return v
-
 
 class ForgotPasswordRequest(BaseModel):
     """Payload for ``POST /forgot-password``."""
@@ -558,28 +485,18 @@ class UpdateProfileRequest(BaseModel):
     session token from completely disabling MFA protection.
     """
 
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if v.lower() in _COMMON_PASSWORDS:
-            raise ValueError("Password is too common — choose a stronger one")
-        return v
-
-
-class UpdateProfileRequest(BaseModel):
-    """Payload for ``PUT /me``."""
-
     model_config = ConfigDict(strict=False)
 
-    email: EmailStr | None = None
-    mfa_enabled: bool | None = None
+    email: Optional[EmailStr] = None
+    mfa_enabled: Optional[bool] = None
     # V-7: Required when mfa_enabled is set to False
-    current_password: str | None = Field(
+    current_password: Optional[str] = Field(
         default=None,
         min_length=1,
         max_length=128,
         description="Current password (required when disabling MFA)",
     )
-    mfa_code: str | None = Field(
+    mfa_code: Optional[str] = Field(
         default=None,
         min_length=4,
         max_length=20,
@@ -598,9 +515,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-    last_login: datetime | None = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    last_login: Optional[datetime] = None
 
 
 class UserListResponse(BaseModel):
@@ -777,7 +694,7 @@ def _create_mfa_challenge_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
-def _verify_mfa_challenge_token(token: str) -> str | None:
+def _verify_mfa_challenge_token(token: str) -> Optional[str]:
     """Verify an MFA challenge token. Returns user_id or None."""
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
@@ -834,16 +751,6 @@ async def _check_rate_limit(username: str) -> None:
         _LOGIN_ATTEMPTS[username] = attempts
 
     if len(attempts) >= effective_limit:
-
-def _check_rate_limit(username: str) -> None:
-    """Raise 429 if *username* has exceeded the login attempt threshold."""
-    now = time.monotonic()
-    attempts = _LOGIN_ATTEMPTS.get(username, [])
-    # Prune expired attempts
-    attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
-    _LOGIN_ATTEMPTS[username] = attempts
-
-    if len(attempts) >= _RATE_LIMIT_MAX_ATTEMPTS:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Please try again later.",
@@ -1155,18 +1062,6 @@ async def register(
                 "welcome_email_failed email=%s err=%s", user.email, exc
             )
 
-
-    user = User(
-        id=str(uuid.uuid4()),
-        username=body.username,
-        email=body.email,
-        password_hash=_hash_password(body.password),
-        role=body.role,
-    )
-    db.add(user)
-    await db.flush()
-    await db.refresh(user)
-
     return UserResponse(
         id=str(user.id),
         username=user.username,
@@ -1284,22 +1179,6 @@ async def login(
     result = await db.execute(
         select(User).where((User.username == body.username) | (User.email == body.username))
     )
-
-    response_model=TokenResponse,
-    summary="Authenticate and receive JWT tokens",
-)
-async def login(
-    body: LoginRequest,
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Any:
-    """Authenticate with username + password.
-
-    On success, returns an access token and a refresh token.
-    On failure, returns 401 with a generic message (no user-enumeration leak).
-    """
-    _check_rate_limit(body.username)
-
-    result = await db.execute(select(User).where(User.username == body.username))
     user = result.scalar_one_or_none()
 
     if user is None or not _verify_password(body.password, user.password_hash):
@@ -1375,19 +1254,6 @@ async def login(
         token_type="bearer",
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         mfa_required=False,
-
-    # Update last_login
-    user.last_login = datetime.now(UTC)
-    db.add(user)
-    await db.flush()
-
-    access_token = _create_access_token(str(user.id), user.role)
-    refresh_token = _create_refresh_token(str(user.id))
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
@@ -1428,19 +1294,9 @@ async def refresh(
             detail="Refresh token has been revoked",
         )
 
-    user_id: str | None = payload.get("sub")
+    user_id: Optional[str] = payload.get("sub")
     # V-61 FIX: Also reject empty string sub (consistent with dependencies.py)
-    if user_id is None or not user_id.strip():
-
-    if jti:
-        if await _is_token_blacklisted(jti):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Refresh token has been revoked",
-            )
-
-    user_id: str | None = payload.get("sub")
-    if user_id is None:
+    if not user_id or not user_id.strip():
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
@@ -1486,15 +1342,8 @@ async def refresh(
 )
 async def logout(
     user: CurrentUserDep,
-    body: RefreshRequest | None = Body(None),  # NOSONAR  # S8410
+    body: Optional[RefreshRequest] = Body(None),  # NOSONAR  # S8410
 ) -> Response:
-
-    summary="Revoke session",
-)
-async def logout(
-    body: RefreshRequest | None = Body(None),
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-) -> None:
     """Log the current user out by blacklisting the provided refresh token.
 
     If a refresh_token is supplied in the body, its JTI is blacklisted
@@ -1511,7 +1360,7 @@ async def logout(
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds
-            ttl_seconds: int | None = None
+            ttl_seconds: Optional[int] = None
             if isinstance(exp, (int, float)):
                 now_epoch = datetime.now(tz=UTC).timestamp()
                 ttl_seconds = int(exp - now_epoch)
@@ -1585,14 +1434,6 @@ async def update_me(
                 func.lower(User.email) == new_email,
                 User.id != user.user_id,
             ),
-
-            detail="User not found",
-        )
-
-    if body.email is not None:
-        # Check email uniqueness
-        existing = await db.execute(
-            select(User).where(User.email == body.email, User.id != user.user_id)
         )
         if existing.scalar_one_or_none() is not None:
             raise HTTPException(
@@ -1833,13 +1674,6 @@ async def forgot_password(
             }
         return {"message": "If the email exists, a reset token has been sent"}
 
-        # In production, send the token via email. The raw token is NOT
-        # included in the response — only its SHA-256 hash is stored in
-        # the DB.  For testing, use the /reset-password endpoint directly.
-        return {
-            "message": "If the email exists, a reset token has been sent",
-        }
-
     # Deliberately return the same message to avoid enumeration
     return {"message": "If the email exists, a reset token has been generated"}
 
@@ -1898,10 +1732,6 @@ async def list_users(
     db: DbDep,
     user: CurrentUser = Depends(require_role("admin")),  # NOSONAR
     pagination=Depends(pagination_params),  # NOSONAR
-
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-    pagination=Depends(pagination_params),  # noqa: B008
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -1948,10 +1778,6 @@ async def delete_user(
     db: DbDep,
     user: CurrentUser = Depends(require_role("admin")),  # NOSONAR
 ) -> dict[str, str]:
-
-    user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 
     Admins cannot delete themselves.

@@ -14,11 +14,6 @@ UTC = timezone.utc  # noqa: UP017
 
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 from pydantic import BaseModel, Field, field_validator
 
 from compat import StrEnum
@@ -47,15 +42,6 @@ class PydanticGeometry(BaseModel):
     @field_validator("area")
     @classmethod
     def area_must_be_positive(cls, v: Optional[float]) -> Optional[float]:
-
-    points: List[PydanticPoint3D] = Field(default_factory=list)
-    polyline_closed: bool = False
-    area: float | None = None
-    perimeter: float | None = None
-
-    @field_validator("area")
-    @classmethod
-    def area_must_be_positive(cls, v: float | None) -> float | None:
         if v is not None and v < 0:
             raise ValueError("area must be non-negative")
         return v
@@ -86,19 +72,6 @@ class PydanticSemanticProperties(BaseModel):
     layer: Optional[str] = None
     revit_category: Optional[str] = None
 
-                f"'{v}' is not a valid ElementType. Choose from: {sorted(valid_types)}"
-            )
-        return v
-
-    description: str | None = None
-    material: str | None = None
-    fire_rating: str | None = None
-    height: float | None = None
-    width: float | None = None
-    load_bearing: bool | None = None
-    layer: str | None = None
-    revit_category: str | None = None
-
 
 class PydanticUniversalElement(BaseModel):
     """Pydantic equivalent of UniversalElement for API use.
@@ -118,14 +91,6 @@ class PydanticUniversalElement(BaseModel):
     last_modified_timestamp: Optional[datetime] = None
     last_modified_by: Optional[str] = None
     source_file: Optional[str] = None
-
-    properties: PydanticSemanticProperties | None = None
-    geometry: PydanticGeometry | None = None
-    relationships: List[Dict[str, Any]] = Field(default_factory=list)
-    created_timestamp: datetime | None = None
-    last_modified_timestamp: datetime | None = None
-    last_modified_by: str | None = None
-    source_file: str | None = None
     version: int = 0
     is_deleted: bool = False
 
@@ -211,11 +176,6 @@ class Geometry:
     area: Optional[float] = None
     perimeter: Optional[float] = None
 
-    points: List[Point3D] = field(default_factory=list)
-    polyline_closed: bool = False
-    area: float | None = None
-    perimeter: float | None = None
-
     def calculate_area(self) -> float:
         """Calculate polygon area using shoelace formula."""
         if len(self.points) < 3:
@@ -255,18 +215,6 @@ class SemanticProperties:
     revit_category: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-
-    name: str | None = None
-    description: str | None = None
-    material: str | None = None
-    fire_rating: str | None = None
-    height: float | None = None
-    width: float | None = None
-    load_bearing: bool | None = None
-    layer: str | None = None
-    revit_category: str | None = None
-
-    def to_dict(self) -> Dict[str, Any]:
         return {
             "element_type": self.element_type.value,
             "name": self.name,
@@ -291,11 +239,6 @@ class Relationship:
     connection_id: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-
-    metadata: Dict[str, Any] | None = None
-    connection_id: str | None = None
-
-    def to_dict(self) -> Dict[str, Any]:
         return {
             "from_element_id": self.from_element_id,
             "to_element_id": self.to_element_id,
@@ -320,18 +263,6 @@ class UniversalElement:
     is_deleted: bool = False
     autocad_handle: Optional[str] = None
     revit_element_id: Optional[str] = None
-
-    properties: SemanticProperties | None = None
-    geometry: Geometry | None = None
-    relationships: List[Relationship] = field(default_factory=list)
-    created_timestamp: datetime | None = None
-    last_modified_timestamp: datetime | None = None
-    last_modified_by: str | None = None
-    source_file: str | None = None
-    version: int = 0
-    is_deleted: bool = False
-    autocad_handle: str | None = None
-    revit_element_id: str | None = None
 
     def __post_init__(self):
         if self.created_timestamp is None:
@@ -371,14 +302,6 @@ class Conflict:
     change_a: dict[str, Any] | None = None
     change_b: dict[str, Any] | None = None
     resolution: dict[str, Any] | None = None
-
-    element_id: str | None = None
-    timestamp: datetime | None = None
-    source_a: ChangeSource = ChangeSource.MANUAL
-    source_b: ChangeSource = ChangeSource.MANUAL
-    change_a: Dict[str, Any] | None = None
-    change_b: Dict[str, Any] | None = None
-    resolution: Dict[str, Any] | None = None
     resolved: bool = False
 
     def __post_init__(self):

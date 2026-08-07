@@ -25,12 +25,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List, Tuple
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -88,16 +82,6 @@ class StabilityAgent(BaseAgent):
         fault_bus: int,
         fault_Ybus: np.ndarray,  # NOSONAR
         post_fault_Ybus: np.ndarray,  # NOSONAR
-
-        H: np.ndarray,
-        D: np.ndarray,
-        Pm: np.ndarray,
-        Ybus_red: np.ndarray,
-        E: np.ndarray,
-        delta0: np.ndarray,
-        fault_bus: int,
-        fault_Ybus: np.ndarray,
-        post_fault_Ybus: np.ndarray,
         t_fault: float,
         t_clear: float,
         t_total: float,
@@ -172,13 +156,6 @@ class StabilityAgent(BaseAgent):
                 pe[i] = np.real(e_complex[i] * np.conj(I[i]))
             return pe
 
-            Pe = np.zeros(n_gen)
-            E_complex = E * np.exp(1j * d)
-            I = Y @ E_complex
-            for i in range(n_gen):
-                Pe[i] = np.real(E_complex[i] * np.conj(I[i]))
-            return Pe
-
         for step in range(1, n_steps):
             t = time_array[step]
 
@@ -201,12 +178,6 @@ class StabilityAgent(BaseAgent):
                 )  # NOSONAR
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (pm - pe - D * ddelta)
-
-                d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y
-            ) -> Tuple[np.ndarray, np.ndarray]:
-                Pe = electrical_power(d, _Y)
-                ddelta = w - self.omega_synchronous
-                domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
                 return ddelta, domega
 
             k1_d, k1_w = derivatives(delta, omega)
@@ -244,16 +215,6 @@ class StabilityAgent(BaseAgent):
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
     ) -> dict[str, Any]:
-
-    def analyze_small_signal_stability(
-        self,
-        H: np.ndarray,
-        D: np.ndarray,
-        Pm: np.ndarray,
-        Ybus_red: np.ndarray,
-        E: np.ndarray,
-        delta0: np.ndarray,
-    ) -> Dict[str, Any]:
         """
         Perform small-signal stability analysis via eigenvalue method.
 
@@ -324,21 +285,6 @@ class StabilityAgent(BaseAgent):
 
             K_S[:, j] = (pe_plus - pe_minus) / (2.0 * eps)
 
-            # Perturb delta_j
-            delta_pert = delta0.copy()
-            delta_pert[j] += eps
-
-            E_plus = E * np.exp(1j * delta_pert)
-            I_plus = Ybus_red @ E_plus
-            Pe_plus = np.real(E_plus * np.conj(I_plus))
-
-            delta_pert[j] = delta0[j] - eps
-            E_minus = E * np.exp(1j * delta_pert)
-            I_minus = Ybus_red @ E_minus
-            Pe_minus = np.real(E_minus * np.conj(I_minus))
-
-            K_S[:, j] = (Pe_plus - Pe_minus) / (2.0 * eps)
-
         # Build state matrix A (2n x 2n)
         # State vector: [delta_1, ..., delta_n, omega_1, ..., omega_n]
         A = np.zeros((2 * n_gen, 2 * n_gen))
@@ -356,12 +302,6 @@ class StabilityAgent(BaseAgent):
 
         # Lower-right block: M^{-1} D (damping)
         A[n_gen:, n_gen:] = -m_inv @ np.diag(D)
-
-        M_inv = np.diag(1.0 / M)
-        A[n_gen:, :n_gen] = -M_inv @ K_S
-
-        # Lower-right block: M^{-1} D (damping)
-        A[n_gen:, n_gen:] = -M_inv @ np.diag(D)
 
         # Compute eigenvalues AND eigenvectors in a single call (avoids
         # ordering inconsistencies between eigvals() and eig()).
@@ -438,15 +378,6 @@ class StabilityAgent(BaseAgent):
         X_faulted: float,  # NOSONAR
         delta0: float,
     ) -> dict[str, Any]:
-
-        H: float,
-        Pm: float,
-        E_gen: float,
-        V_inf: float,
-        X_total: float,
-        X_faulted: float,
-        delta0: float,
-    ) -> Dict[str, Any]:
         """
         Compute critical clearing time using the equal area criterion.
 
@@ -498,17 +429,6 @@ class StabilityAgent(BaseAgent):
         # Initial angle where Pm = Pmax_pre * sin(delta0)
         # delta0 is given; verify Pm <= Pmax_pre
         if pm > pmax_pre:
-
-        # Maximum power transfer pre-fault and during fault
-        Pmax_pre = E_gen * V_inf / X_total
-        Pmax_fault = E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0
-
-        # Post-fault max (assume same as pre-fault for reclosing)
-        Pmax_post = Pmax_pre
-
-        # Initial angle where Pm = Pmax_pre * sin(delta0)
-        # delta0 is given; verify Pm <= Pmax_pre
-        if Pm > Pmax_pre:
             return {
                 "critical_clearing_angle_rad": float(delta0),
                 "critical_clearing_angle_deg": float(np.degrees(delta0)),
@@ -533,15 +453,6 @@ class StabilityAgent(BaseAgent):
             pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - pmax_fault * np.cos(delta0)
         )
         denominator = Pmax_post - pmax_fault
-
-        if abs(Pmax_post - Pmax_fault) < 1e-10:
-            # Three-phase fault at generator terminals: Pmax_fault ≈ 0
-            Pmax_fault = 0.0
-
-        numerator = (
-            Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - Pmax_fault * np.cos(delta0)
-        )
-        denominator = Pmax_post - Pmax_fault
 
         cos_delta_cr = numerator / denominator if abs(denominator) > 1e-12 else 0.0
         cos_delta_cr = np.clip(cos_delta_cr, -1.0, 1.0)
@@ -630,38 +541,6 @@ class StabilityAgent(BaseAgent):
                 # Fault Ybus: add large shunt at fault_bus
                 fault_bus = task.parameters.get("fault_bus", 0)
                 fault_Ybus = ybus_red.copy()  # NOSONAR
-
-            results: Dict[str, Any] = {}
-
-            # --- Transient stability ---
-            if analysis_type in ("transient", "full"):
-                H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
-                D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                Pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
-                n_gen = len(H)
-
-                # Build reduced Ybus from provided data or use defaults
-                Y_data = task.parameters.get("Ybus_reduced")
-                if Y_data is not None:
-                    Ybus_red = np.array(Y_data, dtype=complex)
-                else:
-                    # Default 3-machine test system
-                    np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))
-                    G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))
-                    B = (B + B.T) / 2.0
-                    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
-                    np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    Ybus_red = G + 1j * B
-
-                E_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))
-                delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = E_mag * np.exp(1j * delta0)
-
-                # Fault Ybus: add large shunt at fault_bus
-                fault_bus = task.parameters.get("fault_bus", 0)
-                fault_Ybus = Ybus_red.copy()
                 fault_impedance = task.parameters.get("fault_impedance_pu", 1e-6)
                 fault_Ybus[fault_bus, fault_bus] += 1.0 / fault_impedance
 
@@ -730,29 +609,6 @@ class StabilityAgent(BaseAgent):
                     ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
-
-                Pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
-                n_gen = len(H)
-
-                Y_data = task.parameters.get("Ybus_reduced")
-                if Y_data is not None:
-                    Ybus_red = np.array(Y_data, dtype=complex)
-                else:
-                    np.random.seed(42)
-                    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))
-                    G = (G + G.T) / 2.0
-                    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))
-                    B = (B + B.T) / 2.0
-                    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
-                    np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    Ybus_red = G + 1j * B
-
-                E_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))
-                delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = E_mag * np.exp(1j * delta0)
-
-                ss_result = self.analyze_small_signal_stability(
-                    H=H, D=D, Pm=Pm, Ybus_red=Ybus_red, E=E, delta0=delta0
                 )
                 results["small_signal_stability"] = ss_result
 
@@ -821,16 +677,6 @@ class StabilityAgent(BaseAgent):
                 f"{ts_data.get('max_angle_spread_deg', 0):.1f}°",
             )
 
-        errors: List[str] = []
-
-        ts_data = result.data.get("transient_stability")
-        if ts_data is not None:
-            if not ts_data.get("stable", False):
-                errors.append(
-                    f"Transient instability: max angle spread "
-                    f"{ts_data.get('max_angle_spread_deg', 0):.1f}°"
-                )
-
         ss_data = result.data.get("small_signal_stability")
         if ss_data is not None:
             if not ss_data.get("stable", True):
@@ -848,10 +694,6 @@ class StabilityAgent(BaseAgent):
         cct_data = result.data.get("critical_clearing_time")
         if cct_data is not None and not cct_data.get("stable", True):
             errors.append("CCT analysis indicates system cannot be stabilised")
-
-        if cct_data is not None:
-            if not cct_data.get("stable", True):
-                errors.append("CCT analysis indicates system cannot be stabilised")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

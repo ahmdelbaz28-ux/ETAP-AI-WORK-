@@ -83,10 +83,6 @@ class CalculationCache:
         self._entries: dict[str, _CacheEntry] = {}
         self._tag_index: dict[str, set[str]] = {}
         self._access_order: list[str] = []
-
-        self._entries: Dict[str, _CacheEntry] = {}
-        self._tag_index: Dict[str, Set[str]] = {}
-        self._access_order: List[str] = []
         self._hits = 0
         self._misses = 0
         self._current_size_bytes = 0
@@ -105,16 +101,6 @@ class CalculationCache:
             self._cachetools_cache = None
 
     def get(self, cache_key: str) -> Optional[Any]:
-
-                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds)
-                )  # type: ignore
-            else:
-                self._cachetools_cache = LRUCache(maxsize=maxsize)
-            self._cachetools_data: Dict[str, Tuple[Any, float | None, List[str]]] = {}
-        else:
-            self._cachetools_cache = None
-
-    def get(self, cache_key: str) -> Any | None:
         with self._lock:
             entry = self._entries.get(cache_key)
             if entry is None:
@@ -379,12 +365,6 @@ class SmartCacheStrategy:
         return size_estimate <= 1024 * 100
 
     def get_cache_ttl(self, component: str, _result_type: Optional[str] = None) -> int:
-
-        if size_estimate > 1024 * 100:
-            return False
-        return True
-
-    def get_cache_ttl(self, component: str, result_type: str | None = None) -> int:
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -566,10 +546,6 @@ _singleton_lock = threading.Lock()
 _calculation_cache_instance: Optional[CalculationCache] = None
 _smart_strategy_instance: Optional[SmartCacheStrategy] = None
 _memory_manager_instance: Optional[MemoryManager] = None
-
-_calculation_cache_instance: CalculationCache | None = None
-_smart_strategy_instance: SmartCacheStrategy | None = None
-_memory_manager_instance: MemoryManager | None = None
 
 
 def get_calculation_cache(

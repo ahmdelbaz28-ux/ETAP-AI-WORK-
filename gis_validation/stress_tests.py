@@ -30,11 +30,6 @@ def incremental_validate(
     # Stream-validate items; stop early if max_items is reached.
     for count, it in enumerate(items, start=1):
         validate_fn(it)
-
-    count = 0
-    for it in items:
-        validate_fn(it)
-        count += 1
         if max_items is not None and count >= max_items:
             return
 
@@ -46,11 +41,6 @@ def stress_transform_and_validate(
     validate_assets_fn: Callable[[list[ADMSAsset]], None],
     max_seconds: float = 10.0,  # NOSONAR unused param kept for API compatibility
     max_items: Optional[int] = None,
-
-    asset_generator: Callable[[], List[ADMSAsset]],
-    validate_assets_fn: Callable[[List[ADMSAsset]], None],
-    max_seconds: float = 10.0,
-    max_items: int | None = None,
 ) -> StressResult:
     start = time.time()
     tracemalloc.start()

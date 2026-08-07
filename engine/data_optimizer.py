@@ -108,18 +108,6 @@ class SparseMatrixManager:
         return a_factor.solve(b)
 
     def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> dict[str, Any]:
-
-    def sparse_lu_solve(self, A: Any, b: np.ndarray) -> np.ndarray:
-        if not issparse(A):
-            A = csr_matrix(A)
-        if A.shape[0] <= self.size_threshold:
-            return np.linalg.solve(A.toarray(), b)
-        return splu(A).solve(b)
-
-    def sparse_factored_solve(self, A_factor: Any, b: np.ndarray) -> np.ndarray:
-        return A_factor.solve(b)
-
-    def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> Dict[str, Any]:
         if dense_size == 0:
             return {
                 "dense_bytes": 0,
@@ -180,11 +168,6 @@ class MemoryOptimizedSystem:
         "_ql",
         "_pg",
         "_qg",
-
-        "_pL",
-        "_qL",
-        "_pG",
-        "_qG",
         "_kv",
         "_bt",
         "_qmin",
@@ -209,13 +192,6 @@ class MemoryOptimizedSystem:
             None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         )
         self._pl = self._ql = self._pg = self._qg = None
-
-        self.loads = []
-        self.Ybus_seq = {}
-        self._inc_gen_z = False
-        self._use_arr = False
-        self._ids = self._vmag = self._vang = None
-        self._pL = self._qL = self._pG = self._qG = None
         self._kv = self._bt = self._qmin = self._qmax = self._vms = None
         self._buses = None
         self._sm = SparseMatrixManager()
@@ -264,11 +240,6 @@ class MemoryOptimizedSystem:
             ("_ql", "qL"),
             ("_pg", "pG"),
             ("_qg", "qG"),
-
-            ("_pL", "pL"),
-            ("_qL", "qL"),
-            ("_pG", "pG"),
-            ("_qG", "qG"),
             ("_kv", "kv"),
             ("_bt", "bt"),
             ("_qmin", "qmin"),
@@ -385,11 +356,6 @@ class MemoryOptimizedSystem:
                     "_ql",
                     "_pg",
                     "_qg",
-
-                    "_pL",
-                    "_qL",
-                    "_pG",
-                    "_qG",
                     "_kv",
                     "_bt",
                     "_qmin",
@@ -447,17 +413,6 @@ class BatchProcessor:
         return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
 
     def _batch_process(self, items: list, fn: Callable) -> list[Any]:
-
-    def process_lines(self, lines: List, fn: Callable) -> List[Any]:
-        return self._batch_process(list(lines), fn)
-
-    def process_faults(
-        self, buses: Union[Dict, List], ftypes: List[str], fn: Callable
-    ) -> List[Any]:
-        items = list(buses.items()) if isinstance(buses, dict) else list(buses)
-        return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
-
-    def _batch_process(self, items: List, fn: Callable) -> List[Any]:
         results, n = [], len(items)
         s = self._stats
         s.update(total_items=n, num_batches=0)

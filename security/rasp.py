@@ -81,17 +81,6 @@ _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
         pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--|#|/\*)"),
-
-_DEFAULT_RULES: List[RASPRule] = [
-    RASPRule(
-        name="sqli_basic",
-        pattern=re.compile(
-            r"(?i)(\b(union\s+select|select\s+.+\s+from|insert\s+into|delete\s+from|"
-            r"drop\s+table|alter\s+table|exec\s*\(|execute\s*\(|"
-            r"'\s*(or|and)\s+.*[=<>]|;\s*(drop|delete|update|insert)|"
-            r"waitfor\s+delay|benchmark\s*\(|sleep\s*\()\b)",
-            re.IGNORECASE,
-        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SQL Injection attempt detected",
@@ -99,12 +88,6 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="xss_basic",
         pattern=re.compile(r"(?i)<script[^>]*>"),
-
-        pattern=re.compile(
-            r"(?i)(<script[^>]*>|javascript\s*:|on(error|load|click|mouseover)\s*=|"
-            r"alert\s*\(|document\.\s*(cookie|location)|eval\s*\()",
-            re.IGNORECASE,
-        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="Cross-Site Scripting (XSS) attempt detected",
@@ -112,13 +95,6 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="command_injection",
         pattern=re.compile(r"(?i);\s*(rm|del|format|shutdown|reboot|cat|type|ls|pwd|id|whoami)\b"),
-
-        pattern=re.compile(
-            r"(?i)(;\s*(rm|del|format|shutdown|reboot|cat|type|dir|ls|pwd|id|whoami|uname)\b|"
-            r"\|\s*(bash|sh|cmd|powershell|python|perl|ruby|php)\b|"
-            r"`[^`]+`|\$\([^)]+\))",
-            re.IGNORECASE,
-        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="Command Injection attempt detected",
@@ -136,11 +112,6 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="ldap_injection",
         pattern=re.compile(r"[\*\(\)]"),
-
-        pattern=re.compile(
-            r"(?i)(\*\)|\(\|\(|\(\&\(|\)omiconj|\)(\||&)\()",
-            re.IGNORECASE,
-        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="LDAP Injection attempt detected",
@@ -148,10 +119,6 @@ _DEFAULT_RULES: List[RASPRule] = [
     RASPRule(
         name="nosql_injection",
         pattern=re.compile(r"(?i)\$(where|regex|expr)"),
-
-        pattern=re.compile(
-            r"(?i)(\$where|\$regex|\$expr)",
-        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="NoSQL Injection attempt detected — blocked",
@@ -160,11 +127,6 @@ _DEFAULT_RULES: List[RASPRule] = [
         name="ssrf_basic",
         pattern=re.compile(
             r"(?i)(http://(?:169\.254\.|10\.|192\.168\.|127\.0\.0\.1|localhost)|file://|gopher://|dict://)"
-
-            r"(?i)(http://(169\.254\.|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|"
-            r"192\.168\.\d+\.\d+|127\.0\.0\.1|0\.0\.0\.0|localhost|metadata\.google\.internal|"
-            r"100\.100\.100\.200)|file://|gopher://|dict://)",
-            re.IGNORECASE,
         ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,

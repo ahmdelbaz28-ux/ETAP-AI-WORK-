@@ -25,11 +25,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
@@ -170,12 +165,6 @@ class GoalPlannerAgent(BaseAgent):
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
     ) -> dict[str, Any]:
-
-    def prioritize_tasks(
-        self,
-        tasks: List[Dict[str, Any]],
-        available_hours: float = 8.0,
-    ) -> Dict[str, Any]:
         """
         Prioritize tasks using composite scoring and dependency
         resolution.
@@ -335,11 +324,6 @@ class GoalPlannerAgent(BaseAgent):
         deferred_tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
     ) -> dict[str, Any]:
-
-        scheduled_tasks: List[Dict[str, Any]],
-        deferred_tasks: List[Dict[str, Any]],
-        available_hours: float = 8.0,
-    ) -> Dict[str, Any]:
         """
         Assess risks in the planned schedule.
 
@@ -510,13 +494,6 @@ class GoalPlannerAgent(BaseAgent):
         extraction = result.data.get("task_extraction")
         if extraction is not None and extraction.get("total_tasks", 0) < 0:
             errors.append("Negative task count")
-
-        errors: List[str] = []
-
-        extraction = result.data.get("task_extraction")
-        if extraction is not None:
-            if extraction.get("total_tasks", 0) < 0:
-                errors.append("Negative task count")
 
         prioritization = result.data.get("prioritization")
         if prioritization is not None:

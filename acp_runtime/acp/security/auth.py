@@ -88,12 +88,6 @@ class AuthConfig:
         token_ttl_seconds: int = 3_600,
         issuer: Optional[str] = None,
         audience: Optional[str] = None,
-
-        secret_key: str | bytes,
-        *,
-        token_ttl_seconds: int = 3_600,
-        issuer: str | None = None,
-        audience: str | None = None,
     ) -> None:
         self.secret_key = secret_key if isinstance(secret_key, bytes) else secret_key.encode()
         self.token_ttl_seconds = token_ttl_seconds
@@ -232,10 +226,6 @@ class HmacTokenValidator:
         if self._config.issuer is not None and payload.get("iss") != self._config.issuer:
             raise AuthenticationRequired("Token issuer mismatch")
 
-        if self._config.issuer is not None:
-            if payload.get("iss") != self._config.issuer:
-                raise AuthenticationRequired("Token issuer mismatch")
-
         if self._config.audience is not None:
             aud = payload.get("aud")
             if isinstance(aud, list):
@@ -252,10 +242,6 @@ def validate_bearer_token(
     header_value: Optional[str],
     validator: Optional[AuthValidator],
 ) -> Optional[CallerIdentity]:
-
-    header_value: str | None,
-    validator: AuthValidator | None,
-) -> CallerIdentity | None:
     """Extract a Bearer token from an HTTP-style header and validate it.
 
     Parameters:

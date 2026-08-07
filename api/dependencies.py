@@ -53,16 +53,6 @@ if not _jwt_key:
         "On HF Space with multiple replicas, each replica MUST have the "
         "same JWT_SECRET_KEY env var set — otherwise tokens are rejected "
         "with 'Invalid token' across replicas.",
-
-            "Refusing to start with a default secret."
-        )
-    import logging as _logging
-    import secrets as _secrets
-
-    _jwt_key = _secrets.token_hex(32)
-    _logging.getLogger(__name__).warning(
-        "JWT_SECRET_KEY not set; using random key. "
-        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production."
     )
 JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"
@@ -196,11 +186,6 @@ async def get_current_user(
     # JWT should never have been minted with an empty subject.
     # Fix: reject both None AND empty/whitespace-only strings.
     if not user_id or not user_id.strip() or token_type != "access":
-
-    user_id: str | None = payload.get("sub")
-    token_type: str | None = payload.get("type")
-
-    if user_id is None or token_type != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",

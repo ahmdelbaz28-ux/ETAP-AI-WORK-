@@ -26,16 +26,6 @@ import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
-import logging
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
-import numpy as np
-
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-
 logger = logging.getLogger(__name__)
 
 
@@ -160,29 +150,6 @@ class EarthGridAgent(BaseAgent):
             "E_step_allowable_V": float(e_step),
             "Cs_surface_derating": cs,
             "body_current_A": float(i_body),
-
-        Cs = self._surface_derating_factor(rho_s, rho_b, hs)
-
-        # Current factor based on body weight
-        if body_weight_kg <= 50:
-            I_body = 0.116 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
-        else:
-            I_body = 0.157 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
-
-        # Body resistance = 1000 Ω (hand-to-feet, IEEE 80)
-        R_body = 1000.0
-
-        # Allowable touch voltage: E_touch = (R_body + 1.5 ρ_s C_s) × I_body
-        E_touch = (R_body + 1.5 * rho_s * Cs) * I_body
-
-        # Allowable step voltage: E_step = (R_body + 6.0 ρ_s C_s) × I_body
-        E_step = (R_body + 6.0 * rho_s * Cs) * I_body
-
-        return {
-            "E_touch_allowable_V": float(E_touch),
-            "E_step_allowable_V": float(E_step),
-            "Cs_surface_derating": float(Cs),
-            "body_current_A": float(I_body),
             "body_weight_kg": body_weight_kg,
         }
 
@@ -251,10 +218,6 @@ class EarthGridAgent(BaseAgent):
         l_rods = n_rods * rod_length_m  # NOSONAR
         L_M = l_total + l_rods  # Effective buried length
 
-        L_total = n_parallel * grid_length_m + n_cross * grid_width_m
-        L_rods = n_rods * rod_length_m
-        L_M = L_total + L_rods  # Effective buried length
-
         # Mesh spacing factor K_m (IEEE 80 Eq. 67)
         d = conductor_diameter_m
         h = depth_m
@@ -279,22 +242,6 @@ class EarthGridAgent(BaseAgent):
             "n_parallel_conductors": n_parallel,
             "n_cross_conductors": n_cross,
             "mesh_spacing_D_m": D,
-
-        K_i = 0.656 + 0.172 * n_parallel
-
-        # Mesh voltage
-        E_mesh = rho * K_m * K_i * Ig / L_M if L_M > 0 else 0.0
-
-        return {
-            "E_mesh_V": float(E_mesh),
-            "K_m": float(K_m),
-            "K_i": float(K_i),
-            "L_total_conductor_m": float(L_total),
-            "L_rods_m": float(L_rods),
-            "L_effective_m": float(L_M),
-            "n_parallel_conductors": n_parallel,
-            "n_cross_conductors": n_cross,
-            "mesh_spacing_D_m": float(D),
             "grid_length_m": grid_length_m,
             "grid_width_m": grid_width_m,
         }
@@ -353,10 +300,6 @@ class EarthGridAgent(BaseAgent):
         l_rods = n_rods * rod_length_m  # NOSONAR
         L_S = 0.75 * l_total + l_rods  # Effective length for step voltage
 
-        L_total = n_parallel * grid_length_m + n_cross * grid_width_m
-        L_rods = n_rods * rod_length_m
-        L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
-
         # Step voltage geometric factor K_s (IEEE 80-2013 Eq. 71)
         # K_s = (1/π) * [0.5*ln(1 + (D/(2h))^2) + h/D - sqrt(1 + (2h/D)^2) + 1]
         # Guard against division by zero when h=0 or D=0
@@ -368,14 +311,6 @@ class EarthGridAgent(BaseAgent):
                 0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
                 + h / D
                 - np.sqrt(1.0 + two_h_over_d**2)
-
-            K_s = 0.0
-        else:
-            two_h_over_D = 2.0 * h / D
-            K_s = (1.0 / np.pi) * (
-                0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
-                + h / D
-                - np.sqrt(1.0 + two_h_over_D**2)
                 + 1.0
             )
 
@@ -389,16 +324,6 @@ class EarthGridAgent(BaseAgent):
             "K_s": float(K_s),
             "K_i": k_i,
             "L_S_effective_m": L_S,
-
-        K_i = 0.656 + 0.172 * n_parallel
-
-        E_step = rho * K_s * K_i * Ig / L_S if L_S > 0 else 0.0
-
-        return {
-            "E_step_V": float(E_step),
-            "K_s": float(K_s),
-            "K_i": float(K_i),
-            "L_S_effective_m": float(L_S),
             "n_parallel_conductors": n_parallel,
         }
 
@@ -447,15 +372,6 @@ class EarthGridAgent(BaseAgent):
         R_grid = (  # NOSONAR
             rho * (1.0 / (2.0 * np.sqrt(np.pi * a_grid)) + 1.0 / l_total_buried)
             if l_total_buried > 0 and a_grid > 0
-
-        A_grid = grid_length_m * grid_width_m
-        _perimeter = 2.0 * (grid_length_m + grid_width_m)
-        L_total_buried = (2.0 * grid_length_m + 2.0 * grid_width_m) + n_rods * rod_length_m
-
-        # Simplified grid resistance (Laurent formula)
-        R_grid = (
-            rho * (1.0 / (2.0 * np.sqrt(np.pi * A_grid)) + 1.0 / L_total_buried)
-            if L_total_buried > 0 and A_grid > 0
             else 0.0
         )
 
@@ -485,19 +401,6 @@ class EarthGridAgent(BaseAgent):
             "grid_area_m2": a_grid,
             "L_total_buried_m": l_total_buried,
             "E_mesh_V": float(e_mesh),
-
-        E_mesh = mesh_result["E_mesh_V"]
-
-        # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
-        E_touch_perimeter = GPR - E_mesh if GPR > E_mesh else E_mesh
-
-        return {
-            "E_touch_perimeter_V": float(E_touch_perimeter),
-            "GPR_V": float(GPR),
-            "R_grid_ohm": float(R_grid),
-            "grid_area_m2": float(A_grid),
-            "L_total_buried_m": float(L_total_buried),
-            "E_mesh_V": float(E_mesh),
         }
 
     # ------------------------------------------------------------------
@@ -606,11 +509,6 @@ class EarthGridAgent(BaseAgent):
         e_touch_safe = touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]  # NOSONAR
         all_safe = e_mesh_safe and e_step_safe and e_touch_safe
 
-        E_mesh_safe = mesh["E_mesh_V"] <= allowable["E_touch_allowable_V"]
-        E_step_safe = step["E_step_V"] <= allowable["E_step_allowable_V"]
-        E_touch_safe = touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]
-        all_safe = E_mesh_safe and E_step_safe and E_touch_safe
-
         return {
             "mesh_voltage": mesh,
             "step_voltage": step,
@@ -620,10 +518,6 @@ class EarthGridAgent(BaseAgent):
                 "E_mesh_safe": bool(e_mesh_safe),
                 "E_step_safe": bool(e_step_safe),
                 "E_touch_safe": bool(e_touch_safe),
-
-                "E_mesh_safe": bool(E_mesh_safe),
-                "E_step_safe": bool(E_step_safe),
-                "E_touch_safe": bool(E_touch_safe),
                 "all_safe": bool(all_safe),
                 "mesh_utilization": float(mesh["E_mesh_V"] / allowable["E_touch_allowable_V"])
                 if allowable["E_touch_allowable_V"] > 0
@@ -718,11 +612,6 @@ class EarthGridAgent(BaseAgent):
                 "rho_bottom_ohm_m": rho_2_est,
                 "layer_depth_H_m": h_est,
                 "reflection_coefficient_K": (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est),
-
-                "layer_depth_H_m": H_est,
-                "reflection_coefficient_K": float(
-                    (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est)
-                ),
             },
             "average_resistivity_ohm_m": float(np.mean(rho_apparent)),
             "min_resistivity_ohm_m": float(np.min(rho_apparent)),
@@ -738,10 +627,6 @@ class EarthGridAgent(BaseAgent):
         E_mesh_V: float,  # NOSONAR
         E_step_V: float,  # NOSONAR
         E_touch_V: float,  # NOSONAR
-
-        E_mesh_V: float,
-        E_step_V: float,
-        E_touch_V: float,
         rho_s: float,
         rho_b: float,
         hs: float,
@@ -803,33 +688,6 @@ class EarthGridAgent(BaseAgent):
             "E_touch_safe": touch_ok,
             "touch_utilization": (E_touch_V / e_touch_limit) if e_touch_limit > 0 else float("inf"),
             "all_safe": (mesh_ok and step_ok and touch_ok),
-
-        E_touch_limit = allowable["E_touch_allowable_V"]
-        E_step_limit = allowable["E_step_allowable_V"]
-
-        mesh_ok = E_mesh_V <= E_touch_limit
-        step_ok = E_step_V <= E_step_limit
-        touch_ok = E_touch_V <= E_touch_limit
-
-        return {
-            "E_mesh_V": float(E_mesh_V),
-            "E_touch_allowable_V": float(E_touch_limit),
-            "E_mesh_safe": bool(mesh_ok),
-            "mesh_utilization": float(E_mesh_V / E_touch_limit)
-            if E_touch_limit > 0
-            else float("inf"),
-            "E_step_V": float(E_step_V),
-            "E_step_allowable_V": float(E_step_limit),
-            "E_step_safe": bool(step_ok),
-            "step_utilization": float(E_step_V / E_step_limit)
-            if E_step_limit > 0
-            else float("inf"),
-            "E_touch_V": float(E_touch_V),
-            "E_touch_safe": bool(touch_ok),
-            "touch_utilization": float(E_touch_V / E_touch_limit)
-            if E_touch_limit > 0
-            else float("inf"),
-            "all_safe": bool(mesh_ok and step_ok and touch_ok),
             "allowable_limits": allowable,
         }
 

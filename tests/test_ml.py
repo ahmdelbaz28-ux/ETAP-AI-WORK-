@@ -127,14 +127,6 @@ class TestFaultPredictor:
         labels = np.random.randint(
             0, 4, size=50
         )  # NOSONAR numpy.random.Generator migration; API change required
-
-        with pytest.raises(RuntimeError, match="trained"):
-            predictor.predict(np.array([[0.5, 0.1]]))
-
-    def test_feature_importance_after_train(self):
-        predictor = FaultPredictor()
-        features = np.random.randn(50, 4)
-        labels = np.random.randint(0, 4, size=50)
         predictor.train(features, labels)
         importance = predictor.feature_importance()
         assert len(importance) > 0
@@ -206,12 +198,6 @@ class TestAnomalyDetector:
                 [1.0, 1.0],
             ]
         )
-
-        normal = np.array([[1.0, 1.0], [1.1, 1.0], [0.9, 1.0], [1.0, 1.1],
-                           [1.05, 0.95], [0.95, 1.05], [1.02, 0.98], [0.98, 1.02],
-                           [1.1, 1.1], [0.9, 0.9], [1.0, 0.9], [1.0, 1.0],
-                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0],
-                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])
         detector.train(normal)
         test_data = np.array([[1.0, 1.0], [100.0, 100.0]])
         result = detector.detect(test_data)
@@ -263,13 +249,6 @@ class TestAnomalyDetector:
         with pytest.raises(
             ValueError, match="2-D"
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-
-        with pytest.raises(RuntimeError, match="trained"):
-            detector.detect(np.array([[1.0, 2.0]]))
-
-    def test_train_raises_non_2d(self):
-        detector = AnomalyDetector()
-        with pytest.raises(ValueError, match="2-D"):
             detector.train(np.array([1.0, 2.0, 3.0]))
 
     def test_invalid_contamination(self):

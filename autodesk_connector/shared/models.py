@@ -14,11 +14,6 @@ UTC = timezone.utc  # noqa: UP017
 import contextlib
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
 from pydantic import BaseModel, Field
 
 from compat import StrEnum
@@ -180,10 +175,6 @@ class BaseEntity(BaseModel):
     coordinates: Optional[Coordinates] = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     relationships: list[Relationship] = Field(default_factory=list)
-
-    coordinates: Coordinates | None = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    relationships: List[Relationship] = Field(default_factory=list)
     source_system: SourceSystem = SourceSystem.MANUAL
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -195,11 +186,6 @@ class Project(BaseEntity):
     electrical_rooms: list[ElectricalRoom] = Field(default_factory=list)
     panels: list[Panel] = Field(default_factory=list)
     switchboards: list[Switchboard] = Field(default_factory=list)
-
-    buildings: List[Building] = Field(default_factory=list)
-    electrical_rooms: List[ElectricalRoom] = Field(default_factory=list)
-    panels: List[Panel] = Field(default_factory=list)
-    switchboards: List[Switchboard] = Field(default_factory=list)
     base_mva: float = 100.0
     frequency_hz: float = 60.0
     standard: Standard = Standard.IEC
@@ -219,11 +205,6 @@ class Level(BaseEntity):
     rooms: list[Room] = Field(default_factory=list)
     building_id: Optional[str] = None
 
-    elevation_m: float | None = None
-    height_m: float | None = None
-    rooms: List[Room] = Field(default_factory=list)
-    building_id: str | None = None
-
 
 class Room(BaseEntity):
     entity_type: str = "room"
@@ -231,11 +212,6 @@ class Room(BaseEntity):
     volume_m3: Optional[float] = None
     level_id: Optional[str] = None
     electrical_rooms: list[ElectricalRoom] = Field(default_factory=list)
-
-    area_sqm: float | None = None
-    volume_m3: float | None = None
-    level_id: str | None = None
-    electrical_rooms: List[ElectricalRoom] = Field(default_factory=list)
 
 
 class ElectricalRoom(BaseEntity):
@@ -246,13 +222,6 @@ class ElectricalRoom(BaseEntity):
     cable_trays: list[Tray] = Field(default_factory=list)
     clearance_mm: float = 1100
     ventilation_type: Optional[str] = None
-
-    room_id: str | None = None
-    equipment: List[Equipment] = Field(default_factory=list)
-    panels: List[Panel] = Field(default_factory=list)
-    cable_trays: List[Tray] = Field(default_factory=list)
-    clearance_mm: float = 1100
-    ventilation_type: str | None = None
 
 
 class Panel(BaseEntity):
@@ -269,15 +238,6 @@ class Panel(BaseEntity):
     location: Optional[Coordinates] = None
     mounting: Optional[str] = None
     enclosure_type: Optional[str] = None
-
-    main_breaker_a: float | None = None
-    bus_rating_a: float | None = None
-    interrupting_rating_ka: float | None = None
-    feeders: List[BreakerDef] = Field(default_factory=list)
-    feed_from: Relationship | None = None
-    location: Coordinates | None = None
-    mounting: str | None = None
-    enclosure_type: str | None = None
 
 
 class BreakerDef(BaseModel):
@@ -299,13 +259,6 @@ class Switchboard(BaseEntity):
     sections: list[Equipment] = Field(default_factory=list)
     feeders: list[BreakerDef] = Field(default_factory=list)
 
-    voltage_nominal_v: float | None = None
-    bus_rating_a: float | None = None
-    interrupting_rating_ka: float | None = None
-    main_breaker_a: float | None = None
-    sections: List[Equipment] = Field(default_factory=list)
-    feeders: List[BreakerDef] = Field(default_factory=list)
-
 
 class Bus(BaseEntity):
     entity_type: str = "bus"
@@ -324,10 +277,6 @@ class Bus(BaseEntity):
     zone: Optional[str] = None
     area: Optional[str] = None
 
-    substation_id: str | None = None
-    zone: str | None = None
-    area: str | None = None
-
 
 class Transformer(BaseEntity):
     entity_type: str = "transformer"
@@ -344,16 +293,6 @@ class Transformer(BaseEntity):
     phase_shift_deg: float = 0.0
     cooling_type: Optional[str] = None
     vector_group: Optional[str] = None
-
-    primary_voltage_kv: float | None = None
-    secondary_voltage_kv: float | None = None
-    impedance_percent: float | None = None
-    xr_ratio: float | None = None
-    winding_config: str | None = None
-    tap_ratio: float = 1.0
-    phase_shift_deg: float = 0.0
-    cooling_type: str | None = None
-    vector_group: str | None = None
     r1_pu: float = 0.0
     x1_pu: float = 0.0
     r0_pu: float = 0.0
@@ -379,21 +318,6 @@ class Generator(BaseEntity):
     excitation_type: Optional[str] = None
     governor_type: Optional[str] = None
 
-    rated_power_mva: float | None = None
-    rated_power_mw: float
-    power_factor: float = 0.85
-    internal_voltage_pu: float = 1.0
-    xd_percent: float | None = None
-    xd_prime_percent: float | None = None
-    xd_second_percent: float | None = None
-    max_p_mw: float | None = None
-    min_p_mw: float = 0.0
-    max_q_mvar: float | None = None
-    min_q_mvar: float = 0.0
-    fuel_type: str | None = None
-    excitation_type: str | None = None
-    governor_type: str | None = None
-
 
 class Cable(BaseEntity):
     entity_type: str = "cable"
@@ -415,21 +339,6 @@ class Cable(BaseEntity):
     cable_tray_id: Optional[str] = None
     conduit_id: Optional[str] = None
     routing_path: list[Coordinates] = Field(default_factory=list)
-
-    conductor_size_mm2: float | None = None
-    conductor_material: str = "copper"
-    insulation_type: str | None = None
-    voltage_rating_kv: float | None = None
-    ampacity_a: float | None = None
-    r_ohm_per_km: float = 0.0
-    x_ohm_per_km: float = 0.0
-    r0_ohm_per_km: float | None = None
-    x0_ohm_per_km: float | None = None
-    number_of_cores: int = 3
-    installation_method: str | None = None
-    cable_tray_id: str | None = None
-    conduit_id: str | None = None
-    routing_path: List[Coordinates] = Field(default_factory=list)
 
 
 class Load(BaseEntity):
@@ -466,18 +375,6 @@ class Motor(BaseEntity):
     load_inertia_kgm2: Optional[float] = None
     breaker_id: Optional[str] = None
 
-    rated_speed_rpm: float | None = None
-    starting_method: str = "across_the_line"
-    starting_current_multiplier: float = 6.0
-    efficiency_percent: float | None = None
-    power_factor: float = 0.85
-    locked_rotor_current_a: float | None = None
-    full_load_current_a: float | None = None
-    acceleration_time_sec: float | None = None
-    load_type: str | None = None
-    load_inertia_kgm2: float | None = None
-    breaker_id: str | None = None
-
 
 class Breaker(BaseEntity):
     entity_type: str = "breaker"
@@ -494,16 +391,6 @@ class Breaker(BaseEntity):
     feeder_number: Optional[int] = None
     load_id: Optional[str] = None
 
-    voltage_rating_kv: float | None = None
-    poles: int = 3
-    frame_size_a: float | None = None
-    trip_unit_type: str | None = None
-    trip_curve: str = "C"
-    bus_id: str | None = None
-    panel_id: str | None = None
-    feeder_number: int | None = None
-    load_id: str | None = None
-
 
 class Relay(BaseEntity):
     entity_type: str = "relay"
@@ -518,12 +405,6 @@ class Relay(BaseEntity):
     phase_count: int = 3
     function_numbers: list[int] = Field(default_factory=lambda: [50, 51])
 
-    bus_id: str | None = None
-    breaker_id: str | None = None
-    instantaneous_pickup_a: float | None = None
-    phase_count: int = 3
-    function_numbers: List[int] = Field(default_factory=lambda: [50, 51])
-
 
 class ProtectionDevice(BaseEntity):
     entity_type: str = "protection_device"
@@ -535,14 +416,6 @@ class ProtectionDevice(BaseEntity):
     manufacturer: Optional[str] = None
     model: Optional[str] = None
     settings: dict[str, Any] = Field(default_factory=dict)
-
-    rated_voltage_kv: float | None = None
-    continuous_current_a: float | None = None
-    interrupting_current_ka: float | None = None
-    bus_id: str | None = None
-    manufacturer: str | None = None
-    model: str | None = None
-    settings: Dict[str, Any] = Field(default_factory=dict)
 
 
 class Conduit(BaseEntity):
@@ -557,14 +430,6 @@ class Conduit(BaseEntity):
     to_point: Optional[Coordinates] = None
     routing_path: list[Coordinates] = Field(default_factory=list)
 
-    wall_thickness_mm: float | None = None
-    length_m: float
-    fill_percent: float = 0.0
-    cable_ids: List[str] = Field(default_factory=list)
-    from_point: Coordinates | None = None
-    to_point: Coordinates | None = None
-    routing_path: List[Coordinates] = Field(default_factory=list)
-
 
 class Tray(BaseEntity):
     entity_type: str = "tray"
@@ -575,12 +440,6 @@ class Tray(BaseEntity):
     fill_percent: float = 0.0
     cable_ids: list[str] = Field(default_factory=list)
     routing_path: list[Coordinates] = Field(default_factory=list)
-
-    height_mm: float | None = None
-    length_m: float
-    fill_percent: float = 0.0
-    cable_ids: List[str] = Field(default_factory=list)
-    routing_path: List[Coordinates] = Field(default_factory=list)
     supports_interval_m: float = 1.5
     material: str = "steel"
 
@@ -594,13 +453,6 @@ class Equipment(BaseEntity):
     voltage_nominal_v: Optional[float] = None
     weight_kg: Optional[float] = None
     dimensions: dict[str, float] | None = None
-
-    manufacturer: str | None = None
-    model: str | None = None
-    rated_power_kva: float | None = None
-    voltage_nominal_v: float | None = None
-    weight_kg: float | None = None
-    dimensions: Dict[str, float] | None = None
 
 
 class Annotation(BaseEntity):
@@ -670,40 +522,6 @@ class UnifiedEngineeringModel(BaseModel):
     def summary(self) -> dict[str, int]:
         """Return counts of all entity types."""
         counts: dict[str, int] = {
-
-    def get_all_buses(self) -> List[Bus]:
-        """Collect all Bus entities from metadata."""
-        buses: List[Bus] = []
-        for bus_data in self.metadata.get("buses", []):
-            try:
-                buses.append(Bus(**bus_data))
-            except Exception:
-                pass
-        return buses
-
-    def get_all_cables(self) -> List[Cable]:
-        """Collect all Cable entities from metadata."""
-        cables: List[Cable] = []
-        for cable_data in self.metadata.get("cables", []):
-            try:
-                cables.append(Cable(**cable_data))
-            except Exception:
-                pass
-        return cables
-
-    def get_all_transformers(self) -> List[Transformer]:
-        """Collect all Transformer entities from metadata."""
-        transformers: List[Transformer] = []
-        for xf_data in self.metadata.get("transformers", []):
-            try:
-                transformers.append(Transformer(**xf_data))
-            except Exception:
-                pass
-        return transformers
-
-    def summary(self) -> Dict[str, int]:
-        """Return counts of all entity types."""
-        counts: Dict[str, int] = {
             "buildings": len(self.project.buildings),
             "panels": len(self.project.panels),
             "electrical_rooms": len(self.project.electrical_rooms),

@@ -23,12 +23,6 @@ from datetime import datetime, timedelta, timezone
 UTC = timezone.utc  # noqa: UP017
 from email.message import EmailMessage
 from typing import Any, Optional
-
-from datetime import UTC, datetime, timedelta
-
-UTC = UTC
-from email.message import EmailMessage
-from typing import Any, Dict, List, Set
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -333,10 +327,6 @@ class ErrorHandler:
         self._history_map: dict[str, EngineSystemError] = {}
         self._alert_manager: Optional[AlertManager] = None
         self._audit_logger: Optional[logging.Logger] = None
-
-        self._history_map: Dict[str, EngineSystemError] = {}
-        self._alert_manager: AlertManager | None = None
-        self._audit_logger: logging.Logger | None = None
         self._lock = threading.Lock()
         self._logger: logging.Logger = logging.getLogger(__name__)
 
@@ -363,10 +353,6 @@ class ErrorHandler:
         details: Optional[dict] = None,
         exception: Optional[BaseException] = None,
         user_id: Optional[str] = None,
-
-        details: dict | None = None,
-        exception: BaseException | None = None,
-        user_id: str | None = None,
     ) -> EngineSystemError:
         """Record and process an error.
 
@@ -414,11 +400,6 @@ class ErrorHandler:
         severity: Optional[ErrorSeverity] = None,
         limit: int = 100,
     ) -> list[EngineSystemError]:
-
-        component: str | None = None,
-        severity: ErrorSeverity | None = None,
-        limit: int = 100,
-    ) -> List[EngineSystemError]:
         """Query error history with optional filters.
 
         Args:
@@ -765,10 +746,6 @@ def component_guard(
 _handler: Optional[ErrorHandler] = None
 _alert_manager: Optional[AlertManager] = None
 _auto_recovery: Optional[AutoRecoveryManager] = None
-
-_handler: ErrorHandler | None = None
-_alert_manager: AlertManager | None = None
-_auto_recovery: AutoRecoveryManager | None = None
 _lock = threading.Lock()
 
 

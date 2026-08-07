@@ -20,16 +20,6 @@ DB_MAX_OVERFLOW       (PostgreSQL only) — default 20
 DB_POOL_TIMEOUT       (PostgreSQL only) — default 30 (seconds)
 DB_POOL_RECYCLE       (PostgreSQL only) — default 1800 (seconds)
 DB_ECHO               set to "true" to log all SQL statements
-
-Provides the async engine, session factory, declarative base, and a
-convenience ``init_db`` helper used by the FastAPI application at startup.
-
-The database path is controlled via the ``DATABASE_URL`` environment variable
-and defaults to an aiosqlite-backed file at ``./data/etap_platform.db``.
-
-If ``DATABASE_URL`` is set but is not a valid SQLAlchemy connection string
-(e.g. a ``file:`` URL intended for another system), the module falls back
-to the default aiosqlite path so that importing never raises.
 """
 
 from __future__ import annotations
@@ -93,21 +83,6 @@ if _IS_SQLITE:
         "Set DATABASE_URL to a shared PostgreSQL instance in production.",
         _db_path,
     )
-
-# If the env var contains a non-SQLAlchemy URL (e.g. "file:/...") fall back
-# to the default.  Valid SQLAlchemy URLs contain a driver scheme followed by
-# a colon (e.g. "sqlite+aiosqlite:", "postgresql:").
-try:
-    make_url(_raw_db_url)
-    DATABASE_URL: str = _raw_db_url
-except Exception:
-    DATABASE_URL = _DEFAULT_DB_URL
-
-# Ensure the parent directory for the SQLite file exists before the engine
-# attempts to open it.
-_sqlite_file_prefix = "sqlite+aiosqlite:///"
-if DATABASE_URL.startswith(_sqlite_file_prefix):
-    _db_path = DATABASE_URL[len(_sqlite_file_prefix) :]
     _db_dir = os.path.dirname(_db_path)
     if _db_dir:
         os.makedirs(_db_dir, exist_ok=True)
@@ -273,19 +248,6 @@ else:
 # engine reference at construction time.
 
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(
-
-# Async engine & session
-# ---------------------------------------------------------------------------
-
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=False,
-    future=True,
-    # SQLite-specific: allow multi-threaded access via check_same_thread=False
-    connect_args={"check_same_thread": False},
-)
-
-async_session = async_sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
@@ -435,9 +397,3 @@ async def init_db() -> None:
             exc,
         )
         raise
-
-    import api.auth  # noqa: F401  — registers User model
-    import api.projects  # noqa: F401  — registers Project & StudyResult models
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)

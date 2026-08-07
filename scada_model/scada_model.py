@@ -147,11 +147,6 @@ class SCADADatabase:
         self.switch_devices: dict[str, SwitchDevice] = {}
         self.measurement_ttl = measurement_ttl_seconds
         self.measurement_history: dict[str, list[Measurement]] = {}
-
-        self.measurements: Dict[str, Measurement] = {}
-        self.switch_devices: Dict[str, SwitchDevice] = {}
-        self.measurement_ttl = measurement_ttl_seconds
-        self.measurement_history: Dict[str, List[Measurement]] = {}
         self.max_history_per_point = 1000
 
     # --- Measurement Management ---
@@ -181,19 +176,6 @@ class SCADADatabase:
         return [m for m in self.measurements.values() if m.measurement_type == mtype]
 
     def get_latest_voltage(self, bus_id: str) -> Optional[float]:
-
-    def get_measurement(self, measurement_id: str) -> Measurement | None:
-        return self.measurements.get(measurement_id)
-
-    def get_measurements_for_element(self, element_id: str) -> List[Measurement]:
-        """Get all measurements for a given element."""
-        return [m for m in self.measurements.values() if m.element_id == element_id]
-
-    def get_measurements_by_type(self, mtype: MeasurementType) -> List[Measurement]:
-        """Get all measurements of a given type."""
-        return [m for m in self.measurements.values() if m.measurement_type == mtype]
-
-    def get_latest_voltage(self, bus_id: str) -> float | None:
         """Get latest voltage magnitude for a bus."""
         for m in self.measurements.values():
             if m.element_id == bus_id and m.measurement_type == MeasurementType.VOLTAGE_MAGNITUDE:
@@ -247,14 +229,6 @@ class SCADADatabase:
         return [s for s in self.switch_devices.values() if s.is_conducting()]
 
     def get_switches_between(self, element1: str, element2: str) -> list[SwitchDevice]:
-
-    def get_open_switches(self) -> List[SwitchDevice]:
-        return [s for s in self.switch_devices.values() if not s.is_conducting()]
-
-    def get_closed_switches(self) -> List[SwitchDevice]:
-        return [s for s in self.switch_devices.values() if s.is_conducting()]
-
-    def get_switches_between(self, element1: str, element2: str) -> List[SwitchDevice]:
         """Get all switches between two elements."""
         results = []
         for s in self.switch_devices.values():

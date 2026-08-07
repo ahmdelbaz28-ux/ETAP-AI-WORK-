@@ -377,21 +377,6 @@ class EventBus:
         event_type: EventType,
         handler: Callable[[DomainEvent], None],
         priority: int = 0,
-
-    """
-
-    def __init__(self, max_history: int = 10000):
-        self._subscribers: Dict[EventType, List[tuple]] = defaultdict(list)
-        self._wildcard_subscribers: List[tuple] = []
-        self._history: List[DomainEvent] = []
-        self._max_history = max_history
-        self._handler_errors: List[Dict[str, Any]] = []
-        self._publishing = False
-        self._event_queue: List[DomainEvent] = []
-        self._lock = threading.Lock()
-
-    def subscribe(
-        self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0
     ) -> str:
         """
         Subscribe a handler to an event type.
@@ -510,53 +495,6 @@ class EventBus:
             # V-03: Release per-element lock
             if element_lock is not None:
                 element_lock.release()
-
-        Returns:
-        List of exceptions raised by handlers.
-        """
-        with self._lock:
-            self._add_to_history(event)
-            # Take a snapshot of subscribers under the lock
-            wildcard_subs = list(self._wildcard_subscribers)
-            type_subs = list(self._subscribers.get(event.event_type, []))
-
-        errors = []
-
-        # Call wildcard subscribers first
-        for _, _, handler in wildcard_subs:
-            try:
-                handler(event)
-            except Exception as e:
-                errors.append(e)
-                with self._lock:
-                    self._handler_errors.append(
-                        {
-                            "event_id": event.event_id,
-                            "event_type": event.event_type.value,
-                            "handler": str(handler),
-                            "error": str(e),
-                            "timestamp": time.time(),
-                        }
-                    )
-
-        # Call type-specific subscribers
-        for _, _, handler in type_subs:
-            try:
-                handler(event)
-            except Exception as e:
-                errors.append(e)
-                with self._lock:
-                    self._handler_errors.append(
-                        {
-                            "event_id": event.event_id,
-                            "event_type": event.event_type.value,
-                            "handler": str(handler),
-                            "error": str(e),
-                            "timestamp": time.time(),
-                        }
-                    )
-
-        return errors
 
     def _add_to_history(self, event: DomainEvent) -> None:
         """Add event to history with size limit. Caller must hold self._lock."""

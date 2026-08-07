@@ -44,14 +44,6 @@ from compat import StrEnum
 
 _REDACTED_REPLACEMENT = r"\1***REDACTED***"
 
-
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
-
-from compat import StrEnum
-
 # ---------------------------------------------------------------------------
 # Error-code registry
 # ---------------------------------------------------------------------------
@@ -356,10 +348,6 @@ class ETAPPlatformError(Exception):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -401,12 +389,6 @@ class StudyExecutionError(ETAPPlatformError):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        study_type: str | None = None,
-        error_code: ErrorCode = ERR_STUDY_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         ctx = context or {}
         if study_type:
@@ -437,12 +419,6 @@ class SystemValidationError(ETAPPlatformError):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        validation_errors: List[str] | None = None,
-        error_code: ErrorCode = ERR_VALIDATION_001,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         ctx = context or {}
         if validation_errors:
@@ -471,10 +447,6 @@ class AuthenticationError(ETAPPlatformError):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -499,10 +471,6 @@ class RateLimitError(ETAPPlatformError):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         ctx = context or {}
         ctx["retry_after_sec"] = retry_after_sec
@@ -529,10 +497,6 @@ class DatabaseError(ETAPPlatformError):
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
-        cause: Exception | None = None,
     ) -> None:
         super().__init__(
             message=message,
@@ -715,12 +679,6 @@ def _redact_secrets(text: str) -> str:
         (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', _REDACTED_REPLACEMENT),
         (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', _REDACTED_REPLACEMENT),
         (r"(bearer\s+)[\w\-\.]+", _REDACTED_REPLACEMENT),
-
-        (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
-        (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r"\1***REDACTED***"),
-        (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r"\1***REDACTED***"),
-        (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
-        (r"(bearer\s+)[\w\-\.]+", r"\1***REDACTED***"),
     ]
 
     result = text
@@ -930,13 +888,6 @@ class ErrorReport:
     documentation_url: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-
-    context: Dict[str, Any] = field(default_factory=dict)
-    recovery_suggestions: List[Dict[str, str]] = field(default_factory=list)
-    request_id: str | None = None
-    documentation_url: str | None = None
-
-    def to_dict(self) -> Dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         result = {
             "error_code": self.error_code,
@@ -1011,13 +962,6 @@ class ErrorReportGenerator:
                 request_ctx = await builder.build()
                 context["debug"] = request_ctx
 
-            try:
-                builder = ErrorContextBuilder(request=request)
-                request_ctx = await builder.build()
-                context["debug"] = request_ctx
-            except Exception:
-                pass  # Context building must not mask the original error
-
         # Look up recovery suggestions
         suggestions = get_recovery_suggestions(error_code.code)
 
@@ -1043,10 +987,6 @@ class ErrorReportGenerator:
         message: Optional[str] = None,
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
-
-        message: str | None = None,
-        context: Dict[str, Any] | None = None,
-        trace_id: str | None = None,
     ) -> ErrorReport:
         """Build an error report from an error code.
 

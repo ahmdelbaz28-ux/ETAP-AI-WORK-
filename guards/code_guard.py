@@ -197,12 +197,6 @@ class CodeGuard(BaseGuard):
         what_patterns = [
             r"#\s*(Union[increment|decrement|add|remove|set|get|update|delete|check, return])\s",
             r"#\s*(Union[if|else|for|while|try, except])\s",
-
-    def _check_why_not_what_comments(self, source: str) -> List[GuardViolation]:
-        violations: List[GuardViolation] = []
-        what_patterns = [
-            r"#\s*(increment|decrement|add|remove|set|get|update|delete|check|return)\s",
-            r"#\s*(if|else|for|while|try|except)\s",
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
@@ -379,25 +373,6 @@ class CodeGuard(BaseGuard):
         methods (append, extend, update, remove, pop, clear, sort) on
         non-local objects."""
         violations: list[GuardViolation] = []
-
-    def _check_cqs_violations(self, tree: ast.AST, source: str) -> List[GuardViolation]:
-        """Heuristic: functions that both return a value and call mutating
-        methods (append, extend, update, remove, pop, clear, sort) on
-        non-local objects."""
-        violations: List[GuardViolation] = []
-        MUTATING_METHODS = {
-            "append",
-            "extend",
-            "insert",
-            "remove",
-            "pop",
-            "clear",
-            "sort",
-            "reverse",
-            "update",
-            "add",
-            "discard",
-        }
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -416,28 +391,6 @@ class CodeGuard(BaseGuard):
                     if self._is_nonlocal_mutation(obj, node):
                         has_mutation = True
                         mutation_evidence = self._describe_mutation(obj, child.func.attr)
-
-                    and child.func.attr in MUTATING_METHODS
-                ):
-                    # Check if this is a mutation on a non-local object
-                    # self.x.method() or param.method() or external.method()
-                    obj = child.func.value
-                    is_nonlocal = False
-                    if isinstance(obj, ast.Name):
-                        param_names = {
-                            a.arg for a in node.args.args if a.arg not in ("self", "cls")
-                        }
-                        if obj.id in param_names or obj.id == "self":
-                            is_nonlocal = True
-                    elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
-                        if obj.value.id == "self":
-                            is_nonlocal = True
-                    if is_nonlocal:
-                        has_mutation = True
-                        if isinstance(obj, ast.Attribute):
-                            mutation_evidence = f"self.{obj.attr}.{child.func.attr}()"
-                        else:
-                            mutation_evidence = f"{obj.id}.{child.func.attr}()"
 
             if has_return_value and has_mutation:
                 violations.append(
@@ -470,17 +423,6 @@ class CodeGuard(BaseGuard):
             r"#\s*\w+\s*=\s*",  # assignment
             r"#\s*\w+\.\w+\(",  # method call
             r"#\s*print\s*\(",  # NOSONAR
-
-    def _check_commented_out_code(self, source: str) -> List[GuardViolation]:
-        """Detect commented-out code — a sign of speculative or abandoned
-        code that should be removed or properly versioned."""
-        violations: List[GuardViolation] = []
-        # Patterns that suggest commented-out code rather than comments
-        code_patterns = [
-            r"#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
-            r"#\s*\w+\s*=\s*",  # assignment
-            r"#\s*\w+\.\w+\(",  # method call
-            r"#\s*print\s*\(",  # print statement
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()

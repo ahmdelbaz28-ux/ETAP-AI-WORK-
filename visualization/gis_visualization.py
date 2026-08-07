@@ -212,14 +212,6 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Load Flow Results",
         output_path: Optional[str] = None,
-
-    def visualize_load_flow(
-        self,
-        buses: Dict[str, Dict[str, Any]],
-        lines: List[Dict[str, Any]] | None = None,
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        title: str = "Load Flow Results",
-        output_path: str | None = None,
     ) -> Any:
         """Visualize load flow results on a geographic map.
 
@@ -262,11 +254,6 @@ class GISVisualizer:
             color = self._voltage_color(vm)
             va_deg = bus_data.get("voltage_angle", 0.0)
             va_deg = float(va_deg) if isinstance(va_deg, (int, float)) else 0.0
-
-            if isinstance(va_deg, (int, float)):
-                va_deg = float(va_deg)
-            else:
-                va_deg = 0.0
 
             popup = (
                 f"<b>Bus: {bid}</b><br>"
@@ -315,11 +302,6 @@ class GISVisualizer:
         with contextlib.suppress(Exception):
             MarkerCluster().add_to(m)
 
-        try:
-            MarkerCluster().add_to(m)
-        except Exception:
-            pass
-
         return self._save_or_return(m, output_path)
 
     # ------------------------------------------------------------------
@@ -332,11 +314,6 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Voltage Profile Map",
         output_path: Optional[str] = None,
-
-        buses: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        title: str = "Voltage Profile Map",
-        output_path: str | None = None,
     ) -> Any:
         """Visualize voltage profile with color-coded buses and contour overlay."""
         m = self._create_base_map()
@@ -409,12 +386,6 @@ class GISVisualizer:
         fault_type: str = "Three Phase",
         title: str = "Fault Analysis Results",
         output_path: Optional[str] = None,
-
-        fault_currents: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        fault_type: str = "Three Phase",
-        title: str = "Fault Analysis Results",
-        output_path: str | None = None,
     ) -> Any:
         """Visualize fault current magnitudes at each bus.
 
@@ -485,11 +456,6 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Arc Flash Risk Assessment",
         output_path: Optional[str] = None,
-
-        arc_flash_results: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        title: str = "Arc Flash Risk Assessment",
-        output_path: str | None = None,
     ) -> Any:
         """Visualize arc flash incident energy at each bus.
 
@@ -586,11 +552,6 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "Protection Coordination View",
         output_path: Optional[str] = None,
-
-        relay_data: Dict[str, Dict[str, Any]],
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        title: str = "Protection Coordination View",
-        output_path: str | None = None,
     ) -> Any:
         """Visualize protection relay coverage and coordination status."""
         m = self._create_base_map()
@@ -714,16 +675,6 @@ class GISVisualizer:
         bus_coords: dict[str, tuple[float, float]] | None = None,
         title: str = "AhmedETAP Engineering Dashboard",
         output_path: Optional[str] = None,
-
-    def create_dashboard_map(
-        self,
-        load_flow_buses: Dict | None = None,
-        fault_currents: Dict | None = None,
-        arc_flash_results: Dict | None = None,
-        network_geojson: Dict | None = None,
-        bus_coords: Dict[str, Tuple[float, float]] | None = None,
-        title: str = "AhmedETAP Engineering Dashboard",
-        output_path: str | None = None,
     ) -> Any:
         """Create a combined dashboard with multiple data layers.
 

@@ -45,16 +45,6 @@ def _reject_legacy_api_key(api_key: Optional[str]) -> None:
 
 async def _require_auth(  # NOSONAR async function uses sync I/O for compatibility reasons
     legacy_api_key: Optional[str] = Security(api_key_header),
-
-def _reject_legacy_api_key(api_key: str | None) -> None:
-    if api_key:
-        raise HTTPException(
-            status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token."
-        )
-
-
-async def _require_auth(
-    legacy_api_key: str | None = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """
@@ -96,10 +86,6 @@ class StudyResponse(BaseModel):
     data: dict[str, Any]
     warnings: list[str]
     errors: list[str]
-
-    data: Dict[str, Any]
-    warnings: List[str]
-    errors: List[str]
     execution_time: float
 
 

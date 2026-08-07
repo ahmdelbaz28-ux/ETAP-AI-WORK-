@@ -111,16 +111,6 @@ def main() -> int:
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             store = _instantiate(duckdbstore)
 
-        ]
-    )
-
-    last_err: BaseException | None = None
-
-    for spec in candidates:
-        try:
-            DuckDBStore = _try_import(spec)
-            store = _instantiate(DuckDBStore)
-
             # Accessibility checks: accept any of these, depending on implementation.
             ok = False
             for attr in ("connect", "ping", "health_check", "is_connected", "get_connection"):

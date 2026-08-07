@@ -89,13 +89,6 @@ class System:
             ybus[i, j] -= y
             ybus[j, i] -= y
 
-            Ybus[i, i] += y + y_shunt
-            Ybus[j, j] += y + y_shunt
-            # Off-diagonal elements: Ybus[i,j] = Ybus[j,i] = -y (symmetric for real y)
-            # For complex y (e.g., from complex impedance), both off-diagonals are -y
-            Ybus[i, j] -= y
-            Ybus[j, i] -= y
-
         # Add contributions from transformers
         for xf in self.transformers:
             i = bus_index[xf.from_bus.bus_id]
@@ -128,18 +121,6 @@ class System:
                 ybus[i, j] -= y
                 ybus[j, i] -= y
 
-                # Shunt on tapped side (bus i) must be referred through |a|²
-                Ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
-                Ybus[j, j] += y + y_shunt_half
-                Ybus[i, j] -= y / np.conj(a)
-                Ybus[j, i] -= y / a
-            else:
-                # Standard transformer (tap = 1.0, no phase shift)
-                Ybus[i, i] += y + y_shunt_half
-                Ybus[j, j] += y + y_shunt_half
-                Ybus[i, j] -= y
-                Ybus[j, i] -= y
-
         # Add generator impedance contributions to Ybus diagonal
         # For positive sequence with include_gen_impedance=True (fault analysis),
         # generator impedance IS included.
@@ -167,11 +148,6 @@ class System:
 
         self.Ybus_seq[seq] = ybus
         return ybus
-
-                    Ybus[i, i] += y_load
-
-        self.Ybus_seq[seq] = Ybus
-        return Ybus
 
     def get_ybus(self, seq="1"):
         """

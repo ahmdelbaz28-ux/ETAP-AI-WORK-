@@ -175,11 +175,6 @@ def solve_load_flow_sparse(
     branches: list[BranchInput],
     options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-
-    buses: List[BusInput],
-    branches: List[BranchInput],
-    options: Dict[str, Any] | None = None,
-) -> Dict[str, Any]:
     """Solve load flow using the sparse Y-bus Newton-Raphson solver.
 
     This is the primary integration point for the sparse solver.  It
@@ -291,12 +286,6 @@ def solve_load_flow_sparse(
     angles_deg_dict: dict[int, float] = {}
     p_dict: dict[int, float] = {}
     q_dict: dict[int, float] = {}
-
-    voltages_dict: Dict[int, complex] = {}
-    magnitudes_dict: Dict[int, float] = {}
-    angles_deg_dict: Dict[int, float] = {}
-    p_dict: Dict[int, float] = {}
-    q_dict: Dict[int, float] = {}
 
     for i, bd in enumerate(bus_data_list):
         if i < len(result.voltages):

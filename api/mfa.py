@@ -179,25 +179,6 @@ async def setup_totp(
 
         target_user_id = current_user.user_id
 
-Separated from main engineering service for better modularity.
-"""
-
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
-
-router = APIRouter(prefix="/api/v1/auth/mfa", tags=["mfa"])
-
-
-@router.post("/totp/setup")
-async def setup_totp(request: Request):
-    """Set up TOTP-based MFA for a user."""
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    try:
-        body = await request.json()
-        user_id = body.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")
-
         from security.mfa import TOTPProvider
 
         totp = TOTPProvider()
@@ -227,10 +208,6 @@ async def setup_totp(request: Request):
             getLogger("etap.api.mfa").warning(
                 "mfa_auto_enable_failed user=%s err=%s", target_user_id, mfa_enable_err
             )
-
-        secret = totp.generate_secret(user_id)
-        qr_uri = totp.generate_qr_code(user_id, secret)
-        totp.generate_backup_codes(user_id)
 
         return JSONResponse(
             content={
@@ -307,26 +284,6 @@ async def verify_totp(
                     # Lockout expired — clear
                     del _lockouts[target_user_id]
                     _failed_attempts.pop(target_user_id, None)
-
-        logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
-
-
-@router.post("/totp/verify")
-async def verify_totp(request: Request):
-    """Verify a TOTP code for MFA."""
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    try:
-        body = await request.json()
-        user_id = body.get("user_id")
-        code = body.get("code")
-
-        if not user_id:
-            raise HTTPException(status_code=400, detail="user_id is required")
-        if not code:
-            raise HTTPException(status_code=400, detail="code is required")
 
         from security.mfa import TOTPProvider
 

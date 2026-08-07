@@ -23,11 +23,6 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List, Tuple
-
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -155,25 +150,6 @@ class BatteryStorageAgent(BaseAgent):
 
         # Peak shaving result simulation
         shaved_profile = np.maximum(load_profile_kw - p_bess, target_peak_kw)
-
-        E_duration = P_bess * discharge_duration_hours
-
-        # Take the larger of the two energy requirements
-        E_required = max(E_deliverable, E_duration)
-
-        # Apply SOC limits and reserve
-        soc_range = usable_soc_range[1] - usable_soc_range[0]
-        E_total = (
-            E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
-            if soc_range > 0
-            else E_required
-        )
-
-        # Energy rating at nominal conditions (accounting for DoD)
-        E_nominal = E_total / dod_max if dod_max > 0 else E_total
-
-        # Peak shaving result simulation
-        shaved_profile = np.maximum(load_profile_kw - P_bess, target_peak_kw)
         # Where load is below target, BESS may charge
         _charge_available = np.maximum(target_peak_kw - load_profile_kw, 0.0)
         original_peak = float(np.max(load_profile_kw))
@@ -190,11 +166,6 @@ class BatteryStorageAgent(BaseAgent):
             "energy_capacity_kwh": E_total,
             "energy_nominal_kwh": e_nominal,
             "discharge_duration_h": (E_total / p_bess) if p_bess > 0 else 0.0,
-
-            "power_capacity_kw": float(P_bess),
-            "energy_capacity_kwh": float(E_total),
-            "energy_nominal_kwh": float(E_nominal),
-            "discharge_duration_h": float(E_total / P_bess) if P_bess > 0 else 0.0,
             "round_trip_efficiency": round_trip_efficiency,
             "usable_soc_range": list(usable_soc_range),
             "max_dod": dod_max,
@@ -206,14 +177,6 @@ class BatteryStorageAgent(BaseAgent):
             "peak_reduction_pct": peak_reduction_pct,
             "daily_energy_shifted_kwh": daily_energy_shifted,
             "estimated_daily_cycles": daily_cycles,
-
-            "target_peak_kw": float(target_peak_kw),
-            "original_peak_kw": float(original_peak),
-            "new_peak_kw": float(new_peak),
-            "peak_reduction_kw": float(peak_reduction),
-            "peak_reduction_pct": float(peak_reduction_pct),
-            "daily_energy_shifted_kwh": float(daily_energy_shifted),
-            "estimated_daily_cycles": float(daily_cycles),
             "sizing_basis": "peak_shaving",
         }
 
@@ -394,13 +357,6 @@ class BatteryStorageAgent(BaseAgent):
 
         total_charged = float(np.sum(p_charge * dt))
         total_discharged = float(np.sum(p_discharge * dt))
-
-        revenue_discharge = np.sum(P_discharge * dt * energy_prices)
-        cost_charge = np.sum(P_charge * dt * energy_prices)
-        net_revenue = revenue_discharge - cost_charge
-
-        total_charged = float(np.sum(P_charge * dt))
-        total_discharged = float(np.sum(P_discharge * dt))
         equivalent_cycles = total_discharged / bess_energy_kwh if bess_energy_kwh > 0 else 0.0
 
         return {
@@ -415,18 +371,6 @@ class BatteryStorageAgent(BaseAgent):
                 "cost_charge_$": cost_charge,
                 "net_revenue_$": net_revenue,
                 "daily_net_revenue_$": (net_revenue / (n_periods / 24.0)) if n_periods > 0 else 0.0,
-
-                "P_charge_kw": P_charge.tolist(),
-                "P_discharge_kw": P_discharge.tolist(),
-                "soc": soc_history.tolist(),
-            },
-            "financial": {
-                "revenue_discharge_$": float(revenue_discharge),
-                "cost_charge_$": float(cost_charge),
-                "net_revenue_$": float(net_revenue),
-                "daily_net_revenue_$": float(net_revenue / (n_periods / 24.0))
-                if n_periods > 0
-                else 0.0,
             },
             "performance": {
                 "total_charged_kwh": total_charged,
@@ -587,23 +531,6 @@ class BatteryStorageAgent(BaseAgent):
             "project_life_years": project_life_years,
             "degradation_pct_year": degradation_pct_year,
             "salvage_value_$": salvage_value,
-
-            "total_capex_$": float(total_capex),
-            "capex_energy_$": float(capex_energy),
-            "capex_power_$": float(capex_power),
-            "itc_value_$": float(itc_value),
-            "net_capex_$": float(net_capex),
-            "annual_opex_$": float(annual_opex),
-            "annual_revenue_usd": float(annual_revenue_usd),
-            "npv_$": float(npv),
-            "irr_pct": float(irr * 100.0) if irr is not None else None,
-            "simple_payback_years": payback_year if payback_year > 0 else None,
-            "discounted_payback_years": disc_payback_year if disc_payback_year > 0 else None,
-            "lcos_$_kwh": float(lcos),
-            "discount_rate_pct": float(discount_rate * 100.0),
-            "project_life_years": project_life_years,
-            "degradation_pct_year": degradation_pct_year,
-            "salvage_value_$": float(salvage_value),
         }
 
     @staticmethod
@@ -714,13 +641,6 @@ class BatteryStorageAgent(BaseAgent):
         ea = params["Ea_kJmol"]  # NOSONAR
 
         temp_factor = np.exp(ea / R_gas * (1.0 / t_ref - 1.0 / t_op))
-
-        R_gas = 8.314e-3  # kJ/(mol·K)
-        T_ref = 25.0 + 273.15  # K
-        T_op = temperature_C + 273.15  # K
-        Ea = params["Ea_kJmol"]
-
-        temp_factor = np.exp(Ea / R_gas * (1.0 / T_ref - 1.0 / T_op))
         # Higher temperature → faster degradation → temp_factor < 1 means reduced life
         temp_factor_life = 1.0 / temp_factor if temp_factor > 0 else 1.0
 
@@ -774,17 +694,6 @@ class BatteryStorageAgent(BaseAgent):
 
     @staticmethod
     def _rainflow_count(signal: np.ndarray) -> dict[float, float]:
-
-            "remaining_calendar_years": float(remaining_calendar_years),
-            "estimated_remaining_life_years": float(estimated_total_life_years),
-            "limiting_factor": "cycles"
-            if cycle_life_years < remaining_calendar_years
-            else "calendar",
-            "eol_capacity_pct": float(eol_capacity_pct),
-        }
-
-    @staticmethod
-    def _rainflow_count(signal: np.ndarray) -> Dict[float, int]:
         """
         Simplified rainflow cycle counting.
 
@@ -1037,15 +946,6 @@ class BatteryStorageAgent(BaseAgent):
         cycle = result.data.get("cycle_life")
         if cycle is not None and cycle.get("cycle_utilization_pct", 0) > 100:
             errors.append("Cycle utilization exceeds 100% — battery end of life")
-
-        if roi is not None:
-            if roi.get("npv_$", 0) < -1e9:
-                errors.append("NPV is extremely negative — check financial inputs")
-
-        cycle = result.data.get("cycle_life")
-        if cycle is not None:
-            if cycle.get("cycle_utilization_pct", 0) > 100:
-                errors.append("Cycle utilization exceeds 100% — battery end of life")
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

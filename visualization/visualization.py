@@ -61,11 +61,6 @@ class Visualizer:
             current_range[0], current_range[1], points
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         currents = i_multiples * Ip
-
-            fig, ax = plt.subplots()
-        Ip = relay.Ip
-        I_multiples = np.linspace(current_range[0], current_range[1], points)
-        currents = I_multiples * Ip
         times = []
         for I in currents:
             t = relay.trip_time(I)

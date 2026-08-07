@@ -254,11 +254,6 @@ class IEEE1584Database:
             ratio = V_ref / v_enc
             CF = ratio**0.1
         elif v_enc < V_ref * 0.5:
-
-        if V_enc > V_ref:
-            ratio = V_ref / V_enc
-            CF = ratio**0.1
-        elif V_enc < V_ref * 0.5:
             CF = 1.1  # cap at 10% increase for very small enclosures
         else:
             CF = 1.0
@@ -296,14 +291,6 @@ class IEEE1584Database:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return iarc
-
-        Ibf = bolted_fault_current_ka
-        k1, k2, k3 = IEEE1584Database.get_arc_current_coefficients(voltage_kv, electrode_config)
-
-        log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf
-        Iarc = 10**log_Iarc
-
-        return Iarc
 
     @staticmethod
     def calculate_reduced_arc_current(arc_current_ka):
@@ -347,15 +334,6 @@ class IEEE1584Database:
             voltage_kv,
             electrode_config,
             enclosure_type,
-
-        Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
-        )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
-
-        # Get coefficients
-        k1, k2, k3, x_factor = IEEE1584Database.get_incident_energy_coefficients(
-            voltage_kv, electrode_config, enclosure_type
         )
 
         # Enclosure correction
@@ -388,22 +366,6 @@ class IEEE1584Database:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return e_final, e_full, e_reduced, CF
-
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
-        )
-
-        # Calculate at full arc current
-        log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        E_full = (10**log_E) * arc_duration_sec * CF / (working_distance_mm**x_factor)
-
-        # Calculate at reduced arc current
-        log_E_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        E_reduced = (10**log_E_red) * arc_duration_sec * CF / (working_distance_mm**x_factor)
-
-        # Use the higher value
-        E_final = max(E_full, E_reduced)
-
-        return E_final, E_full, E_reduced, CF
 
     @staticmethod
     def calculate_arc_flash_boundary(
@@ -464,35 +426,6 @@ class IEEE1584Database:
             db_reduced = float("inf")
 
         return max(db_full, db_reduced)
-
-        Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
-        )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
-
-        k1, k2, k3, x_factor = IEEE1584Database.get_boundary_coefficients(
-            voltage_kv, electrode_config, enclosure_type
-        )
-
-        CF = IEEE1584Database.calculate_enclosure_correction(
-            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
-        )
-
-        # Boundary at full arc current
-        log_Db = k1 + k2 * np.log10(Iarc) + k3 * Iarc
-        if x_factor != 0:
-            Db_full = ((10**log_Db) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
-        else:
-            Db_full = float("inf")
-
-        # Boundary at reduced arc current
-        log_Db_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
-        if x_factor != 0:
-            Db_reduced = ((10**log_Db_red) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
-        else:
-            Db_reduced = float("inf")
-
-        return max(Db_full, Db_reduced)
 
     @staticmethod
     def determine_ppe_level(incident_energy):
@@ -555,14 +488,6 @@ class IEEE1584Database:
             e_reduced,
             CF,
         ) = IEEE1584Database.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        Iarc = IEEE1584Database.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, electrode_config
-        )
-        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
-
-        # Incident energy
-        E_final, E_full, E_reduced, CF = IEEE1584Database.calculate_incident_energy(
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -600,14 +525,6 @@ class IEEE1584Database:
             arc_flash_boundary_in=round(D_boundary / 25.4, 1),
             arc_current_ka=round(iarc, 4),
             reduced_arc_current_ka=round(iarc_reduced, 4),
-
-            incident_energy_cal_cm2=round(E_final, 4),
-            incident_energy_full_arc=round(E_full, 4),
-            incident_energy_reduced_arc=round(E_reduced, 4),
-            arc_flash_boundary_mm=round(D_boundary, 1),
-            arc_flash_boundary_in=round(D_boundary / 25.4, 1),
-            arc_current_ka=round(Iarc, 4),
-            reduced_arc_current_ka=round(Iarc_reduced, 4),
             method="IEEE 1584-2018",
             electrode_configuration=electrode_config.value,
             enclosure_type=enclosure_type.value,

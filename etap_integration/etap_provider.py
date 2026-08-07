@@ -64,11 +64,6 @@ class ETAPResult:
         errors: list[str],
         execution_time: float = 0.0,
         is_simulated: bool = False,
-
-        data: Dict[str, Any],
-        warnings: List[str],
-        errors: List[str],
-        execution_time: float = 0.0,
     ):
         self.success = success
         self.data = data
@@ -188,13 +183,6 @@ class RemoteEtapProvider(IEtapProvider):
     def __init__(self, worker_url: str, api_key: str):
         self.use_etap = _is_etap_enabled()
 
-    CIRCUIT_BREAKER_THRESHOLD = 5  # consecutive failures before opening
-    CIRCUIT_BREAKER_RESET_SECONDS = 60  # seconds before trying again
-
-    def __init__(self, worker_url: str, api_key: str):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
-
         if not self.use_etap:
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
@@ -209,40 +197,6 @@ class RemoteEtapProvider(IEtapProvider):
         self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker(
             "etap_remote", failure_threshold=5, recovery_timeout=60.0
         )
-
-        self._consecutive_failures = 0
-        self._circuit_open_until = 0.0
-
-    def _is_circuit_open(self) -> bool:
-        """Check if the circuit breaker is currently open."""
-        if not self.use_etap:
-            return True  # Consider circuit open if ETAP is disabled
-        if self._consecutive_failures < self.CIRCUIT_BREAKER_THRESHOLD:
-            return False
-        if time.time() < self._circuit_open_until:
-            return True
-        # Circuit has expired, allow a probe request (half-open)
-        logger.info("RemoteEtapProvider circuit breaker transitioning to HALF_OPEN")
-        return False
-
-    def _record_success(self) -> None:
-        """Reset circuit breaker on successful call."""
-        if self._consecutive_failures > 0:
-            logger.info("RemoteEtapProvider circuit breaker reset to CLOSED after success")
-        self._consecutive_failures = 0
-        self._circuit_open_until = 0.0
-
-    def _record_failure(self) -> None:
-        """Record a failure and open circuit if threshold exceeded."""
-        self._consecutive_failures += 1
-        if self._consecutive_failures >= self.CIRCUIT_BREAKER_THRESHOLD:
-            self._circuit_open_until = time.time() + self.CIRCUIT_BREAKER_RESET_SECONDS
-            logger.warning(
-                "RemoteEtapProvider circuit breaker OPEN after %d consecutive failures. "
-                "Will retry after %d seconds.",
-                self._consecutive_failures,
-                self.CIRCUIT_BREAKER_RESET_SECONDS,
-            )
 
     def is_available(self) -> bool:
         if not self.use_etap:
@@ -557,12 +511,6 @@ class NullEtapProvider(IEtapProvider):
 
     def __init__(self):
         self.use_etap = _is_etap_enabled()
-
-    """Fallback provider when no ETAP is available."""
-
-    def __init__(self):
-        # Check if ETAP functionality is enabled via environment variable
-        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
         if self.use_etap:
             logger.info("Null ETAP provider - ETAP is enabled but no provider available")
 

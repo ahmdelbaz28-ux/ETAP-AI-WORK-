@@ -197,16 +197,6 @@ class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
                     status_code=413,
                     content={"detail": "Request body too large"},
                 )
-
-_MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "1_048_576"))
-
-
-class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.method in ("POST", "PUT", "PATCH"):
-            content_length = request.headers.get("content-length")
-            if content_length and int(content_length) > _MAX_BODY_SIZE:
-                raise HTTPException(status_code=413, detail="Request body too large")
         return await call_next(request)
 
 
@@ -238,12 +228,6 @@ _rate_limit_fallback_store: _OrderedDict[str, list[float]] = _OrderedDict()
 _rate_limit_fallback_lock = _threading.Lock()
 _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
 
-_rate_limit_fallback_store: Dict[str, List[float]] = {}
-_rate_limit_fallback_lock = _threading.Lock()
-_RATE_LIMIT_MAX_ENTRIES = int(
-    os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000")
-)
-
 try:
     import redis.asyncio as redis_async  # type: ignore
 except Exception:  # pragma: no cover
@@ -273,15 +257,6 @@ async def _check_rate_limit(client_id: str) -> bool:
             # entries on every request once the cap was crossed — see PR-02.
             while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
                 _rate_limit_fallback_store.popitem(last=False)
-
-            if len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
-                stale = [
-                    cid
-                    for cid, timestamps in _rate_limit_fallback_store.items()
-                    if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
-                ]
-                for cid in stale:
-                    del _rate_limit_fallback_store[cid]
 
             timestamps = _rate_limit_fallback_store.get(client_id)
             if not timestamps:
@@ -349,10 +324,6 @@ async def trace_middleware(  # NOSONAR
 
         # Rate limiting — skip for health endpoints
         if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
-
-        if not request.url.path.startswith(
-            ("/health", "/ready", "/healthz", "/readyz")
-        ):
             _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
             if _TRUSTED_PROXIES:
                 _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
@@ -364,12 +335,6 @@ async def trace_middleware(  # NOSONAR
                     client_id = request.client.host
                 else:
                     client_id = "unknown"
-
-                client_id = (
-                    xff
-                    if proxy_ip in _trusted_list and xff
-                    else (request.client.host if request.client else "unknown")
-                )
             else:
                 client_id = request.client.host if request.client else "unknown"
             if not await _check_rate_limit(client_id):
@@ -404,49 +369,6 @@ class ReadyResponse(BaseModel):
 
 
 # Study validation endpoint is now handled by the validation router in api/validation.py
-
-# @app.head("/health")
-# @app.get("/health", response_model=HealthResponse)
-# async def health():
-#     return HealthResponse(status="ok", timestamp=str(time.time()))
-#
-#
-# @app.head("/ready")
-# @app.get("/ready", response_model=ReadyResponse)
-# async def ready():
-#     return ReadyResponse(status="ok", timestamp=str(time.time()))
-#
-#
-# @app.get("/metrics")
-# async def metrics():
-#     return Response(content=generate_metrics(), media_type=get_metrics_content_type())
-#
-#
-# @app.get("/prometheus/metrics")
-# async def prometheus_metrics():
-#     return Response(content=generate_metrics(), media_type="text/plain")
-
-# Main study execution endpoint is now handled by studies router
-# See api/studies.py for implementation
-# @app.post("/api/v1/studies/run", response_model=StudyResult)
-# async def run_study(study_request: StudyRequest, request: Request):
-#     _require_api_key(request)
-#
-#     trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
-#     start_time = time.perf_counter()
-#
-#     # Execute the study with proper arguments
-#     result = execute_study_logic(study_request, trace_id=trace_id, start_time=start_time)
-#     return result
-
-
-# Study validation endpoint
-@app.post("/api/v1/system/validate")
-async def validate_system(system_spec: SystemSpec, request: Request):
-    _require_api_key(request)
-
-    # Validate the system specification
-    return {"status": "validated", "valid": True}
 
 
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
@@ -493,38 +415,6 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         raise HTTPException(
             status_code=500, detail="Celery is not available for async processing"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-
-# Import celery components for async task support inside the functions to avoid startup errors
-def get_celery_components():
-    """Lazy loading of Celery components to avoid import errors during startup."""
-    try:
-        # Use importlib to dynamically import to avoid Pylance static analysis issues
-        import importlib
-
-        celery_result_module = importlib.import_module('celery.result')
-        AsyncResult = celery_result_module.AsyncResult
-
-        worker_tasks_module = importlib.import_module('worker.tasks')
-        execute_engineering_study_task = worker_tasks_module.execute_engineering_study_task
-
-        worker_celery_app_module = importlib.import_module('worker.celery_app')
-        celery_app = worker_celery_app_module.app
-
-        return AsyncResult, execute_engineering_study_task, celery_app
-    except ImportError as e:
-        logger.warning(f"Celery not available: {e}")
-        return None, None, None
-
-
-@app.post('/api/v1/studies/run_async')
-async def run_study_async(study_request: StudyRequest, request: Request):
-    """Execute an engineering study asynchronously using Celery."""
-    _require_api_key(request)  # Add authentication check
-
-    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-
-    if not execute_engineering_study_task:
-        raise HTTPException(status_code=500, detail="Celery is not available for async processing")
 
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
@@ -598,62 +488,6 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
 @app.websocket("/ws/scada/live")
 async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
-
-        task = execute_engineering_study_task.delay({
-            'study_type': study_request.study_type,
-            'data': study_request.model_dump(),
-            'request_timestamp': str(time.time())
-        })
-
-        logger.info(f'Started async study execution with task_id: {task.id}')
-
-        return {
-            'task_id': task.id,
-            'status': 'accepted',
-            'study_type': study_request.study_type,
-            'submitted_at': str(time.time())
-        }
-    except Exception as e:
-        logger.error(f'Error submitting async study: {str(e)}')
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-@app.get('/api/v1/studies/task_status/{task_id}')
-async def get_task_status(task_id: str, request: Request):
-    """Get the status of an async study task."""
-    _require_api_key(request)  # Add authentication check
-
-    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
-
-    if not CeleryAsyncResult or not celery_app:
-        raise HTTPException(status_code=500, detail="Celery is not available")
-
-    try:
-        # Using the retrieved AsyncResult class to create an instance
-        task_result = CeleryAsyncResult(str(task_id), app=celery_app)
-
-        response = {
-            'task_id': task_id,
-            'status': task_result.status,
-            'result': None
-        }
-
-        if task_result.ready():
-            if task_result.successful():
-                response['result'] = task_result.result
-            elif task_result.failed():
-                response['error'] = str(task_result.info)
-
-        # If task is in progress, get progress info
-        if task_result.status == 'PROGRESS':
-            response['meta'] = task_result.info
-
-        return response
-    except Exception as e:
-        logger.error(f'Error getting task status: {str(e)}')
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-@app.websocket('/ws/scada/live')
-async def websocket_scada_endpoint_handler(websocket: WebSocket):
     """WebSocket endpoint for real-time SCADA data streaming."""
     # Perform API key authentication for WebSocket connection
     try:
@@ -773,17 +607,6 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
             "x-active-model",
             "x-csrf-token",
         ],
-
-            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production."
-        )
-    _cors_origin_list = []  # No origins allowed = restrictive by default
-    # Don't allow credentials when no origins are configured
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=_cors_origin_list,
-        allow_credentials=False,  # Don't allow credentials with empty origin list
-        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
         expose_headers=["x-trace-id"],
     )
 else:
@@ -852,15 +675,6 @@ except Exception as _sec_exc:
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-
-        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
-        expose_headers=["x-trace-id"],
-    )
-app.add_middleware(_BodySizeLimitMiddleware)
-
-# Global exception handler to prevent raw exception exposure
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
     """
     Global exception handler to prevent raw exception exposure in production.
     Logs the full exception server-side but returns a generic response to clients.
@@ -1339,19 +1153,3 @@ async def benchmark(request: Request):
     if not numpy_ok:
         result["data"]["numpy_error"] = "numpy unavailable" if numpy_err is not None else None
     return result
-
-            "error": "Internal server error",
-            "message": "An unexpected error occurred. Please contact support if the issue persists.",
-            "trace_id": getattr(request.state, "trace_id", "unknown")
-        }
-    )
-
-# Module-level shared instances for digital twin endpoint
-_shared_state_store = None
-_shared_event_bus = None
-_shared_validation_gateway = None
-
-# Register only the routers that exist
-app.include_router(health_router)
-app.include_router(studies_router)
-app.include_router(agents_router)

@@ -31,13 +31,6 @@ UTC = timezone.utc  # noqa: UP017
 from enum import Enum
 from pathlib import Path
 
-from datetime import UTC, datetime, timedelta
-
-UTC = UTC
-from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Set
-
 import bcrypt
 import jwt
 from cryptography.fernet import Fernet
@@ -214,11 +207,6 @@ class AuthenticationManager:
         # V-50: Thread safety lock for shared state
         self._lock = threading.Lock()
 
-        self.users: Dict[str, User] = {}
-        self.sessions: Dict[str, Session] = {}
-        self.username_to_id: Dict[str, str] = {}
-        self.token_to_session: Dict[str, Session] = {}
-
         # Fernet key: prefer dedicated FERNET_ENCRYPTION_KEY env var
         # Derive from JWT secret only as a fallback (not recommended for production)
         _fernet_key_env = os.environ.get("FERNET_ENCRYPTION_KEY")
@@ -357,79 +345,6 @@ class AuthenticationManager:
             "role": user.role.value,
             "jti": str(_uuid.uuid4()),  # JWT ID for revocation/blacklisting (was missing)
             "type": "access",  # Token type claim (was missing)
-
-        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
-    ) -> User | None:
-        if username in self.username_to_id:
-            logger.warning(f"Username '{username}' already exists")
-            return None
-
-        # Password strength validation
-        if len(password) < 8:
-            logger.warning("Password too short (minimum 8 characters)")
-            return None
-        _common_passwords = ("password", "12345678", "qwerty123")
-        if password.lower() in _common_passwords or password.lower() == username.lower():
-            logger.warning("Password is too common or matches username")
-            return None
-
-        user_id = secrets.token_hex(16)
-        password_hash = self._hash_password(password)
-
-        user = User(
-            user_id=user_id, username=username, email=email, role=role, password_hash=password_hash
-        )
-
-        self.users[user_id] = user
-        self.username_to_id[username] = user_id
-
-        logger.info(f"User created: {username} (role={role.value})")
-        return user
-
-    def authenticate(self, username: str, password: str) -> str | None:
-        user_id = self.username_to_id.get(username)
-        if not user_id:
-            logger.warning("Authentication failed: invalid credentials")
-            return None
-
-        user = self.users[user_id]
-
-        if user.locked_until and datetime.now(UTC) < user.locked_until:
-            logger.warning("Authentication failed: account locked")
-            return None
-
-        if not self._verify_password(password, user.password_hash):
-            user.failed_login_attempts += 1
-
-            if user.failed_login_attempts >= self.max_failed_attempts:
-                user.locked_until = datetime.now(UTC) + timedelta(
-                    minutes=self.lockout_duration_minutes
-                )
-                logger.warning("Account locked: too many failed attempts")
-
-            return None
-
-        user.failed_login_attempts = 0
-        user.locked_until = None
-        user.last_login = datetime.now(UTC)
-
-        token = self._generate_token(user)
-
-        session_id = secrets.token_hex(16)
-        session = Session(session_id=session_id, user_id=user_id, token=token)
-        self.sessions[session_id] = session
-        self.token_to_session[token] = session
-
-        logger.info(f"User authenticated: {username}")
-        return token
-
-    def _generate_token(self, user: User) -> str:
-        """Generate JWT token for user."""
-        now = datetime.now(UTC)
-        payload = {
-            "user_id": user.user_id,
-            "username": user.username,
-            "role": user.role.value,
             "exp": now + timedelta(hours=self.token_expiry_hours),
             "iat": now,
         }
@@ -478,40 +393,6 @@ class AuthenticationManager:
                 return True
             return False
 
-    def validate_token(self, token: str) -> User | None:
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
-        session = self.token_to_session.get(token)
-        if not session or not session.is_valid or datetime.now(UTC) >= session.expires_at:
-            return None
-
-        user = self.users.get(session.user_id)
-        if not user or not user.is_active:
-            return None
-
-        try:
-            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
-            if payload["user_id"] != user.user_id:
-                return None
-        except jwt.ExpiredSignatureError:
-            session.is_valid = False
-            return None
-        except jwt.InvalidTokenError:
-            return None
-
-        return user
-
-    def logout(self, token: str) -> bool:
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
-        session = self.token_to_session.pop(token, None)
-        if session:
-            session.is_valid = False
-            self.sessions.pop(session.session_id, None)
-            logger.info(f"User logged out: {session.user_id}")
-            return True
-        return False
-
     def encrypt_secret(self, secret: str) -> str:
         """Encrypt a secret value using Fernet."""
         return self.cipher.encrypt(secret.encode()).decode()
@@ -540,20 +421,6 @@ class AuthenticationManager:
             if expired_tokens:
                 logger.info("Cleaned up %d expired sessions", len(expired_tokens))
             return len(expired_tokens)
-
-        now = datetime.now(UTC)
-        expired_tokens = [
-            token
-            for token, session in self.token_to_session.items()
-            if not session.is_valid or now >= session.expires_at
-        ]
-        for token in expired_tokens:
-            session = self.token_to_session.pop(token, None)
-            if session:
-                self.sessions.pop(session.session_id, None)
-        if expired_tokens:
-            logger.info("Cleaned up %d expired sessions", len(expired_tokens))
-        return len(expired_tokens)
 
 
 class AuthorizationManager:
@@ -702,42 +569,6 @@ class InputValidator:
             if InputValidator._check_imports(node, allowed_imports):
                 return False
             if InputValidator._check_forbidden_calls_and_attrs(node):
-
-            if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
-                logger.warning(f"Forbidden AST node type: {type(node).__name__}")
-                return False
-
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                if isinstance(node, ast.Import):
-                    for alias in node.names:
-                        module = alias.name.split(".")[0]
-                        if module not in allowed_imports:
-                            logger.warning(f"Unauthorized import: {module}")
-                            return False
-                elif isinstance(node, ast.ImportFrom):
-                    if node.module:
-                        module = node.module.split(".")[0]
-                        if module not in allowed_imports:
-                            logger.warning(f"Unauthorized import: {module}")
-                            return False
-
-            if isinstance(node, ast.Call):
-                func = node.func
-                if isinstance(func, ast.Name) and func.id in InputValidator.FORBIDDEN_CALLS:
-                    logger.warning(f"Forbidden function call: {func.id}")
-                    return False
-                if isinstance(func, ast.Attribute):
-                    if func.attr in InputValidator.FORBIDDEN_ATTRS:
-                        logger.warning(f"Forbidden attribute access: {func.attr}")
-                        return False
-
-            if isinstance(node, ast.Attribute):
-                if node.attr in InputValidator.FORBIDDEN_ATTRS:
-                    logger.warning(f"Forbidden attribute access: {node.attr}")
-                    return False
-
-            if isinstance(node, ast.Name) and node.id in InputValidator.FORBIDDEN_CALLS:
-                logger.warning(f"Forbidden name reference: {node.id}")
                 return False
 
         return True
@@ -854,10 +685,6 @@ class InputValidator:
             if min_val is not None and num < min_val:
                 return False
             return not (max_val is not None and num > max_val)
-
-            if max_val is not None and num > max_val:
-                return False
-            return True
         except (ValueError, TypeError):
             return False
 

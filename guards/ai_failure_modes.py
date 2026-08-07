@@ -495,13 +495,6 @@ class AIFailureModeDetector:
             return violations
 
         imported_names: dict[str, tuple[int, str]] = {}  # name -> (line, module)
-
-    def _detect_unused_imports(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        violations: List[GuardViolation] = []
-        if tree is None:
-            return violations
-
-        imported_names: Dict[str, Tuple[int, str]] = {}  # name -> (line, module)
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -616,11 +609,6 @@ class AIFailureModeDetector:
     ) -> list[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: list[GuardViolation] = []
-
-        self, tree: ast.AST | None, source: str
-    ) -> List[GuardViolation]:
-        """Heuristic: functions over 50 lines are likely doing more than specified."""
-        violations: List[GuardViolation] = []
         if tree is None:
             return violations
 
@@ -782,10 +770,6 @@ class AIFailureModeDetector:
         _source: str,  # NOSONAR
         context: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
-
-    def _detect_hallucinated_api(
-        self, tree: ast.AST | None, source: str, context: Dict[str, Any] | None
-    ) -> List[GuardViolation]:
         """Detect imports of packages that are not in the known-packages set.
 
         Uses a curated list of standard-library and common third-party packages.
@@ -980,25 +964,6 @@ class AIFailureModeDetector:
                             evidence=f"from {node.module} import ...",
                         ),
                     )
-
-                            )
-                        )
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    top_level = node.module.split(".")[0]
-                    if top_level not in known:
-                        violations.append(
-                            GuardViolation(
-                                rule_id="FM-03",
-                                rule_name="Hallucinated API or package",
-                                severity=GuardSeverity.MUST_FIX,
-                                description=f"From-import from '{node.module}' is not in the known-packages list. "
-                                "This may be a hallucinated package.",
-                                location=f"line {node.lineno}",
-                                suggestion="Verify the package exists. If legitimate, add to 'known_packages'.",
-                                evidence=f"from {node.module} import ...",
-                            )
-                        )
         return violations
 
     # ------------------------------------------------------------------
@@ -1079,10 +1044,6 @@ class AIFailureModeDetector:
         tree: Optional[ast.AST],
         source: str,
     ) -> list[GuardViolation]:
-
-    def _detect_unverified_import_side_effects(
-        self, tree: ast.AST | None, source: str
-    ) -> List[GuardViolation]:
         """Detect bare imports used only for side effects without verification.
 
         Pattern: ``import foo`` where ``foo`` is never referenced by name in
@@ -1119,11 +1080,6 @@ class AIFailureModeDetector:
                 or isinstance(node, ast.Subscript)
                 and isinstance(node.value, ast.Name)
             ):
-
-            elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
-                used_names.add(node.value.id)
-            # Also capture names used in type annotations
-            elif isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
                 used_names.add(node.value.id)
 
         # Find imports that are never used by name (side-effect-only)

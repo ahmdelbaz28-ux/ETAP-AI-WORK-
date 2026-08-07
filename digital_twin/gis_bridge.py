@@ -19,15 +19,6 @@ Asset Mapping:
   Switch Union[Point, Switch/Breaker]
   Load Area Union[Polygon, Load]
   Generator Union[Point, Generator]
-
-  GIS Object        | Electrical Object
-  ------------------|------------------
-  Substation Point  | Bus (slack/pv)
-  Transformer Point | Transformer
-  Feeder LineString | Line
-  Switch Point      | Switch/Breaker
-  Load Area Polygon | Load
-  Generator Point   | Generator
 """
 
 from __future__ import annotations
@@ -318,21 +309,6 @@ class GISSyncBridge:
                 self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
     def _upsert_load(self, load_id: str, _coords: Optional[tuple], props: dict) -> None:
-
-    def _upsert_switch(self, switch_id: str, coords: tuple | None) -> None:
-        """Register a switch in the digital twin."""
-        if self.dt_state.adms is not None:
-            if hasattr(self.dt_state.adms, "topology") and hasattr(
-                self.dt_state.adms.topology, "switches"
-            ):
-                if switch_id not in self.dt_state.adms.topology.switches:
-                    buses = list(self.dt_state.system.buses.keys()) if self.dt_state.system else []
-                    if len(buses) >= 2:
-                        bus1 = str(buses[0])
-                        bus2 = str(buses[-1])
-                        self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
-
-    def _upsert_load(self, load_id: str, coords: tuple | None, props: Dict) -> None:
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Optional
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -15,75 +15,6 @@ from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
-
-
-# ---------------------------------------------------------------------------
-# Internal study registry
-# ---------------------------------------------------------------------------
-# ``run_study`` is a thin JSON adapter at the external seam (HTTP API, MCP,
-# AI agents, CLI, automation). It dispatches on ``study_type`` via this
-# module-private registry and delegates to the typed study methods. The
-# registry is an internal implementation detail and is NOT exported from
-# ``engine/__init__.py``.
-#
-# Each entry maps a ``study_type`` string to a ``_StudySpec``:
-# ``(required_kwargs, method_name)``.
-#
-#   - ``required_kwargs`` is the tuple of keyword names that must be present
-#     in ``kwargs`` for that study type (mirroring the current inline
-#     validation).
-#   - ``method_name`` is the string name of the bound typed method to call
-#     (e.g. ``"run_arc_flash"``), resolved via ``getattr(self, method_name)``
-#     at call time to avoid module-level binding to ``self``.
-#
-# This is the single source of truth for the one-to-one study_type to
-# typed-method mapping.
-
-# NOTE: These aliases are evaluated at runtime (they are module-level
-# assignments, not annotations), so they must use ``typing.Dict``/``typing.Tuple``
-# rather than PEP 585 builtin generics (``dict[...]``/``tuple[...]``), which are
-# only subscriptable at runtime on Python 3.9+. The project supports Python 3.8
-# at runtime (see the CI/worker images), so runtime-safe generics are required.
-_StudyHandler = Callable[..., Dict[str, Any]]
-_StudySpec = Tuple[Tuple[str, ...], str]
-
-_STUDY_REGISTRY: Dict[str, _StudySpec] = {
-    "load_flow": ((), "run_load_flow"),
-    "short_circuit": (("bus_id",), "run_fault_analysis"),
-    "protection_coordination": (
-        ("upstream_relay_id", "downstream_relay_id", "fault_currents"),
-        "run_protection_coordination",
-    ),
-    "arc_flash": (
-        ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm"),
-        "run_arc_flash",
-    ),
-}
-
-
-def _validate_study_kwargs(
-    required: tuple[str, ...], kwargs: dict[str, Any], study_type: str
-) -> None:
-    """Raise the exact ValueError messages the current inline validation
-    produces, so the registry entries stay declarative and the messages stay
-    byte-identical."""
-    if study_type == "short_circuit":
-        if kwargs.get("bus_id") is None:
-            raise ValueError("bus_id must be provided for fault study")
-    elif study_type == "protection_coordination":
-        upstream_relay_id = kwargs.get("upstream_relay_id")
-        downstream_relay_id = kwargs.get("downstream_relay_id")
-        fault_currents = kwargs.get("fault_currents")
-        if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
-            raise ValueError(
-                "upstream_relay_id, downstream_relay_id, and fault_currents must be provided",
-            )
-    elif study_type == "arc_flash":
-        missing = [k for k in required if k not in kwargs]
-        if missing:
-            raise ValueError(
-                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})",
-            )
 
 
 class PowerSystemEngine:
@@ -127,22 +58,6 @@ class PowerSystemEngine:
             self.load_flow_solver = LoadFlowSolver(system)
         else:
             self.load_flow_solver = None
-
-        system=None,
-        *,
-        load_flow_solver: LoadFlowSolverProtocol | None = None,
-        arc_flash_engine: ArcFlashEngineProtocol | None = None,
-        coordination_engine: CoordinationEngineProtocol | None = None,
-        visualizer: VisualizerProtocol | None = None,
-    ):
-        self.system = system
-
-        # Injected or default solvers
-        self.load_flow_solver = (
-            load_flow_solver
-            if load_flow_solver is not None
-            else (LoadFlowSolver(system) if system is not None else None)
-        )
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
         )
@@ -198,12 +113,6 @@ class PowerSystemEngine:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
-
-        Ybus_pos = self.system.get_ybus(seq="1")
-        Ybus_neg = self.system.get_ybus(seq="2")
-        Ybus_zero = self.system.get_ybus(seq="0")
-        # Create fault analyzer
-        fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
         # Get bus index
         bus_index = self.load_flow_solver.bus_index[bus_id]
         # Calculate fault
@@ -231,17 +140,6 @@ class PowerSystemEngine:
         enclosure_height_mm: float = 508.0,
         enclosure_depth_mm: float = 508.0,
     ) -> dict[str, Any]:
-
-        voltage_kv,
-        bolted_fault_current_ka,
-        arc_duration_sec,
-        working_distance_mm,
-        electrode_config="VCB",
-        enclosure_type="box",
-        enclosure_width_mm=508.0,
-        enclosure_height_mm=508.0,
-        enclosure_depth_mm=508.0,
-    ):
         """
         Run arc flash analysis per IEEE 1584-2018.
 
@@ -403,36 +301,6 @@ class PowerSystemEngine:
             fault_currents,
         )
 
-
-    def run_protection_coordination(self, upstream_relay_id, downstream_relay_id, fault_currents):
-        """
-        Run protection coordination check between two relays.
-
-        Note: This method assumes that the relays are already defined and accessible.
-        In a full implementation, we would retrieve relays from a protection system database.
-
-        For demonstration, we will create dummy relays.
-
-        Parameters:
-        upstream_relay_id (int): ID of upstream relay.
-        downstream_relay_id (int): ID of downstream relay.
-        fault_currents (list): List of fault currents in per-unit.
-
-        Returns:
-        dict: Coordination results.
-        """
-        # In a real system, we would fetch the relay objects from a protection database.
-        # For now, we create example relays.
-        upstream_relay = OvercurrentRelay(
-            relay_id=upstream_relay_id, name=f"Upstream_{upstream_relay_id}", TMS=0.5, Ip=1.0
-        )
-        downstream_relay = OvercurrentRelay(
-            relay_id=downstream_relay_id, name=f"Downstream_{downstream_relay_id}", TMS=0.2, Ip=1.0
-        )
-        # Check coordination
-        results = self.coordination_engine.check_coordination_range(
-            upstream_relay, downstream_relay, fault_currents
-        )
         # Determine if coordinated for all faults
         all_coordinated = all(r["coordinated"] for r in results)
         return {
@@ -457,74 +325,33 @@ class PowerSystemEngine:
         """
         Run a study based on study type.
 
-        This is a thin, registry-backed JSON adapter at the external seam
-        (HTTP API, MCP, AI agents, CLI, automation). It dispatches on
-        ``study_type`` via the module-private ``_STUDY_REGISTRY`` and
-        delegates to the typed study methods (``run_load_flow``,
-        ``run_fault_analysis``, ``run_arc_flash``,
-        ``run_protection_coordination``). The registry is an internal
-        implementation detail and is not part of the public API.
-
         Parameters:
         study_type (str): Type of study: 'load_flow', 'short_circuit', 'protection_coordination'.
-
-            "results": results,
-            "upstream_relay": upstream_relay,
-            "downstream_relay": downstream_relay,
-        }
-
-    def run_study(self, study_type, **kwargs):
-        """
-        Run a study based on study type.
-
-        Parameters:
-        study_type (str): Type of study: 'load_flow', 'fault', 'coordination'.
         **kwargs: Additional arguments specific to the study type.
 
         Returns:
         dict: Study results.
         """
-        spec = _STUDY_REGISTRY.get(study_type)
-        if spec is None:
-            raise ValueError(f"Unsupported study type: {study_type}")
-
-        required, method_name = spec
-        _validate_study_kwargs(required, kwargs, study_type)
-
-        handler = getattr(self, method_name)
-
-        if study_type == "load_flow":
-            return handler()
-        elif study_type == "short_circuit":
-            fault_type = kwargs.get("fault_type", "three_phase")
-            return handler(fault_type, kwargs["bus_id"])
-        elif study_type == "protection_coordination":
-            return handler(
-                kwargs["upstream_relay_id"],
-                kwargs["downstream_relay_id"],
-                kwargs["fault_currents"],
-            )
-        else:  # arc_flash
-            return handler(
-
         if study_type == "load_flow":
             return self.run_load_flow()
-        elif study_type == "fault":
+        elif study_type == "short_circuit":
             fault_type = kwargs.get("fault_type", "three_phase")
             bus_id = kwargs.get("bus_id")
             if bus_id is None:
                 raise ValueError("bus_id must be provided for fault study")
             return self.run_fault_analysis(fault_type, bus_id)
-        elif study_type == "coordination":
+        elif study_type == "protection_coordination":
             upstream_relay_id = kwargs.get("upstream_relay_id")
             downstream_relay_id = kwargs.get("downstream_relay_id")
             fault_currents = kwargs.get("fault_currents")
             if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
                 raise ValueError(
-                    "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
+                    "upstream_relay_id, downstream_relay_id, and fault_currents must be provided",
                 )
             return self.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents
+                upstream_relay_id,
+                downstream_relay_id,
+                fault_currents,
             )
         elif study_type == "arc_flash":
             required = (
@@ -536,7 +363,7 @@ class PowerSystemEngine:
             missing = [k for k in required if k not in kwargs]
             if missing:
                 raise ValueError(
-                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})",
                 )
             return self.run_arc_flash(
                 voltage_kv=kwargs["voltage_kv"],
@@ -549,6 +376,8 @@ class PowerSystemEngine:
                 enclosure_height_mm=kwargs.get("enclosure_height_mm", 508.0),
                 enclosure_depth_mm=kwargs.get("enclosure_depth_mm", 508.0),
             )
+        else:
+            raise ValueError(f"Unsupported study type: {study_type}")
 
     def visualize_tcc(
         self,
@@ -556,11 +385,6 @@ class PowerSystemEngine:
         current_range: tuple[float, float] = (0.5, 20),
         points: int = 100,
     ) -> Any:
-
-        else:
-            raise ValueError(f"Unsupported study type: {study_type}")
-
-    def visualize_tcc(self, relays, current_range=(0.5, 20), points=100):
         """
         Visualize TCC curves for a list of relays.
 
