@@ -1,0 +1,238 @@
+# =============================================================================
+# SCADA Protocols Configuration — AhmedETAP Digital Twin Platform
+# =============================================================================
+# This file is consumed by scada_protocols.common.config.load_config().
+#
+# Set the environment variable SCADA_PROTOCOLS_CONFIG to point to this file
+# (or pass the path directly to SCADAProtocolManager).
+#
+# Each protocol section can be:
+#   enabled: true | false       — skip the protocol entirely if false
+#   role:   server | client | both
+#
+# Missing protocol libraries are SKIPPED at startup with a warning, unless
+# strict_lib_check: true is set at the top level (in which case the manager
+# raises at construction time).
+# =============================================================================
+
+strict_lib_check: false
+default_quality: good
+
+# -----------------------------------------------------------------------------
+# Modbus TCP — legacy RTU / IED integration
+# -----------------------------------------------------------------------------
+modbus:
+  enabled: true
+  role: both             # Run a local slave AND poll remote masters.
+
+  # Local slave (server) — exposes AhmedETAP measurements to external Modbus
+  # masters (HMIs, BMS, SCADA front-ends that only speak Modbus).
+  server_host: "0.0.0.0"
+  server_port: 5020       # 502 needs root; 5020 is unprivileged.
+  server_unit_id: 1
+  scan_rate_ms: 1000      # Provider refresh rate.
+
+  # Remote masters (clients) — poll external Modbus slaves.
+  clients:
+    - name: "feeder-rtu-1"
+      host: "192.168.10.5"
+      port: 502
+      unit_id: 1
+      scan_rate_ms: 1000
+      timeout_sec: 3.0
+    - name: "pv-inverter-1"
+      host: "192.168.10.12"
+      port: 502
+      unit_id: 2
+      scan_rate_ms: 2000
+      timeout_sec: 2.0
+
+  # Register map: shared between server (for encoding) and clients (for decoding).
+  # function_code: 3=holding, 4=input
+  # data_type: float32|uint16|int16|uint32|int32
+  register_map:
+    - name: "BUS1_V"
+      element_id: "BUS-1"
+      measurement_type: "voltage_magnitude"
+      address: 0
+      function_code: 3
+      data_type: "float32"
+      scale: 1.0
+      offset: 0.0
+      unit: "p.u."
+    - name: "BUS1_P"
+      element_id: "BUS-1"
+      measurement_type: "active_power"
+      address: 2
+      function_code: 3
+      data_type: "float32"
+      scale: 1.0
+      offset: 0.0
+      unit: "MW"
+    - name: "BUS1_Q"
+      element_id: "BUS-1"
+      measurement_type: "reactive_power"
+      address: 4
+      function_code: 3
+      data_type: "float32"
+      unit: "MVar"
+    - name: "BUS1_F"
+      element_id: "BUS-1"
+      measurement_type: "frequency"
+      address: 6
+      function_code: 3
+      data_type: "float32"
+      unit: "Hz"
+    - name: "BRK1_STATUS"
+      element_id: "BRK-1"
+      measurement_type: "breaker_status"
+      address: 8
+      function_code: 3
+      data_type: "uint16"
+      unit: "0/1"
+
+# -----------------------------------------------------------------------------
+# OPC UA — Industry 4.0 integration (vendor-neutral)
+# -----------------------------------------------------------------------------
+opcua:
+  enabled: true
+  role: both
+
+  # Local OPC UA server (slave) — exposes AhmedETAP measurements.
+  server_endpoint: "opc.tcp://0.0.0.0:4840/etap/server"
+  server_name: "AhmedETAP.OPCUA.Server"
+  server_namespace: 3
+  publish_interval_ms: 1000
+
+  # Security: None | Sign | SignAndEncrypt (matches asyncua SecurityPolicy)
+  security_mode: "None"
+  security_policy: "None"
+
+  # Remote OPC UA servers (clients) — subscribe to external sources.
+  clients:
+    - name: "substation-gateway-1"
+      endpoint: "opc.tcp://192.168.20.5:4840"
+      publish_interval_ms: 1000
+    - name: "scada-front-end"
+      endpoint: "opc.tcp://192.168.20.10:4840"
+      publish_interval_ms: 500
+
+  # Address-space node map (used when system object is NOT provided).
+  # Each entry: {node_id, element_id, measurement_type, browse_name?, unit?, description?}
+  node_map:
+    - node_id: "ns=3;s=BUS1.Voltage"
+      element_id: "BUS-1"
+      measurement_type: "voltage_magnitude"
+      browse_name: "BUS1.Voltage"
+      unit: "p.u."
+      description: "Bus 1 voltage magnitude"
+      folder: "Buses"
+    - node_id: "ns=3;s=BUS1.ActivePower"
+      element_id: "BUS-1"
+      measurement_type: "active_power"
+      browse_name: "BUS1.ActivePower"
+      unit: "MW"
+      folder: "Buses"
+    - node_id: "ns=3;s=BUS2.Voltage"
+      element_id: "BUS-2"
+      measurement_type: "voltage_magnitude"
+      browse_name: "BUS2.Voltage"
+      unit: "p.u."
+      folder: "Buses"
+    - node_id: "ns=3;s=LINE1.Current"
+      element_id: "LINE-1"
+      measurement_type: "current_magnitude"
+      browse_name: "LINE1.Current"
+      unit: "A"
+      folder: "Lines"
+
+# -----------------------------------------------------------------------------
+# IEC 60870-5-104 — RTU / substation gateway integration
+# -----------------------------------------------------------------------------
+iec104:
+  enabled: true
+  role: both
+
+  # Local IEC 104 server (RTU) — exposes AhmedETAP measurements to masters.
+  server_bind_ip: "0.0.0.0"
+  server_port: 2404         # IANA-assigned IEC 104 port.
+  common_address: 1
+
+  # Protocol parameters (defaults match IEC 60870-5-104:2000).
+  t1_sec: 15.0
+  t2_sec: 10.0
+  t3_sec: 20.0
+  k_frames: 12
+  w_frames: 8
+
+  # Remote RTUs (clients) — ingest measurements from upstream substations.
+  clients:
+    - name: "substation-A"
+      host: "192.168.30.5"
+      port: 2404
+      common_address: 1
+    - name: "substation-B"
+      host: "192.168.30.6"
+      port: 2404
+      common_address: 1
+
+  # Point map: (ca, ioa) -> (element_id, measurement_type, type_id)
+  # type_id is a c104.Type enum name. Common monitoring types:
+  #   M_SP_NA_1  — single-point (binary)
+  #   M_DP_NA_1  — double-point (binary, 4-state)
+  #   M_ME_NA_1  — normalized float [-1..1]
+  #   M_ME_NB_1  — scaled int
+  #   M_ME_NC_1  — short float (most common)
+  #   M_ST_NA_1  — step position (for tap position)
+  point_map:
+    - ca: 1
+      ioa: 1001
+      element_id: "BUS-1"
+      measurement_type: "voltage_magnitude"
+      type_id: "M_ME_NC_1"
+      unit: "p.u."
+    - ca: 1
+      ioa: 1002
+      element_id: "BUS-2"
+      measurement_type: "voltage_magnitude"
+      type_id: "M_ME_NC_1"
+      unit: "p.u."
+    - ca: 1
+      ioa: 1003
+      element_id: "BUS-3"
+      measurement_type: "voltage_magnitude"
+      type_id: "M_ME_NC_1"
+      unit: "p.u."
+    - ca: 1
+      ioa: 1100
+      element_id: "BUS-1"
+      measurement_type: "active_power"
+      type_id: "M_ME_NC_1"
+      unit: "MW"
+    - ca: 1
+      ioa: 1101
+      element_id: "BUS-1"
+      measurement_type: "reactive_power"
+      type_id: "M_ME_NC_1"
+      unit: "MVar"
+    - ca: 1
+      ioa: 1200
+      element_id: "BUS-1"
+      measurement_type: "frequency"
+      type_id: "M_ME_NC_1"
+      unit: "Hz"
+    - ca: 1
+      ioa: 2001
+      element_id: "BRK-1"
+      measurement_type: "breaker_status"
+      type_id: "M_SP_NA_1"
+    - ca: 1
+      ioa: 2002
+      element_id: "BRK-2"
+      measurement_type: "breaker_status"
+      type_id: "M_SP_NA_1"
+    - ca: 1
+      ioa: 3001
+      element_id: "TX-1"
+      measurement_type: "tap_position"
+      type_id: "M_ST_NA_1"
