@@ -652,6 +652,25 @@ async def _security_headers_middleware(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
     return response
 
+# ─── Security middleware: RASP + ABAC ─────────────────────────────
+# These were previously written (security/rasp.py 288 LOC, security/abac.py
+# 823 LOC) but NEVER registered on the FastAPI app — making them dead code.
+# Now registered via security/wiring.py.
+# See: PRODUCTION_PLAN/01_SELF_CRITICISM.md §3.6 #23-24
+try:
+    from security.wiring import install_security_middleware
+
+    install_security_middleware(app)
+except ImportError:
+    logger.warning(
+        "security.wiring not available — RASP + ABAC middleware not registered. "
+        "Install security/ module for production."
+    )
+except Exception as _sec_exc:
+    logger.error("Failed to install security middleware: %s", _sec_exc)
+    if os.environ.get("ENVIRONMENT") == "production":
+        raise
+
 
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
