@@ -38,7 +38,8 @@
 		"engineering": "Engineering",
 		"integration": "Integration",
 		"system": "System",
-		"studyVersions": "Study Versions"
+		"studyVersions": "Study Versions",
+		"emailOtp": "Email OTP"
 	},
 	"navbar": {
 		"welcome": "Welcome",
