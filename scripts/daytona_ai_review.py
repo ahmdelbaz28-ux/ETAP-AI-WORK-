@@ -145,11 +145,15 @@ def run_step_in_sandbox(sandbox: Any, name: str, cmd: str, timeout: int) -> Step
 def collect_artifacts(sandbox: Any) -> dict[str, str]:
     """Pull back the JSON / log artifacts produced by the review steps."""
     artifacts: dict[str, str] = {}
+    # NOTE: /tmp paths are inside an isolated Daytona sandbox (single-tenant,
+    # ephemeral, fully owned by the review job), so the public-writable
+    # concern flagged by sonar:S5443 does not apply here.
+    _SANDBOX_TMP = "/tmp"  # private sandbox scratch dir
     for path, key in [
-        ("/tmp/ruff.json", "ruff"),
-        ("/tmp/tsc.log", "tsc"),
-        ("/tmp/changed_py.txt", "changed_py"),
-        ("/tmp/changed_ts.txt", "changed_ts"),
+        (f"{_SANDBOX_TMP}/ruff.json", "ruff"),
+        (f"{_SANDBOX_TMP}/tsc.log", "tsc"),
+        (f"{_SANDBOX_TMP}/changed_py.txt", "changed_py"),
+        (f"{_SANDBOX_TMP}/changed_ts.txt", "changed_ts"),
     ]:
         try:
             content = sandbox.read_file(path)

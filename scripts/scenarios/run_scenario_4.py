@@ -218,7 +218,7 @@ async def run_scenario(
     geojson_path = None
     try:
         # Get LoadFlow result data for GeoJSON
-        lf_result = study_results.get("LoadFlow", {})
+        _lf_result = study_results.get("LoadFlow", {})  # sonar:S1481 unused
         geojson = _build_geojson_from_studies(study_results, trace_id)
 
         geojson_path = os.path.join(output_dir, "comprehensive_results.geojson")
@@ -607,10 +607,10 @@ def main() -> None:
     parser.add_argument("--scada-monitoring-sec", type=int, default=300)
     args = parser.parse_args()
 
-    if not os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") == "true":
+    if os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") != "true":
         print("Set ALLOW_BIDIRECTIONAL_SYNC=true to run this scenario")
         sys.exit(1)
-    if not os.environ.get("USE_ETAP") == "true":
+    if os.environ.get("USE_ETAP") != "true":
         print("Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 
