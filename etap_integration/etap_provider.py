@@ -575,7 +575,7 @@ def get_etap_provider() -> IEtapProvider:
     5. Fallback -> NullEtapProvider
     """
     # Check if ETAP is explicitly disabled
-    if os.getenv("USE_ETAP", "true").lower() == "false":
+    if os.getenv("USE_ETAP", "false").lower() == "false":
         logger.info("ETAP functionality disabled via USE_ETAP environment variable")
         return NullEtapProvider()
 

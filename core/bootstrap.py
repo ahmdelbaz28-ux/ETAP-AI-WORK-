@@ -224,10 +224,10 @@ def _get_etap_provider():
             # When privacy mode is enabled, ensure ETAP is disabled
             os.environ["USE_ETAP"] = "false"
 
-        # Import and return the ETAP provider
+        # Import and CALL the ETAP provider — return instance, not function
         from etap_integration.etap_provider import get_etap_provider
 
-        return get_etap_provider
+        return get_etap_provider()  # FIX: call the function, return an IEtapProvider instance
 
     return factory
 
