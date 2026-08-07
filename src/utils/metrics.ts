@@ -11,6 +11,7 @@ import type { Env } from '../core/types.js';
 import { CONFIG } from '../core/config.js';
 import { getProviderLatency } from '../core/providers.js';
 import { getAllCircuitHealth } from '../core/circuitBreaker.js';
+import { getTokenStats } from '../core/tokenStats.js';
 
 interface ApiMetrics {
   totalRequests: number;
@@ -119,5 +120,8 @@ export async function composeMetrics(env: Env) {
     perKey: getPerKeyMetrics(),
     perRoute: getPerRouteMetrics(),
     tasks: { total: await getTaskCount(env) },
+    // LLM token economy — the new field. This is what makes the
+    // production prompt-cache hit ratio observable from /metrics.
+    tokenStats: getTokenStats(),
   };
 }

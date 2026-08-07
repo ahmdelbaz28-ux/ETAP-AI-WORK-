@@ -13,6 +13,7 @@ import { type ModelMessage } from 'ai';
 import type { Env } from './types.js';
 import { CONFIG, BUILTIN_BASE_URLS, BUILTIN_MODELS, BUILTIN_PROVIDERS } from './config.js';
 import { isCircuitOpen, recordProviderFailure, recordProviderSuccess } from './circuitBreaker.js';
+import { recordTokenUsage } from './tokenStats.js';
 
 export interface ProviderConfig {
   name: string;
@@ -29,6 +30,13 @@ export interface ChatResult {
   latencyMs: number;
   promptTokens?: number;
   completionTokens?: number;
+  /**
+   * Portion of prompt_tokens served from the provider's prompt cache.
+   * OpenAI auto-caches prefixes >= 1024 tokens on gpt-4o* models and
+   * reports it via ``usage.prompt_tokens_details.cached_tokens``.
+   * Tracking this is what makes the cache-hit ratio observable.
+   */
+  cachedTokens?: number;
 }
 
 interface ProviderLatencyBucket {
@@ -186,7 +194,28 @@ export async function generateOnce(
     const choices = data.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
     const text = choices?.[0]?.message?.content || '';
     const finishReason = choices?.[0]?.finish_reason || 'stop';
-    const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+    const usage = data.usage as {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      prompt_tokens_details?: { cached_tokens?: number } | undefined;
+    } | undefined;
+
+    const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;
+
+    // Record into the global token-stats tracker so /metrics can expose
+    // the production cache-hit ratio. Fail-safe: never let a tracker
+    // bug crash the actual chat call.
+    try {
+      recordTokenUsage({
+        provider: provider.name,
+        model: provider.model,
+        promptTokens: usage?.prompt_tokens ?? 0,
+        cachedTokens,
+        completionTokens: usage?.completion_tokens ?? 0,
+      });
+    } catch {
+      // swallow — tracker is best-effort
+    }
 
     return {
       text,
@@ -196,6 +225,7 @@ export async function generateOnce(
       latencyMs: Date.now() - start,
       promptTokens: usage?.prompt_tokens,
       completionTokens: usage?.completion_tokens,
+      cachedTokens,
     };
   } finally {
     clearTimeout(timeoutId);
