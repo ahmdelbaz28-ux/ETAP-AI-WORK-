@@ -42,6 +42,7 @@ from api.email_otp import router as email_otp_router
 from api.email_webhooks import router as email_webhooks_router
 from api.equipment import router as equipment_router
 from api.export import router as export_router
+from api.feature_flags import router as feature_flags_router
 from api.health import router as health_router
 from api.magic_links import router as magic_links_router
 from api.notifications import notification_websocket_endpoint
@@ -696,6 +697,7 @@ app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
 app.include_router(settings_router)
+app.include_router(feature_flags_router)  # /api/v1/feature-flags/*
 # ─── Resend email integration routers ─────────────────────────────────────
 app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
 app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*

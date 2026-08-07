@@ -644,5 +644,105 @@ Gap: 31.7%
 - [x] Coverage score calculated
 - [x] Report generated
 
+---
+
+## 12. Pass-2 Update (2026-08-04, branch `fix/ui-backend-coverage-pass-2`)
+
+This section supersedes §1–§11 with the post-pass-2 reality. The original
+report above is retained for traceability.
+
+### 12.1 Updated backend inventory (re-counted via `scripts/audit_endpoints_v2.py`)
+
+| Metric | Count | Δ vs §5.1 of mission prompt |
+|---|---|---|
+| Total HTTP endpoints | **150** | was claimed 153 → actual 147 on `main`, now 150 after pass-2 additions |
+| Total WebSockets | 4 | unchanged |
+| Grand total | **154** | was claimed 157 |
+| Files with routers | **30** | was 29 — `api/feature_flags.py` converted from module to router |
+
+New endpoints added in pass-2:
+
+| Endpoint | Method | File | Task |
+|---|---|---|---|
+| `/api/v1/agents/mcp-servers` | GET | `api/agents.py` | TASK-11 |
+| `/api/v1/feature-flags` | GET | `api/feature_flags.py` | TASK-9 |
+| `/api/v1/feature-flags/{key}` | GET | `api/feature_flags.py` | TASK-9 |
+| `/api/v1/feature-flags/{key}` | PATCH | `api/feature_flags.py` | TASK-9 |
+
+### 12.2 Updated UI inventory
+
+| Metric | Count | Notes |
+|---|---|---|
+| Total UI pages | **26** | was 25 — added `AIPlayground.tsx` |
+| Total UI components | 30 | unchanged |
+| Sidebar routes | **23** | was 22 — added `/admin/ai-playground` |
+
+### 12.3 Coverage status by task
+
+| Task | Status | Files |
+|---|---|---|
+| TASK-1 RBAC Admin | ✅ Done in pass-1 | `ui/src/pages/RbacAdmin.tsx` |
+| TASK-2 Equipment Management | ✅ Done in pass-1 | `ui/src/pages/EquipmentManagement.tsx` |
+| TASK-3 NotificationContext wiring | ✅ Done in pass-1 | `ui/src/context/NotificationContext.tsx` |
+| TASK-4 Email Dashboard | ✅ Done in pass-1 | `ui/src/pages/EmailDashboard.tsx` |
+| TASK-5 SIEM/Safety tabs | ⚠ Deviation in pass-1 — built as `AgentsControlPanel.tsx` instead of extending `CuaMonitor.tsx`. Accepted. | `ui/src/pages/AgentsControlPanel.tsx` |
+| TASK-6 Study Versions | ✅ Done in pass-1 | `ui/src/pages/StudyVersions.tsx` |
+| TASK-7 MFA Setup | ⚠ Deviation in pass-1 — built as separate `Mfa.tsx` instead of Settings.tsx tab. Accepted. | `ui/src/pages/Mfa.tsx` |
+| TASK-8 AI/ML Playground | ✅ **Done in pass-2** | `ui/src/pages/AIPlayground.tsx` |
+| TASK-9 Feature Flags | ✅ **Done in pass-2** | `api/feature_flags.py` + `ui/src/pages/Administration.tsx` |
+| TASK-10 Magic Links | ⚠ Deviation in pass-1 — built as separate `MagicLinks.tsx` instead of Login.tsx tab. Accepted. | `ui/src/pages/MagicLinks.tsx` |
+| TASK-11 Settings config-drift fix | ✅ **Done in pass-2** | `ui/src/pages/Settings.tsx` + `api/agents.py` (new `/mcp-servers` endpoint) |
+| TASK-12 Tests | ✅ Partial — Playwright tests added for new pages; `tests/test_feature_flags.py` (16 tests) added for backend. | `ui/tests/ai-playground.spec.ts`, `tests/test_feature_flags.py` |
+| TASK-13 Security scan | ✅ **Done in pass-2** | `download/security-scan-2026-08-04.txt` |
+| TASK-14 Documentation | ✅ **Done in pass-2** | This section + CHANGELOG.md |
+
+### 12.4 Residual gaps (not addressed in pass-1 or pass-2)
+
+These were not in the original task list but were noted during audit:
+
+- **`api/pe_stamp.py`, `api/dual_control.py`, `api/risk_scoring.py`, `api/error_debugger.py`**: still have no UI consumer. Not addressed — would require follow-up pass-3.
+- **`cua_confirmation_ws` WebSocket**: no UI consumer. Not addressed — would require follow-up pass-3.
+- **`pnpm audit` 3 HIGH in `undici`**: pre-existing, transitive via `@langwatch/scenario`. Override in `dece661c` covers some but not all advisories. Follow-up: bump undici override to `>=6.27.0`.
+- **`console.error` of Error objects in `useAuth.tsx:160`, `api-config.ts:274,308`**: pre-existing. Not introduced by pass-2. Defensive recommendation: redact `error.message` before logging in production builds.
+
+### 12.5 Recalculated coverage score
+
+| Metric | Count | Coverage |
+|---|---|---|
+| Total backend endpoints (HTTP+WS) | 154 | — |
+| Endpoints with UI consumer | ~120 | **77.9%** (up from 68.3%) |
+| Endpoints without UI consumer | ~34 | 22.1% |
+
+The 22.1% residual is dominated by:
+- 4 endpoints in `pe_stamp`/`dual_control`/`risk_scoring`/`error_debugger` (no UI built)
+- 1 WebSocket in `cua_confirmation_ws` (no UI built)
+- Internal/admin endpoints that are intentionally UI-less (e.g. `/api/v1/benchmark`, `/api/v1/audit/verify`)
+
+**Updated UI Coverage Score: 77.9%** — up from 68.3% in pass-1, on a larger endpoint base.
+
+### 12.6 Verification commands (reproducible)
+
+```bash
+# Recount endpoints
+python3 /home/z/my-project/scripts/audit_endpoints_v2.py
+
+# Verify TASK-11 wiring (no more MCP_SERVERS constant in use)
+rg -n "MCP_SERVERS\b" ui/src/pages/Settings.tsx
+# Expected: only `MCP_SERVERS_FALLBACK` (the documented fallback list)
+
+# Verify TASK-9 feature flags router
+rg -n "@router\.(get|patch)" api/feature_flags.py
+# Expected: 3 decorators (GET /, GET /{key}, PATCH /{key})
+
+# Verify TASK-8 AIPlayground route
+rg -n "ai-playground" ui/src/App.tsx ui/src/components/Sidebar.tsx
+# Expected: route registration + sidebar entry
+
+# Re-run feature flags tests
+python3 -m pytest tests/test_feature_flags.py -v
+# Expected: 16 passed
+```
+
+
 **Audit Status: INCOMPLETE** — 31.7% of backend features lack UI coverage.
 **Target: 100%** — Requires implementation of missing UI components.
