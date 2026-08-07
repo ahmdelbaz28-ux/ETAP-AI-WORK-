@@ -234,7 +234,7 @@ uvicorn>=0.24.0
 #   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
 #   CVE-2026-59936 (infinite loop for not terminated inline images)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf~=6.14.0
+pypdf~=6.15.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
