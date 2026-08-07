@@ -158,6 +158,11 @@ uvicorn~=0.25.0
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
 aiofiles>=24.1.0,<25.0.0
 
+# aiofiles — required by api/routes.py for streaming file uploads and async
+# static-asset responses. Was previously pulled in transitively by a different
+# package; declared explicitly to fail loudly if missing.
+aiofiles>=24.1.0,<25.0.0
+
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
