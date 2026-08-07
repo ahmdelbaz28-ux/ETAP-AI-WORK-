@@ -47,7 +47,10 @@ logger = logging.getLogger("etap.api.magic_links")
 
 router = APIRouter(prefix="/api/v1/auth/magic-link", tags=["auth", "magic-link"])
 
-MAGIC_LINK_TTL_SECONDS = int(os.getenv("MAGIC_LINK_TTL_SECONDS", "900"))  # 15 min
+# V-64 FIX: Validate MAGIC_LINK_TTL_SECONDS — clamp to 60-3600 seconds
+# (1 min to 1 hour). Without this, a misconfigured env var could make
+# magic links valid for years (persistent access vector) or instantly expired.
+MAGIC_LINK_TTL_SECONDS = max(60, min(int(os.getenv("MAGIC_LINK_TTL_SECONDS", "900")), 3600))
 MAGIC_LINK_RATE_LIMIT_MAX = int(os.getenv("MAGIC_LINK_RATE_LIMIT_MAX", "3"))
 MAGIC_LINK_RATE_LIMIT_WINDOW = int(os.getenv("MAGIC_LINK_RATE_LIMIT_WINDOW", "300"))  # 5 min
 
