@@ -32,11 +32,12 @@ import hashlib
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from api._test_mode import is_test_mode, normalize_template_var
+from api.dependencies import CurrentUser, get_current_user_from_header
 from services.email_service import send_email_otp
 from services.otp_store import (
     OTP_TTL_SECONDS,
@@ -302,16 +303,37 @@ async def verify_otp_endpoint(
 
 @router.post(
     "/invalidate",
-    summary="Invalidate a pending OTP (admin/debug)",
+    summary="Invalidate a pending OTP (authenticated — self or admin)",
 )
 async def invalidate_otp_endpoint(
     request: Request,
     email: str,
     purpose: str,
+    current_user: CurrentUser = Depends(get_current_user_from_header),
 ) -> JSONResponse:
-    """Force-invalidate a pending OTP. Useful for logout flows or admin ops."""
+    """Force-invalidate a pending OTP.
+
+    SECURITY (E-03): Previously this endpoint had NO authentication — any
+    anonymous attacker could invalidate OTPs for any user, causing denial
+    of service and disrupting login/reset flows. Now uses FastAPI's
+    dependency injection (Depends(get_current_user_from_header)) for
+    proper JWT auth — same pattern as the rest of the auth subsystem.
+
+    Authorization:
+    - User can invalidate their own OTP (email matches), OR
+    - User with role='admin' can invalidate any user's OTP.
+    """
     trace_id = getattr(request.state, "trace_id", "unknown")
+
+    # Authorization check: self-service OR admin override
+    if current_user.email.lower() != email.lower() and current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot invalidate OTP for another user.",
+        )
+
     await invalidate_otp(email, purpose)
+
     return JSONResponse(
         content={
             "success": True,

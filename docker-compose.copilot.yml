@@ -76,7 +76,7 @@ services:
     environment:
       - PORT=8000
       - ENGINEERING_SERVICE_PORT=8000
-      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/etap_platform.db}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required — must point to Postgres, not SQLite}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - ETAP_PROVIDER=${ETAP_PROVIDER:-mock}
       - ETAP_WORKER_URL=http://etap-worker:8001
@@ -214,8 +214,12 @@ services:
     ports:
       - "127.0.0.1:3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:?GRAFANA_USER is required}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      # OPS (E-16): standardized on GRAFANA_ADMIN_USER / GRAFANA_ADMIN_PASSWORD
+      # across all compose files. Previously used GRAFANA_USER/GRAFANA_PASSWORD
+      # here, GRAFANA_PASS in monitoring.yml — causing confusion when running
+      # multiple compose files together.
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana-data:/var/lib/grafana

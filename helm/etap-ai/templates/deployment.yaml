@@ -55,12 +55,31 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          # SECURITY (LB-3): readinessProbe uses /readyz (DB+Redis check)
+          # instead of /ready (legacy numpy/scipy check). /readyz returns
+          # HTTP 503 when DB or Redis is down, so K8s stops routing traffic.
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /readyz
               port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          # startupProbe gives the app time to initialize before liveness checks
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+            timeoutSeconds: 5
           env:
             - name: PORT
               value: "{{ .Values.api.service.port }}"
