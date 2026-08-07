@@ -110,6 +110,14 @@ router = APIRouter(
     prefix="/api/v1/projects", tags=["Study Versions"], dependencies=[Depends(get_api_key)]
 )  # SECURITY AUDIT R7-1
 
+# ─── CRUD coverage note (audit 2026-08-01) ─────────────────────────────────
+# Routes: GET /{project_id}/studies/{study_id}/versions (list),
+#         POST .../versions (create snapshot),
+#         POST .../versions/{version_id}/rollback (restore),
+#         GET .../versions/{version_id} (detail).
+# Status: COMPLETE for the versions subresource. Parent study CRUD lives in
+# api/studies.py and the upstream engineering service — do not duplicate here.
+
 
 async def _get_study_result(project_id: str, study_id: str, db: AsyncSession) -> Any:
     """Get study result from database."""

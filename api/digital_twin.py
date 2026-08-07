@@ -15,6 +15,13 @@ router = APIRouter(
     prefix="/api/v1/digital-twin", tags=["digital_twin"], dependencies=[Depends(get_api_key)]
 )  # SECURITY AUDIT R7-1
 
+# ─── Coverage note (audit 2026-08-01) ───────────────────────────────────────
+# Status: PLACEHOLDER — single GET /status endpoint exposing the shared state
+# store / event bus / validation gateway. Full digital-twin CRUD (PUT /state,
+# POST /events, DELETE /snapshots/{id}) lives in the upstream digital_twin/
+# Python package and is invoked from the engineering service, NOT exposed
+# via this router. Registering here so the UI status probe works.
+
 # Global state stores for digital twin
 _shared_state_store = None
 _shared_event_bus = None

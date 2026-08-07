@@ -7,6 +7,11 @@ Previously, any client could connect without authentication, exposing
 SCADA data to unauthorized parties. Now requires a valid JWT token
 passed as a query parameter: ws://host/ws/scada?token=<jwt_access_token>
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 import asyncio
 import hmac

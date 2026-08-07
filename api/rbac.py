@@ -265,6 +265,11 @@ class UserRoleResponse(BaseModel):
 
 router = APIRouter(prefix="/api/v1/auth", tags=["RBAC"])
 
+# ─── CRUD coverage note (audit 2026-08-01) ─────────────────────────────────
+# Routes: roles (GET, POST, PUT, DELETE), permissions (GET, POST, GET /{id}),
+# user-role assignments (POST, DELETE), role-permission grants (POST, DELETE).
+# Status: COMPLETE for RBAC primitives. User CRUD itself lives in api/auth.py.
+
 
 # ---------------------------------------------------------------------------
 # Permission-based access control dependency

@@ -10,6 +10,11 @@ SECURITY AUDIT 2026-08-02 (V-17, V-18, V-19, V-20, V-21 fixes):
 - V-20: Request ID validation — enforce apr_ prefix + hex format
 - V-21: Bounded in-memory store — cleanup of expired/rejected requests
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 
