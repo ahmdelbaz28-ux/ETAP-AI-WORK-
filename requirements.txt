@@ -212,7 +212,7 @@ kubernetes~=29.0.0
 # for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
 # Range <16 satisfies the `realtime` package (sub-dep of supabase) which
 # requires websockets>=11,<16.
-websockets~=15.0
+websockets>=15,<18
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
