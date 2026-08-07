@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -18,6 +17,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 interface FormatInfo {
   id: string;
@@ -290,7 +290,8 @@ export default function DataImport() {
                   onClick={() => setResult(null)}
                   className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
                   aria-label="Dismiss"
-                 type="button">
+                  type="button"
+                >
                   <X className="w-4 h-4" />
                 </button>
               }

@@ -205,8 +205,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     label: { en: "✨ Magic Help Inspector", ar: "✨ فاحص المساعدة" },
     icon: Zap,
     section: ACTION_SECTION,
-    buildAction: () => () =>
-      globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
+    buildAction: () => () => globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect")),
   },
 ];
 
@@ -385,7 +384,8 @@ export function CommandPalette() {
                             ? "bg-[var(--accent-glow)] text-[var(--accent-primary)]"
                             : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]",
                         )}
-                       type="button">
+                        type="button"
+                      >
                         <cmd.icon
                           className={cn(
                             "w-4 h-4 shrink-0",

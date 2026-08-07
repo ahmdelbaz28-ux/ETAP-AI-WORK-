@@ -251,9 +251,7 @@ function TopicDetailView({
             {activeTopic.title[lang]}
           </h3>
         </div>
-        <p className="text-sm text-[var(--text-secondary)]">
-          {activeTopic.description[lang]}
-        </p>
+        <p className="text-sm text-[var(--text-secondary)]">{activeTopic.description[lang]}</p>
       </div>
 
       {/* Content */}
@@ -289,7 +287,7 @@ function TopicDetailView({
             {lang === "ar" ? "مواضيع ذات صلة" : "Related Topics"}
           </h4>
           <div className="space-y-1">
-            {activeTopic.relatedTopics!.map((rid) => {
+            {activeTopic.relatedTopics?.map((rid) => {
               const related = filteredTopics.find((t) => t.id === rid) ?? null;
               if (!related) return null;
               return (
@@ -315,10 +313,7 @@ function TopicContentLine({ line }: { readonly line: string }) {
   const lineKey = `line-${line.length}-${line.substring(0, 16)}`;
   if (line.startsWith("**") && line.endsWith("**")) {
     return (
-      <h4
-        key={lineKey}
-        className="text-sm font-semibold text-[var(--text-primary)] mt-4 mb-2"
-      >
+      <h4 key={lineKey} className="text-sm font-semibold text-[var(--text-primary)] mt-4 mb-2">
         {line.replaceAll("**", "")}
       </h4>
     );
@@ -346,7 +341,10 @@ interface BookIndexViewProps {
   readonly expandedNodes: Set<string>;
   readonly toggleNode: (label: string) => void;
   readonly openTopic: (id: string) => void;
-  readonly categories: readonly { readonly id: HelpCategory | "all"; readonly label: { readonly en: string; readonly ar: string } }[];
+  readonly categories: readonly {
+    readonly id: HelpCategory | "all";
+    readonly label: { readonly en: string; readonly ar: string };
+  }[];
   readonly selectedCategory: HelpCategory | "all";
   readonly setSelectedCategory: (c: HelpCategory | "all") => void;
   readonly searchRef: React.RefObject<HTMLInputElement | null>;
@@ -442,7 +440,10 @@ interface BookListViewProps {
   readonly searchRef: React.RefObject<HTMLInputElement | null>;
   readonly searchQuery: string;
   readonly setSearchQuery: (q: string) => void;
-  readonly categories: readonly { readonly id: HelpCategory | "all"; readonly label: { readonly en: string; readonly ar: string } }[];
+  readonly categories: readonly {
+    readonly id: HelpCategory | "all";
+    readonly label: { readonly en: string; readonly ar: string };
+  }[];
   readonly selectedCategory: HelpCategory | "all";
   readonly setSelectedCategory: (c: HelpCategory | "all") => void;
   readonly filteredTopics: readonly HelpTopic[];

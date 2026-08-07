@@ -148,7 +148,8 @@ function RegisterView({
             i18n.changeLanguage(nextLang);
           }}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold"
-         type="button">
+          type="button"
+        >
           <Globe className="w-3.5 h-3.5" />
           <span>{isRtl ? "English" : "العربية"}</span>
         </button>

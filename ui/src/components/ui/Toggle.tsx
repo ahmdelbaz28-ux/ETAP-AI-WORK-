@@ -35,7 +35,8 @@ export function Toggle({
           isMd ? "w-11 h-6" : "w-8 h-4.5",
           checked ? "bg-brand-500" : "bg-[var(--border-secondary)]",
         )}
-       type="button">
+        type="button"
+      >
         <span
           className={cn(
             "absolute top-0.5 bg-white rounded-full shadow-sm transition-transform",

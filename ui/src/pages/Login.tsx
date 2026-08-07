@@ -54,7 +54,8 @@ function getTerminalLogColor(log: string): string {
   return "text-slate-400";
 }
 
-export default function Login() {  // NOSONAR(S3776): main Login render is a bilingual (en/ar) sign-in screen combining a live telemetry HUD, a CAD schematic background, an inline forgot-password flow, and a sign-in form — ~25 `isRtl ? "..." : "..."` i18n picks plus `{authError && ...}` / `{forgotOpen && forgotSent ? ... : ...}` conditional form sections; extracting each conditional block to a sub-component would require lifting 8 useState hooks + 3 callbacks through props, tracked as a separate refactor task
+export default function Login() {
+  // NOSONAR(S3776): main Login render is a bilingual (en/ar) sign-in screen combining a live telemetry HUD, a CAD schematic background, an inline forgot-password flow, and a sign-in form — ~25 `isRtl ? "..." : "..."` i18n picks plus `{authError && ...}` / `{forgotOpen && forgotSent ? ... : ...}` conditional form sections; extracting each conditional block to a sub-component would require lifting 8 useState hooks + 3 callbacks through props, tracked as a separate refactor task
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { notify } = useNotify();
@@ -352,9 +353,7 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
             <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[9px] font-bold tracking-wider uppercase">
               <Terminal className="w-3.5 h-3.5 text-blue-500" />
               <span>
-                {isRtl
-                  ? "سجل العمليات الكهربائي"
-                  : "Real-time Electrical Operations Log"}
+                {isRtl ? "سجل العمليات الكهربائي" : "Real-time Electrical Operations Log"}
               </span>
             </div>
             <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
@@ -413,13 +412,16 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
                 <span className="text-blue-400">Built for Professionals</span>
               </p>
               <p className="text-[10px] text-slate-400 leading-relaxed">
-                Analyze, simulate, and design electrical networks with high-precision engines
-                for load flow, short circuit, protection coordination, and arc flash analysis.
+                Analyze, simulate, and design electrical networks with high-precision engines for
+                load flow, short circuit, protection coordination, and arc flash analysis.
               </p>
               {/* Mini metrics row for mobile */}
               <div className="flex gap-3 pt-1">
                 {["IEEE 1584", "IEC 60909", "IEEE 519"].map((s) => (
-                  <span key={s} className="px-2 py-0.5 text-[9px] font-mono text-slate-500 bg-slate-950/50 border border-slate-800 rounded">
+                  <span
+                    key={s}
+                    className="px-2 py-0.5 text-[9px] font-mono text-slate-500 bg-slate-950/50 border border-slate-800 rounded"
+                  >
                     {s}
                   </span>
                 ))}
@@ -539,7 +541,10 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-400">
+              <label
+                htmlFor="login-password"
+                className="block text-xs font-semibold text-slate-400"
+              >
                 {t("auth.passwordLabel")}
               </label>
               <div className="relative">
@@ -612,10 +617,18 @@ export default function Login() {  // NOSONAR(S3776): main Login render is a bil
           {/* Footer Navigation */}
           <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
             <span className="text-slate-500 font-sans">
-              {t("auth.noAccount")} <Link to="/register" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">{t("auth.registerLink")}</Link>
+              {t("auth.noAccount")}{" "}
+              <Link
+                to="/register"
+                className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+              >
+                {t("auth.registerLink")}
+              </Link>
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] text-slate-700 font-mono">{backendVersion !== null ? `v${backendVersion}` : "—"}</span>
+              <span className="text-[9px] text-slate-700 font-mono">
+                {backendVersion !== null ? `v${backendVersion}` : "—"}
+              </span>
               <span className="w-1 h-1 rounded-full bg-slate-800" />
               <span className="text-[9px] text-slate-700 font-mono">{t("auth.secureLogin")}</span>
             </div>

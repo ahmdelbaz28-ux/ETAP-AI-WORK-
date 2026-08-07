@@ -14,9 +14,7 @@ import { getAuthToken } from "./tokenStorage";
 // Forward user's active provider key/model to backend dynamically.
 // Extracted to a helper to keep request() below SonarCloud's cognitive
 // complexity threshold (S3776).
-function buildProviderHeaders(
-  settings: Record<string, string>,
-): Record<string, string> {
+function buildProviderHeaders(settings: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = {};
   const activeProviderId = settings.PROVIDER_ACTIVE_PROVIDER_ID || "openai";
   headers["x-active-provider"] = activeProviderId;
@@ -24,7 +22,8 @@ function buildProviderHeaders(
   if (activeProviderId === "custom_openai") {
     if (settings.CUSTOM_OPENAI_API_KEY) headers["x-active-key"] = settings.CUSTOM_OPENAI_API_KEY;
     if (settings.CUSTOM_OPENAI_BASE_URL) headers["x-active-url"] = settings.CUSTOM_OPENAI_BASE_URL;
-    if (settings.CUSTOM_OPENAI_MODEL_ID) headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
+    if (settings.CUSTOM_OPENAI_MODEL_ID)
+      headers["x-active-model"] = settings.CUSTOM_OPENAI_MODEL_ID;
     return headers;
   }
 
@@ -52,7 +51,7 @@ async function extractErrorDetail(response: Response): Promise<string> {
   }
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   // SECURITY FIX: Use sessionStorage instead of localStorage for auth tokens.
   // localStorage persists across sessions and is more vulnerable to XSS.

@@ -13,10 +13,15 @@ import {
   FolderKanban,
   GitBranch,
   Grid,
+<<<<<<< HEAD
   KeyRound,
   Layers,
   LayoutDashboard,
-  Link2,
+=======
+  Key,
+  Layers,
+  LayoutDashboard,
+>>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
   Mail,
   Map,
   Moon,
@@ -73,6 +78,7 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.assetManagement",
     section: "engineering",
   },
+<<<<<<< HEAD
   {
     to: "/equipment",
     icon: Package,
@@ -176,12 +182,70 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.agentsControlPanel",
     section: "system",
   },
+=======
+  { to: "/vision-keys", icon: KeyRound, labelKey: "sidebar.visionKeys", section: "engineering" },
+  {
+    to: "/equipment",
+    icon: Package,
+    labelKey: "sidebar.equipment",
+    section: "engineering",
+  },
+  {
+    to: "/etap",
+    icon: Plug,
+    labelKey: "sidebar.etapIntegration",
+    section: "integration",
+  },
+  {
+    to: "/gis",
+    icon: Map,
+    labelKey: "sidebar.gisIntegration",
+    section: "integration",
+  },
+  {
+    to: "/scada",
+    icon: Activity,
+    labelKey: "sidebar.scadaIntegration",
+    section: "integration",
+  },
+  {
+    to: "/digital-twin",
+    icon: Layers,
+    labelKey: "sidebar.digitalTwin",
+    section: "integration",
+  },
+  { to: "/reports", icon: FileText, labelKey: "sidebar.reports" },
+  {
+    to: "/data-import",
+    icon: Upload,
+    labelKey: "sidebar.dataImport",
+    section: "system",
+  },
+  {
+    to: "/data-export",
+    icon: Download,
+    labelKey: "sidebar.dataExport",
+    section: "system",
+  },
+  {
+    to: "/settings",
+    icon: Settings,
+    labelKey: "sidebar.settings",
+    section: "system",
+  },
+  {
+    to: "/admin",
+    icon: ShieldCheck,
+    labelKey: "sidebar.administration",
+    section: "system",
+  },
   {
     to: "/admin/cua-monitor",
     icon: ShieldAlert,
     labelKey: "sidebar.cuaMonitor",
     section: "system",
   },
+<<<<<<< HEAD
   {
     to: "/diagnostics",
     icon: Bug,
@@ -218,6 +282,98 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.logs",
     section: "system",
   },
+=======
+  {
+    to: "/diagnostics",
+    icon: Bug,
+    labelKey: "sidebar.diagnostics",
+    section: "system",
+  },
+  {
+    to: "/code-guard",
+    icon: Shield,
+    labelKey: "sidebar.codeGuard",
+    section: "system",
+  },
+  {
+    to: "/context-engine",
+    icon: Search,
+    labelKey: "sidebar.contextEngine",
+    section: "system",
+  },
+  {
+    to: "/templates",
+    icon: FileText,
+    labelKey: "sidebar.templates",
+    section: "system",
+  },
+  {
+    to: "/asset-library",
+    icon: Package,
+    labelKey: "sidebar.assetLibrary",
+    section: "system",
+  },
+  {
+    to: "/logs",
+    icon: ScrollText,
+    labelKey: "sidebar.logs",
+    section: "system",
+  },
+  {
+    to: "/admin/rbac",
+    icon: Shield,
+    labelKey: "sidebar.rbacAdmin",
+    section: "system",
+  },
+  {
+    to: "/admin/email-dashboard",
+    icon: Mail,
+    labelKey: "sidebar.emailDashboard",
+    section: "system",
+  },
+  {
+    to: "/admin/email-digest",
+    icon: CalendarClock,
+    labelKey: "sidebar.emailDigest",
+    section: "system",
+  },
+  {
+    to: "/admin/study-versions",
+    icon: GitBranch,
+    labelKey: "sidebar.studyVersions",
+    section: "system",
+  },
+  {
+    to: "/admin/email-otp",
+    icon: KeyRound,
+    labelKey: "sidebar.emailOtp",
+    section: "system",
+  },
+  {
+    to: "/admin/magic-links",
+    icon: Link2,
+    labelKey: "sidebar.magicLinks",
+    section: "system",
+  },
+  {
+    to: "/admin/mfa",
+    icon: ShieldCheck,
+    labelKey: "sidebar.mfa",
+    section: "system",
+  },
+  {
+    to: "/admin/agents",
+    icon: Bot,
+    labelKey: "sidebar.agentsControlPanel",
+    section: "system",
+  },
+  {
+    to: "/audit-logs",
+    icon: ScrollText,
+    labelKey: "sidebar.auditLogs",
+    section: "system",
+  },
+>>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
 ];
 
 const sectionOrder = ["engineering", "integration", "system"] as const;

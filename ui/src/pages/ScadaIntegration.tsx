@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
@@ -16,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 
 interface TelemetryPoint {
   tag: string;
@@ -84,7 +84,7 @@ function handleConnectionFailure(
   isRtl: boolean,
   notify: NotifyFn,
   addLog: AddLogFn,
-  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void,  // NOSONAR S4323: small union type; inline is clearer than a type alias for a single-use case
+  setConnectionStatus: (s: "disconnected" | "connecting" | "connected" | "simulated") => void, // NOSONAR S4323: small union type; inline is clearer than a type alias for a single-use case
   setLatency: (n: number | null) => void,
 ): void {
   setConnectionStatus("disconnected");
@@ -162,7 +162,8 @@ async function testScadaConnection(
   );
 }
 
-export default function ScadaIntegration() {  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
+export default function ScadaIntegration() {
+  // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";
@@ -245,7 +246,15 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
 
   // REST API connection probe (delegated to module-scope helper)
   const testConnection = () =>
-    testScadaConnection(apiKey, isRtl, notify, addLog, setConnectionStatus, setLatency, setTelemetryPoints);
+    testScadaConnection(
+      apiKey,
+      isRtl,
+      notify,
+      addLog,
+      setConnectionStatus,
+      setLatency,
+      setTelemetryPoints,
+    );
 
   // Start / Stop Live Telemetry sync
   const toggleLiveSync = () => {
@@ -491,7 +500,9 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
       {isSimulation && (
         <div className="w-full bg-red-600/90 border-2 border-red-400 rounded-lg px-4 py-3 text-center shadow-lg shadow-red-600/30">
           <p className="text-white font-bold text-sm uppercase tracking-widest">
-            {isRtl ? "⚠️ بيانات محاكاة — ليست بيانات حقيقية من النظام" : "⚠️ SIMULATED DATA — NOT REAL PRODUCTION TELEMETRY"}
+            {isRtl
+              ? "⚠️ بيانات محاكاة — ليست بيانات حقيقية من النظام"
+              : "⚠️ SIMULATED DATA — NOT REAL PRODUCTION TELEMETRY"}
           </p>
           <p className="text-red-100 text-[10px] mt-0.5">
             {isRtl
@@ -732,7 +743,8 @@ export default function ScadaIntegration() {  // NOSONAR(S3776): main component 
                 <button
                   className="text-[10px] text-blue-400 hover:underline"
                   onClick={() => setLogs([])}
-                 type="button">
+                  type="button"
+                >
                   {isRtl ? "تفريغ" : "Clear"}
                 </button>
               </div>

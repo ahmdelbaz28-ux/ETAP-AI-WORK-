@@ -200,6 +200,15 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
 addopts = "-v --tb=short -x"
+filterwarnings = [
+    # Third-party deprecation warning emitted by the ``cryptography`` package
+    # ("Python 3.8 is no longer supported …") when ``redis.utils`` imports it.
+    # This is an environment-level notice from a vendored dependency, not a
+    # code-under-test warning; it only appears because this machine's runtime
+    # is Python 3.8.4 (the project's declared floor is 3.12). Suppressed so
+    # the test suite runs warning-free.
+    "ignore:Python 3.8 is no longer supported by the Python core team:DeprecationWarning",
+]
 markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",

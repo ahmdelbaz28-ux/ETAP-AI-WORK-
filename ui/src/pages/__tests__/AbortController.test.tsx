@@ -116,7 +116,7 @@ describe("AIAssistant AbortController integration", () => {
 
   it("aborts previous request when sending a new message while one is in-flight", async () => {
     // Make the first stream very slow (never resolves on its own)
-    let firstStreamController: AbortController | null = null;
+    const firstStreamController: AbortController | null = null;
     let firstSignal: AbortSignal | undefined;
 
     mockChatWithLLMStream.mockImplementationOnce(async function* (_msgs, _config, signal) {

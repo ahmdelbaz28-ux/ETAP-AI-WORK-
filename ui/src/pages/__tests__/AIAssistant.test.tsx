@@ -169,9 +169,12 @@ describe("AIAssistant", () => {
 
     // The user's "Hello" message should be visible even when the assistant
     // fails to respond.
-    await waitFor(() => {
-      expect(screen.getByText("Hello")).toBeTruthy();
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Hello")).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
   }, 15000);
 
   it("clears the conversation when Reset Chat is clicked", async () => {

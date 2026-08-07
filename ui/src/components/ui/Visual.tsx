@@ -149,7 +149,8 @@ export function PremiumEmptyState({
         <button
           onClick={action.onClick}
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-[var(--accent-primary)] text-black rounded-lg hover:opacity-90 transition-all"
-         type="button">
+          type="button"
+        >
           {action.icon && <action.icon className="w-4 h-4" />}
           {action.label}
         </button>
@@ -269,7 +270,9 @@ export function Sparkline({
 
   const xStep = width / (data.length - 1);
 
-  const points = data.map((val, i) => `${i * xStep},${height - ((val - min) / range) * (height - 4) - 2}`).join(" ");
+  const points = data
+    .map((val, i) => `${i * xStep},${height - ((val - min) / range) * (height - 4) - 2}`)
+    .join(" ");
 
   // Build area path
   const firstX = 0;
@@ -290,15 +293,19 @@ export function Sparkline({
     >
       {showArea && (
         <defs>
-          <linearGradient id={`spark-gradient-${trend ? "up" : "down"}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient
+            id={`spark-gradient-${trend ? "up" : "down"}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
             <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
             <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
           </linearGradient>
         </defs>
       )}
-      {showArea && (
-        <path d={areaPath} fill={`url(#spark-gradient-${trend ? "up" : "down"})`} />
-      )}
+      {showArea && <path d={areaPath} fill={`url(#spark-gradient-${trend ? "up" : "down"})`} />}
       <polyline
         points={points}
         fill="none"

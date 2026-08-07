@@ -21,9 +21,7 @@ vi.mock("../../pages/Settings", () => ({
       defaultModel: "gpt-4o-mini",
       apiType: "openai",
       apiKeyUrl: "https://platform.openai.com/api-keys",
-      models: [
-        { id: "gpt-4o-mini", name: "GPT-4o Mini", isFree: false },
-      ],
+      models: [{ id: "gpt-4o-mini", name: "GPT-4o Mini", isFree: false }],
     },
   ],
 }));
@@ -108,7 +106,7 @@ describe("llm-chat: 429 rate-limit handling", () => {
     expect(result.success).toBe(false);
     // The suggestion should mention waiting / retry timing
     expect(result.suggestion).toBeTruthy();
-    expect(result.suggestion!.toLowerCase()).toContain("30");
+    expect(result.suggestion?.toLowerCase()).toContain("30");
   });
 
   it("testProviderConnection suggests billing credits on quota 429", async () => {
@@ -125,7 +123,7 @@ describe("llm-chat: 429 rate-limit handling", () => {
     expect(result.success).toBe(false);
     expect(result.suggestion).toBeTruthy();
     // Should suggest billing/credits, not "wait 30 seconds"
-    expect(result.suggestion!.toLowerCase()).not.toContain("wait 30");
+    expect(result.suggestion?.toLowerCase()).not.toContain("wait 30");
   });
 });
 
@@ -145,9 +143,7 @@ describe("llm-chat: chatWithLLM error propagation", () => {
       }) as Response,
     );
 
-    await expect(
-      chatWithLLM([{ role: "user", content: "Hello" }]),
-    ).rejects.toThrow(/429|rate/i);
+    await expect(chatWithLLM([{ role: "user", content: "Hello" }])).rejects.toThrow(/429|rate/i);
   });
 
   it("throws on 401 unauthorized", async () => {
@@ -157,9 +153,7 @@ describe("llm-chat: chatWithLLM error propagation", () => {
       }) as Response,
     );
 
-    await expect(
-      chatWithLLM([{ role: "user", content: "Hello" }]),
-    ).rejects.toThrow();
+    await expect(chatWithLLM([{ role: "user", content: "Hello" }])).rejects.toThrow();
   });
 
   it("supports AbortSignal — throws AbortError when aborted", async () => {
@@ -167,13 +161,15 @@ describe("llm-chat: chatWithLLM error propagation", () => {
     // Abort immediately
     controller.abort();
 
-    vi.spyOn(globalThis, "fetch").mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
-      // Simulate the browser behavior: fetch rejects with AbortError when signal is aborted
-      if (init?.signal?.aborted) {
-        return Promise.reject(new DOMException("The user aborted a request.", "AbortError"));
-      }
-      return Promise.resolve(mockFetchResponse(200, {}) as Response);
-    });
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      (_input: RequestInfo | URL, init?: RequestInit) => {
+        // Simulate the browser behavior: fetch rejects with AbortError when signal is aborted
+        if (init?.signal?.aborted) {
+          return Promise.reject(new DOMException("The user aborted a request.", "AbortError"));
+        }
+        return Promise.resolve(mockFetchResponse(200, {}) as Response);
+      },
+    );
 
     await expect(
       chatWithLLM([{ role: "user", content: "Hello" }], undefined, controller.signal),

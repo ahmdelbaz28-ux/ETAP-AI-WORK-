@@ -1,4 +1,3 @@
-import { getAuthToken } from "../lib/tokenStorage";
 // UI components are intentionally complex for feature-rich DX
 import {
   AlertTriangle,
@@ -19,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
 // Types for local components representation
@@ -106,7 +106,8 @@ const CAIRO_TEMPLATE = {
   ] as Load[],
 };
 
-export default function GridEditor() {  // NOSONAR(S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
+export default function GridEditor() {
+  // NOSONAR(S3776): main component render is a bilingual (en/ar) power-grid editor with intrinsic per-element-type property panels (bus/line/generator/load) — each panel renders an inline IIFE form gated by `selectedElement?.type === "..."` plus ~30 `isRtl ? "..." : "..."` i18n picks; decomposition into per-type PropertyPanel sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
   const isRtl = i18n.language === "ar";

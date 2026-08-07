@@ -23,10 +23,24 @@ test.describe("Public Routes", () => {
 
 test.describe("Protected Routes — Unauthenticated", () => {
   const routes = [
-    "/dashboard", "/studies", "/projects", "/assistant", "/settings",
-    "/reports", "/grid-editor", "/admin", "/asset-management",
-    "/data-import", "/data-export", "/diagnostics", "/logs",
-    "/etap", "/gis", "/scada", "/code-guard", "/digital-twin",
+    "/dashboard",
+    "/studies",
+    "/projects",
+    "/assistant",
+    "/settings",
+    "/reports",
+    "/grid-editor",
+    "/admin",
+    "/asset-management",
+    "/data-import",
+    "/data-export",
+    "/diagnostics",
+    "/logs",
+    "/etap",
+    "/gis",
+    "/scada",
+    "/code-guard",
+    "/digital-twin",
     "/admin/cua-monitor",
   ];
 

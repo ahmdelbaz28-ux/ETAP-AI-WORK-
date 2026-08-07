@@ -55,16 +55,16 @@ const ALLOWED_LLM_DOMAINS = [
 
 // Private IP ranges that are ALWAYS blocked (even if allowlisted somehow)
 const PRIVATE_IP_PATTERNS = [
-  /^10\./,                              // 10.0.0.0/8
-  /^172\.(1[6-9]|2\d|3[0-1])\./,      // 172.16.0.0/12
-  /^192\.168\./,                        // 192.168.0.0/16
-  /^127\./,                             // 127.0.0.0/8 (loopback)
-  /^169\.254\./,                        // 169.254.0.0/16 (link-local / AWS IMDS)
-  /^0\./,                               // 0.0.0.0/8
-  /^::1$/,                              // IPv6 loopback
-  /^fc/,                                // IPv6 unique-local
-  /^fe80:/,                             // IPv6 link-local
-  /^fd/,                                // IPv6 unique-local
+  /^10\./, // 10.0.0.0/8
+  /^172\.(1[6-9]|2\d|3[0-1])\./, // 172.16.0.0/12
+  /^192\.168\./, // 192.168.0.0/16
+  /^127\./, // 127.0.0.0/8 (loopback)
+  /^169\.254\./, // 169.254.0.0/16 (link-local / AWS IMDS)
+  /^0\./, // 0.0.0.0/8
+  /^::1$/, // IPv6 loopback
+  /^fc/, // IPv6 unique-local
+  /^fe80:/, // IPv6 link-local
+  /^fd/, // IPv6 unique-local
 ];
 
 /**
@@ -83,9 +83,14 @@ function validateEndpoint(endpoint) {
   }
 
   // Only HTTPS allowed (HTTP only in non-production for localhost)
-  const isProd = (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
+  const isProd =
+    (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
   if (url.protocol !== "https:") {
-    if (url.protocol === "http:" && !isProd && (url.hostname === "localhost" || url.hostname === "127.0.0.1")) {
+    if (
+      url.protocol === "http:" &&
+      !isProd &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1")
+    ) {
       // Allow http://localhost in development only
     } else {
       return { valid: false, reason: `Only HTTPS is allowed (got ${url.protocol})` };
@@ -205,7 +210,10 @@ async function handleStreamingMode(res, endpoint, headers, requestBody) {
       res.write(chunk);
     }
   } catch (_streamErr) {
-    console.warn("SSE stream error (client may have disconnected):", _streamErr instanceof Error ? _streamErr.message : String(_streamErr));
+    console.warn(
+      "SSE stream error (client may have disconnected):",
+      _streamErr instanceof Error ? _streamErr.message : String(_streamErr),
+    );
   }
 
   res.write("data: [DONE]\n\n");
@@ -240,7 +248,8 @@ export default async function handler(req, res) {
   const allowedOrigin = process.env.LLM_PROXY_ALLOWED_ORIGIN || "";
   const requestOrigin = req.headers.origin || "";
   // In production, only allow the configured origin. In development, allow all.
-  const isProd = (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
+  const isProd =
+    (process.env.ENVIRONMENT || process.env.ENV || "development").toLowerCase() !== "development";
   if (isProd && allowedOrigin && requestOrigin !== allowedOrigin) {
     res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   } else {
