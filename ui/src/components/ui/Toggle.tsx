@@ -26,7 +26,7 @@ export function Toggle({
   // without an a11y regression.
   return (
     <div
-      role="group"
+      role="group"  // noqa: S6819 — accessible name provided to switch via aria-label; fieldset would require restructuring
       className={cn(
         "flex items-center gap-3 cursor-pointer group",
         disabled && "opacity-50 cursor-not-allowed",
