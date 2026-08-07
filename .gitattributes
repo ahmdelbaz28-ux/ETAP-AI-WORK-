@@ -1,17 +1,75 @@
-# Ensure consistent line endings
+# AhmedETAP .gitattributes
+# Consistent line endings across the project
+
+# Default: auto-detect line endings (LF on push, OS-native on checkout)
 * text=auto
-*.py text eol=lf
-*.ts text eol=lf
-*.js text eol=lf
-*.mjs text eol=lf
-*.json text eol=lf
-*.yaml text eol=lf
-*.yml text eol=lf
-*.md text eol=lf
-*.toml text eol=lf
-*.cfg text eol=lf
+
+# TypeScript / JavaScript sources
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.mjs text
+*.cjs text
+*.cts text
+*.mts text
+
+# CSS / HTML / JSON / YAML / Markdown
+*.css text
+*.html text
+*.json text
+*.yaml text
+*.yml text
+*.md text
+
+# Shell scripts (must stay LF)
 *.sh text eol=lf
-*.ps1 text eol=crlf
+
+# Batch / PowerShell (must stay CRLF)
 *.bat text eol=crlf
+*.ps1 text eol=crlf
 *.cmd text eol=crlf
-".env" -text linguist-generated=true
+
+# Python
+*.py text
+
+# Configuration
+*.env text
+*.env.* text
+.gitignore text
+.gitattributes text
+.editorconfig text
+.prettierrc text
+.eslintrc* text
+
+# Lock files (binary — no diffs)
+package-lock.json -text
+pnpm-lock.yaml -text
+yarn.lock -text
+
+# Binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar.gz binary
+*.7z binary
+
+# PDF / DOCX
+*.pdf binary
+*.docx binary
+*.xlsx binary
+
+# Electron builds
+*.exe binary
+*.dll binary
+*.dmg binary
