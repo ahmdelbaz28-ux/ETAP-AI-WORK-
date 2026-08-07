@@ -31,6 +31,8 @@
     "dataExport": "Data Export",
     "logs": "Logs",
     "codeGuard": "Code Guard",
+    "cuaMonitor": "CUA Monitor",
+    "dualControl": "Dual-Control",
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "logout": "Logout",

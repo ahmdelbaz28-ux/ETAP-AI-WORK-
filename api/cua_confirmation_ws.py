@@ -48,8 +48,10 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hmac
 import json
 import logging
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -58,6 +60,76 @@ from typing import Any, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger("api.cua_confirmation_ws")
+
+
+# ─── Authentication helper ─────────────────────────────────────────────────
+#
+# CONDITION E (Phase-2 P0 backend bug fix — see worklog Task ID 5):
+# The /ws/cua/confirmation endpoint was registered in TWO places
+# (api/routes.py:457 and hf-space/app.py:1218) with DIVERGENT auth logic:
+#   - routes.py: header-only, hard-fail
+#   - hf-space/app.py: header OR query-param, BUT silently skipped auth
+#     entirely when ENGINEERING_SERVICE_API_KEY was unset (a security
+#     weakness on a life-safety endpoint).
+#
+# This shared helper eliminates the duplication, fixes the silent-skip
+# bug (fail-closed when env var is unset), and ensures both deployment
+# apps (engineering-service FastAPI app and HF Space FastAPI app) apply
+# IDENTICAL auth to /ws/cua/confirmation.
+
+
+# WebSocket close codes (RFC 6455 §7.4.1)
+_WS_CODE_POLICY_VIOLATION = 1008
+_WS_CODE_INTERNAL_ERROR = 1011
+
+
+async def authenticate_cua_confirmation_ws(websocket: WebSocket) -> bool:
+    """Authenticate an inbound /ws/cua/confirmation WebSocket connection.
+
+    Returns ``True`` if the caller is authenticated and the connection
+    should proceed; returns ``False`` (after closing the socket) if not.
+
+    Security properties
+    -------------------
+    * Reads the expected key from the ``ENGINEERING_SERVICE_API_KEY``
+      environment variable.
+    * Accepts the key via either the ``x-api-key`` header OR the
+      ``?token=`` query parameter. The query-param fallback exists
+      because browser WebSocket clients cannot set arbitrary headers
+      on the upgrade request — mobile / web clients rely on the
+      query-param form.
+    * Uses :func:`hmac.compare_digest` for constant-time comparison
+      to prevent timing-side-channel attacks.
+    * **Fail-closed**: if ``ENGINEERING_SERVICE_API_KEY`` is NOT set,
+      the connection is closed with code 1011 (Internal Error).
+      Life-safety endpoints must NEVER silently allow unauthenticated
+      access. (This fixes the silent-skip bug that previously existed
+      in hf-space/app.py.)
+    * Closes with code 1008 (Policy Violation) on missing/incorrect
+      key.
+    """
+    expected_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if not expected_key:
+        # Fail-closed: life-safety endpoint must never be open.
+        logger.error(
+            "cua_confirmation_ws rejected: ENGINEERING_SERVICE_API_KEY not set "
+            "(life-safety endpoint cannot operate without auth)"
+        )
+        await websocket.close(
+            code=_WS_CODE_INTERNAL_ERROR,
+            reason="Server misconfiguration: ENGINEERING_SERVICE_API_KEY not set",
+        )
+        return False
+
+    provided_key = websocket.headers.get("x-api-key") or websocket.query_params.get("token", "")
+    if not provided_key or not hmac.compare_digest(provided_key, expected_key):
+        await websocket.close(
+            code=_WS_CODE_POLICY_VIOLATION,
+            reason="Invalid or missing API key",
+        )
+        return False
+
+    return True
 
 
 # ─── Data classes ──────────────────────────────────────────────────────────
@@ -388,6 +460,7 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 __all__ = [
     "ConfirmationBroker",
     "ConfirmationRequest",
+    "authenticate_cua_confirmation_ws",
     "confirmation_broker",
     "cua_confirmation_ws",
 ]
