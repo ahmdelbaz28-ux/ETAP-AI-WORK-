@@ -16,6 +16,8 @@
     "settings": "الإعدادات",
     "administration": "الإدارة",
     "rbacAdmin": "إدارة الصلاحيات",
+    "emailDashboard": "لوحة البريد",
+    "agentsControlPanel": "لوحة العملاء الأذكياء",
     "diagnostics": "التشخيصات",
     "etapIntegration": "تكامل ETAP",
     "gisIntegration": "تكامل GIS",

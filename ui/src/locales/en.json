@@ -16,6 +16,8 @@
     "settings": "Settings",
     "administration": "Administration",
     "rbacAdmin": "RBAC Admin",
+    "emailDashboard": "Email Dashboard",
+    "agentsControlPanel": "Agents Control Panel",
     "diagnostics": "Diagnostics",
     "etapIntegration": "ETAP Integration",
     "gisIntegration": "GIS Integration",
