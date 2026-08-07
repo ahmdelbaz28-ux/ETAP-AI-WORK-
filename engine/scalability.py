@@ -10,24 +10,17 @@ from __future__ import annotations
 import heapq
 import logging
 import random
-<<<<<<< HEAD
 
 # Module-level PRNG for non-cryptographic load-balancing decisions.
 # NOSONAR
 _RNG = random.Random()  # NOSONAR
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import threading
 import time
 import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from compat import StrEnum
 
@@ -61,35 +54,23 @@ class WorkerNode:
 class LoadBalancer:
     def __init__(self, strategy: str = "round_robin") -> None:
         self._strategy = LoadBalancingStrategy(strategy)
-<<<<<<< HEAD
         self._workers: dict[str, WorkerNode] = {}
-=======
-        self._workers: Dict[str, WorkerNode] = {}
->>>>>>> origin/fix/scenario-tests-properly
         self._lock = threading.Lock()
         self._rr_index: int = 0
 
     def register_worker(self, worker_id: str, capacity: float, weight: float = 1.0) -> None:
         with self._lock:
             self._workers[worker_id] = WorkerNode(
-<<<<<<< HEAD
                 worker_id=worker_id,
                 capacity=capacity,
                 weight=max(weight, 0.1),
-=======
-                worker_id=worker_id, capacity=capacity, weight=max(weight, 0.1)
->>>>>>> origin/fix/scenario-tests-properly
             )
 
     def unregister_worker(self, worker_id: str) -> None:
         with self._lock:
             self._workers.pop(worker_id, None)
 
-<<<<<<< HEAD
     def get_next_worker(self, _task_size: Optional[float] = None) -> Optional[str]:
-=======
-    def get_next_worker(self, task_size: float | None = None) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             healthy = {wid: w for wid, w in self._workers.items() if w.healthy}
             if not healthy:
@@ -101,7 +82,6 @@ class LoadBalancer:
                 return ids[idx]
             elif self._strategy == LoadBalancingStrategy.LEAST_CONNECTIONS:
                 return min(
-<<<<<<< HEAD
                     healthy,  # NOSONAR S2245: non-crypto PRNG for load-balancer RANDOM strategy (see _RNG.choice at L89)
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
@@ -112,7 +92,7 @@ class LoadBalancer:
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = _RNG.uniform(0, total)  # NOSONAR
-=======
+
                     healthy,
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
@@ -121,24 +101,17 @@ class LoadBalancer:
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = random.uniform(0, total)
->>>>>>> origin/fix/scenario-tests-properly
                 cumulative = 0.0
                 for wid, w in healthy.items():
                     cumulative += w.weight
                     if r <= cumulative:
                         return wid
                 return list(healthy.keys())[-1]
-<<<<<<< HEAD
             return next(
                 iter(healthy.keys())
             )  # NOSONAR false positive — already uses next(iter(...))
 
     def get_worker_status(self, worker_id: str) -> dict[str, Any] | None:
-=======
-            return list(healthy.keys())[0]
-
-    def get_worker_status(self, worker_id: str) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             w = self._workers.get(worker_id)
             if w is None:
@@ -154,11 +127,7 @@ class LoadBalancer:
                 "weight": w.weight,
             }
 
-<<<<<<< HEAD
     def get_all_workers_status(self) -> list[dict[str, Any]]:
-=======
-    def get_all_workers_status(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             results = []
             for _wid, w in self._workers.items():
@@ -172,11 +141,7 @@ class LoadBalancer:
                         "tasks_completed": w.tasks_completed,
                         "tasks_failed": w.tasks_failed,
                         "weight": w.weight,
-<<<<<<< HEAD
                     },
-=======
-                    }
->>>>>>> origin/fix/scenario-tests-properly
                 )
             return results
 
@@ -213,11 +178,7 @@ class TaskItem:
     task_id: str = field(compare=False)
     task_data: Any = field(compare=False)
     status: str = field(default="queued", compare=False)
-<<<<<<< HEAD
     assigned_worker: Optional[str] = field(default=None, compare=False)
-=======
-    assigned_worker: str | None = field(default=None, compare=False)
->>>>>>> origin/fix/scenario-tests-properly
     retries: int = field(default=0, compare=False)
 
 
@@ -228,17 +189,15 @@ class DistributedTaskQueue:
         # hold the lock call other methods that also acquire it (e.g.
         # get_queue_statistics → get_queue_depth).
         self._lock = threading.RLock()
-<<<<<<< HEAD
         self._queue: list[TaskItem] = []
         self._tasks: dict[str, TaskItem] = {}
         self._completed: dict[str, TaskItem] = {}
         self._failed: dict[str, TaskItem] = {}
-=======
+
         self._queue: List[TaskItem] = []
         self._tasks: Dict[str, TaskItem] = {}
         self._completed: Dict[str, TaskItem] = {}
         self._failed: Dict[str, TaskItem] = {}
->>>>>>> origin/fix/scenario-tests-properly
         if queue_type == "redis":
             try:
                 from redis import Redis
@@ -260,25 +219,17 @@ class DistributedTaskQueue:
         task_id = str(uuid.uuid4())
         prio = _PRIORITY_MAP.get(TaskPriority(priority), _PRIORITY_MAP[TaskPriority.NORMAL])
         item = TaskItem(
-<<<<<<< HEAD
             priority=prio,
             enqueued_at=time.time(),
             task_id=task_id,
             task_data=task_data,
-=======
-            priority=prio, enqueued_at=time.time(), task_id=task_id, task_data=task_data
->>>>>>> origin/fix/scenario-tests-properly
         )
         with self._lock:
             heapq.heappush(self._queue, item)
             self._tasks[task_id] = item
         return task_id
 
-<<<<<<< HEAD
     def dequeue(self, worker_id: str) -> dict[str, Any] | None:
-=======
-    def dequeue(self, worker_id: str) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             while self._queue:
                 item = heapq.heappop(self._queue)
@@ -288,11 +239,7 @@ class DistributedTaskQueue:
                     return {"task_id": item.task_id, "task_data": item.task_data}
             return None
 
-<<<<<<< HEAD
     def acknowledge(self, task_id: str, _worker_id: str) -> bool:
-=======
-    def acknowledge(self, task_id: str, worker_id: str) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             item = self._tasks.get(task_id)
             if item is None or item.status != "in_progress":
@@ -317,11 +264,7 @@ class DistributedTaskQueue:
         with self._lock:
             return len(self._queue)
 
-<<<<<<< HEAD
     def get_queue_statistics(self) -> dict[str, Any]:
-=======
-    def get_queue_statistics(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             queued = self.get_queue_depth()
             in_progress = sum(1 for t in self._tasks.values() if t.status == "in_progress")
@@ -349,26 +292,17 @@ class ClusterNode:
     node_id: str
     host: str
     port: int
-<<<<<<< HEAD
     capabilities: dict[str, Any]
-=======
-    capabilities: Dict[str, Any]
->>>>>>> origin/fix/scenario-tests-properly
     healthy: bool = True
     registered_at: float = field(default_factory=time.time)
     last_heartbeat: float = field(default_factory=time.time)
     current_load: float = 0.0
-<<<<<<< HEAD
     active_studies: list[str] = field(default_factory=list)
-=======
-    active_studies: List[str] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ClusterManager:
     def __init__(self, cluster_name: str = "etap-platform") -> None:
         self.cluster_name = cluster_name
-<<<<<<< HEAD
         self._nodes: dict[str, ClusterNode] = {}
         self._lock = threading.Lock()
         self._failure_handlers: list[Callable[[str], None]] = []
@@ -389,7 +323,7 @@ class ClusterManager:
             )
 
     def discover_nodes(self) -> list[dict[str, Any]]:
-=======
+
         self._nodes: Dict[str, ClusterNode] = {}
         self._lock = threading.Lock()
         self._failure_handlers: List[Callable[[str], None]] = []
@@ -403,7 +337,6 @@ class ClusterManager:
             )
 
     def discover_nodes(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             return [
                 {
@@ -416,11 +349,7 @@ class ClusterManager:
                 for n in self._nodes.values()
             ]
 
-<<<<<<< HEAD
     def get_active_nodes(self) -> list[dict[str, Any]]:
-=======
-    def get_active_nodes(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             return [
                 {
@@ -434,20 +363,12 @@ class ClusterManager:
                 if n.healthy
             ]
 
-<<<<<<< HEAD
     def get_node_capabilities(self, node_id: str) -> dict[str, Any] | None:
-=======
-    def get_node_capabilities(self, node_id: str) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             node = self._nodes.get(node_id)
             return node.capabilities if node else None
 
-<<<<<<< HEAD
     def assign_study(self, study_type: str, system_size: float) -> dict[str, Any] | None:
-=======
-    def assign_study(self, study_type: str, system_size: float) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             candidates = [
                 n
@@ -466,11 +387,7 @@ class ClusterManager:
                 "capabilities": best.capabilities,
             }
 
-<<<<<<< HEAD
     def handle_node_failure(self, node_id: str) -> list[str]:
-=======
-    def handle_node_failure(self, node_id: str) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             node = self._nodes.get(node_id)
             if node is None:
@@ -489,11 +406,7 @@ class ClusterManager:
     def register_failure_handler(self, handler: Callable[[str], None]) -> None:
         self._failure_handlers.append(handler)
 
-<<<<<<< HEAD
     def get_cluster_health(self) -> dict[str, Any]:
-=======
-    def get_cluster_health(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             total = len(self._nodes)
             healthy = sum(1 for n in self._nodes.values() if n.healthy)
@@ -501,7 +414,6 @@ class ClusterManager:
             total_capacity = sum(
                 n.capabilities.get("max_load", 100.0) for n in self._nodes.values()
             )
-<<<<<<< HEAD
             # Cluster status — extracted from nested ternary (S3358)
             if healthy == total:
                 _cluster_status = "healthy"
@@ -509,8 +421,6 @@ class ClusterManager:
                 _cluster_status = "degraded"
             else:
                 _cluster_status = "down"
-=======
->>>>>>> origin/fix/scenario-tests-properly
             return {
                 "cluster_name": self.cluster_name,
                 "total_nodes": total,
@@ -519,11 +429,7 @@ class ClusterManager:
                 "total_load": total_load,
                 "total_capacity": total_capacity,
                 "utilization": total_load / max(total_capacity, 1e-9),
-<<<<<<< HEAD
                 "status": _cluster_status,
-=======
-                "status": "healthy" if healthy == total else "degraded" if healthy > 0 else "down",
->>>>>>> origin/fix/scenario-tests-properly
             }
 
 
@@ -545,19 +451,17 @@ class HorizontalScaler:
         self.scale_up_threshold = scale_up_threshold
         self.scale_down_threshold = scale_down_threshold
         self._current_nodes = self.min_nodes
-<<<<<<< HEAD
         self._scale_up_cbs: list[Callable[[int], None]] = []
         self._scale_down_cbs: list[Callable[[int], None]] = []
         self._lock = threading.Lock()
 
     def evaluate_scaling(self, current_load: float) -> Optional[str]:
-=======
+
         self._scale_up_cbs: List[Callable[[int], None]] = []
         self._scale_down_cbs: List[Callable[[int], None]] = []
         self._lock = threading.Lock()
 
     def evaluate_scaling(self, current_load: float) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         if current_load >= self.scale_up_threshold and self._current_nodes < self.max_nodes:
             return "scale_up"
         if current_load <= self.scale_down_threshold and self._current_nodes > self.min_nodes:
@@ -590,11 +494,7 @@ class HorizontalScaler:
                     logger.exception("Scale-down callback error")
             return self._current_nodes
 
-<<<<<<< HEAD
     def get_scaling_recommendation(self, metrics: dict[str, float]) -> dict[str, Any]:
-=======
-    def get_scaling_recommendation(self, metrics: Dict[str, float]) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         avg_util = sum(metrics.values()) / max(len(metrics), 1)
         action = self.evaluate_scaling(avg_util)
         suggested = self._current_nodes
@@ -605,11 +505,7 @@ class HorizontalScaler:
         reason = (
             f"Utilization {avg_util:.1%} exceeds {self.scale_up_threshold:.0%}"
             if action == "scale_up"
-<<<<<<< HEAD
             else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"  # NOSONAR nested conditional; extract to named variable (tech debt)
-=======
-            else f"Utilization {avg_util:.1%} below {self.scale_down_threshold:.0%}"
->>>>>>> origin/fix/scenario-tests-properly
             if action == "scale_down"
             else f"Utilization {avg_util:.1%} within normal range"
         )
@@ -645,31 +541,27 @@ class PartitionType(StrEnum):
 @dataclass
 class Partition:
     partition_id: str
-<<<<<<< HEAD
     buses: list[int]
     boundary_buses: list[int]
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
+
     buses: List[int]
     boundary_buses: List[int]
     metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class PartitionManager:
     def __init__(self, partition_type: str = "bus_based") -> None:
         self.partition_type = PartitionType(partition_type)
-<<<<<<< HEAD
         self._partitions: dict[str, Partition] = {}
         self._original_buses: list[int] = []
 
     def partition_system(self, system: Any, num_partitions: int) -> list[dict[str, Any]]:
-=======
+
         self._partitions: Dict[str, Partition] = {}
         self._original_buses: List[int] = []
 
     def partition_system(self, system: Any, num_partitions: int) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         bus_ids = self._extract_bus_ids(system)
         self._original_buses = list(bus_ids)
         self._partitions.clear()
@@ -698,19 +590,11 @@ class PartitionManager:
                     "buses": buses,
                     "boundary_buses": boundaries,
                     "num_buses": len(buses),
-<<<<<<< HEAD
                 },
             )
         return results
 
     def get_partition(self, partition_id: str) -> dict[str, Any] | None:
-=======
-                }
-            )
-        return results
-
-    def get_partition(self, partition_id: str) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         p = self._partitions.get(partition_id)
         if p is None:
             return None
@@ -721,13 +605,8 @@ class PartitionManager:
             "metadata": p.metadata,
         }
 
-<<<<<<< HEAD
     def merge_results(self, partition_results: dict[str, Any]) -> dict[str, Any]:
         merged: dict[str, Any] = {"partitions_merged": len(partition_results), "status": "success"}
-=======
-    def merge_results(self, partition_results: Dict[str, Any]) -> Dict[str, Any]:
-        merged: Dict[str, Any] = {"partitions_merged": len(partition_results), "status": "success"}
->>>>>>> origin/fix/scenario-tests-properly
         for pid, result in partition_results.items():
             if isinstance(result, dict):
                 for key, value in result.items():
@@ -739,22 +618,14 @@ class PartitionManager:
                         merged.setdefault(f"partition_{pid}", result)
         return merged
 
-<<<<<<< HEAD
     def get_boundary_buses(self) -> list[int]:
-=======
-    def get_boundary_buses(self) -> List[int]:
->>>>>>> origin/fix/scenario-tests-properly
         boundary_set: set[int] = set()
         for p in self._partitions.values():
             boundary_set.update(p.boundary_buses)
         return sorted(boundary_set)
 
     def verify_partition_integrity(self) -> bool:
-<<<<<<< HEAD
         all_buses: list[int] = []
-=======
-        all_buses: List[int] = []
->>>>>>> origin/fix/scenario-tests-properly
         for p in self._partitions.values():
             all_buses.extend(p.buses)
         restored = set(all_buses)
@@ -771,22 +642,14 @@ class PartitionManager:
             return False
         return True
 
-<<<<<<< HEAD
     def _extract_bus_ids(self, system: Any) -> list[int]:
-=======
-    def _extract_bus_ids(self, system: Any) -> List[int]:
->>>>>>> origin/fix/scenario-tests-properly
         if hasattr(system, "buses"):
             return [b.id if hasattr(b, "id") else b for b in system.buses]
         if hasattr(system, "bus_ids"):
             return list(system.bus_ids)
         return list(range(100))
 
-<<<<<<< HEAD
     def _bus_based(self, bus_ids: list[int], num: int) -> list[tuple[str, list[int], list[int]]]:
-=======
-    def _bus_based(self, bus_ids: List[int], num: int) -> List[Tuple[str, List[int], List[int]]]:
->>>>>>> origin/fix/scenario-tests-properly
         num = max(1, min(num, len(bus_ids)))
         chunks = [bus_ids[i::num] for i in range(num)]
         results = []
@@ -796,7 +659,6 @@ class PartitionManager:
             results.append((pid, chunk, boundaries))
         return results
 
-<<<<<<< HEAD
     def _zone_based(self, bus_ids: list[int], num: int) -> list[tuple[str, list[int], list[int]]]:
         return self._bus_based(sorted(bus_ids), num)
 
@@ -807,7 +669,7 @@ class PartitionManager:
         system: Any,
     ) -> list[tuple[str, list[int], list[int]]]:
         kv_groups: dict[float, list[int]] = defaultdict(list)
-=======
+
     def _zone_based(self, bus_ids: List[int], num: int) -> List[Tuple[str, List[int], List[int]]]:
         return self._bus_based(sorted(bus_ids), num)
 
@@ -815,7 +677,6 @@ class PartitionManager:
         self, bus_ids: List[int], num: int, system: Any
     ) -> List[Tuple[str, List[int], List[int]]]:
         kv_groups: Dict[float, List[int]] = defaultdict(list)
->>>>>>> origin/fix/scenario-tests-properly
         for bid in bus_ids:
             kv = 13.8
             if hasattr(system, "get_bus_voltage"):
@@ -843,11 +704,7 @@ class PartitionManager:
         return results
 
     @staticmethod
-<<<<<<< HEAD
     def _compute_boundaries(chunk: list[int], all_chunks: list[list[int]]) -> list[int]:
-=======
-    def _compute_boundaries(chunk: List[int], all_chunks: List[List[int]]) -> List[int]:
->>>>>>> origin/fix/scenario-tests-properly
         chunk_set = set(chunk)
         boundaries: set[int] = set()
         for other in all_chunks:
@@ -877,11 +734,7 @@ class ExecutionPlan:
     num_partitions: int
     estimated_duration: float
     partition_strategy: str
-<<<<<<< HEAD
     steps: list[dict[str, Any]] = field(default_factory=list)
-=======
-    steps: List[Dict[str, Any]] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
@@ -891,22 +744,19 @@ class Execution:
     status: ExecutionStatus
     plan: ExecutionPlan
     started_at: float = field(default_factory=time.time)
-<<<<<<< HEAD
     completed_at: Optional[float] = None
     error: Optional[str] = None
     partial_results: dict[str, Any] = field(default_factory=dict)
-=======
+
     completed_at: float | None = None
     error: str | None = None
     partial_results: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class DistributedOrchestrator:
     def __init__(self, cluster_manager: ClusterManager, task_queue: DistributedTaskQueue) -> None:
         self.cluster_manager = cluster_manager
         self.task_queue = task_queue
-<<<<<<< HEAD
         self._executions: dict[str, Execution] = {}
         self._lock = threading.Lock()
 
@@ -915,26 +765,15 @@ class DistributedOrchestrator:
         study_type: str,
         system: Any,
         params: dict[str, Any],
-=======
-        self._executions: Dict[str, Execution] = {}
-        self._lock = threading.Lock()
-
-    def execute_distributed_study(
-        self, study_type: str, system: Any, params: Dict[str, Any]
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         system_size = self._estimate_system_size(system)
         plan = self._build_plan(study_type, system_size, params)
         task_id = str(uuid.uuid4())
         execution = Execution(
-<<<<<<< HEAD
             task_id=task_id,
             study_type=study_type,
             status=ExecutionStatus.RUNNING,
             plan=plan,
-=======
-            task_id=task_id, study_type=study_type, status=ExecutionStatus.RUNNING, plan=plan
->>>>>>> origin/fix/scenario-tests-properly
         )
         with self._lock:
             self._executions[task_id] = execution
@@ -953,11 +792,7 @@ class DistributedOrchestrator:
     def get_execution_plan(self, study_type: str, system_size: float) -> ExecutionPlan:
         return self._build_plan(study_type, system_size, {})
 
-<<<<<<< HEAD
     def monitor_execution(self, task_id: str) -> dict[str, Any] | None:
-=======
-    def monitor_execution(self, task_id: str) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             execution = self._executions.get(task_id)
             if execution is None:
@@ -990,14 +825,10 @@ class DistributedOrchestrator:
             return True
 
     def _build_plan(
-<<<<<<< HEAD
         self,
         study_type: str,
         system_size: float,
         params: dict[str, Any],
-=======
-        self, study_type: str, system_size: float, params: Dict[str, Any]
->>>>>>> origin/fix/scenario-tests-properly
     ) -> ExecutionPlan:
         num_nodes = params.get("num_nodes", 2)
         num_partitions = params.get("num_partitions", min(int(system_size / 10) + 1, 8))

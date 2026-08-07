@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest';
-<<<<<<< HEAD
 import scenario, {
   AgentAdapter,
   AgentRole,
   type AgentInput,
   type AgentReturnTypes,
 } from '@langwatch/scenario';
-=======
-import scenario, { AgentAdapter, AgentRole, type AgentInput, type AgentReturnTypes } from '@langwatch/scenario';
->>>>>>> origin/fix/scenario-tests-properly
 import { mastra } from '../../src/mastra';
 import { isRealProviderAvailable } from './helpers.test-types';
 
@@ -33,7 +29,6 @@ class MastraCoordinatorAdapter extends AgentAdapter {
 }
 
 describe('Power System Coordinator Agent', () => {
-<<<<<<< HEAD
   const runIfProvider = isRealProviderAvailable() ? it : it.skip.bind(it);
 
   // Unconditional smoke test so the file always contains at least one
@@ -95,7 +90,7 @@ describe('Power System Coordinator Agent', () => {
       expect(coordinator.lastTraceId).toBeTruthy();
     },
   );
-=======
+
   const runIfProvider = isRealProviderAvailable()
     ? it
     : it.skip.bind(it);
@@ -148,5 +143,4 @@ describe('Power System Coordinator Agent', () => {
     expect(result.success, result.reasoning).toBe(true);
     expect(coordinator.lastTraceId).toBeTruthy();
   });
->>>>>>> origin/fix/scenario-tests-properly
 });

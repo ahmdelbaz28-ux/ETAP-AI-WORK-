@@ -5,13 +5,9 @@ This module creates GeoJSON from SCADA tags for QGIS import.
 
 import json
 import os
-<<<<<<< HEAD
 from datetime import UTC, datetime
 
 UTC = UTC
-=======
-from datetime import datetime
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def create_scada_tags_geojson():
@@ -31,11 +27,7 @@ def create_scada_tags_geojson():
                 "type": "smoke",
                 "coverage": "45m²",
                 "status": "normal",
-<<<<<<< HEAD
                 "timestamp": datetime.now(UTC).isoformat(),
-=======
-                "timestamp": datetime.utcnow().isoformat() + "Z",
->>>>>>> origin/fix/scenario-tests-properly
             },
         },
         {
@@ -48,11 +40,7 @@ def create_scada_tags_geojson():
                 "pressure": "10bar",
                 "flow": "120L/min",
                 "status": "ready",
-<<<<<<< HEAD
                 "timestamp": datetime.now(UTC).isoformat(),
-=======
-                "timestamp": datetime.utcnow().isoformat() + "Z",
->>>>>>> origin/fix/scenario-tests-properly
             },
         },
         {
@@ -64,11 +52,7 @@ def create_scada_tags_geojson():
                 "type": "heat",
                 "coverage": "30m²",
                 "status": "normal",
-<<<<<<< HEAD
                 "timestamp": datetime.now(UTC).isoformat(),
-=======
-                "timestamp": datetime.utcnow().isoformat() + "Z",
->>>>>>> origin/fix/scenario-tests-properly
             },
         },
         {
@@ -80,11 +64,7 @@ def create_scada_tags_geojson():
                 "type": "control_valve",
                 "status": "open",
                 "pressure": "8bar",
-<<<<<<< HEAD
                 "timestamp": datetime.now(UTC).isoformat(),
-=======
-                "timestamp": datetime.utcnow().isoformat() + "Z",
->>>>>>> origin/fix/scenario-tests-properly
             },
         },
     ]
@@ -103,7 +83,6 @@ def create_scada_tags_geojson():
     return geojson_path
 
 
-<<<<<<< HEAD
 def validate_geojson_structure(  # NOSONAR
     geojson_path,
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -114,17 +93,11 @@ def validate_geojson_structure(  # NOSONAR
     `ValueError` raises. `assert` is stripped when Python runs with -O flag,
     so it must NEVER be used for input validation in production code —
     an attacker could disable all validation by running with `python -O`.
-=======
-def validate_geojson_structure(geojson_path):
-    """
-    Validate the structure of the generated GeoJSON
->>>>>>> origin/fix/scenario-tests-properly
     """
     try:
         with open(geojson_path) as f:
             data = json.load(f)
 
-<<<<<<< HEAD
         # Basic validation — use explicit ValueError (not assert) so the
         # checks remain active even under `python -O` optimization.
         if data.get("type") != "FeatureCollection":
@@ -149,7 +122,7 @@ def validate_geojson_structure(geojson_path):
             coords = feature["geometry"]["coordinates"]
             if len(coords) != 2:
                 raise ValueError(f"Feature {_i}: expected 2 coords [lon, lat], got {len(coords)}")
-=======
+
         # Basic validation
         assert data["type"] == "FeatureCollection"
         assert "features" in data
@@ -163,7 +136,6 @@ def validate_geojson_structure(geojson_path):
             assert "properties" in feature
             assert "coordinates" in feature["geometry"]
             assert len(feature["geometry"]["coordinates"]) == 2  # [lon, lat]
->>>>>>> origin/fix/scenario-tests-properly
 
         print(f"GeoJSON validation passed for {len(data['features'])} features")
         return True

@@ -9,20 +9,13 @@ import asyncio
 import json
 import os
 import time
-<<<<<<< HEAD
 from collections.abc import Coroutine
 from typing import Any, Optional, TypeVar
-=======
-from typing import Any, Dict, List
-
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
->>>>>>> origin/fix/scenario-tests-properly
 
 from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
 from core.tracing import trace_operation
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Pydantic schemas — shared canonical definitions.
 # SonarCloud duplicated_lines_density: all Spec/Request/Result classes are
 # defined ONCE in core_model/specs.py and imported here. The previous local
@@ -50,7 +43,7 @@ __all__ = [
     "SystemSpec",
     "TransformerSpec",
 ]
-=======
+
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
@@ -253,7 +246,6 @@ class StudyResult(BaseModel):
     task_id: str | None = None
     study_type: str = ""
     provider: str = "native"
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -262,13 +254,9 @@ class StudyResult(BaseModel):
 
 
 @trace_operation("_build_system_from_spec", attributes={"component": "engineering_service"})
-<<<<<<< HEAD
 def _build_system_from_spec(  # NOSONAR
     spec: SystemSpec,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def _build_system_from_spec(spec: SystemSpec) -> Any:
->>>>>>> origin/fix/scenario-tests-properly
     """Build a Python System object from a SystemSpec."""
     from core_model.bus import Bus
     from core_model.generator import Generator
@@ -278,11 +266,7 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
     from core_model.transformer import Transformer
 
     system = System(base_mva=spec.base_mva)
-<<<<<<< HEAD
     bus_map: dict[int, Any] = {}
-=======
-    bus_map: Dict[int, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     for b in spec.buses:
         bus = Bus(
@@ -300,7 +284,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
         bus_map[b.bus_id] = bus
 
     for l in spec.lines:
-<<<<<<< HEAD
         if l.from_bus_id not in bus_map:
             logger.warning(
                 "Line %s references unknown from_bus %s, creating default PQ bus",
@@ -319,10 +302,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             bus = Bus(bus_id=l.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[l.to_bus_id] = bus
-=======
-        if l.from_bus_id not in bus_map or l.to_bus_id not in bus_map:
-            raise ValueError(f"Line {l.line_id} references unknown bus")
->>>>>>> origin/fix/scenario-tests-properly
         line = Line(
             line_id=l.line_id,
             from_bus=bus_map[l.from_bus_id],
@@ -335,7 +314,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
         system.add_line(line)
 
     for t in spec.transformers:
-<<<<<<< HEAD
         if t.from_bus_id not in bus_map:
             logger.warning(
                 "Transformer %s references unknown from_bus %s, creating default PQ bus",
@@ -354,10 +332,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             bus = Bus(bus_id=t.to_bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[t.to_bus_id] = bus
-=======
-        if t.from_bus_id not in bus_map or t.to_bus_id not in bus_map:
-            raise ValueError(f"Transformer {t.transformer_id} references unknown bus")
->>>>>>> origin/fix/scenario-tests-properly
         xf = Transformer(
             transformer_id=t.transformer_id,
             from_bus=bus_map[t.from_bus_id],
@@ -370,7 +344,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for g in spec.generators:
         if g.bus_id not in bus_map:
-<<<<<<< HEAD
             logger.warning(
                 "Generator %s references unknown bus %s, creating default PV bus",
                 g.generator_id,
@@ -379,9 +352,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             bus = Bus(bus_id=g.bus_id, bus_type="pv")
             system.add_bus(bus)
             bus_map[g.bus_id] = bus
-=======
-            raise ValueError(f"Generator {g.generator_id} references unknown bus")
->>>>>>> origin/fix/scenario-tests-properly
         gen = Generator(
             generator_id=g.generator_id,
             bus=bus_map[g.bus_id],
@@ -393,19 +363,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             impedance={
                 "1": complex(g.r1, g.x1),
                 "2": complex(
-<<<<<<< HEAD
                     g.r2 if g.r2 is not None else g.r1,
                     g.x2 if g.x2 is not None else g.x1,
                 ),
                 "0": complex(
                     g.r0 if g.r0 is not None else g.r1,
                     g.x0 if g.x0 is not None else g.x1,
-=======
-                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1
-                ),
-                "0": complex(
-                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1
->>>>>>> origin/fix/scenario-tests-properly
                 ),
             },
         )
@@ -413,7 +376,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 
     for ld in spec.loads:
         if ld.bus_id not in bus_map:
-<<<<<<< HEAD
             logger.warning(
                 "Load %s references unknown bus %s, creating default PQ bus",
                 ld.load_id,
@@ -422,9 +384,6 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             bus = Bus(bus_id=ld.bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[ld.bus_id] = bus
-=======
-            raise ValueError(f"Load {ld.load_id} references unknown bus")
->>>>>>> origin/fix/scenario-tests-properly
         load = Load(
             load_id=ld.load_id,
             bus=bus_map[ld.bus_id],
@@ -444,24 +403,17 @@ _STUDIES_REQUIRING_SYSTEM = {
     "load_flow",
     "short_circuit",
     "fault",
-<<<<<<< HEAD
     "fault_analysis",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "protection_coordination",
     "coordination",
     "motor_starting",
 }
 
 
-<<<<<<< HEAD
 T = TypeVar("T")
 
 
 def _run_async(coro: Coroutine[Any, Any, T]) -> T:
-=======
-def _run_async(coro):
->>>>>>> origin/fix/scenario-tests-properly
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()
@@ -479,31 +431,24 @@ def _run_async(coro):
 
 
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
-<<<<<<< HEAD
 def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
     system: Optional[Any],
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
-=======
+
 def _run_native_study(
     study_type: str, system: Any | None, parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """Execute a study using the native PowerSystemEngine."""
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
-<<<<<<< HEAD
     Engine = _get_power_system_engine()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-    Engine = _get_power_system_engine()
->>>>>>> origin/fix/scenario-tests-properly
     engine = Engine(system)
 
     if study_type in ("load_flow",):
         return engine.run_load_flow()
-<<<<<<< HEAD
     elif study_type in ("short_circuit", "fault", "fault_analysis"):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")
@@ -523,7 +468,7 @@ def _run_native_study(
             parameters["arc_duration_sec"] = 0.1
         if "working_distance_mm" not in parameters:
             parameters["working_distance_mm"] = 610.0
-=======
+
     elif study_type in ("short_circuit", "fault"):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")
@@ -542,7 +487,6 @@ def _run_native_study(
             raise ValueError(
                 f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
             )
->>>>>>> origin/fix/scenario-tests-properly
         return engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
@@ -565,15 +509,10 @@ def _run_native_study(
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
 def _run_etap_study(
-<<<<<<< HEAD
     study_type: str,
     project_path: str,
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
-=======
-    study_type: str, project_path: str, parameters: Dict[str, Any]
-) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """Execute a study via the ETAP provider."""
     # Check if ETAP is enabled
     if os.getenv("USE_ETAP", "false").lower() != "true":
@@ -620,13 +559,9 @@ def _run_etap_study(
     }
 
 
-<<<<<<< HEAD
 def execute_study_logic(  # NOSONAR
     payload: StudyRequest, trace_id: str, start_time: float
 ) -> StudyResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float) -> StudyResult:
->>>>>>> origin/fix/scenario-tests-properly
     """Execute study logic with caching and proper error handling."""
     from core.bootstrap import _add_execution_time, _increment_counter, _study_cache
     from utils.language_detection import normalize_input
@@ -654,15 +589,13 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
         extra={"trace_id": trace_id},
     )
 
-<<<<<<< HEAD
     warnings: list[str] = []
     errors: list[str] = []
     data: dict[str, Any] = {}
-=======
+
     warnings: List[str] = []
     errors: List[str] = []
     data: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
     provider_name = "native"
     cache_hit = False
 
@@ -676,13 +609,9 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-<<<<<<< HEAD
                         payload.system.model_dump(),
                         sort_keys=True,
                         default=str,
-=======
-                        payload.system.model_dump(), sort_keys=True, default=str
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
@@ -698,13 +627,9 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                         )
             except Exception as cache_err:
                 logger.debug(
-<<<<<<< HEAD
                     "Cache lookup failed (non-fatal): %s",
                     cache_err,
                     extra={"trace_id": trace_id},
-=======
-                    "Cache lookup failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         if cache_hit:
@@ -722,11 +647,7 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     payload.study_type,
                     payload.etap_project_path,
                     payload.parameters,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             warnings = data.pop("warnings", [])
             errors = data.pop("errors", [])
@@ -751,19 +672,14 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     import hashlib as _hashlib
 
                     system_json = json.dumps(
-<<<<<<< HEAD
                         payload.system.model_dump(),
                         sort_keys=True,
                         default=str,
-=======
-                        payload.system.model_dump(), sort_keys=True, default=str
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
                 if _study_cache:
                     _run_async(
                         _study_cache.set(
-<<<<<<< HEAD
                             payload.study_type,
                             cache_params,
                             json.dumps(data, default=str),
@@ -774,14 +690,13 @@ def execute_study_logic(payload: StudyRequest, trace_id: str, start_time: float)
                     "Cache store failed (non-fatal): %s",
                     cache_err,
                     extra={"trace_id": trace_id},
-=======
+
                             payload.study_type, cache_params, json.dumps(data, default=str)
                         )
                     )
             except Exception as cache_err:
                 logger.debug(
                     "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         _increment_counter("success")

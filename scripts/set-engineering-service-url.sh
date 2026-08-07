@@ -20,20 +20,12 @@ URL="${1:-}"
 API_KEY="${2:-}"
 WORKER_NAME="${WORKER_NAME:-ahmed-etap}"
 STAGING_NAME="${STAGING_NAME:-ahmed-etap-staging}"
-<<<<<<< HEAD
 DIVIDER='=========================================='
 
 if [[ -z "${URL}" ]]; then
   read -rp "Engineering Service public URL (e.g. https://eng-svc.example.com): " URL
 fi
 if [[ -z "${URL}" ]]; then
-=======
-
-if [ -z "${URL}" ]; then
-  read -rp "Engineering Service public URL (e.g. https://eng-svc.example.com): " URL
-fi
-if [ -z "${URL}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
   echo "ERROR: URL is required" >&2
   exit 1
 fi
@@ -41,50 +33,29 @@ fi
 # Strip trailing slash
 URL="${URL%/}"
 
-<<<<<<< HEAD
 if [[ -z "${API_KEY}" ]]; then
-=======
-if [ -z "${API_KEY}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
   read -rsp "Optional ENGINEERING_SERVICE_API_KEY (press Enter to skip): " API_KEY
   echo
 fi
 
-<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " Wiring Engineering Service into Worker"
 echo "${DIVIDER}"
-=======
-echo "=========================================="
-echo " Wiring Engineering Service into Worker"
-echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly
 echo "URL:         ${URL}"
 echo "API key:     ${API_KEY:+***set***}${API_KEY:-<not set>}"
 echo "Production:  ${WORKER_NAME}"
 echo "Staging:     ${STAGING_NAME}"
-<<<<<<< HEAD
 echo "${DIVIDER}"
 
 # Make sure wrangler is available
 command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found" >&2; exit 1; }
-=======
-echo "=========================================="
-
-# Make sure wrangler is available
-command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found"; exit 1; }
->>>>>>> origin/fix/scenario-tests-properly
 
 echo
 echo "[1/4] Setting ENGINEERING_SERVICE_URL on production Worker..."
 # Pipe form (works on wrangler 3.x and 4.x). Do NOT mix with trailing `--`.
 printf "%s" "${URL}" | npx wrangler secret put ENGINEERING_SERVICE_URL --name "${WORKER_NAME}"
 
-<<<<<<< HEAD
 if [[ -n "${API_KEY}" ]]; then
-=======
-if [ -n "${API_KEY}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
   echo "[2/4] Setting ENGINEERING_SERVICE_API_KEY on production Worker..."
   printf "%s" "${API_KEY}" | npx wrangler secret put ENGINEERING_SERVICE_API_KEY --name "${WORKER_NAME}"
 else
@@ -94,11 +65,7 @@ fi
 echo
 echo "[3/4] Setting ENGINEERING_SERVICE_URL on staging Worker (best-effort)..."
 if printf "%s" "${URL}" | npx wrangler secret put ENGINEERING_SERVICE_URL --name "${STAGING_NAME}" 2>&1; then
-<<<<<<< HEAD
   if [[ -n "${API_KEY}" ]]; then
-=======
-  if [ -n "${API_KEY}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     printf "%s" "${API_KEY}" | npx wrangler secret put ENGINEERING_SERVICE_API_KEY --name "${STAGING_NAME}" 2>&1 || true
   fi
 else
@@ -111,11 +78,7 @@ sleep 2
 VERIFY_URL="https://${WORKER_NAME}.ahmdelbaz28.workers.dev/health"
 echo "  GET ${VERIFY_URL}"
 RESP="$(curl -fsS "${VERIFY_URL}" || true)"
-<<<<<<< HEAD
 if [[ -z "${RESP}" ]]; then
-=======
-if [ -z "${RESP}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
   echo "  ERROR: could not reach Worker /health" >&2
   exit 2
 fi
@@ -146,12 +109,6 @@ let s=''; process.stdin.on('data',d=>s+=d); process.stdin.on('end',()=>{
 }
 
 echo
-<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " DONE — Worker is now wired to Engineering Service"
 echo "${DIVIDER}"
-=======
-echo "=========================================="
-echo " DONE — Worker is now wired to Engineering Service"
-echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly

@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import Dict, List, Set, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -13,7 +9,6 @@ from gis_validation_electrical.electrical_model import ElectricalModel
 @dataclass(frozen=True)
 class RadialityIssue:
     issue_type: str  # e.g. "loop_detected", "island_detected"
-<<<<<<< HEAD
     affected_nodes: list[str]
     affected_edges: list[str]
     details: dict[str, object]
@@ -21,7 +16,7 @@ class RadialityIssue:
 
 def _undirected_adjacency(model: ElectricalModel) -> dict[str, set[str]]:
     adj: dict[str, set[str]] = {nid: set() for nid in model.nodes}
-=======
+
     affected_nodes: List[str]
     affected_edges: List[str]
     details: Dict[str, object]
@@ -29,7 +24,6 @@ def _undirected_adjacency(model: ElectricalModel) -> dict[str, set[str]]:
 
 def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
     adj: Dict[str, Set[str]] = {nid: set() for nid in model.nodes.keys()}
->>>>>>> origin/fix/scenario-tests-properly
     for e in model.edges.values():
         if e.from_node in adj and e.to_node in adj:
             adj[e.from_node].add(e.to_node)
@@ -37,7 +31,6 @@ def _undirected_adjacency(model: ElectricalModel) -> Dict[str, Set[str]]:
     return adj
 
 
-<<<<<<< HEAD
 def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
     visited: set[str] = set()
     comps: list[set[str]] = []
@@ -46,7 +39,7 @@ def _find_components(adj: dict[str, set[str]]) -> list[set[str]]:
             continue
         stack = [start]
         comp: set[str] = set()
-=======
+
 def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
     visited: Set[str] = set()
     comps: List[Set[str]] = []
@@ -55,7 +48,6 @@ def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
             continue
         stack = [start]
         comp: Set[str] = set()
->>>>>>> origin/fix/scenario-tests-properly
         while stack:
             n = stack.pop()
             if n in visited:
@@ -69,34 +61,28 @@ def _find_components(adj: Dict[str, Set[str]]) -> List[Set[str]]:
     return comps
 
 
-<<<<<<< HEAD
 def _has_undirected_loop(  # NOSONAR
     adj: dict[str, set[str]],
 ) -> tuple[
     bool, list[str]
 ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Detect cycles in an undirected graph.
     Returns (has_loop, one_cycle_nodes_best_effort).
 
     Deterministic and bounded: uses DFS with parent tracking.
     """
-<<<<<<< HEAD
     visited: set[str] = set()
     parent: dict[str, Optional[str]] = {}
     stack: list[tuple[str, Optional[str]]] = []
 
     for root in adj:
-=======
+
     visited: Set[str] = set()
     parent: Dict[str, str | None] = {}
     stack: List[Tuple[str, str | None]] = []
 
     for root in adj.keys():
->>>>>>> origin/fix/scenario-tests-properly
         if root in visited:
             continue
         parent[root] = None
@@ -119,11 +105,7 @@ def _has_undirected_loop(adj: Dict[str, Set[str]]) -> Tuple[bool, List[str]]:
     return False, []
 
 
-<<<<<<< HEAD
 def validate_radiality(model: ElectricalModel) -> tuple[bool, list[RadialityIssue]]:
-=======
-def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssue]]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Radiality validation:
     - No loops in the electrical graph (undirected cycle check)
@@ -131,11 +113,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
 
     Note: This is electrical-graph radiality only (not GIS topology validation).
     """
-<<<<<<< HEAD
     issues: list[RadialityIssue] = []
-=======
-    issues: List[RadialityIssue] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     if not model.nodes:
         return True, issues
@@ -146,12 +124,8 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
     # Island detection: more than one component means electrical isolation exists.
     if len(comps) > 1:
         # Best-effort: treat the smallest component as isolated.
-<<<<<<< HEAD
         # SonarCloud python:S8517: min() instead of sort()[0] — O(n) vs O(n log n).
         smallest = min(comps, key=lambda c: len(c))
-=======
-        smallest = sorted(comps, key=lambda c: len(c))[0]
->>>>>>> origin/fix/scenario-tests-properly
         affected_edges = [
             e.edge_id
             for e in model.edges.values()
@@ -163,11 +137,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
                 affected_nodes=sorted(smallest),
                 affected_edges=sorted(affected_edges),
                 details={"component_count": len(comps)},
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # Loop detection.
@@ -184,11 +154,7 @@ def validate_radiality(model: ElectricalModel) -> Tuple[bool, List[RadialityIssu
                 affected_nodes=sorted(set(cycle_nodes)),
                 affected_edges=sorted(affected_edges),
                 details={},
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     ok = len(issues) == 0

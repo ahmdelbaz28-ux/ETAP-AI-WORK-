@@ -21,20 +21,12 @@ from __future__ import annotations
 import json
 import logging
 import os
-<<<<<<< HEAD
 import re
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import field
 from typing import Any
-=======
-import time
-from collections.abc import Generator
-from contextlib import contextmanager
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +39,6 @@ DEFAULT_SCHEMA = os.environ.get("POSTGIS_SCHEMA", "etap_gis")
 _SPATIAL_REF_SYS = 4326  # WGS84
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Security: schema name validation
 # ---------------------------------------------------------------------------
 # PostgreSQL identifiers (schema, table, column names) cannot be parameterized
@@ -76,13 +67,10 @@ def _validate_schema_name(schema: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # Data models
 # ---------------------------------------------------------------------------
 
 
-<<<<<<< HEAD
 def _parse_properties(value) -> dict:
     """Parse a PostGIS row[3] value into a properties dict.
 
@@ -98,31 +86,19 @@ def _parse_properties(value) -> dict:
     return {}
 
 
-=======
-@dataclass
->>>>>>> origin/fix/scenario-tests-properly
 class SpatialAsset:
     """A spatially-enabled asset in PostGIS."""
 
     asset_id: str
     asset_type: str  # bus, line, transformer, substation, switch, load, generator
-<<<<<<< HEAD
     geometry: dict[str, Any] | None = None  # GeoJSON geometry dict
     properties: dict[str, Any] = field(default_factory=dict)
-=======
-    geometry: Dict[str, Any] | None = None  # GeoJSON geometry dict
-    properties: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
     electrical_id: str | None = None
     crs: int = _SPATIAL_REF_SYS
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
-<<<<<<< HEAD
     def to_geojson_feature(self) -> dict[str, Any]:
-=======
-    def to_geojson_feature(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         return {
             "type": "Feature",
             "geometry": self.geometry,
@@ -143,22 +119,13 @@ _HAS_POSTGIS = False
 _psycopg2 = None
 try:
     import psycopg2  # type: ignore
-<<<<<<< HEAD
-=======
-    import psycopg2.extras  # type: ignore
-    import psycopg2.pool  # type: ignore
->>>>>>> origin/fix/scenario-tests-properly
 
     _psycopg2 = psycopg2
     _HAS_POSTGIS = True
 except ImportError:
     logger.warning(
         "psycopg2 not installed. PostGIS provider will use file-based fallback. "
-<<<<<<< HEAD
         "Install: pip install psycopg2-binary",
-=======
-        "Install: pip install psycopg2-binary"
->>>>>>> origin/fix/scenario-tests-properly
     )
 
 
@@ -182,15 +149,10 @@ class PostGISProvider:
         pool_min: int = 1,
         pool_max: int = 10,
     ):
-<<<<<<< HEAD
         # SECURITY: validate schema name against whitelist before any SQL use.
         # This prevents SQL injection via crafted schema names.
         self.schema = _validate_schema_name(schema)
         self.dsn = dsn or DEFAULT_DSN
-=======
-        self.dsn = dsn or DEFAULT_DSN
-        self.schema = schema
->>>>>>> origin/fix/scenario-tests-properly
         self._pool: Any = None
         self._connected = False
         self._fallback_dir: str = ""
@@ -202,15 +164,11 @@ class PostGISProvider:
         if not _HAS_POSTGIS:
             self._use_fallback = True
             self._fallback_dir = os.path.join(
-<<<<<<< HEAD
                 os.path.dirname(os.path.abspath(__file__)),
                 "..",
                 "..",
                 "data",
                 "postgis_fallback",
-=======
-                os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "postgis_fallback"
->>>>>>> origin/fix/scenario-tests-properly
             )
             os.makedirs(self._fallback_dir, exist_ok=True)
             logger.info("PostGIS: using file fallback mode at %s", self._fallback_dir)
@@ -227,22 +185,17 @@ class PostGISProvider:
         except Exception as exc:
             self._use_fallback = True
             self._fallback_dir = os.path.join(
-<<<<<<< HEAD
                 os.path.dirname(os.path.abspath(__file__)),
                 "..",
                 "..",
                 "data",
                 "postgis_fallback",
-=======
-                os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "postgis_fallback"
->>>>>>> origin/fix/scenario-tests-properly
             )
             os.makedirs(self._fallback_dir, exist_ok=True)
             logger.warning("PostGIS connection failed (%s) — using file fallback", exc)
 
     def _ensure_schema(self) -> None:
         """Create schema and extension tables if they don't exist."""
-<<<<<<< HEAD
         # SECURITY: build all SQL via psycopg2.sql.SQL/Identifier composition.
         # The schema name is also pre-validated by _validate_schema_name()
         # in __init__, so even a malicious caller cannot inject SQL here.
@@ -290,7 +243,7 @@ class PostGISProvider:
                         "ON {}.spatial_assets (electrical_id)",
                     ).format(sql.Identifier(self.schema)),
                 )
-=======
+
         with self._conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
@@ -318,7 +271,6 @@ class PostGISProvider:
                     CREATE INDEX IF NOT EXISTS idx_spatial_assets_electrical
                     ON {self.schema}.spatial_assets (electrical_id)
                 """)
->>>>>>> origin/fix/scenario-tests-properly
             conn.commit()
 
     @contextmanager
@@ -331,7 +283,6 @@ class PostGISProvider:
             self._pool.putconn(conn)
 
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     # Security helpers
     # ------------------------------------------------------------------
 
@@ -350,8 +301,6 @@ class PostGISProvider:
         )
 
     # ------------------------------------------------------------------
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # Public API
     # ------------------------------------------------------------------
 
@@ -362,11 +311,7 @@ class PostGISProvider:
     def using_fallback(self) -> bool:
         return self._use_fallback
 
-<<<<<<< HEAD
     def health_check(self) -> dict[str, Any]:
-=======
-    def health_check(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Check PostGIS connectivity and return status info."""
         if self._use_fallback:
             return {"status": "fallback", "mode": "file", "path": self._fallback_dir}
@@ -397,7 +342,6 @@ class PostGISProvider:
                 with conn.cursor() as cur:
                     if geom_json:
                         cur.execute(
-<<<<<<< HEAD
                             _psycopg2.sql.SQL(
                                 "INSERT INTO {} "
                                 "(asset_id, asset_type, geometry, properties, electrical_id, updated_at) "
@@ -409,7 +353,7 @@ class PostGISProvider:
                                 "    electrical_id = EXCLUDED.electrical_id, "
                                 "    updated_at = EXCLUDED.updated_at",
                             ).format(_psycopg2.sql.Identifier(self.schema)),
-=======
+
                             f"""
                             INSERT INTO {self.schema}.spatial_assets
                             (asset_id, asset_type, geometry, properties, electrical_id, updated_at)
@@ -421,28 +365,20 @@ class PostGISProvider:
                                 electrical_id = EXCLUDED.electrical_id,
                                 updated_at = EXCLUDED.updated_at
                         """,
->>>>>>> origin/fix/scenario-tests-properly
                             (
                                 asset.asset_id,
                                 asset.asset_type,
                                 geom_json,
-<<<<<<< HEAD
                                 _SPATIAL_REF_SYS,
-=======
->>>>>>> origin/fix/scenario-tests-properly
                                 props_json,
                                 asset.electrical_id,
                                 now,
                                 geom_json,
-<<<<<<< HEAD
                                 _SPATIAL_REF_SYS,
-=======
->>>>>>> origin/fix/scenario-tests-properly
                             ),
                         )
                     else:
                         cur.execute(
-<<<<<<< HEAD
                             _psycopg2.sql.SQL(
                                 "INSERT INTO {} "
                                 "(asset_id, asset_type, properties, electrical_id, updated_at) "
@@ -453,7 +389,7 @@ class PostGISProvider:
                                 "    electrical_id = EXCLUDED.electrical_id, "
                                 "    updated_at = EXCLUDED.updated_at",
                             ).format(_psycopg2.sql.Identifier(self.schema)),
-=======
+
                             f"""
                             INSERT INTO {self.schema}.spatial_assets
                             (asset_id, asset_type, properties, electrical_id, updated_at)
@@ -464,7 +400,6 @@ class PostGISProvider:
                                 electrical_id = EXCLUDED.electrical_id,
                                 updated_at = EXCLUDED.updated_at
                         """,
->>>>>>> origin/fix/scenario-tests-properly
                             (
                                 asset.asset_id,
                                 asset.asset_type,
@@ -476,11 +411,7 @@ class PostGISProvider:
                 conn.commit()
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("PostGIS upsert failed: %s", exc)
-=======
-            logger.error("PostGIS upsert failed: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
             return False
 
     def get_asset(self, asset_id: str) -> SpatialAsset | None:
@@ -488,7 +419,6 @@ class PostGISProvider:
         if self._use_fallback:
             return self._fallback_get(asset_id)
         try:
-<<<<<<< HEAD
             with self._conn() as conn, conn.cursor() as cur:
                 cur.execute(
                     _psycopg2.sql.SQL(
@@ -515,7 +445,7 @@ class PostGISProvider:
             return None
 
     def query_by_type(self, asset_type: str) -> list[SpatialAsset]:
-=======
+
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -545,12 +475,10 @@ class PostGISProvider:
             return None
 
     def query_by_type(self, asset_type: str) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get all assets of a given type."""
         if self._use_fallback:
             return self._fallback_query_by_type(asset_type)
         try:
-<<<<<<< HEAD
             with self._conn() as conn, conn.cursor() as cur:
                 cur.execute(
                     _psycopg2.sql.SQL(
@@ -579,7 +507,7 @@ class PostGISProvider:
             return []
 
     def query_within_radius(self, lat: float, lon: float, radius_m: float) -> list[SpatialAsset]:
-=======
+
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -611,12 +539,10 @@ class PostGISProvider:
             return []
 
     def query_within_radius(self, lat: float, lon: float, radius_m: float) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         """Spatial query: find all assets within a radius (meters)."""
         if self._use_fallback:
             return self._fallback_query_radius(lat, lon, radius_m)
         try:
-<<<<<<< HEAD
             with self._conn() as conn, conn.cursor() as cur:
                 cur.execute(
                     _psycopg2.sql.SQL(
@@ -660,7 +586,7 @@ class PostGISProvider:
         max_lat: float,
         max_lon: float,
     ) -> list[SpatialAsset]:
-=======
+
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -703,12 +629,10 @@ class PostGISProvider:
     def query_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
     ) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         """Spatial query: find all assets within a bounding box."""
         if self._use_fallback:
             return self._fallback_query_bbox(min_lat, min_lon, max_lat, max_lon)
         try:
-<<<<<<< HEAD
             with self._conn() as conn, conn.cursor() as cur:
                 cur.execute(
                     _psycopg2.sql.SQL(
@@ -734,7 +658,7 @@ class PostGISProvider:
                 return results
         except Exception as exc:
             logger.exception("PostGIS bbox query failed: %s", exc)
-=======
+
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -763,7 +687,6 @@ class PostGISProvider:
                     return results
         except Exception as exc:
             logger.error("PostGIS bbox query failed: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
             return []
 
     def delete_asset(self, asset_id: str) -> bool:
@@ -774,36 +697,26 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-<<<<<<< HEAD
                         _psycopg2.sql.SQL(
                             "DELETE FROM {}.spatial_assets WHERE asset_id = %s",
                         ).format(_psycopg2.sql.Identifier(self.schema)),
-=======
+
                         f"""
                         DELETE FROM {self.schema}.spatial_assets WHERE asset_id = %s
                     """,
->>>>>>> origin/fix/scenario-tests-properly
                         (asset_id,),
                     )
                 conn.commit()
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("PostGIS delete failed: %s", exc)
             return False
 
     def get_all_assets(self) -> list[SpatialAsset]:
-=======
-            logger.error("PostGIS delete failed: %s", exc)
-            return False
-
-    def get_all_assets(self) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get all spatial assets."""
         if self._use_fallback:
             return self._fallback_get_all()
         try:
-<<<<<<< HEAD
             with self._conn() as conn, conn.cursor() as cur:
                 cur.execute(
                     _psycopg2.sql.SQL(
@@ -828,7 +741,7 @@ class PostGISProvider:
                 return results
         except Exception as exc:
             logger.exception("PostGIS get_all failed: %s", exc)
-=======
+
             with self._conn() as conn:
                 with conn.cursor() as cur:
                     cur.execute(f"""
@@ -854,32 +767,23 @@ class PostGISProvider:
                     return results
         except Exception as exc:
             logger.error("PostGIS get_all failed: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
             return []
 
     # ------------------------------------------------------------------
     # Network mapping
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def map_electrical_to_gis(  # NOSONAR
         self, electrical_ids: list[str]
     ) -> dict[
         str, dict[str, Any]
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def map_electrical_to_gis(self, electrical_ids: List[str]) -> Dict[str, Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Map electrical model IDs to their GIS spatial assets.
 
         Returns dict of electrical_id -> {asset_id, geometry, properties}
         """
         if self._use_fallback:
-<<<<<<< HEAD
             result: dict[str, dict[str, Any]] = {}
-=======
-            result: Dict[str, Dict[str, Any]] = {}
->>>>>>> origin/fix/scenario-tests-properly
             all_assets = self._fallback_get_all()
             for asset in all_assets:
                 if asset.electrical_id and asset.electrical_id in electrical_ids and asset.geometry:
@@ -894,7 +798,6 @@ class PostGISProvider:
             with self._conn() as conn:
                 with conn.cursor(cursor_factory=_psycopg2.extras.RealDictCursor) as cur:
                     cur.execute(
-<<<<<<< HEAD
                         _psycopg2.sql.SQL(
                             "SELECT electrical_id, asset_id, asset_type, "
                             "       ST_AsGeoJSON(geometry) AS geom_json, "
@@ -905,7 +808,7 @@ class PostGISProvider:
                         (electrical_ids,),
                     )
                     result: dict[str, dict[str, Any]] = {}
-=======
+
                         f"""
                         SELECT electrical_id, asset_id, asset_type,
                                ST_AsGeoJSON(geometry) AS geom_json,
@@ -916,7 +819,6 @@ class PostGISProvider:
                         (electrical_ids,),
                     )
                     result: Dict[str, Dict[str, Any]] = {}
->>>>>>> origin/fix/scenario-tests-properly
                     for row in cur:
                         eid = row["electrical_id"]
                         geom = json.loads(row["geom_json"]) if row["geom_json"] else None
@@ -929,17 +831,10 @@ class PostGISProvider:
                             }
                     return result
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("PostGIS electrical mapping failed: %s", exc)
             return {}
 
     def import_geojson_collection(self, geojson: dict[str, Any]) -> int:
-=======
-            logger.error("PostGIS electrical mapping failed: %s", exc)
-            return {}
-
-    def import_geojson_collection(self, geojson: Dict[str, Any]) -> int:
->>>>>>> origin/fix/scenario-tests-properly
         """Import a full GeoJSON FeatureCollection into PostGIS.
 
         Returns the number of assets imported.
@@ -963,11 +858,7 @@ class PostGISProvider:
                 count += 1
         return count
 
-<<<<<<< HEAD
     def export_geojson_collection(self, asset_type: str | None = None) -> dict[str, Any]:
-=======
-    def export_geojson_collection(self, asset_type: str | None = None) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Export assets as a GeoJSON FeatureCollection."""
         assets = self.query_by_type(asset_type) if asset_type else self.get_all_assets()
         return {
@@ -1006,11 +897,7 @@ class PostGISProvider:
                 )
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("Fallback upsert failed: %s", exc)
-=======
-            logger.error("Fallback upsert failed: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
             return False
 
     def _fallback_get(self, asset_id: str) -> SpatialAsset | None:
@@ -1022,11 +909,7 @@ class PostGISProvider:
         except (FileNotFoundError, json.JSONDecodeError):
             return None
 
-<<<<<<< HEAD
     def _fallback_get_all(self) -> list[SpatialAsset]:
-=======
-    def _fallback_get_all(self) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         results = []
         if not os.path.isdir(self._fallback_dir):
             return results
@@ -1040,17 +923,10 @@ class PostGISProvider:
                     continue
         return results
 
-<<<<<<< HEAD
     def _fallback_query_by_type(self, asset_type: str) -> list[SpatialAsset]:
         return [a for a in self._fallback_get_all() if a.asset_type == asset_type]
 
     def _fallback_query_radius(self, lat: float, lon: float, radius_m: float) -> list[SpatialAsset]:
-=======
-    def _fallback_query_by_type(self, asset_type: str) -> List[SpatialAsset]:
-        return [a for a in self._fallback_get_all() if a.asset_type == asset_type]
-
-    def _fallback_query_radius(self, lat: float, lon: float, radius_m: float) -> List[SpatialAsset]:
->>>>>>> origin/fix/scenario-tests-properly
         """Simple Haversine filter for fallback mode."""
         results = []
         for asset in self._fallback_get_all():
@@ -1087,11 +963,7 @@ class PostGISProvider:
             return False
 
     @staticmethod
-<<<<<<< HEAD
     def _get_geometry_center(geometry: dict[str, Any]) -> tuple[float, float] | None:
-=======
-    def _get_geometry_center(geometry: Dict[str, Any]) -> Tuple[float, float] | None:
->>>>>>> origin/fix/scenario-tests-properly
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if not coords:

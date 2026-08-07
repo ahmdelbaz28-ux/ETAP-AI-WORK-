@@ -14,11 +14,7 @@ short_description: Enterprise AI Engineering Platform — Power Systems Analysis
 
 **Developed by Eng. Ahmed Elbaz** | v2.1.0
 
-<<<<<<< HEAD
 Enterprise-grade autonomous AI engineering platform for power system analysis, ETAP automation, and AI-powered engineering decision support — powered by **25 specialized AI agents** backed by **35 ETAP manuals** and **4 Zenon SCADA guides** as primary knowledge base.
-=======
-Enterprise-grade autonomous AI engineering platform for power system analysis, ETAP automation, and AI-powered engineering decision support — powered by **23 specialized AI agents** backed by **35 ETAP manuals** and **4 Zenon SCADA guides** as primary knowledge base.
->>>>>>> origin/fix/scenario-tests-properly
 
 ---
 
@@ -54,11 +50,7 @@ Enterprise-grade autonomous AI engineering platform for power system analysis, E
 | `/docs` | GET | Swagger UI |
 | `/redoc` | GET | ReDoc documentation |
 | `/api/v1/info` | GET | Platform info |
-<<<<<<< HEAD
 | `/api/v1/agents` | GET | List all 25 AI agents |
-=======
-| `/api/v1/agents` | GET | List all 23 AI agents |
->>>>>>> origin/fix/scenario-tests-properly
 | `/api/v1/agents/{id}` | GET | Get specific agent info |
 | `/api/v1/studies/types` | GET | Available study types |
 | `/api/v1/studies/run` | POST | Run engineering study |
@@ -71,7 +63,6 @@ Enterprise-grade autonomous AI engineering platform for power system analysis, E
 
 ```bash
 # Health check
-<<<<<<< HEAD
 curl https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz
 
 # List all agents
@@ -79,7 +70,7 @@ curl https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents
 
 # Run a load flow study
 curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/studies/run \
-=======
+
 curl https://ahmdelbaz28-etap-ai-platform.hf.space/healthz
 
 # List all agents
@@ -87,7 +78,6 @@ curl https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/agents
 
 # Run a load flow study
 curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
->>>>>>> origin/fix/scenario-tests-properly
   -H "Content-Type: application/json" \
   -d '{
     "study_type": "load_flow",
@@ -110,30 +100,24 @@ curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
 
 | Metric | Value |
 |---|---|
-<<<<<<< HEAD
 | AI Agents | 25 specialized |
 | ETAP Manuals | 35 documents |
 | Zenon Guides | 4 SCADA documents |
 | Standards | 10 IEEE/IEC |
 | Tests | 1680+ passing |
 | Study Types | 15 |
-=======
+
 | AI Agents | 23 specialized |
 | ETAP Manuals | 35 documents |
 | Zenon Guides | 4 SCADA documents |
 | Standards | 10+ IEEE/IEC/NFPA |
 | Tests | 548 passing |
 | Validation Gates | 31/31 |
->>>>>>> origin/fix/scenario-tests-properly
 
 ---
 
 ## 🔗 Links
 
 - [GitHub Repository](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
-<<<<<<< HEAD
 - [API Documentation](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)
-=======
-- [API Documentation](https://ahmdelbaz28-etap-ai-platform.hf.space/docs)
->>>>>>> origin/fix/scenario-tests-properly
 - [Author Email](mailto:ahmdelbaz28@gmail.com)

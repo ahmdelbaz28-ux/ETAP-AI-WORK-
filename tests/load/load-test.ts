@@ -32,15 +32,11 @@ interface LoadTestResult {
   errors: string[];
 }
 
-<<<<<<< HEAD
 async function runRequest(
   endpoint: string,
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<{ latencyMs: number; status: number; ok: boolean; error?: string }> {
-=======
-async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: object): Promise<{ latencyMs: number; status: number; ok: boolean; error?: string }> {
->>>>>>> origin/fix/scenario-tests-properly
   const start = Date.now();
   try {
     const headers: Record<string, string> = {
@@ -59,7 +55,6 @@ async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body
     await res.text();
     return { latencyMs, status: res.status, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
-<<<<<<< HEAD
     return {
       latencyMs: Date.now() - start,
       status: 0,
@@ -75,13 +70,6 @@ async function runConcurrentBatch(
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<LoadTestResult> {
-=======
-    return { latencyMs: Date.now() - start, status: 0, ok: false, error: e instanceof Error ? e.message : String(e) };
-  }
-}
-
-async function runConcurrentBatch(concurrency: number, endpoint: string, method: 'GET' | 'POST' = 'GET', body?: object): Promise<LoadTestResult> {
->>>>>>> origin/fix/scenario-tests-properly
   const totalRequests = concurrency;
   const results: Awaited<ReturnType<typeof runRequest>>[] = [];
   const start = Date.now();
@@ -100,7 +88,6 @@ async function runConcurrentBatch(concurrency: number, endpoint: string, method:
     }
   }
 
-<<<<<<< HEAD
   const successCount = results.filter((r) => r.ok).length;
   const errorCount = results.filter((r) => !r.ok && r.status !== 429).length;
   const rateLimitedCount = results.filter((r) => r.status === 429).length;
@@ -128,7 +115,7 @@ async function runConcurrentBatch(concurrency: number, endpoint: string, method:
     .filter((r) => r.error)
     .map((r) => r.error!)
     .slice(0, 5);
-=======
+
   const successCount = results.filter(r => r.ok).length;
   const errorCount = results.filter(r => !r.ok && r.status !== 429).length;
   const rateLimitedCount = results.filter(r => r.status === 429).length;
@@ -142,7 +129,6 @@ async function runConcurrentBatch(concurrency: number, endpoint: string, method:
   const maxLatencyMs = latencies.length > 0 ? latencies[latencies.length - 1] : 0;
   const throughputRps = totalDurationMs > 0 ? Math.round((totalRequests / totalDurationMs) * 1000) : 0;
   const errors = results.filter(r => r.error).map(r => r.error!).slice(0, 5);
->>>>>>> origin/fix/scenario-tests-properly
 
   return {
     concurrency,
@@ -170,7 +156,6 @@ async function runLoadTest() {
   console.log('');
 
   const scenarios = [
-<<<<<<< HEAD
     {
       name: 'Health Check (10 users)',
       concurrency: 10,
@@ -221,7 +206,7 @@ async function runLoadTest() {
       method: 'POST' as const,
       body: { studyType: 'load_flow', parameters: { base_mva: 100 } },
     },
-=======
+
     { name: 'Health Check (10 users)', concurrency: 10, endpoint: '/health', method: 'GET' as const },
     { name: 'Health Check (50 users)', concurrency: 50, endpoint: '/health', method: 'GET' as const },
     { name: 'Health Check (100 users)', concurrency: 100, endpoint: '/health', method: 'GET' as const },
@@ -230,14 +215,12 @@ async function runLoadTest() {
     { name: 'List Agents (50 users)', concurrency: 50, endpoint: '/api/v1/agents', method: 'GET' as const },
     { name: 'Run Study (10 users)', concurrency: 10, endpoint: '/api/v1/studies/run', method: 'POST' as const, body: { studyType: 'load_flow', parameters: { base_mva: 100 } } },
     { name: 'Run Study (50 users)', concurrency: 50, endpoint: '/api/v1/studies/run', method: 'POST' as const, body: { studyType: 'load_flow', parameters: { base_mva: 100 } } },
->>>>>>> origin/fix/scenario-tests-properly
   ];
 
   const results: LoadTestResult[] = [];
 
   for (const scenario of scenarios) {
     console.log(`\n▶ ${scenario.name} ...`);
-<<<<<<< HEAD
     const result = await runConcurrentBatch(
       scenario.concurrency,
       scenario.endpoint,
@@ -249,12 +232,6 @@ async function runLoadTest() {
     console.log(
       `  ⏱️  Avg latency: ${result.avgLatencyMs}ms | P95: ${result.p95LatencyMs}ms | P99: ${result.p99LatencyMs}ms`,
     );
-=======
-    const result = await runConcurrentBatch(scenario.concurrency, scenario.endpoint, scenario.method, scenario.body);
-    results.push(result);
-    console.log(`  ✅ ${result.successCount} / ${result.totalRequests} success`);
-    console.log(`  ⏱️  Avg latency: ${result.avgLatencyMs}ms | P95: ${result.p95LatencyMs}ms | P99: ${result.p99LatencyMs}ms`);
->>>>>>> origin/fix/scenario-tests-properly
     console.log(`  🚀 Throughput: ${result.throughputRps} req/s`);
     if (result.rateLimitedCount > 0) {
       console.log(`  🚫 Rate limited: ${result.rateLimitedCount}`);
@@ -263,11 +240,7 @@ async function runLoadTest() {
       console.log(`  ❌ Errors: ${result.errorCount} (first: ${result.errors[0] || 'N/A'})`);
     }
     // Small delay between scenarios to let system recover
-<<<<<<< HEAD
     await new Promise((r) => setTimeout(r, 500));
-=======
-    await new Promise(r => setTimeout(r, 500));
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   // Summary
@@ -276,13 +249,9 @@ async function runLoadTest() {
   console.log('╠══════════════════════════════════════════════════════════════════╣');
   for (const r of results) {
     const passRate = ((r.successCount / r.totalRequests) * 100).toFixed(1);
-<<<<<<< HEAD
     console.log(
       `║ ${r.concurrency.toString().padStart(3)} users | ${r.totalRequests.toString().padStart(3)} req | ${r.successCount.toString().padStart(3)} ok | ${r.errorCount.toString().padStart(3)} err | ${r.avgLatencyMs.toString().padStart(4)}ms avg | ${r.throughputRps.toString().padStart(4)} r/s | ${passRate}% pass ║`,
     );
-=======
-    console.log(`║ ${r.concurrency.toString().padStart(3)} users | ${r.totalRequests.toString().padStart(3)} req | ${r.successCount.toString().padStart(3)} ok | ${r.errorCount.toString().padStart(3)} err | ${r.avgLatencyMs.toString().padStart(4)}ms avg | ${r.throughputRps.toString().padStart(4)} r/s | ${passRate}% pass ║`);
->>>>>>> origin/fix/scenario-tests-properly
   }
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 
@@ -292,21 +261,13 @@ async function runLoadTest() {
     target: DEPLOYED_URL,
     results,
   };
-<<<<<<< HEAD
   const fs = await import('node:fs/promises');
-=======
-  const fs = await import('fs/promises');
->>>>>>> origin/fix/scenario-tests-properly
   await fs.writeFile('tests/load/load-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/load/load-test-report.json');
 }
 
-<<<<<<< HEAD
 try {
   await runLoadTest();
 } catch (e) {
   console.error(e);
 }
-=======
-runLoadTest().catch(console.error);
->>>>>>> origin/fix/scenario-tests-properly

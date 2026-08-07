@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
@@ -563,7 +562,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
   const lang = (i18n.language === "ar" ? "ar" : "en") as "en" | "ar";
   const searchRef = useRef<HTMLInputElement>(null);
 
-=======
+
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -599,7 +598,6 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
   const navigate = useNavigate()
   const lang = (i18n.language === 'ar' ? 'ar' : 'en') as 'en' | 'ar'
   const searchRef = useRef<HTMLInputElement>(null)
->>>>>>> origin/fix/scenario-tests-properly
   const {
     categories,
     activeTopic,
@@ -611,7 +609,6 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
     openContext,
     closeTopic,
     filteredTopics,
-<<<<<<< HEAD
   } = useSmartHelp();
 
   const [helpViewMode, setHelpViewMode] = useState<"list" | "tree">("tree");
@@ -672,7 +669,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
           "animate-slide-in",
         )}
       >
-=======
+
   } = useSmartHelp()
 
   useEffect(() => {
@@ -712,7 +709,6 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
         'flex flex-col',
         'animate-slide-in'
       )}>
->>>>>>> origin/fix/scenario-tests-properly
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-primary)]">
           <div className="flex items-center gap-3">
@@ -721,7 +717,6 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
             </div>
             <div>
               <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-<<<<<<< HEAD
                 {lang === "ar" ? "المساعدة الذكية (TOC)" : "Smart Help (TOC)"}
               </h2>
               <p className="text-[10px] text-[var(--text-muted)]">
@@ -750,7 +745,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
               <X className="w-4 h-4" />
             </button>
           </div>
-=======
+
                 {lang === 'ar' ? 'المساعدة الذكية' : 'Smart Help'}
               </h2>
               <p className="text-[10px] text-[var(--text-muted)]">
@@ -764,12 +759,10 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
           >
             <X className="w-4 h-4" />
           </button>
->>>>>>> origin/fix/scenario-tests-properly
         </div>
 
         {/* Content Area */}
         {activeTopic ? (
-<<<<<<< HEAD
           <TopicDetailView
             activeTopic={activeTopic}
             lang={lang}
@@ -799,7 +792,7 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
       </div>
     </div>
   );
-=======
+
           /* Topic Detail View */
           <div className="flex-1 overflow-y-auto">
             {/* Back button */}
@@ -969,5 +962,4 @@ export function SmartHelpDrawer({ open, onClose, initialContextId }: SmartHelpDr
       </div>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

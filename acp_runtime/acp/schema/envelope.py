@@ -12,11 +12,7 @@ ACP extensions on top of vanilla JSON-RPC 2.0:
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any
->>>>>>> origin/fix/scenario-tests-properly
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -29,11 +25,8 @@ __all__ = [
     "JsonRpcNotification",
 ]
 
-<<<<<<< HEAD
 _JSONRPC_VERSION_PATTERN = r"^2\.0$"
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 # ------------------------------------------------------------------ Error
 
@@ -62,11 +55,7 @@ class JsonRpcRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-<<<<<<< HEAD
     jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)  # NOSONAR
-=======
-    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
->>>>>>> origin/fix/scenario-tests-properly
     id: RequestId
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
@@ -87,17 +76,15 @@ class JsonRpcResponse(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-<<<<<<< HEAD
     jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
     id: Optional[RequestId] = None
     result: Optional[Any] = None
     error: Optional[JsonRpcError] = None
-=======
+
     jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
     id: RequestId | None = None
     result: Any | None = None
     error: JsonRpcError | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
     @model_validator(mode="after")
     def _exactly_one_of_result_or_error(self) -> JsonRpcResponse:
@@ -124,18 +111,16 @@ class JsonRpcNotification(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-<<<<<<< HEAD
     jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
     capability: Optional[str] = Field(default=None, max_length=128)
     trace_id: str = Field(default="", max_length=512)
     deadline_ms: Optional[int] = Field(default=None, ge=1, le=600_000)
-=======
+
     jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
     capability: str | None = Field(default=None, max_length=128)
     trace_id: str = Field(default="", max_length=512)
     deadline_ms: int | None = Field(default=None, ge=1, le=600_000)
->>>>>>> origin/fix/scenario-tests-properly

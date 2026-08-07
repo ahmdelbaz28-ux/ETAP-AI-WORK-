@@ -11,10 +11,7 @@ Run:
 
 import os
 import sys
-<<<<<<< HEAD
 from typing import Optional, Union
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 import pytest
 
@@ -52,20 +49,17 @@ class TestRASPDefaultRules:
         ]
         for rule in _DEFAULT_RULES:
             if rule.name in block_required:
-<<<<<<< HEAD
                 assert (
                     rule.action == RASPAction.BLOCK
                 ), f"Rule '{rule.name}' must be BLOCK, got {rule.action}"
-=======
+
                 assert rule.action == RASPAction.BLOCK, (
                     f"Rule '{rule.name}' must be BLOCK, got {rule.action}"
                 )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_nosql_injection_blocks_not_logs(self):
         """CRITICAL: NoSQL injection must BLOCK, not LOG."""
         rule = next(r for r in _DEFAULT_RULES if r.name == "nosql_injection")
-<<<<<<< HEAD
         assert (
             rule.action == RASPAction.BLOCK
         ), f"nosql_injection action must be BLOCK, got {rule.action}"
@@ -73,33 +67,30 @@ class TestRASPDefaultRules:
             RASPSeverity.HIGH,
             RASPSeverity.CRITICAL,
         ), f"nosql_injection severity must be HIGH or CRITICAL, got {rule.severity}"
-=======
+
         assert rule.action == RASPAction.BLOCK, (
             f"nosql_injection action must be BLOCK, got {rule.action}"
         )
         assert rule.severity in (RASPSeverity.HIGH, RASPSeverity.CRITICAL), (
             f"nosql_injection severity must be HIGH or CRITICAL, got {rule.severity}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_ssrf_blocks_not_logs(self):
         """CRITICAL: SSRF must BLOCK, not LOG."""
         rule = next(r for r in _DEFAULT_RULES if r.name == "ssrf_basic")
-<<<<<<< HEAD
         assert (
             rule.action == RASPAction.BLOCK
         ), f"ssrf_basic action must be BLOCK, got {rule.action}"
         assert (
             rule.severity == RASPSeverity.CRITICAL
         ), f"ssrf_basic severity must be CRITICAL, got {rule.severity}"
-=======
+
         assert rule.action == RASPAction.BLOCK, (
             f"ssrf_basic action must be BLOCK, got {rule.action}"
         )
         assert rule.severity == RASPSeverity.CRITICAL, (
             f"ssrf_basic severity must be CRITICAL, got {rule.severity}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class TestRASPAttackDetection:
@@ -125,11 +116,7 @@ class TestRASPAttackDetection:
 
     def test_command_injection_blocked(self):
         """Command Injection must be blocked."""
-<<<<<<< HEAD
         results = self.rasp.inspect({"body": "; rm -rf /"})
-=======
-        results = self.rasp.inspect({"body": "; rm -rf / | bash"})
->>>>>>> origin/fix/scenario-tests-properly
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "Command Injection must be blocked"
         assert blocked[0].rule_name == "command_injection"
@@ -150,13 +137,9 @@ class TestRASPAttackDetection:
 
     def test_ssrf_aws_metadata_blocked(self):
         """SSRF to AWS metadata endpoint must be BLOCKED."""
-<<<<<<< HEAD
         results = self.rasp.inspect(
             {"body": "http://169.254.169.254/latest/meta-data/"}
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-=======
-        results = self.rasp.inspect({"body": "http://169.254.169.254/latest/meta-data/"})
->>>>>>> origin/fix/scenario-tests-properly
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to AWS metadata must be BLOCKED"
         assert blocked[0].rule_name == "ssrf_basic"
@@ -169,13 +152,9 @@ class TestRASPAttackDetection:
 
     def test_ssrf_internal_ip_blocked(self):
         """SSRF to internal IP must be BLOCKED."""
-<<<<<<< HEAD
         results = self.rasp.inspect(
             {"body": "http://10.0.0.1/internal-api"}
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-=======
-        results = self.rasp.inspect({"body": "http://10.0.0.1/internal-api"})
->>>>>>> origin/fix/scenario-tests-properly
         blocked = [r for r in results if r.action == RASPAction.BLOCK]
         assert len(blocked) > 0, "SSRF to internal IP must be BLOCKED"
 

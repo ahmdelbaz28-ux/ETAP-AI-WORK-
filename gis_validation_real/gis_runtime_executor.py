@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
@@ -17,26 +13,15 @@ from gis_validation.topology_validator import validate_adms_topology
 class RuntimeExtractionResult:
     provider_name: str
     project_path: str
-<<<<<<< HEAD
     extracted_layers: dict[str, list[GISFeature]]
-=======
-    extracted_layers: Dict[str, List[GISFeature]]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
 class RuntimeTransformationResult:
-<<<<<<< HEAD
     adms_assets: list[Any]
 
 
 def validate_real_assets_runtime(*, extracted_assets: list[GISFeature]) -> dict[str, Any]:
-=======
-    adms_assets: List[Any]
-
-
-def validate_real_assets_runtime(*, extracted_assets: List[GISFeature]) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Runtime validation for real assets:
     - transform using gis_integration.GIS_TO_ADMS_Transformer

@@ -17,7 +17,6 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
 
-<<<<<<< HEAD
     /* Linting — SECURITY/QUALITY: strict mode enabled in v2.1.1.
        Was previously disabled (noUnusedLocals: false, noUnusedParameters: false,
        no strict: true) which masked type errors and unused variables.
@@ -43,13 +42,4 @@
     "src/**/__tests__/**",
     "src/test-setup.ts"
   ]
-=======
-    /* Linting */
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"]
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -12,11 +12,7 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +28,7 @@ if sys.platform == "win32":
     except ImportError:
         WIN32_AVAILABLE = False
 
-<<<<<<< HEAD
 SUPPORTED_ETAP_VERSIONS: list[str] = [
-=======
-SUPPORTED_ETAP_VERSIONS: List[str] = [
->>>>>>> origin/fix/scenario-tests-properly
     "12.0.0",
     "12.5.0",
     "12.6.0",
@@ -55,26 +47,17 @@ MIN_ETAP_VERSION = "12.0.0"
 REQUIRED_PACKAGES = ["pywin32", "psutil", "pyyaml", "numpy"]
 OPTIONAL_PACKAGES = ["requests", "pydantic"]
 
-<<<<<<< HEAD
 # ETAP 2021 COM module names.
 # Note: ETAP 2021 uses "Harmonic" (not "HarmonicAnalysis") and
 # "MotorStarting" (not "MotorAcceleration"). The older names are kept
 # as fallbacks for pre-2021 ETAP versions.
-=======
->>>>>>> origin/fix/scenario-tests-properly
 COM_MODULES = [
     "LoadFlow",
     "ShortCircuit",
     "ArcFlash",
-<<<<<<< HEAD
     "MotorStarting",  # ETAP 2021+ (was "MotorAcceleration" in older versions)
     "TransientStability",
     "Harmonic",  # ETAP 2021+ (was "HarmonicAnalysis" in older versions)
-=======
-    "MotorAcceleration",
-    "TransientStability",
-    "HarmonicAnalysis",
->>>>>>> origin/fix/scenario-tests-properly
     "OptimalPowerFlow",
     "ProtectionCoordination",
     "CableAmpacity",
@@ -82,7 +65,6 @@ COM_MODULES = [
     "Reliability",
 ]
 
-<<<<<<< HEAD
 # Legacy module names (pre-ETAP 2021) for backward compatibility.
 # These are checked as fallbacks if the 2021 names are not found.
 COM_MODULES_LEGACY = [
@@ -90,8 +72,6 @@ COM_MODULES_LEGACY = [
     "HarmonicAnalysis",   # pre-2021 alias for Harmonic
 ]
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 @dataclass
 class CheckResult:
@@ -103,16 +83,11 @@ class CheckResult:
 
 @dataclass
 class CompatibilityReport:
-<<<<<<< HEAD
     etap_version: Optional[str]
-=======
-    etap_version: str | None
->>>>>>> origin/fix/scenario-tests-properly
     version_supported: bool
     windows_ok: bool
     dotnet_ok: bool
     dependencies_ok: bool
-<<<<<<< HEAD
     com_modules_available: list[str]
     com_modules_missing: list[str]
     checks: list[CheckResult] = field(default_factory=list)
@@ -120,7 +95,7 @@ class CompatibilityReport:
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
-=======
+
     com_modules_available: List[str]
     com_modules_missing: List[str]
     checks: List[CheckResult] = field(default_factory=list)
@@ -128,7 +103,6 @@ def _parse_version(v: str) -> tuple[int, ...]:
 
 
 def _parse_version(v: str) -> Tuple[int, ...]:
->>>>>>> origin/fix/scenario-tests-properly
     try:
         return tuple(int(p) for p in v.strip().split("."))
     except (ValueError, AttributeError):
@@ -146,17 +120,15 @@ class ETAPCompatibilityChecker:
 
     def __init__(self, etap_prog_id: str = "ETAP.Application") -> None:
         self._etap_prog_id = etap_prog_id
-<<<<<<< HEAD
         self._cached_version: Optional[str] = None
         self._cached_com_modules: dict[str, bool] | None = None
 
     def check_version(self) -> Optional[str]:
-=======
+
         self._cached_version: str | None = None
         self._cached_com_modules: Dict[str, bool] | None = None
 
     def check_version(self) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version
@@ -177,11 +149,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Could not get ETAP version: %s", e)
             return None
 
-<<<<<<< HEAD
     def is_version_supported(self, version: Optional[str] = None) -> bool:
-=======
-    def is_version_supported(self, version: str | None = None) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         """Check whether the given (or installed) version is supported."""
         if version is None:
             version = self.check_version()
@@ -194,11 +162,7 @@ class ETAPCompatibilityChecker:
             version.startswith(v) for v in SUPPORTED_ETAP_VERSIONS
         )
 
-<<<<<<< HEAD
     def get_supported_versions(self) -> list[str]:
-=======
-    def get_supported_versions(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         return list(SUPPORTED_ETAP_VERSIONS)
 
     def check_module_availability(self, module_name: str) -> bool:
@@ -225,11 +189,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Module check failed for '%s': %s", module_name, e)
             return False
 
-<<<<<<< HEAD
     def check_windows_version(self) -> tuple[bool, str]:
-=======
-    def check_windows_version(self) -> Tuple[bool, str]:
->>>>>>> origin/fix/scenario-tests-properly
         """Verify Windows meets ETAP requirements (10+ x64)."""
         if sys.platform != "win32":
             return False, "Not running on Windows."
@@ -247,30 +207,18 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not determine Windows version: {e}"
 
-<<<<<<< HEAD
     def check_dependencies(self) -> dict[str, bool]:
-=======
-    def check_dependencies(self) -> Dict[str, bool]:
->>>>>>> origin/fix/scenario-tests-properly
         """Verify required and optional Python packages."""
         return {
             pkg: self._is_package_available(pkg) for pkg in REQUIRED_PACKAGES + OPTIONAL_PACKAGES
         }
 
-<<<<<<< HEAD
     def check_dotnet_version(self) -> tuple[bool, str]:
         """Check .NET Framework 4.8+ via registry."""
         try:
             key = winreg.OpenKey(
                 winreg.HKEY_LOCAL_MACHINE,
                 r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full",
-=======
-    def check_dotnet_version(self) -> Tuple[bool, str]:
-        """Check .NET Framework 4.8+ via registry."""
-        try:
-            key = winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
->>>>>>> origin/fix/scenario-tests-properly
             )
             release = winreg.QueryValueEx(key, "Release")[0]
             winreg.CloseKey(key)
@@ -284,7 +232,6 @@ class ETAPCompatibilityChecker:
         except Exception as e:
             return False, f"Could not check .NET Framework: {e}"
 
-<<<<<<< HEAD
     def run_compatibility_tests(  # NOSONAR
         self,
     ) -> list[
@@ -292,11 +239,6 @@ class ETAPCompatibilityChecker:
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Run all compatibility checks and return results."""
         checks: list[CheckResult] = []
-=======
-    def run_compatibility_tests(self) -> List[CheckResult]:
-        """Run all compatibility checks and return results."""
-        checks: List[CheckResult] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         version = self.check_version()
         if version:
@@ -307,11 +249,7 @@ class ETAPCompatibilityChecker:
                     supported,
                     f"Installed: {version}, Supported: {supported}",
                     "error" if not supported else "info",
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
         else:
             checks.append(
@@ -320,11 +258,7 @@ class ETAPCompatibilityChecker:
                     False,
                     "Could not detect ETAP version. Is ETAP installed?",
                     "error",
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         w_ok, w_msg = self.check_windows_version()
@@ -335,27 +269,19 @@ class ETAPCompatibilityChecker:
 
         for pkg, avail in self.check_dependencies().items():
             required = pkg in REQUIRED_PACKAGES
-<<<<<<< HEAD
             if required and (not avail):
                 sev = "error"
             elif not avail:
                 sev = "warning"
             else:
                 sev = "info"
-=======
-            sev = "error" if (required and not avail) else "warning" if not avail else "info"
->>>>>>> origin/fix/scenario-tests-properly
             checks.append(
                 CheckResult(
                     f"Package: {pkg}",
                     avail,
                     f"{'Required' if required else 'Optional'}: {'OK' if avail else 'missing'}",
                     sev,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         for mod in COM_MODULES:
@@ -366,11 +292,7 @@ class ETAPCompatibilityChecker:
                     avail,
                     "Available" if avail else "Not available",
                     "warning" if not avail else "info",
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return checks

@@ -12,17 +12,15 @@ import os
 import sqlite3
 import threading
 import uuid
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from core.models import (
     ChangeSource,
@@ -45,17 +43,15 @@ class UniversalDataModel:
     def __init__(self, db_path: str = "udm_elements.db") -> None:
         self._db_path = db_path
         self._lock = threading.RLock()
-<<<<<<< HEAD
         self._conn: Optional[sqlite3.Connection] = None
         self._local = threading.local()
         self.elements: dict[str, UniversalElement] = {}
         self.conflicts: dict[str, Conflict] = {}
-=======
+
         self._conn: sqlite3.Connection | None = None
         self._local = threading.local()
         self.elements: Dict[str, UniversalElement] = {}
         self.conflicts: Dict[str, Conflict] = {}
->>>>>>> origin/fix/scenario-tests-properly
         self._init_db()
         self._load_elements()
 
@@ -158,11 +154,7 @@ class UniversalDataModel:
                 if conflict:
                     self.conflicts[conflict.conflict_id] = conflict
 
-<<<<<<< HEAD
     def _row_to_element(self, row: dict[str, Any]) -> Optional[UniversalElement]:
-=======
-    def _row_to_element(self, row: Dict[str, Any]) -> UniversalElement | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert database row to UniversalElement."""
         try:
             geometry = None
@@ -202,11 +194,7 @@ class UniversalDataModel:
                             is_parametric=r.get("is_parametric", False),
                             metadata=r.get("metadata"),
                             connection_id=r.get("connection_id"),
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
             return UniversalElement(
@@ -227,19 +215,17 @@ class UniversalDataModel:
                 autocad_handle=row.get("autocad_handle"),
                 revit_element_id=row.get("revit_element_id"),
             )
-<<<<<<< HEAD
         except Exception:
             logger.exception("Error converting row to element: ")
             return None
 
     def _row_to_conflict(self, row: dict[str, Any]) -> Optional[Conflict]:
-=======
+
         except Exception as e:
             logger.error(f"Error converting row to element: {e}")
             return None
 
     def _row_to_conflict(self, row: Dict[str, Any]) -> Conflict | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert database row to Conflict."""
         try:
             return Conflict(
@@ -256,13 +242,8 @@ class UniversalDataModel:
                 resolution=json.loads(row["resolution"]) if row.get("resolution") else None,
                 resolved=bool(row.get("resolved", 0)),
             )
-<<<<<<< HEAD
         except Exception:
             logger.exception("Error converting row to conflict: ")
-=======
-        except Exception as e:
-            logger.error(f"Error converting row to conflict: {e}")
->>>>>>> origin/fix/scenario-tests-properly
             return None
 
     def add_element(self, element: UniversalElement) -> bool:
@@ -313,47 +294,39 @@ class UniversalDataModel:
                 conn.commit()
                 self.elements[element.element_id] = element
                 return True
-<<<<<<< HEAD
             except Exception:
                 logger.exception("Error adding element: ")
                 return False
 
     def get_element(self, element_id: str) -> Optional[UniversalElement]:
-=======
+
             except Exception as e:
                 logger.error(f"Error adding element: {e}")
                 return False
 
     def get_element(self, element_id: str) -> UniversalElement | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get an element by ID."""
         with self._lock:
             return self.elements.get(element_id)
 
-<<<<<<< HEAD
     def get_all_elements(self) -> list[UniversalElement]:
-=======
-    def get_all_elements(self) -> List[UniversalElement]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get all non-deleted elements."""
         with self._lock:
             return [e for e in self.elements.values() if not e.is_deleted]
 
-<<<<<<< HEAD
     def update_element(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         element_id: str,
         updates: dict[str, Any],
         source: ChangeSource = ChangeSource.MANUAL,  # NOSONAR unused param kept for API compatibility
         reason: str = "",  # NOSONAR unused param kept for API compatibility
-=======
+
     def update_element(
         self,
         element_id: str,
         updates: Dict[str, Any],
         source: ChangeSource = ChangeSource.MANUAL,
         reason: str = "",
->>>>>>> origin/fix/scenario-tests-properly
     ) -> bool:
         """Update an element."""
         with self._lock:
@@ -437,24 +410,15 @@ class UniversalDataModel:
                 )
                 conn.commit()
                 return True
-<<<<<<< HEAD
             except Exception:
                 logger.exception("Error updating element: ")
-=======
-            except Exception as e:
-                logger.error(f"Error updating element: {e}")
->>>>>>> origin/fix/scenario-tests-properly
                 return False
 
     def delete_element(self, element_id: str, source: ChangeSource = ChangeSource.MANUAL) -> bool:
         """Soft-delete an element."""
         return self.update_element(element_id, {"is_deleted": True}, source=source)
 
-<<<<<<< HEAD
     def detect_conflicts(self) -> list[Conflict]:
-=======
-    def detect_conflicts(self) -> List[Conflict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect conflicts between elements."""
         with self._lock:
             conflicts = []
@@ -491,19 +455,17 @@ class UniversalDataModel:
                 )
                 conn.commit()
                 return True
-<<<<<<< HEAD
             except Exception:
                 logger.exception("Error resolving conflict: ")
                 return False
 
     def get_statistics(self) -> dict[str, Any]:
-=======
+
             except Exception as e:
                 logger.error(f"Error resolving conflict: {e}")
                 return False
 
     def get_statistics(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get database statistics."""
         with self._lock:
             total = len(self.elements)

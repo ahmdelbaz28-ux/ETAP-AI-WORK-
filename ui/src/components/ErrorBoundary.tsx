@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Component, type ReactNode } from "react";
 
 interface Props {
@@ -14,7 +13,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
-=======
+
 import { Component, type ReactNode } from 'react'
 
 interface Props { children: ReactNode }
@@ -25,7 +24,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error }
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   render() {
@@ -34,7 +32,6 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex items-center justify-center h-screen bg-surface-950">
           <div className="bg-surface-800 rounded-xl p-8 border border-red-500/30 max-w-md text-center">
             <h2 className="text-xl font-bold text-white mb-2">Application Error</h2>
-<<<<<<< HEAD
             <p className="text-sm text-red-400 mb-4">
               {this.state.error?.message || "An unexpected error occurred"}
             </p>
@@ -46,24 +43,17 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
               className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-medium transition-colors"
             >
-=======
+
             <p className="text-sm text-red-400 mb-4">{this.state.error?.message || 'An unexpected error occurred'}</p>
             <button
               onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload() }}
               className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-medium transition-colors">
->>>>>>> origin/fix/scenario-tests-properly
               Reload Application
             </button>
           </div>
         </div>
-<<<<<<< HEAD
       );
     }
     return this.props.children;
-=======
-      )
-    }
-    return this.props.children
->>>>>>> origin/fix/scenario-tests-properly
   }
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { ChevronRight, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -57,7 +56,7 @@ export function Breadcrumbs({ path }: { readonly path: string }) {
       })}
     </nav>
   );
-=======
+
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, Home } from 'lucide-react'
 
@@ -103,5 +102,4 @@ export function Breadcrumbs({ path }: { path: string }) {
       })}
     </nav>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from typing import Any
 
-<<<<<<< HEAD
 import pytest
 
 # factory-boy is in requirements-dev.txt but CI's python-tests job only
@@ -20,9 +19,6 @@ import pytest
 pytest.importorskip("factory")
 
 from tests.factories.skill_factories import (  # noqa: E402 — after importorskip
-=======
-from tests.factories.skill_factories import (
->>>>>>> origin/fix/scenario-tests-properly
     ErrorResponseFactory,
     ExecutionResultFactory,
     SkillDescriptionFactory,

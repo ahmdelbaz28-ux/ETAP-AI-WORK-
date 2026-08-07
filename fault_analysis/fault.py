@@ -27,7 +27,6 @@ class FaultAnalyzer:
         base_mva (float): Base MVA for per-unit conversion. Default 100.0.
         base_kv (float): Base kV for current conversion. Default 115.0.
         """
-<<<<<<< HEAD
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_neg = (
             ybus_neg if ybus_neg is not None else ybus_pos
@@ -35,11 +34,10 @@ class FaultAnalyzer:
         self.Ybus_zero = (
             ybus_zero if ybus_zero is not None else ybus_pos
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-=======
+
         self.Ybus_pos = ybus_pos
         self.Ybus_neg = ybus_neg if ybus_neg is not None else ybus_pos
         self.Ybus_zero = ybus_zero if ybus_zero is not None else ybus_pos
->>>>>>> origin/fix/scenario-tests-properly
         self.base_mva = base_mva
         self.base_kv = base_kv
 
@@ -51,15 +49,13 @@ class FaultAnalyzer:
             self._lu_neg = splu(ybus_neg)
             self._lu_zero = splu(ybus_zero)
             self._use_lu = True
-<<<<<<< HEAD
             self.Zbus_pos = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
             self.Zbus_neg = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
             self.Zbus_zero = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-=======
+
             self.Zbus_pos = None
             self.Zbus_neg = None
             self.Zbus_zero = None
->>>>>>> origin/fix/scenario-tests-properly
         else:
             # Dense path: full inversion for backward compatibility
             self._use_lu = False
@@ -74,29 +70,19 @@ class FaultAnalyzer:
         z_col = lu_factor.solve(ek)
         return complex(z_col[k])
 
-<<<<<<< HEAD
     def _invert_ybus(
         self,
         ybus,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-    def _invert_ybus(self, Ybus):
->>>>>>> origin/fix/scenario-tests-properly
         """Invert Ybus to get Zbus, handling singularity by using pseudo-inverse.
 
         Only called for the dense fallback path (when scipy.sparse is unavailable
         or Ybus is dense).  The primary LU path never needs the full inverse.
         """
         try:
-<<<<<<< HEAD
             return np.linalg.inv(ybus)
         except np.linalg.LinAlgError:
             return np.linalg.pinv(ybus)
-=======
-            return np.linalg.inv(Ybus)
-        except np.linalg.LinAlgError:
-            return np.linalg.pinv(Ybus)
->>>>>>> origin/fix/scenario-tests-properly
 
     def _pu_to_ka(self, current_pu):
         """Convert per-unit current to kA."""
@@ -137,7 +123,6 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit, and optionally voltage.
         """
-<<<<<<< HEAD
         vpre = complex(
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -152,7 +137,7 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-=======
+
         Vpre = complex(1.0, 0.0)
         Zth = self._z(bus_index, "pos")
         if abs(Zth) < 1e-12:
@@ -164,7 +149,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(If),
             "fault_current_ka": self._pu_to_ka(If),
             "fault_current_angle": np.angle(If, deg=True),
->>>>>>> origin/fix/scenario-tests-properly
             "affected_bus_index": bus_index,
             "fault_type": "three_phase",
         }
@@ -179,18 +163,13 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phase.
         """
-<<<<<<< HEAD
         vpre = complex(
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Vpre = complex(1.0, 0.0)
->>>>>>> origin/fix/scenario-tests-properly
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
         Z0 = self._z(bus_index, "zero")
         denominator = Z1 + Z2 + Z0
-<<<<<<< HEAD
         if_ = (
             complex(float("inf"), 0) if abs(denominator) < 1e-12 else 3 * vpre / denominator
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -199,7 +178,7 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-=======
+
         if abs(denominator) < 1e-12:
             If = complex(float("inf"), 0)
         else:
@@ -209,7 +188,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(If),
             "fault_current_ka": self._pu_to_ka(If),
             "fault_current_angle": np.angle(If, deg=True),
->>>>>>> origin/fix/scenario-tests-properly
             "affected_bus_index": bus_index,
             "fault_type": "line_to_ground",
         }
@@ -224,18 +202,13 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phases.
         """
-<<<<<<< HEAD
         vpre = complex(
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Vpre = complex(1.0, 0.0)
->>>>>>> origin/fix/scenario-tests-properly
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
         denominator = Z1 + Z2
         if abs(denominator) < 1e-12:
-<<<<<<< HEAD
             if_ = complex(
                 float("inf"), 0
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -246,7 +219,7 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(if_),
             "fault_current_ka": self._pu_to_ka(if_),
             "fault_current_angle": np.angle(if_, deg=True),
-=======
+
             If = complex(float("inf"), 0)
         else:
             If = Vpre * np.sqrt(3) / denominator
@@ -255,7 +228,6 @@ class FaultAnalyzer:
             "fault_current_magnitude": np.abs(If),
             "fault_current_ka": self._pu_to_ka(If),
             "fault_current_angle": np.angle(If, deg=True),
->>>>>>> origin/fix/scenario-tests-properly
             "affected_bus_index": bus_index,
             "fault_type": "line_to_line",
         }
@@ -270,7 +242,6 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault currents (complex) in per-unit.
         """
-<<<<<<< HEAD
         vpre = complex(
             1.0, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -311,7 +282,7 @@ class FaultAnalyzer:
             "fault_current_c_magnitude": np.abs(ic),
             "fault_current_c_angle": np.angle(ic, deg=True),
             "fault_current_c_ka": self._pu_to_ka(ic),
-=======
+
         Vpre = complex(1.0, 0.0)
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
@@ -343,7 +314,6 @@ class FaultAnalyzer:
             "fault_current_c_magnitude": np.abs(Ic),
             "fault_current_c_angle": np.angle(Ic, deg=True),
             "fault_current_c_ka": self._pu_to_ka(Ic),
->>>>>>> origin/fix/scenario-tests-properly
             "affected_bus_index": bus_index,
             "fault_type": "double_line_to_ground",
         }

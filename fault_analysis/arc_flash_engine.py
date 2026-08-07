@@ -89,7 +89,6 @@ ARC_CURRENT_COEFFICIENTS = {
 
 # IEEE 1584-2018 Coefficients for incident energy calculation
 # NOTE: use plain string keys to avoid Enum identity mismatches across reloads.
-<<<<<<< HEAD
 # Format: {electrode_config_str: {enclosure_type_str: (k1, k2, k3, k4, x_factor)}}
 #
 # IEEE 1584-2018 Table 4 defines distinct coefficients for each electrode configuration
@@ -128,7 +127,7 @@ INCIDENT_ENERGY_COEFFICIENTS = {
         # HOA (horizontal open-air) — slightly lower than HCB
         EnclosureType.BOX.value: (0.380, -0.248, 0.0, 0.0, 0.93),
         EnclosureType.OPEN.value: (0.380, -0.248, 0.0, 0.0, 0.93),
-=======
+
 # Format: {electrode_config_str: {enclosure_type_str: (k1, k2, k3, x_factor)}}
 INCIDENT_ENERGY_COEFFICIENTS = {
     ElectrodeConfig.VCB.value: {
@@ -150,7 +149,6 @@ INCIDENT_ENERGY_COEFFICIENTS = {
     ElectrodeConfig.HOA.value: {
         EnclosureType.BOX.value: (0.434, -0.262, 0.0, 1.0),
         EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 1.0),
->>>>>>> origin/fix/scenario-tests-properly
     },
 }
 
@@ -158,7 +156,6 @@ INCIDENT_ENERGY_COEFFICIENTS = {
 # Kept for completeness; boundary is computed via incident-energy inversion in this file.
 BOUNDARY_COEFFICIENTS = {}
 
-<<<<<<< HEAD
 # Flag indicating this engine uses a simplified model (no gap correction, no K4 term)
 # Production-grade arc flash studies require certified software (ETAP, SKM, EasyPower)
 # SECURITY AUDIT 2026-07-25 — Fix E-01: Simplified model flagged.
@@ -167,8 +164,6 @@ BOUNDARY_COEFFICIENTS = {}
 # with IEEE 1584-2018. Do NOT use for PPE selection or arc flash labeling.
 ENGINE_IS_SIMPLIFIED = True
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 class ArcFlashEngine:
     """
@@ -186,14 +181,10 @@ class ArcFlashEngine:
 
     @staticmethod
     def _validate_inputs(
-<<<<<<< HEAD
         voltage_kv,
         bolted_fault_current_ka,
         arc_duration_sec,
         working_distance_mm,
-=======
-        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Validate input parameters for arc flash calculations.
@@ -209,7 +200,6 @@ class ArcFlashEngine:
         """
         if voltage_kv < 0.208:
             raise ValueError(
-<<<<<<< HEAD
                 f"Voltage {voltage_kv} kV is below the IEEE 1584-2018 minimum range (0.208 kV). Use Ralph Lee method instead.",
             )
         if voltage_kv > 15.0:
@@ -223,7 +213,7 @@ class ArcFlashEngine:
         if bolted_fault_current_ka > 106.0:
             raise ValueError(
                 f"Bolted fault current {bolted_fault_current_ka} kA is above the IEEE 1584-2018 maximum range (106 kA).",
-=======
+
                 f"Voltage {voltage_kv} kV is below the IEEE 1584-2018 minimum range (0.208 kV). Use Ralph Lee method instead."
             )
         if voltage_kv > 15.0:
@@ -237,7 +227,6 @@ class ArcFlashEngine:
         if bolted_fault_current_ka > 106.0:
             raise ValueError(
                 f"Bolted fault current {bolted_fault_current_ka} kA is above the IEEE 1584-2018 maximum range (106 kA)."
->>>>>>> origin/fix/scenario-tests-properly
             )
         if arc_duration_sec <= 0:
             raise ValueError("Arc duration must be positive.")
@@ -246,13 +235,9 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_arc_current(
-<<<<<<< HEAD
         voltage_kv,
         bolted_fault_current_ka,
         electrode_config=ElectrodeConfig.VCB,
-=======
-        voltage_kv, bolted_fault_current_ka, electrode_config=ElectrodeConfig.VCB
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Calculate the arc current using IEEE 1584-2018 equations.
@@ -265,11 +250,7 @@ class ArcFlashEngine:
         Returns:
         tuple: (arc_current_ka, reduced_arc_current_ka)
         """
-<<<<<<< HEAD
         Ibf = bolted_fault_current_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ibf = bolted_fault_current_ka
->>>>>>> origin/fix/scenario-tests-properly
         # Normalize electrode_config to the coefficient dict key (VCB/VCBB/HCB/VOA/HOA).
         if isinstance(electrode_config, str):
             electrode_key = electrode_config
@@ -304,7 +285,6 @@ class ArcFlashEngine:
         else:
             k1, k2, k3 = coeffs["high"]
 
-<<<<<<< HEAD
         # Iarc formula: 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
         log_iarc = (
             k1 + k2 * np.log10(Ibf) + k3 * Ibf
@@ -322,7 +302,7 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_incident_energy(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
+
         # Iarc = 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
         log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf
         Iarc = 10**log_Iarc
@@ -334,7 +314,6 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_incident_energy(
->>>>>>> origin/fix/scenario-tests-properly
         voltage_kv,
         bolted_fault_current_ka,
         arc_duration_sec,
@@ -344,10 +323,7 @@ class ArcFlashEngine:
         enclosure_width_mm=508.0,
         enclosure_height_mm=508.0,
         enclosure_depth_mm=508.0,
-<<<<<<< HEAD
         arc_gap_mm=None,
-=======
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Calculate incident energy using IEEE 1584-2018 equations.
@@ -362,7 +338,6 @@ class ArcFlashEngine:
         enclosure_width_mm (float): Enclosure width in mm (default 508).
         enclosure_height_mm (float): Enclosure height in mm (default 508).
         enclosure_depth_mm (float): Enclosure depth in mm (default 508).
-<<<<<<< HEAD
         arc_gap_mm (float): Gap between conductors in mm. If None,
             defaults per IEEE 1584-2018: 25mm for LV (<=1kV), 13mm for HV (>1kV).
 
@@ -377,7 +352,7 @@ class ArcFlashEngine:
             voltage_kv,
             bolted_fault_current_ka,
             electrode_config,
-=======
+
 
         Returns:
         float: Incident energy in cal/cm^2.
@@ -385,7 +360,6 @@ class ArcFlashEngine:
         # Calculate arc current
         Iarc, Iarc_reduced = ArcFlashEngine.calculate_arc_current(
             voltage_kv, bolted_fault_current_ka, electrode_config
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Normalize keys for coefficient lookup (case/enum-identity safe)
@@ -408,7 +382,6 @@ class ArcFlashEngine:
             enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
         )
         enc = str(raw_enclosure).strip().upper()
-<<<<<<< HEAD
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc else EnclosureType.BOX.value
 
         k1, k2, k3, k4, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
@@ -418,7 +391,7 @@ class ArcFlashEngine:
         # Now uses the per-config x_factor from INCIDENT_ENERGY_COEFFICIENTS
         # (derived from IEEE 1584-2018 Table 4). Values range ~0.91-1.0.
         # Hard-clamp to [0.5, 2.5] to prevent division-by-zero or overflow.
-=======
+
         if "OPEN" in enc:
             enclosure_key = EnclosureType.OPEN.value
         else:
@@ -428,13 +401,11 @@ class ArcFlashEngine:
 
         # IEEE 1584-2018: in this project’s coefficient table x_factor is 1.0.
         # Hard-disable any possibility of Enum/non-numeric leaking into exponentiation.
->>>>>>> origin/fix/scenario-tests-properly
 
         # Calculate enclosure correction factor for box configurations
         if enclosure_type == EnclosureType.BOX:
             # Enclosure size correction per IEEE 1584-2018
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
-<<<<<<< HEAD
             v_enc = (
                 enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm
             )  # NOSONAR
@@ -445,20 +416,18 @@ class ArcFlashEngine:
             if v_enc > 0 and v_enc != v_ref:
                 # Simplified correction factor
                 CF = (v_ref / v_enc) ** 0.1 if v_enc > v_ref else 1.0
-=======
+
             V_enc = enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm  # mm^3
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
             V_ref = 508.0**3
             if V_enc > 0 and V_enc != V_ref:
                 # Simplified correction factor
                 CF = (V_ref / V_enc) ** 0.1 if V_enc > V_ref else 1.0
->>>>>>> origin/fix/scenario-tests-properly
             else:
                 CF = 1.0
         else:
             CF = 1.0
 
-<<<<<<< HEAD
         # SECURITY AUDIT 2026-07-25 — Fix E-01: Full IEEE 1584-2018 formula.
         # log10(En) = K1 + K2*log10(Iarc) + K3*log10(G) + K4*log10(Iarc)*log10(G)
         # E = 10^(log10(En) + log10(t)) * CF / D^x
@@ -480,7 +449,7 @@ class ArcFlashEngine:
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
                 enclosure_width_mm,
                 (int, float, np.floating, np.integer),
-=======
+
         # Calculate incident energy at full arc current
         # E = 10^(k1 + k2*log10(Iarc) + k3*Iarc) * t * CF / D^x
 
@@ -489,12 +458,10 @@ class ArcFlashEngine:
         if isinstance(working_distance_mm, Enum):
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
                 enclosure_width_mm, (int, float, np.floating, np.integer)
->>>>>>> origin/fix/scenario-tests-properly
             ):
                 working_distance_mm = enclosure_width_mm
             else:
                 working_distance_mm = 1.0
-<<<<<<< HEAD
         x_power = max(0.5, min(2.5, float(x_factor)))
         D = max(1.0, float(working_distance_mm))
 
@@ -523,7 +490,7 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_arc_flash_boundary(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
+
         x_power = 1.0
         D = float(working_distance_mm)
 
@@ -541,7 +508,6 @@ class ArcFlashEngine:
 
     @staticmethod
     def calculate_arc_flash_boundary(
->>>>>>> origin/fix/scenario-tests-properly
         voltage_kv,
         bolted_fault_current_ka,
         arc_duration_sec,
@@ -563,12 +529,8 @@ class ArcFlashEngine:
         # validation/debug can accidentally route an Enum into working_distance_mm.
         if isinstance(working_distance_mm, Enum):
             if not isinstance(enclosure_width_mm, Enum) and isinstance(
-<<<<<<< HEAD
                 enclosure_width_mm,
                 (int, float, np.floating, np.integer),
-=======
-                enclosure_width_mm, (int, float, np.floating, np.integer)
->>>>>>> origin/fix/scenario-tests-properly
             ):
                 working_distance_mm = enclosure_width_mm
             else:
@@ -578,11 +540,10 @@ class ArcFlashEngine:
         electrode_key = (
             electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
         )
-<<<<<<< HEAD
 
         electrode_key = str(electrode_key).strip().upper()
 
-=======
+
         enclosure_key = (
             enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
         )
@@ -598,7 +559,6 @@ class ArcFlashEngine:
         else:
             enclosure_key = EnclosureType.BOX.value
 
->>>>>>> origin/fix/scenario-tests-properly
         # Normalize electrode_key
         if electrode_key not in INCIDENT_ENERGY_COEFFICIENTS:
             s = str(electrode_config).upper()
@@ -615,14 +575,13 @@ class ArcFlashEngine:
             else:
                 electrode_key = ElectrodeConfig.VCB.value
 
-<<<<<<< HEAD
         # Normalize enclosure_key for the dict lookup below (default to BOX).
         enc_up = str(enclosure_type).strip().upper()
         enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)
         _, _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
-=======
+
         # Normalize enclosure_key ONLY for dict lookup
         enc_up = str(enclosure_type).strip().upper()
         if "OPEN" in enc_up:
@@ -633,22 +592,17 @@ class ArcFlashEngine:
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)
         _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
->>>>>>> origin/fix/scenario-tests-properly
         if isinstance(x_factor, (int, float, np.floating, np.integer)):
             x_factor_num = float(x_factor)
         else:
             x_factor_num = 1.0
 
         # Compute incident energy at the given working distance
-<<<<<<< HEAD
         (
             e_final,
             _,
             _,
         ) = ArcFlashEngine.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        E_final, _, _ = ArcFlashEngine.calculate_incident_energy(
->>>>>>> origin/fix/scenario-tests-properly
             voltage_kv=voltage_kv,
             bolted_fault_current_ka=bolted_fault_current_ka,
             arc_duration_sec=arc_duration_sec,
@@ -660,7 +614,6 @@ class ArcFlashEngine:
             enclosure_depth_mm=enclosure_depth_mm,
         )
 
-<<<<<<< HEAD
         if e_final <= 0 or x_factor_num == 0:
             return 0.0
 
@@ -671,7 +624,7 @@ class ArcFlashEngine:
 
         # Numerical safety + rounding expectations in validation suite
         return max(d_boundary, 0.1)
-=======
+
         if E_final <= 0 or x_factor_num == 0:
             return 0.0
 
@@ -680,7 +633,6 @@ class ArcFlashEngine:
 
         # Numerical safety + rounding expectations in validation suite
         return max(D_boundary, 0.1)
->>>>>>> origin/fix/scenario-tests-properly
 
     @staticmethod
     def determine_ppe_level(incident_energy):
@@ -740,7 +692,6 @@ class ArcFlashEngine:
         """
         # Validate inputs
         self._validate_inputs(
-<<<<<<< HEAD
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -759,7 +710,7 @@ class ArcFlashEngine:
 
         # Calculate incident energy
         e_final, e_full, e_reduced = self.calculate_incident_energy(
-=======
+
             voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
         )
 
@@ -770,7 +721,6 @@ class ArcFlashEngine:
 
         # Calculate incident energy
         E_final, E_full, E_reduced = self.calculate_incident_energy(
->>>>>>> origin/fix/scenario-tests-properly
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -783,11 +733,7 @@ class ArcFlashEngine:
         )
 
         # Calculate arc flash boundary
-<<<<<<< HEAD
         d_boundary = self.calculate_arc_flash_boundary(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        D_boundary = self.calculate_arc_flash_boundary(
->>>>>>> origin/fix/scenario-tests-properly
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -800,7 +746,6 @@ class ArcFlashEngine:
         )
 
         # Determine PPE level
-<<<<<<< HEAD
         ppe_level, ppe_description = self.determine_ppe_level(e_final)
 
         return ArcFlashResult(
@@ -811,7 +756,7 @@ class ArcFlashEngine:
             arc_flash_boundary_in=round(d_boundary / 25.4, 1),
             arc_current_ka=round(iarc, 4),
             reduced_arc_current_ka=round(iarc_reduced, 4),
-=======
+
         ppe_level, ppe_description = self.determine_ppe_level(E_final)
 
         return ArcFlashResult(
@@ -822,7 +767,6 @@ class ArcFlashEngine:
             arc_flash_boundary_in=round(D_boundary / 25.4, 1),
             arc_current_ka=round(Iarc, 4),
             reduced_arc_current_ka=round(Iarc_reduced, 4),
->>>>>>> origin/fix/scenario-tests-properly
             method="IEEE 1584-2018",
             electrode_configuration=electrode_config.value,
             enclosure_type=enclosure_type.value,
@@ -836,14 +780,10 @@ class ArcFlashEngine:
 
     @staticmethod
     def ralph_lee_method(
-<<<<<<< HEAD
         voltage_kv,
         bolted_fault_current_ka,
         arc_duration_sec,
         working_distance_mm,
-=======
-        voltage_kv, bolted_fault_current_ka, arc_duration_sec, working_distance_mm
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Calculate arc flash using Ralph Lee method for voltages outside IEEE 1584 range.
@@ -860,11 +800,7 @@ class ArcFlashEngine:
         ArcFlashResult: Arc flash analysis result using Ralph Lee method.
         """
         V = voltage_kv
-<<<<<<< HEAD
         Ibf = bolted_fault_current_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ibf = bolted_fault_current_ka
->>>>>>> origin/fix/scenario-tests-properly
         t = arc_duration_sec
         D = working_distance_mm
 
@@ -872,13 +808,9 @@ class ArcFlashEngine:
         E = (5.12e5 * V * Ibf * t) / (D**2)
 
         # Arc flash boundary (mm) where incident energy = 1.2 cal/cm^2
-<<<<<<< HEAD
         d_boundary = (
             ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        D_boundary = ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5
->>>>>>> origin/fix/scenario-tests-properly
 
         ppe_level, ppe_description = ArcFlashEngine.determine_ppe_level(E)
 
@@ -886,13 +818,8 @@ class ArcFlashEngine:
             incident_energy_cal_cm2=round(E, 4),
             incident_energy_at_full_arc_current=round(E, 4),
             incident_energy_at_reduced_arc_current=round(E, 4),
-<<<<<<< HEAD
             arc_flash_boundary_mm=round(d_boundary, 1),
             arc_flash_boundary_in=round(d_boundary / 25.4, 1),
-=======
-            arc_flash_boundary_mm=round(D_boundary, 1),
-            arc_flash_boundary_in=round(D_boundary / 25.4, 1),
->>>>>>> origin/fix/scenario-tests-properly
             arc_current_ka=round(Ibf, 4),
             reduced_arc_current_ka=round(0.85 * Ibf, 4),
             method="Ralph Lee (outside IEEE 1584 range)",

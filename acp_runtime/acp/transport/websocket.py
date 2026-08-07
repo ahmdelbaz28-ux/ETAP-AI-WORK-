@@ -20,12 +20,7 @@ For production use, wrap a ``websockets`` connection::
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from typing import Any, Callable, Coroutine, Optional
-=======
-from collections.abc import Callable, Coroutine
-from typing import Any
->>>>>>> origin/fix/scenario-tests-properly
 
 import anyio
 
@@ -54,11 +49,7 @@ class WebSocketTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.websocket")
 
-<<<<<<< HEAD
     async def read_message(self) -> Optional[str]:
-=======
-    async def read_message(self) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         if self._closed:
             return None
         try:
@@ -103,11 +94,7 @@ class WebSocketListener:
         except ImportError as exc:
             raise ImportError(
                 "WebSocketListener requires the 'websockets' package. "
-<<<<<<< HEAD
                 "Install it:  pip install websockets>=12.0",
-=======
-                "Install it:  pip install websockets>=12.0"
->>>>>>> origin/fix/scenario-tests-properly
             ) from exc
 
         async def handler(ws: Any) -> None:

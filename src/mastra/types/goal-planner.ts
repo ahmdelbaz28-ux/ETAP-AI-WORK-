@@ -27,8 +27,4 @@ export interface GoalPlannerOutput {
   risks: string[];
   /** Suggested adjustments or next steps */
   recommendations: string[];
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/fix/scenario-tests-properly

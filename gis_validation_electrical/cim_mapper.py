@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -15,24 +11,15 @@ class CIMConductingEquipment:
     cim_id: str
     name: str
     kind: str  # FEEDER/LINE/TRANSFORMER/SWITCH/SUBSTATION
-<<<<<<< HEAD
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
 class CIMConnectivityNode:
     cim_id: str
     label: str
-<<<<<<< HEAD
     voltage_level_kv: Optional[float] = None
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    voltage_level_kv: float | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
@@ -41,11 +28,7 @@ class CIMTerminal:
     equipment_id: str
     connectivity_node_id: str
     terminal_role: str  # from/to for edges, hub for substations
-<<<<<<< HEAD
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
@@ -53,11 +36,7 @@ class CIMPowerTransformer:
     cim_id: str
     equipment_id: str
     transformer_type: str
-<<<<<<< HEAD
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
@@ -65,30 +44,24 @@ class CIMBreaker:
     cim_id: str
     equipment_id: str
     open_state: bool
-<<<<<<< HEAD
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass(frozen=True)
 class CIMModel:
-<<<<<<< HEAD
     conducting_equipment: dict[str, CIMConductingEquipment]
     connectivity_nodes: dict[str, CIMConnectivityNode]
     terminals: dict[str, CIMTerminal]
     power_transformers: dict[str, CIMPowerTransformer]
     breakers: dict[str, CIMBreaker]
     traceability: dict[str, str]  # cim_id -> adms_asset_id
-=======
+
     conducting_equipment: Dict[str, CIMConductingEquipment]
     connectivity_nodes: Dict[str, CIMConnectivityNode]
     terminals: Dict[str, CIMTerminal]
     power_transformers: Dict[str, CIMPowerTransformer]
     breakers: Dict[str, CIMBreaker]
     traceability: Dict[str, str]  # cim_id -> adms_asset_id
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
@@ -107,13 +80,9 @@ def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     return default
 
 
-<<<<<<< HEAD
 def map_adms_to_cim(  # NOSONAR
     assets: list[ADMSAsset],
 ) -> CIMModel:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Deterministic CIM-like mapping for validation traceability.
 
@@ -128,7 +97,6 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
     """
     # Coordinate helpers: match endpoints to substations by exact coordinate tuple.
     substations = [a for a in assets if a.asset_type == ADMSAssetType.SUBSTATION]
-<<<<<<< HEAD
     sub_coords_to_node: dict[tuple[float, float], str] = {}
 
     conducting_equipment: dict[str, CIMConductingEquipment] = {}
@@ -137,7 +105,7 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
     power_transformers: dict[str, CIMPowerTransformer] = {}
     breakers: dict[str, CIMBreaker] = {}
     traceability: dict[str, str] = {}
-=======
+
     sub_coords_to_node: Dict[Tuple[float, float], str] = {}
 
     conducting_equipment: Dict[str, CIMConductingEquipment] = {}
@@ -146,7 +114,6 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
     power_transformers: Dict[str, CIMPowerTransformer] = {}
     breakers: Dict[str, CIMBreaker] = {}
     traceability: Dict[str, str] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     for s in substations:
         geom = s.geometry or {}
@@ -173,13 +140,8 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         traceability[eq.cim_id] = s.asset_id
 
     def endpoints_from_linestring(
-<<<<<<< HEAD
         geom: dict[str, Any],
     ) -> tuple[tuple[float, float], tuple[float, float]] | None:
-=======
-        geom: Dict[str, Any],
-    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
->>>>>>> origin/fix/scenario-tests-properly
         if (geom or {}).get("type") != "LineString":
             return None
         coords = geom.get("coordinates")
@@ -200,7 +162,6 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
         ):
             continue
 
-<<<<<<< HEAD
         if a.asset_type == ADMSAssetType.LINE:
             kind = "line"
         elif a.asset_type == ADMSAssetType.FEEDER:
@@ -209,7 +170,7 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
             kind = "transformer"
         else:
             kind = "switch"
-=======
+
         kind = (
             "line"
             if a.asset_type == ADMSAssetType.LINE
@@ -219,7 +180,6 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
                 else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")
             )
         )
->>>>>>> origin/fix/scenario-tests-properly
 
         ce_id = f"CE::{a.asset_id}"
         ce = CIMConductingEquipment(
@@ -261,11 +221,7 @@ def map_adms_to_cim(assets: List[ADMSAsset]) -> CIMModel:
                 cim_id=pt_id,
                 equipment_id=ce_id,
                 transformer_type=str(
-<<<<<<< HEAD
                     a.metadata.get("transformer_type", "deterministic_transformer"),
-=======
-                    a.metadata.get("transformer_type", "deterministic_transformer")
->>>>>>> origin/fix/scenario-tests-properly
                 ),
                 metadata=dict(a.metadata),
             )

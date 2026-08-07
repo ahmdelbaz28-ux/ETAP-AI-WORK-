@@ -10,7 +10,6 @@ dotenv.config();
 // In CI without credentials, SKIP_LIVE_SCENARIO_TESTS is set so all
 // scenario tests skip cleanly instead of failing.
 const isCI = process.env.CI === 'true' || process.env.VITEST === 'true';
-<<<<<<< HEAD
 process.env.SKIP_LIVE_SCENARIO_TESTS =
   process.env.SKIP_LIVE_SCENARIO_TESTS || (isCI ? 'true' : 'false');
 
@@ -29,7 +28,7 @@ export default withScenario(
     },
   }),
 );
-=======
+
 process.env.SKIP_LIVE_SCENARIO_TESTS = process.env.SKIP_LIVE_SCENARIO_TESTS || (isCI ? 'true' : 'false');
 
 export default withScenario(defineConfig({
@@ -45,4 +44,3 @@ export default withScenario(defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**'],
   },
 }));
->>>>>>> origin/fix/scenario-tests-properly

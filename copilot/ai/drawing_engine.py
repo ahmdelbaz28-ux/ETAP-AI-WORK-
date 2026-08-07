@@ -25,11 +25,7 @@ import math
 import time
 import uuid
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from autodesk_connector.shared.models import (
     BreakerDef,
@@ -80,34 +76,30 @@ class EngineeringIntent:
 
     type: EngineeringIntentType
     confidence: float
-<<<<<<< HEAD
     parameters: dict[str, Any] = field(default_factory=dict)
     raw_text: str = ""
     entities: list[dict] = field(default_factory=list)
     constraints: dict[str, Any] = field(default_factory=dict)
-=======
+
     parameters: Dict[str, Any] = field(default_factory=dict)
     raw_text: str = ""
     entities: List[dict] = field(default_factory=list)
     constraints: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
 class EngineeringGraph:
     """Knowledge graph representing the engineering design."""
 
-<<<<<<< HEAD
     nodes: dict[str, dict] = field(default_factory=dict)
     edges: list[dict] = field(default_factory=list)
     validated: bool = False
     validation_errors: list[str] = field(default_factory=list)
-=======
+
     nodes: Dict[str, dict] = field(default_factory=dict)
     edges: List[dict] = field(default_factory=list)
     validated: bool = False
     validation_errors: List[str] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -126,11 +118,7 @@ class IntentParser:
     """
 
     # Intent patterns
-<<<<<<< HEAD
     PATTERNS: dict[EngineeringIntentType, list[str]] = {
-=======
-    PATTERNS: Dict[EngineeringIntentType, List[str]] = {
->>>>>>> origin/fix/scenario-tests-properly
         EngineeringIntentType.CREATE_PANEL: [
             "panel",
             "create panel",
@@ -140,11 +128,7 @@ class IntentParser:
             "mdb",
             "distribution panel",
             "lighting panel",
-<<<<<<< HEAD
             "power panel",  # NOSONAR intentional repetition (audit constant)
-=======
-            "power panel",
->>>>>>> origin/fix/scenario-tests-properly
         ],
         EngineeringIntentType.CREATE_SLD: [
             "single line diagram",
@@ -247,7 +231,6 @@ class IntentParser:
     PARAM_PATTERNS = {
         "voltage_kv": r"(\d+(?:\.\d+)?)\s*(?:kv\b|kilovolt\b)",
         "voltage_v": r"(\d+(?:\.\d+)?)\s*(?:(?<![kK])v(?!a)|volt(?!s)|voltage)",
-<<<<<<< HEAD
         "current": r"(\d+(?:\.\d+)?)\s*(Union[?:a|amp|ampere, amps])",
         "power": r"(\d+(?:\.\d+)?)\s*(Union[?:kw|kva|mw|mva|watt, w])",
         "feeder_count": r"(\d+)\s*(Union[?:feeders, outgoing] Union[circuits, outgoing] feeder)",
@@ -256,7 +239,7 @@ class IntentParser:
         "size": r"(\d+(?:\.\d+)?)\s*(Union[?:mm2|sqmm, mm])",
         "phases": r"(\d)\s*(Union[?:phase|ph, pole])",
         "ratio": r"(\d+(?:\.\d+)?)\s*(Union[?:percent|%, ratio])",
-=======
+
         "current": r"(\d+(?:\.\d+)?)\s*(?:a|amp|ampere|amps)",
         "power": r"(\d+(?:\.\d+)?)\s*(?:kw|kva|mw|mva|watt|w)",
         "feeder_count": r"(\d+)\s*(?:feeders|outgoing circuits|outgoing feeder)",
@@ -265,7 +248,6 @@ class IntentParser:
         "size": r"(\d+(?:\.\d+)?)\s*(?:mm2|sqmm|mm)",
         "phases": r"(\d)\s*(?:phase|ph|pole)",
         "ratio": r"(\d+(?:\.\d+)?)\s*(?:percent|%|ratio)",
->>>>>>> origin/fix/scenario-tests-properly
     }
 
     def parse(self, text: str) -> EngineeringIntent:
@@ -283,13 +265,8 @@ class IntentParser:
             Structured intent with type, confidence, parameters, and entities.
         """
         text_lower = text.lower().strip()
-<<<<<<< HEAD
         parameters: dict[str, Any] = {}
         entities: list[dict] = []
-=======
-        parameters: Dict[str, Any] = {}
-        entities: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # 1. Identify intent type
         intent_type, confidence = self._match_intent(text_lower)
@@ -312,11 +289,7 @@ class IntentParser:
             constraints=constraints,
         )
 
-<<<<<<< HEAD
     def _match_intent(self, text: str) -> tuple[EngineeringIntentType, float]:
-=======
-    def _match_intent(self, text: str) -> Tuple[EngineeringIntentType, float]:
->>>>>>> origin/fix/scenario-tests-properly
         """Match the intent type based on keyword patterns."""
         best_type = EngineeringIntentType.UNKNOWN
         best_score = 0.0
@@ -335,7 +308,6 @@ class IntentParser:
         confidence = min(best_score, 1.0)
         return best_type, confidence
 
-<<<<<<< HEAD
     @staticmethod
     def _simplify_values(values: list) -> Any:
         """Return single value if list has one element, else the list."""
@@ -389,7 +361,7 @@ class IntentParser:
     ) -> list[
         dict
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
+
     def _extract_parameters(self, text: str) -> Dict[str, Any]:
         """Extract numerical and categorical parameters from text."""
         import re
@@ -432,7 +404,6 @@ class IntentParser:
         return params
 
     def _extract_entities(self, text: str) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Extract named entities from the request."""
         entities = []
 
@@ -472,26 +443,16 @@ class IntentParser:
         # Generator types
         if "emergency generator" in text_lower or "standby generator" in text_lower:
             entities.append(
-<<<<<<< HEAD
                 {"type": "generator", "generator_type": "diesel", "load_category": "standby"},
-=======
-                {"type": "generator", "generator_type": "diesel", "load_category": "standby"}
->>>>>>> origin/fix/scenario-tests-properly
             )
         if "generator" in text_lower and not any(e["type"] == "generator" for e in entities):
             entities.append({"type": "generator", "generator_type": "synchronous"})
 
         return entities
 
-<<<<<<< HEAD
     def _extract_constraints(self, text: str) -> dict[str, Any]:
         """Extract engineering constraints."""
         constraints: dict[str, Any] = {}
-=======
-    def _extract_constraints(self, text: str) -> Dict[str, Any]:
-        """Extract engineering constraints."""
-        constraints: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
         if "emergency" in text.lower() or "standby" in text.lower():
             constraints["load_category"] = "standby"
@@ -511,7 +472,6 @@ class IntentParser:
 class GraphBuilder:
     """Builds an engineering knowledge graph from parsed intents."""
 
-<<<<<<< HEAD
     @staticmethod
     def _determine_panel_type(raw_lower: str) -> str:
         """Determine panel type from text."""
@@ -623,8 +583,6 @@ class GraphBuilder:
                     graph.nodes[node_id]["main_current"] = c
                     graph.nodes[node_id]["feeder_current"] = c
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     def build(self, intent: EngineeringIntent) -> EngineeringGraph:
         """Build an engineering graph from a parsed intent.
 
@@ -641,11 +599,10 @@ class GraphBuilder:
             "label": intent.raw_text[:80],
         }
 
-<<<<<<< HEAD
         self._add_entity_nodes(graph, root_id, intent.entities)
         self._add_missing_nodes(graph, root_id, intent)
         self._apply_parameters_to_nodes(graph, intent.parameters)
-=======
+
         for entity in intent.entities:
             entity_id = f"{entity['type']}_{uuid.uuid4().hex[:8]}"
             entity["id"] = entity_id
@@ -741,7 +698,6 @@ class GraphBuilder:
                         if isinstance(c, (int, float)):
                             graph.nodes[node_id]["main_current"] = c
                             graph.nodes[node_id]["feeder_current"] = c
->>>>>>> origin/fix/scenario-tests-properly
 
         graph.validated = len(graph.validation_errors) == 0
         return graph
@@ -763,11 +719,7 @@ class ModelGenerator:
             project=Project(
                 name=f"AI Generated Project — {time.strftime('%Y-%m-%d %H:%M')}",
                 entity_type="project",
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         for _node_id, node in graph.nodes.items():
@@ -790,16 +742,11 @@ class ModelGenerator:
 
         return model
 
-<<<<<<< HEAD
     def _create_panel_from_node(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-    def _create_panel_from_node(
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Panel entity from a graph node, linking Intent Parameters.
 
@@ -881,24 +828,16 @@ class ModelGenerator:
                             load_name=f"LOAD-{panel.name}-{f + 1:02d}",
                             load_kw=load_kw_final,
                             poles=3,
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
             model.project.panels.append(panel)
 
     def _create_transformer_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Transformer entity from a graph node."""
         power = node.get("power", 1.0)
@@ -930,14 +869,10 @@ class ModelGenerator:
         model.metadata.setdefault("transformers", []).append(xf.model_dump(mode="json"))
 
     def _create_bus_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Bus entity from a graph node."""
         voltage = node.get("voltage", 11000)
@@ -957,14 +892,10 @@ class ModelGenerator:
         model.metadata.setdefault("buses", []).append(bus.model_dump(mode="json"))
 
     def _create_cable_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Cable entity from a graph node."""
         cable = Cable(
@@ -979,14 +910,10 @@ class ModelGenerator:
         model.metadata.setdefault("cables", []).append(cable.model_dump(mode="json"))
 
     def _create_motor_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Motor entity from a graph node."""
         voltage = node.get("voltage", 400)
@@ -1008,14 +935,10 @@ class ModelGenerator:
         model.metadata.setdefault("motors", []).append(motor.model_dump(mode="json"))
 
     def _create_generator_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Generator entity from a graph node."""
         power_kw = node.get("power", 500)
@@ -1041,14 +964,10 @@ class ModelGenerator:
         model.metadata.setdefault("generators", []).append(gen.model_dump(mode="json"))
 
     def _create_load_from_node(
-<<<<<<< HEAD
         self,
         model: UnifiedEngineeringModel,
         node: dict,
         graph: EngineeringGraph,
-=======
-        self, model: UnifiedEngineeringModel, node: dict, graph: EngineeringGraph
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create a Load entity from a graph node."""
         power = node.get("power", 10)
@@ -1102,17 +1021,11 @@ class AIDrawingEngine:
 
         self.translation = TranslationEngine()
 
-<<<<<<< HEAD
         self._history: list[dict] = []
 
     def process(  # NOSONAR
         self, natural_language_request: str
     ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-        self._history: List[dict] = []
-
-    def process(self, natural_language_request: str) -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Process a natural language engineering request end-to-end.
 
         Parameters
@@ -1208,11 +1121,7 @@ class AIDrawingEngine:
             }
             if not has_any_entity:
                 validation["model_integrity"]["issues"].append(
-<<<<<<< HEAD
                     "No entities were created from the request",
-=======
-                    "No entities were created from the request"
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
             if model.project.panels:
@@ -1220,11 +1129,7 @@ class AIDrawingEngine:
                     if panel.main_breaker_a and panel.bus_rating_a:
                         if panel.main_breaker_a > panel.bus_rating_a:
                             validation["feeder_check"]["issues"].append(
-<<<<<<< HEAD
                                 f"Panel {panel.name}: breaker > bus rating",
-=======
-                                f"Panel {panel.name}: breaker > bus rating"
->>>>>>> origin/fix/scenario-tests-properly
                             )
                 validation["feeder_check"]["passed"] = (
                     len(validation["feeder_check"]["issues"]) == 0
@@ -1244,11 +1149,7 @@ class AIDrawingEngine:
                     "status": "completed",
                     "elapsed": result["elapsed_seconds"],
                     "timestamp": time.time(),
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         except Exception as e:
@@ -1259,11 +1160,7 @@ class AIDrawingEngine:
 
         return result
 
-<<<<<<< HEAD
     def get_history(self, limit: int = 20) -> list[dict]:
-=======
-    def get_history(self, limit: int = 20) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get recent processing history."""
         return self._history[-limit:]
 

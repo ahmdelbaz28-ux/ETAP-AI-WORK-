@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // UI components are intentionally complex for feature-rich DX
 import { motion } from "framer-motion";
 import {
@@ -713,7 +712,7 @@ function LoaderIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
   );
-=======
+
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bot, Send, User, Sparkles, Cpu, Copy, RotateCcw, MessageSquare } from 'lucide-react'
@@ -924,5 +923,4 @@ export function AIAssistant() {
       </form>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

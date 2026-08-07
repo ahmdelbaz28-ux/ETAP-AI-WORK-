@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
@@ -16,7 +15,7 @@ export default defineConfig({
     ],
   },
 });
-=======
+
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
@@ -29,4 +28,3 @@ export default defineConfig({
     css: true,
   },
 })
->>>>>>> origin/fix/scenario-tests-properly

@@ -29,11 +29,7 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 
@@ -54,17 +50,10 @@ class FailureMode:
 # ---------------------------------------------------------------------------
 # The 14 AI-specific failure modes (from clean-code-guard/references/ai-failure-modes.md)
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 AI_FAILURE_MODES: list[FailureMode] = [
     FailureMode(
         id="FM-01",
         name="Catch-all error swallowing",  # NOSONAR intentional repetition (audit constant)
-=======
-AI_FAILURE_MODES: List[FailureMode] = [
-    FailureMode(
-        id="FM-01",
-        name="Catch-all error swallowing",
->>>>>>> origin/fix/scenario-tests-properly
         severity=GuardSeverity.MUST_FIX,
         description="Bare except or overly broad exception handler that catches "
         "everything and silently discards errors, hiding real failures.",
@@ -80,11 +69,7 @@ AI_FAILURE_MODES: List[FailureMode] = [
     ),
     FailureMode(
         id="FM-03",
-<<<<<<< HEAD
         name="Hallucinated API or package",  # NOSONAR intentional repetition (audit constant)
-=======
-        name="Hallucinated API or package",
->>>>>>> origin/fix/scenario-tests-properly
         severity=GuardSeverity.MUST_FIX,
         description="Import of a package or call of an API that does not exist "
         "or is not installed. 19.6% of AI-generated imports are hallucinated.",
@@ -208,11 +193,7 @@ class AIFailureModeDetector:
     # Public API
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def detect(self, source: str, context: dict[str, Any] | None = None) -> GuardResult:
-=======
-    def detect(self, source: str, context: Dict[str, Any] | None = None) -> GuardResult:
->>>>>>> origin/fix/scenario-tests-properly
         """Run all failure-mode detectors against *source*.
 
         Parameters
@@ -226,19 +207,11 @@ class AIFailureModeDetector:
         -------
         GuardResult
         """
-<<<<<<< HEAD
         violations: list[GuardViolation] = []
         context = context or {}
 
         # Parse AST once; fall back to regex if AST fails
         tree: Optional[ast.AST] = None
-=======
-        violations: List[GuardViolation] = []
-        context = context or {}
-
-        # Parse AST once; fall back to regex if AST fails
-        tree: ast.AST | None = None
->>>>>>> origin/fix/scenario-tests-properly
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -300,17 +273,12 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-01: Catch-all error swallowing
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_catch_all(  # NOSONAR
         self, tree: Optional[ast.AST], source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         violations: list[GuardViolation] = []
-=======
-    def _detect_catch_all(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             # Regex fallback
             patterns = [
@@ -331,11 +299,7 @@ class AIFailureModeDetector:
                             suggestion="Catch specific exceptions. If you must catch broadly, "
                             "at minimum log the error with traceback before continuing.",
                             evidence=match.group(0),
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
             return violations
 
@@ -353,11 +317,7 @@ class AIFailureModeDetector:
                             suggestion="Catch specific exception types. At minimum use "
                             "'except Exception' and log the error.",
                             evidence="except:",
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
                 elif isinstance(node.type, ast.Name) and node.type.id in (
                     "Exception",
@@ -380,18 +340,13 @@ class AIFailureModeDetector:
                                 suggestion="Catch specific exceptions. If catching broadly is "
                                 "necessary, always log the error with traceback.",
                                 evidence=f"except {node.type.id}:",
-<<<<<<< HEAD
                             ),
-=======
-                            )
->>>>>>> origin/fix/scenario-tests-properly
                         )
         return violations
 
     # ------------------------------------------------------------------
     # FM-02: Defensive guard for impossible case
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_impossible_guard(
         self,
         _tree: Optional[
@@ -401,11 +356,6 @@ class AIFailureModeDetector:
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_impossible_guard(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         # Pattern: checking for None on return values that are never None
         # e.g., if result is None: where result comes from a function that always returns a dict
         pattern = r"if\s+(\w+)\s+is\s+None\s*:"
@@ -413,11 +363,7 @@ class AIFailureModeDetector:
             var_name = match.group(1)
             line_num = source[: match.start()].count("\n") + 1
             # Check if this variable was assigned from a dict/list literal in same scope
-<<<<<<< HEAD
             assign_pattern = rf"{var_name}\s*=\s*(?:\{{|\[)"
-=======
-            assign_pattern = rf"{var_name}\s*=\s*(\{{|\[)"
->>>>>>> origin/fix/scenario-tests-properly
             if re.search(assign_pattern, source):
                 violations.append(
                     GuardViolation(
@@ -430,28 +376,19 @@ class AIFailureModeDetector:
                         suggestion="Remove the impossible guard or document why it might be None "
                         "in a future refactoring scenario.",
                         evidence=match.group(0),
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-04: Hardcoded success return
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_hardcoded_success(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
-=======
-    def _detect_hardcoded_success(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -500,18 +437,13 @@ class AIFailureModeDetector:
                         suggestion="Derive the return value from actual computation. "
                         "If the function can't fail, return None or remove the success flag.",
                         evidence="return True / return {'success': True}",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_rederive(  # NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
@@ -519,11 +451,6 @@ class AIFailureModeDetector:
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: same expression computed twice in the same function."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_rederive(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Heuristic: same expression computed twice in the same function."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -531,11 +458,7 @@ class AIFailureModeDetector:
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             # Collect all assignment right-hand sides
-<<<<<<< HEAD
             expressions: dict[str, list[int]] = {}
-=======
-            expressions: Dict[str, List[int]] = {}
->>>>>>> origin/fix/scenario-tests-properly
             for child in ast.walk(node):
                 if isinstance(child, ast.Assign) and len(child.targets) == 1:
                     expr_str = ast.dump(child.value)
@@ -555,18 +478,13 @@ class AIFailureModeDetector:
                             location=f"lines {', '.join(str(l) for l in lines)}",
                             suggestion="Compute once, assign to a variable, and reuse it.",
                             evidence=expr_str[:100],
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_unused_imports(  # NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
@@ -577,14 +495,13 @@ class AIFailureModeDetector:
             return violations
 
         imported_names: dict[str, tuple[int, str]] = {}  # name -> (line, module)
-=======
+
     def _detect_unused_imports(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
         violations: List[GuardViolation] = []
         if tree is None:
             return violations
 
         imported_names: Dict[str, Tuple[int, str]] = {}  # name -> (line, module)
->>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -617,18 +534,13 @@ class AIFailureModeDetector:
                         location=f"line {line}",
                         suggestion="Remove the unused import to reduce dead code.",
                         evidence=f"import {module}",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-08: Write before read (overwrite input)
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_write_before_read(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
@@ -636,11 +548,6 @@ class AIFailureModeDetector:
     ) -> list[GuardViolation]:
         """Heuristic: function parameter immediately reassigned without reading."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_write_before_read(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Heuristic: function parameter immediately reassigned without reading."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -695,11 +602,7 @@ class AIFailureModeDetector:
                         suggestion="Use a different variable name for the derived value, "
                         "or read the input before overwriting it.",
                         evidence=f"param '{param}' overwritten",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
@@ -707,19 +610,17 @@ class AIFailureModeDetector:
     # FM-09: Speculative feature (oversized functions as proxy)
     # ------------------------------------------------------------------
     def _detect_speculative_feature(
-<<<<<<< HEAD
         self,
         tree: Optional[ast.AST],
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: list[GuardViolation] = []
-=======
+
         self, tree: ast.AST | None, source: str
     ) -> List[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
         violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -739,18 +640,13 @@ class AIFailureModeDetector:
                         suggestion="Break into smaller functions, each doing one thing. "
                         "Functions over 20 lines should be scrutinized for YAGNI violations.",
                         evidence=f"{func_lines} lines",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-10: Copy-paste drift (near-duplicate blocks)
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_copy_paste_drift(  # NOSONAR
         self, source: str
     ) -> list[
@@ -758,11 +654,6 @@ class AIFailureModeDetector:
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: find near-duplicate lines that differ only in a constant."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_copy_paste_drift(self, source: str) -> List[GuardViolation]:
-        """Heuristic: find near-duplicate lines that differ only in a constant."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         lines = source.split("\n")
         for i in range(len(lines) - 1):
             line_a = lines[i].strip()
@@ -789,18 +680,13 @@ class AIFailureModeDetector:
                             location=f"lines {i + 1} and {j + 1}",
                             suggestion="Extract the common logic into a parameterized function or loop.",
                             evidence=f"L{i + 1}: {line_a[:80]}\nL{j + 1}: {line_b[:80]}",
-<<<<<<< HEAD
                         ),
-=======
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # FM-11: Over-engineered abstraction for single use
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_over_engineering(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
@@ -808,20 +694,11 @@ class AIFailureModeDetector:
     ) -> list[GuardViolation]:
         """Heuristic: abstract base class with only one concrete subclass."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_over_engineering(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Heuristic: abstract base class with only one concrete subclass."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
         # Find all class definitions and their bases
-<<<<<<< HEAD
         class_bases: dict[str, list[str]] = {}
-=======
-        class_bases: Dict[str, List[str]] = {}
->>>>>>> origin/fix/scenario-tests-properly
         class_names: set = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
@@ -846,18 +723,13 @@ class AIFailureModeDetector:
                         "one implementation, a concrete class may suffice until a second "
                         "implementation is required.",
                         evidence=f"{base} → {subclasses[0]}",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-13: Magic numbers without named constants
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_magic_numbers(  # NOSONAR
         self, tree: Optional[ast.AST], source: str
     ) -> list[
@@ -865,11 +737,6 @@ class AIFailureModeDetector:
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Detect numeric literals that are not 0, 1, -1, or commonly accepted values."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_magic_numbers(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Detect numeric literals that are not 0, 1, -1, or commonly accepted values."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -902,29 +769,23 @@ class AIFailureModeDetector:
                         location=f"line {node.lineno}",
                         suggestion=f"Extract {node.value} into a named constant that explains its meaning.",
                         evidence=str(node.value),
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-03: Hallucinated API or package
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_hallucinated_api(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
         _source: str,  # NOSONAR
         context: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
-=======
+
     def _detect_hallucinated_api(
         self, tree: ast.AST | None, source: str, context: Dict[str, Any] | None
     ) -> List[GuardViolation]:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect imports of packages that are not in the known-packages set.
 
         Uses a curated list of standard-library and common third-party packages.
@@ -935,11 +796,7 @@ class AIFailureModeDetector:
         private packages.  Consumers should provide ``known_packages`` in
         context to suppress known-good imports.
         """
-<<<<<<< HEAD
         violations: list[GuardViolation] = []
-=======
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -1083,15 +940,9 @@ class AIFailureModeDetector:
         }
 
         # Allow context to extend known packages
-<<<<<<< HEAD
         known = STDLIB.union(COMMON_THIRD_PARTY)
         if context and "known_packages" in context:
             known = known.union(set(context["known_packages"]))
-=======
-        known = STDLIB | COMMON_THIRD_PARTY
-        if context and "known_packages" in context:
-            known |= set(context["known_packages"])
->>>>>>> origin/fix/scenario-tests-properly
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -1111,7 +962,6 @@ class AIFailureModeDetector:
                                 "If this is a private package, add it to the 'known_packages' "
                                 "context parameter.",
                                 evidence=f"import {alias.name}",
-<<<<<<< HEAD
                             ),
                         )
             elif isinstance(node, ast.ImportFrom):
@@ -1130,7 +980,7 @@ class AIFailureModeDetector:
                             evidence=f"from {node.module} import ...",
                         ),
                     )
-=======
+
                             )
                         )
             elif isinstance(node, ast.ImportFrom):
@@ -1149,21 +999,16 @@ class AIFailureModeDetector:
                                 evidence=f"from {node.module} import ...",
                             )
                         )
->>>>>>> origin/fix/scenario-tests-properly
         return violations
 
     # ------------------------------------------------------------------
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_enum_boundary(  # NOSONAR
         self, tree: Optional[ast.AST], _source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def _detect_enum_boundary(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect if/elif chains over a closed set that lack an else clause.
 
         When code branches over a known, closed set of values (e.g., enum
@@ -1171,11 +1016,7 @@ class AIFailureModeDetector:
         explicit exhaustiveness check, a missing case silently falls
         through — a common AI failure mode.
         """
-<<<<<<< HEAD
         violations: list[GuardViolation] = []
-=======
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
@@ -1226,28 +1067,22 @@ class AIFailureModeDetector:
                         "for unhandled cases, or use a match/case statement with explicit "
                         "exhaustiveness.",
                         evidence=f"{branch_count} branches, no else",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-12: Unverified import side effects
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_unverified_import_side_effects(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         tree: Optional[ast.AST],
         source: str,
     ) -> list[GuardViolation]:
-=======
+
     def _detect_unverified_import_side_effects(
         self, tree: ast.AST | None, source: str
     ) -> List[GuardViolation]:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect bare imports used only for side effects without verification.
 
         Pattern: ``import foo`` where ``foo`` is never referenced by name in
@@ -1255,20 +1090,12 @@ class AIFailureModeDetector:
         (e.g., registration, monkey-patching), but nothing verifies the side
         effect actually occurred.
         """
-<<<<<<< HEAD
         violations: list[GuardViolation] = []
-=======
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         if tree is None:
             return violations
 
         # Collect all imports
-<<<<<<< HEAD
         imported_names: dict[str, int] = {}  # name -> line
-=======
-        imported_names: Dict[str, int] = {}  # name -> line
->>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -1286,19 +1113,17 @@ class AIFailureModeDetector:
         for node in ast.walk(tree):
             if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Store):
                 used_names.add(node.id)
-<<<<<<< HEAD
             elif (
                 isinstance(node, ast.Attribute)
                 and isinstance(node.value, ast.Name)
                 or isinstance(node, ast.Subscript)
                 and isinstance(node.value, ast.Name)
             ):
-=======
+
             elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
                 used_names.add(node.value.id)
             # Also capture names used in type annotations
             elif isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
->>>>>>> origin/fix/scenario-tests-properly
                 used_names.add(node.value.id)
 
         # Find imports that are never used by name (side-effect-only)
@@ -1341,17 +1166,10 @@ class AIFailureModeDetector:
                     import_line = source_lines[line - 1]
                     has_side_effect_comment = bool(
                         re.search(
-<<<<<<< HEAD
                             r"#\s*(?:side[-_ ]?effect|register|patch|monkey|inject|auto|init)",
                             import_line,
                             re.IGNORECASE,
                         ),
-=======
-                            r"#\s*(side.effect|register|patch|monkey|inject|auto|init)",
-                            import_line,
-                            re.IGNORECASE,
-                        )
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     if has_side_effect_comment:
                         continue  # Documented side-effect import
@@ -1369,26 +1187,16 @@ class AIFailureModeDetector:
                         "effect occurred (e.g., assert 'PluginName' in registry). "
                         "Or add a comment: # side-effect: registers X",
                         evidence=f"import {name} (never used by name)",
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # FM-14: Test asserts on mock behavior, not system behavior
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     def _detect_mock_assert(self, _tree: Optional[ast.AST], source: str) -> list[GuardViolation]:
         """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
         violations: list[GuardViolation] = []
-=======
-    def _detect_mock_assert(self, tree: ast.AST | None, source: str) -> List[GuardViolation]:
-        """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
-        violations: List[GuardViolation] = []
->>>>>>> origin/fix/scenario-tests-properly
         # Match both direct and chained attribute access: mock.assert_called_with, mock.method.assert_called
         patterns = [
             r"(\w+(?:\.\w+)*)\.assert_called_with\s*\(",
@@ -1409,10 +1217,6 @@ class AIFailureModeDetector:
                         suggestion="Assert on the observable outcome (return value, state change, "
                         "side effect) rather than on the mock's call history.",
                         evidence=match.group(0)[:80],
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations

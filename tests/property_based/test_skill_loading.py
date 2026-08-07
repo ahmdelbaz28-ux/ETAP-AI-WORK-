@@ -39,11 +39,7 @@ safe_text = st.text(
     max_size=50,
     alphabet=st.characters(
         whitelist_categories=["L", "N", "Pd", "Po"],
-<<<<<<< HEAD
         # NOSONAR
-=======
-        # L = letters, N = numbers, Pd = dash, Po = punctuation
->>>>>>> origin/fix/scenario-tests-properly
     ),
 )
 
@@ -230,10 +226,7 @@ def test_mutually_exclusive_data_and_error(
 from hypothesis.stateful import RuleBasedStateMachine, initialize, rule  # noqa: E402
 
 
-<<<<<<< HEAD
 @settings(max_examples=15, suppress_health_check=[HealthCheck.too_slow])
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class SkillDescriptionStateMachine(RuleBasedStateMachine):
     """State machine that verifies trigger-word uniqueness is enforced."""
 
@@ -266,15 +259,13 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
             )
             # If it succeeded, there must be no duplicates
             lowered = {w.strip().lower() for w in words if w.strip()}
-<<<<<<< HEAD
             assert len(lowered) == len(
                 [w for w in words if w.strip()]
             ), f"Expected unique trigger words, got {words}"
-=======
+
             assert len(lowered) == len([w for w in words if w.strip()]), (
                 f"Expected unique trigger words, got {words}"
             )
->>>>>>> origin/fix/scenario-tests-properly
         except ValidationError:
             # ValidationError is expected when duplicates exist
             non_empty = [w for w in words if w.strip()]

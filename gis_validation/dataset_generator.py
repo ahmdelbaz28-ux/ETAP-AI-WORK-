@@ -1,28 +1,16 @@
 from __future__ import annotations
 
 import random
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
 
-<<<<<<< HEAD
 def _point(lon: float, lat: float) -> dict[str, Any]:
     return {"type": "Point", "coordinates": [lon, lat]}
 
 
 def _linestring(coords: list[list[float]]) -> dict[str, Any]:
-=======
-def _point(lon: float, lat: float) -> Dict[str, Any]:
-    return {"type": "Point", "coordinates": [lon, lat]}
-
-
-def _linestring(coords: List[List[float]]) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     return {"type": "LineString", "coordinates": coords}
 
 
@@ -30,20 +18,12 @@ def _deterministic_rng(seed: int) -> random.Random:
     return random.Random(seed)
 
 
-<<<<<<< HEAD
 def generate_synthetic_grid(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def generate_synthetic_grid(
->>>>>>> origin/fix/scenario-tests-properly
     *,
     grid_type: str,
     seed: int = 1337,
     crs: str = "EPSG:4326",
-<<<<<<< HEAD
 ) -> list[ADMSAsset]:
-=======
-) -> List[ADMSAsset]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Generate a deterministic synthetic ADMS asset list.
 
@@ -54,11 +34,7 @@ def generate_synthetic_grid(
     """
     rng = _deterministic_rng(seed)
 
-<<<<<<< HEAD
     assets: list[ADMSAsset] = []
-=======
-    assets: List[ADMSAsset] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     # Deterministic layout parameters
     if grid_type == "urban":
@@ -77,11 +53,7 @@ def generate_synthetic_grid(
         raise ValueError(f"Unknown grid_type: {grid_type}")
 
     # Create substations as points on a grid.
-<<<<<<< HEAD
     substations: list[tuple[float, float]] = []
-=======
-    substations: List[Tuple[float, float]] = []
->>>>>>> origin/fix/scenario-tests-properly
     for i in range(n_substations):
         lon = -122.0 + (i % 4) * 0.01
         lat = 37.0 + (i // 4) * 0.01
@@ -93,11 +65,7 @@ def generate_synthetic_grid(
                 asset_type=ADMSAssetType.SUBSTATION,
                 geometry=_point(lon, lat),
                 metadata={"source_crs": crs, "source_layer": "substations"},
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # Create feeders/lines connecting substations deterministically with exact endpoint matches.
@@ -115,11 +83,7 @@ def generate_synthetic_grid(
         # Build a deterministic chain: a -> m1 -> m2 -> ... -> b
         chain_len = max(2, n_lines_per_feeder + 1)  # number of substation nodes in chain
         # choose intermediate substations (excluding ends where possible)
-<<<<<<< HEAD
         chain: list[int] = [a]
-=======
-        chain: List[int] = [a]
->>>>>>> origin/fix/scenario-tests-properly
         for _ in range(chain_len - 2):
             mid = rng.randrange(0, n_substations)
             if mid == chain[-1]:
@@ -155,11 +119,7 @@ def generate_synthetic_grid(
                         # Explicit hint used by transformer; harmless in validation.
                         "asset_role": "switch" if a_type == ADMSAssetType.SWITCH else None,
                     },
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
     return assets
@@ -170,20 +130,12 @@ def generate_mixed_crs_assets(
     seed: int = 1337,
     crs_a: str = "EPSG:4326",
     crs_b: str = "EPSG:3857",
-<<<<<<< HEAD
 ) -> list[ADMSAsset]:
-=======
-) -> List[ADMSAsset]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Generate assets with mixed CRS contamination to exercise CRS validator.
     """
     assets = generate_synthetic_grid(grid_type="hybrid", seed=seed, crs=crs_a)
     # contaminate half of lines
-<<<<<<< HEAD
-=======
-    contaminated = 0
->>>>>>> origin/fix/scenario-tests-properly
     for i, a in enumerate(list(assets)):
         if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER) and i % 2 == 0:
             assets[i] = ADMSAsset(
@@ -192,8 +144,4 @@ def generate_mixed_crs_assets(
                 geometry=a.geometry,
                 metadata={**a.metadata, "source_crs": crs_b},
             )
-<<<<<<< HEAD
-=======
-            contaminated += 1
->>>>>>> origin/fix/scenario-tests-properly
     return assets

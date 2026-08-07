@@ -13,13 +13,9 @@ import sys
 
 import numpy as np
 
-<<<<<<< HEAD
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
-=======
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
->>>>>>> origin/fix/scenario-tests-properly
 
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
@@ -134,11 +130,7 @@ class ValidationSuite:
                 self._record(
                     f"3-Bus Bus {bid} Voltage Range",
                     reasonable,
-<<<<<<< HEAD
                     f"|V, ={v:.4f} pu (expected 0.9-1.1)",
-=======
-                    f"|V|={v:.4f} pu (expected 0.9-1.1)",
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
             # Validate power balance (total generation ~= total load + losses)
@@ -222,11 +214,7 @@ class ValidationSuite:
                 self._record(
                     f"5-Bus Bus {bid} Voltage Range",
                     reasonable,
-<<<<<<< HEAD
                     f"|V, ={v:.4f} pu (expected 0.85-1.15)",
-=======
-                    f"|V|={v:.4f} pu (expected 0.85-1.15)",
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
     def validate_14bus_load_flow(self):
@@ -336,11 +324,7 @@ class ValidationSuite:
                 v = abs(system.buses[bid].voltage)
                 if not (0.9 <= v <= 1.1):
                     all_reasonable = False
-<<<<<<< HEAD
                     print(f"    Bus Union[{bid}:, V|={v:.4f}] pu (outside 0.9-1.1 range)")
-=======
-                    print(f"    Bus {bid}: |V|={v:.4f} pu (outside 0.9-1.1 range)")
->>>>>>> origin/fix/scenario-tests-properly
 
             self._record(
                 "14-Bus All Voltages in Range",
@@ -400,7 +384,6 @@ class ValidationSuite:
         system.build_sequence_networks(for_fault=True)
 
         # Test three-phase fault
-<<<<<<< HEAD
         ybus_pos = system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -426,7 +409,7 @@ class ValidationSuite:
             "Three-Phase Fault at Bus 1",
             passed_3ph,
             f"If={if_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu",
-=======
+
         Ybus_pos = system.get_ybus(seq="1")
         Ybus_neg = system.get_ybus(seq="2")
         Ybus_zero = system.get_ybus(seq="0")
@@ -444,12 +427,10 @@ class ValidationSuite:
             "Three-Phase Fault at Bus 1",
             passed_3ph,
             f"If={If_3ph:.4f} pu, Expected~{expected_3ph:.4f} pu",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Line-to-ground fault at bus 1
         result_lg = fault_analyzer.line_to_ground_fault(0)
-<<<<<<< HEAD
         if_lg = abs(
             result_lg["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -475,7 +456,7 @@ class ValidationSuite:
             "Double Line-to-Ground Fault at Bus 1",
             ib > 0 and ic > 0,
             f"Ib={ib:.4f} pu, Ic={ic:.4f} pu",
-=======
+
         If_lg = abs(result_lg["fault_current"])
         # For SLG: If = 3*V / (Z1+Z2+Z0)
         self._record("Line-to-Ground Fault at Bus 1", If_lg > 0, f"If={If_lg:.4f} pu")
@@ -493,7 +474,6 @@ class ValidationSuite:
             "Double Line-to-Ground Fault at Bus 1",
             Ib > 0 and Ic > 0,
             f"Ib={Ib:.4f} pu, Ic={Ic:.4f} pu",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # =========================================================================
@@ -529,25 +509,17 @@ class ValidationSuite:
         afb1 = result1.arc_flash_boundary_mm
         passed_afb1 = afb1 > 0
         self._record(
-<<<<<<< HEAD
             "Arc Flash 4.16kV/20kA Boundary",
             passed_afb1,
             f"AFB={afb1:.1f} mm (expected > 0)",
-=======
-            "Arc Flash 4.16kV/20kA Boundary", passed_afb1, f"AFB={afb1:.1f} mm (expected > 0)"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # PPE level should be assigned
         passed_ppe1 = result1.ppe_level in ["0", "1", "2", "3", "4", "DANGER"]
         self._record(
-<<<<<<< HEAD
             "Arc Flash 4.16kV/20kA PPE Level",
             passed_ppe1,
             f"PPE Level={result1.ppe_level}",
-=======
-            "Arc Flash 4.16kV/20kA PPE Level", passed_ppe1, f"PPE Level={result1.ppe_level}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Test Case 2: 0.48 kV system, 30 kA fault current
@@ -571,13 +543,9 @@ class ValidationSuite:
         # Test Case 3: Higher voltage should generally produce different results
         # than lower voltage for same fault current
         self._record(
-<<<<<<< HEAD
             "Arc Flash Voltage Sensitivity",
             ie1 != ie2,
             f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}",
-=======
-            "Arc Flash Voltage Sensitivity", ie1 != ie2, f"E_4.16kV={ie1:.4f}, E_0.48kV={ie2:.4f}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # =========================================================================
@@ -590,15 +558,11 @@ class ValidationSuite:
 
         # Test IEC 60255 Standard Inverse curve
         relay = OvercurrentRelay(
-<<<<<<< HEAD
             relay_id=1,
             name="Test Relay",
             curve_type="standard_inverse",
             TMS=1.0,
             Ip=1.0,
-=======
-            relay_id=1, name="Test Relay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # At I/Ip = 10, standard inverse: t = 1.0 * 0.14 / (10^0.02 - 1) = 0.14 / 0.04713 ~ 2.971 s
@@ -623,15 +587,11 @@ class ValidationSuite:
 
         # Test Very Inverse curve
         relay_vi = OvercurrentRelay(
-<<<<<<< HEAD
             relay_id=2,
             name="VI Relay",
             curve_type="very_inverse",
             TMS=1.0,
             Ip=1.0,
-=======
-            relay_id=2, name="VI Relay", curve_type="very_inverse", TMS=1.0, Ip=1.0
->>>>>>> origin/fix/scenario-tests-properly
         )
         t_vi = relay_vi.trip_time(10.0)
         expected_tvi = 1.0 * 13.5 / (10.0 - 1.0)
@@ -644,15 +604,11 @@ class ValidationSuite:
 
         # Test Extremely Inverse curve
         relay_ei = OvercurrentRelay(
-<<<<<<< HEAD
             relay_id=3,
             name="EI Relay",
             curve_type="extremely_inverse",
             TMS=1.0,
             Ip=1.0,
-=======
-            relay_id=3, name="EI Relay", curve_type="extremely_inverse", TMS=1.0, Ip=1.0
->>>>>>> origin/fix/scenario-tests-properly
         )
         t_ei = relay_ei.trip_time(10.0)
         expected_tei = 1.0 * 80.0 / (10.0**2 - 1.0)
@@ -707,18 +663,13 @@ class ValidationSuite:
         line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=z)
         system.add_line(line)
 
-<<<<<<< HEAD
         ybus = system.build_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ybus = system.build_ybus(seq="1")
->>>>>>> origin/fix/scenario-tests-properly
 
         # Expected Ybus:
         # Ybus[0,0] = y, Ybus[0,1] = -y
         # Ybus[1,0] = -y, Ybus[1,1] = y
-<<<<<<< HEAD
         passed_diag = abs(ybus[0, 0] - y) < 1e-10 and abs(ybus[1, 1] - y) < 1e-10
         self._record(
             "Ybus Diagonal Elements",
@@ -735,7 +686,7 @@ class ValidationSuite:
 
         # Test symmetry (project validation expects symmetric Ybus, not conjugate-symmetric)
         passed_sym = np.allclose(ybus, ybus.T)
-=======
+
         passed_diag = abs(Ybus[0, 0] - y) < 1e-10 and abs(Ybus[1, 1] - y) < 1e-10
         self._record(
             "Ybus Diagonal Elements",
@@ -752,7 +703,6 @@ class ValidationSuite:
 
         # Test symmetry (project validation expects symmetric Ybus, not conjugate-symmetric)
         passed_sym = np.allclose(Ybus, Ybus.T)
->>>>>>> origin/fix/scenario-tests-properly
         self._record("Ybus Symmetry", passed_sym, "Ybus should be symmetric (Ybus == Ybus.T)")
 
     # =========================================================================

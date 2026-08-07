@@ -3,7 +3,6 @@ Test configuration and fixtures for the Engineering Service.
 Contains shared test utilities, mocks, and test network configurations.
 """
 
-<<<<<<< HEAD
 import contextlib
 import os
 import tempfile
@@ -12,14 +11,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-=======
-import os
-import tempfile
-from collections.abc import Generator
-from unittest.mock import AsyncMock, Mock, patch
-
-import pytest
->>>>>>> origin/fix/scenario-tests-properly
 
 try:
     from core.bootstrap import logger
@@ -28,7 +19,6 @@ except ImportError:
 
     logger = logging.getLogger("test")
 
-<<<<<<< HEAD
 
 # Module-level test password constant — SonarCloud S2068 (hard-coded
 # credentials) accepts module constants because they are easy to audit
@@ -173,7 +163,7 @@ _TEST_NETWORK_DATA = {
         ],
         "loads": [
             {"load_id": 1, "bus_id": 2, "p_mw": 0.8, "q_mvar": 0.6},
-=======
+
 try:
     from services.study_service import (
         BusSpec,
@@ -282,13 +272,11 @@ TEST_NETWORKS = {
         ],
         "loads": [
             LoadSpec(load_id=1, bus_id=2, power_real_pu=0.8, power_reactive_pu=0.6),
->>>>>>> origin/fix/scenario-tests-properly
         ],
         "transformers": [],
     },
     "ieee-14": {
         "buses": [
-<<<<<<< HEAD
             {
                 "bus_id": 1,
                 "voltage_magnitude": 1.06,
@@ -599,7 +587,7 @@ TEST_NETWORKS = {
             {"load_id": 9, "bus_id": 12, "p_mw": 0.0610, "q_mvar": 0.0160},
             {"load_id": 10, "bus_id": 13, "p_mw": 0.1350, "q_mvar": 0.0580},
             {"load_id": 11, "bus_id": 14, "p_mw": 0.1490, "q_mvar": 0.0500},
-=======
+
             BusSpec(bus_id=1, voltage_kv=115.0, bus_type="slack", angle_deg=0.0),
             BusSpec(bus_id=2, voltage_kv=115.0, bus_type="pv", angle_deg=0.0),
             BusSpec(bus_id=3, voltage_kv=115.0, bus_type="pq", angle_deg=0.0),
@@ -826,7 +814,6 @@ TEST_NETWORKS = {
             LoadSpec(load_id=9, bus_id=12, power_real_pu=0.0610, power_reactive_pu=0.0160),
             LoadSpec(load_id=10, bus_id=13, power_real_pu=0.1350, power_reactive_pu=0.0580),
             LoadSpec(load_id=11, bus_id=14, power_real_pu=0.1490, power_reactive_pu=0.0500),
->>>>>>> origin/fix/scenario-tests-properly
         ],
         "transformers": [],
     },
@@ -835,32 +822,22 @@ TEST_NETWORKS = {
 
 @pytest.fixture
 def sample_3bus_network():
-<<<<<<< HEAD
     """Provides a simple 3-bus test network for load flow studies.
 
     Uses real Pydantic models from ``services.study_service``.
     Skips the test if that module is not importable.
     """
     return _build_network_from_data(_TEST_NETWORK_DATA["3-bus"])
-=======
-    """Provides a simple 3-bus test network for load flow studies."""
-    return TEST_NETWORKS["3-bus"]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @pytest.fixture
 def sample_ieee14_network():
-<<<<<<< HEAD
     """Provides the IEEE 14-bus test network for comprehensive studies.
 
     Uses real Pydantic models from ``services.study_service``.
     Skips the test if that module is not importable.
     """
     return _build_network_from_data(_TEST_NETWORK_DATA["ieee-14"])
-=======
-    """Provides the IEEE 14-bus test network for comprehensive studies."""
-    return TEST_NETWORKS["ieee-14"]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @pytest.fixture
@@ -895,7 +872,6 @@ def temp_database():
 
 @pytest.fixture
 def sample_study_request(sample_3bus_network):
-<<<<<<< HEAD
     """Provides a sample study request for testing.  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
       Uses real Pydantic models from ``services.study_service``.
@@ -910,12 +886,6 @@ def sample_study_request(sample_3bus_network):
     return StudyRequest(
         study_type="load_flow",
         system=SystemSpec(**sample_3bus_network),
-=======
-    """Provides a sample study request for testing."""
-    return StudyRequest(
-        study_type="load_flow",
-        system_spec=SystemSpec(**sample_3bus_network),
->>>>>>> origin/fix/scenario-tests-properly
         parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
 
@@ -940,7 +910,6 @@ def setup_test_environment():
     """Sets up the test environment automatically for all tests."""
     # Set environment variables for testing
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
-<<<<<<< HEAD
     # Ensure ENVIRONMENT=testing for CSRF middleware skip (see api/csrf.py).
     # Without this, if CI sets ENVIRONMENT=production globally, the CSRF
     # middleware would block all mutating test requests with 403.
@@ -976,10 +945,6 @@ def setup_test_environment():
 
     _original_api_key = _dep.API_KEY
     _dep.API_KEY = ""
-=======
-    os.environ["USE_ETAP"] = "false"
-    os.environ["PRIVACY_MODE"] = "true"
->>>>>>> origin/fix/scenario-tests-properly
 
     # Set logging to debug level for tests
     try:
@@ -987,7 +952,6 @@ def setup_test_environment():
     except (AttributeError, TypeError):
         pass
 
-<<<<<<< HEAD
     # ── Event loop diagnostics (gated behind DEBUG_EVENT_LOOP env var) ──────
     # The CI-only 'RuntimeError: Event loop is closed' failures (PRs #165,
     # #170) cannot be reproduced locally. This block prints diagnostic info
@@ -1367,7 +1331,7 @@ def viewer_headers(client) -> dict:
     )
     login_data = _login_user(client, username="viewer_user")
     return _auth_headers(login_data["access_token"])
-=======
+
     yield
 
     # Clean up environment variables after tests
@@ -1377,4 +1341,3 @@ def viewer_headers(client) -> dict:
         del os.environ["USE_ETAP"]
     if "PRIVACY_MODE" in os.environ:
         del os.environ["PRIVACY_MODE"]
->>>>>>> origin/fix/scenario-tests-properly

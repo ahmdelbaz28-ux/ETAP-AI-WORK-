@@ -16,11 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -52,15 +48,13 @@ class StateEstimationResult:
     iterations: int = 0
     max_residual: float = 0.0
     objective_value: float = 0.0
-<<<<<<< HEAD
     bad_data_detected: list[int] = field(default_factory=list)
     measurement_residuals: Optional[np.ndarray] = None
     covariance_matrix: Optional[np.ndarray] = None
-=======
+
     bad_data_detected: List[int] = field(default_factory=list)
     measurement_residuals: np.ndarray | None = None
     covariance_matrix: np.ndarray | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class WLSEstimator:
@@ -76,14 +70,10 @@ class WLSEstimator:
     """
 
     def __init__(
-<<<<<<< HEAD
         self,
         tolerance: float = 1e-6,
         max_iterations: int = 50,
         bad_data_threshold: float = 3.0,
-=======
-        self, tolerance: float = 1e-6, max_iterations: int = 50, bad_data_threshold: float = 3.0
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Initialize WLS estimator.
@@ -98,15 +88,11 @@ class WLSEstimator:
         self.bad_data_threshold = bad_data_threshold
 
     def estimate(
-<<<<<<< HEAD
         self,
         ybus: np.ndarray,
         measurements: dict,
         bus_ids: list[str],
         slack_bus_idx: int = 0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        self, Ybus: np.ndarray, measurements: dict, bus_ids: List[str], slack_bus_idx: int = 0
->>>>>>> origin/fix/scenario-tests-properly
     ) -> StateEstimationResult:
         """
         Run WLS state estimation.
@@ -163,19 +149,13 @@ class WLSEstimator:
 
         for iteration in range(1, self.max_iterations + 1):
             # Compute estimated measurements and Jacobian
-<<<<<<< HEAD
             h_x = self._compute_h(x, ybus, h_indices, n)
             H = self._compute_jacobian(x, ybus, h_indices, n)
-=======
-            h_x = self._compute_h(x, Ybus, h_indices, n)
-            H = self._compute_jacobian(x, Ybus, h_indices, n)
->>>>>>> origin/fix/scenario-tests-properly
 
             # Residual
             r = z - h_x
 
             # Remove slack bus theta column from H to avoid singular gain matrix
-<<<<<<< HEAD
             h_reduced = H[
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -186,14 +166,13 @@ class WLSEstimator:
                 g_inv = np.linalg.inv(
                     G
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
             H_reduced = H[:, keep_cols]
 
             # Gain matrix G = H^T W H
             try:
                 G = H_reduced.T @ W @ H_reduced
                 G_inv = np.linalg.inv(G)
->>>>>>> origin/fix/scenario-tests-properly
             except np.linalg.LinAlgError:
                 return StateEstimationResult(
                     status=StateEstimationStatus.SINGULAR_MATRIX,
@@ -203,11 +182,7 @@ class WLSEstimator:
                 )
 
             # State update: dx = G^{-1} H^T W r
-<<<<<<< HEAD
             dx_reduced = g_inv @ h_reduced.T @ W @ r
-=======
-            dx_reduced = G_inv @ H_reduced.T @ W @ r
->>>>>>> origin/fix/scenario-tests-properly
 
             # Expand dx to full dimension by inserting 0 at slack bus position
             dx = np.zeros(2 * n)
@@ -229,21 +204,15 @@ class WLSEstimator:
             )
 
         # Compute final residuals and bad data detection
-<<<<<<< HEAD
         h_x_final = self._compute_h(x, ybus, h_indices, n)
         h_final = self._compute_jacobian(
             x, ybus, h_indices, n
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        h_x_final = self._compute_h(x, Ybus, h_indices, n)
-        H_final = self._compute_jacobian(x, Ybus, h_indices, n)
->>>>>>> origin/fix/scenario-tests-properly
         r_final = z - h_x_final
         objective = float(r_final.T @ W @ r_final)
 
         # Covariance matrix (use reduced Jacobian to avoid singularity)
         try:
-<<<<<<< HEAD
             h_final_reduced = h_final[
                 :, keep_cols
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -254,12 +223,11 @@ class WLSEstimator:
                 g_final
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             covariance = g_inv_final
-=======
+
             H_final_reduced = H_final[:, keep_cols]
             G_final = H_final_reduced.T @ W @ H_final_reduced
             G_inv_final = np.linalg.inv(G_final)
             covariance = G_inv_final
->>>>>>> origin/fix/scenario-tests-properly
         except np.linalg.LinAlgError:
             covariance = None
 
@@ -267,7 +235,6 @@ class WLSEstimator:
         bad_data = []
         norm_residuals = None
         if covariance is not None:
-<<<<<<< HEAD
             S = h_final_reduced @ g_inv_final @ h_final_reduced.T @ W
             omega = (
                 np.eye(m) - S
@@ -277,13 +244,12 @@ class WLSEstimator:
                     np.diag(np.diag(omega)) + np.eye(m) * 1e-10
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 norm_residuals = np.abs(omega_inv @ r_final) / (np.sqrt(np.diag(omega_inv)) + 1e-10)
-=======
+
             S = H_final_reduced @ G_inv_final @ H_final_reduced.T @ W
             Omega = np.eye(m) - S
             try:
                 Omega_inv = np.linalg.inv(np.diag(np.diag(Omega)) + np.eye(m) * 1e-10)
                 norm_residuals = np.abs(Omega_inv @ r_final) / (np.sqrt(np.diag(Omega_inv)) + 1e-10)
->>>>>>> origin/fix/scenario-tests-properly
                 bad_data = [int(i) for i in range(m) if norm_residuals[i] > self.bad_data_threshold]
             except np.linalg.LinAlgError:
                 norm_residuals = np.abs(r_final)
@@ -300,18 +266,16 @@ class WLSEstimator:
             covariance_matrix=covariance,
         )
 
-<<<<<<< HEAD
     def _build_measurement_vectors(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         measurements: dict,
         _n: int,  # NOSONAR
         slack_idx: int,  # NOSONAR unused param kept for API compatibility
     ) -> tuple[np.ndarray, list, np.ndarray]:
-=======
+
     def _build_measurement_vectors(
         self, measurements: dict, n: int, slack_idx: int
     ) -> Tuple[np.ndarray, list, np.ndarray]:
->>>>>>> origin/fix/scenario-tests-properly
         """Build measurement vector z, index list, and weight vector."""
         z_list = []
         h_indices = []
@@ -324,7 +288,6 @@ class WLSEstimator:
             w_list.append(1.0 / (sigma**2) if sigma > 0 else 1e6)
 
         # Power injection measurements
-<<<<<<< HEAD
         for (
             bus_idx,
             (P, Q, sigma_p, sigma_q),
@@ -357,7 +320,7 @@ class WLSEstimator:
         h_indices: list,
         n: int,
     ) -> np.ndarray:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         for bus_idx, (P, Q, sigma_P, sigma_Q) in measurements.get("power_injection", {}).items():
             if bus_idx != slack_idx:
                 z_list.append(P)
@@ -379,7 +342,6 @@ class WLSEstimator:
         return np.array(z_list), h_indices, np.array(w_list)
 
     def _compute_h(self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """Compute estimated measurement vector h(x)."""
         theta = x[:n]
         V = x[n:]
@@ -391,51 +353,32 @@ class WLSEstimator:
                 h[k] = V[bus_idx]
             elif idx_info[0] == "P":
                 _, i = idx_info
-<<<<<<< HEAD
                 Pi = 0.0  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-                Pi = 0.0
->>>>>>> origin/fix/scenario-tests-properly
                 for j in range(n):
                     Pi += (
                         V[i]
                         * V[j]
                         * (
-<<<<<<< HEAD
                             ybus[i, j].real * np.cos(theta[i] - theta[j])
                             + ybus[i, j].imag * np.sin(theta[i] - theta[j])
-=======
-                            Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                            + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                         )
                     )
                 h[k] = Pi
             elif idx_info[0] == "Q":
                 _, i = idx_info
-<<<<<<< HEAD
                 Qi = 0.0  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-                Qi = 0.0
->>>>>>> origin/fix/scenario-tests-properly
                 for j in range(n):
                     Qi += (
                         V[i]
                         * V[j]
                         * (
-<<<<<<< HEAD
                             ybus[i, j].real * np.sin(theta[i] - theta[j])
                             - ybus[i, j].imag * np.cos(theta[i] - theta[j])
-=======
-                            Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                            - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                         )
                     )
                 h[k] = Qi
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-<<<<<<< HEAD
                 gij = ybus[
                     i, j
                 ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -472,7 +415,7 @@ class WLSEstimator:
         ybus: np.ndarray,
         h_indices: list,
         n: int,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
                 Gij = Ybus[i, j].real
                 Bij = Ybus[i, j].imag
                 Pij = V[i] ** 2 * Gij - V[i] * V[j] * (
@@ -491,7 +434,6 @@ class WLSEstimator:
 
     def _compute_jacobian(
         self, x: np.ndarray, Ybus: np.ndarray, h_indices: list, n: int
->>>>>>> origin/fix/scenario-tests-properly
     ) -> np.ndarray:
         """Compute Jacobian matrix H = dh/dx."""
         m = len(h_indices)
@@ -509,39 +451,25 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-<<<<<<< HEAD
                     gij = ybus[
                         i, j
                     ].real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     bij = ybus[
                         i, j
                     ].imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-                    Gij = Ybus[i, j].real
-                    Bij = Ybus[i, j].imag
->>>>>>> origin/fix/scenario-tests-properly
                     # dPi/dtheta_j
                     H[k, j] = (
                         V[i]
                         * V[j]
-<<<<<<< HEAD
                         * (gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j]))
-=======
-                        * (Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j]))
->>>>>>> origin/fix/scenario-tests-properly
                     )
                 # dPi/dtheta_i
                 H[k, i] = -sum(
                     V[i]
                     * V[j]
                     * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.sin(theta[i] - theta[j])
                         - ybus[i, j].imag * np.cos(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     for j in range(n)
                     if j != i
@@ -550,13 +478,8 @@ class WLSEstimator:
                 H[k, n + i] = sum(
                     V[j]
                     * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.cos(theta[i] - theta[j])
                         + ybus[i, j].imag * np.sin(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     for j in range(n)
                 )
@@ -565,13 +488,8 @@ class WLSEstimator:
                     if i == j:
                         continue
                     H[k, n + j] = V[i] * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.cos(theta[i] - theta[j])
                         + ybus[i, j].imag * np.sin(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
             elif idx_info[0] == "Q":
@@ -579,33 +497,26 @@ class WLSEstimator:
                 for j in range(n):
                     if i == j:
                         continue
-<<<<<<< HEAD
                     gij = ybus[i, j].real
                     bij = ybus[i, j].imag
                     H[k, j] = (
                         -V[i]
                         * V[j]
                         * (gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j]))
-=======
+
                     Gij = Ybus[i, j].real
                     Bij = Ybus[i, j].imag
                     H[k, j] = (
                         -V[i]
                         * V[j]
                         * (Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j]))
->>>>>>> origin/fix/scenario-tests-properly
                     )
                 H[k, i] = sum(
                     V[i]
                     * V[j]
                     * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.cos(theta[i] - theta[j])
                         + ybus[i, j].imag * np.sin(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.cos(theta[i] - theta[j])
-                        + Ybus[i, j].imag * np.sin(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     for j in range(n)
                     if j != i
@@ -613,13 +524,8 @@ class WLSEstimator:
                 H[k, n + i] = sum(
                     V[j]
                     * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.sin(theta[i] - theta[j])
                         - ybus[i, j].imag * np.cos(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     for j in range(n)
                 )
@@ -627,37 +533,29 @@ class WLSEstimator:
                     if i == j:
                         continue
                     H[k, n + j] = V[i] * (
-<<<<<<< HEAD
                         ybus[i, j].real * np.sin(theta[i] - theta[j])
                         - ybus[i, j].imag * np.cos(theta[i] - theta[j])
-=======
-                        Ybus[i, j].real * np.sin(theta[i] - theta[j])
-                        - Ybus[i, j].imag * np.cos(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
             elif idx_info[0] == "Pij":
                 _, i, j = idx_info
-<<<<<<< HEAD
                 gij = ybus[i, j].real
                 bij = ybus[i, j].imag
                 H[k, i] = (
                     V[i]
                     * V[j]
                     * (gij * np.sin(theta[i] - theta[j]) + bij * np.cos(theta[i] - theta[j]))
-=======
+
                 Gij = Ybus[i, j].real
                 Bij = Ybus[i, j].imag
                 H[k, i] = (
                     V[i]
                     * V[j]
                     * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 H[k, j] = (
                     -V[i]
                     * V[j]
-<<<<<<< HEAD
                     * (gij * np.sin(theta[i] - theta[j]) + bij * np.cos(theta[i] - theta[j]))
                 )
                 H[k, n + i] = 2 * V[i] * gij - V[j] * (
@@ -665,7 +563,7 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     gij * np.cos(theta[i] - theta[j]) + bij * np.sin(theta[i] - theta[j])
-=======
+
                     * (Gij * np.sin(theta[i] - theta[j]) + Bij * np.cos(theta[i] - theta[j]))
                 )
                 H[k, n + i] = 2 * V[i] * Gij - V[j] * (
@@ -673,31 +571,27 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     Gij * np.cos(theta[i] - theta[j]) + Bij * np.sin(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
             elif idx_info[0] == "Qij":
                 _, i, j = idx_info
-<<<<<<< HEAD
                 gij = ybus[i, j].real
                 bij = ybus[i, j].imag
                 H[k, i] = (
                     -V[i]
                     * V[j]
                     * (gij * np.cos(theta[i] - theta[j]) - bij * np.sin(theta[i] - theta[j]))
-=======
+
                 Gij = Ybus[i, j].real
                 Bij = Ybus[i, j].imag
                 H[k, i] = (
                     -V[i]
                     * V[j]
                     * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 H[k, j] = (
                     V[i]
                     * V[j]
-<<<<<<< HEAD
                     * (gij * np.cos(theta[i] - theta[j]) - bij * np.sin(theta[i] - theta[j]))
                 )
                 H[k, n + i] = -2 * V[i] * bij - V[j] * (
@@ -705,7 +599,7 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     gij * np.sin(theta[i] - theta[j]) - bij * np.cos(theta[i] - theta[j])
-=======
+
                     * (Gij * np.cos(theta[i] - theta[j]) - Bij * np.sin(theta[i] - theta[j]))
                 )
                 H[k, n + i] = -2 * V[i] * Bij - V[j] * (
@@ -713,7 +607,6 @@ class WLSEstimator:
                 )
                 H[k, n + j] = -V[i] * (
                     Gij * np.sin(theta[i] - theta[j]) - Bij * np.cos(theta[i] - theta[j])
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         return H
@@ -773,21 +666,19 @@ class GNNStateEstimator:
         self._wls_estimator = WLSEstimator()
         self._is_trained = False
 
-<<<<<<< HEAD
     def estimate_with_gnn(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         ybus: np.ndarray,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         measurements: dict,
         bus_ids: list[str],
         edge_list: list[tuple[int, int]] | None = None,
-=======
+
     def estimate_with_gnn(
         self,
         Ybus: np.ndarray,
         measurements: dict,
         bus_ids: List[str],
         edge_list: List[Tuple[int, int]] | None = None,
->>>>>>> origin/fix/scenario-tests-properly
         slack_bus_idx: int = 0,
     ) -> StateEstimationResult:
         """
@@ -817,11 +708,7 @@ class GNNStateEstimator:
             Enhanced state estimation result.
         """
         # Step 1: Run traditional WLS
-<<<<<<< HEAD
         wls_result = self._wls_estimator.estimate(ybus, measurements, bus_ids, slack_bus_idx)
-=======
-        wls_result = self._wls_estimator.estimate(Ybus, measurements, bus_ids, slack_bus_idx)
->>>>>>> origin/fix/scenario-tests-properly
 
         # Step 2: If GNN is not trained, return WLS result
         if not self._is_trained or not _HAS_TORCH_GEOMETRIC:
@@ -835,11 +722,7 @@ class GNNStateEstimator:
                 edge_list = []
                 for i in range(n):
                     for j in range(n):
-<<<<<<< HEAD
                         if i != j and abs(ybus[i, j]) > 1e-10:
-=======
-                        if i != j and abs(Ybus[i, j]) > 1e-10:
->>>>>>> origin/fix/scenario-tests-properly
                             edge_list.append((i, j))
 
             # Build node features: WLS estimates
@@ -847,11 +730,7 @@ class GNNStateEstimator:
                 [
                     wls_result.voltage_magnitudes,
                     wls_result.voltage_angles,
-<<<<<<< HEAD
                 ],
-=======
-                ]
->>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Build edge index
@@ -865,13 +744,9 @@ class GNNStateEstimator:
             from ml.predictive import PowerGridGNN
 
             gnn = PowerGridGNN(
-<<<<<<< HEAD
                 model_type="gcn",
                 hidden_dim=self.hidden_dim,
                 num_layers=self.num_layers,
-=======
-                model_type="gcn", hidden_dim=self.hidden_dim, num_layers=self.num_layers
->>>>>>> origin/fix/scenario-tests-properly
             )
             refined = gnn.predict(node_features, edge_index)
 
@@ -892,9 +767,5 @@ class GNNStateEstimator:
         except Exception as e:
             import logging
 
-<<<<<<< HEAD
             logging.getLogger(__name__).warning("GNN refinement failed, using WLS only: %s", e)
-=======
-            logging.getLogger(__name__).warning(f"GNN refinement failed, using WLS only: {e}")
->>>>>>> origin/fix/scenario-tests-properly
             return wls_result

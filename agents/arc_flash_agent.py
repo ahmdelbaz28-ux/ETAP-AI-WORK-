@@ -16,7 +16,6 @@ Standards:
 - NFPA 70E-2021: Standard for Electrical Safety in the Workplace
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -24,13 +23,12 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
-=======
+
 import logging
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -146,11 +144,7 @@ class ArcFlashAgent(BaseAgent):
         bolted_fault_current_ka: float,
         electrode_config: str = "VCB",
         gap_mm: float = 32.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate the arcing current per IEEE 1584-2018.
 
@@ -171,7 +165,6 @@ class ArcFlashAgent(BaseAgent):
             Dictionary with 'arc_current_ka', 'reduced_arc_current_ka',
             'voltage_kv', 'bolted_fault_current_ka', 'electrode_config'.
         """
-<<<<<<< HEAD
         Ibf = bolted_fault_current_ka  # NOSONAR
         G = gap_mm
 
@@ -189,7 +182,7 @@ class ArcFlashAgent(BaseAgent):
             log_iarc = (
                 k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
             )  # NOSONAR
-=======
+
         Ibf = bolted_fault_current_ka
         G = gap_mm
 
@@ -199,12 +192,10 @@ class ArcFlashAgent(BaseAgent):
             k1 = 0.0
             k2 = -0.028 if electrode_config == "VCB" else -0.028
             log_Iarc = k1 + k2 * G + 0.921 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
->>>>>>> origin/fix/scenario-tests-properly
         elif voltage_kv <= 2.7:
             # Medium voltage model
             k1 = -0.076 if electrode_config == "VCB" else -0.079
             k2 = 0.016 if electrode_config == "VCB" else 0.017
-<<<<<<< HEAD
             log_iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         else:
             # High voltage (> 2.7 kV up to 15 kV)
@@ -218,7 +209,7 @@ class ArcFlashAgent(BaseAgent):
         return {
             "arc_current_ka": round(iarc, 4),
             "reduced_arc_current_ka": round(iarc_reduced, 4),
-=======
+
             log_Iarc = k1 + k2 * G + 0.954 * np.log10(Ibf) + 0.0 * Ibf + 0.0 * np.log10(Ibf) * G
         else:
             # High voltage (> 2.7 kV up to 15 kV)
@@ -232,7 +223,6 @@ class ArcFlashAgent(BaseAgent):
         return {
             "arc_current_ka": round(Iarc, 4),
             "reduced_arc_current_ka": round(Iarc_reduced, 4),
->>>>>>> origin/fix/scenario-tests-properly
             "voltage_kv": voltage_kv,
             "bolted_fault_current_ka": bolted_fault_current_ka,
             "electrode_config": electrode_config,
@@ -247,11 +237,7 @@ class ArcFlashAgent(BaseAgent):
         working_distance_mm: float,
         electrode_config: str = "VCB",
         gap_mm: float = 32.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate incident energy (cal/cm²) per IEEE 1584-2018.
 
@@ -277,11 +263,7 @@ class ArcFlashAgent(BaseAgent):
             'arc_flash_boundary_mm', 'arc_flash_boundary_in',
             'ppe_category', 'ppe_description', 'working_distance_mm'.
         """
-<<<<<<< HEAD
         iarc = arc_current_ka  # NOSONAR
-=======
-        Iarc = arc_current_ka
->>>>>>> origin/fix/scenario-tests-properly
         t = arc_duration_s
         D = working_distance_mm
         G = gap_mm
@@ -307,7 +289,6 @@ class ArcFlashAgent(BaseAgent):
         else:
             # Lee method for > 15 kV
             # E = 2.142 * 10^6 * V * Iarc * t / D^2
-<<<<<<< HEAD
             e_lee = 2.142e6 * voltage_kv * iarc * t / (D**2)  # NOSONAR
             return self._format_ie_result(e_lee, D, arc_current_ka, voltage_kv, "Lee")
 
@@ -319,7 +300,7 @@ class ArcFlashAgent(BaseAgent):
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = e_normalization * (t / 0.2) ** x
-=======
+
             E_lee = 2.142e6 * voltage_kv * Iarc * t / (D**2)
             return self._format_ie_result(E_lee, D, arc_current_ka, voltage_kv, "Lee")
 
@@ -331,26 +312,17 @@ class ArcFlashAgent(BaseAgent):
 
         # Apply duration scaling: E = E_0.2 * (t / 0.2)
         E = E_normalization * (t / 0.2) ** x
->>>>>>> origin/fix/scenario-tests-properly
 
         return self._format_ie_result(E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018")
 
     def _format_ie_result(
         self,
-<<<<<<< HEAD
         E_cal_cm2: float,  # NOSONAR
-=======
-        E_cal_cm2: float,
->>>>>>> origin/fix/scenario-tests-properly
         working_distance_mm: float,
         arc_current_ka: float,
         voltage_kv: float,
         method: str,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Format incident energy result with boundary and PPE classification."""
         # Arc flash boundary: distance where E = 1.2 cal/cm²
         if E_cal_cm2 > 0 and working_distance_mm > 0:
@@ -414,11 +386,7 @@ class ArcFlashAgent(BaseAgent):
             self.log_execution(f"Starting arc flash analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
             voltage_kv = float(task.parameters.get("voltage_kv", 0.48))
             bolted_fault_ka = float(task.parameters.get("bolted_fault_current_ka", 20.0))
@@ -437,11 +405,7 @@ class ArcFlashAgent(BaseAgent):
             # --- Incident energy calculation ---
             if analysis_type in ("incident_energy", "full"):
                 arc_current_ka = float(
-<<<<<<< HEAD
                     task.parameters.get("arc_current_ka", arc_result["arc_current_ka"]),
-=======
-                    task.parameters.get("arc_current_ka", arc_result["arc_current_ka"])
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 arc_duration_s = float(task.parameters.get("arc_duration_s", 0.2))
                 working_distance_mm = float(task.parameters.get("working_distance_mm", 457.0))
@@ -509,14 +473,10 @@ class ArcFlashAgent(BaseAgent):
         - PPE category is valid (0-4 or -1 for danger)
         - Voltage is within IEEE 1584 range
         """
-<<<<<<< HEAD
         if result is None:
             return False
 
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         ie_data = result.data.get("incident_energy")
         if ie_data is not None:
@@ -536,15 +496,13 @@ class ArcFlashAgent(BaseAgent):
 
         arc_data = result.data.get("arc_current")
         if arc_data is not None:
-<<<<<<< HEAD
             iarc = arc_data.get("arc_current_ka", 0.0)  # NOSONAR
             if iarc <= 0:
                 errors.append(f"Arc current is non-positive: {iarc:.4f} kA")
-=======
+
             Iarc = arc_data.get("arc_current_ka", 0.0)
             if Iarc <= 0:
                 errors.append(f"Arc current is non-positive: {Iarc:.4f} kA")
->>>>>>> origin/fix/scenario-tests-properly
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

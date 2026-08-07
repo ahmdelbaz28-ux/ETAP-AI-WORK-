@@ -1,10 +1,7 @@
 """
 Tests for SCADA model and state estimation — SCADADatabase, SwitchDevice, WLSEstimator.
 """
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import time
 
 import numpy as np
@@ -24,10 +21,7 @@ from scada_model.state_estimation import StateEstimationStatus, WLSEstimator
 # Measurement
 # ===========================================================================
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class TestMeasurement:
     def test_create_voltage_measurement(self):
         m = Measurement(
@@ -37,22 +31,15 @@ class TestMeasurement:
             value=1.05,
         )
         assert m.measurement_id == "V_BUS1"
-<<<<<<< HEAD
         assert m.value == pytest.approx(1.05)
         assert m.quality == QualityFlag.GOOD
         assert m.confidence == pytest.approx(1.0)
-=======
-        assert m.value == 1.05
-        assert m.quality == QualityFlag.GOOD
-        assert m.confidence == 1.0
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_is_valid_good(self):
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0)
         assert m.is_valid() is True
 
     def test_is_valid_questionable(self):
-<<<<<<< HEAD
         m = Measurement(
             "m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.QUESTIONABLE
         )
@@ -68,7 +55,7 @@ class TestMeasurement:
         m = Measurement(
             "m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.MISSING
         )
-=======
+
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.QUESTIONABLE)
         assert m.is_valid() is True
 
@@ -78,7 +65,6 @@ class TestMeasurement:
 
     def test_is_valid_missing(self):
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.MISSING)
->>>>>>> origin/fix/scenario-tests-properly
         assert m.is_valid() is False
 
     def test_age_seconds(self):
@@ -90,23 +76,15 @@ class TestMeasurement:
         d = m.to_dict()
         assert d["measurement_id"] == "m1"
         assert d["measurement_type"] == "voltage_magnitude"
-<<<<<<< HEAD
         assert d["value"] == pytest.approx(1.05)
         assert d["confidence"] == pytest.approx(0.95)
-=======
-        assert d["value"] == 1.05
-        assert d["confidence"] == 0.95
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
 # SwitchDevice
 # ===========================================================================
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class TestSwitchDevice:
     def test_default_closed(self):
         s = SwitchDevice(device_id="CB1", from_element="BUS1", to_element="BUS2")
@@ -169,10 +147,7 @@ class TestSwitchDevice:
 # SCADADatabase
 # ===========================================================================
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class TestSCADADatabase:
     def test_add_measurement(self):
         db = SCADADatabase()
@@ -203,11 +178,7 @@ class TestSCADADatabase:
     def test_get_latest_voltage(self):
         db = SCADADatabase()
         db.add_measurement(Measurement("V1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.05))
-<<<<<<< HEAD
         assert db.get_latest_voltage("BUS1") == pytest.approx(1.05)
-=======
-        assert db.get_latest_voltage("BUS1") == 1.05
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_get_latest_voltage_expired(self):
         db = SCADADatabase(measurement_ttl_seconds=0)
@@ -221,13 +192,8 @@ class TestSCADADatabase:
         db.add_measurement(Measurement("Q1", MeasurementType.REACTIVE_POWER, "BUS1", 20.0))
         result = db.get_latest_power("BUS1")
         assert result is not None
-<<<<<<< HEAD
         assert result[0] == pytest.approx(50.0)
         assert result[1] == pytest.approx(20.0)
-=======
-        assert result[0] == 50.0
-        assert result[1] == 20.0
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_get_latest_power_missing(self):
         db = SCADADatabase()
@@ -340,16 +306,12 @@ class TestSCADADatabase:
 # WLS State Estimation
 # ===========================================================================
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class TestWLSEstimator:
     def test_estimate_3bus_system(self):
         """3-bus system — needs 3+ buses for WLS observability since the
         estimator doesn't remove the slack bus column from the Jacobian
         before inverting the gain matrix (causing theta collinearity in 2-bus)."""
-<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
@@ -358,13 +320,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
-=======
+
         Ybus = np.array([
             [2 - 20j, -1 + 10j, -1 + 10j],
             [-1 + 10j, 2 - 20j, -1 + 10j],
             [-1 + 10j, -1 + 10j, 2 - 20j],
         ], dtype=complex)
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -375,7 +336,6 @@ class TestWLSEstimator:
         assert len(result.voltage_magnitudes) == 3
 
     def test_estimate_with_voltage_and_power_flow(self):
-<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
@@ -384,13 +344,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
-=======
+
         Ybus = np.array([
             [2 - 20j, -1 + 10j, -1 + 10j],
             [-1 + 10j, 2 - 20j, -1 + 10j],
             [-1 + 10j, -1 + 10j, 2 - 20j],
         ], dtype=complex)
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -400,26 +359,18 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.CONVERGED
 
     def test_estimate_insufficient_measurements(self):
-<<<<<<< HEAD
         Ybus = np.array(
             [[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ybus = np.array([[1 - 10j, -1 + 10j], [-1 + 10j, 1 - 10j]], dtype=complex)
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=["B1", "B2"])
         assert result.status == StateEstimationStatus.INSUFFICIENT_MEASUREMENTS
 
     def test_estimate_empty_bus_list(self):
-<<<<<<< HEAD
         Ybus = np.array(
             []
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ybus = np.array([])
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {}
         estimator = WLSEstimator()
         result = estimator.estimate(Ybus, measurements, bus_ids=[])
@@ -427,7 +378,6 @@ class TestWLSEstimator:
 
     def test_estimate_not_converged(self):
         """3-bus system with extreme values and tight tolerance should NOT converge."""
-<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
@@ -436,13 +386,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
-=======
+
         Ybus = np.array([
             [2 - 20j, -1 + 10j, -1 + 10j],
             [-1 + 10j, 2 - 20j, -1 + 10j],
             [-1 + 10j, -1 + 10j, 2 - 20j],
         ], dtype=complex)
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {
             "voltage_mag": {0: (1000.0, 0.01)},
             "power_injection": {1: (999.0, 999.0, 0.02, 0.02), 2: (888.0, 888.0, 0.02, 0.02)},
@@ -452,12 +401,7 @@ class TestWLSEstimator:
         assert result.status == StateEstimationStatus.NOT_CONVERGED
 
     def test_check_redundancy_sufficient(self):
-<<<<<<< HEAD
         # NOSONAR
-=======
-        Ybus = np.eye(3, dtype=complex)
-        # Need redundancy >= 1.5: with n=3, need m >= 8 for 2*3-1=5 states
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {
             "voltage_mag": {0: (1.0, 0.01), 1: (1.0, 0.01), 2: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -479,7 +423,6 @@ class TestWLSEstimator:
         assert red["critical"] is True
 
     def test_estimate_bad_data_detection(self):
-<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             [  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 [2 - 20j, -1 + 10j, -1 + 10j],
@@ -488,13 +431,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
-=======
+
         Ybus = np.array([
             [2 - 20j, -1 + 10j, -1 + 10j],
             [-1 + 10j, 2 - 20j, -1 + 10j],
             [-1 + 10j, -1 + 10j, 2 - 20j],
         ], dtype=complex)
->>>>>>> origin/fix/scenario-tests-properly
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},

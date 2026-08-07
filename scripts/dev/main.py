@@ -8,13 +8,9 @@ import os
 import sys
 
 # Add the current directory to the path to import our modules
-<<<<<<< HEAD
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
-=======
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
->>>>>>> origin/fix/scenario-tests-properly
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -106,11 +102,7 @@ def create_3bus_system():
     return system
 
 
-<<<<<<< HEAD
 def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def main():
->>>>>>> origin/fix/scenario-tests-properly
     print("=" * 60)
     print("Power Protection System Demonstration")
     print("=" * 60)
@@ -148,7 +140,6 @@ def main():
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             print(f"   {fault_type.replace('_', ' ').title()}:")
             if "fault_current" in fault_result:
-<<<<<<< HEAD
                 if_ = fault_result[
                     "fault_current"
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -162,7 +153,7 @@ def main():
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current B: {abs(ib):.4f} angle {np.angle(ib, deg=True):.2f}° pu")
                 print(f"     Fault Current C: {abs(ic):.4f} angle {np.angle(ic, deg=True):.2f}° pu")
-=======
+
                 If = fault_result["fault_current"]
                 print(f"     Fault Current: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
             elif "fault_current_b" in fault_result:
@@ -170,7 +161,6 @@ def main():
                 Ic = fault_result["fault_current_c"]
                 print(f"     Fault Current B: {abs(Ib):.4f} angle {np.angle(Ib, deg=True):.2f}° pu")
                 print(f"     Fault Current C: {abs(Ic):.4f} angle {np.angle(Ic, deg=True):.2f}° pu")
->>>>>>> origin/fix/scenario-tests-properly
             print(f"     Affected Bus Index: {fault_result.get('affected_bus_index', 'N/A')}")
         except Exception as e:
             print(f"   Error in {fault_type}: {e}")
@@ -181,13 +171,9 @@ def main():
     # We'll simulate fault currents for a range of values.
     fault_currents = [2.0, 5.0, 10.0, 20.0, 50.0]  # in per unit (must be > Ip=1.0)
     coord_result = engine.run_protection_coordination(
-<<<<<<< HEAD
         upstream_relay_id=1,
         downstream_relay_id=2,
         fault_currents=fault_currents,
-=======
-        upstream_relay_id=1, downstream_relay_id=2, fault_currents=fault_currents
->>>>>>> origin/fix/scenario-tests-properly
     )
     print(f"   All faults coordinated: {coord_result['all_coordinated']}")
     for i, res in enumerate(coord_result["results"]):
@@ -196,11 +182,7 @@ def main():
             f"Upstream={res['upstream_time']:.3f}s, "
             f"Downstream={res['downstream_time']:.3f}s, "
             f"Margin={res['margin']:.3f}s, "
-<<<<<<< HEAD
             f"Coordinated={res['coordinated']}",
-=======
-            f"Coordinated={res['coordinated']}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # 4. Generate a simple report
@@ -226,15 +208,9 @@ def main():
         try:
             fault_result = engine.run_fault_analysis(fault_type, bus_id=2)
             if "fault_current" in fault_result:
-<<<<<<< HEAD
                 if_ = fault_result["fault_current"]
                 report_lines.append(
                     f"  {fault_type.replace('_', ' ').title()}: {abs(if_):.4f} angle {np.angle(if_, deg=True):.2f}° pu",
-=======
-                If = fault_result["fault_current"]
-                report_lines.append(
-                    f"  {fault_type.replace('_', ' ').title()}: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu"
->>>>>>> origin/fix/scenario-tests-properly
                 )
             else:
                 report_lines.append(f"  {fault_type.replace('_', ' ').title()}: See details above")
@@ -245,11 +221,7 @@ def main():
     report_lines.append(f"  All Faults Coordinated: {coord_result['all_coordinated']}")
     for i, res in enumerate(coord_result["results"]):
         report_lines.append(
-<<<<<<< HEAD
             f"  If={fault_currents[i]:.1f} pu: T_up={res['upstream_time']:.3f}s, T_down={res['downstream_time']:.3f}s, Margin={res['margin']:.3f}s",
-=======
-            f"  If={fault_currents[i]:.1f} pu: T_up={res['upstream_time']:.3f}s, T_down={res['downstream_time']:.3f}s, Margin={res['margin']:.3f}s"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     report_text = "\n".join(report_lines)

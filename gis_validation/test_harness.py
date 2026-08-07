@@ -3,11 +3,7 @@ from __future__ import annotations
 import importlib
 import time
 from dataclasses import dataclass
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import ADMSAsset
 from gis_validation.crs_validator import validate_crs_consistency, validate_normalization_applied
@@ -24,13 +20,8 @@ from gis_validation.topology_validator import validate_adms_topology
 class ValidationReport:
     status: str  # PASS/FAIL
     classification: str
-<<<<<<< HEAD
     details: dict[str, Any]
     metrics: dict[str, Any]
-=======
-    details: Dict[str, Any]
-    metrics: Dict[str, Any]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def _provider_available(provider: str) -> bool:
@@ -52,20 +43,12 @@ def _provider_available(provider: str) -> bool:
     return False
 
 
-<<<<<<< HEAD
 def _run_provider_smoke_tests() -> dict[str, Any]:
-=======
-def _run_provider_smoke_tests() -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Conditional provider runtime tests.
     Must not falsely fail when GIS binaries are missing.
     """
-<<<<<<< HEAD
     results: dict[str, Any] = {}
-=======
-    results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
     qgis_ok = _provider_available("qgis")
     arc_ok = _provider_available("arcgis")
 
@@ -98,13 +81,8 @@ def _run_provider_smoke_tests() -> Dict[str, Any]:
     return results
 
 
-<<<<<<< HEAD
 def run_crs_validation_tests(assets: list[ADMSAsset]) -> list[ValidationReport]:
     reports: list[ValidationReport] = []
-=======
-def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
-    reports: List[ValidationReport] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     ok_norm, issues_norm = validate_normalization_applied(assets)
     reports.append(
@@ -113,11 +91,7 @@ def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
             classification="crs.normalization_applied" if ok_norm else "crs.normalization_missing",
             details={"issues": [i.__dict__ for i in issues_norm]},
             metrics={},
-<<<<<<< HEAD
         ),
-=======
-        )
->>>>>>> origin/fix/scenario-tests-properly
     )
 
     ok_crs, issues_crs = validate_crs_consistency(assets)
@@ -127,20 +101,12 @@ def run_crs_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
             classification="crs.consistency" if ok_crs else "crs.mixed_or_missing",
             details={"issues": [i.__dict__ for i in issues_crs]},
             metrics={},
-<<<<<<< HEAD
         ),
-=======
-        )
->>>>>>> origin/fix/scenario-tests-properly
     )
     return reports
 
 
-<<<<<<< HEAD
 def run_topology_validation_tests(assets: list[ADMSAsset]) -> list[ValidationReport]:
-=======
-def run_topology_validation_tests(assets: List[ADMSAsset]) -> List[ValidationReport]:
->>>>>>> origin/fix/scenario-tests-properly
     ok, issues = validate_adms_topology(assets)
     return [
         ValidationReport(
@@ -148,7 +114,6 @@ def run_topology_validation_tests(assets: List[ADMSAsset]) -> List[ValidationRep
             classification="adms.topology" if ok else "adms.topology_inconsistent",
             details={"issues": [i.__dict__ for i in issues]},
             metrics={},
-<<<<<<< HEAD
         ),
     ]
 
@@ -157,7 +122,7 @@ def run_failure_injection_tests() -> list[ValidationReport]:
     base_assets = generate_synthetic_grid(grid_type="urban", seed=1, crs="EPSG:4326")
 
     results: list[ValidationReport] = []
-=======
+
         )
     ]
 
@@ -166,7 +131,6 @@ def run_failure_injection_tests() -> List[ValidationReport]:
     base_assets = generate_synthetic_grid(grid_type="urban", seed=1, crs="EPSG:4326")
 
     results: List[ValidationReport] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     # Corrupted geometries should fail CRS normalization/transform or topology validation deterministically.
     corrupted = inject_corrupted_geometries(base_assets, seed=2, corruption_ratio=0.05)
@@ -177,11 +141,7 @@ def run_failure_injection_tests() -> List[ValidationReport]:
             classification="failure_injection.corrupted_geometry_detected",
             details={"topology_issues": [i.__dict__ for i in issues_topo]},
             metrics={},
-<<<<<<< HEAD
         ),
-=======
-        )
->>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Broken CRS metadata must be detected.
@@ -193,11 +153,7 @@ def run_failure_injection_tests() -> List[ValidationReport]:
             classification="failure_injection.broken_crs_metadata_detected",
             details={"crs_issues": [i.__dict__ for i in issues_crs]},
             metrics={},
-<<<<<<< HEAD
         ),
-=======
-        )
->>>>>>> origin/fix/scenario-tests-properly
     )
 
     return results
@@ -213,17 +169,15 @@ def run_stress_validation_tests() -> ValidationReport:
     )
 
 
-<<<<<<< HEAD
 def production_readiness_gate(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     qgis_project_path: Optional[str] = None,
     arcgis_project_path: Optional[str] = None,
     adms_output_path: Optional[str] = None,
-=======
+
 def production_readiness_gate(
     qgis_project_path: str | None = None,
     arcgis_project_path: str | None = None,
     adms_output_path: str | None = None,
->>>>>>> origin/fix/scenario-tests-properly
 ) -> bool:
     """
     Single authoritative production validation entry point.
@@ -270,12 +224,11 @@ def production_readiness_gate(
                 return False
 
         # adms_output_path comparisons are intentionally not implemented without a
-<<<<<<< HEAD
         # concrete ADMS output schema. In production, this must be wired to the
         # real ADMS export format. Fail-closed: return False when an ADMS output
         # path is provided, True otherwise.
         return not adms_output_path
-=======
+
         # concrete ADMS output schema. In production, this must be wired to the real
         # ADMS export format.
         if adms_output_path:
@@ -283,7 +236,6 @@ def production_readiness_gate(
             return False
 
         return True
->>>>>>> origin/fix/scenario-tests-properly
 
     # If an ADMS output path is provided without real GIS inputs, fail closed as well.
     if adms_output_path is not None:

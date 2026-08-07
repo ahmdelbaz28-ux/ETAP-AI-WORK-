@@ -14,7 +14,6 @@ Security Measures:
 - Timeout protection
 - Output truncation
 - Audit logging
-<<<<<<< HEAD
 
 SECURITY AUDIT 2026-08-02 (V-39, V-40, V-41, V-42, V-43, V-44 fixes):
 - V-39: Added MRO-based sandbox escape prevention — blocks __class__.__bases__
@@ -42,7 +41,7 @@ from typing import Any, Optional
 # credentials or bypassing the sandbox. The security_framework import
 # below works when the script is run from the project root directory.
 # sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-=======
+
 """
 
 import json
@@ -54,7 +53,6 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeoutError
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
->>>>>>> origin/fix/scenario-tests-properly
 
 try:
     from security.security_framework import get_audit_logger, get_validator
@@ -66,7 +64,6 @@ logger = logging.getLogger(__name__)
 
 MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
-<<<<<<< HEAD
 MAX_MEMORY_MB = 512  # V-42: Memory limit
 MAX_CODE_LENGTH = 50000
 ALLOWED_IMPORT_NAMES = [
@@ -85,18 +82,12 @@ ALLOWED_IMPORT_NAMES = [
 
 
 def _read_code_from_stdin() -> Optional[str]:
-=======
-
-
-def _read_code_from_stdin():
->>>>>>> origin/fix/scenario-tests-properly
     try:
         code = sys.stdin.read()
         if not code or not code.strip():
             return None
         return code
     except Exception as e:
-<<<<<<< HEAD
         logger.exception("Failed to read code from stdin: %s", e)
         return None
 
@@ -185,7 +176,7 @@ def _set_memory_limit() -> None:
 
 def _validate_code_length(code: str) -> None:
     """Exit if code exceeds maximum length."""
-=======
+
         logger.error(f"Failed to read code from stdin: {e}")
         return None
 
@@ -198,14 +189,12 @@ def main():
 
     # Limit code length to prevent resource exhaustion
     MAX_CODE_LENGTH = 50000
->>>>>>> origin/fix/scenario-tests-properly
     if len(code) > MAX_CODE_LENGTH:
         print(
             json.dumps(
                 {
                     "error": f"Code exceeds maximum length of {MAX_CODE_LENGTH} characters",
                     "success": False,
-<<<<<<< HEAD
                 },
             ),
         )
@@ -214,7 +203,7 @@ def main():
 
 def _validate_code_security(code: str, audit, validator) -> None:
     """Run AST validation and sandbox escape pre-scan. Exit on violation."""
-=======
+
                 }
             )
         )
@@ -223,7 +212,6 @@ def _validate_code_security(code: str, audit, validator) -> None:
     audit = get_audit_logger()
     validator = get_validator()
 
->>>>>>> origin/fix/scenario-tests-properly
     if not validator.validate_python_code(code):
         audit.log_security_violation(
             "agent_tool",
@@ -235,7 +223,6 @@ def _validate_code_security(code: str, audit, validator) -> None:
                 {
                     "error": "Security Violation: Forbidden code pattern or unauthorized import detected.",
                     "success": False,
-<<<<<<< HEAD
                 },
             ),
         )
@@ -261,7 +248,7 @@ def _validate_code_security(code: str, audit, validator) -> None:
 
 def _run_ai_guard_scan(code: str, audit) -> None:
     """Run AI failure-mode pre-scan. Exit on MUST_FIX violations."""
-=======
+
                 }
             )
         )
@@ -272,13 +259,11 @@ def _run_ai_guard_scan(code: str, audit) -> None:
     # violations (e.g., catch-all error swallowing, hardcoded success
     # returns) block execution.  SHOULD_FIX violations are logged but
     # do not block — they serve as quality feedback to the calling agent.
->>>>>>> origin/fix/scenario-tests-properly
     try:
         from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
 
         _ai_detector = AIFailureModeDetector()
         _ai_result = _ai_detector.detect(code)
-<<<<<<< HEAD
         if _ai_result.passed:
             return
         _must_fix = [v for v in _ai_result.violations if v.severity == GuardSeverity.MUST_FIX]
@@ -387,7 +372,7 @@ def _build_safe_globals() -> dict:
     # via type.__subclasses__() which can find dangerous classes like subprocess.Popen.
     # V-41: Removed `isinstance`/`issubclass` — they enable class hierarchy
     # traversal which can be used to find and invoke dangerous methods.
-=======
+
         if not _ai_result.passed:
             _must_fix = [v for v in _ai_result.violations if v.severity == GuardSeverity.MUST_FIX]
             if _must_fix:
@@ -484,7 +469,6 @@ def _build_safe_globals() -> dict:
 
         _nullify(mod)
 
->>>>>>> origin/fix/scenario-tests-properly
     safe_globals = {
         "__builtins__": {
             "abs": abs,
@@ -506,10 +490,6 @@ def _build_safe_globals() -> dict:
             "str": str,
             "sum": sum,
             "tuple": tuple,
-<<<<<<< HEAD
-=======
-            "type": type,
->>>>>>> origin/fix/scenario-tests-properly
             "complex": complex,
             "Exception": Exception,
             "ValueError": ValueError,
@@ -524,7 +504,6 @@ def _build_safe_globals() -> dict:
             "sorted": sorted,
             "map": map,
             "filter": filter,
-<<<<<<< HEAD
             # V-40: `type` REMOVED — use isinstance-style checks are also removed
             # V-41: `isinstance`/`issubclass` REMOVED — prevents class traversal
             "True": True,
@@ -535,7 +514,7 @@ def _build_safe_globals() -> dict:
         "json": json,
         "math": math,
         # Pre-imported safe modules
-=======
+
             "isinstance": isinstance,
             "issubclass": issubclass,
             "True": True,
@@ -550,7 +529,6 @@ def _build_safe_globals() -> dict:
         "math": math,
         # Pre-imported safe modules (the only modules executable code can
         # access).  Adding a new module requires an explicit entry here.
->>>>>>> origin/fix/scenario-tests-properly
         "numpy": __import__("numpy") if "numpy" in sys.modules else None,
         "scipy": __import__("scipy") if "scipy" in sys.modules else None,
     }
@@ -560,7 +538,6 @@ def _build_safe_globals() -> dict:
         if mod is not None:
             _deep_freeze_module(mod)
 
-<<<<<<< HEAD
     return safe_globals
 
 
@@ -655,7 +632,7 @@ def _handle_subprocess_result(stdout: str, stderr: str) -> None:
         error_text = stdout[len("__RESULT_ERROR__"):]
         if stderr:
             error_text += "\n" + stderr
-=======
+
     def _exec_target(_code: str, _globals: dict):
         import io
         from contextlib import redirect_stdout
@@ -679,13 +656,11 @@ def _handle_subprocess_result(stdout: str, stderr: str) -> None:
             future = executor.submit(_exec_target, code, safe_globals)
             result = future.result(timeout=MAX_EXECUTION_TIME_SECONDS)
     except FutureTimeoutError:
->>>>>>> origin/fix/scenario-tests-properly
         print(
             json.dumps(
                 {
                     "success": False,
                     "output": None,
-<<<<<<< HEAD
                     "error": error_text[:MAX_OUTPUT_LENGTH],
                     "traceback": stderr[:MAX_OUTPUT_LENGTH] if stderr else None,
                 }
@@ -698,14 +673,10 @@ def _handle_subprocess_result(stdout: str, stderr: str) -> None:
                     "success": False,
                     "output": None,
                     "error": stderr[:MAX_OUTPUT_LENGTH],
-=======
-                    "error": f"Execution exceeded {MAX_EXECUTION_TIME_SECONDS} seconds",
->>>>>>> origin/fix/scenario-tests-properly
                     "traceback": None,
                 }
             )
         )
-<<<<<<< HEAD
     else:
         output = stdout[:MAX_OUTPUT_LENGTH]
         print(json.dumps({"success": True, "output": output, "error": None}))
@@ -776,7 +747,7 @@ def main() -> None:
     safe_globals = _build_safe_globals()
     wrapper_code = _build_wrapper_script(safe_globals)
     _execute_in_subprocess(code, wrapper_code)
-=======
+
         return
 
     if result.get("ok"):
@@ -795,7 +766,6 @@ def main() -> None:
                 }
             )
         )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

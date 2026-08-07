@@ -1,31 +1,19 @@
-<<<<<<< HEAD
 # Automated release workflow
 # Creates a new GitHub release when a tag is pushed
-=======
->>>>>>> origin/fix/scenario-tests-properly
 name: Release
 
 on:
   push:
     tags:
-<<<<<<< HEAD
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 permissions:
   contents: write  # Required to create GitHub releases
-=======
-      - 'v*'
-
-permissions:
-  contents: write
-  packages: write
->>>>>>> origin/fix/scenario-tests-properly
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       
       - name: Set up Python
@@ -37,32 +25,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: build==1.2.2.post1 twine==6.1.0  # NOSONAR: release tooling with pinned versions
-=======
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
->>>>>>> origin/fix/scenario-tests-properly
           
       - name: Build package
         run: python -m build
           
       - name: Create Release
-<<<<<<< HEAD
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           files: dist/**
           generate_release_notes: true
-=======
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/**
-          generate_release_notes: true
->>>>>>> origin/fix/scenario-tests-properly

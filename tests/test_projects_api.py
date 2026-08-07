@@ -275,15 +275,13 @@ class TestUpdateProject:
             headers=auth_headers,
             json={"status": "deleted"},
         )
-<<<<<<< HEAD
         assert (
             resp.status_code == 422
         ), f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
-=======
+
         assert resp.status_code == 422, (
             f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -313,15 +311,13 @@ class TestDeleteProject:
 
         # Second delete attempt
         resp = client.delete(f"/api/v1/projects/{project_id}", headers=auth_headers)
-<<<<<<< HEAD
         assert (
             resp.status_code == 410
         ), f"Expected 410 for already-deleted project, got {resp.status_code}"
-=======
+
         assert resp.status_code == 410, (
             f"Expected 410 for already-deleted project, got {resp.status_code}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_delete_nonexistent_project(self, client, auth_headers):
         """Deleting a non-existent project returns 404."""
@@ -373,18 +369,16 @@ class TestRunStudy:
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
         data = resp.json()
         assert data["study_type"] == "load_flow"
-<<<<<<< HEAD
         assert data["status"] in (
             "completed",
             "failed",
             "pending",
             "running",
         ), f"Unexpected study status: {data['status']}"
-=======
+
         assert data["status"] in ("completed", "failed", "pending", "running"), (
             f"Unexpected study status: {data['status']}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_run_study_invalid_type(self, client, auth_headers):
         """Running a study with an invalid type returns 422."""
@@ -395,15 +389,13 @@ class TestRunStudy:
             headers=auth_headers,
             json={"study_type": "invalid_study_type"},
         )
-<<<<<<< HEAD
         assert (
             resp.status_code == 422
         ), f"Expected 422 for invalid study type, got {resp.status_code}"
-=======
+
         assert resp.status_code == 422, (
             f"Expected 422 for invalid study type, got {resp.status_code}"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_run_study_nonexistent_project(self, client, auth_headers):
         """Running a study on a non-existent project returns 404."""

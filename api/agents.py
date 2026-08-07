@@ -3,7 +3,6 @@ Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
 Separated from main engineering service for better modularity.
-<<<<<<< HEAD
 
 SECURITY AUDIT 2026-08-02 (V-49 fix):
 - Added prompt injection sanitization for all user-supplied text
@@ -251,21 +250,6 @@ async def get_agent_by_id(agent_id: str, request: Request):
         )
 
 
-=======
-"""
-
-from typing import Any, Dict
-
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-
-from api.dependencies import get_api_key
-
-router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
-
-
->>>>>>> origin/fix/scenario-tests-properly
 @router.get("/info")
 async def get_agents_info(request: Request):
     """Return metadata for all agents including prompt integration status.
@@ -294,27 +278,16 @@ async def get_agents_info(request: Request):
                     "prompt_count": len(available_prompts),
                 },
                 "trace_id": trace_id,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
     except Exception as e:
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-<<<<<<< HEAD
         logger.exception("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
-=======
-        logger.error("agents_info_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
->>>>>>> origin/fix/scenario-tests-properly
         )
 
 
@@ -326,7 +299,6 @@ async def get_agents_info(request: Request):
 class ETAPExpertChatRequest(BaseModel):
     """Request body for the ETAP Expert chat endpoint."""
 
-<<<<<<< HEAD
     model_config = ConfigDict(populate_by_name=True)
 
     question: str = Field(
@@ -339,25 +311,20 @@ class ETAPExpertChatRequest(BaseModel):
         default=None,
         description="Optional additional context (voltages, currents, etc.)",
     )
-=======
+
     question: str = Field(..., min_length=1, max_length=4000,
                           description="The ETAP-related question to ask the expert agent")
     context: Dict[str, Any] | None = Field(default=None,
                                             description="Optional additional context (voltages, currents, etc.)")
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.post("/etap-expert/chat")
 async def etap_expert_chat(
     request: Request,
     payload: ETAPExpertChatRequest,
-<<<<<<< HEAD
     _: str = Depends(
         get_api_key
     ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-=======
-    _: str = Depends(get_api_key),
->>>>>>> origin/fix/scenario-tests-properly
 ):
     """Chat with the ETAP Expert skill agent.
 
@@ -373,7 +340,6 @@ async def etap_expert_chat(
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-<<<<<<< HEAD
         # V-49: Sanitize user input to prevent prompt injection
         safe_question = _sanitize_agent_input(payload.question)
 
@@ -381,19 +347,12 @@ async def etap_expert_chat(
 
         agent = ETAPExpertAgent()
         result = agent.answer(safe_question)
-=======
-        from agents.etap_expert_agent import ETAPExpertAgent
-
-        agent = ETAPExpertAgent()
-        result = agent.answer(payload.question)
->>>>>>> origin/fix/scenario-tests-properly
 
         return JSONResponse(
             content={
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
-<<<<<<< HEAD
             },
         )
     except Exception as e:
@@ -1133,16 +1092,3 @@ async def ahmed_etap_info(
             },
         },
     )
-=======
-            }
-        )
-    except Exception as e:
-        from logging import getLogger
-
-        logger = getLogger("engineering_service")
-        logger.error("etap_expert_chat_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "errors": [str(e)], "trace_id": trace_id},
-        )
->>>>>>> origin/fix/scenario-tests-properly

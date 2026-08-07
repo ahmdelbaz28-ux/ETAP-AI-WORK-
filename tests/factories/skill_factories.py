@@ -10,16 +10,10 @@ Patterns drawn from factoryboy/factory_boy:
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
-=======
-from datetime import UTC, datetime, timezone
-
-UTC = UTC
->>>>>>> origin/fix/scenario-tests-properly
 from typing import Any, Optional
 
 import factory
@@ -68,13 +62,8 @@ class ExecutionResultFactory(factory.Factory):
         model = dict
 
     success = True
-<<<<<<< HEAD
     data: Optional[dict[str, Any]] = None
     error: Optional[dict[str, str]] = None
-=======
-    data: dict[str, Any] | None = None
-    error: dict[str, str] | None = None
->>>>>>> origin/fix/scenario-tests-properly
     timestamp = factory.LazyFunction(lambda: datetime.now(UTC))
 
     @classmethod
@@ -107,11 +96,7 @@ class ErrorResponseFactory(factory.Factory):
     error = True
     type = "TestError"
     message = Faker("sentence")
-<<<<<<< HEAD
     action_required: Optional[str] = None
-=======
-    action_required: str | None = None
->>>>>>> origin/fix/scenario-tests-properly
     can_retry = False
 
 

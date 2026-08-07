@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 export type StudyTypeStr =
   | 'LOAD_FLOW'
   | 'SHORT_CIRCUIT'
@@ -6,9 +5,6 @@ export type StudyTypeStr =
   | 'MOTOR_STARTING'
   | 'PROTECTION_COORDINATION'
   | 'ARC_FLASH';
-=======
-export type StudyTypeStr = 'LOAD_FLOW' | 'SHORT_CIRCUIT' | 'HARMONIC_ANALYSIS' | 'MOTOR_STARTING' | 'PROTECTION_COORDINATION' | 'ARC_FLASH';
->>>>>>> origin/fix/scenario-tests-properly
 
 export interface StudyResult {
   success: boolean;
@@ -28,13 +24,9 @@ export type FailureMode = 'none' | 'connection' | 'execution' | 'validation';
 
 export class MockEtapProvider {
   private connectionState: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
-<<<<<<< HEAD
   // SonarCloud typescript:S2933: `openProjects` is never reassigned
   // (only its contents are mutated via .set/.delete). Mark as readonly.
   private readonly openProjects: Map<string, ProjectInfo> = new Map();
-=======
-  private openProjects: Map<string, ProjectInfo> = new Map();
->>>>>>> origin/fix/scenario-tests-properly
   private executionLog: Array<{ action: string; timestamp: number; params: unknown }> = [];
   private failureMode: FailureMode = 'none';
 
@@ -78,7 +70,6 @@ export class MockEtapProvider {
     const projectInfo: ProjectInfo = {
       path: projectPath,
       isValid: true,
-<<<<<<< HEAD
       studyTypes: [
         'LOAD_FLOW',
         'SHORT_CIRCUIT',
@@ -87,9 +78,6 @@ export class MockEtapProvider {
         'PROTECTION_COORDINATION',
         'ARC_FLASH',
       ],
-=======
-      studyTypes: ['LOAD_FLOW', 'SHORT_CIRCUIT', 'HARMONIC_ANALYSIS', 'MOTOR_STARTING', 'PROTECTION_COORDINATION', 'ARC_FLASH'],
->>>>>>> origin/fix/scenario-tests-properly
       lastModified: new Date().toISOString(),
     };
 
@@ -97,15 +85,11 @@ export class MockEtapProvider {
     return projectInfo;
   }
 
-<<<<<<< HEAD
   async executeStudy(
     projectPath: string,
     studyType: StudyTypeStr,
     parameters?: Record<string, unknown>,
   ): Promise<StudyResult> {
-=======
-  async executeStudy(projectPath: string, studyType: StudyTypeStr, parameters?: Record<string, unknown>): Promise<StudyResult> {
->>>>>>> origin/fix/scenario-tests-properly
     this.logAction('executeStudy', { projectPath, studyType, parameters });
 
     if (this.failureMode === 'execution') {
@@ -125,14 +109,10 @@ export class MockEtapProvider {
     return this.generateMockResult(studyType, parameters);
   }
 
-<<<<<<< HEAD
   async extractResults(
     projectPath: string,
     studyType: StudyTypeStr,
   ): Promise<Record<string, unknown>> {
-=======
-  async extractResults(projectPath: string, studyType: StudyTypeStr): Promise<Record<string, unknown>> {
->>>>>>> origin/fix/scenario-tests-properly
     this.logAction('extractResults', { projectPath, studyType });
 
     if (this.failureMode === 'validation') {
@@ -164,19 +144,14 @@ export class MockEtapProvider {
     this.executionLog.push({ action, timestamp: Date.now(), params });
   }
 
-<<<<<<< HEAD
   private generateMockResult(
     studyType: StudyTypeStr,
     _parameters?: Record<string, unknown>,
   ): StudyResult {
-=======
-  private generateMockResult(studyType: StudyTypeStr, _parameters?: Record<string, unknown>): StudyResult {
->>>>>>> origin/fix/scenario-tests-properly
     const baseResults: Record<StudyTypeStr, StudyResult> = {
       LOAD_FLOW: {
         success: true,
         data: {
-<<<<<<< HEAD
           converged: true,
           iterations: 4,
           buses: {
@@ -203,7 +178,7 @@ export class MockEtapProvider {
           total_load_mw: 68.5,
           total_losses_mw: 1.5,
           method: 'Newton-Raphson', // NOSONAR — S7748: number literal trailing zero; cosmetic
-=======
+
           converged: true, iterations: 4,
           buses: {
             BUS001: { voltage_magnitude_pu: 1.02, voltage_angle_deg: -2.1, active_power_mw: 50.0, reactive_power_mvar: 15.0 },
@@ -211,7 +186,6 @@ export class MockEtapProvider {
             BUS003: { voltage_magnitude_pu: 1.01, voltage_angle_deg: -1.8, active_power_mw: 20.0, reactive_power_mvar: 5.0 },
           },
           total_generation_mw: 70.0, total_load_mw: 68.5, total_losses_mw: 1.5, method: 'Newton-Raphson',
->>>>>>> origin/fix/scenario-tests-properly
         },
         warnings: ['Bus BUS002 voltage at 0.98 pu - within acceptable range'],
         errors: [],
@@ -219,7 +193,6 @@ export class MockEtapProvider {
       SHORT_CIRCUIT: {
         success: true,
         data: {
-<<<<<<< HEAD
           standard: 'IEC 60909-0:2016',
           base_mva: 100,
           base_kv: 13.8,
@@ -236,7 +209,7 @@ export class MockEtapProvider {
         },
         warnings: [],
         errors: [],
-=======
+
           standard: 'IEC 60909-0:2016', base_mva: 100, base_kv: 13.8,
           faults: {
             BUS001: { three_phase: { fault_current_ka: 15.2, r1_x1_ratio: 0.15 }, line_to_ground: { fault_current_ka: 12.8, r0_x0_ratio: 0.20 } },
@@ -244,12 +217,10 @@ export class MockEtapProvider {
           },
         },
         warnings: [], errors: [],
->>>>>>> origin/fix/scenario-tests-properly
       },
       HARMONIC_ANALYSIS: {
         success: true,
         data: {
-<<<<<<< HEAD
           standard: 'IEEE 519-2022',
           thd_voltage_percent: 3.2,
           tdd_current_percent: 5.1,
@@ -260,18 +231,16 @@ export class MockEtapProvider {
         },
         warnings: ['THD within IEEE 519 limits for general systems'],
         errors: [],
-=======
+
           standard: 'IEEE 519-2022', thd_voltage_percent: 3.2, tdd_current_percent: 5.1,
           resonance_detected: false, dominant_harmonics: { h5: 2.1, h7: 1.8, h11: 0.9 },
           compliance_status: 'compliant', violations: [],
         },
         warnings: ['THD within IEEE 519 limits for general systems'], errors: [],
->>>>>>> origin/fix/scenario-tests-properly
       },
       MOTOR_STARTING: {
         success: true,
         data: {
-<<<<<<< HEAD
           motor_name: 'PUMP-250kW',
           rated_power_kw: 250,
           starting_method: 'VSD',
@@ -282,40 +251,30 @@ export class MockEtapProvider {
         },
         warnings: [],
         errors: [],
-=======
+
           motor_name: 'PUMP-250kW', rated_power_kw: 250, starting_method: 'VSD',
           starting_current_pu: 3.5, voltage_dip_percent: 4.2, acceleration_time_sec: 6.5, thermal_limit_met: true,
         },
         warnings: [], errors: [],
->>>>>>> origin/fix/scenario-tests-properly
       },
       PROTECTION_COORDINATION: {
         success: true,
         data: {
-<<<<<<< HEAD
           all_coordinated: true,
           relay_count: 4,
           standard: 'IEC 60255',
-=======
-          all_coordinated: true, relay_count: 4, standard: 'IEC 60255',
->>>>>>> origin/fix/scenario-tests-properly
           coordination_pairs: [
             { upstream: 'RELAY-01', downstream: 'RELAY-02', margin_sec: 0.35, coordinated: true },
             { upstream: 'RELAY-02', downstream: 'RELAY-03', margin_sec: 0.28, coordinated: true },
             { upstream: 'RELAY-03', downstream: 'RELAY-04', margin_sec: 0.32, coordinated: true },
           ],
         },
-<<<<<<< HEAD
         warnings: [],
         errors: [],
-=======
-        warnings: [], errors: [],
->>>>>>> origin/fix/scenario-tests-properly
       },
       ARC_FLASH: {
         success: true,
         data: {
-<<<<<<< HEAD
           standard: 'IEEE 1584-2018',
           bus_name: 'SWBD-400V',
           voltage_kv: 0.4,
@@ -337,7 +296,7 @@ export class MockEtapProvider {
         errors: [`Unknown study type: ${studyType}`],
       }
     );
-=======
+
           standard: 'IEEE 1584-2018', bus_name: 'SWBD-400V', voltage_kv: 0.4,
           incident_energy_cal_per_cm2: 8.2, arc_flash_boundary_mm: 1524, ppe_level: '2', arc_current_ka: 12.5, enclosure_type: 'box',
         },
@@ -345,12 +304,10 @@ export class MockEtapProvider {
       },
     };
     return baseResults[studyType] || { success: false, data: {}, warnings: [], errors: [`Unknown study type: ${studyType}`] };
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   private generateMockExtractedResults(studyType: StudyTypeStr): Record<string, unknown> {
     const extracted: Record<StudyTypeStr, Record<string, unknown>> = {
-<<<<<<< HEAD
       LOAD_FLOW: {
         summary: 'Load flow converged in 4 iterations',
         voltage_profile: 'All buses within 0.95-1.05 pu range',
@@ -386,14 +343,13 @@ export class MockEtapProvider {
         ppe_level: '2',
         label_required: true,
       },
-=======
+
       LOAD_FLOW: { summary: 'Load flow converged in 4 iterations', voltage_profile: 'All buses within 0.95-1.05 pu range', critical_buses: ['BUS002 (0.98 pu)'], overloaded_equipment: [] },
       SHORT_CIRCUIT: { summary: 'Fault analysis completed per IEC 60909', max_fault_current_ka: 15.2, location: 'BUS001', equipment_rating_adequate: true },
       HARMONIC_ANALYSIS: { summary: 'Harmonic analysis completed per IEEE 519', compliance: 'compliant', thd_voltage_percent: 3.2, filter_required: false },
       MOTOR_STARTING: { summary: 'Motor starting study completed', voltage_dip_percent: 4.2, starting_time_sec: 6.5, successful_start: true },
       PROTECTION_COORDINATION: { summary: 'Protection coordination verified', all_coordinated: true, recommended_settings: 'Current settings adequate' },
       ARC_FLASH: { summary: 'Arc flash study completed per IEEE 1584-2018', max_incident_energy_cal_per_cm2: 8.2, ppe_level: '2', label_required: true },
->>>>>>> origin/fix/scenario-tests-properly
     };
     return extracted[studyType] || { error: `No extracted results for ${studyType}` };
   }
@@ -407,12 +363,8 @@ export function createMockEtapScenario(): { provider: MockEtapProvider; cleanup:
   const provider = new MockEtapProvider();
   return {
     provider,
-<<<<<<< HEAD
     cleanup: () => {
       provider.clearExecutionLog();
     },
-=======
-    cleanup: () => { provider.clearExecutionLog(); },
->>>>>>> origin/fix/scenario-tests-properly
   };
 }

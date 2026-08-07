@@ -1,5 +1,4 @@
 # =============================================================================
-<<<<<<< HEAD
 # ETAP AI — Hugging Face Spaces Production Dockerfile (lightweight)
 # =============================================================================
 # Uses hf-space/app.py as the single entry point — NOT engineering_service.py.
@@ -161,7 +160,7 @@ USER 1000
 # which is required for Docker/HF Spaces port-mapping. For local development,
 # override HOST=127.0.0.1 when running outside a container.
 CMD ["python", "app.py"]
-=======
+
 # ETAP AI Engineering Platform - Multi-Stage Docker Build
 # =============================================================================
 # Stage 1: Python Builder
@@ -309,4 +308,3 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 USER appuser
 
 CMD ["python3", "engineering_service.py"]
->>>>>>> origin/fix/scenario-tests-properly

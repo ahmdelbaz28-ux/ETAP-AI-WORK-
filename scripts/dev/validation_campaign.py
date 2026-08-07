@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-<<<<<<< HEAD
 
 # Module-level string constants (extracted to satisfy S1192).
 _STUDY_TYPE_3BUS_LF = "3-Bus LF"  # NOSONAR
-=======
->>>>>>> origin/fix/scenario-tests-properly
 """Full Verification and Validation Campaign for Power Protection System"""
 
 import os
@@ -12,14 +9,10 @@ import sys
 
 import numpy as np
 
-<<<<<<< HEAD
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..", "..")))
 sys.path.insert(0, current_dir)
 
-=======
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
->>>>>>> origin/fix/scenario-tests-properly
 
 from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
@@ -43,7 +36,6 @@ class ValidationCampaign:
         self.failed = 0
         self.warnings = 0
 
-<<<<<<< HEAD
     # NOSONAR
     def _record(self, category, test_name, passed, detail="", warning=False):
         if passed:
@@ -52,10 +44,6 @@ class ValidationCampaign:
             status = "WARN"
         else:
             status = "FAIL"
-=======
-    def _record(self, category, test_name, passed, detail="", warning=False):
-        status = "PASS" if passed else ("WARN" if warning else "FAIL")
->>>>>>> origin/fix/scenario-tests-properly
         if passed and not warning:
             self.passed += 1
         elif warning:
@@ -63,11 +51,7 @@ class ValidationCampaign:
         else:
             self.failed += 1
         self.results.append((category, test_name, status, detail))
-<<<<<<< HEAD
         print(f"  [{status}] {category}, {test_name}: {detail}")
-=======
-        print(f"  [{status}] {category} | {test_name}: {detail}")
->>>>>>> origin/fix/scenario-tests-properly
 
     # =========================================================================
     # SECTION 1: LOAD FLOW VALIDATION
@@ -132,16 +116,12 @@ class ValidationCampaign:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=100, tol=1e-6)
 
-<<<<<<< HEAD
         self._record(
             _STUDY_TYPE_3BUS_LF,
             "Convergence",
             converged,
             f"Converged={converged}",  # NOSONAR
         )  # NOSONAR intentional repetition (audit constant)
-=======
-        self._record("3-Bus LF", "Convergence", converged, f"Converged={converged}")
->>>>>>> origin/fix/scenario-tests-properly
 
         if converged:
             for bid in sorted(system.buses.keys()):
@@ -150,11 +130,7 @@ class ValidationCampaign:
                 vang = np.angle(v, deg=True)
                 in_range = 0.9 <= vmag <= 1.1
                 self._record(
-<<<<<<< HEAD
                     _STUDY_TYPE_3BUS_LF,
-=======
-                    "3-Bus LF",
->>>>>>> origin/fix/scenario-tests-properly
                     f"Bus {bid} Voltage",
                     in_range,
                     f"|V|={vmag:.6f} pu, angle={vang:.4f} deg",
@@ -164,7 +140,6 @@ class ValidationCampaign:
             total_load = sum(b.load_power.real for b in system.buses.values())
             total_gen = sum(b.generation_power.real for b in system.buses.values())
             # Slack bus picks up the difference
-<<<<<<< HEAD
             p_loss = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 total_gen - total_load
             )  # NOSONAR
@@ -179,7 +154,7 @@ class ValidationCampaign:
             Ybus = solver.Ybus  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             sym = np.allclose(Ybus, Ybus.T)
             self._record(_STUDY_TYPE_3BUS_LF, "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
-=======
+
             P_loss = total_gen - total_load  # should be positive (losses)
             self._record(
                 "3-Bus LF",
@@ -192,7 +167,6 @@ class ValidationCampaign:
             Ybus = solver.Ybus
             sym = np.allclose(Ybus, Ybus.conj().T)
             self._record("3-Bus LF", "Ybus Symmetry", sym, f"Ybus is symmetric: {sym}")
->>>>>>> origin/fix/scenario-tests-properly
 
     def validate_ieee_5bus(self):
         """IEEE 5-Bus Load Flow Validation."""
@@ -351,16 +325,11 @@ class ValidationCampaign:
                 v = abs(system.buses[bid].voltage)
                 if not (0.9 <= v <= 1.1):
                     all_ok = False
-<<<<<<< HEAD
                     print(f"    Bus {bid}: V|={v:.4f} pu OUT OF RANGE")
-=======
-                    print(f"    Bus {bid}: |V|={v:.4f} pu OUT OF RANGE")
->>>>>>> origin/fix/scenario-tests-properly
             self._record(
                 "14-Bus LF",
                 "All Voltages in Range",
                 all_ok,
-<<<<<<< HEAD
                 "All within 0.9-1.1 pu"
                 if all_ok
                 else "Some out of range",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
@@ -369,12 +338,6 @@ class ValidationCampaign:
     def validate_ieee_30bus(  # NOSONAR
         self,
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-                "All within 0.9-1.1 pu" if all_ok else "Some out of range",
-            )
-
-    def validate_ieee_30bus(self):
->>>>>>> origin/fix/scenario-tests-properly
         """IEEE 30-Bus Load Flow Validation (Simplified)."""
         print("\n" + "=" * 70)
         print("SECTION 1D: IEEE 30-Bus Load Flow")
@@ -458,7 +421,6 @@ class ValidationCampaign:
         ]
         for lid, (fb, tb, z1) in enumerate(line_data, 1):
             system.add_line(
-<<<<<<< HEAD
                 Line(line_id=lid, from_bus=system.buses[fb], to_bus=system.buses[tb], z1=z1),
             )
 
@@ -482,11 +444,6 @@ class ValidationCampaign:
                 connected_buses.add(bid)
                 next_line_id += 1
 
-=======
-                Line(line_id=lid, from_bus=system.buses[fb], to_bus=system.buses[tb], z1=z1)
-            )
-
->>>>>>> origin/fix/scenario-tests-properly
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=300, tol=1e-6)
         self._record("30-Bus LF", "Convergence", converged, f"Converged={converged}")
@@ -567,7 +524,6 @@ class ValidationCampaign:
         system.build_sequence_networks()
 
         # Three-phase fault at bus 2
-<<<<<<< HEAD
         ybus_pos = system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -579,18 +535,16 @@ class ValidationCampaign:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
-=======
+
         Ybus_pos = system.get_ybus(seq="1")
         Ybus_neg = system.get_ybus(seq="2")
         Ybus_zero = system.get_ybus(seq="0")
 
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
->>>>>>> origin/fix/scenario-tests-properly
         bus_idx = 1  # bus 2 index
 
         # Three-phase fault
         result_3ph = analyzer.three_phase_fault(bus_idx)
-<<<<<<< HEAD
         if_3ph = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_3ph["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -608,7 +562,7 @@ class ValidationCampaign:
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
         Ith = if_3ph  # NOSONAR
-=======
+
         If_3ph = abs(result_3ph["fault_current"])
         self._record("SC", "3-Phase Fault Current > 0", If_3ph > 0, f"Ik''={If_3ph:.4f} pu")
 
@@ -621,37 +575,25 @@ class ValidationCampaign:
 
         # Thermal current Ith = Ik'' (simplified, assuming m=1 for far-from-generator)
         Ith = If_3ph  # Simplified
->>>>>>> origin/fix/scenario-tests-properly
         self._record("SC", "Thermal Current", Ith > 0, f"Ith={Ith:.4f} pu")
 
         # SLG fault
         result_slg = analyzer.line_to_ground_fault(bus_idx)
-<<<<<<< HEAD
         if_slg = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_slg["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         self._record("SC", "SLG Fault Current > 0", if_slg > 0, f"I_SLG={if_slg:.4f} pu")
-=======
-        If_slg = abs(result_slg["fault_current"])
-        self._record("SC", "SLG Fault Current > 0", If_slg > 0, f"I_SLG={If_slg:.4f} pu")
->>>>>>> origin/fix/scenario-tests-properly
 
         # SLG should be different from 3-phase
         self._record(
             "SC",
             "SLG != 3-Phase",
-<<<<<<< HEAD
             abs(if_slg - if_3ph) > 0.01,
             f"SLG={if_slg:.4f}, 3ph={if_3ph:.4f}",
-=======
-            abs(If_slg - If_3ph) > 0.01,
-            f"SLG={If_slg:.4f}, 3ph={If_3ph:.4f}",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Line-to-line fault
         result_ll = analyzer.line_to_line_fault(bus_idx)
-<<<<<<< HEAD
         if_ll = abs(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             result_ll["fault_current"]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -670,7 +612,7 @@ class ValidationCampaign:
             "DLG Fault Currents > 0",
             ib > 0 and ic > 0,
             f"Ib={ib:.4f}, Ic={ic:.4f} pu",
-=======
+
         If_ll = abs(result_ll["fault_current"])
         self._record("SC", "LL Fault Current > 0", If_ll > 0, f"I_LL={If_ll:.4f} pu")
 
@@ -680,7 +622,6 @@ class ValidationCampaign:
         Ic = abs(result_dlg["fault_current_c"])
         self._record(
             "SC", "DLG Fault Currents > 0", Ib > 0 and Ic > 0, f"Ib={Ib:.4f}, Ic={Ic:.4f} pu"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # =========================================================================
@@ -696,7 +637,6 @@ class ValidationCampaign:
 
         # Test Case 1: IEEE 1584 example - 4.16 kV, 20 kA, VCB, Box
         try:
-<<<<<<< HEAD
             iarc, iarc_red = (
                 engine.calculate_arc_current(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                     4.16, 20.0, ElectrodeConfig.VCB
@@ -712,7 +652,7 @@ class ValidationCampaign:
             self._record("ArcFlash", "Iarc < Ibf", iarc < 20.0, f"Iarc={iarc:.4f} < Ibf=20.0 kA")
             # Reduced should be 85% of full
             ratio = iarc_red / iarc if iarc > 0 else 0
-=======
+
             Iarc, Iarc_red = engine.calculate_arc_current(4.16, 20.0, ElectrodeConfig.VCB)
             self._record(
                 "ArcFlash",
@@ -724,7 +664,6 @@ class ValidationCampaign:
             self._record("ArcFlash", "Iarc < Ibf", Iarc < 20.0, f"Iarc={Iarc:.4f} < Ibf=20.0 kA")
             # Reduced should be 85% of full
             ratio = Iarc_red / Iarc if Iarc > 0 else 0
->>>>>>> origin/fix/scenario-tests-properly
             self._record(
                 "ArcFlash",
                 "Reduced = 85% of Full",
@@ -736,7 +675,6 @@ class ValidationCampaign:
 
         # Test Case 2: Incident Energy
         try:
-<<<<<<< HEAD
             (
                 e_final,
                 e_full,
@@ -757,7 +695,7 @@ class ValidationCampaign:
                 "E_full > 0 and E_red > 0",
                 e_full > 0 and e_red > 0,
                 f"E_full={e_full:.4f}, E_red={e_red:.4f}",
-=======
+
             E_final, E_full, E_red = engine.calculate_incident_energy(
                 4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX
             )
@@ -767,24 +705,18 @@ class ValidationCampaign:
                 "E_full > 0 and E_red > 0",
                 E_full > 0 and E_red > 0,
                 f"E_full={E_full:.4f}, E_red={E_red:.4f}",
->>>>>>> origin/fix/scenario-tests-properly
             )
         except Exception as e:
             self._record("ArcFlash", "Incident Energy Calculation", False, f"Error: {e}")
 
         # Test Case 3: Arc Flash Boundary
         try:
-<<<<<<< HEAD
             D_boundary = engine.calculate_arc_flash_boundary(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 4.16,
                 20.0,
                 0.5,
                 ElectrodeConfig.VCB,
                 EnclosureType.BOX,
-=======
-            D_boundary = engine.calculate_arc_flash_boundary(
-                4.16, 20.0, 0.5, ElectrodeConfig.VCB, EnclosureType.BOX
->>>>>>> origin/fix/scenario-tests-properly
             )
             self._record(
                 "ArcFlash",
@@ -798,16 +730,12 @@ class ValidationCampaign:
         # Test Case 4: Complete analysis
         try:
             result = engine.calculate(
-<<<<<<< HEAD
                 4.16,
                 20.0,
                 0.5,
                 610.0,
                 ElectrodeConfig.VCB,
                 EnclosureType.BOX,
-=======
-                4.16, 20.0, 0.5, 610.0, ElectrodeConfig.VCB, EnclosureType.BOX
->>>>>>> origin/fix/scenario-tests-properly
             )
             self._record(
                 "ArcFlash",
@@ -833,18 +761,12 @@ class ValidationCampaign:
         # Test Case 6: Different electrode configurations
         for config in ElectrodeConfig:
             try:
-<<<<<<< HEAD
                 iarc, _ = engine.calculate_arc_current(4.16, 20.0, config)
                 self._record(
                     "ArcFlash",
                     f"Arc Current {config.value}",
                     iarc > 0,
                     f"Iarc={iarc:.4f} kA",
-=======
-                Iarc, _ = engine.calculate_arc_current(4.16, 20.0, config)
-                self._record(
-                    "ArcFlash", f"Arc Current {config.value}", Iarc > 0, f"Iarc={Iarc:.4f} kA"
->>>>>>> origin/fix/scenario-tests-properly
                 )
             except Exception as e:
                 self._record("ArcFlash", f"Arc Current {config.value}", False, f"Error: {e}")
@@ -868,14 +790,10 @@ class ValidationCampaign:
         curves = IEC60255Curves()
         t_si = curves.standard_inverse(1.0, 10.0, 1.0)
         self._record(
-<<<<<<< HEAD
             "ProtCoord",
             "IEC 60255 SI Curve",
             t_si > 0,
             f"t={t_si:.4f}s at TMS=1.0, I/Ip=10",
-=======
-            "ProtCoord", "IEC 60255 SI Curve", t_si > 0, f"t={t_si:.4f}s at TMS=1.0, I/Ip=10"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         t_vi = curves.very_inverse(1.0, 10.0, 1.0)
@@ -897,13 +815,9 @@ class ValidationCampaign:
         # Coordination check
         fault_currents = [2.0, 5.0, 10.0, 20.0]
         results = coord_engine.check_coordination_range(
-<<<<<<< HEAD
             relay_upstream,
             relay_downstream,
             fault_currents,
-=======
-            relay_upstream, relay_downstream, fault_currents
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         all_coordinated = all(r["coordinated"] for r in results)
@@ -934,13 +848,9 @@ class ValidationCampaign:
 
         # TMS adjustment suggestion
         suggested_tms = coord_engine.suggest_tms_adjustment(
-<<<<<<< HEAD
             relay_upstream,
             relay_downstream,
             fault_currents,
-=======
-            relay_upstream, relay_downstream, fault_currents
->>>>>>> origin/fix/scenario-tests-properly
         )
         self._record(
             "ProtCoord",
@@ -953,7 +863,6 @@ class ValidationCampaign:
         from relays.relay import DirectionalRelay
 
         dir_relay = DirectionalRelay(
-<<<<<<< HEAD
             relay_id=3,
             name="Dir-67",
             voltage_threshold=0.1,
@@ -966,13 +875,12 @@ class ValidationCampaign:
             complex(0.5, 0) * np.exp(1j * np.radians(-30))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         picked_up = dir_relay.pickup_logic(v_forward, i_forward)
-=======
+
             relay_id=3, name="Dir-67", voltage_threshold=0.1, angle_offset=30
         )
         V_forward = complex(1.0, 0) * np.exp(1j * 0)
         I_forward = complex(0.5, 0) * np.exp(1j * np.radians(-30))
         picked_up = dir_relay.pickup_logic(V_forward, I_forward)
->>>>>>> origin/fix/scenario-tests-properly
         self._record(
             "ProtCoord",
             "67 Relay Forward Direction",
@@ -981,7 +889,6 @@ class ValidationCampaign:
         )
 
         # Test 21 Relay (Distance)
-<<<<<<< HEAD
         from relays.relay import (
             DistanceRelay,
         )
@@ -1002,7 +909,7 @@ class ValidationCampaign:
             "21 Relay Impedance Check",
             picked_up_dist == (abs(z_measured) < 0.5),
             f"Z={abs(z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
-=======
+
         from relays.relay import DistanceRelay
 
         dist_relay = DistanceRelay(relay_id=4, name="Dist-21", impedance_setting=0.5)
@@ -1015,7 +922,6 @@ class ValidationCampaign:
             "21 Relay Impedance Check",
             picked_up_dist == (abs(Z_measured) < 0.5),
             f"Z={abs(Z_measured):.4f}, Setting=0.5, Picked up: {picked_up_dist}",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Test 87 Relay (Differential)
@@ -1023,13 +929,8 @@ class ValidationCampaign:
 
         diff_relay = DifferentialRelay(relay_id=5, name="Diff-87", Ip=0.1, slope1=0.2, slope2=0.5)
         # Internal fault: high differential
-<<<<<<< HEAD
         Ibias_int = 2.0  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Idiff_int = 1.0  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ibias_int = 2.0
-        Idiff_int = 1.0
->>>>>>> origin/fix/scenario-tests-properly
         picked_up_int = diff_relay.pickup_logic(Ibias_int, Idiff_int)
         self._record(
             "ProtCoord",
@@ -1039,13 +940,8 @@ class ValidationCampaign:
         )
 
         # External fault: low differential
-<<<<<<< HEAD
         Ibias_ext = 2.0  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Idiff_ext = 0.05  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        Ibias_ext = 2.0
-        Idiff_ext = 0.05
->>>>>>> origin/fix/scenario-tests-properly
         picked_up_ext = diff_relay.pickup_logic(Ibias_ext, Idiff_ext)
         self._record(
             "ProtCoord",
@@ -1079,14 +975,10 @@ class ValidationCampaign:
         solver = LoadFlowSolver(system)
         converged = solver.solve(max_iter=200, tol=1e-6)
         self._record(
-<<<<<<< HEAD
             "Stability",
             "High R/X Convergence",
             converged,
             f"R/X=5.0, Converged={converged}",
-=======
-            "Stability", "High R/X Convergence", converged, f"R/X=5.0, Converged={converged}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Test 2: Weak grid (high impedance)
@@ -1097,25 +989,17 @@ class ValidationCampaign:
         system2.add_bus(bus1)
         system2.add_bus(bus2)
         system2.add_line(Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=complex(0.5, 1.0)))
-<<<<<<< HEAD
         load1 = Load(load_id=1, bus=bus2, load_power=complex(0.2, 0.05))
-=======
-        load1 = Load(load_id=1, bus=bus2, load_power=complex(0.8, 0.3))
->>>>>>> origin/fix/scenario-tests-properly
         system2.add_load(load1)
         bus1.generation_power = complex(0.0, 0.0)
 
         solver2 = LoadFlowSolver(system2)
         converged2 = solver2.solve(max_iter=200, tol=1e-6)
         self._record(
-<<<<<<< HEAD
             "Stability",
             "Weak Grid Convergence",
             converged2,
             f"Z=0.5+j1.0, Converged={converged2}",
-=======
-            "Stability", "Weak Grid Convergence", converged2, f"Z=0.5+j1.0, Converged={converged2}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Test 3: Large radial system (10 buses)
@@ -1140,11 +1024,7 @@ class ValidationCampaign:
                     from_bus=system3.buses[lid],
                     to_bus=system3.buses[lid + 1],
                     z1=complex(0.01, 0.05),
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         for bid in range(2, 11):
@@ -1154,14 +1034,10 @@ class ValidationCampaign:
         solver3 = LoadFlowSolver(system3)
         converged3 = solver3.solve(max_iter=300, tol=1e-6)
         self._record(
-<<<<<<< HEAD
             "Stability",
             "10-Bus Radial Convergence",
             converged3,
             f"Converged={converged3}",
-=======
-            "Stability", "10-Bus Radial Convergence", converged3, f"Converged={converged3}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         if converged3:
@@ -1169,14 +1045,10 @@ class ValidationCampaign:
             v1 = abs(system3.buses[1].voltage)
             v10 = abs(system3.buses[10].voltage)
             self._record(
-<<<<<<< HEAD
                 "Stability",
                 "Radial Voltage Drop",
                 v10 < v1,
                 f"V1={v1:.4f}, V10={v10:.4f} pu",
-=======
-                "Stability", "Radial Voltage Drop", v10 < v1, f"V1={v1:.4f}, V10={v10:.4f} pu"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Test 4: Meshed system
@@ -1224,11 +1096,7 @@ class ValidationCampaign:
                     from_bus=system4.buses[fb],
                     to_bus=system4.buses[tb],
                     z1=complex(0.02, 0.06),
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         for bid in [3, 4, 5]:
@@ -1350,11 +1218,7 @@ class ValidationCampaign:
         print(
             f"  Pass Rate: {self.passed / total_tests * 100:.1f}%"
             if total_tests > 0
-<<<<<<< HEAD
             else "  No tests run",
-=======
-            else "  No tests run"
->>>>>>> origin/fix/scenario-tests-properly
         )
         print("=" * 70)
 

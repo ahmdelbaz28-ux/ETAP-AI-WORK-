@@ -133,7 +133,6 @@ class TestMetricsHelpers:
         assert b"# HELP" in output
 
     def test_get_content_type(self) -> None:
-<<<<<<< HEAD
         """get_metrics_content_type returns the standard content-type.
 
         The exact version string depends on the installed prometheus-client
@@ -147,10 +146,6 @@ class TestMetricsHelpers:
         assert (
             "version=0.0.4" in ct or "version=1.0.0" in ct
         ), f"Unexpected Prometheus content-type version: {ct}"
-=======
-        """get_metrics_content_type returns the standard content-type."""
-        assert get_metrics_content_type() == "text/plain; version=0.0.4; charset=utf-8"
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_record_validation_failure(self) -> None:
         """record_validation_failure increments the counter."""

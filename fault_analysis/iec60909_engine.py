@@ -16,7 +16,6 @@ Calculates:
 - Thermal equivalent short-circuit current Ith
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,12 +24,6 @@ from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
-=======
-from dataclasses import dataclass
-from enum import Enum
-
-import numpy as np
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class FaultType(Enum):
@@ -57,7 +50,6 @@ class ShortCircuitResult:
 
     fault_type: str
     fault_bus_index: int
-<<<<<<< HEAD
     ik_initial: complex  # NOSONAR
     Ik_initial_magnitude: float  # NOSONAR
     ip_peak: float  # Peak current (kA)
@@ -92,7 +84,7 @@ class ShortCircuitResult:
 # part near zero). IEC 60909-0:2016 Section 4.3.1.2 recommends a high R/X
 # value (typically 10.0) for this edge case to avoid division by zero.
 _DEFAULT_RX_RATIO = 10.0
-=======
+
     Ik_initial: complex  # Initial symmetrical current (kA)
     Ik_initial_magnitude: float  # |Ik"| (kA)
     ip_peak: float  # Peak current (kA)
@@ -109,7 +101,6 @@ _DEFAULT_RX_RATIO = 10.0
     Ia: complex = complex(0, 0)
     Ib: complex = complex(0, 0)
     Ic: complex = complex(0, 0)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class IEC60909Engine:
@@ -119,7 +110,6 @@ class IEC60909Engine:
 
     def __init__(
         self,
-<<<<<<< HEAD
         ybus_pos: npt.NDArray[
             np.complexfloating
         ],  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -135,7 +125,7 @@ class IEC60909Engine:
         r_override: dict[int, float] | None = None,
         frequency_hz: float = 50.0,
     ) -> None:
-=======
+
         Ybus_pos,
         Ybus_neg,
         Ybus_zero,
@@ -144,7 +134,6 @@ class IEC60909Engine:
         generators=None,
         r_override=None,
     ):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Initialize the IEC 60909 engine.
 
@@ -157,25 +146,20 @@ class IEC60909Engine:
         generators (list): List of generator objects with impedance info.
         r_override (dict): Override R/X ratios for specific buses.
         """
-<<<<<<< HEAD
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_neg = ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_zero = ybus_zero  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = ybus_pos.shape[0]
-=======
+
         self.Ybus_pos = Ybus_pos
         self.Ybus_neg = Ybus_neg
         self.Ybus_zero = Ybus_zero
         self.n_buses = Ybus_pos.shape[0]
->>>>>>> origin/fix/scenario-tests-properly
         self.base_mva = base_mva
         self.base_kv = base_kv
         self.generators = generators or []
         self.r_override = r_override or {}
-<<<<<<< HEAD
         self.frequency_hz = max(1.0, float(frequency_hz))  # SECURITY: S-20 — was hardcoded 50.0
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
         # Base impedance and current
         self.base_z = (base_kv**2) / base_mva  # ohms
@@ -184,7 +168,6 @@ class IEC60909Engine:
         # Compute Zbus matrices (inverse of Ybus)
         self._compute_zbus()
 
-<<<<<<< HEAD
     def _compute_zbus(self) -> None:
         """Compute Zbus matrices from Ybus."""
         try:
@@ -207,7 +190,7 @@ class IEC60909Engine:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 
     def _get_voltage_factor(self, bus_kv: float, maximum: bool = True) -> float:
-=======
+
     def _compute_zbus(self):
         """Compute Zbus matrices from Ybus."""
         try:
@@ -224,7 +207,6 @@ class IEC60909Engine:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 
     def _get_voltage_factor(self, bus_kv, maximum=True):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get IEC 60909 voltage factor c.
 
@@ -250,18 +232,13 @@ class IEC60909Engine:
             else:
                 return VoltageFactorC.C_MIN_LV.value
 
-<<<<<<< HEAD
     def _get_rx_ratio(self, bus_index: int) -> float:
-=======
-    def _get_rx_ratio(self, bus_index):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get the R/X ratio at a bus for peak current calculation.
 
         Per IEC 60909, the R/X ratio determines the peak factor kappa.
         """
         z_pos = self.Zbus_pos[bus_index, bus_index]
-<<<<<<< HEAD
         # SECURITY AUDIT 2026-07-25 — Fix S-21: Use z_pos.imag (not abs).
         # Per IEC 60909 Clause 4.3.3.1, R/X ratio uses the actual (signed) imaginary
         # component. Using abs() incorrectly makes inductive/capacitive X equivalent.
@@ -269,7 +246,7 @@ class IEC60909Engine:
         return rx_ratio
 
     def _calculate_kappa(self, bus_index: int) -> float:
-=======
+
         if z_pos.imag != 0:
             rx_ratio = z_pos.real / abs(z_pos.imag)
         else:
@@ -277,7 +254,6 @@ class IEC60909Engine:
         return rx_ratio
 
     def _calculate_kappa(self, bus_index):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate the peak factor kappa per IEC 60909.
 
@@ -290,15 +266,11 @@ class IEC60909Engine:
         kappa = 1.02 + 0.98 * np.exp(-3.0 * rx)
         return min(kappa, 2.0)  # kappa max is 2.0
 
-<<<<<<< HEAD
     def _calculate_mu(
         self,
         ik_initial_pu: float,
         t_min: float | None = None,
     ) -> float:  # NOSONAR physics/engineering notation
-=======
-    def _calculate_mu(self, Ik_initial_pu, t_min=0.02):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate the factor mu for breaking current per IEC 60909.
 
@@ -306,29 +278,21 @@ class IEC60909Engine:
 
         Parameters:
         Ik_initial_pu (float): Initial symmetrical current in per-unit.
-<<<<<<< HEAD
         t_min (float | None): Minimum delay time in seconds. If None,
             derived from self.frequency_hz (one cycle: 1/freq).
-=======
-        t_min (float): Minimum delay time in seconds (0.02 for 50Hz, 0.0167 for 60Hz).
->>>>>>> origin/fix/scenario-tests-properly
 
         Returns:
         float: Factor mu.
         """
-<<<<<<< HEAD
         # SECURITY (S-IEC-1): Derive t_min from frequency if not provided.
         # 50Hz → 0.02s, 60Hz → 0.01667s per IEC 60909.
         if t_min is None:
             t_min = 1.0 / self.frequency_hz
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         # Simplified mu calculation
         # For t_min = 0.02s (50Hz): mu = 0.84 + 0.26 * exp(-0.26 * Ikg/IrG)
         # For t_min = 0.05s: mu = 0.71 + 0.51 * exp(-0.3 * Ikg/IrG)
         if t_min <= 0.02:
-<<<<<<< HEAD
             mu = 0.84 + 0.26 * np.exp(-0.26 * min(ik_initial_pu, 20.0))
         elif t_min <= 0.05:
             mu = 0.71 + 0.51 * np.exp(-0.30 * min(ik_initial_pu, 20.0))
@@ -343,7 +307,7 @@ class IEC60909Engine:
         t_k: float = 1.0,
         m_factor: float = 1.0,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ) -> float:
-=======
+
             mu = 0.84 + 0.26 * np.exp(-0.26 * min(Ik_initial_pu, 20.0))
         elif t_min <= 0.05:
             mu = 0.71 + 0.51 * np.exp(-0.30 * min(Ik_initial_pu, 20.0))
@@ -352,7 +316,6 @@ class IEC60909Engine:
         return min(mu, 1.0)
 
     def _calculate_thermal_factor(self, Ik_initial, ip, t_k=1.0, m_factor=1.0):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate thermal equivalent current Ith per IEC 60909.
 
@@ -373,19 +336,17 @@ class IEC60909Engine:
         """
         # Factor n (aperiodic component)
         if t_k > 0:
-<<<<<<< HEAD
             f = self.frequency_hz  # SECURITY AUDIT 2026-07-25 — Fix S-20: was hardcoded 50 Hz
             n = 2.0 * (1.0 / (4.0 * f * t_k)) * (1.0 - np.exp(-2.0 * f * t_k))
             # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
             if ik_initial > 0:
                 n_simplified = (ip / ik_initial - 1.0) ** 2
-=======
+
             f_50 = 50.0  # assume 50 Hz
             n = 2.0 * (1.0 / (4.0 * f_50 * t_k)) * (1.0 - np.exp(-2.0 * f_50 * t_k))
             # Simplified: n ≈ (ip/Ik" - 1)^2 for short durations
             if Ik_initial > 0:
                 n_simplified = (ip / Ik_initial - 1.0) ** 2
->>>>>>> origin/fix/scenario-tests-properly
                 n = min(n, n_simplified)
         else:
             n = 0.0
@@ -393,7 +354,6 @@ class IEC60909Engine:
         # Factor m
         m = m_factor
 
-<<<<<<< HEAD
         ith = (
             ik_initial * np.sqrt(m + n)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -408,14 +368,13 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-=======
+
         Ith = Ik_initial * np.sqrt(m + n)
         return Ith
 
     def calculate_three_phase_fault(
         self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
     ):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate three-phase short-circuit current per IEC 60909.
 
@@ -436,19 +395,14 @@ class IEC60909Engine:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
         # Pre-fault voltage (per-unit)
-<<<<<<< HEAD
         v_pre = (
             c_factor * 1.0
         )  # NOSONAR
-=======
-        V_pre = c_factor * 1.0  # c * Un/Un = c in per-unit
->>>>>>> origin/fix/scenario-tests-properly
 
         # Positive sequence driving point impedance
         Z1 = self.Zbus_pos[bus_index, bus_index]
 
         # Initial symmetrical short-circuit current (per-unit)
-<<<<<<< HEAD
         ik_pu = (
             v_pre / Z1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -484,7 +438,7 @@ class IEC60909Engine:
         ic_phase = (
             ik_pu * np.exp(1j * (2 * np.pi / 3))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         Ik_pu = V_pre / Z1
 
         # Convert to kA
@@ -508,12 +462,10 @@ class IEC60909Engine:
         Ia = Ik_pu
         Ib_phase = Ik_pu * np.exp(1j * (-2 * np.pi / 3))
         Ic_phase = Ik_pu * np.exp(1j * (2 * np.pi / 3))
->>>>>>> origin/fix/scenario-tests-properly
 
         return ShortCircuitResult(
             fault_type=FaultType.THREE_PHASE.value,
             fault_bus_index=bus_index,
-<<<<<<< HEAD
             ik_initial=ik_pu,
             Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
@@ -538,7 +490,7 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-=======
+
             Ik_initial=Ik_pu,
             Ik_initial_magnitude=Ik_kA,
             ip_peak=ip,
@@ -557,7 +509,6 @@ class IEC60909Engine:
     def calculate_line_to_ground_fault(
         self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
     ):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate single line-to-ground short-circuit current per IEC 60909.
 
@@ -577,29 +528,20 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-<<<<<<< HEAD
         v_pre = (
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        V_pre = c_factor * 1.0
->>>>>>> origin/fix/scenario-tests-properly
 
         Z1 = self.Zbus_pos[bus_index, bus_index]
         Z2 = self.Zbus_neg[bus_index, bus_index]
         Z0 = self.Zbus_zero[bus_index, bus_index]
 
         # Sequence currents for SLG fault: I0 = I1 = I2 (series connection)
-<<<<<<< HEAD
         I1 = v_pre / (Z1 + Z2 + Z0)
-=======
-        I1 = V_pre / (Z1 + Z2 + Z0)
->>>>>>> origin/fix/scenario-tests-properly
         I2 = I1
         I0 = I1
 
         # Phase A current = 3 * I1 (for SLG fault)
-<<<<<<< HEAD
         ia = (
             3 * I1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -634,7 +576,7 @@ class IEC60909Engine:
         ic_phase = complex(
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         Ia = 3 * I1
 
         # Convert to kA
@@ -657,12 +599,10 @@ class IEC60909Engine:
         # Phase currents
         Ib_phase = complex(0, 0)
         Ic_phase = complex(0, 0)
->>>>>>> origin/fix/scenario-tests-properly
 
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
-<<<<<<< HEAD
             ik_initial=ia,
             Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
@@ -687,7 +627,7 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-=======
+
             Ik_initial=Ia,
             Ik_initial_magnitude=Ik_kA,
             ip_peak=ip,
@@ -706,7 +646,6 @@ class IEC60909Engine:
     def calculate_line_to_line_fault(
         self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
     ):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate line-to-line short-circuit current per IEC 60909.
 
@@ -726,29 +665,20 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-<<<<<<< HEAD
         v_pre = (
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        V_pre = c_factor * 1.0
->>>>>>> origin/fix/scenario-tests-properly
 
         Z1 = self.Zbus_pos[bus_index, bus_index]
         Z2 = self.Zbus_neg[bus_index, bus_index]
 
         # Sequence currents
-<<<<<<< HEAD
         I1 = v_pre / (Z1 + Z2)
-=======
-        I1 = V_pre / (Z1 + Z2)
->>>>>>> origin/fix/scenario-tests-properly
         I2 = -I1
         I0 = complex(0, 0)
 
         # Phase currents for LL fault (B-C fault)
         # I2 = -I1, I0 = 0 for line-to-line fault
-<<<<<<< HEAD
         ia = complex(
             0, 0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -786,7 +716,7 @@ class IEC60909Engine:
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         Ia = complex(0, 0)
         a_op = np.exp(1j * 2 * np.pi / 3)
         a2_op = np.exp(-1j * 2 * np.pi / 3)
@@ -810,12 +740,10 @@ class IEC60909Engine:
 
         # Thermal
         Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
->>>>>>> origin/fix/scenario-tests-properly
 
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_LINE.value,
             fault_bus_index=bus_index,
-<<<<<<< HEAD
             ik_initial=ib_phase,
             Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
@@ -840,7 +768,7 @@ class IEC60909Engine:
         t_min: float | None = None,
         t_k: float = 1.0,
     ) -> ShortCircuitResult:
-=======
+
             Ik_initial=Ib_phase,
             Ik_initial_magnitude=Ik_kA,
             ip_peak=ip,
@@ -859,7 +787,6 @@ class IEC60909Engine:
     def calculate_double_line_to_ground_fault(
         self, bus_index, c_factor=None, bus_kv=115.0, maximum=True, t_min=0.02, t_k=1.0
     ):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate double line-to-ground short-circuit current per IEC 60909.
 
@@ -879,35 +806,25 @@ class IEC60909Engine:
         if c_factor is None:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
-<<<<<<< HEAD
         v_pre = (
             c_factor * 1.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        V_pre = c_factor * 1.0
->>>>>>> origin/fix/scenario-tests-properly
 
         Z1 = self.Zbus_pos[bus_index, bus_index]
         Z2 = self.Zbus_neg[bus_index, bus_index]
         Z0 = self.Zbus_zero[bus_index, bus_index]
 
         # Sequence currents
-<<<<<<< HEAD
         z2_z0_parallel = (
             (Z2 * Z0) / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         I1 = v_pre / (Z1 + z2_z0_parallel)
-=======
-        Z2_Z0_parallel = (Z2 * Z0) / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
-        I1 = V_pre / (Z1 + Z2_Z0_parallel)
->>>>>>> origin/fix/scenario-tests-properly
         I2 = -I1 * Z0 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
         I0 = -I1 * Z2 / (Z2 + Z0) if (Z2 + Z0) != 0 else complex(0, 0)
 
         # Phase currents using symmetrical component transformation
         a = np.exp(1j * 2 * np.pi / 3)
         a2 = np.exp(-1j * 2 * np.pi / 3)
-<<<<<<< HEAD
         ia = (
             I1 + I2 + I0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -940,7 +857,7 @@ class IEC60909Engine:
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         Ia = I1 + I2 + I0
         Ib_phase = a2 * I1 + a * I2 + I0
         Ic_phase = a * I1 + a2 * I2 + I0
@@ -961,12 +878,10 @@ class IEC60909Engine:
 
         # Thermal
         Ith = self._calculate_thermal_factor(Ik_kA, ip, t_k)
->>>>>>> origin/fix/scenario-tests-properly
 
         return ShortCircuitResult(
             fault_type=FaultType.DOUBLE_LINE_TO_GROUND.value,
             fault_bus_index=bus_index,
-<<<<<<< HEAD
             ik_initial=max(ib_phase, ic_phase, key=abs),
             Ik_initial_magnitude=ik_ka,
             ip_peak=ip,
@@ -985,7 +900,7 @@ class IEC60909Engine:
     def calculate(
         self, fault_type: str | FaultType, bus_index: int, **kwargs: Any
     ) -> ShortCircuitResult:
-=======
+
             Ik_initial=max(Ib_phase, Ic_phase, key=abs),
             Ik_initial_magnitude=Ik_kA,
             ip_peak=ip,
@@ -1002,7 +917,6 @@ class IEC60909Engine:
         )
 
     def calculate(self, fault_type, bus_index, **kwargs):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate short-circuit current for a given fault type.
 

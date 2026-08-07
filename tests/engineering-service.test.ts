@@ -40,11 +40,7 @@ function makeRequest(
   const url = new URL(path, 'http://localhost');
   const kv = mockKV();
   const testEnv: Partial<Env> = env ?? {
-<<<<<<< HEAD
     API_KEY_SECRET: 'test-secret-long-enough-32-chars-key',
-=======
-    API_KEY_SECRET: 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
     RATE_LIMIT_KV: kv,
     TASK_STORE_KV: kv,
     METRICS_KV: kv,
@@ -60,11 +56,7 @@ describe('Engineering Service Integration', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-<<<<<<< HEAD
         'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-        'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       },
       body: JSON.stringify({ studyType: 'load_flow', parameters: {} }),
     });
@@ -78,11 +70,7 @@ describe('Engineering Service Integration', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-<<<<<<< HEAD
         'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-        'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       },
       body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
     });
@@ -97,11 +85,7 @@ describe('Engineering Service Integration', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-<<<<<<< HEAD
         'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-        'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       },
       body: JSON.stringify({ studyType: 'invalid_type', parameters: {} }),
     });
@@ -115,11 +99,7 @@ describe('Engineering Service Integration', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-<<<<<<< HEAD
         'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-        'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       },
       body: JSON.stringify({ parameters: {} }),
     });
@@ -157,11 +137,7 @@ describe('Engineering Service Integration', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-<<<<<<< HEAD
           'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-          'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
         },
         body: JSON.stringify({ studyType, parameters: {}, dryRun: true }),
       });
@@ -183,11 +159,7 @@ describe('Engineering Service Integration', () => {
   it('persists task to KV and returns status', async () => {
     const kv = mockKV();
     const env = {
-<<<<<<< HEAD
       API_KEY_SECRET: 'test-secret-long-enough-32-chars-key',
-=======
-      API_KEY_SECRET: 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       RATE_LIMIT_KV: kv,
       TASK_STORE_KV: kv,
       METRICS_KV: kv,
@@ -197,11 +169,7 @@ describe('Engineering Service Integration', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-<<<<<<< HEAD
         'x-api-key': 'test-secret-long-enough-32-chars-key',
-=======
-        'x-api-key': 'test-secret',
->>>>>>> origin/fix/scenario-tests-properly
       },
       body: JSON.stringify({ studyType: 'load_flow', parameters: {}, dryRun: true }),
     }, env);
@@ -210,11 +178,7 @@ describe('Engineering Service Integration', () => {
     const taskId = body.taskId as string;
 
     const statusRes = await makeRequest(`/api/v1/studies/status/${taskId}`, {
-<<<<<<< HEAD
       headers: { 'x-api-key': 'test-secret-long-enough-32-chars-key' },
-=======
-      headers: { 'x-api-key': 'test-secret' },
->>>>>>> origin/fix/scenario-tests-properly
     }, env);
     expect(statusRes.status).toBe(200);
     const statusBody = (await statusRes.json()) as Record<string, unknown>;

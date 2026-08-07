@@ -1,5 +1,4 @@
 # =============================================================================
-<<<<<<< HEAD
 # AhmedETAP — Terraform Remote State Backend (Azure Blob Storage)
 # =============================================================================
 # CRITICAL FIX: Switched from local backend to azurerm backend.
@@ -31,7 +30,7 @@ terraform {
     container_name       = null # overridden by backend.hcl
     key                  = null # overridden by backend.hcl
     use_azuread_auth     = true # OIDC auth, no storage key needed
-=======
+
 # AhmedETAP — Terraform Local State Backend
 # =============================================================================
 # Uses local file-based state. No Azure subscription required.
@@ -46,6 +45,5 @@ terraform {
 terraform {
   backend "local" {
     path = "terraform.tfstate"
->>>>>>> origin/fix/scenario-tests-properly
   }
 }

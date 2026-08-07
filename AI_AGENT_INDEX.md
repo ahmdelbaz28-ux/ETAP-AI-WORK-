@@ -135,11 +135,7 @@ graph TB
 
 | Module | Path | Purpose | Dependencies | Status |
 |--------|------|---------|--------------|--------|
-<<<<<<< HEAD
 | **App** | `ui/src/App.tsx` | Root component, routing | react-router | Active |
-=======
-| **App** | `ui/src/App.tsx` | Root component, routing | react-router-dom | Active |
->>>>>>> origin/fix/scenario-tests-properly
 | **Dashboard** | `ui/src/pages/Dashboard.tsx` | Main dashboard | recharts, framer-motion | Active |
 | **Studies** | `ui/src/pages/Studies.tsx` | Study cards | — | Active |
 | **StudyRun** | `ui/src/pages/StudyRun.tsx` | Study execution | — | Active |

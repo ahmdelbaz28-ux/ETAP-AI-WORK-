@@ -5,7 +5,6 @@ Handles all digital twin synchronization endpoints.
 Separated from main engineering service for better modularity.
 """
 
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
@@ -22,12 +21,6 @@ router = APIRouter(
 # POST /events, DELETE /snapshots/{id}) lives in the upstream digital_twin/
 # Python package and is invoked from the engineering service, NOT exposed
 # via this router. Registering here so the UI status probe works.
-=======
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
-
-router = APIRouter(prefix="/api/v1/digital-twin", tags=["digital_twin"])
->>>>>>> origin/fix/scenario-tests-properly
 
 # Global state stores for digital twin
 _shared_state_store = None
@@ -72,26 +65,16 @@ async def get_digital_twin_status(request: Request):
                     "supported_models": ["Substation", "Bus", "Line", "Transformer", "Generator"],
                 },
                 "trace_id": trace_id,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
     except Exception as e:
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-<<<<<<< HEAD
         logger.exception(
             "digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id}
         )
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
-=======
-        logger.error("digital_twin_status_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
->>>>>>> origin/fix/scenario-tests-properly
         )

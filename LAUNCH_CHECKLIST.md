@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AhmedETAP — Production Launch Checklist
 
 > **Version:** v2.1.0
@@ -358,7 +357,7 @@ The following approvals are required before proceeding to production launch:
 ---
 
 > **Note:** This checklist should be reviewed and updated for each release. Items marked as completed should be verified, not assumed.
-=======
+
 # قائمة التحقق قبل الإطلاق — AhmedETAP
 
 ## ✅ ما قبل الإطلاق
@@ -382,4 +381,3 @@ The following approvals are required before proceeding to production launch:
 - [ ] مراقبة Grafana Dashboards
 - [ ] مراقبة Error logs
 - [ ] مراجعة أداء API (response time < 500ms)
->>>>>>> origin/fix/scenario-tests-properly

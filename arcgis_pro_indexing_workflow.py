@@ -3,14 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-<<<<<<< HEAD
 import re
 from datetime import datetime
 from typing import Any, Optional
 from urllib.parse import urlparse
 
 try:
-=======
+
 from datetime import datetime
 from typing import Any, Dict, List
 from urllib.parse import urlparse
@@ -22,7 +21,6 @@ except ImportError:  # pragma: no cover
 import re
 
 try:
->>>>>>> origin/fix/scenario-tests-properly
     from sentence_transformers import SentenceTransformer  # type: ignore
 except ImportError:  # pragma: no cover
     SentenceTransformer = None  # type: ignore
@@ -53,11 +51,7 @@ class ArcGISProIndexingWorkflow:
         self.transformer_model = None
         self.elastic_client = None
 
-<<<<<<< HEAD
     def fetch_data(self) -> list[dict[str, Any]]:
-=======
-    def fetch_data(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Step 1: Fetch documentation data from ArcGIS Pro documentation site.
         """
@@ -75,7 +69,6 @@ class ArcGISProIndexingWorkflow:
         for section in indexed_docs.get("documentation_sections", []):
             docs_to_process.extend(self._extract_doc_items(section, base_url))
 
-<<<<<<< HEAD
         self.logger.info("Fetched %s documentation items", len(docs_to_process))
         return docs_to_process
 
@@ -85,14 +78,13 @@ class ArcGISProIndexingWorkflow:
         base_url: str,
         parent: Optional[str] = None,
     ) -> list[dict[str, Any]]:
-=======
+
         self.logger.info(f"Fetched {len(docs_to_process)} documentation items")
         return docs_to_process
 
     def _extract_doc_items(
         self, section: Dict[str, Any], base_url: str, parent: str | None = None
     ) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Recursively extract documentation items from nested sections.
         """
@@ -115,11 +107,7 @@ class ArcGISProIndexingWorkflow:
 
         return items
 
-<<<<<<< HEAD
     def clean_data(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
-=======
-    def clean_data(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Step 2: Clean and validate the fetched data.
         """
@@ -129,11 +117,7 @@ class ArcGISProIndexingWorkflow:
         for item in raw_data:
             # Validate URL
             if not self._is_valid_url(item["url"]):
-<<<<<<< HEAD
                 self.logger.warning("Invalid URL skipped: %s", item["url"])
-=======
-                self.logger.warning(f"Invalid URL skipped: {item['url']}")
->>>>>>> origin/fix/scenario-tests-properly
                 continue
 
             # Clean title
@@ -151,11 +135,7 @@ class ArcGISProIndexingWorkflow:
 
             cleaned_data.append(cleaned_item)
 
-<<<<<<< HEAD
         self.logger.info("Cleaned %s items", len(cleaned_data))
-=======
-        self.logger.info(f"Cleaned {len(cleaned_data)} items")
->>>>>>> origin/fix/scenario-tests-properly
         return cleaned_data
 
     def _clean_text(self, text: str) -> str:
@@ -181,11 +161,7 @@ class ArcGISProIndexingWorkflow:
         except Exception:
             return False
 
-<<<<<<< HEAD
     def transform_data(self, cleaned_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
-=======
-    def transform_data(self, cleaned_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Step 3: Transform data by generating embeddings.
         """
@@ -204,29 +180,18 @@ class ArcGISProIndexingWorkflow:
             text_for_embedding = f"{item['title']} {item['content']}".strip()
 
             # Generate embedding
-<<<<<<< HEAD
             if self.transformer_model is None:
                 raise RuntimeError("Transformer model not initialized")
-=======
-            assert self.transformer_model is not None
->>>>>>> origin/fix/scenario-tests-properly
             embedding = self.transformer_model.encode(text_for_embedding).tolist()
 
             # Add embedding to item
             item["embedding_vector"] = embedding
             transformed_data.append(item)
 
-<<<<<<< HEAD
         self.logger.info("Transformed %s items with embeddings", len(transformed_data))
         return transformed_data
 
     def index_data(self, transformed_data: list[dict[str, Any]]):
-=======
-        self.logger.info(f"Transformed {len(transformed_data)} items with embeddings")
-        return transformed_data
-
-    def index_data(self, transformed_data: List[Dict[str, Any]]):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Step 4: Index the transformed data into Elasticsearch/MCP Server.
         """
@@ -240,12 +205,8 @@ class ArcGISProIndexingWorkflow:
                 raise RuntimeError("Elasticsearch client could not be initialized")
 
         # Create index if it doesn't exist
-<<<<<<< HEAD
         if self.elastic_client is None:
             raise RuntimeError("Elasticsearch client not initialized")
-=======
-        assert self.elastic_client is not None
->>>>>>> origin/fix/scenario-tests-properly
         index_name = self.config["steps"][3]["options"]["index_name"]
         if not self.elastic_client.indices.exists(index=index_name):
             mappings = self.config["steps"][3]["options"]["mappings"]
@@ -253,7 +214,6 @@ class ArcGISProIndexingWorkflow:
 
         # Index each document
         for i, item in enumerate(transformed_data):
-<<<<<<< HEAD
             # SHA-256 used as a deterministic document ID for Elasticsearch —
             # not a security primitive (no password, no signature).
             # usedforsecurity=False is the Python 3.9+ hint that tells static
@@ -274,7 +234,7 @@ class ArcGISProIndexingWorkflow:
         self.logger.info("Successfully indexed %s documents", len(transformed_data))
 
     def post_process(self, stats: dict[str, Any]):
-=======
+
             doc_id = hashlib.md5(item["url"].encode()).hexdigest()
 
             try:
@@ -290,7 +250,6 @@ class ArcGISProIndexingWorkflow:
         self.logger.info(f"Successfully indexed {len(transformed_data)} documents")
 
     def post_process(self, stats: Dict[str, Any]):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Step 5: Post-processing activities like reporting.
         """
@@ -307,32 +266,20 @@ class ArcGISProIndexingWorkflow:
 
         # In a real implementation, this would send an email report
         # For now, we'll just log the report
-<<<<<<< HEAD
         self.logger.info("Execution report: %s", json.dumps(report, indent=2))
-=======
-        self.logger.info(f"Execution report: {json.dumps(report, indent=2)}")
->>>>>>> origin/fix/scenario-tests-properly
 
         # Save report to file
         report_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_filename, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
-<<<<<<< HEAD
         self.logger.info("Report saved to %s", report_filename)
-=======
-        self.logger.info(f"Report saved to {report_filename}")
->>>>>>> origin/fix/scenario-tests-properly
 
     def run(self):
         """
         Execute the complete workflow.
         """
-<<<<<<< HEAD
         self.logger.info("Starting workflow: %s", self.config["workflow_name"])
-=======
-        self.logger.info(f"Starting workflow: {self.config['workflow_name']}")
->>>>>>> origin/fix/scenario-tests-properly
         start_time = time.time()
 
         try:
@@ -357,17 +304,10 @@ class ArcGISProIndexingWorkflow:
             self.post_process(stats)
 
             total_time = time.time() - start_time
-<<<<<<< HEAD
             self.logger.info("Workflow completed successfully in %.2f seconds", total_time)
 
         except Exception as e:
             self.logger.exception("Workflow failed with error: %s", str(e))
-=======
-            self.logger.info(f"Workflow completed successfully in {total_time:.2f} seconds")
-
-        except Exception as e:
-            self.logger.error(f"Workflow failed with error: {str(e)}")
->>>>>>> origin/fix/scenario-tests-properly
             raise
 
 

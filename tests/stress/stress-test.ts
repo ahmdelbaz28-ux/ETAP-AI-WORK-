@@ -24,16 +24,12 @@ interface StressResult {
   degradedGracefully: boolean;
 }
 
-<<<<<<< HEAD
 async function runRequest(
   endpoint: string,
   method: 'GET' | 'POST' = 'GET',
   body?: object,
   timeoutMs = 30000,
 ): Promise<{ latencyMs: number; status: number; ok: boolean; error?: string }> {
-=======
-async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: object, timeoutMs = 30000): Promise<{ latencyMs: number; status: number; ok: boolean; error?: string }> {
->>>>>>> origin/fix/scenario-tests-properly
   const start = Date.now();
   try {
     const controller = new AbortController();
@@ -55,7 +51,6 @@ async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body
     await res.text();
     return { latencyMs, status: res.status, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
-<<<<<<< HEAD
     return {
       latencyMs: Date.now() - start,
       status: 0,
@@ -71,28 +66,16 @@ async function runBurst(
   method: 'GET' | 'POST' = 'GET',
   body?: object,
 ): Promise<StressResult> {
-=======
-    return { latencyMs: Date.now() - start, status: 0, ok: false, error: e instanceof Error ? e.message : String(e) };
-  }
-}
-
-async function runBurst(requests: number, endpoint: string, method: 'GET' | 'POST' = 'GET', body?: object): Promise<StressResult> {
->>>>>>> origin/fix/scenario-tests-properly
   const start = Date.now();
   const promises = Array.from({ length: requests }, () => runRequest(endpoint, method, body));
   const settled = await Promise.allSettled(promises);
   const totalDurationMs = Date.now() - start;
 
-<<<<<<< HEAD
   const results = settled.map((r, _i) => {
-=======
-  const results = settled.map((r, i) => {
->>>>>>> origin/fix/scenario-tests-properly
     if (r.status === 'fulfilled') return r.value;
     return { latencyMs: 0, status: 0, ok: false, error: String(r.reason) };
   });
 
-<<<<<<< HEAD
   const successCount = results.filter((r) => r.ok).length;
   const errorCount = results.filter((r) => !r.ok && r.status !== 429).length;
   const rateLimitedCount = results.filter((r) => r.status === 429).length;
@@ -104,7 +87,7 @@ async function runBurst(requests: number, endpoint: string, method: 'GET' | 'POS
     .filter((r) => r.error)
     .map((r) => r.error!)
     .slice(0, 5);
-=======
+
   const successCount = results.filter(r => r.ok).length;
   const errorCount = results.filter(r => !r.ok && r.status !== 429).length;
   const rateLimitedCount = results.filter(r => r.status === 429).length;
@@ -112,7 +95,6 @@ async function runBurst(requests: number, endpoint: string, method: 'GET' | 'POS
   const avgLatencyMs = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
   const maxLatencyMs = latencies.length > 0 ? Math.max(...latencies) : 0;
   const errors = results.filter(r => r.error).map(r => r.error!).slice(0, 5);
->>>>>>> origin/fix/scenario-tests-properly
   // Degraded gracefully if no crashes and rate limiting worked
   const degradedGracefully = errorCount === 0 || rateLimitedCount > 0;
 
@@ -143,7 +125,6 @@ async function runStressTest() {
   console.log('▶ Scenario 1: API Spike — 1000 health checks in 1s');
   const spike = await runBurst(1000, '/health', 'GET');
   results.push({ ...spike, scenario: 'API Spike (1000 req/s)' });
-<<<<<<< HEAD
   console.log(
     `  ✅ ${spike.successCount} ok | ❌ ${spike.errorCount} err | 🚫 ${spike.rateLimitedCount} rate-limited | ⏱️ ${spike.avgLatencyMs}ms avg`,
   );
@@ -151,17 +132,15 @@ async function runStressTest() {
     `  ${spike.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`,
   );
   await new Promise((r) => setTimeout(r, 1000));
-=======
+
   console.log(`  ✅ ${spike.successCount} ok | ❌ ${spike.errorCount} err | 🚫 ${spike.rateLimitedCount} rate-limited | ⏱️ ${spike.avgLatencyMs}ms avg`);
   console.log(`  ${spike.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`);
   await new Promise(r => setTimeout(r, 1000));
->>>>>>> origin/fix/scenario-tests-properly
 
   // Scenario 2: Agent Overload — 200 concurrent agent chats
   console.log('\n▶ Scenario 2: Agent Overload — 200 concurrent /api/v1/agents');
   const agentOverload = await runBurst(200, '/api/v1/agents', 'GET');
   results.push({ ...agentOverload, scenario: 'Agent Overload (200 concurrent)' });
-<<<<<<< HEAD
   console.log(
     `  ✅ ${agentOverload.successCount} ok | ❌ ${agentOverload.errorCount} err | 🚫 ${agentOverload.rateLimitedCount} rate-limited`,
   );
@@ -184,7 +163,7 @@ async function runStressTest() {
     `  ${queueSat.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`,
   );
   await new Promise((r) => setTimeout(r, 1000));
-=======
+
   console.log(`  ✅ ${agentOverload.successCount} ok | ❌ ${agentOverload.errorCount} err | 🚫 ${agentOverload.rateLimitedCount} rate-limited`);
   console.log(`  ${agentOverload.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`);
   await new Promise(r => setTimeout(r, 1000));
@@ -196,13 +175,11 @@ async function runStressTest() {
   console.log(`  ✅ ${queueSat.successCount} ok | ❌ ${queueSat.errorCount} err | 🚫 ${queueSat.rateLimitedCount} rate-limited`);
   console.log(`  ${queueSat.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`);
   await new Promise(r => setTimeout(r, 1000));
->>>>>>> origin/fix/scenario-tests-properly
 
   // Scenario 4: Provider Outage Simulation — 50 requests with invalid provider key
   console.log('\n▶ Scenario 4: Provider Outage Simulation — 50 requests');
   const outage = await runBurst(50, '/api/v1/agents', 'GET');
   results.push({ ...outage, scenario: 'Provider Outage (50 req)' });
-<<<<<<< HEAD
   console.log(
     `  ✅ ${outage.successCount} ok | ❌ ${outage.errorCount} err | 🚫 ${outage.rateLimitedCount} rate-limited`,
   );
@@ -210,11 +187,10 @@ async function runStressTest() {
     `  ${outage.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`,
   );
   await new Promise((r) => setTimeout(r, 1000));
-=======
+
   console.log(`  ✅ ${outage.successCount} ok | ❌ ${outage.errorCount} err | 🚫 ${outage.rateLimitedCount} rate-limited`);
   console.log(`  ${outage.degradedGracefully ? '✓ Degraded gracefully' : '✗ Did not degrade gracefully'}`);
   await new Promise(r => setTimeout(r, 1000));
->>>>>>> origin/fix/scenario-tests-properly
 
   // Scenario 5: Sustained Load — 500 requests over 10 seconds
   console.log('\n▶ Scenario 5: Sustained Load — 500 requests over 10s');
@@ -222,25 +198,16 @@ async function runStressTest() {
   const sustainedPromises: Promise<{ latencyMs: number; status: number; ok: boolean }>[] = [];
   for (let i = 0; i < 500; i++) {
     sustainedPromises.push(
-<<<<<<< HEAD
       new Promise((resolve) => {
-=======
-      new Promise(resolve => {
->>>>>>> origin/fix/scenario-tests-properly
         setTimeout(async () => {
           const r = await runRequest('/health', 'GET');
           resolve(r);
         }, i * 20); // 50 req/s over 10s
-<<<<<<< HEAD
       }),
-=======
-      })
->>>>>>> origin/fix/scenario-tests-properly
     );
   }
   const sustainedResults = await Promise.allSettled(sustainedPromises);
   const sustainedDuration = Date.now() - sustainedStart;
-<<<<<<< HEAD
   const sustainedOk = sustainedResults.filter((r) => r.status === 'fulfilled' && r.value.ok).length;
   const sustainedErr = sustainedResults.filter(
     (r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok),
@@ -252,14 +219,13 @@ async function runStressTest() {
     sustainedLatencies.length > 0
       ? Math.round(sustainedLatencies.reduce((a, b) => a + b, 0) / sustainedLatencies.length)
       : 0;
-=======
+
   const sustainedOk = sustainedResults.filter(r => r.status === 'fulfilled' && r.value.ok).length;
   const sustainedErr = sustainedResults.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length;
   const sustainedLatencies = sustainedResults
     .filter(r => r.status === 'fulfilled' && r.value.ok)
     .map(r => (r as PromiseFulfilledResult<any>).value.latencyMs);
   const sustainedAvg = sustainedLatencies.length > 0 ? Math.round(sustainedLatencies.reduce((a, b) => a + b, 0) / sustainedLatencies.length) : 0;
->>>>>>> origin/fix/scenario-tests-properly
   results.push({
     scenario: 'Sustained Load (500 req/10s)',
     totalRequests: 500,
@@ -281,32 +247,20 @@ async function runStressTest() {
   console.log('╠══════════════════════════════════════════════════════════════════╣');
   for (const r of results) {
     const passRate = ((r.successCount / r.totalRequests) * 100).toFixed(1);
-<<<<<<< HEAD
     console.log(
       `║ ${r.scenario.padEnd(30)} | ${r.successCount.toString().padStart(4)}/${r.totalRequests.toString().padStart(4)} | ${passRate}% | ${r.degradedGracefully ? '✓ GRACEFUL' : '✗ FAILED'} ║`,
     );
-=======
-    console.log(`║ ${r.scenario.padEnd(30)} | ${r.successCount.toString().padStart(4)}/${r.totalRequests.toString().padStart(4)} | ${passRate}% | ${r.degradedGracefully ? '✓ GRACEFUL' : '✗ FAILED'} ║`);
->>>>>>> origin/fix/scenario-tests-properly
   }
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 
   const report = { timestamp: new Date().toISOString(), target: DEPLOYED_URL, results };
-<<<<<<< HEAD
   const fs = await import('node:fs/promises');
-=======
-  const fs = await import('fs/promises');
->>>>>>> origin/fix/scenario-tests-properly
   await fs.writeFile('tests/stress/stress-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/stress/stress-test-report.json');
 }
 
-<<<<<<< HEAD
 try {
   await runStressTest();
 } catch (e) {
   console.error(e);
 }
-=======
-runStressTest().catch(console.error);
->>>>>>> origin/fix/scenario-tests-properly

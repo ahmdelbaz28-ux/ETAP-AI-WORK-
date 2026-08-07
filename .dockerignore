@@ -66,13 +66,10 @@ data/
 docs/
 *.md
 !README.md
-<<<<<<< HEAD
 # IMPORTANT: skills/*.md files ARE needed at runtime — they contain the
 # ETAP expert knowledge base, system prompts, and GUI agent instructions.
 # Loaded by agents/etap_expert_agent.py and agents/etap_gui_agent.py.
 !skills/*.md
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 # Tests
 tests/
@@ -82,7 +79,6 @@ htmlcov/
 .coverage
 coverage.xml
 
-<<<<<<< HEAD
 # SECURITY: dev/debug/maintenance scripts must never ship in production images.
 # These scripts contain hardcoded test secrets, debug endpoints, and untested
 # code paths that attackers could exploit if they reached the container.
@@ -91,8 +87,6 @@ scripts/maintenance/
 *.debug.py
 debug_*.py
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # Node modules (will be installed in container)
 node_modules/
 ui/
@@ -162,7 +156,6 @@ locustfile.py
 k6-load-test.js
 
 # Root-level config files (not needed in container)
-<<<<<<< HEAD
 # IMPORTANT: prompts.json IS needed at runtime (loaded by agents/prompt_loader.py).
 # package.json is needed by the UI build. Keep both un-ignored.
 *.json
@@ -175,12 +168,6 @@ k6-load-test.js
 # the 25 agent prompt definitions loaded by agents/prompt_loader.py.
 !prompts/*.yaml
 !prompts/*.prompt.yaml
-=======
-*.json
-!pyproject.toml
-*.yml
-*.yaml
->>>>>>> origin/fix/scenario-tests-properly
 !docker-compose*.yml
 *.toml
 !pyproject.toml

@@ -30,11 +30,7 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -64,21 +60,13 @@ class _InMemoryStore:
     """
 
     def __init__(self, max_entries: int = 10_000) -> None:
-<<<<<<< HEAD
         self._data: OrderedDict[str, tuple[str, float]] = (
-=======
-        self._data: OrderedDict[str, Tuple[str, float]] = (
->>>>>>> origin/fix/scenario-tests-properly
             OrderedDict()
         )  # key → (json_value, expires_at)
         self._max = max_entries
         self._lock = asyncio.Lock()
 
-<<<<<<< HEAD
     async def get(self, key: str) -> Optional[str]:
-=======
-    async def get(self, key: str) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get a value by key.  Returns ``None`` if missing or expired."""
         async with self._lock:
             entry = self._data.get(key)
@@ -118,11 +106,7 @@ class _InMemoryStore:
                 return False
             return True
 
-<<<<<<< HEAD
     async def keys(self, pattern: str = "*") -> list[str]:
-=======
-    async def keys(self, pattern: str = "*") -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """Return keys matching a simple glob pattern.
 
         Only ``*`` (match all) and prefix patterns (``prefix:*``) are
@@ -187,11 +171,7 @@ class StudyCache:
         self._key_prefix = key_prefix
         self._max_fallback_entries = max_fallback_entries
 
-<<<<<<< HEAD
         self._redis: Optional[Any] = None
-=======
-        self._redis: Any | None = None
->>>>>>> origin/fix/scenario-tests-properly
         self._fallback = _InMemoryStore(max_entries=max_fallback_entries)
         self._using_fallback = True
 
@@ -200,23 +180,15 @@ class StudyCache:
         self._misses = 0
         self._sets = 0
         self._invalidations = 0
-<<<<<<< HEAD
         self._stats_lock: Optional[asyncio.Lock] = None
-=======
-        self._stats_lock: asyncio.Lock | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
         # Attempt initial Redis connection
         if HAS_REDIS:
             self._init_redis()
 
-<<<<<<< HEAD
     async def _get_stats_lock(  # NOSONAR
         self,
     ) -> asyncio.Lock:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-    async def _get_stats_lock(self) -> asyncio.Lock:
->>>>>>> origin/fix/scenario-tests-properly
         if self._stats_lock is None:
             self._stats_lock = asyncio.Lock()
         return self._stats_lock
@@ -289,11 +261,7 @@ class StudyCache:
 
     # -- core operations -----------------------------------------------------
 
-<<<<<<< HEAD
     async def get(self, study_type: str, params: dict) -> Optional[dict]:
-=======
-    async def get(self, study_type: str, params: dict) -> dict | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get cached study result.
 
         Parameters
@@ -329,13 +297,9 @@ class StudyCache:
                 return json.loads(raw)
 
         except Exception as exc:
-<<<<<<< HEAD
             logger.warning(
                 "Cache get error for %s: %s", key, exc
             )  # NOSONAR logging injection; user input is sanitized upstream
-=======
-            logger.warning("Cache get error for %s: %s", key, exc)
->>>>>>> origin/fix/scenario-tests-properly
 
         async with await self._get_stats_lock():
             self._misses += 1
@@ -369,26 +333,18 @@ class StudyCache:
                 self._sets += 1
 
         except Exception as exc:
-<<<<<<< HEAD
             logger.warning(
                 "Cache set error for %s: %s", key, exc
             )  # NOSONAR logging injection; user input is sanitized upstream
-=======
-            logger.warning("Cache set error for %s: %s", key, exc)
->>>>>>> origin/fix/scenario-tests-properly
             # Try fallback
             try:
                 await self._fallback.set(key, value, ttl_seconds=self._ttl)
                 async with await self._get_stats_lock():
                     self._sets += 1
             except Exception:
-<<<<<<< HEAD
                 logger.error(
                     "Fallback cache set also failed for %s", key
                 )  # NOSONAR logging injection; user input is sanitized upstream
-=======
-                logger.error("Fallback cache set also failed for %s", key)
->>>>>>> origin/fix/scenario-tests-properly
 
     async def invalidate(self, study_type: str, params: dict) -> None:
         """Invalidate a cached result.
@@ -543,11 +499,7 @@ class StudyCache:
 # Singleton
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _cache_instance: Optional[StudyCache] = None
-=======
-_cache_instance: StudyCache | None = None
->>>>>>> origin/fix/scenario-tests-properly
 _cache_lock = threading.Lock()
 
 

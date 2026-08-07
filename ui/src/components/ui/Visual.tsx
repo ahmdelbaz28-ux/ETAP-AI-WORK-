@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { ReactNode } from "react";
 import { cn } from "../../utils/helpers";
 
@@ -17,7 +16,7 @@ export function GlassPanel({ children, className, variant = "default" }: GlassPa
     subtle: "bg-[var(--bg-card)]/50 backdrop-blur-md border border-[var(--border-primary)]",
   };
   return <div className={cn("rounded-xl", variants[variant], className)}>{children}</div>;
-=======
+
 import { type ReactNode } from 'react'
 import { cn } from '../../utils/helpers'
 
@@ -39,43 +38,35 @@ export function GlassPanel({ children, className, variant = 'default' }: GlassPa
       {children}
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Animated Background ────────────────────────────────────────────
 interface AnimatedBackgroundProps {
-<<<<<<< HEAD
   readonly className?: string;
   readonly variant?: "gradient" | "mesh" | "radial";
 }
 
 export function AnimatedBackground({ className, variant = "gradient" }: AnimatedBackgroundProps) {
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-=======
+
   className?: string
   variant?: 'gradient' | 'mesh' | 'radial'
 }
 
 export function AnimatedBackground({ className, variant = 'gradient' }: AnimatedBackgroundProps) {
->>>>>>> origin/fix/scenario-tests-properly
   const variants = {
     gradient: (
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-[var(--accent-primary)]/5 to-transparent rounded-full animate-spin-slow" />
-<<<<<<< HEAD
         <div
           className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/5 to-transparent rounded-full animate-spin-slow"
           style={{ animationDirection: "reverse" }}
         />
-=======
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/5 to-transparent rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }} />
->>>>>>> origin/fix/scenario-tests-properly
       </div>
     ),
     mesh: (
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[var(--accent-primary)]/3 rounded-full blur-3xl animate-float" />
-<<<<<<< HEAD
         <div
           className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/3 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "1s" }}
@@ -84,10 +75,6 @@ export function AnimatedBackground({ className, variant = 'gradient' }: Animated
           className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/3 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "2s" }}
         />
-=======
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/3 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/3 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
->>>>>>> origin/fix/scenario-tests-properly
       </div>
     ),
     radial: (
@@ -95,7 +82,6 @@ export function AnimatedBackground({ className, variant = 'gradient' }: Animated
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,var(--accent-primary)/5,transparent_70%)]" />
       </div>
     ),
-<<<<<<< HEAD
   };
 
   return (
@@ -129,7 +115,7 @@ export function StatusIndicator({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   const config = statusConfig[status];
   const sizeClasses = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
-=======
+
   }
 
   return (
@@ -159,38 +145,26 @@ const statusConfig: Record<StatusType, { color: string; pulse: boolean; label: s
 export function StatusIndicator({ status, label, size = 'md', showLabel = true }: StatusIndicatorProps) {
   const config = statusConfig[status]
   const sizeClasses = { sm: 'w-2 h-2', md: 'w-2.5 h-2.5', lg: 'w-3 h-3' }
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
-<<<<<<< HEAD
         <div className={cn(sizeClasses[size], "rounded-full", config.color)} />
         {config.pulse && (
           <div
             className={cn("absolute inset-0 rounded-full", config.color, "animate-ping opacity-50")}
           />
-=======
-        <div className={cn(sizeClasses[size], 'rounded-full', config.color)} />
-        {config.pulse && (
-          <div className={cn('absolute inset-0 rounded-full', config.color, 'animate-ping opacity-50')} />
->>>>>>> origin/fix/scenario-tests-properly
         )}
       </div>
       {showLabel && (
         <span className="text-xs text-[var(--text-muted)]">{label || config.label}</span>
       )}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Premium Empty State ────────────────────────────────────────────
 interface PremiumEmptyStateProps {
-<<<<<<< HEAD
   readonly icon: React.ElementType;
   readonly title: string;
   readonly description: string;
@@ -229,7 +203,7 @@ export function PremiumEmptyState({
       <p className="text-sm text-[var(--text-secondary)] max-w-sm leading-relaxed mb-6">
         {description}
       </p>
-=======
+
   icon: React.ElementType
   title: string
   description: string
@@ -253,31 +227,22 @@ export function PremiumEmptyState({ icon: Icon, title, description, action, vari
       </div>
       <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
       <p className="text-sm text-[var(--text-secondary)] max-w-sm leading-relaxed mb-6">{description}</p>
->>>>>>> origin/fix/scenario-tests-properly
       {action && (
         <button
           onClick={action.onClick}
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-[var(--accent-primary)] text-black rounded-lg hover:opacity-90 transition-all"
-<<<<<<< HEAD
           type="button"
-=======
->>>>>>> origin/fix/scenario-tests-properly
         >
           {action.icon && <action.icon className="w-4 h-4" />}
           {action.label}
         </button>
       )}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Premium Loading State ──────────────────────────────────────────
 interface PremiumLoadingProps {
-<<<<<<< HEAD
   readonly message?: string;
   readonly variant?: "spinner" | "skeleton" | "progress";
   readonly progress?: number;
@@ -293,7 +258,7 @@ export function PremiumLoading({
     return (
       <div className="space-y-4 p-6">
         {[1, 2, 3].map((i) => (
-=======
+
   message?: string
   variant?: 'spinner' | 'skeleton' | 'progress'
   progress?: number
@@ -304,7 +269,6 @@ export function PremiumLoading({ message = 'Loading...', variant = 'spinner', pr
     return (
       <div className="space-y-4 p-6">
         {[1, 2, 3].map(i => (
->>>>>>> origin/fix/scenario-tests-properly
           <div key={i} className="flex gap-4">
             <div className="w-10 h-10 rounded-lg skeleton shrink-0" />
             <div className="flex-1 space-y-2">
@@ -314,17 +278,10 @@ export function PremiumLoading({ message = 'Loading...', variant = 'spinner', pr
           </div>
         ))}
       </div>
-<<<<<<< HEAD
     );
   }
 
   if (variant === "progress") {
-=======
-    )
-  }
-
-  if (variant === 'progress') {
->>>>>>> origin/fix/scenario-tests-properly
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
         <div className="w-48 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
@@ -335,11 +292,7 @@ export function PremiumLoading({ message = 'Loading...', variant = 'spinner', pr
         </div>
         <span className="text-xs text-[var(--text-muted)]">{message}</span>
       </div>
-<<<<<<< HEAD
     );
-=======
-    )
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   return (
@@ -350,16 +303,11 @@ export function PremiumLoading({ message = 'Loading...', variant = 'spinner', pr
       </div>
       <span className="text-sm text-[var(--text-secondary)]">{message}</span>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Gradient Text ──────────────────────────────────────────────────
 interface GradientTextProps {
-<<<<<<< HEAD
   readonly children: ReactNode;
   readonly className?: string;
   readonly from?: string;
@@ -376,7 +324,7 @@ export function GradientText({
   return (
     <span
       className={cn("bg-clip-text text-transparent", className)}
-=======
+
   children: ReactNode
   className?: string
   from?: string
@@ -387,12 +335,10 @@ export function GradientText({ children, className, from = 'var(--accent-primary
   return (
     <span
       className={cn('bg-clip-text text-transparent', className)}
->>>>>>> origin/fix/scenario-tests-properly
       style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
     >
       {children}
     </span>
-<<<<<<< HEAD
   );
 }
 
@@ -486,14 +432,10 @@ export function Sparkline({
       />
     </svg>
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Glow Card ──────────────────────────────────────────────────────
 interface GlowCardProps {
-<<<<<<< HEAD
   readonly children: ReactNode;
   readonly className?: string;
   readonly color?: "primary" | "success" | "warning" | "danger";
@@ -518,7 +460,7 @@ export function GlowCard({ children, className, color = "primary" }: GlowCardPro
       {children}
     </div>
   );
-=======
+
   children: ReactNode
   className?: string
   color?: 'primary' | 'success' | 'warning' | 'danger'
@@ -540,5 +482,4 @@ export function GlowCard({ children, className, color = 'primary' }: GlowCardPro
       {children}
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

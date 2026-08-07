@@ -17,14 +17,9 @@ Reference: IEEE Task Force on Load Representation, "Load Representation for
 Dynamic Performance Analysis", IEEE Trans. Power Systems, 1993.
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 from dataclasses import dataclass
-=======
-from dataclasses import dataclass
-from typing import Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -33,21 +28,19 @@ import numpy as np
 class ZIPCoefficients:
     """ZIP load model coefficients."""
 
-<<<<<<< HEAD
     aZ: float = 0.0  # NOSONAR
     aI: float = 0.0  # NOSONAR
     aP: float = 1.0  # NOSONAR
     bZ: float = 0.0  # NOSONAR
     bI: float = 0.0  # NOSONAR
     bP: float = 1.0  # NOSONAR
-=======
+
     aZ: float = 0.0  # Constant impedance fraction (active power)
     aI: float = 0.0  # Constant current fraction (active power)
     aP: float = 1.0  # Constant power fraction (active power)
     bZ: float = 0.0  # Constant impedance fraction (reactive power)
     bI: float = 0.0  # Constant current fraction (reactive power)
     bP: float = 1.0  # Constant power fraction (reactive power)
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         """Validate that coefficients sum to 1.0."""
@@ -81,15 +74,11 @@ class ZIPLoadModel:
     """
 
     def __init__(
-<<<<<<< HEAD
         self,
         p0: float,
         q0: float,
         coefficients: ZIPCoefficients = None,
         preset: str = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-        self, P0: float, Q0: float, coefficients: ZIPCoefficients = None, preset: str = None
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Initialize ZIP load model.
@@ -100,13 +89,8 @@ class ZIPLoadModel:
         coefficients (ZIPCoefficients): Custom ZIP coefficients.
         preset (str): Name of a preset ZIP model.
         """
-<<<<<<< HEAD
         self.P0 = p0
         self.Q0 = q0
-=======
-        self.P0 = P0
-        self.Q0 = Q0
->>>>>>> origin/fix/scenario-tests-properly
 
         if preset is not None and preset in ZIP_PRESETS:
             self.coefficients = ZIP_PRESETS[preset]
@@ -115,16 +99,12 @@ class ZIPLoadModel:
         else:
             self.coefficients = ZIP_PRESETS["constant_power"]
 
-<<<<<<< HEAD
     def calculate_power(
         self,
         v: float,
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
-    def calculate_power(self, V: float) -> Tuple[float, float]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate load power at a given voltage.
 
@@ -138,7 +118,6 @@ class ZIPLoadModel:
         tuple: (P, Q) active and reactive power at voltage V.
         """
         c = self.coefficients
-<<<<<<< HEAD
         P = self.P0 * (c.aZ * v**2 + c.aI * v + c.aP)
         Q = self.Q0 * (c.bZ * v**2 + c.bI * v + c.bP)
         return P, Q
@@ -156,7 +135,7 @@ class ZIPLoadModel:
 
         The total equivalent admittance is:
         Y_eq = (P - jQ) Union[/, V|^2]
-=======
+
         P = self.P0 * (c.aZ * V**2 + c.aI * V + c.aP)
         Q = self.Q0 * (c.bZ * V**2 + c.bI * V + c.bP)
         return P, Q
@@ -171,7 +150,6 @@ class ZIPLoadModel:
 
         The total equivalent admittance is:
         Y_eq = (P - jQ) / |V|^2
->>>>>>> origin/fix/scenario-tests-properly
 
         Parameters:
         V (float): Voltage magnitude in per-unit.
@@ -179,7 +157,6 @@ class ZIPLoadModel:
         Returns:
         complex: Equivalent admittance.
         """
-<<<<<<< HEAD
         if v < 0.01:
             return complex(0, 0)
         P, Q = self.calculate_power(v)
@@ -193,7 +170,7 @@ class ZIPLoadModel:
         self,
         v: float,
     ) -> complex:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         if V < 0.01:
             return complex(0, 0)
         P, Q = self.calculate_power(V)
@@ -202,7 +179,6 @@ class ZIPLoadModel:
         return Y_eq
 
     def get_impedance_component(self, V: float) -> complex:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get only the constant-impedance component admittance.
 
@@ -213,7 +189,6 @@ class ZIPLoadModel:
         complex: Admittance of constant-impedance portion.
         """
         c = self.coefficients
-<<<<<<< HEAD
         p_z = (
             self.P0 * c.aZ
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -230,7 +205,7 @@ class ZIPLoadModel:
     ) -> tuple[
         float, float
     ]:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-=======
+
         P_z = self.P0 * c.aZ
         Q_z = self.Q0 * c.bZ
         if V < 0.01:
@@ -238,7 +213,6 @@ class ZIPLoadModel:
         return complex(P_z, -Q_z)  # V² cancels: (P_z - jQ_z) / V² * V² = P_z - jQ_z
 
     def voltage_sensitivity(self, V: float) -> Tuple[float, float]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate voltage sensitivity of load power.
 
@@ -252,7 +226,6 @@ class ZIPLoadModel:
         tuple: (dP/dV, dQ/dV)
         """
         c = self.coefficients
-<<<<<<< HEAD
         dpdv = (
             self.P0 * (2 * c.aZ * v + c.aI)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -260,11 +233,10 @@ class ZIPLoadModel:
             self.Q0 * (2 * c.bZ * v + c.bI)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return dpdv, dqdv
-=======
+
         dPdV = self.P0 * (2 * c.aZ * V + c.aI)
         dQdV = self.Q0 * (2 * c.bZ * V + c.bI)
         return dPdV, dQdV
->>>>>>> origin/fix/scenario-tests-properly
 
     def to_dict(self) -> dict:
         """Convert to dictionary representation."""
@@ -280,11 +252,7 @@ class ZIPLoadModel:
         }
 
     @staticmethod
-<<<<<<< HEAD
     def from_dict(data: dict) -> ZIPLoadModel:
-=======
-    def from_dict(data: dict) -> "ZIPLoadModel":
->>>>>>> origin/fix/scenario-tests-properly
         """Create ZIPLoadModel from dictionary."""
         coeffs = ZIPCoefficients(
             aZ=data.get("aZ", 0.0),
@@ -294,8 +262,4 @@ class ZIPLoadModel:
             bI=data.get("bI", 0.0),
             bP=data.get("bP", 1.0),
         )
-<<<<<<< HEAD
         return ZIPLoadModel(p0=data["P0"], q0=data["Q0"], coefficients=coeffs)
-=======
-        return ZIPLoadModel(P0=data["P0"], Q0=data["Q0"], coefficients=coeffs)
->>>>>>> origin/fix/scenario-tests-properly

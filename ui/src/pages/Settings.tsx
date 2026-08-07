@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // NOSONAR(typescript:S3776,typescript:S2004,typescript:S6478,typescript:S6479,typescript:S3358,typescript:S6759,typescript:S6551,typescript:S2486,typescript:S6819): UI components are intentionally complex for feature-rich DX
 import { motion } from "framer-motion";
 import {
@@ -123,7 +122,7 @@ function deobfuscate(value: string): string {
     return result;
   } catch {
     return value;
-=======
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Download, Upload, Trash2, Bot, Wrench, Database, Shield, Link2, Gauge } from 'lucide-react'
@@ -151,12 +150,10 @@ function deobfuscate(value: string): string {
     return result
   } catch {
     return value
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 
 const SECRET_FIELDS = new Set([
-<<<<<<< HEAD
   "API_KEY_SECRET",
   "JWT_SECRET_KEY",
   "OPENAI_API_KEY",
@@ -2233,7 +2230,7 @@ function SettingsField({
   if (isSecret) inputType = "password";
   else if (isNumber) inputType = "number";
   else inputType = "text";
-=======
+
   'API_KEY_SECRET', 'JWT_SECRET_KEY', 'OPENAI_API_KEY', 'NVIDIA_API_KEY',
   'QWEN_API_KEY', 'GLM_API_KEY', 'ENGINEERING_SERVICE_API_KEY',
   'LANGWATCH_API_KEY', 'REDIS_URL', 'DATABASE_URL', 'VAULT_TOKEN',
@@ -2377,12 +2374,10 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
   const isSecret = field.includes('KEY') || field.includes('SECRET')
   const isFeatureFlag = field.startsWith('ENABLE_')
   const isNumber = field.includes('_MS') || field.includes('PORT') || field.includes('SIZE') || field.includes('TTL') || field.includes('RATE') || field.includes('THRESHOLD') || field.includes('MAX_')
->>>>>>> origin/fix/scenario-tests-properly
 
   if (isFeatureFlag) {
     return (
       <Toggle
-<<<<<<< HEAD
         checked={value === "true"}
         onChange={(checked) => onChange(checked ? "true" : "false")}
         label={field.replaceAll("_", " ").replaceAll("ENABLE ", "").replaceAll(" ENABLED", "")}
@@ -2390,7 +2385,7 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
         size="sm"
       />
     );
-=======
+
         checked={value === 'true'}
         onChange={(checked) => onChange(checked ? 'true' : 'false')}
         label={field.replace(/_/g, ' ').replace(/ENABLE /, '')}
@@ -2398,12 +2393,10 @@ function SettingsField({ field, value, onChange }: { field: string; value: strin
         size="sm"
       />
     )
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   return (
     <div>
-<<<<<<< HEAD
       <label
         htmlFor={`field-${field}`}
         className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
@@ -2976,7 +2969,7 @@ export default function Settings() {
     };
     input.click();
   };
-=======
+
       <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">{field}</label>
       <input
         type={isSecret ? 'password' : isNumber ? 'number' : 'text'}
@@ -3068,13 +3061,11 @@ export function Settings() {
     }
     input.click()
   }
->>>>>>> origin/fix/scenario-tests-properly
 
   const tabs = Object.entries(TAB_SECTIONS).map(([id, tab]) => ({
     id,
     label: tab.label,
     icon: tab.icon,
-<<<<<<< HEAD
   }));
 
   const currentSections = TAB_SECTIONS[activeTab]?.sections ?? [];
@@ -3108,7 +3099,7 @@ export function Settings() {
           </Button>
           <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave}>
             {saving ? "Saving..." : "Save"}
-=======
+
   }))
 
   const currentSections = TAB_SECTIONS[activeTab]?.sections ?? []
@@ -3125,20 +3116,15 @@ export function Settings() {
           </Button>
           <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave}>
             {saving ? 'Saving...' : 'Save'}
->>>>>>> origin/fix/scenario-tests-properly
           </Button>
         </div>
       </motion.div>
 
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-=======
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
->>>>>>> origin/fix/scenario-tests-properly
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </motion.div>
 
@@ -3148,7 +3134,6 @@ export function Settings() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-<<<<<<< HEAD
         >
           {(() => {
             if (activeTab === "ai")
@@ -3197,7 +3182,7 @@ export function Settings() {
       </TabPanels>
     </div>
   );
-=======
+
           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
           {currentSections.map(section => (
@@ -3223,5 +3208,4 @@ export function Settings() {
       </TabPanels>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

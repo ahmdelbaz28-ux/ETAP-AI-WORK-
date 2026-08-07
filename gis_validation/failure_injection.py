@@ -4,16 +4,11 @@ import copy
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import ADMSAsset
 
 
-<<<<<<< HEAD
 def _make_test_rng(seed: int) -> random.Random:
     """Build a deterministic PRNG for non-security test/fault-injection scenarios.
 
@@ -24,13 +19,10 @@ def _make_test_rng(seed: int) -> random.Random:
     return random.Random(seed)  # NOSONAR
 
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 @dataclass(frozen=True)
 class FailureScenario:
     scenario_id: str
     name: str
-<<<<<<< HEAD
     details: dict[str, Any]
 
 
@@ -49,7 +41,7 @@ def inject_corrupted_geometries(
     out = copy.deepcopy(
         assets
     )  # NOSONAR S2245: deterministic PRNG via _make_test_rng above; reproducible fault injection, not security
-=======
+
     details: Dict[str, Any]
 
 
@@ -66,7 +58,6 @@ def inject_corrupted_geometries(
     """
     rng = random.Random(seed)
     out = copy.deepcopy(assets)
->>>>>>> origin/fix/scenario-tests-properly
     n = len(out)
     if n == 0:
         return out
@@ -91,7 +82,6 @@ def inject_corrupted_geometries(
 
 
 def inject_broken_crs_metadata(
-<<<<<<< HEAD
     assets: list[ADMSAsset],
     *,
     seed: int = 1337,
@@ -99,7 +89,7 @@ def inject_broken_crs_metadata(
     broken_value: str = "INVALID_EPSG",
 ) -> list[ADMSAsset]:
     rng = _make_test_rng(seed)
-=======
+
     assets: List[ADMSAsset],
     *,
     seed: int = 1337,
@@ -107,7 +97,6 @@ def inject_broken_crs_metadata(
     broken_value: str = "INVALID_EPSG",
 ) -> List[ADMSAsset]:
     rng = random.Random(seed)
->>>>>>> origin/fix/scenario-tests-properly
     out = copy.deepcopy(assets)
     n = len(out)
     if n == 0:
@@ -128,7 +117,6 @@ def inject_broken_crs_metadata(
 
 
 def inject_missing_layers_simulation(
-<<<<<<< HEAD
     required_layer_ids: list[str],
     *,
     missing_layer_ratio: float = 0.2,
@@ -139,7 +127,7 @@ def inject_missing_layers_simulation(
     Returns: (present_layers, missing_layers)
     """
     rng = _make_test_rng(seed)
-=======
+
     required_layer_ids: List[str],
     *,
     missing_layer_ratio: float = 0.2,
@@ -150,20 +138,15 @@ def inject_missing_layers_simulation(
     Returns: (present_layers, missing_layers)
     """
     rng = random.Random(seed)
->>>>>>> origin/fix/scenario-tests-properly
     layers = list(required_layer_ids)
     n = len(layers)
     if n == 0:
         return [], []
 
     k = max(1, int(n * missing_layer_ratio))
-<<<<<<< HEAD
     missing = set(
         rng.sample(layers, min(k, n))
     )  # NOSONAR PRNG used for non-crypto purposes (test/load sim)
-=======
-    missing = set(rng.sample(layers, min(k, n)))
->>>>>>> origin/fix/scenario-tests-properly
     present = [l for l in layers if l not in missing]
     return present, sorted(missing)
 

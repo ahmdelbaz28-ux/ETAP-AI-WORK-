@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AhmedETAP — Product Roadmap
 
 > **Current Version:** v2.1.0
@@ -425,7 +424,7 @@ For security vulnerabilities, do **not** open a public issue. Email security@eta
 ### License
 
 AhmedETAP is released under the [MIT License](LICENSE).
-=======
+
 # AhmedETAP — Roadmap
 
 ## Current Release (v1.0.0)
@@ -467,4 +466,3 @@ AhmedETAP is released under the [MIT License](LICENSE).
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute to the roadmap.
->>>>>>> origin/fix/scenario-tests-properly

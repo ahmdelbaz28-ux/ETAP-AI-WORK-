@@ -42,7 +42,6 @@
         "doc_type": "document",
         "mappings": {
           "properties": {
-<<<<<<< HEAD
             "title": { "type": "text" },
             "url": { "type": "keyword" },
             "content": { "type": "text" },
@@ -50,15 +49,6 @@
             "parent": { "type": "keyword" },
             "license_required": { "type": "text" },
             "embedding_vector": { "type": "dense_vector", "dims": 768 }
-=======
-            "title": {"type": "text"},
-            "url": {"type": "keyword"},
-            "content": {"type": "text"},
-            "level": {"type": "integer"},
-            "parent": {"type": "keyword"},
-            "license_required": {"type": "text"},
-            "embedding_vector": {"type": "dense_vector", "dims": 768}
->>>>>>> origin/fix/scenario-tests-properly
           }
         }
       }
@@ -81,8 +71,4 @@
     "last_updated": "2026-06-18",
     "source": "https://doc.esri.com/en/arcgis-pro/latest/"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/fix/scenario-tests-properly

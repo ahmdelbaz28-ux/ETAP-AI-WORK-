@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-<<<<<<< HEAD
 from typing import Optional
 
 from gis_integration.models import GeoCRSInfo, GISFeature
@@ -12,12 +11,6 @@ _NO_GIS_PROJECT_MSG = (
     "No GIS project loaded; call load_project() first"  # NOSONAR
 )
 
-=======
-from typing import Dict, List
-
-from gis_integration.models import GeoCRSInfo, GISFeature
-
->>>>>>> origin/fix/scenario-tests-properly
 
 class GISProviderInterface(ABC):
     """
@@ -45,11 +38,7 @@ class GISProviderInterface(ABC):
         self._project_path = path
         self._loaded = True
 
-<<<<<<< HEAD
     def list_layers(self) -> list[str]:
-=======
-    def list_layers(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         List layer identifiers available in the currently loaded project.
 
@@ -57,13 +46,9 @@ class GISProviderInterface(ABC):
         override to expose their layer catalog.
         """
         if not getattr(self, "_loaded", False):
-<<<<<<< HEAD
             raise RuntimeError(
                 _NO_GIS_PROJECT_MSG  # NOSONAR
             )  # NOSONAR intentional repetition (audit constant)
-=======
-            raise RuntimeError("No GIS project loaded; call load_project() first")
->>>>>>> origin/fix/scenario-tests-properly
         return []
 
     def extract_features(self, layer_id: str) -> Iterator[GISFeature]:
@@ -74,20 +59,12 @@ class GISProviderInterface(ABC):
         override to stream features from the backend.
         """
         if not getattr(self, "_loaded", False):
-<<<<<<< HEAD
             raise RuntimeError(_NO_GIS_PROJECT_MSG)
-=======
-            raise RuntimeError("No GIS project loaded; call load_project() first")
->>>>>>> origin/fix/scenario-tests-properly
         if not layer_id or not isinstance(layer_id, str):
             raise ValueError("layer_id must be a non-empty string")
         return iter(())
 
-<<<<<<< HEAD
     def export_geojson(self, layer_id: str) -> dict:
-=======
-    def export_geojson(self, layer_id: str) -> Dict:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Export the specified layer as GeoJSON FeatureCollection or geometry dicts.
 
@@ -95,11 +72,7 @@ class GISProviderInterface(ABC):
         with the requested layer_id recorded for traceability.
         """
         if not getattr(self, "_loaded", False):
-<<<<<<< HEAD
             raise RuntimeError(_NO_GIS_PROJECT_MSG)
-=======
-            raise RuntimeError("No GIS project loaded; call load_project() first")
->>>>>>> origin/fix/scenario-tests-properly
         return {
             "type": "FeatureCollection",
             "features": [],
@@ -110,11 +83,7 @@ class GISProviderInterface(ABC):
             },
         }
 
-<<<<<<< HEAD
     def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
-=======
-    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Return CRS information for the given layer (or project default).
 

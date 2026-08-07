@@ -17,7 +17,6 @@ Standards:
 - IEC 60949: Calculation of thermally permissible short-circuit currents
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -29,7 +28,7 @@ from typing import Any
 import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-=======
+
 import logging
 from datetime import UTC, datetime
 
@@ -39,7 +38,6 @@ from typing import Any, Dict, List
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -50,11 +48,7 @@ logger = logging.getLogger(__name__)
 
 # Base ampacity for Cu cables in air at 30 °C, 0.6/1 kV, single-core
 # Key: cross-section in mm² -> current in A
-<<<<<<< HEAD
 _CU_XLPE_AIR_30C: dict[float, float] = {
-=======
-_CU_XLPE_AIR_30C: Dict[int, float] = {
->>>>>>> origin/fix/scenario-tests-properly
     1.5: 24,
     2.5: 33,
     4: 45,
@@ -75,11 +69,7 @@ _CU_XLPE_AIR_30C: Dict[int, float] = {
 }
 
 # Base ampacity for Al cables in air at 30 °C, 0.6/1 kV, single-core
-<<<<<<< HEAD
 _AL_XLPE_AIR_30C: dict[float, float] = {
-=======
-_AL_XLPE_AIR_30C: Dict[int, float] = {
->>>>>>> origin/fix/scenario-tests-properly
     2.5: 26,
     4: 35,
     6: 46,
@@ -99,11 +89,7 @@ _AL_XLPE_AIR_30C: Dict[int, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (copper)
-<<<<<<< HEAD
 _R20_CU: dict[float, float] = {
-=======
-_R20_CU: Dict[int, float] = {
->>>>>>> origin/fix/scenario-tests-properly
     1.5: 12.1,
     2.5: 7.41,
     4: 4.61,
@@ -124,11 +110,7 @@ _R20_CU: Dict[int, float] = {
 }
 
 # Resistance at 20 °C in Ω/km (aluminium)
-<<<<<<< HEAD
 _R20_AL: dict[float, float] = {
-=======
-_R20_AL: Dict[int, float] = {
->>>>>>> origin/fix/scenario-tests-properly
     2.5: 12.1,
     4: 7.41,
     6: 4.61,
@@ -148,11 +130,7 @@ _R20_AL: Dict[int, float] = {
 }
 
 # Standard cross-sections in mm² sorted ascending
-<<<<<<< HEAD
 _STANDARD_XSECTIONS: list[float] = sorted(_CU_XLPE_AIR_30C.keys())
-=======
-_STANDARD_XSECTIONS: List[int] = sorted(_CU_XLPE_AIR_30C.keys())
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class CableSizingAgent(BaseAgent):
@@ -183,7 +161,6 @@ class CableSizingAgent(BaseAgent):
 
     def calculate_ampacity(
         self,
-<<<<<<< HEAD
         cross_section_mm2: float,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
@@ -192,7 +169,7 @@ class CableSizingAgent(BaseAgent):
         n_circuits: int = 1,
         soil_resistivity_KmW: float = 1.0,  # NOSONAR
     ) -> dict[str, Any]:
-=======
+
         cross_section_mm2: int,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
@@ -201,7 +178,6 @@ class CableSizingAgent(BaseAgent):
         n_circuits: int = 1,
         soil_resistivity_KmW: float = 1.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate cable ampacity with derating factors per IEC 60364-5-52.
 
@@ -233,14 +209,12 @@ class CableSizingAgent(BaseAgent):
             Ampacity result with all derating factors applied.
         """
         # Select base table
-<<<<<<< HEAD
         base_table = _AL_XLPE_AIR_30C if conductor_material == "Al" else _CU_XLPE_AIR_30C
-=======
+
         if conductor_material == "Al":
             base_table = _AL_XLPE_AIR_30C
         else:
             base_table = _CU_XLPE_AIR_30C
->>>>>>> origin/fix/scenario-tests-properly
 
         if cross_section_mm2 not in base_table:
             available = sorted(base_table.keys())
@@ -249,11 +223,7 @@ class CableSizingAgent(BaseAgent):
                 "ampacity_A": 0.0,
             }
 
-<<<<<<< HEAD
         i_base = base_table[cross_section_mm2]  # NOSONAR
-=======
-        I_base = base_table[cross_section_mm2]
->>>>>>> origin/fix/scenario-tests-properly
 
         # Max conductor temperature
         max_temp = 90.0 if insulation.upper() == "XLPE" else 70.0
@@ -261,22 +231,14 @@ class CableSizingAgent(BaseAgent):
         # 1) Temperature correction factor (Table B.52.14 simplified)
         #    Ca = [(max_temp - ambient) / (max_temp - 30)]^0.5
         if ambient_temp_C >= max_temp:
-<<<<<<< HEAD
             Ca = 0.0  # NOSONAR
-=======
-            Ca = 0.0
->>>>>>> origin/fix/scenario-tests-properly
         else:
             Ca = np.sqrt((max_temp - ambient_temp_C) / (max_temp - 30.0))
 
         # 2) Grouping correction factor (Table B.52.17 simplified)
         #    Approximate: Cg = 1 / sqrt(n) for n circuits touching
         if n_circuits <= 1:
-<<<<<<< HEAD
             Cg = 1.0  # NOSONAR
-=======
-            Cg = 1.0
->>>>>>> origin/fix/scenario-tests-properly
         elif n_circuits <= 4:
             Cg = 0.80
         elif n_circuits <= 6:
@@ -289,11 +251,7 @@ class CableSizingAgent(BaseAgent):
         # 3) Soil thermal resistivity factor (for direct burial)
         if installation_method == "direct_buried":
             # Table B.52.15 simplified
-<<<<<<< HEAD
             Cs_lookup = {  # NOSONAR
-=======
-            Cs_lookup = {
->>>>>>> origin/fix/scenario-tests-properly
                 0.5: 1.28,
                 0.7: 1.15,
                 1.0: 1.00,
@@ -305,16 +263,11 @@ class CableSizingAgent(BaseAgent):
             # Interpolate
             rho_values = np.array(sorted(Cs_lookup.keys()))
             cs_values = np.array([Cs_lookup[r] for r in rho_values])
-<<<<<<< HEAD
             cs = float(np.interp(soil_resistivity_KmW, rho_values, cs_values))  # NOSONAR
-=======
-            Cs = float(np.interp(soil_resistivity_KmW, rho_values, cs_values))
->>>>>>> origin/fix/scenario-tests-properly
 
             # Installation method base factor (buried rating ≈ 0.85 of in-air)
             method_factor = 0.85
         elif installation_method == "in_conduit":
-<<<<<<< HEAD
             cs = 1.0
             method_factor = 0.78  # Conduit reduces ampacity
         else:
@@ -322,7 +275,7 @@ class CableSizingAgent(BaseAgent):
             method_factor = 1.0
 
         i_derated = i_base * method_factor * Ca * Cg * cs  # NOSONAR
-=======
+
             Cs = 1.0
             method_factor = 0.78  # Conduit reduces ampacity
         else:
@@ -330,14 +283,12 @@ class CableSizingAgent(BaseAgent):
             method_factor = 1.0
 
         I_derated = I_base * method_factor * Ca * Cg * Cs
->>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "cross_section_mm2": cross_section_mm2,
             "conductor_material": conductor_material,
             "insulation": insulation,
             "installation_method": installation_method,
-<<<<<<< HEAD
             "base_ampacity_A": i_base,
             "temperature_correction_Ca": float(Ca),
             "grouping_correction_Cg": Cg,
@@ -347,7 +298,7 @@ class CableSizingAgent(BaseAgent):
             "max_conductor_temp_C": max_temp,
             "n_circuits": n_circuits,
             "derated_ampacity_A": float(i_derated),
-=======
+
             "base_ampacity_A": float(I_base),
             "temperature_correction_Ca": float(Ca),
             "grouping_correction_Cg": float(Cg),
@@ -357,7 +308,6 @@ class CableSizingAgent(BaseAgent):
             "max_conductor_temp_C": max_temp,
             "n_circuits": n_circuits,
             "derated_ampacity_A": float(I_derated),
->>>>>>> origin/fix/scenario-tests-properly
         }
 
     # ------------------------------------------------------------------
@@ -366,7 +316,6 @@ class CableSizingAgent(BaseAgent):
 
     def calculate_voltage_drop(
         self,
-<<<<<<< HEAD
         load_current_A: float,  # NOSONAR
         cable_length_m: float,
         cross_section_mm2: float,
@@ -376,7 +325,7 @@ class CableSizingAgent(BaseAgent):
         n_phases: int = 3,
         frequency_Hz: float = 50.0,  # NOSONAR
     ) -> dict[str, Any]:
-=======
+
         load_current_A: float,
         cable_length_m: float,
         cross_section_mm2: int,
@@ -386,7 +335,6 @@ class CableSizingAgent(BaseAgent):
         n_phases: int = 3,
         frequency_Hz: float = 50.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate voltage drop per IEC 60364-5-52 Annex G.
 
@@ -405,11 +353,7 @@ class CableSizingAgent(BaseAgent):
             Design load current in A.
         cable_length_m : float
             One-way cable length in metres.
-<<<<<<< HEAD
         cross_section_mm2 : float
-=======
-        cross_section_mm2 : int
->>>>>>> origin/fix/scenario-tests-properly
             Conductor cross-section in mm².
         conductor_material : str
             ``'Cu'`` or ``'Al'``.
@@ -437,19 +381,13 @@ class CableSizingAgent(BaseAgent):
 
         # Adjust resistance to operating temperature (≈ 80 °C for XLPE)
         alpha = 0.00393 if conductor_material == "Cu" else 0.00403  # temperature coefficient
-<<<<<<< HEAD
         T_op = 80.0  # NOSONAR
         r_op = R20 * (1.0 + alpha * (T_op - 20.0))  # NOSONAR
-=======
-        T_op = 80.0
-        R_op = R20 * (1.0 + alpha * (T_op - 20.0))  # Ω/km
->>>>>>> origin/fix/scenario-tests-properly
 
         # Reactance approximation (per IEC 60364-5-52 Annex G)
         # X ≈ 0.08 Ω/km for cables up to 300 mm² (conservative)
         X = 0.08  # Ω/km
 
-<<<<<<< HEAD
         l_km = cable_length_m / 1000.0  # NOSONAR
         sin_phi = np.sqrt(1.0 - power_factor**2)
 
@@ -460,7 +398,7 @@ class CableSizingAgent(BaseAgent):
             reference_V = system_voltage_V  # NOSONAR
         elif n_phases == 1:
             delta_v = 2.0 * load_current_A * l_km * (r_op * power_factor + X * sin_phi)
-=======
+
         L_km = cable_length_m / 1000.0
         sin_phi = np.sqrt(1.0 - power_factor**2)
 
@@ -469,13 +407,11 @@ class CableSizingAgent(BaseAgent):
             reference_V = system_voltage_V
         elif n_phases == 1:
             delta_V = 2.0 * load_current_A * L_km * (R_op * power_factor + X * sin_phi)
->>>>>>> origin/fix/scenario-tests-properly
             reference_V = (
                 system_voltage_V / np.sqrt(3) if system_voltage_V > 250 else system_voltage_V
             )
         else:
             # DC
-<<<<<<< HEAD
             delta_v = 2.0 * load_current_A * l_km * r_op
             reference_V = system_voltage_V
 
@@ -490,7 +426,7 @@ class CableSizingAgent(BaseAgent):
             "voltage_at_load_V": float(v_load),
             "resistance_per_km_ohm": r_op,
             "reactance_per_km_ohm": X,
-=======
+
             delta_V = 2.0 * load_current_A * L_km * R_op
             reference_V = system_voltage_V
 
@@ -505,19 +441,13 @@ class CableSizingAgent(BaseAgent):
             "voltage_at_load_V": float(V_load),
             "resistance_per_km_ohm": float(R_op),
             "reactance_per_km_ohm": float(X),
->>>>>>> origin/fix/scenario-tests-properly
             "cable_length_m": cable_length_m,
             "load_current_A": load_current_A,
             "power_factor": power_factor,
             "n_phases": n_phases,
             "system_voltage_V": system_voltage_V,
-<<<<<<< HEAD
             "compliant_5pct": bool(delta_v_percent <= 5.0),
             "compliant_4pct": bool(delta_v_percent <= 4.0),
-=======
-            "compliant_5pct": bool(delta_V_percent <= 5.0),
-            "compliant_4pct": bool(delta_V_percent <= 4.0),
->>>>>>> origin/fix/scenario-tests-properly
         }
 
     # ------------------------------------------------------------------
@@ -526,21 +456,19 @@ class CableSizingAgent(BaseAgent):
 
     def verify_short_circuit_rating(
         self,
-<<<<<<< HEAD
         cross_section_mm2: float,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         fault_current_kA: float = 25.0,  # NOSONAR
         fault_duration_s: float = 1.0,
     ) -> dict[str, Any]:
-=======
+
         cross_section_mm2: int,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         fault_current_kA: float = 25.0,
         fault_duration_s: float = 1.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Verify cable short-circuit temperature rating per IEC 60949.
 
@@ -557,11 +485,7 @@ class CableSizingAgent(BaseAgent):
 
         Parameters
         ----------
-<<<<<<< HEAD
         cross_section_mm2 : float
-=======
-        cross_section_mm2 : int
->>>>>>> origin/fix/scenario-tests-properly
             Conductor cross-section in mm².
         conductor_material : str
             ``'Cu'`` or ``'Al'``.
@@ -593,7 +517,6 @@ class CableSizingAgent(BaseAgent):
             theta_i = 70.0
             theta_f = 160.0
 
-<<<<<<< HEAD
         S = cross_section_mm2
         i_fault = fault_current_kA * 1000.0  # NOSONAR
         t = fault_duration_s
@@ -608,7 +531,7 @@ class CableSizingAgent(BaseAgent):
         i_permissible = np.sqrt(i2t_permissible / t) if t > 0 else float("inf")  # NOSONAR
 
         adequate = i2t_actual <= i2t_permissible
-=======
+
         S = float(cross_section_mm2)
         I_fault = fault_current_kA * 1000.0  # Convert to A
         t = fault_duration_s
@@ -623,7 +546,6 @@ class CableSizingAgent(BaseAgent):
         I_permissible = np.sqrt(I2t_permissible / t) if t > 0 else float("inf")
 
         adequate = I2t_actual <= I2t_permissible
->>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "cross_section_mm2": cross_section_mm2,
@@ -631,7 +553,6 @@ class CableSizingAgent(BaseAgent):
             "insulation": insulation,
             "fault_current_kA": fault_current_kA,
             "fault_duration_s": fault_duration_s,
-<<<<<<< HEAD
             "actual_I2t_A2s": i2t_actual,
             "permissible_I2t_A2s": float(i2t_permissible),
             "permissible_fault_current_kA": float(i_permissible / 1000.0),
@@ -639,7 +560,7 @@ class CableSizingAgent(BaseAgent):
             "final_temp_limit_C": theta_f,
             "utilization_ratio": float(i2t_actual / i2t_permissible)
             if i2t_permissible > 0
-=======
+
             "actual_I2t_A2s": float(I2t_actual),
             "permissible_I2t_A2s": float(I2t_permissible),
             "permissible_fault_current_kA": float(I_permissible / 1000.0),
@@ -647,7 +568,6 @@ class CableSizingAgent(BaseAgent):
             "final_temp_limit_C": theta_f,
             "utilization_ratio": float(I2t_actual / I2t_permissible)
             if I2t_permissible > 0
->>>>>>> origin/fix/scenario-tests-properly
             else float("inf"),
             "adequate": bool(adequate),
         }
@@ -658,20 +578,13 @@ class CableSizingAgent(BaseAgent):
 
     def recommend_cable(
         self,
-<<<<<<< HEAD
         load_current_A: float,  # NOSONAR
         cable_length_m: float,
         system_voltage_V: float = 400.0,  # NOSONAR
-=======
-        load_current_A: float,
-        cable_length_m: float,
-        system_voltage_V: float = 400.0,
->>>>>>> origin/fix/scenario-tests-properly
         power_factor: float = 0.85,
         conductor_material: str = "Cu",
         insulation: str = "XLPE",
         installation_method: str = "in_air",
-<<<<<<< HEAD
         ambient_temp_C: float = 40.0,  # NOSONAR
         n_circuits: int = 1,
         fault_current_kA: float = 25.0,  # NOSONAR
@@ -679,7 +592,7 @@ class CableSizingAgent(BaseAgent):
         max_vdrop_percent: float = 5.0,
         n_phases: int = 3,
     ) -> dict[str, Any]:
-=======
+
         ambient_temp_C: float = 40.0,
         n_circuits: int = 1,
         fault_current_kA: float = 25.0,
@@ -687,7 +600,6 @@ class CableSizingAgent(BaseAgent):
         max_vdrop_percent: float = 5.0,
         n_phases: int = 3,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Recommend the smallest standard cable cross-section that satisfies
         all three criteria: ampacity, voltage drop, and short-circuit rating.
@@ -730,11 +642,7 @@ class CableSizingAgent(BaseAgent):
         available_xsections = sorted(base_table.keys())
 
         candidate = None
-<<<<<<< HEAD
         candidates_evaluated: list[dict[str, Any]] = []
-=======
-        candidates_evaluated: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         for xsec in available_xsections:
             # 1. Ampacity check
@@ -830,11 +738,7 @@ class CableSizingAgent(BaseAgent):
             self.log_execution(f"Starting cable sizing analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
             p = task.parameters  # shorthand
 
             if analysis_type in ("ampacity", "full"):
@@ -920,7 +824,6 @@ class CableSizingAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate cable sizing results against IEC criteria."""
-<<<<<<< HEAD
         errors: list[str] = []
 
         amp = result.data.get("ampacity")
@@ -942,7 +845,7 @@ class CableSizingAgent(BaseAgent):
 
         rec = result.data.get("recommendation")
         if rec is not None and "No standard cable" in rec.get("recommendation", ""):  # NOSONAR — S1066: not collapsible; `and` short-circuits the .get() on None
-=======
+
         errors: List[str] = []
 
         amp = result.data.get("ampacity")
@@ -967,7 +870,6 @@ class CableSizingAgent(BaseAgent):
 
         rec = result.data.get("recommendation")
         if rec is not None and "No standard cable" in rec.get("recommendation", ""):
->>>>>>> origin/fix/scenario-tests-properly
             errors.append("No suitable cable found meeting all criteria")
 
         result.validation_errors.extend(errors)

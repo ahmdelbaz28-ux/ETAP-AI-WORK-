@@ -10,11 +10,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import requests
 
@@ -75,15 +71,13 @@ class AutoCADDrawingContext:
 
     def __init__(self, file_path: str):
         self.file_path = file_path
-<<<<<<< HEAD
         self.layers: dict[str, dict] = {}
         self.blocks: dict[str, dict] = {}
         self.entities: list[dict] = []
-=======
+
         self.layers: Dict[str, dict] = {}
         self.blocks: Dict[str, dict] = {}
         self.entities: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
         self.modified: bool = False
         self.locked: bool = False
         self.transaction_count: int = 0
@@ -110,15 +104,9 @@ class AutoCADPluginClient:
             {
                 "Content-Type": "application/json",
                 "X-API-Key": api_key,
-<<<<<<< HEAD
             },
         )
         self._available: Optional[bool] = None
-=======
-            }
-        )
-        self._available: bool | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
     def is_available(self) -> bool:
         """Check if the AutoCAD plugin is reachable."""
@@ -142,11 +130,7 @@ class AutoCADPluginClient:
         """Open a DWG file in AutoCAD."""
         return self.send_command("open_drawing", {"file_path": file_path})
 
-<<<<<<< HEAD
     def save_drawing(self, file_path: Optional[str] = None) -> dict:
-=======
-    def save_drawing(self, file_path: str | None = None) -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Save the current drawing."""
         return self.send_command("save_drawing", {"file_path": file_path or ""})
 
@@ -161,15 +145,11 @@ class AutoCADPluginClient:
         )
 
     def create_layer(
-<<<<<<< HEAD
         self,
         name: str,
         color: str = "7",
         linetype: str = "Continuous",
         lineweight: str = "Default",
-=======
-        self, name: str, color: str = "7", linetype: str = "Continuous", lineweight: str = "Default"
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Create a new layer."""
         return self.send_command(
@@ -183,14 +163,10 @@ class AutoCADPluginClient:
         )
 
     def create_block(
-<<<<<<< HEAD
         self,
         name: str,
         entities: list[dict],
         base_point: list[float] | None = None,
-=======
-        self, name: str, entities: List[dict], base_point: List[float] | None = None
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Create a block definition."""
         return self.send_command(
@@ -205,11 +181,7 @@ class AutoCADPluginClient:
     def insert_block(
         self,
         block_name: str,
-<<<<<<< HEAD
         insertion_point: list[float],
-=======
-        insertion_point: List[float],
->>>>>>> origin/fix/scenario-tests-properly
         scale: float = 1.0,
         rotation: float = 0.0,
     ) -> dict:
@@ -224,11 +196,7 @@ class AutoCADPluginClient:
             },
         )
 
-<<<<<<< HEAD
     def draw_line(self, start: list[float], end: list[float], layer: str = "0") -> dict:
-=======
-    def draw_line(self, start: List[float], end: List[float], layer: str = "0") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a line entity."""
         return self.send_command(
             "draw_line",
@@ -240,14 +208,10 @@ class AutoCADPluginClient:
         )
 
     def draw_polyline(
-<<<<<<< HEAD
         self,
         vertices: list[list[float]],
         closed: bool = False,
         layer: str = "0",
-=======
-        self, vertices: List[List[float]], closed: bool = False, layer: str = "0"
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Draw a polyline."""
         return self.send_command(
@@ -259,11 +223,7 @@ class AutoCADPluginClient:
             },
         )
 
-<<<<<<< HEAD
     def draw_circle(self, center: list[float], radius: float, layer: str = "0") -> dict:
-=======
-    def draw_circle(self, center: List[float], radius: float, layer: str = "0") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a circle."""
         return self.send_command(
             "draw_circle",
@@ -276,11 +236,7 @@ class AutoCADPluginClient:
 
     def draw_arc(
         self,
-<<<<<<< HEAD
         center: list[float],
-=======
-        center: List[float],
->>>>>>> origin/fix/scenario-tests-properly
         radius: float,
         start_angle: float,
         end_angle: float,
@@ -301,11 +257,7 @@ class AutoCADPluginClient:
     def draw_text(
         self,
         text: str,
-<<<<<<< HEAD
         insertion_point: list[float],
-=======
-        insertion_point: List[float],
->>>>>>> origin/fix/scenario-tests-properly
         height: float = 2.5,
         rotation: float = 0.0,
         layer: str = "0",
@@ -325,13 +277,8 @@ class AutoCADPluginClient:
     def draw_dimension(
         self,
         type_: str,
-<<<<<<< HEAD
         def_point: list[float],
         text_point: list[float],
-=======
-        def_point: List[float],
-        text_point: List[float],
->>>>>>> origin/fix/scenario-tests-properly
         text: str = "",
         layer: str = "0",
     ) -> dict:
@@ -391,11 +338,7 @@ class AutoCADPluginClient:
         """Rollback the active transaction."""
         return self.send_command("rollback_transaction", {})
 
-<<<<<<< HEAD
     def batch_operation(self, operations: list[dict]) -> list[dict]:
-=======
-    def batch_operation(self, operations: List[dict]) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Execute multiple operations in a single transaction."""
         return self.send_command("batch", {"operations": operations})
 
@@ -413,17 +356,10 @@ class AutoCADPluginClient:
     def draw_electrical_symbol(
         self,
         symbol_type: str,
-<<<<<<< HEAD
         insertion_point: list[float],
         scale: float = 1.0,
         rotation: float = 0.0,
         attributes: Optional[dict] = None,
-=======
-        insertion_point: List[float],
-        scale: float = 1.0,
-        rotation: float = 0.0,
-        attributes: dict | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Draw an electrical component symbol."""
         return self.send_command(
@@ -438,14 +374,10 @@ class AutoCADPluginClient:
         )
 
     def draw_single_line_diagram(
-<<<<<<< HEAD
         self,
         buses: list[dict],
         branches: list[dict],
         options: Optional[dict] = None,
-=======
-        self, buses: List[dict], branches: List[dict], options: dict | None = None
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Generate a single-line diagram from bus/branch data."""
         return self.send_command(
@@ -472,13 +404,8 @@ class AutoCADConnector:
 
     def __init__(self, plugin_url: str = "http://localhost:4820", api_key: str = ""):
         self.plugin = AutoCADPluginClient(plugin_url, api_key=api_key)
-<<<<<<< HEAD
         self._current_drawing: Optional[AutoCADDrawingContext] = None
         self._operation_log: list[dict] = []
-=======
-        self._current_drawing: AutoCADDrawingContext | None = None
-        self._operation_log: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     @property
     def is_connected(self) -> bool:
@@ -496,11 +423,7 @@ class AutoCADConnector:
             self._log_operation("open_drawing", file_path, True)
         return result
 
-<<<<<<< HEAD
     def save_drawing(self, file_path: Optional[str] = None) -> dict:
-=======
-    def save_drawing(self, file_path: str | None = None) -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         result = self.plugin.save_drawing(file_path)
         if result.get("success") and self._current_drawing:
             self._current_drawing.modified = False
@@ -520,11 +443,7 @@ class AutoCADConnector:
     # Unified Model → AutoCAD Mapping
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def draw_bus(self, bus: Bus, _layer: str = "E-BUS") -> dict:
-=======
-    def draw_bus(self, bus: Bus, layer: str = "E-BUS") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a bus as an AutoCAD block."""
         x = bus.coordinates.x if bus.coordinates else 0.0
         y = bus.coordinates.y if bus.coordinates else 0.0
@@ -544,11 +463,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-<<<<<<< HEAD
     def draw_transformer(self, transformer: Transformer, _layer: str = "E-XFMR") -> dict:
-=======
-    def draw_transformer(self, transformer: Transformer, layer: str = "E-XFMR") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a transformer as a dynamic AutoCAD block."""
         x = transformer.coordinates.x if transformer.coordinates else 0.0
         y = transformer.coordinates.y if transformer.coordinates else 0.0
@@ -587,11 +502,7 @@ class AutoCADConnector:
             layer=layer,
         )
 
-<<<<<<< HEAD
     def draw_breaker(self, breaker: Breaker, _layer: str = "E-BREAKER") -> dict:
-=======
-    def draw_breaker(self, breaker: Breaker, layer: str = "E-BREAKER") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a breaker as an AutoCAD block."""
         x = breaker.coordinates.x if breaker.coordinates else 0.0
         y = breaker.coordinates.y if breaker.coordinates else 0.0
@@ -611,11 +522,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-<<<<<<< HEAD
     def draw_panel(self, panel: Panel, _layer: str = "E-PANEL") -> dict:
-=======
-    def draw_panel(self, panel: Panel, layer: str = "E-PANEL") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a panel as an AutoCAD block with schedule."""
         x = panel.coordinates.x if panel.coordinates else 0.0
         y = panel.coordinates.y if panel.coordinates else 0.0
@@ -637,11 +544,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-<<<<<<< HEAD
     def draw_load(self, load: Load, _layer: str = "E-LOAD") -> dict:
-=======
-    def draw_load(self, load: Load, layer: str = "E-LOAD") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw a load as an AutoCAD block."""
         x = load.coordinates.x if load.coordinates else 0.0
         y = load.coordinates.y if load.coordinates else 0.0
@@ -661,11 +564,7 @@ class AutoCADConnector:
             attributes=attrs,
         )
 
-<<<<<<< HEAD
     def draw_equipment(self, equipment: Equipment, _layer: str = "E-EQUIP") -> dict:
-=======
-    def draw_equipment(self, equipment: Equipment, layer: str = "E-EQUIP") -> dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Draw general equipment as an AutoCAD block."""
         x = equipment.coordinates.x if equipment.coordinates else 0.0
         y = equipment.coordinates.y if equipment.coordinates else 0.0
@@ -715,7 +614,6 @@ class AutoCADConnector:
 
     def generate_single_line_diagram(
         self,
-<<<<<<< HEAD
         buses: list[Bus],
         transformers: list[Transformer],
         cables: list[Cable],
@@ -723,7 +621,7 @@ class AutoCADConnector:
         loads: list[Load],
         output_path: str,
         options: Optional[dict] = None,
-=======
+
         buses: List[Bus],
         transformers: List[Transformer],
         cables: List[Cable],
@@ -731,7 +629,6 @@ class AutoCADConnector:
         loads: List[Load],
         output_path: str,
         options: dict | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         """Generate a complete single-line diagram from the unified model.
 
@@ -794,17 +691,15 @@ class AutoCADConnector:
             id=str(uuid.uuid4()),
             name="Legend",
             annotation_type="label",
-<<<<<<< HEAD
             text=(
                 f"Generated: {time.strftime('%Y-%m-%d %H:%M')}, "
                 f"Base: {opts.get('base_mva', 100)} MVA, "
                 f"System: {opts.get('frequency', 60)} Hz"
             ),
-=======
+
             text=f"Generated: {time.strftime('%Y-%m-%d %H:%M')} | "
             f"Base: {opts.get('base_mva', 100)} MVA | "
             f"System: {opts.get('frequency', 60)} Hz",
->>>>>>> origin/fix/scenario-tests-properly
             font_size=2.5,
             coordinates=Coordinates(x=start_x, y=start_y - bus_spacing_y),
         )
@@ -840,26 +735,18 @@ class AutoCADConnector:
             try:
                 self.plugin.create_layer(name, color=color, linetype=lt, lineweight=lw)
             except Exception:
-<<<<<<< HEAD
                 logger.debug("Layer %s may already exist", name)
-=======
-                logger.debug(f"Layer {name} may already exist")
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Operations Log
     # ------------------------------------------------------------------
 
     def _log_operation(
-<<<<<<< HEAD
         self,
         operation: str,
         target: str,
         success: bool,
         details: Optional[dict] = None,
-=======
-        self, operation: str, target: str, success: bool, details: dict | None = None
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self._operation_log.append(
             {
@@ -868,17 +755,10 @@ class AutoCADConnector:
                 "success": success,
                 "details": details or {},
                 "timestamp": time.time(),
-<<<<<<< HEAD
             },
         )
 
     def get_operation_log(self, limit: int = 100) -> list[dict]:
-=======
-            }
-        )
-
-    def get_operation_log(self, limit: int = 100) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         return self._operation_log[-limit:]
 
     def get_statistics(self) -> dict:

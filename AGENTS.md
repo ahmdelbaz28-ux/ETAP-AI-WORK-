@@ -43,7 +43,6 @@ messages:
 
 | File | Agent | Temperature |
 |------|-------|-------------|
-<<<<<<< HEAD
 | `etap_engineer_agent_v2.yaml` | ETAP Engineer | 0.2 |
 | `etap_expert_agent.prompt.yaml` | ETAP Expert Skill | 0.2 |
 | `etap_gui_agent.prompt.yaml` | ETAP GUI (CUA) | 0.2 |
@@ -54,7 +53,7 @@ messages:
 | `coordination_agent.prompt.yaml` | Protection Coordination (legacy alias handle — same content) | 0.2 |
 | `motor_starting_agent.prompt.yaml` | Motor Starting | 0.2 |
 | `power_system_coordinator_agent.prompt.yaml` | Coordinator (router) | 0.2 |
-=======
+
 | `etap_engineer_agent.yaml` | ETAP Engineer | 0.2 |
 | `etap_engineer_agent_v2.yaml` | ETAP Engineer v2 | 0.2 |
 | `load_flow_agent.prompt.yaml` | Load Flow | 0.2 |
@@ -63,7 +62,6 @@ messages:
 | `protection_agent.prompt.yaml` | Protection | 0.2 |
 | `motor_starting_agent.prompt.yaml` | Motor Starting | 0.2 |
 | `power_system_coordinator_agent.prompt.yaml` | Coordinator | 0.2 |
->>>>>>> origin/fix/scenario-tests-properly
 | `goal_planner_agent.yaml` | Goal Planner | 0.7 |
 | `weather_agent.prompt.yaml` | Weather | 0.2 |
 | `stability_agent.prompt.yaml` | Stability | 0.2 |
@@ -78,15 +76,10 @@ messages:
 | `validation_agent.prompt.yaml` | Validation | 0.2 |
 | `anomaly_agent.prompt.yaml` | Anomaly | 0.2 |
 | `report_agent.prompt.yaml` | Report | 0.3 |
-<<<<<<< HEAD
 | `predictive_agent.prompt.yaml` | Predictive | 0.2 |
 | `code_guard_agent.prompt.yaml` | Code Guard | 0.1 |
 | `qgis_agent.prompt.yaml` | GIS & Geospatial Integration (ArcGIS Pro / ArcGIS Online / QGIS) | 0.2 |
 | `fallback_agent.prompt.yaml` | Safety-net fallback | 0.2 |
-=======
-| `coordination_agent.prompt.yaml` | Coordination | 0.2 |
-| `predictive_agent.prompt.yaml` | Predictive | 0.2 |
->>>>>>> origin/fix/scenario-tests-properly
 
 ---
 

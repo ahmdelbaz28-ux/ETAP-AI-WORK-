@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -79,7 +78,7 @@ export default function CodeGuard() {
       setLoading(false);
     }
   };
-=======
+
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -131,7 +130,6 @@ export default function CodeGuard() {
       setLoading(false)
     }
   }
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -142,7 +140,6 @@ export default function CodeGuard() {
             <Shield className="w-6 h-6 text-purple-500" />
           </div>
           <div>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {t("codeGuard.title", "Code Guard")}
@@ -154,13 +151,12 @@ export default function CodeGuard() {
                 "codeGuard.subtitle",
                 "AI-powered code quality review — 14 failure modes + 23 clean-code rules + 9 test rules + 10 docs rules",
               )}
-=======
+
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {t('codeGuard.title', 'Code Guard')}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {t('codeGuard.subtitle', 'AI-powered code quality review — 14 failure modes + 23 clean-code rules + 9 test rules + 10 docs rules')}
->>>>>>> origin/fix/scenario-tests-properly
             </p>
           </div>
         </div>
@@ -169,7 +165,6 @@ export default function CodeGuard() {
       {/* Input Panel */}
       <motion.div {...fadeIn} transition={{ delay: 0.1 }}>
         <Card>
-<<<<<<< HEAD
           <CardHeader
             title="Source Code"
             icon={<Code className="w-4 h-4 text-purple-500" />}
@@ -181,7 +176,7 @@ export default function CodeGuard() {
                   { value: "test", label: "Tests", icon: TestTube },
                   { value: "docs", label: "Docs", icon: FileText },
                   { value: "ai_failure_modes", label: "AI Modes", icon: Bug },
-=======
+
           <CardHeader title="Source Code" icon={<Code className="w-4 h-4 text-purple-500" />}
             action={
               <div className="flex gap-2">
@@ -191,23 +186,16 @@ export default function CodeGuard() {
                   { value: 'test', label: 'Tests', icon: TestTube },
                   { value: 'docs', label: 'Docs', icon: FileText },
                   { value: 'ai_failure_modes', label: 'AI Modes', icon: Bug },
->>>>>>> origin/fix/scenario-tests-properly
                 ].map(({ value, label, icon: Icon }) => (
                   <button
                     key={value}
                     onClick={() => setGuardType(value)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                       guardType === value
-<<<<<<< HEAD
                         ? "bg-purple-500 text-white"
                         : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                     type="button"
-=======
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
->>>>>>> origin/fix/scenario-tests-properly
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {label}
@@ -219,13 +207,9 @@ export default function CodeGuard() {
           <textarea
             value={source}
             onChange={(e) => setSource(e.target.value)}
-<<<<<<< HEAD
             placeholder={
               "# Paste your Python code here...\n# Example:\ndef calculate_impedance(voltage, current):\n    return voltage / current"
             }
-=======
-            placeholder={`# Paste your Python code here...\n# Example:\ndef calculate_impedance(voltage, current):\n    return voltage / current`}
->>>>>>> origin/fix/scenario-tests-properly
             className="w-full h-64 p-4 font-mono text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <div className="flex justify-end mt-4">
@@ -233,16 +217,10 @@ export default function CodeGuard() {
               onClick={handleReview}
               disabled={loading || !source.trim()}
               className="flex items-center gap-2 px-6 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-<<<<<<< HEAD
               type="button"
             >
               <Send className="w-4 h-4" />
               {loading ? "Scanning..." : "Run Guard Review"}
-=======
-            >
-              <Send className="w-4 h-4" />
-              {loading ? 'Scanning...' : 'Run Guard Review'}
->>>>>>> origin/fix/scenario-tests-properly
             </button>
           </div>
         </Card>
@@ -255,15 +233,10 @@ export default function CodeGuard() {
           <div className="grid grid-cols-4 gap-4 mb-6">
             <Card>
               <div className="p-4 text-center">
-<<<<<<< HEAD
                 <div
                   className={`text-3xl font-bold ${result.all_passed ? "text-green-500" : "text-red-500"}`}
                 >
                   {result.all_passed ? "PASS" : "FAIL"}
-=======
-                <div className={`text-3xl font-bold ${result.all_passed ? 'text-green-500' : 'text-red-500'}`}>
-                  {result.all_passed ? 'PASS' : 'FAIL'}
->>>>>>> origin/fix/scenario-tests-properly
                 </div>
                 <div className="text-sm text-gray-500 mt-1">Overall</div>
               </div>
@@ -294,13 +267,8 @@ export default function CodeGuard() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-purple-500" />
                 {guardData.guard_name}
-<<<<<<< HEAD
                 <Badge variant={guardData.passed ? "success" : "danger"}>
                   {guardData.passed ? "PASSED" : "FAILED"}
-=======
-                <Badge variant={guardData.passed ? 'success' : 'danger'}>
-                  {guardData.passed ? 'PASSED' : 'FAILED'}
->>>>>>> origin/fix/scenario-tests-properly
                 </Badge>
               </h3>
               <div className="space-y-3">
@@ -309,7 +277,6 @@ export default function CodeGuard() {
                     No violations found
                   </div>
                 ) : (
-<<<<<<< HEAD
                   guardData.violations.map((v: GuardViolation) => {
                     const config =
                       severityConfig[v.severity as keyof typeof severityConfig] ||
@@ -325,18 +292,16 @@ export default function CodeGuard() {
                         key={`${v.rule_id}-${v.location ?? ""}`}
                         className={`p-4 rounded-lg border ${config.bg} ${config.border}`}
                       >
-=======
+
                   guardData.violations.map((v: GuardViolation, i: number) => {
                     const config = severityConfig[v.severity as keyof typeof severityConfig] || severityConfig.worth_noting
                     const Icon = config.icon
                     return (
                       <div key={i} className={`p-4 rounded-lg border ${config.bg} ${config.border}`}>
->>>>>>> origin/fix/scenario-tests-properly
                         <div className="flex items-start gap-3">
                           <Icon className={`w-5 h-5 mt-0.5 ${config.color}`} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-<<<<<<< HEAD
                               <Badge variant={badgeVariant as "danger" | "warning" | "default"}>
                                 {v.rule_id}
                               </Badge>
@@ -352,7 +317,7 @@ export default function CodeGuard() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {v.description}
                             </p>
-=======
+
                               <Badge variant={v.severity === 'must_fix' ? 'danger' : v.severity === 'should_fix' ? 'warning' : 'default'}>
                                 {v.rule_id}
                               </Badge>
@@ -362,7 +327,6 @@ export default function CodeGuard() {
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">{v.description}</p>
->>>>>>> origin/fix/scenario-tests-properly
                             {v.location && (
                               <p className="text-xs text-gray-500 mt-1 font-mono">{v.location}</p>
                             )}
@@ -374,11 +338,7 @@ export default function CodeGuard() {
                           </div>
                         </div>
                       </div>
-<<<<<<< HEAD
                     );
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                   })
                 )}
               </div>
@@ -387,9 +347,5 @@ export default function CodeGuard() {
         </motion.div>
       )}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

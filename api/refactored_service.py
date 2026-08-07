@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 api/refactored_service.py — DEPRECATED: use api.routes instead.
 
 MEDIUM #17 (AhmedETAP_Error_Report_AR.pdf):
@@ -22,7 +21,7 @@ Old code that imported from here will still work but will see a warning:
 The full original implementation (2237 lines) was removed in the
 MEDIUM #17 cleanup. Its functionality is fully covered by api/routes.py
 + api/health.py + api/agents.py + api/studies.py + api/auth.py etc.
-=======
+
 api/refactored_service.py — Refactored Engineering Service with modular architecture.
 
 This file demonstrates how the monolithic ``engineering_service.py`` should be
@@ -45,12 +44,10 @@ Key improvements over the monolithic version:
 Run::
 
     uvicorn api.refactored_service:app --host 0.0.0.0 --port 8000
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import warnings
 
 # Re-export the canonical app so any lingering imports still work.
@@ -68,7 +65,7 @@ warnings.warn(
 
 # Explicit __all__ so `from api.refactored_service import *` only exposes `app`.
 __all__ = ["app"]
-=======
+
 import asyncio
 import hashlib
 import hmac
@@ -2233,4 +2230,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
->>>>>>> origin/fix/scenario-tests-properly

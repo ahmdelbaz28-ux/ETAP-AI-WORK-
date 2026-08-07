@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 from __future__ import annotations
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # =============================================================================
 # Language Detection & Auto-Correction Utility
 # =============================================================================
@@ -11,14 +8,9 @@ Utility for detecting input language and converting keyboard layouts.
 Supports Arabic-to-English keyboard layout conversion for non-English input.
 """
 
-<<<<<<< HEAD
 import contextlib
 import os
 from typing import TYPE_CHECKING
-=======
-import os
-from typing import TYPE_CHECKING, Dict
->>>>>>> origin/fix/scenario-tests-properly
 
 # Try to import langdetect for better language detection
 try:
@@ -29,11 +21,7 @@ except ImportError:
     HAS_LANGDETECT = False
     detect = None  # type: ignore
     print(
-<<<<<<< HEAD
         "Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection.",
-=======
-        "Warning: langdetect not installed. Install with 'pip install langdetect' for better language detection."
->>>>>>> origin/fix/scenario-tests-properly
     )
 
 if TYPE_CHECKING or HAS_LANGDETECT and detect is not None:
@@ -49,11 +37,7 @@ AUTO_CORRECT_LANGUAGE = os.getenv("AUTO_CORRECT_LANGUAGE", "true").lower() == "t
 # ---------------------------------------------------------------------------
 # This mapping converts Arabic keyboard layout characters to their
 # corresponding English QWERTY equivalents
-<<<<<<< HEAD
 ARABIC_TO_ENGLISH_KEYBOARD_MAP: dict[str, str] = {
-=======
-ARABIC_TO_ENGLISH_KEYBOARD_MAP: Dict[str, str] = {
->>>>>>> origin/fix/scenario-tests-properly
     # Arabic letters that map to English letters when typed on Arabic keyboard
     "ض": "q",
     "ص": "w",
@@ -111,13 +95,9 @@ ARABIC_TO_ENGLISH_KEYBOARD_MAP: Dict[str, str] = {
 }
 
 
-<<<<<<< HEAD
 def normalize_input(  # NOSONAR
     text: str,
 ) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def normalize_input(text: str) -> str:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Normalize input text by converting Arabic keyboard layout to English.
     This is especially useful when users accidentally type in Arabic layout
@@ -201,13 +181,9 @@ def is_arabic_text(text: str) -> bool:
     return arabic_chars / total_alpha > 0.3
 
 
-<<<<<<< HEAD
 def detect_language(
     text: str,
 ) -> str:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-def detect_language(text: str) -> str:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Detect the likely language of input text based on character sets.
 
@@ -218,12 +194,8 @@ def detect_language(text: str) -> str:
         Detected language ('arabic', 'english', or 'mixed')
     """
     if HAS_LANGDETECT:
-<<<<<<< HEAD
         # Fall back to simple character-based detection on any failure
         with contextlib.suppress(Exception):
-=======
-        try:
->>>>>>> origin/fix/scenario-tests-properly
             lang = detect(text)
             if lang == "ar":
                 return "arabic"
@@ -231,12 +203,10 @@ def detect_language(text: str) -> str:
                 return "english"
             else:
                 return lang
-<<<<<<< HEAD
-=======
+
         except Exception:
             # Fall back to simple character-based detection
             pass
->>>>>>> origin/fix/scenario-tests-properly
 
     arabic_chars = 0
     english_chars = 0

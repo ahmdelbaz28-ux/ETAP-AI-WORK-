@@ -15,11 +15,7 @@ DB_FILE="./mastra.db"
 
 mkdir -p "$BACKUP_DIR"
 
-<<<<<<< HEAD
 if [[ ! -f "$DB_FILE" ]]; then
-=======
-if [ ! -f "$DB_FILE" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     echo "[WARN] Database file not found: $DB_FILE"
     exit 0
 fi

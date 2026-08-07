@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
@@ -337,7 +336,7 @@ export function CommandPalette() {
           }
         }}
       />
-=======
+
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -460,7 +459,6 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
->>>>>>> origin/fix/scenario-tests-properly
 
       <div className="relative z-[101] w-full max-w-xl mx-4 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl overflow-hidden">
         {/* Search Input */}
@@ -470,17 +468,12 @@ export function CommandPalette() {
             ref={inputRef}
             type="text"
             value={query}
-<<<<<<< HEAD
             onChange={(e) => setQuery(e.target.value)}
             placeholder={
               lang === "ar"
                 ? `ابحث في ${filtered.length} عنصر...`
                 : `Search ${filtered.length} items...`
             }
-=======
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Type a command or search..."
->>>>>>> origin/fix/scenario-tests-properly
             className="flex-1 bg-transparent text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] outline-none"
           />
           <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-[var(--text-muted)] bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded">
@@ -490,7 +483,6 @@ export function CommandPalette() {
 
         {/* Command List */}
         <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
-<<<<<<< HEAD
           {filtered.length > 0 ? (
             sections.map((section) => {
               const sectionCommands = filtered
@@ -557,7 +549,7 @@ export function CommandPalette() {
           ) : (
             <div className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">
               {lang === "ar" ? `لا توجد نتائج لـ "${query}"` : `No results for "${query}"`}
-=======
+
           {sections.map(section => (
             <div key={section}>
               <div className="px-4 py-1.5 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
@@ -605,14 +597,12 @@ export function CommandPalette() {
           {filtered.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">
               No commands found for "{query}"
->>>>>>> origin/fix/scenario-tests-properly
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center gap-4 px-4 py-2.5 border-t border-[var(--border-primary)] text-[10px] text-[var(--text-muted)]">
-<<<<<<< HEAD
           <span className="flex items-center gap-1">
             <Command className="w-3 h-3" /> K to toggle
           </span>
@@ -624,14 +614,4 @@ export function CommandPalette() {
       </div>
     </div>
   );
-=======
-          <span className="flex items-center gap-1"><Command className="w-3 h-3" /> K to toggle</span>
-          <span>↑↓ navigate</span>
-          <span>↵ select</span>
-          <span>esc close</span>
-        </div>
-      </div>
-    </div>
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

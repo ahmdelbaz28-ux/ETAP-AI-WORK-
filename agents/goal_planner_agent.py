@@ -20,17 +20,15 @@ Standards:
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -107,13 +105,8 @@ class GoalPlannerAgent(BaseAgent):
     def extract_tasks(
         self,
         raw_input: str,
-<<<<<<< HEAD
         known_tasks: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-=======
-        known_tasks: List[Dict[str, Any]] | None = None,
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Extract and structure tasks from free-form input text.
 
@@ -172,19 +165,17 @@ class GoalPlannerAgent(BaseAgent):
             "total_estimated_hours": round(total_hours, 1),
         }
 
-<<<<<<< HEAD
     def prioritize_tasks(  # NOSONAR
         self,
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
     ) -> dict[str, Any]:
-=======
+
     def prioritize_tasks(
         self,
         tasks: List[Dict[str, Any]],
         available_hours: float = 8.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Prioritize tasks using composite scoring and dependency
         resolution.
@@ -302,26 +293,16 @@ class GoalPlannerAgent(BaseAgent):
             },
         }
 
-<<<<<<< HEAD
     def _find_critical_path(self, tasks: list[dict[str, Any]]) -> list[str]:
-=======
-    def _find_critical_path(self, tasks: List[Dict[str, Any]]) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Find the critical path (longest dependency chain) through tasks.
 
         Returns a list of task names forming the critical path.
         """
         task_map = {t["name"]: t for t in tasks}
-<<<<<<< HEAD
         memo: dict[str, list[str]] = {}
 
         def longest_chain(name: str) -> list[str]:
-=======
-        memo: Dict[str, List[str]] = {}
-
-        def longest_chain(name: str) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
             if name in memo:
                 return memo[name]
             task = task_map.get(name)
@@ -350,17 +331,15 @@ class GoalPlannerAgent(BaseAgent):
 
     def assess_risks(
         self,
-<<<<<<< HEAD
         scheduled_tasks: list[dict[str, Any]],
         deferred_tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
     ) -> dict[str, Any]:
-=======
+
         scheduled_tasks: List[Dict[str, Any]],
         deferred_tasks: List[Dict[str, Any]],
         available_hours: float = 8.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Assess risks in the planned schedule.
 
@@ -389,11 +368,7 @@ class GoalPlannerAgent(BaseAgent):
             risks.append(
                 f"Scheduled tasks total {total_hours:.1f}h, "
                 f"close to or exceeding available {available_hours:.1f}h. "
-<<<<<<< HEAD
                 "High risk of schedule overrun.",
-=======
-                "High risk of schedule overrun."
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Risk: high-importance tasks deferred
@@ -401,11 +376,7 @@ class GoalPlannerAgent(BaseAgent):
             if task.get("importance") in ("critical", "high"):
                 risks.append(
                     f"High-importance task '{task['name']}' is deferred — "
-<<<<<<< HEAD
                     "may cause downstream delays.",
-=======
-                    "may cause downstream delays."
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Risk: dependency chains
@@ -413,11 +384,7 @@ class GoalPlannerAgent(BaseAgent):
             deps = task.get("dependencies", [])
             if len(deps) > 2:
                 risks.append(
-<<<<<<< HEAD
                     f"Task '{task['name']}' has {len(deps)} dependencies — high coupling risk.",
-=======
-                    f"Task '{task['name']}' has {len(deps)} dependencies — high coupling risk."
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Assumptions
@@ -434,25 +401,18 @@ class GoalPlannerAgent(BaseAgent):
         if not risks:
             recommendations.append("Schedule looks feasible — proceed with execution")
 
-<<<<<<< HEAD
         if len(risks) > 3:
             _risk_level = "high"
         elif len(risks) > 1:
             _risk_level = "medium"
         else:
             _risk_level = "low"
-=======
->>>>>>> origin/fix/scenario-tests-properly
         return {
             "risks": risks,
             "assumptions": assumptions,
             "recommendations": recommendations,
             "risk_count": len(risks),
-<<<<<<< HEAD
             "risk_level": _risk_level,
-=======
-            "risk_level": "high" if len(risks) > 3 else "medium" if len(risks) > 1 else "low",
->>>>>>> origin/fix/scenario-tests-properly
         }
 
     # ------------------------------------------------------------------
@@ -517,11 +477,7 @@ class GoalPlannerAgent(BaseAgent):
             self.log_execution(
                 f"Goal planning completed in {execution_time:.2f}s "
                 f"({extraction['total_tasks']} tasks, "
-<<<<<<< HEAD
                 f"{len(prioritization['scheduled_tasks'])} scheduled)",
-=======
-                f"{len(prioritization['scheduled_tasks'])} scheduled)"
->>>>>>> origin/fix/scenario-tests-properly
             )
             return result
 
@@ -549,20 +505,18 @@ class GoalPlannerAgent(BaseAgent):
         - Composite scores are between 0 and 1
         - No duplicate task names in scheduled list
         """
-<<<<<<< HEAD
         errors: list[str] = []
 
         extraction = result.data.get("task_extraction")
         if extraction is not None and extraction.get("total_tasks", 0) < 0:
             errors.append("Negative task count")
-=======
+
         errors: List[str] = []
 
         extraction = result.data.get("task_extraction")
         if extraction is not None:
             if extraction.get("total_tasks", 0) < 0:
                 errors.append("Negative task count")
->>>>>>> origin/fix/scenario-tests-properly
 
         prioritization = result.data.get("prioritization")
         if prioritization is not None:

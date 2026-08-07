@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Python
 __pycache__/
 *.pyc
@@ -138,7 +137,7 @@ skills/xlsx/
 mastra.db
 mastra.db-shm
 mastra.db-wal
-=======
+
 # ETAP AI Engineering Platform - Git Ignore File
 
 # ==========================================
@@ -490,4 +489,3 @@ ui/release
 security/_tmp_secure_executor_test_runner.py
 # Helm downloaded dependency charts
 helm/**/charts/
->>>>>>> origin/fix/scenario-tests-properly

@@ -1,10 +1,7 @@
 """
 Tests for coordination module — CoordinationEngine.
 """
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import math
 
 import numpy as np
@@ -15,7 +12,6 @@ from relays.relay import OvercurrentRelay
 
 
 class TestCoordinationEngine:
-<<<<<<< HEAD
     def make_relays(
         self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -32,7 +28,7 @@ class TestCoordinationEngine:
             curve_type="standard_inverse",
             TMS=downstream_TMS,
             Ip=downstream_Ip,
-=======
+
     def make_relays(self, upstream_TMS=1.0, downstream_TMS=0.2, upstream_Ip=1.0, downstream_Ip=1.0):
         upstream = OvercurrentRelay(
             relay_id=1, name="Upstream", curve_type="standard_inverse",
@@ -41,7 +37,6 @@ class TestCoordinationEngine:
         downstream = OvercurrentRelay(
             relay_id=2, name="Downstream", curve_type="standard_inverse",
             TMS=downstream_TMS, Ip=downstream_Ip,
->>>>>>> origin/fix/scenario-tests-properly
         )
         return upstream, downstream
 
@@ -86,13 +81,8 @@ class TestCoordinationEngine:
         assert "margin" in result
         assert "required_margin" in result
         assert "fault_current" in result
-<<<<<<< HEAD
         assert result["required_margin"] == pytest.approx(0.2)
         assert result["fault_current"] == pytest.approx(5.0)
-=======
-        assert result["required_margin"] == 0.2
-        assert result["fault_current"] == 5.0
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_suggest_tms_adjustment_finds_solution(self):
         up, down = self.make_relays(upstream_TMS=0.1, downstream_TMS=0.2)
@@ -153,17 +143,15 @@ class TestCoordinationEngine:
         assert abs(result["margin"] - expected_margin) < 1e-10
 
     def test_unknown_curve_in_suggest(self):
-<<<<<<< HEAD
         # V-TCC-01: Validation now happens in __init__ (earlier detection)
         with pytest.raises(ValueError, match="Unknown curve type"):
             OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
-=======
+
         up = OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
         down = OvercurrentRelay(relay_id=2, curve_type="standard_inverse", TMS=0.2, Ip=1.0)
         engine = CoordinationEngine()
         with pytest.raises(ValueError, match="Unknown curve type"):
             engine.suggest_tms_adjustment(up, down, fault_currents=[5.0], target_margin=0.2)
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_different_pickup_currents(self):
         up = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=2.0)
@@ -176,30 +164,23 @@ class TestCoordinationEngine:
 
     def test_default_margin_setting(self):
         engine = CoordinationEngine(default_margin_sec=0.3)
-<<<<<<< HEAD
         assert engine.default_margin_sec == pytest.approx(0.3)
 
     def test_tms_search_defaults(self):
         engine = CoordinationEngine()
         assert engine.tms_search_min == pytest.approx(0.1)
         assert engine.tms_search_max == pytest.approx(10.0)
-=======
+
         assert engine.default_margin_sec == 0.3
 
     def test_tms_search_defaults(self):
         engine = CoordinationEngine()
         assert engine.tms_search_min == 0.1
         assert engine.tms_search_max == 10.0
->>>>>>> origin/fix/scenario-tests-properly
         assert engine.tms_search_steps == 100
 
     def test_tms_search_custom(self):
         engine = CoordinationEngine(tms_search_min=0.05, tms_search_max=5.0, tms_search_steps=50)
-<<<<<<< HEAD
         assert engine.tms_search_min == pytest.approx(0.05)
         assert engine.tms_search_max == pytest.approx(5.0)
-=======
-        assert engine.tms_search_min == 0.05
-        assert engine.tms_search_max == 5.0
->>>>>>> origin/fix/scenario-tests-properly
         assert engine.tms_search_steps == 50

@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 worker/celery_app.py — Celery application for handling heavy engineering tasks.
 
 Uses Redis as both broker and result backend.
@@ -131,7 +130,7 @@ app.conf.beat_schedule = {
     },
 }
 
-=======
+
 Celery application for handling heavy engineering tasks asynchronously.
 Uses Redis as both broker and result backend.
 """
@@ -158,6 +157,5 @@ app.conf.update(
     task_acks_late=True,  # Acknowledge tasks after completion
 )
 
->>>>>>> origin/fix/scenario-tests-properly
 if __name__ == "__main__":
     app.start()

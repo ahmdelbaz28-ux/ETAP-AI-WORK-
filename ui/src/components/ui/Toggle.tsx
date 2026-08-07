@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { cn } from "../../utils/helpers";
 
 interface ToggleProps {
@@ -50,7 +49,7 @@ export function Toggle({
             "absolute top-0.5 bg-white rounded-full shadow-sm transition-transform",
             isMd ? "w-5 h-5" : "w-3.5 h-3.5",
             checked ? (isMd ? "translate-x-[22px]" : "translate-x-[14px]") : "translate-x-0.5", // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
+
 import { cn } from '../../utils/helpers'
 
 interface ToggleProps {
@@ -81,13 +80,11 @@ export function Toggle({ checked, onChange, label, description, disabled, size =
             'absolute top-0.5 bg-white rounded-full shadow-sm transition-transform',
             isMd ? 'w-5 h-5' : 'w-3.5 h-3.5',
             checked ? (isMd ? 'translate-x-[22px]' : 'translate-x-[14px]') : 'translate-x-0.5'
->>>>>>> origin/fix/scenario-tests-properly
           )}
         />
       </button>
       {(label || description) && (
         <div>
-<<<<<<< HEAD
           {label && (
             <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
               {label}
@@ -98,12 +95,11 @@ export function Toggle({ checked, onChange, label, description, disabled, size =
       )}
     </div>
   );
-=======
+
           {label && <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">{label}</span>}
           {description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{description}</p>}
         </div>
       )}
     </label>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

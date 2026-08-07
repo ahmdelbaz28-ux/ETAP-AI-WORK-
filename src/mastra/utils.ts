@@ -30,8 +30,4 @@ export function getWeatherCondition(code: number): string {
     99: 'Thunderstorm with heavy hail',
   };
   return conditions[code] || 'Unknown';
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/fix/scenario-tests-properly

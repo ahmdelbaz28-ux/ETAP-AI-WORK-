@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="AhmedETAP Documentation Logo">
   <defs>
     <!-- Premium Gradients -->
@@ -72,7 +71,7 @@
   <circle cx="256" cy="256" r="16" fill="#ffffff" stroke="#00d4ff" stroke-width="6" />
   <circle cx="256" cy="256" r="6" fill="#070b14" />
 </svg>
-=======
+
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="AhmedETAP logo">
   <defs>
@@ -98,4 +97,3 @@
   <circle cx="130" cy="230" r="260" fill="#7c3aed" opacity="0.12"/>
   <text x="90" y="120" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="900" fill="#ffffff">ETAP</text><text x="90" y="165" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#93c5fd">AI Engineering Platform</text><path d="M760 82 C820 20 930 20 990 82 L990 210 C930 272 820 272 760 210 Z" fill="url(#brand)" opacity="0.92"/><path d="M810 148 L870 92 L940 148 L895 148 L895 216 L845 216 L845 148 Z" fill="#ffffff" opacity="0.94"/><path d="M80 248 C280 205 450 205 650 248" fill="none" stroke="url(#brand)" stroke-width="12" stroke-linecap="round" opacity="0.85"/>
 </svg>
->>>>>>> origin/fix/scenario-tests-properly

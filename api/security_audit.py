@@ -25,28 +25,20 @@ Usage (programmatic)::
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _ENGINEERING_SERVICE_FILENAME = "engineering_service.py"  # NOSONAR
 _REFACTORED_SERVICE_FILENAME = "refactored_service.py"  # NOSONAR
 
 import asyncio
 import contextlib
-=======
-import asyncio
->>>>>>> origin/fix/scenario-tests-properly
 import json
 import os
 import re
 import sys
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any, Optional
 
 import aiofiles  # async file I/O for S7493 compliance
-=======
-from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from compat import StrEnum
 
@@ -89,7 +81,6 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-<<<<<<< HEAD
     file_path: Optional[str] = None
     line_number: Optional[int] = None
     endpoint: Optional[str] = None
@@ -98,7 +89,7 @@ class SecurityFinding:
     cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> dict[str, Any]:
-=======
+
     file_path: str | None = None
     line_number: int | None = None
     endpoint: str | None = None
@@ -107,7 +98,6 @@ class SecurityFinding:
     cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         return {
             "id": self.id,
@@ -137,19 +127,17 @@ class SecurityAuditReport:
     medium_count: int = 0
     low_count: int = 0
     info_count: int = 0
-<<<<<<< HEAD
     findings: list[SecurityFinding] = field(default_factory=list)
     remediation_priority: list[dict[str, Any]] = field(default_factory=list)
     scan_metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-=======
+
     findings: List[SecurityFinding] = field(default_factory=list)
     remediation_priority: List[Dict[str, Any]] = field(default_factory=list)
     scan_metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -171,44 +159,25 @@ class SecurityAuditReport:
 # Secret patterns for hardcoded-secret scanning
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _SECRET_PATTERNS: list[tuple[str, str, Severity]] = [
     # (pattern, description, severity)
     (
         r'(?:api[_-]Union[?key, apikey])\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
-=======
-_SECRET_PATTERNS: List[Tuple[str, str, Severity]] = [
-    # (pattern, description, severity)
-    (
-        r'(?:api[_-]?key|apikey)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded API key",
         Severity.CRITICAL,
     ),
     (
-<<<<<<< HEAD
         r'((?:secret|secret)[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
-=======
-        r'(?:secret|secret[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{16,}["\']',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded secret key",
         Severity.CRITICAL,
     ),
     (
-<<<<<<< HEAD
         r'(Union[?:password|passwd, pwd])\s*[=:]\s*["\'][^\s"\']{8,}["\']',
-=======
-        r'(?:password|passwd|pwd)\s*[=:]\s*["\'][^\s"\']{8,}["\']',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded password",
         Severity.CRITICAL,
     ),
     (
-<<<<<<< HEAD
         r'(Union[?:token, access][_-]Union[?token, auth][_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']',
-=======
-        r'(?:token|access[_-]?token|auth[_-]?token)\s*[=:]\s*["\'][A-Za-z0-9\-_.]{20,}["\']',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded token",
         Severity.CRITICAL,
     ),
@@ -218,20 +187,12 @@ _SECRET_PATTERNS: List[Tuple[str, str, Severity]] = [
         Severity.CRITICAL,
     ),
     (
-<<<<<<< HEAD
         r'(?:jwt[_-]Union[?secret, jwt][_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']',
-=======
-        r'(?:jwt[_-]?secret|jwt[_-]?key)\s*[=:]\s*["\'][A-Za-z0-9\-_]{8,}["\']',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded JWT secret",
         Severity.HIGH,
     ),
     (
-<<<<<<< HEAD
         r'(?:database[_-]Union[?url, db][_-]?url)\s*[=:]\s*["\'](Union[?:postgres|mysql, mongodb])://[^\s"\']+',
-=======
-        r'(?:database[_-]?url|db[_-]?url)\s*[=:]\s*["\'](?:postgres|mysql|mongodb)://[^\s"\']+',
->>>>>>> origin/fix/scenario-tests-properly
         "Hardcoded database URL with credentials",
         Severity.HIGH,
     ),
@@ -274,11 +235,7 @@ _SAFE_CONTEXT_PATTERNS = [
 # Insecure dependency patterns
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _INSECURE_PACKAGES: dict[str, list[str]] = {
-=======
-_INSECURE_PACKAGES: Dict[str, List[str]] = {
->>>>>>> origin/fix/scenario-tests-properly
     # package: list of known-vulnerable version patterns (simplified)
     "pickle": ["*"],  # Never use pickle for untrusted data
     "yaml": [">=5.0,<5.4"],  # PyYAML unsafe load
@@ -286,11 +243,7 @@ _INSECURE_PACKAGES: Dict[str, List[str]] = {
 }
 
 # Functions that indicate insecure patterns
-<<<<<<< HEAD
 _INSECURE_FUNCTION_PATTERNS: list[tuple[str, str, Severity]] = [
-=======
-_INSECURE_FUNCTION_PATTERNS: List[Tuple[str, str, Severity]] = [
->>>>>>> origin/fix/scenario-tests-properly
     (r"\beval\s*\(", "Use of eval() — potential code injection", Severity.HIGH),
     (r"\bexec\s*\(", "Use of exec() — potential code injection", Severity.HIGH),
     (r"\b__import__\s*\(", "Dynamic import — potential code injection", Severity.MEDIUM),
@@ -313,11 +266,7 @@ _INSECURE_FUNCTION_PATTERNS: List[Tuple[str, str, Severity]] = [
         Severity.LOW,
     ),
     (
-<<<<<<< HEAD
         [r"random\.random\b", r"random\.randint\b"],
-=======
-        r"random\.random\b|random\.randint\b",
->>>>>>> origin/fix/scenario-tests-properly
         "Use of non-cryptographic random for security context",
         Severity.INFO,
     ),
@@ -342,11 +291,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-<<<<<<< HEAD
     def __init__(self, project_root: Optional[str] = None) -> None:
-=======
-    def __init__(self, project_root: str | None = None) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Initialize the auditor.
 
         Args:
@@ -356,11 +301,7 @@ class SecurityAuditor:
         if project_root is None:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
-<<<<<<< HEAD
         self._findings: list[SecurityFinding] = []
-=======
-        self._findings: List[SecurityFinding] = []
->>>>>>> origin/fix/scenario-tests-properly
         self._finding_counter: int = 0
 
     # ------------------------------------------------------------------
@@ -434,21 +375,19 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-<<<<<<< HEAD
         file_path: Optional[str] = None,
         line_number: Optional[int] = None,
         endpoint: Optional[str] = None,
         remediation: str = "",
         references: list[str] | None = None,
         cwe_id: Optional[str] = None,
-=======
+
         file_path: str | None = None,
         line_number: int | None = None,
         endpoint: str | None = None,
         remediation: str = "",
         references: List[str] | None = None,
         cwe_id: str | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -467,21 +406,14 @@ class SecurityAuditor:
         )
         self._findings.append(finding)
 
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 1: Missing authentication on endpoints
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_missing_auth(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-    async def _check_missing_auth(self) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Scan all API endpoints for missing authentication checks.
 
         Look for FastAPI route decorators that don't include
@@ -490,7 +422,6 @@ class SecurityAuditor:
         """
         # Scan the engineering_service.py for endpoints without auth
         service_files = [
-<<<<<<< HEAD
             os.path.join(
                 self.project_root,
                 _ENGINEERING_SERVICE_FILENAME,  # NOSONAR
@@ -502,41 +433,29 @@ class SecurityAuditor:
             ),  # NOSONAR intentional repetition (audit constant)
         ]
         # NOSONAR
-=======
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
-        ]
-
->>>>>>> origin/fix/scenario-tests-properly
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = await fh.readlines()
 
             # Parse to find endpoint definitions
             current_endpoint: Optional[str] = None
             endpoint_line: Optional[int] = None
-=======
+
             with open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = fh.readlines()
 
             # Parse to find endpoint definitions
             current_endpoint: str | None = None
             endpoint_line: int | None = None
->>>>>>> origin/fix/scenario-tests-properly
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):
                 # Detect endpoint decorator
                 decorator_match = re.match(
-<<<<<<< HEAD
                     r'@app\.(Union[get|post|put|delete|patch, head])\s*\(["\']([^"\']+)',
-=======
-                    r'@app\.(get|post|put|delete|patch|head)\s*\(["\']([^"\']+)',
->>>>>>> origin/fix/scenario-tests-properly
                     line.strip(),
                 )
                 if decorator_match:
@@ -568,15 +487,10 @@ class SecurityAuditor:
                     has_auth_check = False
 
                 # Detect auth check in function body
-<<<<<<< HEAD
                 if (
                     current_endpoint
                     and not has_auth_check
                     and any(
-=======
-                if current_endpoint and not has_auth_check:
-                    if any(
->>>>>>> origin/fix/scenario-tests-properly
                         kw in line
                         for kw in (
                             "_require_api_key",
@@ -584,14 +498,9 @@ class SecurityAuditor:
                             "Depends(get_api_key)",
                             "get_current_user",
                         )
-<<<<<<< HEAD
                     )
                 ):
                     has_auth_check = True
-=======
-                    ):
-                        has_auth_check = True
->>>>>>> origin/fix/scenario-tests-properly
 
             # Check last endpoint
             if current_endpoint and not has_auth_check:
@@ -608,15 +517,11 @@ class SecurityAuditor:
                     cwe_id="CWE-306",
                 )
 
-<<<<<<< HEAD
     # NOSONAR S7503: async signature required by callers; body intentionally sync
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 2: CORS configuration
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_cors_configuration(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -626,7 +531,7 @@ class SecurityAuditor:
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
         # NOSONAR
-=======
+
     async def _check_cors_configuration(self) -> None:
         """Check for CORS misconfigurations."""
         service_files = [
@@ -634,18 +539,12 @@ class SecurityAuditor:
             os.path.join(self.project_root, "api", "refactored_service.py"),
         ]
 
->>>>>>> origin/fix/scenario-tests-properly
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-=======
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
 
             # Check for wildcard origins
             if 'allow_origins=["*"]' in content or "allow_origins=['*']" in content:
@@ -706,58 +605,35 @@ class SecurityAuditor:
                     cwe_id="CWE-942",
                 )
 
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 3: Input validation on POST/PUT endpoints
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_input_validation(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-    async def _check_input_validation(self) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Validate that all POST/PUT endpoints have input validation.
 
         Checks that endpoints use Pydantic models or explicit validation
         rather than accepting raw ``Request`` objects for POST/PUT.
         """
         service_files = [
-<<<<<<< HEAD
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
         # NOSONAR
-=======
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
-        ]
-
->>>>>>> origin/fix/scenario-tests-properly
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 lines = await fh.readlines()
-=======
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                lines = fh.readlines()
->>>>>>> origin/fix/scenario-tests-properly
 
             for i, line in enumerate(lines, 1):
                 # Look for POST/PUT endpoints that accept raw Request
                 # without a Pydantic model
-<<<<<<< HEAD
                 if re.search(r"@app\.(Union[post|put, patch])", line.strip()):
-=======
-                if re.search(r"@app\.(post|put|patch)", line.strip()):
->>>>>>> origin/fix/scenario-tests-properly
                     # Check the function signature in the next few lines
                     func_sig = "".join(lines[i : i + 3]) if i < len(lines) else ""
                     if "request: Request" in func_sig and "BaseModel" not in func_sig:
@@ -771,11 +647,7 @@ class SecurityAuditor:
                         if "body.get(" in func_body and "HTTPException" not in func_body:
                             # Using body.get() without raising validation errors
                             decorator_match = re.search(
-<<<<<<< HEAD
                                 r'@app\.(Union[post|put, patch])\s*\(["\']([^"\']+)',
-=======
-                                r'@app\.(post|put|patch)\s*\(["\']([^"\']+)',
->>>>>>> origin/fix/scenario-tests-properly
                                 line.strip(),
                             )
                             endpoint = decorator_match.group(2) if decorator_match else "unknown"
@@ -796,30 +668,19 @@ class SecurityAuditor:
                                     "and use it as a typed parameter in the endpoint function."
                                 ),
                                 references=[
-<<<<<<< HEAD
                                     "OWASP API3:2023 Broken Object Property Level Authorization",
-=======
-                                    "OWASP API3:2023 Broken Object Property Level Authorization"
->>>>>>> origin/fix/scenario-tests-properly
                                 ],
                                 cwe_id="CWE-20",
                             )
 
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 4: Missing rate limiting
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_rate_limiting(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-    async def _check_rate_limiting(self) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Check for missing rate limiting on sensitive endpoints."""
         sensitive_paths = [
             "/api/v1/auth/mfa/totp/setup",
@@ -833,28 +694,16 @@ class SecurityAuditor:
         ]
 
         service_files = [
-<<<<<<< HEAD
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
         ]
         # NOSONAR
-=======
-            os.path.join(self.project_root, "engineering_service.py"),
-            os.path.join(self.project_root, "api", "refactored_service.py"),
-        ]
-
->>>>>>> origin/fix/scenario-tests-properly
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-=======
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
 
             # Check if global rate limiting exists
             has_global_rate_limit = (
@@ -897,15 +746,11 @@ class SecurityAuditor:
                         cwe_id="CWE-770",
                     )
 
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 5: Hardcoded secrets
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     _SKIP_DIRS = {
         ".git",
         "__pycache__",
@@ -985,7 +830,7 @@ class SecurityAuditor:
         """Scan all Python source files for hardcoded secrets."""
         for dirpath, dirnames, filenames in os.walk(self.project_root):
             dirnames[:] = [d for d in dirnames if d not in self._SKIP_DIRS]
-=======
+
     async def _scan_hardcoded_secrets(self) -> None:
         """Scan all Python source files for hardcoded secrets."""
         skip_dirs = {
@@ -1004,7 +849,6 @@ class SecurityAuditor:
 
         for dirpath, dirnames, filenames in os.walk(self.project_root):
             dirnames[:] = [d for d in dirnames if d not in skip_dirs]
->>>>>>> origin/fix/scenario-tests-properly
 
             for fname in filenames:
                 if not fname.endswith(".py"):
@@ -1013,7 +857,6 @@ class SecurityAuditor:
                 file_path = os.path.join(dirpath, fname)
                 rel_path = os.path.relpath(file_path, self.project_root)
 
-<<<<<<< HEAD
                 if self._should_skip_file(rel_path):
                     continue
 
@@ -1034,7 +877,7 @@ class SecurityAuditor:
                         break  # Only report once per line
 
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
+
                 # Skip test files and self-referential modules
                 if (
                     "test" in rel_path.lower()
@@ -1099,18 +942,13 @@ class SecurityAuditor:
                 except Exception:
                     pass
 
->>>>>>> origin/fix/scenario-tests-properly
     # ------------------------------------------------------------------
     # Check 6: Insecure dependencies
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_insecure_dependencies(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-    async def _check_insecure_dependencies(self) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Check for insecure dependency patterns in the codebase."""
         skip_dirs = {
             ".git",
@@ -1144,15 +982,13 @@ class SecurityAuditor:
                 ):
                     continue
 
-<<<<<<< HEAD
                 with contextlib.suppress(Exception):
                     async with aiofiles.open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = await fh.readlines()
-=======
+
                 try:
                     with open(file_path, encoding="utf-8", errors="replace") as fh:
                         lines = fh.readlines()
->>>>>>> origin/fix/scenario-tests-properly
 
                     for i, line in enumerate(lines, 1):
                         stripped = line.strip()
@@ -1175,28 +1011,24 @@ class SecurityAuditor:
                                         "Review the usage and ensure no untrusted input "
                                         "is passed. Use safer alternatives where available."
                                     ),
-<<<<<<< HEAD
                                     cwe_id="CWE-94",  # NOSONAR
                                 )
-=======
+
                                     cwe_id="CWE-94",
                                 )
                 except Exception:
                     pass
->>>>>>> origin/fix/scenario-tests-properly
 
         # Check requirements.txt for known vulnerable packages
         req_file = os.path.join(self.project_root, "requirements.txt")
         if os.path.exists(req_file):
-<<<<<<< HEAD
             with contextlib.suppress(Exception):
                 async with aiofiles.open(req_file, encoding="utf-8", errors="replace") as fh:
                     requirements = await fh.readlines()
-=======
+
             try:
                 with open(req_file, encoding="utf-8", errors="replace") as fh:
                     requirements = fh.readlines()
->>>>>>> origin/fix/scenario-tests-properly
 
                 for line in requirements:
                     line = line.strip()
@@ -1216,21 +1048,18 @@ class SecurityAuditor:
                             remediation=(
                                 "Ensure the package is used safely and consider "
                                 "alternatives if processing untrusted input."
-<<<<<<< HEAD
                             ),  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
                         )
-=======
+
                             ),
                         )
             except Exception:
                 pass
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Check 7: Dead code
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_dead_code(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -1240,7 +1069,7 @@ class SecurityAuditor:
         if os.path.exists(service_file):
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-=======
+
     async def _check_dead_code(self) -> None:
         """Check for dead code patterns (unreachable code, unused imports)."""
         # Check for the specific dead ConnectionManager in the original
@@ -1248,7 +1077,6 @@ class SecurityAuditor:
         if os.path.exists(service_file):
             with open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
                 lines = content.split("\n")
 
             # Check for duplicate RASP stats endpoint
@@ -1269,11 +1097,7 @@ class SecurityAuditor:
                         f"twice in engineering_service.py (lines {', '.join(str(n) for n in line_numbers)}). "
                         "Only the last definition will be active."
                     ),
-<<<<<<< HEAD
                     file_path=_ENGINEERING_SERVICE_FILENAME,
-=======
-                    file_path="engineering_service.py",
->>>>>>> origin/fix/scenario-tests-properly
                     line_number=line_numbers[-1] if line_numbers else None,
                     remediation="Remove the duplicate endpoint definition.",
                     cwe_id="CWE-1061",
@@ -1289,11 +1113,7 @@ class SecurityAuditor:
                         "The ``ConnectionManager`` class is defined but never "
                         "wired to any WebSocket endpoint. It is dead code."
                     ),
-<<<<<<< HEAD
                     file_path=_ENGINEERING_SERVICE_FILENAME,
-=======
-                    file_path="engineering_service.py",
->>>>>>> origin/fix/scenario-tests-properly
                     remediation="Either wire the ConnectionManager to a WebSocket endpoint or remove it.",
                     cwe_id="CWE-1061",
                 )
@@ -1310,20 +1130,14 @@ class SecurityAuditor:
                         "twice in engineering_service.py, which means the second "
                         "definition silently overwrites the first."
                     ),
-<<<<<<< HEAD
                     file_path=_ENGINEERING_SERVICE_FILENAME,
                     remediation="Remove the duplicate variable definition.",  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-=======
-                    file_path="engineering_service.py",
-                    remediation="Remove the duplicate variable definition.",
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
     # ------------------------------------------------------------------
     # Check 8: Weak crypto
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_weak_crypto(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -1334,27 +1148,21 @@ class SecurityAuditor:
             os.path.join(
                 self.project_root, "api", "auth.py"
             ),  # NOSONAR
-=======
+
     async def _check_weak_crypto(self) -> None:
         """Check for weak cryptographic patterns."""
         service_files = [
             os.path.join(self.project_root, "engineering_service.py"),
             os.path.join(self.project_root, "api", "refactored_service.py"),
             os.path.join(self.project_root, "api", "auth.py"),
->>>>>>> origin/fix/scenario-tests-properly
         ]
 
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-=======
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
 
             # Check for default JWT secret
             if "etap-platform-default-secret-change-in-production" in content:
@@ -1390,20 +1198,15 @@ class SecurityAuditor:
                 ]
                 for _line_num, line in lines_with_compare:
                     # Skip if it's in a comparison that's clearly not timing-sensitive
-<<<<<<< HEAD
                     if (
                         "if" in line and "provided" not in line.lower()
                     ):  # NOSONAR S7503: async signature required by callers; body intentionally sync
-=======
-                    if "if" in line and "provided" not in line.lower():
->>>>>>> origin/fix/scenario-tests-properly
                         continue
 
     # ------------------------------------------------------------------
     # Check 9: Information disclosure
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def _check_information_disclosure(  # NOSONAR
         self,
     ) -> None:  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -1413,26 +1216,20 @@ class SecurityAuditor:
             os.path.join(
                 self.project_root, "api", _REFACTORED_SERVICE_FILENAME
             ),  # NOSONAR
-=======
+
     async def _check_information_disclosure(self) -> None:
         """Check for potential information disclosure vulnerabilities."""
         service_files = [
             os.path.join(self.project_root, "engineering_service.py"),
             os.path.join(self.project_root, "api", "refactored_service.py"),
->>>>>>> origin/fix/scenario-tests-properly
         ]
 
         for service_file in service_files:
             if not os.path.exists(service_file):
                 continue
 
-<<<<<<< HEAD
             async with aiofiles.open(service_file, encoding="utf-8", errors="replace") as fh:
                 content = await fh.read()
-=======
-            with open(service_file, encoding="utf-8", errors="replace") as fh:
-                content = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
 
             # Check if stack traces are exposed in error responses
             if "traceback" in content.lower() and "JSONResponse" in content:
@@ -1475,11 +1272,7 @@ class SecurityAuditor:
     # Score computation
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _compute_security_score(self) -> tuple[int, str]:
-=======
-    def _compute_security_score(self) -> Tuple[int, str]:
->>>>>>> origin/fix/scenario-tests-properly
         """Compute the security score (0-100) and grade.
 
         Scoring:
@@ -1521,21 +1314,19 @@ class SecurityAuditor:
     # Remediation priority
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _build_remediation_priority(self) -> list[dict[str, Any]]:
         """Build a prioritized list of remediation actions."""
         priority: list[dict[str, Any]] = []
 
         # Group findings by category
         by_category: dict[FindingCategory, list[SecurityFinding]] = {}
-=======
+
     def _build_remediation_priority(self) -> List[Dict[str, Any]]:
         """Build a prioritized list of remediation actions."""
         priority: List[Dict[str, Any]] = []
 
         # Group findings by category
         by_category: Dict[FindingCategory, List[SecurityFinding]] = {}
->>>>>>> origin/fix/scenario-tests-properly
         for f in self._findings:
             by_category.setdefault(f.category, []).append(f)
 
@@ -1569,24 +1360,14 @@ class SecurityAuditor:
                     "top_remediation": findings[0].remediation if findings else "",
                     "affected_endpoints": list({f.endpoint for f in findings if f.endpoint}),
                     "affected_files": list({f.file_path for f in findings if f.file_path}),
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return priority
 
-<<<<<<< HEAD
     def _count_severities(self) -> dict[Severity, int]:
         """Count findings by severity level."""
         counts: dict[Severity, int] = {}
-=======
-    def _count_severities(self) -> Dict[Severity, int]:
-        """Count findings by severity level."""
-        counts: Dict[Severity, int] = {}
->>>>>>> origin/fix/scenario-tests-properly
         for f in self._findings:
             counts[f.severity] = counts.get(f.severity, 0) + 1
         return counts
@@ -1601,23 +1382,16 @@ class SecurityAuditor:
         return count
 
 
-<<<<<<< HEAD
 # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
 
-<<<<<<< HEAD
 async def _main() -> (  # NOSONAR
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-async def _main() -> None:
->>>>>>> origin/fix/scenario-tests-properly
     """CLI entrypoint for running the security auditor."""
     import argparse
 
@@ -1646,7 +1420,6 @@ async def _main() -> None:
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-<<<<<<< HEAD
     # NOSONAR
     if args.output != "-":
         if "\x00" in args.output:
@@ -1667,26 +1440,21 @@ async def _main() -> None:
             )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
-=======
+
     if args.output == "-":
         out = sys.stdout
     else:
         out = open(args.output, "w", encoding="utf-8")
 
     try:
->>>>>>> origin/fix/scenario-tests-properly
         if not args.json_only:
             print("=" * 72, file=out)
             print("AhmedETAP — Security Audit Report", file=out)
             print("=" * 72, file=out)
             print(f"Project Root:       {report.project_root}", file=out)
             print(
-<<<<<<< HEAD
                 f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
                 file=out,
-=======
-                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})", file=out
->>>>>>> origin/fix/scenario-tests-properly
             )
             print(f"Total Findings:     {report.total_findings}", file=out)
             print(f"  Critical:         {report.critical_count}", file=out)
@@ -1739,13 +1507,11 @@ async def _main() -> None:
 
         json.dump(report.to_dict(), out, indent=2, default=str)
         print(file=out)
-<<<<<<< HEAD
     # ExitStack closes the file automatically when leaving the `with` block.
-=======
+
     finally:
         if args.output != "-":
             out.close()
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

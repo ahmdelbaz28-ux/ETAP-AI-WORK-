@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const {
   app,
   BrowserWindow,
@@ -48,7 +47,7 @@ function createWindow() {
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     trafficLightPosition: { x: 12, y: 12 },
     backgroundColor: "#0a0e1a",
-=======
+
 const { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain, dialog, shell, screen } = require('electron')
 const path = require('path')
 
@@ -80,12 +79,10 @@ function createWindow() {
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 12, y: 12 },
     backgroundColor: '#0a0e1a',
->>>>>>> origin/fix/scenario-tests-properly
     show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-<<<<<<< HEAD
       preload: path.join(__dirname, "preload.cjs"),
       spellcheck: false,
       sandbox: true,
@@ -181,7 +178,7 @@ function createWindow() {
   });
 
   ipcMain.handle("app:get-info", () => ({
-=======
+
       preload: path.join(__dirname, 'preload.cjs'),
       spellcheck: false,
       sandbox: true,
@@ -257,13 +254,11 @@ function createWindow() {
   ipcMain.handle('shell:open-external', (_, url) => shell.openExternal(url))
 
   ipcMain.handle('app:get-info', () => ({
->>>>>>> origin/fix/scenario-tests-properly
     version: app.getVersion(),
     platform: process.platform,
     arch: process.arch,
     electronVersion: process.versions.electron,
     chromeVersion: process.versions.chrome,
-<<<<<<< HEAD
   }));
 
   ipcMain.handle("app:get-display-bounds", () => {
@@ -280,7 +275,7 @@ function createWindow() {
 
   createMenu();
   createTray();
-=======
+
   }))
 
   ipcMain.handle('app:get-display-bounds', () => {
@@ -297,14 +292,12 @@ function createWindow() {
 
   createMenu()
   createTray()
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── Application Menu ───────────────────────────────────────────────
 function createMenu() {
   const template = [
     {
-<<<<<<< HEAD
       label: "File",
       submenu: [
         {
@@ -442,7 +435,7 @@ function createMenu() {
   }
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-=======
+
       label: 'File',
       submenu: [
         { label: 'New Project', accelerator: 'CmdOrCtrl+N', click: () => mainWindow?.webContents.send('menu:new-project') },
@@ -505,13 +498,11 @@ function createMenu() {
   }
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 // ─── System Tray ────────────────────────────────────────────────────
 function createTray() {
   try {
-<<<<<<< HEAD
     const iconPath = path.join(__dirname, isDev ? "../public/favicon.svg" : "../dist/favicon.svg");
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     tray = new Tray(icon);
@@ -550,7 +541,7 @@ function createTray() {
     // NOSONAR — javascript:S2486: tray creation is non-fatal
     // Tray creation can fail on some systems — non-fatal
     console.warn("Tray creation failed:", e instanceof Error ? e.message : String(e));
-=======
+
     const iconPath = path.join(__dirname, isDev ? '../public/favicon.svg' : '../dist/favicon.svg')
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 })
     tray = new Tray(icon)
@@ -569,13 +560,11 @@ function createTray() {
     tray.on('double-click', () => mainWindow?.show())
   } catch (e) {
     // Tray creation can fail on some systems — non-fatal
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 
 // ─── App Lifecycle ──────────────────────────────────────────────────
 app.whenReady().then(() => {
-<<<<<<< HEAD
   createWindow();
 
   app.on("activate", () => {
@@ -591,7 +580,7 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   isQuitting = true;
 });
-=======
+
   createWindow()
 
   app.on('activate', () => {
@@ -605,4 +594,3 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => { isQuitting = true })
->>>>>>> origin/fix/scenario-tests-properly

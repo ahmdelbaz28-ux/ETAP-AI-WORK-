@@ -1,7 +1,6 @@
 """
 api/database.py — Async SQLAlchemy database configuration.
 
-<<<<<<< HEAD
 Supports two backends:
   • PostgreSQL (production)  — asyncpg driver, connection pooling
   • SQLite    (dev / HF)     — aiosqlite driver, single-file
@@ -21,7 +20,7 @@ DB_MAX_OVERFLOW       (PostgreSQL only) — default 20
 DB_POOL_TIMEOUT       (PostgreSQL only) — default 30 (seconds)
 DB_POOL_RECYCLE       (PostgreSQL only) — default 1800 (seconds)
 DB_ECHO               set to "true" to log all SQL statements
-=======
+
 Provides the async engine, session factory, declarative base, and a
 convenience ``init_db`` helper used by the FastAPI application at startup.
 
@@ -31,16 +30,12 @@ and defaults to an aiosqlite-backed file at ``./data/etap_platform.db``.
 If ``DATABASE_URL`` is set but is not a valid SQLAlchemy connection string
 (e.g. a ``file:`` URL intended for another system), the module falls back
 to the default aiosqlite path so that importing never raises.
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import contextlib
 import logging
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import os
 from collections.abc import AsyncGenerator
 
@@ -51,12 +46,9 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-<<<<<<< HEAD
 from sqlalchemy.pool import NullPool
 
 logger = logging.getLogger(__name__)
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -66,7 +58,6 @@ _DEFAULT_DB_URL = "sqlite+aiosqlite:///./data/etap_platform.db"
 
 _raw_db_url: str = os.getenv("DATABASE_URL", _DEFAULT_DB_URL)
 
-<<<<<<< HEAD
 
 # Normalise plain postgres:// / postgresql:// → asyncpg driver
 def _normalise_url(raw: str) -> str:
@@ -102,7 +93,7 @@ if _IS_SQLITE:
         "Set DATABASE_URL to a shared PostgreSQL instance in production.",
         _db_path,
     )
-=======
+
 # If the env var contains a non-SQLAlchemy URL (e.g. "file:/...") fall back
 # to the default.  Valid SQLAlchemy URLs contain a driver scheme followed by
 # a colon (e.g. "sqlite+aiosqlite:", "postgresql:").
@@ -117,13 +108,11 @@ except Exception:
 _sqlite_file_prefix = "sqlite+aiosqlite:///"
 if DATABASE_URL.startswith(_sqlite_file_prefix):
     _db_path = DATABASE_URL[len(_sqlite_file_prefix) :]
->>>>>>> origin/fix/scenario-tests-properly
     _db_dir = os.path.dirname(_db_path)
     if _db_dir:
         os.makedirs(_db_dir, exist_ok=True)
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Connection pool configuration (PostgreSQL only)
 # ---------------------------------------------------------------------------
 
@@ -284,7 +273,7 @@ else:
 # engine reference at construction time.
 
 async_session: async_sessionmaker[AsyncSession] = async_sessionmaker(
-=======
+
 # Async engine & session
 # ---------------------------------------------------------------------------
 
@@ -297,14 +286,12 @@ engine = create_async_engine(
 )
 
 async_session = async_sessionmaker(
->>>>>>> origin/fix/scenario-tests-properly
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
 
 
-<<<<<<< HEAD
 def _rebind_session(new_engine) -> None:
     """Re-create the async_session factory bound to *new_engine*.
 
@@ -321,8 +308,6 @@ def _rebind_session(new_engine) -> None:
     _FELL_BACK_TO_SQLITE = True
 
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # ---------------------------------------------------------------------------
 # Declarative base
 # ---------------------------------------------------------------------------
@@ -359,7 +344,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Health check helper
 # ---------------------------------------------------------------------------
 
@@ -391,8 +375,6 @@ async def check_db_health() -> dict:
 
 
 # ---------------------------------------------------------------------------
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # Initialization
 # ---------------------------------------------------------------------------
 
@@ -407,7 +389,6 @@ async def init_db() -> None:
     ``Base.metadata`` is aware of every mapped table before
     ``create_all`` is called.
 
-<<<<<<< HEAD
     SECURITY (2026-07-21): The silent SQLite fallback to /tmp has been
     REMOVED. If the primary database (PostgreSQL in production, SQLite in
     dev) is unreachable, this function raises so the failure is visible
@@ -415,8 +396,6 @@ async def init_db() -> None:
     file that gets wiped on container restart (which previously caused
     permanent data loss on HF Space).
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     Example::
 
         @asynccontextmanager
@@ -428,7 +407,6 @@ async def init_db() -> None:
     """
     # Import all ORM models so Base.metadata knows about their tables.
     # This MUST happen before create_all is called.
-<<<<<<< HEAD
     import api.assets  # noqa: F401  - registers Asset model
     import api.auth  # noqa: F401  - registers User model
     import api.projects  # noqa: F401  - registers Project & StudyResult models
@@ -457,10 +435,9 @@ async def init_db() -> None:
             exc,
         )
         raise
-=======
+
     import api.auth  # noqa: F401  — registers User model
     import api.projects  # noqa: F401  — registers Project & StudyResult models
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
->>>>>>> origin/fix/scenario-tests-properly

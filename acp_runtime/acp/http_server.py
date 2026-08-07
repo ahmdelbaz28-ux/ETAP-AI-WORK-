@@ -32,15 +32,10 @@ import anyio
 __all__ = ["start_http_server"]
 
 
-<<<<<<< HEAD
 async def _handle_client(  # NOSONAR
     health_handler: Any,
     client: anyio.abc.ByteStream,
     metrics_path: str = "/metrics",
-=======
-async def _handle_client(
-    health_handler: Any, client: anyio.abc.ByteStream, metrics_path: str = "/metrics"
->>>>>>> origin/fix/scenario-tests-properly
 ) -> None:
     """Parse a minimal HTTP request and dispatch to the health handler."""
     log = logging.getLogger("acp.http_server")
@@ -72,22 +67,14 @@ async def _handle_client(
                 b"HTTP/1.1 405 Method Not Allowed\r\n"
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
-<<<<<<< HEAD
                 + b"Connection: close\r\n\r\n"  # NOSONAR
-=======
-                + b"Connection: close\r\n\r\n"
->>>>>>> origin/fix/scenario-tests-properly
                 + body
             )
         elif path == "/health":
             result = await health_handler.health()
             body = json.dumps(result).encode()
             response = (
-<<<<<<< HEAD
                 b"HTTP/1.1 200 OK\r\n"  # NOSONAR
-=======
-                b"HTTP/1.1 200 OK\r\n"
->>>>>>> origin/fix/scenario-tests-properly
                 b"Content-Type: application/json\r\n"
                 + f"Content-Length: {len(body)}\r\n".encode()
                 + b"Connection: close\r\n\r\n"
@@ -154,14 +141,10 @@ async def _handle_client(
             )
 
         await client.send(response)
-<<<<<<< HEAD
     except (
         anyio.EndOfStream,
         OSError,
     ):  # NOSONAR
-=======
-    except (anyio.EndOfStream, OSError, ConnectionError, BrokenPipeError, ConnectionResetError):
->>>>>>> origin/fix/scenario-tests-properly
         # Expected when a client disconnects abruptly.
         pass
     except Exception:

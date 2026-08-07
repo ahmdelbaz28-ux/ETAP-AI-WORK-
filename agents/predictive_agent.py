@@ -22,17 +22,15 @@ Standards:
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -95,22 +93,14 @@ class PredictiveAgent(BaseAgent):
 
     def forecast_short_term(
         self,
-<<<<<<< HEAD
         historical_load: list[float],
-=======
-        historical_load: List[float],
->>>>>>> origin/fix/scenario-tests-properly
         horizon_hours: int = 24,
         alpha: float = 0.3,
         beta: float = 0.1,
         gamma: float = 0.2,
         season_length: int = 24,
         confidence_level: float = 0.95,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Short-term load forecasting using Holt-Winters exponential
         smoothing with additive seasonality.
@@ -155,19 +145,17 @@ class PredictiveAgent(BaseAgent):
 
         # Holt-Winters iteration
         for t in range(season_length, n):
-<<<<<<< HEAD
             l_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)  # NOSONAR
             t_new = beta * (l_new - L) + (1 - beta) * T  # NOSONAR
             S[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * S[t % season_length]
             L = l_new
             T = t_new
-=======
+
             L_new = alpha * (y[t] - S[t % season_length]) + (1 - alpha) * (L + T)
             T_new = beta * (L_new - L) + (1 - beta) * T
             S[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S[t % season_length]
             L = L_new
             T = T_new
->>>>>>> origin/fix/scenario-tests-properly
 
         # Generate forecast
         forecast = []
@@ -177,7 +165,6 @@ class PredictiveAgent(BaseAgent):
 
         # Calculate in-sample error for confidence bounds
         fitted = []
-<<<<<<< HEAD
         l_f = np.mean(y[:season_length])  # NOSONAR
         t_f = (
             (  # NOSONAR
@@ -194,7 +181,7 @@ class PredictiveAgent(BaseAgent):
             s_f[t % season_length] = gamma * (y[t] - l_new) + (1 - gamma) * s_f[t % season_length]
             l_f = l_new
             t_f = t_new
-=======
+
         L_f = np.mean(y[:season_length])
         T_f = (
             np.mean(y[season_length : 2 * season_length]) - np.mean(y[:season_length])
@@ -208,7 +195,6 @@ class PredictiveAgent(BaseAgent):
             S_f[t % season_length] = gamma * (y[t] - L_new) + (1 - gamma) * S_f[t % season_length]
             L_f = L_new
             T_f = T_new
->>>>>>> origin/fix/scenario-tests-properly
 
         errors = y[season_length:n] - np.array(fitted)
         sigma = float(np.std(errors, ddof=1)) if len(errors) > 1 else 0.0
@@ -245,11 +231,7 @@ class PredictiveAgent(BaseAgent):
         horizon: int,
         alpha: float,
         confidence: float,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Fallback: simple exponential smoothing when data is limited."""
         L = y[0]
         for t in range(1, len(y)):
@@ -275,21 +257,19 @@ class PredictiveAgent(BaseAgent):
 
     def forecast_long_term(
         self,
-<<<<<<< HEAD
         peak_loads_mw: list[float],
         years: list[int],
         forecast_years: int = 10,
         growth_rate_annual: float = 0.03,
         confidence_level: float = 0.95,
     ) -> dict[str, Any]:
-=======
+
         peak_loads_mw: List[float],
         years: List[int],
         forecast_years: int = 10,
         growth_rate_annual: float = 0.03,
         confidence_level: float = 0.95,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Long-term load forecasting using compound growth rate model.
 
@@ -365,11 +345,7 @@ class PredictiveAgent(BaseAgent):
         weibull_shape: float = 2.0,
         weibull_scale: float = 30.0,
         condition_score: float = 0.8,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Predict equipment failure probability using Weibull distribution
         adjusted for condition monitoring score.
@@ -403,14 +379,12 @@ class PredictiveAgent(BaseAgent):
         adjusted_failure_prob = float(1.0 - np.exp(-((effective_age / eta) ** beta)))
 
         # Hazard rate: h(t) = (β/η) × (t/η)^(β-1)
-<<<<<<< HEAD
         hazard_rate = float(beta / eta * (age_years / eta) ** (beta - 1)) if age_years > 0 else 0.0
-=======
+
         if age_years > 0:
             hazard_rate = float((beta / eta) * (age_years / eta) ** (beta - 1))
         else:
             hazard_rate = 0.0
->>>>>>> origin/fix/scenario-tests-properly
 
         # Median remaining useful life (time to F(t) = 0.5)
         median_life = eta * (np.log(2)) ** (1.0 / beta)
@@ -441,13 +415,8 @@ class PredictiveAgent(BaseAgent):
 
     def compute_maintenance_schedule(
         self,
-<<<<<<< HEAD
         equipment_list: list[dict[str, Any]],
     ) -> dict[str, Any]:
-=======
-        equipment_list: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Compute optimal predictive maintenance schedule based on
         failure probabilities.
@@ -489,11 +458,7 @@ class PredictiveAgent(BaseAgent):
                     "maintenance_priority": fp["maintenance_priority"],
                     "criticality": criticality,
                     "risk_score": round(risk_score, 4),
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Sort by risk score descending
@@ -510,16 +475,11 @@ class PredictiveAgent(BaseAgent):
         }
 
     def forecast_short_term_ml(
-<<<<<<< HEAD
         self,
         historical_load: list[float],
         horizon_hours: int = 24,
         method: str = "auto",
     ) -> dict[str, Any]:
-=======
-        self, historical_load: List[float], horizon_hours: int = 24, method: str = "auto"
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Short-term load forecasting using Prophet/LSTM/Linear from ml.predictive."""
         from ml.predictive import LoadForecaster
 
@@ -540,17 +500,10 @@ class PredictiveAgent(BaseAgent):
     def predict_fault_ml(
         self,
         features: np.ndarray,
-<<<<<<< HEAD
         labels: Optional[np.ndarray] = None,
         use_xgboost: bool = True,
         explain: bool = False,
     ) -> dict[str, Any]:
-=======
-        labels: np.ndarray | None = None,
-        use_xgboost: bool = True,
-        explain: bool = False,
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Fault prediction using XGBoost/RandomForest with SHAP explanations."""
         from ml.predictive import FaultPredictor
 
@@ -570,13 +523,9 @@ class PredictiveAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     async def execute(  # NOSONAR
         self, task: EngineeringTask
     ) -> AgentResult:  # NOSONAR
-=======
-    async def execute(self, task: EngineeringTask) -> AgentResult:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Execute predictive analytics task.
 
@@ -592,17 +541,12 @@ class PredictiveAgent(BaseAgent):
             self.log_execution(f"Starting predictive analytics for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
             # --- Short-term load forecast ---
             if analysis_type in ("short_term_forecast", "full"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-<<<<<<< HEAD
                     # No historical load provided — generate a synthetic 1-week
                     # profile (sinusoidal daily pattern + noise) so the forecast
                     # algorithm still produces a result. In production, callers
@@ -613,12 +557,6 @@ class PredictiveAgent(BaseAgent):
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
                         + 5.0 * np.random.randn()  # NOSONAR
-=======
-                    # Generate synthetic data for demo
-                    hours = 168  # 1 week
-                    hist_load = [
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
->>>>>>> origin/fix/scenario-tests-properly
                         for h in range(hours)
                     ]
                 results["short_term_forecast"] = self.forecast_short_term(
@@ -632,12 +570,8 @@ class PredictiveAgent(BaseAgent):
             # --- Long-term load forecast ---
             if analysis_type in ("long_term_forecast", "full"):
                 peaks = task.parameters.get(
-<<<<<<< HEAD
                     "peak_loads_mw",
                     [100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0],
-=======
-                    "peak_loads_mw", [100.0, 103.0, 107.0, 110.0, 114.0, 117.0, 121.0, 125.0]
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 yrs = task.parameters.get("years", list(range(2016, 2024)))
                 results["long_term_forecast"] = self.forecast_long_term(
@@ -697,13 +631,9 @@ class PredictiveAgent(BaseAgent):
                 if not hist_load:
                     hours = 168
                     hist_load = [
-<<<<<<< HEAD
                         100.0
                         + 30.0 * np.sin(2 * np.pi * h / 24)
                         + 5.0 * np.random.randn()  # NOSONAR
-=======
-                        100.0 + 30.0 * np.sin(2 * np.pi * h / 24) + 5.0 * np.random.randn()
->>>>>>> origin/fix/scenario-tests-properly
                         for h in range(hours)
                     ]
                 forecast_method = task.parameters.get("forecast_method", "auto")
@@ -726,11 +656,7 @@ class PredictiveAgent(BaseAgent):
                     )
                 else:
                     results["ml_fault_prediction"] = {
-<<<<<<< HEAD
                         "error": "fault_features and fault_labels required",
-=======
-                        "error": "fault_features and fault_labels required"
->>>>>>> origin/fix/scenario-tests-properly
                     }
 
             result = AgentResult(
@@ -775,11 +701,7 @@ class PredictiveAgent(BaseAgent):
         - Failure probabilities are between 0 and 1
         - Maintenance priorities are valid
         """
-<<<<<<< HEAD
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         stf_data = result.data.get("short_term_forecast")
         if stf_data is not None:

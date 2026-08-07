@@ -10,11 +10,7 @@ The AhmedETAP exposes a comprehensive RESTful API and WebSocket interface for po
 |-------------|-----|
 | Development | `http://localhost:8000` |
 | Production | `https://etap.yourdomain.com` |
-<<<<<<< HEAD
 | Hugging Face Demo | `https://ahmdelbaz28-ahmedetap-platform.hf.space` |
-=======
-| Hugging Face Demo | `https://ahmdelbaz28-etap-ai-platform.hf.space` |
->>>>>>> origin/fix/scenario-tests-properly
 
 ### API Versioning
 
@@ -1423,14 +1419,12 @@ import requests
 
 api_key = "your-api-key"
 base_url = "http://localhost:8000/api/v1"
-<<<<<<< HEAD
 headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-=======
+
 headers = {
     "Authorization": f"Bearer {api_key}",
     "Content-Type": "application/json"
 }
->>>>>>> origin/fix/scenario-tests-properly
 
 # Run load flow
 response = requests.post(
@@ -1438,39 +1432,27 @@ response = requests.post(
     json={
         "study_type": "load_flow",
         "system": {"base_mva": 100, "buses": [...], "lines": [...]},
-<<<<<<< HEAD
         "parameters": {"method": "newton_raphson"},
     },
     headers=headers,
-=======
-        "parameters": {"method": "newton_raphson"}
-    },
-    headers=headers
->>>>>>> origin/fix/scenario-tests-properly
 )
 result = response.json()
 print(f"Converged: {result['converged']}")
 
 # Check SCADA measurements
-<<<<<<< HEAD
 response = requests.get(f"{base_url}/scada/measurements?bus_id=1", headers=headers)
-=======
+
 response = requests.get(
     f"{base_url}/scada/measurements?bus_id=1",
     headers=headers
 )
->>>>>>> origin/fix/scenario-tests-properly
 measurements = response.json()
 
 # Run anomaly detection
 response = requests.post(
     f"{base_url}/predictive/anomaly-detect",
     json={"measurements": [...], "contamination": 0.05},
-<<<<<<< HEAD
     headers=headers,
-=======
-    headers=headers
->>>>>>> origin/fix/scenario-tests-properly
 )
 anomalies = response.json()
 ```

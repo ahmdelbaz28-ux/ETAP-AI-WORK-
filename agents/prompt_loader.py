@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 AhmedETAP - Prompt Loader (Safety-Critical Edition)
 ====================================================
 
@@ -62,7 +61,7 @@ Usage::
 
     # Async (may consult Langfuse for override, with timeout)
     prompt = await get_system_prompt_async("load_flow_agent")
-=======
+
 AhmedETAP - Prompt Loader
 ================================================
 
@@ -83,12 +82,10 @@ Usage::
 This module is used by BaseAgent so every Python agent can access its
 prompt-driven description, standards references, and execution guidance
 without hardcoding any of that information.
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _PROMPT_NOT_FOUND_FALLBACK_MSG = (
     "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR
@@ -102,12 +99,6 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Optional
-=======
-import logging
-import os
-from pathlib import Path
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import yaml
 
@@ -118,7 +109,6 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _PROMPTS_DIR = Path(
-<<<<<<< HEAD
     os.environ.get(
         "ETAP_PROMPTS_DIR",
         str(Path(__file__).resolve().parent.parent / "prompts"),
@@ -253,7 +243,7 @@ def _hash_prompt(text: str) -> str:
 
 
 def _extract_system_message(parsed: Any) -> Optional[str]:
-=======
+
     os.environ.get("ETAP_PROMPTS_DIR", str(Path(__file__).resolve().parent.parent / "prompts"))
 )
 _LANGWATCH_API_KEY = os.environ.get("LANGWATCH_API_KEY", "")
@@ -332,15 +322,10 @@ def _load_from_langwatch(handle: str) -> str | None:
 
 
 def _extract_system_message(parsed: Any) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
 
-<<<<<<< HEAD
-=======
-    # Check messages array
->>>>>>> origin/fix/scenario-tests-properly
     messages = parsed.get("messages", [])
     if isinstance(messages, list):
         for msg in messages:
@@ -349,10 +334,6 @@ def _extract_system_message(parsed: Any) -> str | None:
                 if isinstance(content, str) and content.strip():
                     return content.strip()
 
-<<<<<<< HEAD
-=======
-    # Check flat prompt field
->>>>>>> origin/fix/scenario-tests-properly
     prompt_text = parsed.get("prompt", "")
     if isinstance(prompt_text, str) and prompt_text.strip():
         return prompt_text.strip()
@@ -360,7 +341,6 @@ def _extract_system_message(parsed: Any) -> str | None:
     return None
 
 
-<<<<<<< HEAD
 def _read_yaml_system_message(filepath: Path) -> Optional[str]:
     """Read a YAML file and return its system message, if any."""
     try:
@@ -400,7 +380,7 @@ def _load_from_yaml(
 
     Tries several filename patterns to locate the file.
     """
-=======
+
 def _load_from_yaml(handle: str) -> str | None:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
@@ -408,7 +388,6 @@ def _load_from_yaml(handle: str) -> str | None:
     TypeScript implementation's search logic.
     """
     # Possible filenames to search
->>>>>>> origin/fix/scenario-tests-properly
     possible_files = [
         f"{handle}.yaml",
         f"{handle}.prompt.yaml",
@@ -417,7 +396,6 @@ def _load_from_yaml(handle: str) -> str | None:
     for filename in possible_files:
         filepath = _PROMPTS_DIR / filename
         if filepath.is_file():
-<<<<<<< HEAD
             system_msg = _read_yaml_system_message(filepath)
             if system_msg:
                 return system_msg
@@ -428,7 +406,7 @@ def _load_from_yaml(handle: str) -> str | None:
         system_msg = _read_yaml_system_message(full_path)
         if system_msg:
             return system_msg
-=======
+
             try:
                 content = filepath.read_text(encoding="utf-8")
                 parsed = yaml.safe_load(content)
@@ -457,13 +435,11 @@ def _load_from_yaml(handle: str) -> str | None:
                         return system_msg
         except Exception as exc:
             logger.debug("Error reading prompts.json: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
 
     return None
 
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Langfuse integration (Tier 2 — opt-in override, async + circuit breaker)
 # ---------------------------------------------------------------------------
 
@@ -572,20 +548,10 @@ _FALLBACK_PROMPT = (
     "If you are uncertain about a life-safety calculation (arc flash, short circuit, "
     "grounding, protective coordination), REFUSE to give a numerical answer and "
     "instead direct the user to a qualified licensed engineer."
-=======
-# Public API
-# ---------------------------------------------------------------------------
-
-# Hardcoded safety-net (mirrors the TS fallback)
-_FALLBACK_PROMPT = (
-    "You are a safety-net fallback AI assistant for power systems engineering. "
-    "Provide accurate, standards-compliant (IEEE/IEC) analysis and recommendations."
->>>>>>> origin/fix/scenario-tests-properly
 )
 
 
 def get_system_prompt(handle: str) -> str:
-<<<<<<< HEAD
     """Load a system prompt by handle, sync (YAML-only — never blocks on network).
 
     Resolution order (sync):
@@ -597,7 +563,7 @@ def get_system_prompt(handle: str) -> str:
     Remote overrides (Langfuse / LangWatch) are NOT consulted here because
     they would block the event loop. Use ``get_system_prompt_async`` for
     remote-override support.
-=======
+
     """Load a system prompt by handle, with 3-tier fallback.
 
     Resolution order:
@@ -606,7 +572,6 @@ def get_system_prompt(handle: str) -> str:
         3. Local YAML file in ``prompts/``
         4. Fallback agent prompt (``fallback_agent``)
         5. Hardcoded safety-net default
->>>>>>> origin/fix/scenario-tests-properly
 
     Parameters
     ----------
@@ -616,7 +581,6 @@ def get_system_prompt(handle: str) -> str:
     Returns
     -------
     str
-<<<<<<< HEAD
         The system prompt content. Never returns ``None``.
     """
     # Check cache
@@ -756,7 +720,7 @@ async def get_system_prompt_async(  # NOSONAR
     The local YAML is ALWAYS the baseline. Remote is consulted only for
     override AND its content is integrity-checked against the local hash.
     A mismatch produces a CRITICAL log entry and the local version wins.
-=======
+
         The system prompt content.  Never returns ``None``; falls back
         to a generic safety-net string if all lookups fail.
     """
@@ -799,12 +763,10 @@ def get_prompt_metadata(handle: str) -> Dict[str, Any]:
     Unlike ``get_system_prompt()`` which returns just the system message,
     this returns the full parsed YAML structure including model name and
     temperature settings.
->>>>>>> origin/fix/scenario-tests-properly
 
     Parameters
     ----------
     handle : str
-<<<<<<< HEAD
         The prompt handle.
 
     Returns
@@ -872,7 +834,7 @@ def get_prompt_metadata(handle: str) -> Dict[str, Any]:
 
 def get_prompt_metadata(handle: str) -> dict[str, Any]:
     """Load full prompt metadata (model, temperature, messages) from YAML."""
-=======
+
         The prompt handle, e.g. ``"load_flow_agent"``.
 
     Returns
@@ -880,7 +842,6 @@ def get_prompt_metadata(handle: str) -> dict[str, Any]:
     Dict[str, Any]
         Parsed YAML content, or an empty dict if not found.
     """
->>>>>>> origin/fix/scenario-tests-properly
     possible_files = [
         f"{handle}.yaml",
         f"{handle}.prompt.yaml",
@@ -901,7 +862,6 @@ def get_prompt_metadata(handle: str) -> dict[str, Any]:
 
 
 def clear_prompt_cache() -> None:
-<<<<<<< HEAD
     """Clear the in-memory prompt cache."""
     with _cache_lock:
         _prompt_cache.clear()
@@ -930,7 +890,7 @@ def get_prompt_cache_info() -> dict[str, Any]:
 def list_available_prompts() -> list[str]:
     """List all prompt handles available in the prompts/ directory."""
     handles: list[str] = []
-=======
+
     """Clear the in-memory prompt cache.
 
     Useful for testing or when prompts have been updated on disk and
@@ -948,21 +908,14 @@ def list_available_prompts() -> List[str]:
         Sorted list of prompt handles derived from YAML filenames.
     """
     handles: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
     if not _PROMPTS_DIR.is_dir():
         return handles
 
     for filepath in _PROMPTS_DIR.iterdir():
-<<<<<<< HEAD
         # Skip non-prompt files (sample_prompt was deleted in the agent-prompts audit;
         # the check is kept for forward safety in case anyone re-adds a sample file).
         if filepath.suffix in (".yaml", ".yml") and filepath.stem != "sample_prompt":
             name = filepath.stem
-=======
-        if filepath.suffix in (".yaml", ".yml") and filepath.stem != "sample_prompt":
-            name = filepath.stem
-            # Normalize: strip .prompt suffix if present
->>>>>>> origin/fix/scenario-tests-properly
             if name.endswith(".prompt"):
                 name = name[:-7]
             handles.append(name)

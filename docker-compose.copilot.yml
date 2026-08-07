@@ -3,13 +3,10 @@
 # Full stack deployment for the Engineering Copilot platform.
 # Includes: Copilot API, Engineering Service, ETAP Worker, Prometheus, Jaeger, Grafana.
 #
-<<<<<<< HEAD
 # SECURITY AUDIT 2026-07-29 — All infra ports bound to 127.0.0.1 to prevent
 # external access. Previously Redis, Postgres, Prometheus, and Jaeger were
 # exposed on all interfaces, contradicting the S-12 fix in docker-compose.yml.
 #
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # Usage:
 #   # Start the full copilot stack:
 #   docker compose -f docker-compose.yml -f docker-compose.copilot.yml up -d
@@ -79,11 +76,7 @@ services:
     environment:
       - PORT=8000
       - ENGINEERING_SERVICE_PORT=8000
-<<<<<<< HEAD
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required — must point to Postgres, not SQLite}
-=======
-      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/etap_platform.db}
->>>>>>> origin/fix/scenario-tests-properly
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - ETAP_PROVIDER=${ETAP_PROVIDER:-mock}
       - ETAP_WORKER_URL=http://etap-worker:8001
@@ -136,11 +129,7 @@ services:
     container_name: etap-redis
     profiles: ["copilot", "full", "monitoring"]
     ports:
-<<<<<<< HEAD
       - "127.0.0.1:6379:6379"
-=======
-      - "6379:6379"
->>>>>>> origin/fix/scenario-tests-properly
     volumes:
       - redis-data:/data
     healthcheck:
@@ -160,11 +149,7 @@ services:
     container_name: etap-postgres
     profiles: ["copilot", "full"]
     ports:
-<<<<<<< HEAD
       - "127.0.0.1:5432:5432"
-=======
-      - "5432:5432"
->>>>>>> origin/fix/scenario-tests-properly
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-etap}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -188,11 +173,7 @@ services:
     container_name: etap-prometheus
     profiles: ["copilot", "full", "monitoring"]
     ports:
-<<<<<<< HEAD
       - "127.0.0.1:9090:9090"
-=======
-      - "9090:9090"
->>>>>>> origin/fix/scenario-tests-properly
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -214,15 +195,9 @@ services:
     container_name: etap-jaeger
     profiles: ["copilot", "full", "monitoring", "tracing"]
     ports:
-<<<<<<< HEAD
       - "127.0.0.1:16686:16686"  # UI
       - "127.0.0.1:4317:4317"    # OTLP gRPC
       - "127.0.0.1:4318:4318"    # OTLP HTTP
-=======
-      - "16686:16686"  # UI
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
->>>>>>> origin/fix/scenario-tests-properly
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     logging: *default-logging
@@ -233,7 +208,6 @@ services:
   # Grafana (visualization)
   # =========================================================================
   grafana:
-<<<<<<< HEAD
     image: grafana/grafana:11.3.0
     container_name: etap-grafana
     profiles: ["copilot", "full", "monitoring"]
@@ -246,16 +220,6 @@ services:
       # multiple compose files together.
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
-=======
-    image: grafana/grafana:latest
-    container_name: etap-grafana
-    profiles: ["copilot", "full", "monitoring"]
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:?GRAFANA_USER is required}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
->>>>>>> origin/fix/scenario-tests-properly
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana-data:/var/lib/grafana

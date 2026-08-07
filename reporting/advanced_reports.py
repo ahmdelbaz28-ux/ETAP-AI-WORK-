@@ -35,15 +35,9 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-<<<<<<< HEAD
 from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
-=======
-
-UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
-from typing import Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +51,7 @@ class ReportSection:
     order: int
     include_charts: bool = False
     include_tables: bool = False
-<<<<<<< HEAD
     data: dict = field(default_factory=dict)
-=======
-    data: Dict = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
@@ -71,13 +61,8 @@ class ReportMetadata:
     report_id: str
     title: str
     prepared_by: str
-<<<<<<< HEAD
     reviewed_by: Optional[str] = None
     approved_by: Optional[str] = None
-=======
-    reviewed_by: str | None = None
-    approved_by: str | None = None
->>>>>>> origin/fix/scenario-tests-properly
     company_name: str = "Engineering Consulting Firm"
     project_name: str = ""
     client_name: str = ""
@@ -93,11 +78,7 @@ class ChartGenerator:
     def __init__(self):
         self.logger = logging.getLogger("chart_generator")
 
-<<<<<<< HEAD
     def generate_voltage_profile_chart(self, bus_data: dict, output_path: str) -> str:
-=======
-    def generate_voltage_profile_chart(self, bus_data: Dict, output_path: str) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Generate voltage profile chart.
 
@@ -131,7 +112,6 @@ class ChartGenerator:
             plt.savefig(chart_path, dpi=300, bbox_inches="tight")
             plt.close()
 
-<<<<<<< HEAD
             self.logger.info("Voltage profile chart saved: %s", chart_path)
             return chart_path
 
@@ -140,7 +120,7 @@ class ChartGenerator:
             return ""
 
     def generate_fault_current_bar_chart(self, fault_data: dict, output_path: str) -> str:
-=======
+
             self.logger.info(f"Voltage profile chart saved: {chart_path}")
             return chart_path
 
@@ -149,7 +129,6 @@ class ChartGenerator:
             return ""
 
     def generate_fault_current_bar_chart(self, fault_data: Dict, output_path: str) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate bar chart of fault currents."""
         try:
             import matplotlib.pyplot as plt
@@ -170,11 +149,7 @@ class ChartGenerator:
             x = np.arange(len(bus_ids))
             width = 0.6
 
-<<<<<<< HEAD
             _, ax = plt.subplots(figsize=(12, 6))
-=======
-            fig, ax = plt.subplots(figsize=(12, 6))
->>>>>>> origin/fix/scenario-tests-properly
             bars = ax.bar(x, fault_currents, width, color="steelblue", edgecolor="navy")
 
             ax.set_xlabel("Bus ID", fontsize=12)
@@ -201,7 +176,6 @@ class ChartGenerator:
             plt.savefig(chart_path, dpi=300, bbox_inches="tight")
             plt.close()
 
-<<<<<<< HEAD
             self.logger.info("Fault current chart saved: %s", chart_path)
             return chart_path
 
@@ -210,7 +184,7 @@ class ChartGenerator:
             return ""
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: dict, output_path: str) -> str:
-=======
+
             self.logger.info(f"Fault current chart saved: {chart_path}")
             return chart_path
 
@@ -219,7 +193,6 @@ class ChartGenerator:
             return ""
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: Dict, output_path: str) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate harmonic spectrum chart."""
         try:
             import matplotlib.pyplot as plt
@@ -240,19 +213,11 @@ class ChartGenerator:
             plt.savefig(chart_path, dpi=300, bbox_inches="tight")
             plt.close()
 
-<<<<<<< HEAD
             self.logger.info("Harmonic spectrum chart saved: %s", chart_path)
             return chart_path
 
         except Exception as e:
             self.logger.exception("Failed to generate harmonic chart: %s", e)
-=======
-            self.logger.info(f"Harmonic spectrum chart saved: {chart_path}")
-            return chart_path
-
-        except Exception as e:
-            self.logger.error(f"Failed to generate harmonic chart: {e}")
->>>>>>> origin/fix/scenario-tests-properly
             return ""
 
 
@@ -262,11 +227,7 @@ class TableGenerator:
     def __init__(self):
         self.logger = logging.getLogger("table_generator")
 
-<<<<<<< HEAD
     def generate_load_flow_table(self, bus_data: dict) -> str:
-=======
-    def generate_load_flow_table(self, bus_data: Dict) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate load flow results table in text format."""
         lines = []
         lines.append("=" * 100)
@@ -274,11 +235,7 @@ class TableGenerator:
         lines.append("=" * 100)
         lines.append("")
         lines.append(
-<<<<<<< HEAD
             f"{'Bus ID':<10} Union[{', V|] (pu)':<12} {'Angle (deg)':<12} {'P (MW)':<12} {'Q (MVAR)':<12} {'Status':<10}",
-=======
-            f"{'Bus ID':<10} {'|V| (pu)':<12} {'Angle (deg)':<12} {'P (MW)':<12} {'Q (MVAR)':<12} {'Status':<10}"
->>>>>>> origin/fix/scenario-tests-properly
         )
         lines.append("-" * 100)
 
@@ -298,21 +255,13 @@ class TableGenerator:
 
             lines.append(
                 f"{str(bus_id):<10} {v_mag:<12.4f} {angle:<12.2f} "
-<<<<<<< HEAD
                 f"{p_mw:<12.2f} {q_mvar:<12.2f} {status:<10}",
-=======
-                f"{p_mw:<12.2f} {q_mvar:<12.2f} {status:<10}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         lines.append("=" * 100)
         return "\n".join(lines)
 
-<<<<<<< HEAD
     def generate_fault_current_table(self, fault_data: dict) -> str:
-=======
-    def generate_fault_current_table(self, fault_data: Dict) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate fault current summary table."""
         lines = []
         lines.append("=" * 120)
@@ -321,11 +270,7 @@ class TableGenerator:
         lines.append("")
         lines.append(
             f"{'Bus ID':<10} {'3-Phase (kA)':<15} {'L-G (kA)':<15} "
-<<<<<<< HEAD
             f"{'L-L (kA)':<15} {'DLG (kA)':<15} {'Max (kA)':<15}",
-=======
-            f"{'L-L (kA)':<15} {'DLG (kA)':<15} {'Max (kA)':<15}"
->>>>>>> origin/fix/scenario-tests-properly
         )
         lines.append("-" * 120)
 
@@ -339,21 +284,13 @@ class TableGenerator:
 
             lines.append(
                 f"{str(bus_id):<10} {i_3ph:<15.2f} {i_lg:<15.2f} "
-<<<<<<< HEAD
                 f"{i_ll:<15.2f} {i_dlg:<15.2f} {max_current:<15.2f}",
-=======
-                f"{i_ll:<15.2f} {i_dlg:<15.2f} {max_current:<15.2f}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         lines.append("=" * 120)
         return "\n".join(lines)
 
-<<<<<<< HEAD
     def generate_compliance_table(self, compliance_results: list[dict]) -> str:
-=======
-    def generate_compliance_table(self, compliance_results: List[Dict]) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate standards compliance table."""
         lines = []
         lines.append("=" * 100)
@@ -361,11 +298,7 @@ class TableGenerator:
         lines.append("=" * 100)
         lines.append("")
         lines.append(
-<<<<<<< HEAD
             f"{'Standard':<25} {'Parameter':<25} {'Value':<15} {'Limit':<15} {'Status':<10}",
-=======
-            f"{'Standard':<25} {'Parameter':<25} {'Value':<15} {'Limit':<15} {'Status':<10}"
->>>>>>> origin/fix/scenario-tests-properly
         )
         lines.append("-" * 100)
 
@@ -377,11 +310,7 @@ class TableGenerator:
             status = "PASS" if result.get("compliant", False) else "FAIL"
 
             lines.append(
-<<<<<<< HEAD
                 f"{standard:<25} {parameter:<25} {str(value):<15} {str(limit):<15} {status:<10}",
-=======
-                f"{standard:<25} {parameter:<25} {str(value):<15} {str(limit):<15} {status:<10}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         lines.append("=" * 100)
@@ -397,14 +326,10 @@ class PDFReportGenerator:
         self.logger = logging.getLogger("pdf_generator")
 
     def generate_report(
-<<<<<<< HEAD
         self,
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-=======
-        self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """
         Generate complete PDF report.
@@ -435,7 +360,6 @@ class PDFReportGenerator:
             )
 
             self.logger.info("Generating PDF report using ReportLab")
-<<<<<<< HEAD
             filepath = self._generate_with_reportlab(metadata, sections, output_path)
         except ImportError:
             self.logger.warning("ReportLab not available. Using fallback PDF generation.")
@@ -483,7 +407,7 @@ class PDFReportGenerator:
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-=======
+
             return self._generate_with_reportlab(metadata, sections, output_path)
 
         except ImportError:
@@ -492,7 +416,6 @@ class PDFReportGenerator:
 
     def _generate_with_reportlab(
         self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """Generate PDF using ReportLab library."""
         # Import ReportLab components at method level to ensure availability
@@ -518,16 +441,12 @@ class PDFReportGenerator:
 
         # Create document template
         doc = SimpleDocTemplate(
-<<<<<<< HEAD
             filepath,
             pagesize=A4,
             rightMargin=72,
             leftMargin=72,
             topMargin=72,
             bottomMargin=18,
-=======
-            filepath, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Build content
@@ -543,11 +462,7 @@ class PDFReportGenerator:
         story.append(Paragraph(f"Client: {metadata.client_name}", styles["Normal"]))
         story.append(Paragraph(f"Prepared by: {metadata.prepared_by}", styles["Normal"]))
         story.append(
-<<<<<<< HEAD
             Paragraph(f"Date: {metadata.report_date.strftime('%B %d, %Y')}", styles["Normal"]),
-=======
-            Paragraph(f"Date: {metadata.report_date.strftime('%B %d, %Y')}", styles["Normal"])
->>>>>>> origin/fix/scenario-tests-properly
         )
         story.append(PageBreak())
 
@@ -565,11 +480,7 @@ class PDFReportGenerator:
                     story.append(img)
                     story.append(Spacer(1, 12))
                 except Exception as e:
-<<<<<<< HEAD
                     self.logger.warning("Failed to add chart: %s", e)
-=======
-                    self.logger.warning(f"Failed to add chart: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
             # Add tables if requested
             if section.include_tables and "table_data" in section.data:
@@ -585,13 +496,8 @@ class PDFReportGenerator:
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
                             ("GRID", (0, 0), (-1, -1), 1, colors.black),
-<<<<<<< HEAD
                         ],
                     ),
-=======
-                        ]
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 story.append(table)
                 story.append(Spacer(1, 12))
@@ -601,7 +507,6 @@ class PDFReportGenerator:
         # Build PDF
         doc.build(story)
 
-<<<<<<< HEAD
         self.logger.info("PDF report generated: %s", filepath)
         return filepath
 
@@ -610,13 +515,6 @@ class PDFReportGenerator:
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-=======
-        self.logger.info(f"PDF report generated: {filepath}")
-        return filepath
-
-    def _generate_fallback_pdf(
-        self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """Fallback PDF generation using text-to-PDF conversion."""
         os.makedirs(output_path, exist_ok=True)
@@ -644,11 +542,7 @@ class PDFReportGenerator:
                 f.write("=" * 80 + "\n\n")
                 f.write(section.content + "\n")
 
-<<<<<<< HEAD
         self.logger.info("Text report generated (fallback): %s", filepath)
-=======
-        self.logger.info(f"Text report generated (fallback): {filepath}")
->>>>>>> origin/fix/scenario-tests-properly
         return filepath
 
 
@@ -658,16 +552,11 @@ class DOCXReportGenerator:
     def __init__(self):
         self.logger = logging.getLogger("docx_generator")
 
-<<<<<<< HEAD
     def generate_report(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-=======
-    def generate_report(
-        self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """Generate DOCX report."""
         try:
@@ -712,11 +601,7 @@ class DOCXReportGenerator:
             # Save document
             doc.save(filepath)
 
-<<<<<<< HEAD
             self.logger.info("DOCX report generated: %s", filepath)
-=======
-            self.logger.info(f"DOCX report generated: {filepath}")
->>>>>>> origin/fix/scenario-tests-properly
             return filepath
 
         except ImportError:
@@ -731,14 +616,10 @@ class XLSXReportGenerator:
         self.logger = logging.getLogger("xlsx_generator")
 
     def generate_report(
-<<<<<<< HEAD
         self,
         metadata: ReportMetadata,
         sections: list[ReportSection],
         output_path: str,
-=======
-        self, metadata: ReportMetadata, sections: List[ReportSection], output_path: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """Generate XLSX report."""
         try:
@@ -789,11 +670,7 @@ class XLSXReportGenerator:
             # Save workbook
             wb.save(filepath)
 
-<<<<<<< HEAD
             self.logger.info("XLSX report generated: %s", filepath)
-=======
-            self.logger.info(f"XLSX report generated: {filepath}")
->>>>>>> origin/fix/scenario-tests-properly
             return filepath
 
         except ImportError:
@@ -816,7 +693,6 @@ class ReportGenerationAgent:
         self.chart_generator = ChartGenerator()
         self.logger = logging.getLogger("report_agent")
 
-<<<<<<< HEAD
     async def generate_complete_report(  # NOSONAR async function uses sync I/O for compatibility reasons
         self,
         analysis_results: dict,
@@ -824,7 +700,7 @@ class ReportGenerationAgent:
         formats: list[str] = None,
         output_path: str = "./reports",
     ) -> dict[str, str]:
-=======
+
     async def generate_complete_report(
         self,
         analysis_results: Dict,
@@ -832,7 +708,6 @@ class ReportGenerationAgent:
         formats: List[str] = None,
         output_path: str = "./reports",
     ) -> Dict[str, str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Generate complete engineering report in multiple formats.
 
@@ -880,30 +755,18 @@ class ReportGenerationAgent:
             if xlsx_path:
                 generated_files["xlsx"] = xlsx_path
 
-<<<<<<< HEAD
         self.logger.info("Report generation complete. Files: %s", list(generated_files.keys()))
 
         return generated_files
 
     def _compile_sections(self, analysis_results: dict, output_path: str) -> list[ReportSection]:
-=======
-        self.logger.info(f"Report generation complete. Files: {list(generated_files.keys())}")
-
-        return generated_files
-
-    def _compile_sections(self, analysis_results: Dict, output_path: str) -> List[ReportSection]:
->>>>>>> origin/fix/scenario-tests-properly
         """Compile all analysis results into report sections."""
         sections = []
 
         # Section 1: Executive Summary
         executive_summary = self._generate_executive_summary(analysis_results)
         sections.append(
-<<<<<<< HEAD
             ReportSection(title="1. Executive Summary", content=executive_summary, order=1),
-=======
-            ReportSection(title="1. Executive Summary", content=executive_summary, order=1)
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Section 2: System Description
@@ -919,12 +782,8 @@ class ReportGenerationAgent:
             chart_path = ""
             if "buses" in lf_data:
                 chart_path = self.chart_generator.generate_voltage_profile_chart(
-<<<<<<< HEAD
                     lf_data["buses"],
                     output_path,
-=======
-                    lf_data["buses"], output_path
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
             sections.append(
@@ -938,34 +797,22 @@ class ReportGenerationAgent:
                         "chart_path": chart_path,
                         "table_data": self._convert_to_table_data(lf_table),
                     },
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Section 4: Short Circuit Analysis
         if "short_circuit" in analysis_results:
             sc_data = analysis_results["short_circuit"]
             sc_table = self.table_generator.generate_fault_current_table(
-<<<<<<< HEAD
                 sc_data.get("fault_results", {}),
-=======
-                sc_data.get("fault_results", {})
->>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Generate fault current chart
             chart_path = ""
             if "fault_results" in sc_data:
                 chart_path = self.chart_generator.generate_fault_current_bar_chart(
-<<<<<<< HEAD
                     sc_data["fault_results"],
                     output_path,
-=======
-                    sc_data["fault_results"], output_path
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
             sections.append(
@@ -979,11 +826,7 @@ class ReportGenerationAgent:
                         "chart_path": chart_path,
                         "table_data": self._convert_to_table_data(sc_table),
                     },
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Section 5: Harmonic Analysis
@@ -997,11 +840,7 @@ class ReportGenerationAgent:
                     content=harm_content,
                     order=5,
                     include_tables=True,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Section 6: Optimal Power Flow
@@ -1010,11 +849,7 @@ class ReportGenerationAgent:
             opf_content = opf_data.get("report", "OPF analysis completed.")
 
             sections.append(
-<<<<<<< HEAD
                 ReportSection(title="6. Optimal Power Flow Analysis", content=opf_content, order=6),
-=======
-                ReportSection(title="6. Optimal Power Flow Analysis", content=opf_content, order=6)
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Section 7: Compliance Verification
@@ -1027,31 +862,19 @@ class ReportGenerationAgent:
                     content=compliance_table,
                     order=7,
                     include_tables=True,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Section 8: Recommendations
         recommendations = analysis_results.get("recommendations", [])
         rec_content = "\n".join([f"- {rec}" for rec in recommendations])
         sections.append(
-<<<<<<< HEAD
             ReportSection(title="8. Engineering Recommendations", content=rec_content, order=8),
-=======
-            ReportSection(title="8. Engineering Recommendations", content=rec_content, order=8)
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return sections
 
-<<<<<<< HEAD
     def _generate_executive_summary(self, analysis_results: dict) -> str:
-=======
-    def _generate_executive_summary(self, analysis_results: Dict) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate executive summary from analysis results."""
         summary_lines = [
             "This report presents the results of comprehensive power system analysis",
@@ -1066,11 +889,7 @@ class ReportGenerationAgent:
             lf = analysis_results["load_flow"]
             converged = lf.get("converged", False)
             summary_lines.append(
-<<<<<<< HEAD
                 f"✓ Load Flow Analysis: {'Converged successfully' if converged else 'Did not converge'}",
-=======
-                f"✓ Load Flow Analysis: {'Converged successfully' if converged else 'Did not converge'}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Short circuit summary
@@ -1082,11 +901,7 @@ class ReportGenerationAgent:
             harm = analysis_results["harmonic"]
             violations = len(harm.get("violations", []))
             summary_lines.append(
-<<<<<<< HEAD
                 f"✓ Harmonic Analysis: {violations} IEEE 519 violations identified",
-=======
-                f"✓ Harmonic Analysis: {violations} IEEE 519 violations identified"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # OPF summary
@@ -1095,11 +910,7 @@ class ReportGenerationAgent:
             if opf.get("success"):
                 cost = opf.get("objective_value", 0)
                 summary_lines.append(
-<<<<<<< HEAD
                     f"✓ Optimal Power Flow: Optimization successful (Cost: ${cost:,.2f}/hr)",
-=======
-                    f"✓ Optimal Power Flow: Optimization successful (Cost: ${cost:,.2f}/hr)"
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         summary_lines.extend(
@@ -1109,16 +920,11 @@ class ReportGenerationAgent:
                 "IEEE, IEC, and NFPA requirements.",
                 "",
                 "Detailed results and recommendations are provided in subsequent sections.",
-<<<<<<< HEAD
             ],
-=======
-            ]
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return "\n".join(summary_lines)
 
-<<<<<<< HEAD
     def _convert_to_table_data(self, table_text: str) -> list[list[str]]:
         """Convert text table to list of lists for Excel/Word.
 
@@ -1137,14 +943,13 @@ class ReportGenerationAgent:
                 raw_cells = re.split(r",\s*|\|", line)
                 cells = [cell.strip().strip('"').strip("'") for cell in raw_cells]
                 cells = [cell for cell in cells if cell]
-=======
+
     def _convert_to_table_data(self, table_text: str) -> List[List[str]]:
         """Convert text table to list of lists for Excel/Word."""
         rows = []
         for line in table_text.split("\n"):
             if line.strip() and not line.startswith("=") and not line.startswith("-"):
                 cells = [cell.strip() for cell in line.split("|") if cell.strip()]
->>>>>>> origin/fix/scenario-tests-properly
                 if cells:
                     rows.append(cells)
         return rows

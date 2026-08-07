@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { cn } from "../../utils/helpers";
 
 // Pre-generated stable keys for skeleton placeholders. Using a pre-computed
@@ -54,7 +53,7 @@ export function SkeletonTable({ rows = 5, cols = 4 }: SkeletonTableProps) {
         >
           {SKELETON_KEYS.slice(100, 100 + cols).map((colKey) => (
             <Skeleton key={`${rowKey}-${colKey}`} className="h-3" />
-=======
+
 import { cn } from '../../utils/helpers'
 
 interface SkeletonProps {
@@ -89,14 +88,9 @@ export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
         <div key={row} className="grid gap-4 p-4 border-b border-[var(--border-primary)] last:border-0" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
           {Array.from({ length: cols }).map((_, col) => (
             <Skeleton key={col} className="h-3" />
->>>>>>> origin/fix/scenario-tests-properly
           ))}
         </div>
       ))}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -72,18 +72,11 @@ export function isEngineeringServiceConfigured(env: Env): boolean {
  * Integrates with the circuit breaker for the 'engineering-service' provider.
  */
 export async function callEngineeringService(
-<<<<<<< HEAD
   // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   request: EngineeringServiceRequest,
   traceId: string,
   signal?: AbortSignal,
-=======
-  env: Env,
-  request: EngineeringServiceRequest,
-  traceId: string,
-  signal?: AbortSignal
->>>>>>> origin/fix/scenario-tests-properly
 ): Promise<EngineeringServiceResult> {
   const url = _getServiceUrl(env);
   if (!url) {
@@ -103,14 +96,10 @@ export async function callEngineeringService(
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const controller = new AbortController();
-<<<<<<< HEAD
     const timeoutId = setTimeout(
       () => controller.abort(new Error('engineering-service-timeout')),
       timeoutMs,
     );
-=======
-    const timeoutId = setTimeout(() => controller.abort(new Error('engineering-service-timeout')), timeoutMs);
->>>>>>> origin/fix/scenario-tests-properly
 
     if (signal) {
       if (signal.aborted) controller.abort(signal.reason);
@@ -159,11 +148,7 @@ export async function callEngineeringService(
         throw err; // re-throw without circuit breaker impact
       }
       if (attempt < maxRetries) {
-<<<<<<< HEAD
         await _delay(500 * 2 ** attempt); // 500ms, 1000ms, 2000ms
-=======
-        await _delay(500 * Math.pow(2, attempt)); // 500ms, 1000ms, 2000ms
->>>>>>> origin/fix/scenario-tests-properly
       }
     }
   }
@@ -176,13 +161,9 @@ export async function callEngineeringService(
 /**
  * Health check the Engineering Service.
  */
-<<<<<<< HEAD
 export async function checkEngineeringServiceHealth(
   env: Env,
 ): Promise<{ healthy: boolean; latencyMs: number; error?: string }> {
-=======
-export async function checkEngineeringServiceHealth(env: Env): Promise<{ healthy: boolean; latencyMs: number; error?: string }> {
->>>>>>> origin/fix/scenario-tests-properly
   const url = _getServiceUrl(env);
   if (!url) {
     return { healthy: false, latencyMs: 0, error: 'Not configured' };
@@ -199,14 +180,10 @@ export async function checkEngineeringServiceHealth(env: Env): Promise<{ healthy
     clearTimeout(timeoutId);
     return { healthy: res.ok, latencyMs: Date.now() - start };
   } catch (e) {
-<<<<<<< HEAD
     return {
       healthy: false,
       latencyMs: Date.now() - start,
       error: e instanceof Error ? e.message : String(e),
     };
-=======
-    return { healthy: false, latencyMs: Date.now() - start, error: e instanceof Error ? e.message : String(e) };
->>>>>>> origin/fix/scenario-tests-properly
   }
 }

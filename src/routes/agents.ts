@@ -1,17 +1,9 @@
-<<<<<<< HEAD
 /*
-=======
-/**
->>>>>>> origin/fix/scenario-tests-properly
  * Agent listing + chat routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
 import { type ModelMessage } from 'ai';
-<<<<<<< HEAD
 import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey, extractClientIp } from '../utils/response.js';
-=======
-import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey } from '../utils/response.js';
->>>>>>> origin/fix/scenario-tests-properly
 import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
 import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
 import { recordAudit } from '../utils/audit.js';
@@ -19,12 +11,11 @@ import { bumpApiMetric, bumpPerKey, bumpPerRoute } from '../utils/metrics.js';
 import { getCachedResponse, cacheResponse } from '../core/idempotency.js';
 
 export async function handleListAgents(
-<<<<<<< HEAD
   request: Request, env: Env, ctx: ExecutionContext,
   apiKeyId: string, scope: string, traceId: string
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '';
-=======
+
   request: Request,
   env: Env,
   ctx: ExecutionContext,
@@ -33,12 +24,10 @@ export async function handleListAgents(
   traceId: string
 ): Promise<Response> {
   const origin = request.headers.get('origin') || '*';
->>>>>>> origin/fix/scenario-tests-properly
   bumpApiMetric('totalRequests');
   bumpPerKey(apiKeyId);
   bumpPerRoute('agents-list');
   recordAudit({
-<<<<<<< HEAD
     timestamp: new Date().toISOString(), traceId,
     clientIp: extractClientIp(request),
     method: 'GET', path: '/api/v1/agents', statusCode: 200,
@@ -178,7 +167,7 @@ async function runDirectAi(
   const systemPrompt = `You are the ${agent.name}. ${agent.description}.\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
   const mappedMessages = messages.map((m) => ({
     role: (CHAT_VALID_ROLES.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
-=======
+
     timestamp: new Date().toISOString(),
     traceId,
     clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
@@ -343,12 +332,10 @@ export async function handleChat(
   const validRoles = new Set(['system', 'user', 'assistant', 'tool']);
   const mappedMessages = messages.map((m) => ({
     role: (validRoles.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
->>>>>>> origin/fix/scenario-tests-properly
     content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
   })) as ModelMessage[];
 
   try {
-<<<<<<< HEAD
     const result = await generateWithFailover(rc.env, systemPrompt, mappedMessages);
     bumpApiMetric('agentChats');
     const responseBody = JSON.stringify({
@@ -367,7 +354,7 @@ export async function handleChat(
     return new Response(responseBody, {
       status: 200,
       headers: { 'content-type': 'application/json; charset=utf-8', ...rc.cors },
-=======
+
     const result = await generateWithFailover(env, systemPrompt, mappedMessages);
     bumpApiMetric('agentChats');
     const responseBody = JSON.stringify({
@@ -403,13 +390,11 @@ export async function handleChat(
     return new Response(responseBody, {
       status: 200,
       headers: { 'content-type': 'application/json; charset=utf-8', ...corsHeaders(origin) },
->>>>>>> origin/fix/scenario-tests-properly
     });
   } catch (aiError) {
     bumpApiMetric('errors');
     const msg = aiError instanceof Error ? aiError.message : 'AI generation failed';
     recordAudit({
-<<<<<<< HEAD
       ...chatAuditFields(rc, 502, 'AGENT_CHAT_AI_ERROR'),
       details: { agentId: rc.agentId, error: msg },
     });
@@ -447,7 +432,7 @@ export async function handleChat(
 
   return runDirectAi(rc, messagesOrResponse);
 }
-=======
+
       timestamp: new Date().toISOString(),
       traceId,
       clientIp: request.headers.get('cf-connecting-ip') || 'unknown',
@@ -465,4 +450,3 @@ export async function handleChat(
     return errorResponse(502, msg, traceId, corsHeaders(origin));
   }
 }
->>>>>>> origin/fix/scenario-tests-properly

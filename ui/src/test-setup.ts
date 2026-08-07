@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import "@testing-library/jest-dom";
 
 // Polyfill ResizeObserver for jsdom (required by recharts)
@@ -16,6 +15,3 @@ class ResizeObserverMock {
   }
 }
 globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof globalThis.ResizeObserver;
-=======
-import '@testing-library/jest-dom'
->>>>>>> origin/fix/scenario-tests-properly

@@ -27,7 +27,6 @@
   --color-surface-900: #0f172a;
   --color-surface-950: #020617;
 
-<<<<<<< HEAD
   --color-success: #22c55e;
   --color-success-light: #4ade80;
   --color-success-500: #22c55e;
@@ -45,16 +44,6 @@
   --color-primary: #2563eb;
   --color-secondary: #3b82f6;
   --color-cta: #f97316;
-=======
-  /* Semantic Colors */
-  --color-success: #22c55e;
-  --color-success-light: #4ade80;
-  --color-warning: #f59e0b;
-  --color-warning-light: #fbbf24;
-  --color-danger: #ef4444;
-  --color-danger-light: #f87171;
-  --color-info: #3b82f6;
->>>>>>> origin/fix/scenario-tests-properly
 
   /* Engineering Colors */
   --color-engine-voltage: #60a5fa;
@@ -65,17 +54,15 @@
   --color-engine-protection: #06b6d4;
 
   /* Typography */
-<<<<<<< HEAD
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-arabic: "Cairo", "Inter", system-ui, sans-serif;
   --font-mono: "Fira Code", "Cascadia Code", ui-monospace, monospace;
   --font-engineering: "JetBrains Mono", "Fira Code", monospace;
-=======
+
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-arabic: 'Cairo', 'Inter', system-ui, sans-serif;
   --font-mono: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
   --font-engineering: 'JetBrains Mono', 'Fira Code', monospace;
->>>>>>> origin/fix/scenario-tests-properly
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -85,7 +72,6 @@
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
 
-<<<<<<< HEAD
   /* Container max-widths — required by Tailwind v4 for max-w-* utilities.
      Without these, max-w-md / max-w-lg / etc. would fall back to --spacing-*
      (e.g. 1rem = 16px), which breaks modals, drawers, and any centered
@@ -123,8 +109,6 @@
   --max-width-6xl: var(--container-6xl);
   --max-width-7xl: var(--container-7xl);
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
   /* Border Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -155,7 +139,6 @@
 }
 
 /* ============================
-<<<<<<< HEAD
    TAILWIND v4.0.0 BUG WORKAROUND
    ============================
    The `@theme` block above defines --container-* and --max-width-* variables
@@ -205,12 +188,6 @@
 
   /* Hover transitions */
   --transition-base: 150ms ease;
-=======
-   DARK MODE (Default)
-   ============================ */
-:root {
-  --bg-primary: #0a0e1a;
->>>>>>> origin/fix/scenario-tests-properly
   --bg-secondary: #0f1525;
   --bg-tertiary: #141c2e;
   --bg-card: #1a2340;
@@ -330,7 +307,6 @@ body {
 /* ============================
    ANIMATIONS
    ============================ */
-<<<<<<< HEAD
 
 /* Sparkle / particle burst — used on hover states */
 @keyframes sparkle {
@@ -607,7 +583,7 @@ body {
   50% {
     opacity: 1;
   }
-=======
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -661,7 +637,6 @@ body {
 @keyframes ripple {
   0% { transform: scale(0); opacity: 0.6; }
   100% { transform: scale(2.5); opacity: 0; }
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 .animate-fade-in {
@@ -689,16 +664,12 @@ body {
 }
 
 .animate-shimmer {
-<<<<<<< HEAD
   background: linear-gradient(
     90deg,
     transparent 0%,
     rgba(255, 255, 255, 0.05) 50%,
     transparent 100%
   );
-=======
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
->>>>>>> origin/fix/scenario-tests-properly
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -715,7 +686,6 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-<<<<<<< HEAD
 .animate-aurora {
   animation: aurora 20s ease-in-out infinite;
 }
@@ -759,11 +729,6 @@ body {
     var(--border-primary) 50%,
     var(--bg-elevated) 75%
   );
-=======
-/* Skeleton loading */
-.skeleton {
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border-primary) 50%, var(--bg-elevated) 75%);
->>>>>>> origin/fix/scenario-tests-properly
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-md);
@@ -806,7 +771,6 @@ body {
   transform: translateX(-50%) scale(1);
 }
 
-<<<<<<< HEAD
 /* Premium card hover lift */
 .card-hover-lift {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
@@ -959,8 +923,6 @@ body {
   pointer-events: none;
 }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 /* One-line diagram styles */
 .one-line-bus {
   stroke: var(--color-engine-voltage);
@@ -1001,7 +963,6 @@ body {
 
 /* Print styles */
 @media print {
-<<<<<<< HEAD
   .no-print {
     display: none !important;
   }
@@ -1011,11 +972,10 @@ body {
   }
   .card,
   .card-interactive {
-=======
+
   .no-print { display: none !important; }
   body { background: white !important; color: black !important; }
   .card, .card-interactive {
->>>>>>> origin/fix/scenario-tests-properly
     border: 1px solid #ddd !important;
     box-shadow: none !important;
   }
@@ -1023,7 +983,6 @@ body {
 
 /* Responsive helpers */
 @media (max-width: 768px) {
-<<<<<<< HEAD
   .hide-mobile {
     display: none !important;
   }
@@ -1729,11 +1688,4 @@ a:focus-visible {
 .tooltip-enhanced:hover::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0) scale(1);
-=======
-  .hide-mobile { display: none !important; }
-}
-
-@media (min-width: 769px) {
-  .hide-desktop { display: none !important; }
->>>>>>> origin/fix/scenario-tests-properly
 }

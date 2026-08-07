@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils/helpers";
 
@@ -66,7 +65,7 @@ export function CardHeader({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className={cn("flex items-center justify-between mb-4", className)} {...props}>
-=======
+
 import type { ReactNode, HTMLAttributes } from 'react'
 import { cn } from '../../utils/helpers'
 
@@ -109,7 +108,6 @@ interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
 export function CardHeader({ title, subtitle, icon, action, className, ...props }: CardHeaderProps) {
   return (
     <div className={cn('flex items-center justify-between mb-4', className)} {...props}>
->>>>>>> origin/fix/scenario-tests-properly
       <div className="flex items-center gap-2.5">
         {icon && <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-400">{icon}</div>}
         <div>
@@ -119,16 +117,11 @@ export function CardHeader({ title, subtitle, icon, action, className, ...props 
       </div>
       {action}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 export function CardSection({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-<<<<<<< HEAD
     <div
       className={cn(
         "py-3 border-t border-[var(--border-primary)] first:border-t-0 first:pt-0",
@@ -139,10 +132,4 @@ export function CardSection({ className, children, ...props }: HTMLAttributes<HT
       {children}
     </div>
   );
-=======
-    <div className={cn('py-3 border-t border-[var(--border-primary)] first:border-t-0 first:pt-0', className)} {...props}>
-      {children}
-    </div>
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

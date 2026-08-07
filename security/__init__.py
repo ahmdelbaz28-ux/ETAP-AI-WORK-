@@ -11,10 +11,7 @@ from security.abac import (
     make_ip_allowlist_policy,
     make_role_policy,
 )
-<<<<<<< HEAD
 from security.log_redaction import SecretRedactionFilter, install_globally, redact_text  # NOSONAR
-=======
->>>>>>> origin/fix/scenario-tests-properly
 from security.mfa import (
     MFAOrchestrator,
     TOTPProvider,

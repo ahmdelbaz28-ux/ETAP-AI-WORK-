@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -75,7 +74,7 @@ export default function DataExport() {
       })
       .finally(() => setLoading(false));
   }, []);
-=======
+
 import { motion } from 'framer-motion'
 import { Download, FileText, FileSpreadsheet, FileJson, Clock, HardDrive } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -117,7 +116,6 @@ const recentExports = [
 
 export function DataExport() {
   const { notify } = useNotify()
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -128,16 +126,12 @@ export function DataExport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Export</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 Export study results and system data
               </p>
               <ContextHelpButton contextId="data-export.overview" />
             </div>
-=======
-            <p className="text-sm text-[var(--text-tertiary)]">Export study results and system data</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
@@ -145,29 +139,19 @@ export function DataExport() {
       {/* Export Format Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {exportFormats.map((format, i) => (
-<<<<<<< HEAD
           <motion.div
             key={format.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 * i }}
           >
-=======
-          <motion.div key={format.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card
               variant="bordered"
               padding="lg"
               className="cursor-pointer"
-<<<<<<< HEAD
               onClick={() => notify("success", `Exporting as ${format.name}...`)}
             >
               <div className={cn("p-3 rounded-lg w-fit mb-4", format.bgColor, format.color)}>
-=======
-              onClick={() => notify('success', `Exporting as ${format.name}...`)}
-            >
-              <div className={cn('p-3 rounded-lg w-fit mb-4', format.bgColor, format.color)}>
->>>>>>> origin/fix/scenario-tests-properly
                 {format.icon}
               </div>
               <h3 className="text-base font-semibold text-[var(--text-primary)]">{format.name}</h3>
@@ -183,22 +167,17 @@ export function DataExport() {
       </div>
 
       {/* Recent Exports */}
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-=======
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
->>>>>>> origin/fix/scenario-tests-properly
         <Card padding="md">
           <CardHeader
             title="Recent Exports"
             subtitle="Previously exported files"
             icon={<Clock className="w-4 h-4" />}
           />
-<<<<<<< HEAD
           {loading && ( // NOSONAR - S3358: previously nested ternary, refactored to && chain
             <div className="flex items-center justify-center h-20">
               <div className="w-5 h-5 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
@@ -255,7 +234,7 @@ export function DataExport() {
       </motion.div>
     </div>
   );
-=======
+
           <div className="space-y-3">
             {recentExports.map((file, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
@@ -286,5 +265,4 @@ export function DataExport() {
       </motion.div>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

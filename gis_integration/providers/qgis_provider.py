@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
@@ -24,17 +20,15 @@ class QGISProvider(GISProviderInterface):
 
     def __init__(self) -> None:
         self._loaded = False
-<<<<<<< HEAD
         self._project_path: Optional[str] = None
         self._crs: GeoCRSInfo = GeoCRSInfo()
         self._layers: list[str] = []
         self._layer_index: dict[str, str] = {}
-=======
+
         self._project_path: str | None = None
         self._crs: GeoCRSInfo = GeoCRSInfo()
         self._layers: List[str] = []
         self._layer_index: Dict[str, str] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     def load_project(self, path: str) -> None:
         try:
@@ -64,11 +58,7 @@ class QGISProvider(GISProviderInterface):
 
         self._loaded = True
 
-<<<<<<< HEAD
     def list_layers(self) -> list[str]:
-=======
-    def list_layers(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         if not self._loaded:
             return []
         return list(self._layers)
@@ -127,11 +117,7 @@ class QGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to extract features from QGIS: {exc}") from exc
 
-<<<<<<< HEAD
     def export_geojson(self, layer_id: str) -> dict:
-=======
-    def export_geojson(self, layer_id: str) -> Dict:
->>>>>>> origin/fix/scenario-tests-properly
         # Provider-local best-effort: return FeatureCollection with geometry dicts.
         # Deterministic transformation will operate on extract_features() output.
         try:
@@ -142,11 +128,7 @@ class QGISProvider(GISProviderInterface):
                     {
                         "type": "Feature",
                         "geometry": f.geometry,
-<<<<<<< HEAD
                         "properties": {**f.properties, "id": f.id, "layer": f.layer_name},
-=======
-                        "properties": f.properties | {"id": f.id, "layer": f.layer_name},
->>>>>>> origin/fix/scenario-tests-properly
                     }
                     for f in features
                 ],
@@ -155,11 +137,7 @@ class QGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to export GeoJSON from QGIS: {exc}") from exc
 
-<<<<<<< HEAD
     def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
-=======
-    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
->>>>>>> origin/fix/scenario-tests-properly
         # Best-effort: keep default unless provider can supply.
         # QGIS CRS extraction is omitted here to avoid brittle SDK dependency assumptions.
         return self._crs

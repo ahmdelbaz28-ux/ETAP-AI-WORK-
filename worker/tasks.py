@@ -8,26 +8,19 @@ import os
 import time
 import uuid
 
-<<<<<<< HEAD
 import numpy as np
 from celery import (
     current_task,  # noqa: F401 — re-exported for tests that patch worker.tasks.current_task
 )
-=======
-from celery import current_task
->>>>>>> origin/fix/scenario-tests-properly
 
 # Import the study execution logic from the services
 from services.study_service import StudyRequest, execute_study_logic
 from worker.celery_app import app
 
-<<<<<<< HEAD
 # Module-level numpy Generator for reproducible non-crypto sampling.
 # NOSONAR
 _RNG = np.random.default_rng()  # NOSONAR
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 logger = logging.getLogger(__name__)
 
 
@@ -71,11 +64,7 @@ def execute_engineering_study_task(self, study_data: dict):
 
         return result.model_dump()
     except Exception as exc:
-<<<<<<< HEAD
         logger.exception("Error executing engineering study: %s", str(exc))
-=======
-        logger.error("Error executing engineering study: %s", str(exc))
->>>>>>> origin/fix/scenario-tests-properly
         current_task.update_state(
             state="FAILURE",
             meta={
@@ -106,7 +95,6 @@ def execute_etap_integration_task(self, etap_command: dict):
         if not use_etap:
             return {"error": "ETAP integration is disabled", "result": None}
 
-<<<<<<< HEAD
         logger.info("Starting ETAP integration: %s", etap_command.get("command", "Unknown"))
 
         from etap_integration.etap_provider import get_etap_provider
@@ -132,7 +120,7 @@ def execute_etap_integration_task(self, etap_command: dict):
             }
 
         logger.info("Completed ETAP integration: %s", etap_command.get("command", "Unknown"))
-=======
+
         logger.info(f"Starting ETAP integration: {etap_command.get('command', 'Unknown')}")
 
         # Import ETAP provider only when needed (to avoid Windows dependency issues)
@@ -142,7 +130,6 @@ def execute_etap_integration_task(self, etap_command: dict):
         result = provider.execute_command(etap_command)
 
         logger.info(f"Completed ETAP integration: {etap_command.get('command', 'Unknown')}")
->>>>>>> origin/fix/scenario-tests-properly
 
         current_task.update_state(
             state="SUCCESS",
@@ -151,11 +138,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         return result
     except Exception as exc:
-<<<<<<< HEAD
         logger.exception("Error executing ETAP integration: %s", str(exc))
-=======
-        logger.error(f"Error executing ETAP integration: {str(exc)}")
->>>>>>> origin/fix/scenario-tests-properly
         current_task.update_state(
             state="FAILURE",
             meta={
@@ -183,11 +166,7 @@ def process_large_calculation_task(self, calculation_data: dict):
             state="PROGRESS", meta={"status": "Starting large calculation..."}
         )
 
-<<<<<<< HEAD
         logger.info("Starting large calculation: %s", calculation_data.get("type", "Unknown"))
-=======
-        logger.info(f"Starting large calculation: {calculation_data.get('type', 'Unknown')}")
->>>>>>> origin/fix/scenario-tests-properly
 
         # Simulate a heavy calculation
         # In real implementation, this would contain the actual computational logic
@@ -202,7 +181,6 @@ def process_large_calculation_task(self, calculation_data: dict):
             if i % 10 == 0:
                 progress = (i / iterations) * 100
                 current_task.update_state(
-<<<<<<< HEAD
                     state="PROGRESS",
                     meta={
                         "status": f"Calculation in progress: {progress:.1f}%"
@@ -213,13 +191,6 @@ def process_large_calculation_task(self, calculation_data: dict):
             matrix = _RNG.rand(  # NOSONAR
                 size, size
             )  # NOSONAR numpy.random.Generator migration; API change required
-=======
-                    state="PROGRESS", meta={"status": f"Calculation in progress: {progress:.1f}%"}
-                )
-
-            # Perform some heavy computation
-            matrix = np.random.rand(size, size)
->>>>>>> origin/fix/scenario-tests-properly
             result_matrix = np.linalg.inv(matrix + np.eye(size))
 
         result = {
@@ -230,27 +201,16 @@ def process_large_calculation_task(self, calculation_data: dict):
             "message": "Large calculation completed successfully",
         }
 
-<<<<<<< HEAD
         logger.info("Completed large calculation: %s", calculation_data.get("type", "Unknown"))
 
         current_task.update_state(
             state="SUCCESS",
             meta={"status": "Calculation completed successfully", "result": result},
-=======
-        logger.info(f"Completed large calculation: {calculation_data.get('type', 'Unknown')}")
-
-        current_task.update_state(
-            state="SUCCESS", meta={"status": "Calculation completed successfully", "result": result}
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return result
     except Exception as exc:
-<<<<<<< HEAD
         logger.exception("Error processing large calculation: %s", str(exc))
-=======
-        logger.error(f"Error processing large calculation: {str(exc)}")
->>>>>>> origin/fix/scenario-tests-properly
         current_task.update_state(
             state="FAILURE",
             meta={
@@ -259,7 +219,6 @@ def process_large_calculation_task(self, calculation_data: dict):
             },
         )
         raise exc
-<<<<<<< HEAD
 
 
 @app.task(bind=False, name="worker.tasks.celery_heartbeat", ignore_result=True)
@@ -289,5 +248,3 @@ def celery_heartbeat():
         pass  # heartbeat is best-effort
 
     return {"status": "alive", "worker": hostname, "ts": time.time()}
-=======
->>>>>>> origin/fix/scenario-tests-properly

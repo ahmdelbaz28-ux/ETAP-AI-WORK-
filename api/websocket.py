@@ -1,7 +1,6 @@
 """
 WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
-<<<<<<< HEAD
 
 SECURITY AUDIT 2026-07-25 — Fix S-03: Added JWT authentication.
 Previously, any client could connect without authentication, exposing
@@ -25,7 +24,7 @@ from typing import Dict, List, Optional
 UTC = timezone.utc  # noqa: UP017
 
 from fastapi import Query, WebSocket, WebSocketDisconnect
-=======
+
 """
 
 import asyncio
@@ -37,7 +36,6 @@ UTC = UTC
 from typing import List
 
 from fastapi import WebSocket, WebSocketDisconnect
->>>>>>> origin/fix/scenario-tests-properly
 from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
@@ -45,7 +43,6 @@ logger = logging.getLogger(__name__)
 # Global list to store active WebSocket connections
 active_connections: List[WebSocket] = []
 
-<<<<<<< HEAD
 # Security Fix V-01: Connection lifecycle management
 MAX_CONNECTIONS = 500  # Maximum concurrent WebSocket connections
 HEARTBEAT_INTERVAL = 30  # seconds between heartbeat pings
@@ -59,17 +56,11 @@ class SCADALiveFeed:
     Security Fix V-01: Added heartbeat/ping-pong, connection limits,
     and explicit cleanup handlers for abrupt disconnects.
     """
-=======
-
-class SCADALiveFeed:
-    """Manages real-time SCADA data broadcasting to WebSocket clients."""
->>>>>>> origin/fix/scenario-tests-properly
 
     def __init__(self):
         self.active_connections: List[WebSocket] = []
         self.is_broadcasting = False
         self.broadcast_task = None
-<<<<<<< HEAD
         # V-01: Track connection metadata for lifecycle management
         self._connection_meta: Dict[int, dict] = {}  # id(ws) -> meta
         self._heartbeat_task: Optional[asyncio.Task] = None
@@ -103,7 +94,7 @@ class SCADALiveFeed:
         logger.info(
             "New WebSocket connection established. Total connections: %d",
             len(self.active_connections),
-=======
+
 
     async def connect(self, websocket: WebSocket):
         """Add a new WebSocket connection to the active connections list."""
@@ -111,7 +102,6 @@ class SCADALiveFeed:
         self.active_connections.append(websocket)
         logger.info(
             f"New WebSocket connection established. Total connections: {len(self.active_connections)}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Start broadcasting if not already running
@@ -119,7 +109,6 @@ class SCADALiveFeed:
             self.is_broadcasting = True
             self.broadcast_task = asyncio.create_task(self._broadcast_loop())
 
-<<<<<<< HEAD
         # V-01: Start heartbeat monitor if not already running
         if self._heartbeat_task is None or self._heartbeat_task.done():
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
@@ -149,14 +138,13 @@ class SCADALiveFeed:
             logger.info(
                 "WebSocket connection closed. Total connections: %d",
                 len(self.active_connections),
-=======
+
     def disconnect(self, websocket: WebSocket):
         """Remove a WebSocket connection from the active connections list."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
             logger.info(
                 f"WebSocket connection closed. Total connections: {len(self.active_connections)}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Stop broadcasting if no active connections
@@ -164,7 +152,6 @@ class SCADALiveFeed:
             self.is_broadcasting = False
             if self.broadcast_task:
                 self.broadcast_task.cancel()
-<<<<<<< HEAD
             # V-01: Also stop heartbeat when no connections
             if self._heartbeat_task and not self._heartbeat_task.done():
                 self._heartbeat_task.cancel()
@@ -187,7 +174,7 @@ class SCADALiveFeed:
                 await self.disconnect(websocket)
 
     async def broadcast_message(self, message: str) -> None:
-=======
+
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         """Send a personal message to a specific WebSocket client."""
@@ -195,7 +182,6 @@ class SCADALiveFeed:
             await websocket.send_text(message)
 
     async def broadcast_message(self, message: str):
->>>>>>> origin/fix/scenario-tests-properly
         """Broadcast a message to all active WebSocket connections."""
         disconnected_clients = []
 
@@ -205,18 +191,12 @@ class SCADALiveFeed:
                     await connection.send_text(message)
                 else:
                     disconnected_clients.append(connection)
-<<<<<<< HEAD
             except Exception:
                 logger.exception("Error sending message to WebSocket: ")
-=======
-            except Exception as e:
-                logger.error(f"Error sending message to WebSocket: {e}")
->>>>>>> origin/fix/scenario-tests-properly
                 disconnected_clients.append(connection)
 
         # Remove disconnected clients
         for client in disconnected_clients:
-<<<<<<< HEAD
             await self.disconnect(client)
 
     async def _generate_scada_data(  # NOSONAR
@@ -234,7 +214,7 @@ class SCADALiveFeed:
 
         scada_data = {
             "is_simulated": True,
-=======
+
             self.disconnect(client)
 
     async def _generate_scada_data(self) -> dict:
@@ -245,7 +225,6 @@ class SCADALiveFeed:
         import random
 
         scada_data = {
->>>>>>> origin/fix/scenario-tests-properly
             "timestamp": datetime.now(UTC).isoformat(),
             "measurements": {
                 "bus_voltages": [
@@ -306,7 +285,6 @@ class SCADALiveFeed:
             "system_status": "NORMAL",
         }
 
-<<<<<<< HEAD
         # Randomly add alarms occasionally. Uses `secrets` (not `random`) so
         # SonarCloud S2245 stays satisfied — simulated telemetry is not
         # security-relevant, but the crypto-seeded PRNG removes the hotspot.
@@ -320,7 +298,7 @@ class SCADALiveFeed:
                     "description": f"Simulated alarm for equipment {secrets.choice(['Transformer', 'Breaker', 'Line'])}",
                     "location": secrets.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
                 },
-=======
+
         # Randomly add alarms occasionally
         if random.random() < 0.1:  # 10% chance of alarm
             scada_data["alarms"].append(
@@ -331,12 +309,10 @@ class SCADALiveFeed:
                     "description": f"Simulated alarm for equipment {random.choice(['Transformer', 'Breaker', 'Line'])}",
                     "location": random.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
                 }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return scada_data
 
-<<<<<<< HEAD
     async def _heartbeat_loop(self):
         """Security Fix V-01: Periodic heartbeat to detect zombie connections.
 
@@ -379,8 +355,6 @@ class SCADALiveFeed:
 
             await asyncio.sleep(HEARTBEAT_INTERVAL)
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     async def _broadcast_loop(self):
         """Continuously broadcast SCADA data to all connected clients."""
         logger.info("Starting SCADA data broadcast loop")
@@ -398,15 +372,13 @@ class SCADALiveFeed:
 
             except asyncio.CancelledError:
                 logger.info("SCADA broadcast loop cancelled")
-<<<<<<< HEAD
                 raise  # SonarCloud S7497: re-raise CancelledError so the caller's task sees the cancellation
             except Exception:
                 logger.exception("Error in SCADA broadcast loop: ")
-=======
+
                 break
             except Exception as e:
                 logger.error(f"Error in SCADA broadcast loop: {e}")
->>>>>>> origin/fix/scenario-tests-properly
                 await asyncio.sleep(5)  # Wait 5 seconds before retrying
 
 
@@ -414,7 +386,6 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-<<<<<<< HEAD
 def _validate_ws_token(token: str) -> bool:
     """Validate JWT token for WebSocket authentication (S-03).
 
@@ -504,7 +475,7 @@ async def scada_websocket_endpoint(
     except Exception:
         logger.exception("WebSocket error: ")
         await scada_feed.disconnect(websocket)
-=======
+
 async def scada_websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time SCADA data."""
     await scada_feed.connect(websocket)
@@ -521,4 +492,3 @@ async def scada_websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         scada_feed.disconnect(websocket)
->>>>>>> origin/fix/scenario-tests-properly

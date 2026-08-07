@@ -154,11 +154,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
             f"{proc.returncode}.\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"
         )
 
-<<<<<<< HEAD
     try:  # NOSONAR JSONDecodeError → pytest.fail conversion
-=======
-    try:
->>>>>>> origin/fix/scenario-tests-properly
         wrapper = json.loads(proc.stdout.strip())
     except json.JSONDecodeError as exc:
         pytest.fail(
@@ -173,11 +169,7 @@ def _run_via_run_python(params: dict, *, timeout: int = 30) -> dict:
 
     # The inner print(json.dumps(result)) lives in the 'output' field as a
     # JSON-encoded string. Parse it back into a dict.
-<<<<<<< HEAD
     try:  # NOSONAR parse error → pytest.fail conversion
-=======
-    try:
->>>>>>> origin/fix/scenario-tests-properly
         return json.loads(wrapper["output"])
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
         pytest.fail(f"Could not parse agent-path output as JSON: {exc}\nwrapper: {wrapper!r}")
@@ -409,13 +401,9 @@ class TestArcFlashRunPythonSecurityBoundary:
             "load_flow",
         ):
             code = f"import {module}"
-<<<<<<< HEAD
             result = InputValidator.validate_python_code(
                 code, None
             )  # NOSONAR intentional wrong-type arg to verify validation rejects it
-=======
-            result = InputValidator.validate_python_code(code, None)
->>>>>>> origin/fix/scenario-tests-properly
             assert result is True, f"Validator should allow '{module}' (whitelisted)"
 
     def test_forbidden_builtin_call_is_rejected(self) -> None:

@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 """Python version compatibility shims.
-=======
-"""
-Python version compatibility shims.
->>>>>>> origin/fix/scenario-tests-properly
 
 Provides backports of Python 3.11+ features for Python 3.8 compatibility.
 Project target: Python 3.12+
 """
-<<<<<<< HEAD
 
 import asyncio
 import contextvars
@@ -39,6 +33,3 @@ else:
         ctx = contextvars.copy_context()
         func_call = functools.partial(ctx.run, func, *args, **kwargs)
         return await loop.run_in_executor(None, func_call)
-=======
-from enum import StrEnum  # noqa: F401
->>>>>>> origin/fix/scenario-tests-properly

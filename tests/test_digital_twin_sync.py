@@ -235,7 +235,6 @@ def test_etap_sync_engine_importable() -> None:
     assert stats["total_operations"] == 0
 
 
-<<<<<<< HEAD
 def test_etap_sync_mock_import(monkeypatch) -> None:
     """Verify mock ETAP import creates a valid model."""
     # MockEtapProvider.is_available() returns False unless USE_ETAP=true.
@@ -243,10 +242,6 @@ def test_etap_sync_mock_import(monkeypatch) -> None:
     # (so the live API server doesn't try to connect to a real ETAP instance),
     # so we re-enable it just for this test.
     monkeypatch.setenv("USE_ETAP", "true")
-=======
-def test_etap_sync_mock_import() -> None:
-    """Verify mock ETAP import creates a valid model."""
->>>>>>> origin/fix/scenario-tests-properly
     from core_model.system import System
     from digital_twin.digital_twin_core import DigitalTwinState
     from etap_integration.etap_provider import MockEtapProvider
@@ -307,23 +302,18 @@ def test_gis_visualization_importable() -> None:
 
 
 def test_gis_visualization_fallback_geojson() -> None:
-<<<<<<< HEAD
     """Verify fallback GeoJSON output when folium not available.
 
     When folium IS installed (as in some local dev envs), the visualizer
     returns a folium.Map object instead of a dict. We accept both shapes —
     the test is about graceful degradation, not about dict-vs-Map.
     """
-=======
-    """Verify fallback GeoJSON output when folium not available."""
->>>>>>> origin/fix/scenario-tests-properly
     from visualization.gis_visualization import GISVisualizer
 
     viz = GISVisualizer()
     result = viz.visualize_load_flow(
         {"BUS1": {"voltage_magnitude": 1.02}},
     )
-<<<<<<< HEAD
 
     # If folium is installed, result is a folium.Map — just verify it built.
     # If folium is missing, result is a fallback dict with diagnostic info.
@@ -341,11 +331,10 @@ def test_gis_visualization_fallback_geojson() -> None:
         assert isinstance(result, dict)
         assert result["visualization_type"] == "load_flow"
         assert "folium not installed" in result["note"]
-=======
+
     assert isinstance(result, dict)
     assert result["visualization_type"] == "load_flow"
     assert "folium not installed" in result["note"]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def test_gis_bridge_module_importable() -> None:

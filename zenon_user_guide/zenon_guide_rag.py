@@ -14,16 +14,10 @@ MANDATORY RULE:
 - If information is not found, explicitly state it
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 import json
 from pathlib import Path
-=======
-import json
-from pathlib import Path
-from typing import Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ZenonGuideRAG:
@@ -67,15 +61,13 @@ class ZenonGuideRAG:
         self.chunks_dir = self.guide_path / "chunks"
         self.index_dir = self.guide_path / "index"
 
-<<<<<<< HEAD
         self.documents: list[dict] = []
         self.chunks: list[str] = []
         self.chunk_metadata: list[dict] = []
-=======
+
         self.documents: List[Dict] = []
         self.chunks: List[str] = []
         self.chunk_metadata: List[Dict] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         self._load_guide()
 
@@ -94,11 +86,7 @@ class ZenonGuideRAG:
                             "source": doc["source"],
                             "pages": doc["pages"],
                             "characters": doc["characters"],
-<<<<<<< HEAD
                         },
-=======
-                        }
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
                     for idx, chunk in enumerate(doc.get("chunks", [])):
@@ -108,22 +96,14 @@ class ZenonGuideRAG:
                                 "document": doc["filename"],
                                 "chunk_index": idx,
                                 "source": doc["source"],
-<<<<<<< HEAD
                             },
-=======
-                            }
->>>>>>> origin/fix/scenario-tests-properly
                         )
             except Exception as e:
                 print(f"Error loading Zenon master index: {e}")
         else:
             print("Warning: Zenon master index not found.")
 
-<<<<<<< HEAD
     def search(self, query: str, top_k: int = 5) -> list[dict]:
-=======
-    def search(self, query: str, top_k: int = 5) -> List[Dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Search the Zenon guide for relevant information."""
         if not self.chunks:
             return []
@@ -140,23 +120,15 @@ class ZenonGuideRAG:
 
             if score > 0:
                 results.append(
-<<<<<<< HEAD
                     {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]},
-=======
-                    {"chunk": chunk, "score": score, "metadata": self.chunk_metadata[idx]}
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-<<<<<<< HEAD
     def get_zenon_procedure(  # NOSONAR
         self, operation: str
     ) -> dict:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def get_zenon_procedure(self, operation: str) -> Dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Get the official Zenon procedure for a specific operation."""
         results = self.search(operation, top_k=5)
 
@@ -182,11 +154,7 @@ class ZenonGuideRAG:
             metadata = result["metadata"]
 
             procedure["sources"].append(
-<<<<<<< HEAD
                 {"document": metadata["document"], "relevance": result["score"]},
-=======
-                {"document": metadata["document"], "relevance": result["score"]}
->>>>>>> origin/fix/scenario-tests-properly
             )
 
             lines = chunk.split("\n")
@@ -207,11 +175,7 @@ class ZenonGuideRAG:
 
         return procedure
 
-<<<<<<< HEAD
     def validate_zenon_operation(self, operation: str, proposed_steps: list[str]) -> dict:
-=======
-    def validate_zenon_operation(self, operation: str, proposed_steps: List[str]) -> Dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Validate proposed Zenon SCADA steps against the official guide."""
         official = self.get_zenon_procedure(operation)
 
@@ -241,19 +205,11 @@ class ZenonGuideRAG:
 
             if overlap > 0:
                 validation["compliance"].append(
-<<<<<<< HEAD
                     {"step": step, "matches": overlap, "status": "compliant"},
                 )
             else:
                 validation["compliance"].append(
                     {"step": step, "matches": 0, "status": "not_found_in_guide"},
-=======
-                    {"step": step, "matches": overlap, "status": "compliant"}
-                )
-            else:
-                validation["compliance"].append(
-                    {"step": step, "matches": 0, "status": "not_found_in_guide"}
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 validation["issues"].append(f"Step not found in guide: {step}")
 
@@ -265,11 +221,7 @@ class ZenonGuideRAG:
     def get_mandatory_instructions(self) -> str:
         return self.MANDATORY_INSTRUCTIONS
 
-<<<<<<< HEAD
     def query(self, question: str) -> dict:
-=======
-    def query(self, question: str) -> Dict:
->>>>>>> origin/fix/scenario-tests-properly
         """Answer a question about Zenon using the official guide."""
         results = self.search(question, top_k=5)
 

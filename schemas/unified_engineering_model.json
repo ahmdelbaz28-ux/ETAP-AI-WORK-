@@ -63,7 +63,6 @@
       "properties": {
         "type": {
           "type": "string",
-<<<<<<< HEAD
           "enum": [
             "connected_to",
             "feeds",
@@ -74,9 +73,6 @@
             "references",
             "synchronized_with"
           ]
-=======
-          "enum": ["connected_to", "feeds", "protected_by", "located_in", "supplies", "contains", "references", "synchronized_with"]
->>>>>>> origin/fix/scenario-tests-properly
         },
         "target_id": { "type": "string" },
         "target_type": { "type": "string" },
@@ -306,7 +302,6 @@
             "entity_type": { "const": "transformer" },
             "transformer_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "step_up",
                 "step_down",
@@ -316,9 +311,6 @@
                 "power",
                 "instrument"
               ]
-=======
-              "enum": ["step_up", "step_down", "isolation", "auto", "distribution", "power", "instrument"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "from_bus_id": { "type": "string" },
             "to_bus_id": { "type": "string" },
@@ -329,7 +321,6 @@
             "xr_ratio": { "type": "number" },
             "winding_config": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "delta-delta",
                 "delta-wye",
@@ -338,9 +329,6 @@
                 "delta-zigzag",
                 "wye-zigzag"
               ]
-=======
-              "enum": ["delta-delta", "delta-wye", "wye-delta", "wye-wye", "delta-zigzag", "wye-zigzag"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "tap_ratio": { "type": "number", "default": 1.0 },
             "phase_shift_deg": { "type": "number", "default": 0.0 },
@@ -367,7 +355,6 @@
             "entity_type": { "const": "generator" },
             "generator_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "synchronous",
                 "induction",
@@ -380,9 +367,6 @@
                 "solar_pv",
                 "battery_storage"
               ]
-=======
-              "enum": ["synchronous", "induction", "inverter", "diesel", "gas_turbine", "steam", "hydro", "wind", "solar_pv", "battery_storage"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "bus_id": { "type": "string" },
             "rated_power_mva": { "type": "number" },
@@ -416,7 +400,6 @@
             "entity_type": { "const": "cable" },
             "cable_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "power",
                 "control",
@@ -425,9 +408,6 @@
                 "low_voltage",
                 "fiber_optic"
               ]
-=======
-              "enum": ["power", "control", "instrumentation", "medium_voltage", "low_voltage", "fiber_optic"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "from_bus_id": { "type": "string" },
             "to_bus_id": { "type": "string" },
@@ -469,7 +449,6 @@
             "entity_type": { "const": "breaker" },
             "breaker_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "mccb",
                 "acb",
@@ -482,9 +461,6 @@
                 "insulated_case",
                 "load_break_switch"
               ]
-=======
-              "enum": ["mccb", "acb", "mcb", "vcb", "sf6", "air_blast", "oil", "molded_case", "insulated_case", "load_break_switch"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "rated_current_a": { "type": "number" },
             "interrupting_rating_ka": { "type": "number" },
@@ -517,7 +493,6 @@
             "entity_type": { "const": "load" },
             "load_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "constant_power",
                 "constant_impedance",
@@ -533,9 +508,6 @@
                 "data_center",
                 "generic"
               ]
-=======
-              "enum": ["constant_power", "constant_impedance", "constant_current", "motor", "lighting", "hvac", "receptacle", "elevator", "pump", "compressor", "welder", "data_center", "generic"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "bus_id": { "type": "string" },
             "rated_power_kw": { "type": "number" },
@@ -605,7 +577,6 @@
             "entity_type": { "const": "relay" },
             "relay_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "overcurrent",
                 "distance",
@@ -631,13 +602,6 @@
                 "definite_time",
                 "custom"
               ]
-=======
-              "enum": ["overcurrent", "distance", "differential", "voltage", "frequency", "directional", "pilot", "recloser"]
-            },
-            "relay_curve": {
-              "type": "string",
-              "enum": ["iec_standard_inverse", "iec_very_inverse", "iec_extremely_inverse", "iec_long_time_inverse", "ieee_moderately_inverse", "ieee_very_inverse", "ieee_extremely_inverse", "ieee_short_time_inverse", "definite_time", "custom"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "pickup_a": { "type": "number" },
             "time_dial": { "type": "number" },
@@ -665,7 +629,6 @@
             "entity_type": { "const": "protection_device" },
             "device_category": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "relay",
                 "fuse",
@@ -675,9 +638,6 @@
                 "current_transformer",
                 "voltage_transformer"
               ]
-=======
-              "enum": ["relay", "fuse", "recloser", "sectionalizer", "surge_arrester", "current_transformer", "voltage_transformer"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "rated_voltage_kv": { "type": "number" },
             "continuous_current_a": { "type": "number" },
@@ -703,7 +663,6 @@
             "entity_type": { "const": "conduit" },
             "conduit_type": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "rmc",
                 "imc",
@@ -713,9 +672,6 @@
                 "liquidtight_flexible",
                 "pvc_coated"
               ]
-=======
-              "enum": ["rmc", "imc", "emc", "pvc", "flexible_metal", "liquidtight_flexible", "pvc_coated"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "diameter_mm": { "type": "number" },
             "wall_thickness_mm": { "type": "number" },
@@ -772,7 +728,6 @@
             "entity_type": { "const": "equipment" },
             "equipment_category": {
               "type": "string",
-<<<<<<< HEAD
               "enum": [
                 "switchgear",
                 "motor_control_center",
@@ -790,9 +745,6 @@
                 "metering",
                 "other"
               ]
-=======
-              "enum": ["switchgear", "motor_control_center", "panelboard", "transformer_pad", "generator_set", "ups", "battery_bank", "rectifier", "inverter", "vfd", "capacitor_bank", "reactor", "filter", "metering", "other"]
->>>>>>> origin/fix/scenario-tests-properly
             },
             "manufacturer": { "type": "string" },
             "model": { "type": "string" },

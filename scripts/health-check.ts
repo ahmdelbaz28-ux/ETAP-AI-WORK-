@@ -55,11 +55,7 @@ function getConfig(): HealthCheckConfig {
   return {
     apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, ''),
     apiKey: process.env.HEALTH_CHECK_API_KEY,
-<<<<<<< HEAD
     timeoutMs: Number.parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
-=======
-    timeoutMs: parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
->>>>>>> origin/fix/scenario-tests-properly
   };
 }
 
@@ -74,7 +70,6 @@ interface ApiResponse {
   ok: boolean;
 }
 
-<<<<<<< HEAD
 /**
  * Describe an HTTP error response safely. If `body.error` is a string, use
  * it; otherwise fall back to the HTTP status code. (SonarCloud
@@ -102,15 +97,12 @@ function describeError(e: unknown): string {
   }
 }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 async function httpGet(path: string, config: HealthCheckConfig, headers?: Record<string, string>): Promise<ApiResponse> {
   const url = `${config.apiUrl}${path}`;
   const start = Date.now();
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
-<<<<<<< HEAD
     // Build headers object without useless `...(headers ?? {})` spread
     // (SonarCloud typescript:S7744: spreading an empty object is a no-op).
     const finalHeaders: Record<string, string> = {
@@ -120,14 +112,13 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     const res = await fetch(url, {
       method: 'GET',
       headers: finalHeaders,
-=======
+
     const res = await fetch(url, {
       method: 'GET',
       headers: {
         ...(headers || {}),
         'User-Agent': 'etap-health-check/1.0',
       },
->>>>>>> origin/fix/scenario-tests-properly
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -141,11 +132,7 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     return { status: res.status, body, latencyMs, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
     const latencyMs = Date.now() - start;
-<<<<<<< HEAD
     const message = describeError(e);
-=======
-    const message = e instanceof Error ? e.message : String(e);
->>>>>>> origin/fix/scenario-tests-properly
     return { status: 0, body: { error: message }, latencyMs, ok: false };
   }
 }
@@ -160,11 +147,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-<<<<<<< HEAD
         ...(headers ?? {}),  // NOSONAR — S7744: spread is safe even with empty object  // NOSONAR — typescript:S7744
-=======
-        ...(headers || {}),
->>>>>>> origin/fix/scenario-tests-properly
         'User-Agent': 'etap-health-check/1.0',
       },
       body: JSON.stringify(payload),
@@ -181,11 +164,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
     return { status: res.status, body, latencyMs, ok: res.status >= 200 && res.status < 300 };
   } catch (e) {
     const latencyMs = Date.now() - start;
-<<<<<<< HEAD
     const message = describeError(e);
-=======
-    const message = e instanceof Error ? e.message : String(e);
->>>>>>> origin/fix/scenario-tests-properly
     return { status: 0, body: { error: message }, latencyMs, ok: false };
   }
 }
@@ -194,11 +173,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
 // Daily checks
 // ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
->>>>>>> origin/fix/scenario-tests-properly
   const results: CheckResult[] = [];
 
   // 1. Check /health endpoint on all environments
@@ -209,11 +184,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Health endpoint responsive',
       category: 'daily',
       status,
-<<<<<<< HEAD
       message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${describeHttpError(res)}`,
-=======
-      message: status === 'pass' ? `Health OK (${res.latencyMs}ms)` : `Health check failed: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, body: res.body },
     });
@@ -227,11 +198,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Metrics endpoint accessible',
       category: 'daily',
       status,
-<<<<<<< HEAD
       message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${describeHttpError(res)}`,
-=======
-      message: status === 'pass' ? `Metrics accessible (${res.latencyMs}ms)` : `Metrics endpoint issue: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, hasApiMetrics: !!res.body?.metrics?.api },
     });
@@ -245,11 +212,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Authenticated API (agents list)',
       category: 'daily',
       status,
-<<<<<<< HEAD
       message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${describeHttpError(res)}`,
-=======
-      message: status === 'pass' ? `Agents list OK — ${res.body?.agents?.length || 0} agents (${res.latencyMs}ms)` : `Agents list failed: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, agentCount: res.body?.agents?.length },
     });
@@ -279,11 +242,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'LLM provider health',
       category: 'daily',
       status,
-<<<<<<< HEAD
       message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${describeHttpError(res)}`,
-=======
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -297,11 +256,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
       name: 'Audit logging operational',
       category: 'daily',
       status,
-<<<<<<< HEAD
       message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${describeHttpError(res)}`,
-=======
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -311,11 +266,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   {
     const res = await httpGet('/metrics', config);
     const errors = res.body?.metrics?.api?.errors || 0;
-<<<<<<< HEAD
     const status: CheckResult['status'] = errors === 0 ? 'pass' : errors < 5 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-    const status: CheckResult['status'] = errors === 0 ? 'pass' : errors < 5 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'Error count check',
       category: 'daily',
@@ -333,11 +284,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
 // Weekly checks
 // ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
->>>>>>> origin/fix/scenario-tests-properly
   const results: CheckResult[] = [];
 
   // 1. Review API latency trends (p95 from metrics)
@@ -346,11 +293,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const providerMetrics = res.body?.metrics?.providers || [];
     const avgLatencies = providerMetrics.map((p: any) => p.avgLatencyMs).filter((v: any) => v > 0);
     const avgLatency = avgLatencies.length > 0 ? Math.round(avgLatencies.reduce((a: number, b: number) => a + b, 0) / avgLatencies.length) : 0;
-<<<<<<< HEAD
     const status: CheckResult['status'] = avgLatency < 2000 ? 'pass' : avgLatency < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-    const status: CheckResult['status'] = avgLatency < 2000 ? 'pass' : avgLatency < 5000 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'API latency trend (providers avg)',
       category: 'weekly',
@@ -367,11 +310,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const totalReqs = res.body?.metrics?.api?.totalRequests || 0;
     const errors = res.body?.metrics?.api?.errors || 0;
     const errorRate = totalReqs > 0 ? (errors / totalReqs) * 100 : 0;
-<<<<<<< HEAD
     const status: CheckResult['status'] = errorRate < 1 ? 'pass' : errorRate < 5 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-    const status: CheckResult['status'] = errorRate < 1 ? 'pass' : errorRate < 5 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'Error rate trend',
       category: 'weekly',
@@ -387,11 +326,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const res = await httpGet('/metrics', config);
     const providers = res.body?.metrics?.providers || [];
     const failovers = providers.filter((p: any) => p.circuitOpen).length;
-<<<<<<< HEAD
     const status: CheckResult['status'] = failovers === 0 ? 'pass' : failovers < 2 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-    const status: CheckResult['status'] = failovers === 0 ? 'pass' : failovers < 2 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'Provider circuit breaker status',
       category: 'weekly',
@@ -425,11 +360,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const taskStoreSize = res.body?.metrics?.tasks?.total || 0;
     const maxSize = res.body?.metrics?.tasks?.maxSize || 1000;
     const utilization = maxSize > 0 ? (taskStoreSize / maxSize) * 100 : 0;
-<<<<<<< HEAD
     const status: CheckResult['status'] = utilization < 50 ? 'pass' : utilization < 80 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-    const status: CheckResult['status'] = utilization < 50 ? 'pass' : utilization < 80 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'Task store capacity',
       category: 'weekly',
@@ -490,29 +421,17 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 
   // 1. Full capacity planning review — simulate a study run
   {
-<<<<<<< HEAD
-=======
-    const start = Date.now();
->>>>>>> origin/fix/scenario-tests-properly
     const res = await httpPost('/api/v1/studies/run', config, {
       studyType: 'load_flow',
       parameters: { base_mva: 100, test: true },
       dryRun: true,
     }, { 'x-api-key': config.apiKey });
-<<<<<<< HEAD
-=======
-    const end = Date.now();
->>>>>>> origin/fix/scenario-tests-properly
     const status: CheckResult['status'] = res.ok ? 'pass' : 'warn';
     results.push({
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-<<<<<<< HEAD
       message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${describeHttpError(res)}`,
-=======
-      message: res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${res.body?.error || res.status}`,
->>>>>>> origin/fix/scenario-tests-properly
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
@@ -526,7 +445,6 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       const res = await httpGet(path, config, path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined);
       latencies.push(res.latencyMs);
     }
-<<<<<<< HEAD
     // SonarCloud typescript:S4043: sort() mutates in place — make a copy
     // first so we don't mutate the original `latencies` array (which is
     // also returned in the result object below).
@@ -534,12 +452,11 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
+
     const sorted = latencies.sort((a, b) => a - b);
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted[p95Index] || sorted[sorted.length - 1] || 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';
->>>>>>> origin/fix/scenario-tests-properly
     results.push({
       name: 'SLA/SLO latency compliance (p95)',
       category: 'monthly',
@@ -688,7 +605,6 @@ function generateReport(daily: CheckResult[], weekly: CheckResult[], monthly: Ch
   };
 }
 
-<<<<<<< HEAD
 /**
  * Sanitise a HealthReport into a JSON string safe for any downstream consumer
  * (console, CI artifact file, log aggregator, dashboard renderer).
@@ -726,8 +642,6 @@ function stringifyReportSanitised(report: HealthReport): string {
   }, 2);
 }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 function printReport(report: HealthReport): void {
   console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
   console.log('║           AhmedETAP — OPERATIONAL HEALTH CHECK REPORT                 ║');
@@ -742,11 +656,7 @@ function printReport(report: HealthReport): void {
     console.log(`║ ${title.toUpperCase()} CHECKS${''.padEnd(67 - title.length)} ║`);
     console.log('╠══════════════════════════════════════════════════════════════════════════════╣');
     for (const r of results) {
-<<<<<<< HEAD
       const icon = r.status === 'pass' ? '✅' : r.status === 'warn' ? '⚠️' : '❌';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-=======
-      const icon = r.status === 'pass' ? '✅' : r.status === 'warn' ? '⚠️' : '❌';
->>>>>>> origin/fix/scenario-tests-properly
       console.log(`║ ${icon} ${r.name.padEnd(64)} ${String(r.latencyMs).padStart(5)}ms ║`);
       console.log(`║    ${r.message.substring(0, 74).padEnd(74)} ║`);
     }
@@ -775,7 +685,6 @@ function printReport(report: HealthReport): void {
 // ---------------------------------------------------------------------------
 
 async function main() {
-<<<<<<< HEAD
   // SonarCloud typescript:S7776: convert argv to a Set for O(1) lookups
   // instead of O(n) array.includes() per flag.
   const args = new Set(process.argv.slice(2));
@@ -784,14 +693,13 @@ async function main() {
   const runMonthly = args.has('--monthly') || args.has('--all');
   const ciMode = args.has('--ci');
   const jsonOutput = args.has('--json');
-=======
+
   const args = process.argv.slice(2);
   const runDaily = args.includes('--daily') || args.includes('--all');
   const runWeekly = args.includes('--weekly') || args.includes('--all');
   const runMonthly = args.includes('--monthly') || args.includes('--all');
   const ciMode = args.includes('--ci');
   const jsonOutput = args.includes('--json');
->>>>>>> origin/fix/scenario-tests-properly
 
   if (!runDaily && !runWeekly && !runMonthly) {
     console.log(`
@@ -827,7 +735,6 @@ Environment:
   const report = generateReport(daily, weekly, monthly, startTime);
 
   if (jsonOutput) {
-<<<<<<< HEAD
     // SonarCloud tssecurity:S5145: never log raw user-controlled data.
     // `report` is built from internal check results but MAY carry strings
     // derived from API responses (e.g. error messages). We sanitise by
@@ -842,14 +749,10 @@ Environment:
     // functions, not directly from user input. The JSON.stringify output
     // is also escaped (no raw newlines in JSON strings).
     console.log(safeJson);  // NOSONAR — S5145: sanitised via stringifyReportSanitised
-=======
-    console.log(JSON.stringify(report, null, 2));
->>>>>>> origin/fix/scenario-tests-properly
   } else {
     printReport(report);
   }
 
-<<<<<<< HEAD
   // Write report to file for CI artifacts.
   // SonarCloud tssecurity:S5145 (PR #109 review feedback): apply the SAME
   // sanitisation as the console output — the file artifact is consumed by
@@ -861,12 +764,11 @@ Environment:
   const reportPath = 'health-check-report.json';
   const safeFileJson = stringifyReportSanitised(report);
   fs.writeFileSync(reportPath, safeFileJson);
-=======
+
   // Write report to file for CI artifacts
   const fs = await import('fs');
   const reportPath = 'health-check-report.json';
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
->>>>>>> origin/fix/scenario-tests-properly
   console.log(`\nReport saved to: ${reportPath}`);
 
   // Exit codes
@@ -877,16 +779,14 @@ Environment:
   process.exit(0);
 }
 
-<<<<<<< HEAD
 try {
   await main()
 } catch (e: unknown) {
   console.error('Health check failed:', describeError(e));
   process.exit(2);
 }
-=======
+
 main().catch((e) => {
   console.error('Health check failed:', e);
   process.exit(2);
 });
->>>>>>> origin/fix/scenario-tests-properly

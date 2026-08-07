@@ -12,12 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any, Callable
-=======
-from collections.abc import Callable, Coroutine
-from typing import Any
->>>>>>> origin/fix/scenario-tests-properly
 
 from pydantic import ValidationError
 
@@ -51,12 +46,8 @@ JSONRPC_INTERNAL_ERROR = -32603
 
 
 # Type alias for an optional notification handler callback.
-<<<<<<< HEAD
 if TYPE_CHECKING:
     NotificationHandler = Callable[[dict], Any] | None
-=======
-NotificationHandler = Callable[[dict], Coroutine[Any, Any, None]] | None
->>>>>>> origin/fix/scenario-tests-properly
 
 # Type alias for auth validator (re-exported from security for convenience)
 # Type alias for audit logger (re-exported from security for convenience)
@@ -150,12 +141,8 @@ class Router:
         # Observability: record request count
         if self._config.metrics is not None:
             self._config.metrics.get_or_create_counter(
-<<<<<<< HEAD
                 "acp.router.requests.total",
                 "Total requests",
-=======
-                "acp.router.requests.total", "Total requests"
->>>>>>> origin/fix/scenario-tests-properly
             ).inc()
 
         # 1. Try request shape
@@ -169,7 +156,6 @@ class Router:
                 # 3. Neither — invalid envelope
                 if self._config.metrics is not None:
                     self._config.metrics.get_or_create_counter(
-<<<<<<< HEAD
                         "acp.router.requests.invalid",
                         "Invalid requests",
                     ).inc()
@@ -177,12 +163,6 @@ class Router:
                     None,
                     JSONRPC_INVALID_REQUEST,
                     "Invalid JSON-RPC envelope",
-=======
-                        "acp.router.requests.invalid", "Invalid requests"
-                    ).inc()
-                return self._error_response(
-                    None, JSONRPC_INVALID_REQUEST, "Invalid JSON-RPC envelope"
->>>>>>> origin/fix/scenario-tests-properly
                 )
             return await self._handle_notification(notif)
 
@@ -190,7 +170,6 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-<<<<<<< HEAD
     def _start_span(self, req: JsonRpcRequest) -> Any | None:
         """Start an observability span for the request, if a tracer is configured."""
         if self._config.tracer is None:
@@ -271,7 +250,7 @@ class Router:
         _t0: float,  # NOSONAR
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
-=======
+
     async def _handle_request(self, req: JsonRpcRequest) -> dict:
         """Validate, authenticate, authorize, dispatch, audit, and wrap the result."""
         t0 = time.perf_counter()
@@ -393,7 +372,6 @@ class Router:
             return resp
 
         # ---- execute
->>>>>>> origin/fix/scenario-tests-properly
         try:
             result = await self._runtime.execute(
                 req.capability,
@@ -402,7 +380,6 @@ class Router:
                 deadline_ms=req.deadline_ms,
             )
             resp = self._success_response(req.id, result)
-<<<<<<< HEAD
             outcome, error_code = "success", 0
         except AcpError as e:
             self._log.warning("acp error for %s: %s", req.id, e)
@@ -498,7 +475,7 @@ class Router:
             outcome,
             error_code,
             int((time.perf_counter() - t0) * 1000),
-=======
+
         except AcpError as e:
             self._log.warning("acp error for %s: %s", req.id, e)
             outcome = "error"
@@ -512,16 +489,11 @@ class Router:
 
         await self._audit(
             req, caller_id, outcome, error_code, int((time.perf_counter() - t0) * 1000)
->>>>>>> origin/fix/scenario-tests-properly
         )
         await self._finish_observability(span_ctx, t0, req, outcome, error_code)
         return resp
 
-<<<<<<< HEAD
     async def _finish_observability(  # NOSONAR
-=======
-    async def _finish_observability(
->>>>>>> origin/fix/scenario-tests-properly
         self,
         span_ctx: Any | None,
         t0: float,
@@ -538,12 +510,8 @@ class Router:
             ).observe(duration_ms)
             if outcome != "success":
                 self._config.metrics.get_or_create_counter(
-<<<<<<< HEAD
                     "acp.router.requests.errors",
                     "Request errors",
-=======
-                    "acp.router.requests.errors", "Request errors"
->>>>>>> origin/fix/scenario-tests-properly
                 ).inc()
         if self._config.tracer is not None and span_ctx is not None:
             from acp.observability.tracer import SpanStatus

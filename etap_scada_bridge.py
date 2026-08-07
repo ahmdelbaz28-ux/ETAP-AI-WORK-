@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 ETAP SCADA Bridge — Real OPC UA → MQTT
 =======================================
 يحل مشكلة أن الإصدار القديم كان يحتوي على بيانات hardcoded (Mock):
@@ -502,7 +501,7 @@ def main() -> None:
         asyncio.run(_async_main())
     except KeyboardInterrupt:
         print("\nStopped by user")
-=======
+
 ETAP SCADA Bridge
 This module handles the integration between ETAP ADMS and SCADA systems via MQTT.
 """
@@ -610,7 +609,6 @@ def main():
     publish_to_mqtt(power_data)
 
     print("ETAP SCADA Bridge execution completed")
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

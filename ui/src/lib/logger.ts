@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
@@ -38,7 +37,7 @@ function write(level: LogLevel, source: string, message: string, data?: Record<s
     const w = globalThis as unknown as { __etapTelemetry?: (entry: LogEntry) => void };
     if (w.__etapTelemetry) {
       w.__etapTelemetry(entry);
-=======
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 interface LogEntry {
@@ -72,13 +71,11 @@ function write(level: LogLevel, source: string, message: string, data?: Record<s
     const w = window as unknown as { __etapTelemetry?: (entry: LogEntry) => void }
     if (w.__etapTelemetry) {
       w.__etapTelemetry(entry)
->>>>>>> origin/fix/scenario-tests-properly
     }
   }
 }
 
 export const logger = {
-<<<<<<< HEAD
   debug: (source: string, message: string, data?: Record<string, unknown>) =>
     write("debug", source, message, data),
   info: (source: string, message: string, data?: Record<string, unknown>) =>
@@ -96,7 +93,7 @@ export const logger = {
 export function installTelemetry(handler: (entry: LogEntry) => void) {
   (globalThis as unknown as { __etapTelemetry: (entry: LogEntry) => void }).__etapTelemetry =
     handler;
-=======
+
   debug: (source: string, message: string, data?: Record<string, unknown>) => write('debug', source, message, data),
   info: (source: string, message: string, data?: Record<string, unknown>) => write('info', source, message, data),
   warn: (source: string, message: string, data?: Record<string, unknown>) => write('warn', source, message, data),
@@ -107,5 +104,4 @@ export function installTelemetry(handler: (entry: LogEntry) => void) {
 
 export function installTelemetry(handler: (entry: LogEntry) => void) {
   (window as unknown as { __etapTelemetry: (entry: LogEntry) => void }).__etapTelemetry = handler
->>>>>>> origin/fix/scenario-tests-properly
 }

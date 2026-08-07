@@ -16,11 +16,7 @@ try {
 }
 
 # Check if .env file exists
-<<<<<<< HEAD
 if (-not (Test-Path ".env")) {
-=======
-if (-Not (Test-Path ".env")) {
->>>>>>> origin/fix/scenario-tests-properly
     Write-Host "ℹ Creating .env file from template..." -ForegroundColor Blue
     Copy-Item ".env.example" ".env"
     Write-Host "✓ .env file created. Please edit it with your configuration." -ForegroundColor Green

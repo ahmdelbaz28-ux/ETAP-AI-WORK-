@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -136,7 +135,7 @@ export default function Projects() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-=======
+
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FolderOpen, Plus, FlaskConical, Calendar } from 'lucide-react'
@@ -180,14 +179,12 @@ export function Projects() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
->>>>>>> origin/fix/scenario-tests-properly
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <FolderOpen className="w-5 h-5 text-brand-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Projects</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 {activeCount} active · {archivedCount} archived
@@ -197,19 +194,17 @@ export function Projects() {
           </div>
         </div>
         <Button variant="primary" size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
-=======
+
             <p className="text-sm text-[var(--text-tertiary)]">
               {activeCount} active · {archivedCount} archived
             </p>
           </div>
         </div>
         <Button variant="primary" size="sm" icon={Plus} onClick={() => notify('info', 'Project creation coming soon')}>
->>>>>>> origin/fix/scenario-tests-properly
           New Project
         </Button>
       </motion.div>
 
-<<<<<<< HEAD
       {loading && (
         <Card padding="lg">
           <div className="flex items-center justify-center py-12 text-[var(--text-muted)]">
@@ -243,12 +238,6 @@ export function Projects() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * i }}
             >
-=======
-      {projects.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {projects.map((project, i) => (
-            <motion.div key={project.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
->>>>>>> origin/fix/scenario-tests-properly
               <Card variant="bordered" padding="md">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -256,7 +245,6 @@ export function Projects() {
                       <FolderOpen className="w-5 h-5 text-brand-400" />
                     </div>
                     <div>
-<<<<<<< HEAD
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                         {project.name}
                       </h3>
@@ -270,18 +258,16 @@ export function Projects() {
                     dot
                     size="sm"
                   >
-=======
+
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">{project.name}</h3>
                       <p className="text-xs text-[var(--text-muted)]">{project.description}</p>
                     </div>
                   </div>
                   <Badge variant={project.status === 'active' ? 'success' : 'default'} dot size="sm">
->>>>>>> origin/fix/scenario-tests-properly
                     {project.status}
                   </Badge>
                 </div>
                 <CardSection>
-<<<<<<< HEAD
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                       <span className="flex items-center gap-1.5">
@@ -315,7 +301,7 @@ export function Projects() {
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-=======
+
                   <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                     <span className="flex items-center gap-1.5">
                       <FlaskConical className="w-3.5 h-3.5" />
@@ -325,25 +311,19 @@ export function Projects() {
                       <Calendar className="w-3.5 h-3.5" />
                       Modified: {project.lastModified}
                     </span>
->>>>>>> origin/fix/scenario-tests-properly
                   </div>
                 </CardSection>
               </Card>
             </motion.div>
           ))}
         </div>
-<<<<<<< HEAD
       )}
 
       {!loading && !error && projects.length === 0 && (
-=======
-      ) : (
->>>>>>> origin/fix/scenario-tests-properly
         <Card padding="lg">
           <EmptyState
             icon={<FolderOpen className="w-12 h-12" />}
             title="No projects yet"
-<<<<<<< HEAD
             description="Create your first power system project to get started. Projects are stored in the platform database and shared across your team."
             action={
               <Button
@@ -352,18 +332,12 @@ export function Projects() {
                 icon={Plus}
                 onClick={() => setShowCreateModal(true)}
               >
-=======
-            description="Create your first power system project to get started"
-            action={
-              <Button variant="primary" size="sm" icon={Plus} onClick={() => notify('info', 'Project creation coming soon')}>
->>>>>>> origin/fix/scenario-tests-properly
                 New Project
               </Button>
             }
           />
         </Card>
       )}
-<<<<<<< HEAD
 
       {/* Create Project Modal */}
       {showCreateModal && (
@@ -448,8 +422,4 @@ export function Projects() {
       )}
     </div>
   );
-=======
-    </div>
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

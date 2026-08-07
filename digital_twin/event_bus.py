@@ -13,10 +13,7 @@ Reference: IEC 61970 CIM Event Model, EPRI ADMS Architecture Guide
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import logging
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import threading
 import time
 import uuid
@@ -24,13 +21,9 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-<<<<<<< HEAD
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 # ============================================================
 # EVENT TYPES
@@ -81,13 +74,8 @@ class DomainEvent:
     timestamp: float = field(default_factory=time.time)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source: str = "unknown"
-<<<<<<< HEAD
     correlation_id: Optional[str] = None  # Links related events
     metadata: dict[str, Any] = field(default_factory=dict)
-=======
-    correlation_id: str | None = None  # Links related events
-    metadata: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
     def to_dict(self) -> dict:
         return {
@@ -138,11 +126,7 @@ class FaultDetected(DomainEvent):
     fault_type: str = ""  # three_phase, line_to_ground, etc.
     bus_id: str = ""
     fault_current_pu: float = 0.0
-<<<<<<< HEAD
     tripped_switches: list[str] = field(default_factory=list)
-=======
-    tripped_switches: List[str] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         if self.event_type != EventType.FAULT_DETECTED:
@@ -198,13 +182,8 @@ class SCADAUpdateReceived(DomainEvent):
     """Event: SCADA measurement update received."""
 
     event_type: EventType = field(default=EventType.SCADA_UPDATE_RECEIVED, init=False)
-<<<<<<< HEAD
     measurements: list[dict[str, Any]] = field(default_factory=list)
     switch_statuses: dict[str, str] = field(default_factory=dict)
-=======
-    measurements: List[Dict[str, Any]] = field(default_factory=list)
-    switch_statuses: Dict[str, str] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         if self.event_type != EventType.SCADA_UPDATE_RECEIVED:
@@ -217,13 +196,8 @@ class TopologyChanged(DomainEvent):
 
     event_type: EventType = field(default=EventType.TOPOLOGY_CHANGED, init=False)
     change_description: str = ""
-<<<<<<< HEAD
     affected_buses: list[str] = field(default_factory=list)
     affected_switches: list[str] = field(default_factory=list)
-=======
-    affected_buses: List[str] = field(default_factory=list)
-    affected_switches: List[str] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         if self.event_type != EventType.TOPOLOGY_CHANGED:
@@ -236,11 +210,7 @@ class YbusRebuilt(DomainEvent):
 
     event_type: EventType = field(default=EventType.YBUS_REBUILT, init=False)
     matrix_size: int = 0
-<<<<<<< HEAD
     sequences_rebuilt: list[str] = field(default_factory=lambda: ["1"])
-=======
-    sequences_rebuilt: List[str] = field(default_factory=lambda: ["1"])
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         if self.event_type != EventType.YBUS_REBUILT:
@@ -254,11 +224,7 @@ class LoadFlowCompleted(DomainEvent):
     event_type: EventType = field(default=EventType.LOAD_FLOW_COMPLETED, init=False)
     converged: bool = False
     iterations: int = 0
-<<<<<<< HEAD
     bus_voltages: dict[str, complex] = field(default_factory=dict)
-=======
-    bus_voltages: Dict[str, complex] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         if self.event_type != EventType.LOAD_FLOW_COMPLETED:
@@ -338,11 +304,7 @@ class ValidationErrorEvent(DomainEvent):
     """Event: Validation error detected in the digital twin."""
 
     event_type: EventType = field(default=EventType.VALIDATION_ERROR, init=False)
-<<<<<<< HEAD
     errors: list[str] = field(default_factory=list)
-=======
-    errors: List[str] = field(default_factory=list)
->>>>>>> origin/fix/scenario-tests-properly
     layer: str = ""  # gis, electrical, adms
 
     def __post_init__(self):
@@ -366,7 +328,6 @@ class EventBus:
     - Event history and replay
     - Handler priority ordering
     - Error isolation (one handler failure does not block others)
-<<<<<<< HEAD
 
     Security Fix V-03: Added per-element locking for state-modifying events
     (SWITCH_OPENED, SWITCH_CLOSED, FAULT_DETECTED) to prevent race
@@ -416,7 +377,7 @@ class EventBus:
         event_type: EventType,
         handler: Callable[[DomainEvent], None],
         priority: int = 0,
-=======
+
     """
 
     def __init__(self, max_history: int = 10000):
@@ -431,7 +392,6 @@ class EventBus:
 
     def subscribe(
         self, event_type: EventType, handler: Callable[[DomainEvent], None], priority: int = 0
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         """
         Subscribe a handler to an event type.
@@ -474,18 +434,13 @@ class EventBus:
                     return True
             return False
 
-<<<<<<< HEAD
     def publish(self, event: DomainEvent) -> list[Exception]:
-=======
-    def publish(self, event: DomainEvent) -> List[Exception]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Publish an event to all subscribers.
 
         Handlers are called synchronously in priority order.
         Errors in one handler do not block other handlers.
 
-<<<<<<< HEAD
         Security Fix V-03: For state-modifying events (switch changes,
         fault detection), acquires a per-element lock to prevent
         concurrent handlers from modifying the same element simultaneously.
@@ -555,7 +510,7 @@ class EventBus:
             # V-03: Release per-element lock
             if element_lock is not None:
                 element_lock.release()
-=======
+
         Returns:
         List of exceptions raised by handlers.
         """
@@ -602,7 +557,6 @@ class EventBus:
                     )
 
         return errors
->>>>>>> origin/fix/scenario-tests-properly
 
     def _add_to_history(self, event: DomainEvent) -> None:
         """Add event to history with size limit. Caller must hold self._lock."""
@@ -611,11 +565,7 @@ class EventBus:
             # Use slice assignment instead of list replacement for efficiency
             del self._history[: len(self._history) - self._max_history]
 
-<<<<<<< HEAD
     def get_history(self, event_type: EventType = None, limit: int = 100) -> list[DomainEvent]:
-=======
-    def get_history(self, event_type: EventType = None, limit: int = 100) -> List[DomainEvent]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get event history, optionally filtered by type."""
         with self._lock:
             if event_type:
@@ -624,11 +574,7 @@ class EventBus:
                 filtered = list(self._history)
         return filtered[-limit:]
 
-<<<<<<< HEAD
     def get_handler_errors(self, limit: int = 100) -> list[dict[str, Any]]:
-=======
-    def get_handler_errors(self, limit: int = 100) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get handler error history."""
         with self._lock:
             return list(self._handler_errors[-limit:])

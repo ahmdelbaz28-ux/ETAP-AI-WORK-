@@ -3,7 +3,6 @@
 
 .PHONY: help install test run build docker-up docker-down clean docs lint format validate deploy-k8s
 
-<<<<<<< HEAD
 # Cross-platform support
 ifeq ($(OS),Windows_NT)
     PYTHON := .venv312/Scripts/python
@@ -147,7 +146,7 @@ db-restore: ## Restore database from backup
         @read -p "Enter backup file to restore: " backup; \
         cp $$backup mastra.db
         @echo "Restore complete!"
-=======
+
 # Default target
 help: ## Show this help message
 	@echo "ETAP AI Engineering Platform - Available Commands"
@@ -279,12 +278,10 @@ db-restore: ## Restore database from backup
 	@read -p "Enter backup file to restore: " backup; \
 	cp $$backup mastra.db
 	@echo "Restore complete!"
->>>>>>> origin/fix/scenario-tests-properly
 
 # CI/CD
 # Security
 security-audit: ## Run all security scans locally
-<<<<<<< HEAD
         @echo "=== Security Audit (Python 3.12) ==="
         @echo ""
         @echo "— npm audit —"
@@ -343,7 +340,7 @@ version: ## Show version information
         @echo "Node: $$(node --version)"
         @echo "Docker: $$(docker --version 2>/dev/null || echo 'Not installed')"
         @echo "Kubectl: $$(kubectl version --client --short 2>/dev/null || echo 'Not installed')"
-=======
+
 	@echo "=== Security Audit ==="
 	@echo ""
 	@echo "— npm audit —"
@@ -402,4 +399,3 @@ version: ## Show version information
 	@echo "Node: $$(node --version)"
 	@echo "Docker: $$(docker --version 2>/dev/null || echo 'Not installed')"
 	@echo "Kubectl: $$(kubectl version --client --short 2>/dev/null || echo 'Not installed')"
->>>>>>> origin/fix/scenario-tests-properly

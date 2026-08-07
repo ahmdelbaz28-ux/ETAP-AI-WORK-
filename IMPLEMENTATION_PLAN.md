@@ -24,11 +24,7 @@ AhmedETAP is an enterprise-grade autonomous engineering intelligence platform de
    - Built-in validation and serialization
 
 3. **Sophisticated AI agent orchestration system**
-<<<<<<< HEAD
    - 25 specialized AI agents for different power system studies
-=======
-   - 23 specialized AI agents for different power system studies
->>>>>>> origin/fix/scenario-tests-properly
    - Chief Engineering Orchestrator for task decomposition and coordination
    - Prompt management system with 3-tier fallback
 
@@ -91,11 +87,7 @@ AhmedETAP is an enterprise-grade autonomous engineering intelligence platform de
 ### 4. Feature Completeness (Medium Priority)
 
 #### Current Issues:
-<<<<<<< HEAD
 - **Production Features**: All 14 engineering modules and 25 AI agents are now PRODUCTION/STABLE (no beta flags remain)
-=======
-- **Beta Features**: Transient stability implementation marked as Beta in README
->>>>>>> origin/fix/scenario-tests-properly
 - **Desktop Application**: Need to enhance desktop application in [ui/electron/](file:///c%3A/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ui/electron)
 - **GIS Integration**: Need to improve GIS integration modules in [gis_integration/](file:///c%3A/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/gis_integration)
 - **Relay Models**: Need to expand relay models in [relays/](file:///c%3A/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/relays)

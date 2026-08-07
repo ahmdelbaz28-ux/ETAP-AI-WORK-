@@ -36,17 +36,15 @@ export interface ProviderTestResult {
 // ---------------------------------------------------------------------------
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '';
-<<<<<<< HEAD
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
 const ACTIVE_MODEL_ID = process.env.OPENAI_MODEL_ID || process.env.OPENAI_MODEL || 'gpt-4o';
-=======
+
 const OPENAI_BASE_URL =
   process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
 const ACTIVE_MODEL_ID =
   process.env.OPENAI_MODEL_ID ||
   process.env.OPENAI_MODEL ||
   'gpt-4o';
->>>>>>> origin/fix/scenario-tests-properly
 
 // Single shared OpenAI client. createOpenAI() does NOT throw if the API
 // key is missing — it only fails when an actual API call is made. This
@@ -104,27 +102,23 @@ export function getProviderStatus(): ProviderConfig[] {
  * endpoint (OpenAI-compatible). If the API key is missing or invalid,
  * the test fails with a clear error message.
  */
-<<<<<<< HEAD
 export async function testProviderById(id: string): Promise<ProviderTestResult> {
-=======
+
 export async function testProviderById(
   id: string,
 ): Promise<ProviderTestResult> {
->>>>>>> origin/fix/scenario-tests-properly
   const providers = getProviderStatus();
   const provider = providers.find((p) => p.name === id);
   if (!provider) {
     return {
       success: false,
-<<<<<<< HEAD
       error: `Unknown provider: ${id}. Configured providers: ${
         providers.map((p) => p.name).join(', ') || '(none)'
       }`,
-=======
+
       error: `Unknown provider: ${id}. Configured providers: ${providers
         .map((p) => p.name)
         .join(', ') || '(none)'}`,
->>>>>>> origin/fix/scenario-tests-properly
     };
   }
 
@@ -141,17 +135,11 @@ export async function testProviderById(
     });
     if (!resp.ok) {
       const body = await resp.text().catch(() => '');
-<<<<<<< HEAD
       // SonarCloud typescript:S4624: extracted nested template literal
       const bodySnippet = body ? `: ${body.slice(0, 200)}` : '';
       return {
         success: false,
         error: `HTTP ${resp.status} ${resp.statusText}${bodySnippet}`,
-=======
-      return {
-        success: false,
-        error: `HTTP ${resp.status} ${resp.statusText}${body ? `: ${body.slice(0, 200)}` : ''}`,
->>>>>>> origin/fix/scenario-tests-properly
         latencyMs: Date.now() - t0,
       };
     }

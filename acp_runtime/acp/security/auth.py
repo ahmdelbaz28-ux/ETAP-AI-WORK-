@@ -20,12 +20,7 @@ import hashlib
 import hmac
 import json
 import time
-<<<<<<< HEAD
 from typing import Any, Callable, Coroutine, Optional, Union
-=======
-from collections.abc import Callable, Coroutine
-from typing import Any
->>>>>>> origin/fix/scenario-tests-properly
 
 from acp.errors import AuthenticationRequired
 from acp.schema.capability import is_valid_scope
@@ -88,19 +83,17 @@ class AuthConfig:
 
     def __init__(
         self,
-<<<<<<< HEAD
         secret_key: Union[str, bytes],
         *,
         token_ttl_seconds: int = 3_600,
         issuer: Optional[str] = None,
         audience: Optional[str] = None,
-=======
+
         secret_key: str | bytes,
         *,
         token_ttl_seconds: int = 3_600,
         issuer: str | None = None,
         audience: str | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self.secret_key = secret_key if isinstance(secret_key, bytes) else secret_key.encode()
         self.token_ttl_seconds = token_ttl_seconds
@@ -110,11 +103,7 @@ class AuthConfig:
 
 # ------------------------------------------------------------------ AuthValidator
 
-<<<<<<< HEAD
 AuthValidator = Callable[[str], Any]
-=======
-AuthValidator = Callable[[str], CallerIdentity | Coroutine[Any, Any, CallerIdentity]]
->>>>>>> origin/fix/scenario-tests-properly
 """Type alias for an authentication validator callable.
 
 The callable receives a raw token string and must return a
@@ -240,14 +229,12 @@ class HmacTokenValidator:
             if time.time() > exp:
                 raise AuthenticationRequired("Token expired")
 
-<<<<<<< HEAD
         if self._config.issuer is not None and payload.get("iss") != self._config.issuer:
             raise AuthenticationRequired("Token issuer mismatch")
-=======
+
         if self._config.issuer is not None:
             if payload.get("iss") != self._config.issuer:
                 raise AuthenticationRequired("Token issuer mismatch")
->>>>>>> origin/fix/scenario-tests-properly
 
         if self._config.audience is not None:
             aud = payload.get("aud")
@@ -262,15 +249,13 @@ class HmacTokenValidator:
 
 
 def validate_bearer_token(
-<<<<<<< HEAD
     header_value: Optional[str],
     validator: Optional[AuthValidator],
 ) -> Optional[CallerIdentity]:
-=======
+
     header_value: str | None,
     validator: AuthValidator | None,
 ) -> CallerIdentity | None:
->>>>>>> origin/fix/scenario-tests-properly
     """Extract a Bearer token from an HTTP-style header and validate it.
 
     Parameters:
@@ -298,20 +283,12 @@ def validate_bearer_token(
     result = validator(token)
     if isinstance(result, Coroutine):
         raise AuthenticationRequired(
-<<<<<<< HEAD
             "Async validators are not supported by validate_bearer_token; await the validator directly",
-=======
-            "Async validators are not supported by validate_bearer_token; await the validator directly"
->>>>>>> origin/fix/scenario-tests-properly
         )
     return result
 
 
-<<<<<<< HEAD
 def extract_token_from_header(header_value: Optional[str]) -> Optional[str]:
-=======
-def extract_token_from_header(header_value: str | None) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
     """Extract the raw token string from a ``Bearer <token>`` header.
 
     Returns ``None`` if the header is missing or not a Bearer token.

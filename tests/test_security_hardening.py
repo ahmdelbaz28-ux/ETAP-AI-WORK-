@@ -164,7 +164,6 @@ class TestABAC:
         from security.abac import ip_in_ranges
 
         # Internal IP → within range
-<<<<<<< HEAD
         assert (
             ip_in_ranges("10.0.1.5", ["10.0.0.0/8", "192.168.0.0/16"]) is True
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
@@ -172,11 +171,6 @@ class TestABAC:
         assert (
             ip_in_ranges("203.0.113.5", ["10.0.0.0/8", "192.168.0.0/16"]) is False
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-=======
-        assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8", "192.168.0.0/16"]) is True
-        # External IP → not in range
-        assert ip_in_ranges("203.0.113.5", ["10.0.0.0/8", "192.168.0.0/16"]) is False
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_policy_removal(self):
         """Test 7: Policies can be removed at runtime."""
@@ -207,7 +201,6 @@ class TestABAC:
         """Test 9: IP range checking utility function."""
         from security.abac import ip_in_ranges
 
-<<<<<<< HEAD
         assert (
             ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
@@ -220,12 +213,11 @@ class TestABAC:
         assert (
             ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
-=======
+
         assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True
         assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8"]) is False
         assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8", "192.168.0.0/16"]) is True
         assert ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -482,7 +474,6 @@ class TestSIEM:
             retry_attempts=1,
             retry_delay_seconds=0.01,
         )
-<<<<<<< HEAD
         # Actually forward an auth event — the previous version of this test
         # created the forwarder but never called forward_auth_event, so the
         # stats were always 0 and the assertion always failed.
@@ -495,7 +486,7 @@ class TestSIEM:
         )
         # This will attempt to forward but fail (no Loki running),
         # which is fine — we're testing the event structure
-=======
+
         # This will attempt to forward but fail (no Loki running),
         # which is fine — we're testing the event structure
         result = await forwarder.forward_auth_event(
@@ -504,7 +495,6 @@ class TestSIEM:
             success=True,
             ip="10.0.1.5",
         )
->>>>>>> origin/fix/scenario-tests-properly
         # Result may be True or False depending on whether flush fails,
         # but the event should be buffered
         stats = forwarder.get_stats()

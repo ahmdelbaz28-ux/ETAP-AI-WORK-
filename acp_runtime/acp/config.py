@@ -32,7 +32,6 @@ def env_int(key: str, default: int) -> int:
 
 
 def env_bool(key: str, default: bool) -> bool:
-<<<<<<< HEAD
     """Read a boolean from an environment variable, or return the default.
 
     Delegates to ``core.utils.env_truthy`` to eliminate duplication with
@@ -50,13 +49,12 @@ def _is_within(path: Path, root: Path) -> bool:
         return True
     except ValueError:
         return False
-=======
+
     """Read a boolean from an environment variable, or return the default."""
     val = os.environ.get(key)
     if val is None:
         return default
     return val.lower() in ("1", "true", "yes", "on")
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def load_config(path: str) -> dict[str, Any]:
@@ -72,7 +70,6 @@ def load_config(path: str) -> dict[str, Any]:
         SystemExit: if the file is missing, the format is unknown, or
         parsing fails.
     """
-<<<<<<< HEAD
     p = Path(path).expanduser().resolve()
     if not p.exists():
         raise SystemExit(f"Config file not found: {path!r}")
@@ -94,12 +91,6 @@ def load_config(path: str) -> dict[str, Any]:
     if not any(_is_within(p, root) for root in allowed_roots):
         raise SystemExit(f"Refusing to read config file outside CWD, tempdir, or HOME: {path!r}")
 
-=======
-    p = Path(path)
-    if not p.exists():
-        raise SystemExit(f"Config file not found: {path!r}")
-
->>>>>>> origin/fix/scenario-tests-properly
     data = p.read_text(encoding="utf-8")
     suffix = p.suffix.lower()
 
@@ -120,11 +111,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
         import yaml
     except ImportError as exc:
         raise SystemExit(
-<<<<<<< HEAD
             "YAML config files require PyYAML. Install it:  pip install pyyaml",
-=======
-            "YAML config files require PyYAML. Install it:  pip install pyyaml"
->>>>>>> origin/fix/scenario-tests-properly
         ) from exc
     parsed = yaml.safe_load(text)
     if not isinstance(parsed, dict):
@@ -132,11 +119,7 @@ def _load_yaml(text: str) -> dict[str, Any]:
     return parsed
 
 
-<<<<<<< HEAD
 def merge_config(  # NOSONAR
-=======
-def merge_config(
->>>>>>> origin/fix/scenario-tests-properly
     args: Any,
     config: dict[str, Any] | None,
     env_prefix: str = "ACP_",

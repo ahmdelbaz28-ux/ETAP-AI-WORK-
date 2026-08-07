@@ -10,17 +10,13 @@ Capabilities:
 - Starting torque and acceleration time estimation
 - Starting method comparison (DOL, star-delta, auto-transformer, VFD)
 - NEMA motor starting code letter analysis
-<<<<<<< HEAD
 - Transient voltage drop during motor starting (CRITICAL FIX)
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 Standards:
 - IEEE 399-1997: Recommended Practice for Industrial and Commercial
   Power System Analysis (Brown Book)
 - NEMA MG-1: Motors and Generators
 - IEC 60034: Rotating Electrical Machines
-<<<<<<< HEAD
 
 CRITICAL FIX — Motor Transient Undervoltage Drop:
 - Added calculate_transient_voltage_drop() method that accounts for
@@ -29,14 +25,11 @@ CRITICAL FIX — Motor Transient Undervoltage Drop:
   voltage (V = 1.0 pu), which produces misleading reports that
   indicate successful motor starting while in reality the voltage
   dip may cause thermal trip-outs or stalling of adjacent motors.
-=======
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -45,7 +38,7 @@ from typing import Any, Optional
 import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
@@ -54,7 +47,6 @@ from typing import Any, Dict, List
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +55,7 @@ logger = logging.getLogger(__name__)
 # NEMA starting code letters — locked-rotor kVA/hp ranges
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _NEMA_CODE_LETTERS: dict[str, tuple] = {
-=======
-_NEMA_CODE_LETTERS: Dict[str, tuple] = {
->>>>>>> origin/fix/scenario-tests-properly
     "A": (0.0, 3.15),
     "B": (3.15, 3.55),
     "C": (3.55, 4.0),
@@ -90,11 +78,7 @@ _NEMA_CODE_LETTERS: Dict[str, tuple] = {
 }
 
 # Typical locked-rotor current multiplier (LRA/FLA) by starting method
-<<<<<<< HEAD
 _LR_MULTIPLIERS: dict[str, float] = {
-=======
-_LR_MULTIPLIERS: Dict[str, float] = {
->>>>>>> origin/fix/scenario-tests-properly
     "DOL": 6.0,  # Direct-On-Line
     "star_delta": 2.0,  # Star-Delta (current = 1/3 of DOL)
     "autotransformer_80": 3.84,  # Auto-transformer 80% tap
@@ -104,13 +88,10 @@ _LR_MULTIPLIERS: Dict[str, float] = {
     "VFD": 1.5,  # Variable Frequency Drive
 }
 
-<<<<<<< HEAD
 # Default locked-rotor kVA/hp when NEMA code is unknown (NEMA code F = 5.0-5.6).
 # Reference: NEMA MG 1-2016, Section 12.32.
 _DEFAULT_LR_KVA_PER_HP = 5.6
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 class MotorStartingAgent(BaseAgent):
     """
@@ -160,13 +141,8 @@ class MotorStartingAgent(BaseAgent):
         voltage_v: float,
         nema_code: str = "F",
         starting_method: str = "DOL",
-<<<<<<< HEAD
         fla_a: Optional[float] = None,
     ) -> dict[str, Any]:
-=======
-        fla_a: float | None = None,
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate motor starting (locked-rotor) current.
 
@@ -198,16 +174,14 @@ class MotorStartingAgent(BaseAgent):
 
         # Get locked-rotor kVA/hp from NEMA code
         code = nema_code.upper()
-<<<<<<< HEAD
         lr_kva_per_hp = (
             _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
         )
-=======
+
         if code in _NEMA_CODE_LETTERS:
             lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1]  # Use upper bound
         else:
             lr_kva_per_hp = 5.6  # Default to code F
->>>>>>> origin/fix/scenario-tests-properly
 
         # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp
@@ -215,11 +189,7 @@ class MotorStartingAgent(BaseAgent):
 
         # Apply starting method reduction factor
         # All methods scale from the DOL LRA computed above
-<<<<<<< HEAD
         method_current_ratios: dict[str, float] = {
-=======
-        method_current_ratios: Dict[str, float] = {
->>>>>>> origin/fix/scenario-tests-properly
             "DOL": 1.0,
             "star_delta": 1.0 / 3.0,  # Current = 1/3 of DOL line current
             "autotransformer_80": 0.64,  # 0.8² × DOL (tap ratio squared)
@@ -232,13 +202,10 @@ class MotorStartingAgent(BaseAgent):
         current_ratio = method_current_ratios.get(starting_method, 1.0)
         lra_actual = lra_dol * current_ratio
 
-<<<<<<< HEAD
         # fla_a is guaranteed non-None at this point (estimated above if
         # originally None). The earlier `assert`/None-check here was flagged
         # by SonarCloud S2583 as "always-false condition" — and correctly so,
         # because the early-assignment at line 154 makes fla_a always set.
-=======
->>>>>>> origin/fix/scenario-tests-properly
         lra_per_fla = lra_actual / fla_a if fla_a > 0 else 0.0
 
         return {
@@ -261,11 +228,7 @@ class MotorStartingAgent(BaseAgent):
         motor_rated_voltage_v: float,
         motor_rated_mva: float,
         system_base_mva: float = 100.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate voltage dip during motor starting.
 
@@ -309,21 +272,19 @@ class MotorStartingAgent(BaseAgent):
         voltage_dip_pct = (source_voltage_pu - motor_voltage_pu) / source_voltage_pu * 100.0
 
         return {
-<<<<<<< HEAD
             "motor_bus_voltage_pu": round(motor_voltage_pu, 4),
             "voltage_dip_percent": round(voltage_dip_pct, 2),
             "source_voltage_pu": source_voltage_pu,
             "source_impedance_r_pu": round(source_impedance_pu.real, 6),
             "source_impedance_x_pu": round(source_impedance_pu.imag, 6),
             "motor_starting_impedance_pu": round(z_motor_pu, 6),
-=======
+
             "motor_bus_voltage_pu": round(float(motor_voltage_pu), 4),
             "voltage_dip_percent": round(float(voltage_dip_pct), 2),
             "source_voltage_pu": source_voltage_pu,
             "source_impedance_r_pu": round(float(source_impedance_pu.real), 6),
             "source_impedance_x_pu": round(float(source_impedance_pu.imag), 6),
             "motor_starting_impedance_pu": round(float(z_motor_pu), 6),
->>>>>>> origin/fix/scenario-tests-properly
             "assessment": self._assess_voltage_dip(motor_voltage_pu),
         }
 
@@ -340,7 +301,6 @@ class MotorStartingAgent(BaseAgent):
         else:
             return "Severe — motor may stall; reduced-voltage starting required"
 
-<<<<<<< HEAD
     def calculate_transient_voltage_drop(
         self,
         v_nominal_v: float,
@@ -446,19 +406,13 @@ class MotorStartingAgent(BaseAgent):
             },
         }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     def calculate_starting_torque(
         self,
         rated_torque_nm: float,
         lra_per_fla: float,
         starting_method: str = "DOL",
         motor_bus_voltage_pu: float = 1.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate starting torque considering voltage dip and method.
 
@@ -484,11 +438,7 @@ class MotorStartingAgent(BaseAgent):
         """
         # For star-delta and autotransformer, voltage reduces proportionally
         # but torque reduces as voltage squared
-<<<<<<< HEAD
         method_voltage_ratios: dict[str, float] = {
-=======
-        method_voltage_ratios: Dict[str, float] = {
->>>>>>> origin/fix/scenario-tests-properly
             "DOL": 1.0,
             "star_delta": 1.0 / np.sqrt(3),  # Voltage reduced to 1/√3
             "autotransformer_80": 0.80,
@@ -510,21 +460,19 @@ class MotorStartingAgent(BaseAgent):
         starting_torque = rated_torque_nm * torque_ratio
 
         return {
-<<<<<<< HEAD
             "starting_torque_nm": round(starting_torque, 2),
             "torque_per_rated": round(torque_ratio, 4),
             "starting_method": starting_method,
             "method_voltage_ratio": round(v_ratio, 4),
             "motor_bus_voltage_pu": motor_bus_voltage_pu,
             "voltage_factor": round(combined_voltage_factor, 4),
-=======
+
             "starting_torque_nm": round(float(starting_torque), 2),
             "torque_per_rated": round(float(torque_ratio), 4),
             "starting_method": starting_method,
             "method_voltage_ratio": round(float(v_ratio), 4),
             "motor_bus_voltage_pu": motor_bus_voltage_pu,
             "voltage_factor": round(float(combined_voltage_factor), 4),
->>>>>>> origin/fix/scenario-tests-properly
             "rated_torque_nm": rated_torque_nm,
         }
 
@@ -533,11 +481,7 @@ class MotorStartingAgent(BaseAgent):
         j_total_kgm2: float,
         rated_speed_rpm: float,
         avg_accelerating_torque_nm: float,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Estimate motor acceleration time from standstill to rated speed.
 
@@ -563,19 +507,17 @@ class MotorStartingAgent(BaseAgent):
             t_acc = float("inf")
 
         return {
-<<<<<<< HEAD
             "acceleration_time_s": round(t_acc, 2),
             "rated_speed_rpm": rated_speed_rpm,
             "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(avg_accelerating_torque_nm, 2),
             "omega_rated_rad_s": round(omega_rated, 2),
-=======
+
             "acceleration_time_s": round(float(t_acc), 2),
             "rated_speed_rpm": rated_speed_rpm,
             "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(float(avg_accelerating_torque_nm), 2),
             "omega_rated_rad_s": round(float(omega_rated), 2),
->>>>>>> origin/fix/scenario-tests-properly
         }
 
     # ------------------------------------------------------------------
@@ -598,11 +540,7 @@ class MotorStartingAgent(BaseAgent):
             self.log_execution(f"Starting motor starting analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
             # Common parameters
             motor_hp = float(task.parameters.get("motor_hp", 100.0))
@@ -649,7 +587,6 @@ class MotorStartingAgent(BaseAgent):
                 )
                 results["voltage_dip"] = vd_result
 
-<<<<<<< HEAD
                 # CRITICAL FIX — Transient voltage drop with source impedance
                 # Calculate the actual terminal voltage at the motor bus during
                 # starting, accounting for Z_source. This is the real-world
@@ -670,8 +607,6 @@ class MotorStartingAgent(BaseAgent):
                     )
                     results["transient_voltage_drop"] = tvd_result
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
             # --- Starting torque ---
             if analysis_type in ("torque", "full"):
                 rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
@@ -691,12 +626,8 @@ class MotorStartingAgent(BaseAgent):
                 rated_torque = float(task.parameters.get("rated_torque_nm", rated_torque))
                 j_total = float(task.parameters.get("j_total_kgm2", 10.0))
                 avg_torque = results.get("starting_torque", {}).get(
-<<<<<<< HEAD
                     "starting_torque_nm",
                     rated_torque * 0.5,
-=======
-                    "starting_torque_nm", rated_torque * 0.5
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
                 acc_result = self.calculate_acceleration_time(
@@ -748,11 +679,7 @@ class MotorStartingAgent(BaseAgent):
         - Motor bus voltage is positive
         - Acceleration time is positive (or infinite for stall)
         """
-<<<<<<< HEAD
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         sc_data = result.data.get("starting_current")
         if sc_data is not None:
@@ -772,7 +699,6 @@ class MotorStartingAgent(BaseAgent):
             if v_pu <= 0 or v_pu > 1.5:
                 errors.append(f"Motor bus voltage out of range: {v_pu:.4f} pu")
 
-<<<<<<< HEAD
         # CRITICAL FIX — Validate transient voltage drop results
         tvd_data = result.data.get("transient_voltage_drop")
         if tvd_data is not None:
@@ -787,8 +713,6 @@ class MotorStartingAgent(BaseAgent):
                 # but the calculation itself is valid
                 errors.append(f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal")
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         acc_data = result.data.get("acceleration_time")
         if acc_data is not None:
             t_acc = acc_data.get("acceleration_time_s", 0.0)

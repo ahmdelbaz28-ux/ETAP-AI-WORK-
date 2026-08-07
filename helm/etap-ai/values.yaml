@@ -28,7 +28,6 @@ serviceAccount:
 
 podAnnotations: {}
 
-<<<<<<< HEAD
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
@@ -45,18 +44,6 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 1000
-=======
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
->>>>>>> origin/fix/scenario-tests-properly
 
 # API Service Configuration
 api:
@@ -87,7 +74,6 @@ api:
     limits:
       cpu: 500m
       memory: 1Gi
-<<<<<<< HEAD
       ephemeral-storage: "2Gi"
     requests:
       cpu: 250m
@@ -123,14 +109,6 @@ api:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 75
     # targetMemoryUtilizationPercentage: 80
-=======
-    requests:
-      cpu: 250m
-      memory: 512Mi
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
->>>>>>> origin/fix/scenario-tests-properly
 
 # Celery Worker Configuration
 worker:
@@ -143,17 +121,11 @@ worker:
     limits:
       cpu: 500m
       memory: 1Gi
-<<<<<<< HEAD
       ephemeral-storage: "5Gi"
     requests:
       cpu: 250m
       memory: 512Mi
       ephemeral-storage: "1Gi"
-=======
-    requests:
-      cpu: 250m
-      memory: 512Mi
->>>>>>> origin/fix/scenario-tests-properly
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -163,14 +135,10 @@ redis:
   enabled: true
   architecture: standalone
   auth:
-<<<<<<< HEAD
     # SECURITY: must be true in production. Set redis.auth.password via
     # `--set redis.auth.password=<strong-password>` or via a sealed Secret.
     enabled: true
     password: ""
-=======
-    enabled: false
->>>>>>> origin/fix/scenario-tests-properly
   master:
     persistence:
       enabled: true
@@ -190,7 +158,6 @@ env:
   REDIS_URL: redis://etap-ai-redis-master:6379/0
   USE_ETAP: "false"
   PRIVACY_MODE: "true"
-<<<<<<< HEAD
   # SECURITY: ENGINEERING_SERVICE_API_KEY is injected via secretKeyRef.
   # The secret "etap-api-key" is created BEFORE Helm deployment
   # (see k8s/etap-api-key-secret.yaml). The Helm deployment template
@@ -201,9 +168,6 @@ env:
   # The empty string ensures Helm won't render a valid-looking default key.
   # A startup check in the app will refuse to start if the key is empty.
   ENGINEERING_SERVICE_API_KEY: ""
-=======
-  ENGINEERING_SERVICE_API_KEY: "your-api-key-here"
->>>>>>> origin/fix/scenario-tests-properly
   LOG_LEVEL: "INFO"
 
 # Database Configuration
@@ -223,16 +187,10 @@ resources:
     memory: 1Gi
 
 autoscaling:
-<<<<<<< HEAD
   # CRITICAL FIX: Enabled autoscaling for production readiness.
   enabled: true
   minReplicas: 2
   maxReplicas: 10
-=======
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
->>>>>>> origin/fix/scenario-tests-properly
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
@@ -240,7 +198,6 @@ nodeSelector: {}
 
 tolerations: []
 
-<<<<<<< HEAD
 affinity: {}
 
 # Network Policy Configuration (Zero-Trust)
@@ -254,6 +211,3 @@ networkPolicy:
       kubernetes.io/metadata.name: ingress-nginx
     podLabels:
       app.kubernetes.io/name: ingress-nginx
-=======
-affinity: {}
->>>>>>> origin/fix/scenario-tests-properly

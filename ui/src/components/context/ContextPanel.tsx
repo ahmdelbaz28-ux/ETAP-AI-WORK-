@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { AlertTriangle, CheckCircle, ChevronRight, ExternalLink, Info, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils/helpers";
@@ -47,7 +46,7 @@ const severityConfig = {
 export function ContextPanel({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   title = "Properties",
-=======
+
 import { type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle, Info, ExternalLink, X, ChevronRight } from 'lucide-react'
 import { cn } from '../../utils/helpers'
@@ -90,17 +89,12 @@ const severityConfig = {
 
 export function ContextPanel({
   title = 'Properties',
->>>>>>> origin/fix/scenario-tests-properly
   selectedItem,
   warnings = [],
   actions = [],
   helpTopic,
   onClose,
-<<<<<<< HEAD
   emptyMessage = "Select an item to view its properties",
-=======
-  emptyMessage = 'Select an item to view its properties',
->>>>>>> origin/fix/scenario-tests-properly
 }: ContextPanelProps) {
   return (
     <div className="h-full flex flex-col">
@@ -108,15 +102,11 @@ export function ContextPanel({
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-primary)]">
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h3>
         {onClose && (
-<<<<<<< HEAD
           <button
             onClick={onClose}
             className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"
             type="button"
           >
-=======
-          <button onClick={onClose} className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]">
->>>>>>> origin/fix/scenario-tests-properly
             <X className="w-3.5 h-3.5" />
           </button>
         )}
@@ -134,13 +124,9 @@ export function ContextPanel({
                 </span>
               </div>
               <div>
-<<<<<<< HEAD
                 <div className="text-sm font-medium text-[var(--text-primary)]">
                   {selectedItem.name}
                 </div>
-=======
-                <div className="text-sm font-medium text-[var(--text-primary)]">{selectedItem.name}</div>
->>>>>>> origin/fix/scenario-tests-properly
                 <div className="text-xs text-[var(--text-muted)]">{selectedItem.type}</div>
               </div>
             </div>
@@ -148,16 +134,11 @@ export function ContextPanel({
             {/* Properties List */}
             {selectedItem.details && selectedItem.details.length > 0 && (
               <div className="space-y-1">
-<<<<<<< HEAD
                 {selectedItem.details.map((item) => (
                   <div
                     key={item.label}
                     className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]"
                   >
-=======
-                {selectedItem.details.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-[var(--bg-elevated)]">
->>>>>>> origin/fix/scenario-tests-properly
                     <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
                     <span className="text-xs font-medium text-[var(--text-secondary)] mono-engineering">
                       {item.value}
@@ -179,7 +160,6 @@ export function ContextPanel({
         {/* Warnings */}
         {warnings.length > 0 && (
           <div className="px-4 pb-3 space-y-2">
-<<<<<<< HEAD
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
               Warnings
             </div>
@@ -193,7 +173,7 @@ export function ContextPanel({
                 >
                   <div className="flex items-start gap-2">
                     <WarningIcon className={cn("w-3.5 h-3.5 mt-0.5 shrink-0", config.text)} />
-=======
+
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Warnings</div>
             {warnings.map(warning => {
               const config = severityConfig[warning.severity]
@@ -202,17 +182,13 @@ export function ContextPanel({
                 <div key={warning.id} className={cn('p-2.5 rounded-lg border', config.bg, config.border)}>
                   <div className="flex items-start gap-2">
                     <WarningIcon className={cn('w-3.5 h-3.5 mt-0.5 shrink-0', config.text)} />
->>>>>>> origin/fix/scenario-tests-properly
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-[var(--text-secondary)]">{warning.message}</p>
                       {warning.action && (
                         <button
                           onClick={warning.action.onClick}
                           className="mt-1 text-xs text-[var(--accent-primary)] hover:underline"
-<<<<<<< HEAD
                           type="button"
-=======
->>>>>>> origin/fix/scenario-tests-properly
                         >
                           {warning.action.label}
                         </button>
@@ -220,11 +196,7 @@ export function ContextPanel({
                     </div>
                   </div>
                 </div>
-<<<<<<< HEAD
               );
-=======
-              )
->>>>>>> origin/fix/scenario-tests-properly
             })}
           </div>
         )}
@@ -232,7 +204,6 @@ export function ContextPanel({
         {/* Actions */}
         {actions.length > 0 && (
           <div className="px-4 pb-3 space-y-1">
-<<<<<<< HEAD
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
               Actions
             </div>
@@ -260,7 +231,7 @@ export function ContextPanel({
                 </button>
               );
             })}
-=======
+
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Actions</div>
             {actions.map((action, i) => (
               <button
@@ -280,14 +251,12 @@ export function ContextPanel({
                 <ChevronRight className="w-3 h-3 text-[var(--text-muted)]" />
               </button>
             ))}
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         )}
 
         {/* Help Topic */}
         {helpTopic && (
           <div className="px-4 pb-4">
-<<<<<<< HEAD
             <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
               Related Help
             </div>
@@ -297,13 +266,6 @@ export function ContextPanel({
                 <span className="text-xs font-medium text-[var(--text-primary)]">
                   {helpTopic.title}
                 </span>
-=======
-            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Related Help</div>
-            <div className="p-3 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-primary)]">
-              <div className="flex items-center gap-2 mb-1">
-                <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                <span className="text-xs font-medium text-[var(--text-primary)]">{helpTopic.title}</span>
->>>>>>> origin/fix/scenario-tests-properly
               </div>
               {helpTopic.content && (
                 <div className="text-xs text-[var(--text-secondary)] mt-1">{helpTopic.content}</div>
@@ -313,11 +275,7 @@ export function ContextPanel({
                   href={helpTopic.url}
                   target="_blank"
                   rel="noopener noreferrer"
-<<<<<<< HEAD
                   className="inline-flex items-center gap-1.5 mt-2 text-xs text-[var(--accent-primary)] hover:underline"
-=======
-                  className="inline-flex items-center gap-1 mt-2 text-xs text-[var(--accent-primary)] hover:underline"
->>>>>>> origin/fix/scenario-tests-properly
                 >
                   Open documentation <ExternalLink className="w-3 h-3" />
                 </a>
@@ -327,9 +285,5 @@ export function ContextPanel({
         )}
       </div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

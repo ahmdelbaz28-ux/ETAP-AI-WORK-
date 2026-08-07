@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { HTMLAttributes } from "react";
 import { cn } from "../../utils/helpers";
 
@@ -54,7 +53,7 @@ export function Badge({
       {children}
     </span>
   );
-=======
+
 import type { HTMLAttributes } from 'react'
 import { cn } from '../../utils/helpers'
 
@@ -102,5 +101,4 @@ export function Badge({ variant = 'default', size = 'sm', dot, className, childr
       {children}
     </span>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

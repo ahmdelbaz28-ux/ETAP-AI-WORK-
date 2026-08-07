@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -411,7 +410,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <Badge variant={health?.ok ? "success" : "danger"} dot>
             {health?.ok ? t("dashboard.online") : t("dashboard.offline")}
-=======
+
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -578,13 +577,11 @@ export function Dashboard() {
         <div className="flex items-center gap-2">
           <Badge variant={health?.ok ? 'success' : 'danger'} dot>
             {health?.ok ? t('dashboard.online') : t('dashboard.offline')}
->>>>>>> origin/fix/scenario-tests-properly
           </Badge>
           {health?.version && <Badge variant="neutral">v{health.version}</Badge>}
         </div>
       </motion.div>
 
-<<<<<<< HEAD
       {/* ─── Status Cards with Sparklines ────────────────────────────── */}
       <motion.div
         variants={containerVariants}
@@ -891,7 +888,7 @@ export function Dashboard() {
       )}
     </motion.div>
   );
-=======
+
       {/* Status Cards */}
       <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -1124,5 +1121,4 @@ export function Dashboard() {
       )}
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -25,17 +25,10 @@ import importlib
 import json
 import os
 import traceback
-<<<<<<< HEAD
 from typing import Any, Optional
 
 
 def _parse_import_path(spec: str) -> tuple[str, str]:
-=======
-from typing import Any, Tuple
-
-
-def _parse_import_path(spec: str) -> Tuple[str, str]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Supports:
       "pkg.mod:DuckDBStore"
@@ -106,7 +99,6 @@ def main() -> int:
             "storage.stores.duckdb_store:DuckDBStore",
             "stores.duckdb_store:DuckDBStore",
             "persistence.duckdb_store:DuckDBStore",
-<<<<<<< HEAD
         ],
     )
 
@@ -118,7 +110,7 @@ def main() -> int:
                 spec
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             store = _instantiate(duckdbstore)
-=======
+
         ]
     )
 
@@ -128,7 +120,6 @@ def main() -> int:
         try:
             DuckDBStore = _try_import(spec)
             store = _instantiate(DuckDBStore)
->>>>>>> origin/fix/scenario-tests-properly
 
             # Accessibility checks: accept any of these, depending on implementation.
             ok = False
@@ -143,21 +134,13 @@ def main() -> int:
                     {
                         "success": True,
                         "import_spec": spec,
-<<<<<<< HEAD
                         "store_type": getattr(duckdbstore, "__name__", str(duckdbstore)),
-=======
-                        "store_type": getattr(DuckDBStore, "__name__", str(DuckDBStore)),
->>>>>>> origin/fix/scenario-tests-properly
                         "store_repr": repr(store)[:500],
                         "accessibility_checked": ok,
                         "error": None,
                     },
                     ensure_ascii=False,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             return 0
         except Exception as e:
@@ -172,11 +155,7 @@ def main() -> int:
                 "traceback": traceback.format_exc(),
             },
             ensure_ascii=False,
-<<<<<<< HEAD
         ),
-=======
-        )
->>>>>>> origin/fix/scenario-tests-properly
     )
     return 1
 

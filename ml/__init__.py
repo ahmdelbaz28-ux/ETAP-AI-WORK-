@@ -7,7 +7,6 @@ Provides machine-learning models for power systems prediction:
 - :class:`LoadForecaster`  – LSTM / linear-regression load forecasting
 - :class:`FaultPredictor`  – Random Forest fault classification
 - :class:`AnomalyDetector` – Isolation Forest anomaly detection
-<<<<<<< HEAD
 
 If ``numpy`` is not installed (e.g. on a minimal deployment), the imports below
 will fail. We catch that and re-raise with a clear, actionable error message
@@ -23,10 +22,5 @@ except ImportError as _exc:
         "pip install numpy scipy pandas scikit-learn. "
         f"Original error: {_exc}",
     ) from _exc
-=======
-"""
-
-from .predictive import AnomalyDetector, FaultPredictor, LoadForecaster
->>>>>>> origin/fix/scenario-tests-properly
 
 __all__ = ["LoadForecaster", "FaultPredictor", "AnomalyDetector"]

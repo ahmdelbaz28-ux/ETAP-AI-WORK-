@@ -6,7 +6,6 @@
 pytest>=7.0.0
 pytest-asyncio>=0.20.0
 pytest-cov>=4.0.0
-<<<<<<< HEAD
 pytest-timeout>=2.4.0
 httpx>=0.25.0
 # hypothesis is required by tests/property_based/test_retry_behavior.py and
@@ -18,9 +17,6 @@ hypothesis>=6.100.0
 # Test data factories (used by tests/factories/)
 factory-boy>=3.3.0
 Faker>=24.0.0
-=======
-httpx>=0.25.0
->>>>>>> origin/fix/scenario-tests-properly
 
 # Linting and formatting
 ruff>=0.1.0
@@ -29,8 +25,4 @@ mypy>=1.0.0
 # Development tools
 pre-commit>=3.0.0
 black>=23.0.0
-<<<<<<< HEAD
 isort>=8.0.1
-=======
-isort>=5.0.0
->>>>>>> origin/fix/scenario-tests-properly

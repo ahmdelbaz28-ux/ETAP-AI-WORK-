@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _PDF_GLOB_PATTERN = "*.pdf"  # NOSONAR
-=======
->>>>>>> origin/fix/scenario-tests-properly
 """
 ETAP User Guide - Complete Setup Script
 ========================================
@@ -59,15 +56,13 @@ def check_directory_structure():
 
     required_paths = [
         "etap_user_guide",
-<<<<<<< HEAD
         "etap_user_guide/pdfs",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/ac_element",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/extract_guide.py",  # NOSONAR intentional repetition (audit constant)
-=======
+
         "etap_user_guide/pdfs",
         "etap_user_guide/ac_element",
         "etap_user_guide/extract_guide.py",
->>>>>>> origin/fix/scenario-tests-properly
         "etap_user_guide/etap_guide_rag.py",
         "etap_user_guide/README.md",
     ]
@@ -94,17 +89,12 @@ def check_pdf_files():
         print_error("PDFs directory not found")
         return 0
 
-<<<<<<< HEAD
     pdf_count = len(
         list(
             pdfs_path.glob(_PDF_GLOB_PATTERN)
         )  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob(_PDF_GLOB_PATTERN))) if ac_path.exists() else 0
-=======
-    pdf_count = len(list(pdfs_path.glob("*.pdf")))
-    ac_count = len(list(ac_path.glob("*.pdf"))) if ac_path.exists() else 0
->>>>>>> origin/fix/scenario-tests-properly
 
     print_info(f"Main PDFs: {pdf_count}")
     print_info(f"AC Element PDFs: {ac_count}")
@@ -118,11 +108,7 @@ def install_dependencies():
     print_header("Installing Dependencies")
 
     packages = [
-<<<<<<< HEAD
         "pypdf>=6.13.0",  # SECURITY: replaces deprecated PyPDF2
-=======
-        "PyPDF2>=3.0.0",
->>>>>>> origin/fix/scenario-tests-properly
         "pdfplumber>=0.7.0",
         "sentence-transformers>=2.2.0",
         "chromadb>=0.4.0",
@@ -268,13 +254,8 @@ def create_integration_summary():
             "documentation": "etap_user_guide/README.md",
         },
         "statistics": {
-<<<<<<< HEAD
             "total_pdfs": len(list(Path("etap_user_guide/pdfs").glob(_PDF_GLOB_PATTERN))),
             "total_ac_pdfs": len(list(Path("etap_user_guide/ac_element").glob(_PDF_GLOB_PATTERN))),
-=======
-            "total_pdfs": len(list(Path("etap_user_guide/pdfs").glob("*.pdf"))),
-            "total_ac_pdfs": len(list(Path("etap_user_guide/ac_element").glob("*.pdf"))),
->>>>>>> origin/fix/scenario-tests-properly
             "extracted_files": len(list(Path("etap_user_guide/extracted").glob("*.txt"))),
             "chunk_files": len(list(Path("etap_user_guide/chunks").glob("*_chunks.json"))),
         },

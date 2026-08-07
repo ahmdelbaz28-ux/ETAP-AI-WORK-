@@ -43,11 +43,7 @@ class SCADAETAPConsumer:
         conn.close()
         print(f"Database {self.db_path} initialized")
 
-<<<<<<< HEAD
     def on_message(self, client, _userdata, msg):
-=======
-    def on_message(self, client, userdata, msg):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Handle incoming MQTT messages from ETAP
         """
@@ -128,20 +124,12 @@ class SCADAETAPConsumer:
         if data.get("id") == "ups_001":
             print(
                 f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V, "
-<<<<<<< HEAD
                 f"Current: {data.get('current')}A",
-=======
-                f"Current: {data.get('current')}A"
->>>>>>> origin/fix/scenario-tests-properly
             )
         elif data.get("id") == "redundancy_001":
             print(
                 f"Redundancy Status: {data.get('status')}, "
-<<<<<<< HEAD
                 f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}",
-=======
-                f"Load: {data.get('load_percentage')}%, Capacity: {data.get('capacity')}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Store in memory cache

@@ -15,11 +15,7 @@ const goalPlannerOutputSchema = z.object({
       priority: z.string(),
       dependencies: z.array(z.string()).optional(),
       notes: z.string().optional(),
-<<<<<<< HEAD
     }),
-=======
-    })
->>>>>>> origin/fix/scenario-tests-properly
   ),
   prioritization_logic: z.string(),
   daily_plan: z.array(z.string()),

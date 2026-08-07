@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import type { ContextMapping } from "./types";
 
 // ============================================================================
@@ -150,7 +149,7 @@ export function resolveContext(contextId: string): string | null {
     .filter((c) => c.contextId === contextId)
     .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))[0];
   return match?.topicId ?? null;
-=======
+
 import type { ContextMapping } from './types'
 
 export const contextRegistry: ContextMapping[] = [
@@ -195,5 +194,4 @@ export function resolveContext(contextId: string): string | null {
     .filter(c => c.contextId === contextId)
     .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))[0]
   return match?.topicId ?? null
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import { AlertCircle, Calendar, Download, FileText, Table } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -16,7 +15,7 @@ interface Report {
   status: string;
 }
 
-=======
+
 import { motion } from 'framer-motion'
 import { FileText, Table, Download, Calendar } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -37,12 +36,10 @@ const reports: Report[] = [
   { name: 'Harmonic Analysis - Solar Farm', type: 'Harmonic', format: 'PDF', date: '2026-06-07', status: 'pending' },
 ]
 
->>>>>>> origin/fix/scenario-tests-properly
 const formatIcons: Record<string, React.ReactNode> = {
   PDF: <FileText className="w-4 h-4 text-red-400" />,
   XLSX: <Table className="w-4 h-4 text-green-400" />,
   CSV: <Table className="w-4 h-4 text-amber-400" />,
-<<<<<<< HEAD
 };
 
 export default function Reports() {
@@ -75,7 +72,7 @@ export default function Reports() {
 
   const generatedCount = reports.filter((r) => r.status === "generated").length;
   const pendingCount = reports.filter((r) => r.status === "pending").length;
-=======
+
 }
 
 export function Reports() {
@@ -83,7 +80,6 @@ export function Reports() {
 
   const generatedCount = reports.filter(r => r.status === 'generated').length
   const pendingCount = reports.filter(r => r.status === 'pending').length
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -94,22 +90,17 @@ export function Reports() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Reports</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 {generatedCount} generated · {pendingCount} pending
               </p>
               <ContextHelpButton contextId="reports.generate" />
             </div>
-=======
-            <p className="text-sm text-[var(--text-tertiary)]">{generatedCount} generated · {pendingCount} pending</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
 
       {/* Reports Table */}
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -216,7 +207,7 @@ export function Reports() {
       </motion.div>
     </div>
   );
-=======
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card padding="none">
           {/* Table Header */}
@@ -276,5 +267,4 @@ export function Reports() {
       </motion.div>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

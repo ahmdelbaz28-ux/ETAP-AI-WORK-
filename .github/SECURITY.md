@@ -59,25 +59,16 @@ kubectl create secret generic etap-secrets \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-<<<<<<< HEAD
 ### 3. Prompt Template Variable Corrected (etap_engineer_agent_v2.yaml)
 
 **Location:** `prompts/etap_engineer_agent_v2.yaml` (loaded under the handle `etap_engineer_agent`)
-=======
-### 3. Prompt Template Variable Corrected (etap_engineer_agent.yaml)
-
-**Location:** `prompts/etap_engineer_agent.yaml`
->>>>>>> origin/fix/scenario-tests-properly
 
 **Issue:** User message template used `{{ environment_details }}` instead of the standard `{{input}}`.
 
 **Fix:** Changed to `{{input}}` to match the convention used by other prompts in the codebase.
 
-<<<<<<< HEAD
 > **Note (2026-07-22):** The original `prompts/etap_engineer_agent.yaml` was an empty placeholder (351 bytes, 1 line of system content with no rules). It was deleted in the agent-prompts pre-launch audit, and the `etap_engineer_agent` handle now maps to the comprehensive `etap_engineer_agent_v2.yaml` (3.5 KB, mandatory ETAP User Guide rules + 5-rule workflow).
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 ---
 
 ## Security Best Practices

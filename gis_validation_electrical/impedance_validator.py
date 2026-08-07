@@ -1,10 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-<<<<<<< HEAD
-=======
-from typing import Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from gis_validation_electrical.electrical_model import ElectricalEdge, ElectricalModel
 
@@ -12,21 +8,19 @@ from gis_validation_electrical.electrical_model import ElectricalEdge, Electrica
 @dataclass(frozen=True)
 class ImpedanceIssue:
     issue_type: str  # e.g. "impedance_jump"
-<<<<<<< HEAD
     affected_edges: list[str]
     affected_nodes: list[str]
     details: dict[str, object]
 
 
 def validate_impedance_consistency(model: ElectricalModel) -> tuple[bool, list[ImpedanceIssue]]:
-=======
+
     affected_edges: List[str]
     affected_nodes: List[str]
     details: Dict[str, object]
 
 
 def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[ImpedanceIssue]]:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Deterministic impedance consistency validation:
     - Impedance values must not exhibit unrealistic discontinuities along connected edges.
@@ -39,22 +33,14 @@ def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[I
         return True, []
 
     # Build adjacency between edges by node-sharing.
-<<<<<<< HEAD
     node_to_edges: dict[str, list[ElectricalEdge]] = {nid: [] for nid in model.nodes}
-=======
-    node_to_edges: Dict[str, List[ElectricalEdge]] = {nid: [] for nid in model.nodes.keys()}
->>>>>>> origin/fix/scenario-tests-properly
     for e in model.edges.values():
         if e.from_node in node_to_edges:
             node_to_edges[e.from_node].append(e)
         if e.to_node in node_to_edges:
             node_to_edges[e.to_node].append(e)
 
-<<<<<<< HEAD
     issues: list[ImpedanceIssue] = []
-=======
-    issues: List[ImpedanceIssue] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     def edge_key(e: ElectricalEdge) -> float:
         return e.impedance_ohm
@@ -78,11 +64,7 @@ def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[I
                     affected_edges=affected_edge_ids,
                     affected_nodes=[node_id],
                     details={"impedance_ratio": ratio, "node_id": node_id},
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
     ok = len(issues) == 0

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { resolveContext } from "../help/contextRegistry";
@@ -76,7 +75,7 @@ export function useSmartHelp(): UseSmartHelpReturn {
   const closeTopic = useCallback(() => {
     setActiveTopicId(null);
   }, []);
-=======
+
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { helpTopics, helpCategories } from '../help/helpTopics'
@@ -156,7 +155,6 @@ export function useSmartHelp(): UseSmartHelpReturn {
   const closeTopic = useCallback(() => {
     setActiveTopicId(null)
   }, [])
->>>>>>> origin/fix/scenario-tests-properly
 
   return {
     topics: helpTopics,
@@ -170,9 +168,5 @@ export function useSmartHelp(): UseSmartHelpReturn {
     openContext,
     closeTopic,
     filteredTopics,
-<<<<<<< HEAD
   };
-=======
-  }
->>>>>>> origin/fix/scenario-tests-properly
 }

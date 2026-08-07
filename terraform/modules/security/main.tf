@@ -12,7 +12,6 @@ resource "azurerm_container_registry" "this" {
   sku                 = "Premium"
   admin_enabled       = false
 
-<<<<<<< HEAD
   # Public network access is HARDENED to false by default (SonarCloud S6329).
   # ACR is reached via Private Endpoint from the AKS VNet, so public access
   # is unnecessary in normal operation. The `var.acr_public_network_access_enabled`
@@ -34,8 +33,6 @@ resource "azurerm_container_registry" "this" {
     type = "SystemAssigned"
   }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
   # Geo-replication for production
   dynamic "georeplications" {
     for_each = var.tags["environment"] == "prod" ? [
@@ -73,7 +70,6 @@ resource "azurerm_key_vault" "this" {
   tenant_id           = var.tenant_id
   sku_name            = "standard"
 
-<<<<<<< HEAD
   # SonarCloud S6383: enable RBAC authorization so access is controlled via
   # Azure RBAC role assignments (Key Vault Administrator, Reader, etc.)
   # instead of access policies. This is the recommended approach for new
@@ -83,15 +79,12 @@ resource "azurerm_key_vault" "this" {
   # to ~> 3.0 in versions.tf, so the v3 argument name is required.
   enable_rbac_authorization = true
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
   soft_delete_retention_days      = 90
 
-<<<<<<< HEAD
   # RBAC authorization (SonarCloud S6383): use Azure RBAC instead of access
   # policies for finer-grained, centralized permission management.
   rbac_authorization_enabled = true
@@ -101,8 +94,6 @@ resource "azurerm_key_vault" "this" {
   # for break-glass maintenance.
   public_network_access_enabled = var.kv_public_network_access_enabled
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"

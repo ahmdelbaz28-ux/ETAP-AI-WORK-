@@ -4,20 +4,15 @@
     "etap_engineer_agent": {
       "version": 0,
       "versionId": "local",
-<<<<<<< HEAD
       "materialized": "prompts/etap_engineer_agent_v2.yaml",
       "_alias_of": "etap_engineer_agent_v2",
       "_note": "Primary handle; filename kept as _v2 for back-compat with docs/etap_user_guide setup"
-=======
-      "materialized": "prompts/etap_engineer_agent.yaml"
->>>>>>> origin/fix/scenario-tests-properly
     },
     "etap_engineer_agent_v2": {
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/etap_engineer_agent_v2.yaml"
     },
-<<<<<<< HEAD
     "etap_expert_agent": {
       "version": 0,
       "versionId": "local",
@@ -28,29 +23,15 @@
       "versionId": "local",
       "materialized": "prompts/etap_gui_agent.prompt.yaml"
     },
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "goal_planner_agent": {
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/goal_planner_agent.yaml"
     },
-<<<<<<< HEAD
     "arcflash_agent": {
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/arcflash_agent.prompt.yaml"
-=======
-    "sample_prompt": {
-      "version": 0,
-      "versionId": "local",
-      "materialized": "prompts/sample_prompt.yaml"
-    },
-    "arcflash_agent_prompt": {
-      "version": 0,
-      "versionId": "local",
-      "materialized": "prompts/arcflash_agent_prompt.prompt.yaml"
->>>>>>> origin/fix/scenario-tests-properly
     },
     "load_flow_agent": {
       "version": 0,
@@ -77,14 +58,11 @@
       "versionId": "local",
       "materialized": "prompts/weather_agent.prompt.yaml"
     },
-<<<<<<< HEAD
     "weather_activity_planner": {
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/weather_activity_planner.prompt.yaml"
     },
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "power_system_coordinator_agent": {
       "version": 0,
       "versionId": "local",
@@ -159,7 +137,6 @@
       "version": 0,
       "versionId": "local",
       "materialized": "prompts/coordination_agent.prompt.yaml"
-<<<<<<< HEAD
     },
     "code_guard_agent": {
       "version": 0,
@@ -189,8 +166,6 @@
       "materialized": "prompts/arcflash_agent.prompt.yaml",
       "_alias_of": "arcflash_agent",
       "_note": "Legacy handle kept for back-compat with src/mastra/agents/arcflash-agent.ts"
-=======
->>>>>>> origin/fix/scenario-tests-properly
     }
   }
 }

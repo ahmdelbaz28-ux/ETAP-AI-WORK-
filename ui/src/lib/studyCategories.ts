@@ -3,7 +3,6 @@
  */
 
 export interface StudyParam {
-<<<<<<< HEAD
   name: string;
   type: "number" | "text" | "select";
   default: string | number;
@@ -19,7 +18,7 @@ export interface StudyCategory {
   description: string;
   standard?: string;
   params: StudyParam[];
-=======
+
   name: string
   type: 'number' | 'text' | 'select'
   default: string | number
@@ -34,12 +33,10 @@ export interface StudyCategory {
   description: string
   standard?: string
   params: StudyParam[]
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 export const studyCategories: StudyCategory[] = [
   {
-<<<<<<< HEAD
     id: "load_flow",
     name: "Load Flow Analysis",
     icon: "⚡",
@@ -161,7 +158,7 @@ export const studyCategories: StudyCategory[] = [
     ],
   },
 ];
-=======
+
     id: 'load_flow',
     name: 'Load Flow Analysis',
     icon: '⚡',
@@ -259,4 +256,3 @@ export const studyCategories: StudyCategory[] = [
     ],
   },
 ]
->>>>>>> origin/fix/scenario-tests-properly

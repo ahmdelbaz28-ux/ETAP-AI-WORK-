@@ -283,15 +283,9 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 |--------|-------|
 | Total Lines of Code | 15,000+ (Python), 8,000+ (TypeScript/React) |
 | Total Files | 173+ verified Python files, 30+ TypeScript files |
-<<<<<<< HEAD
 | Total Agents | 25 specialized agents (incl. orchestrator) — see `api/shared_handlers.py:AGENT_COUNT` |
 | Total API Endpoints | 12+ REST + WebSocket |
 | Total Test Cases | 1680+ passing |
-=======
-| Total Agents | 14 specialized agents + 1 orchestrator |
-| Total API Endpoints | 12+ REST + WebSocket |
-| Total Test Cases | 548 passing |
->>>>>>> origin/fix/scenario-tests-properly
 | Engineering Validation Gates | 31/31 passing |
 | Standards Covered | 50 international standards |
 | Security Vulnerabilities | 0 (all 6 original vulnerabilities remediated) |

@@ -8,25 +8,15 @@ the caller's hot path beyond the (very fast) ``send`` callback.
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import contextlib
 import time
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
-=======
-import time
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
->>>>>>> origin/fix/scenario-tests-properly
 
 __all__ = ["ProgressEmitter", "ProgressEvent"]
 
 
-<<<<<<< HEAD
 @dataclass(frozen=True)
-=======
-@dataclass(frozen=True, slots=True)
->>>>>>> origin/fix/scenario-tests-properly
 class ProgressEvent:
     trace_id: str
     percent: int
@@ -78,11 +68,7 @@ class ProgressEmitter:
     def __init__(
         self,
         trace_id: str,
-<<<<<<< HEAD
         send: Optional[ProgressSink] = None,
-=======
-        send: ProgressSink | None = None,
->>>>>>> origin/fix/scenario-tests-properly
         *,
         on_drop: Callable[[ProgressEvent], None] | None = None,
     ) -> None:
@@ -124,12 +110,10 @@ class ProgressEmitter:
             # Progress is best-effort: never break the handler over a
             # failed notification. Optionally notify a drop observer.
             if self._on_drop is not None:
-<<<<<<< HEAD
                 with contextlib.suppress(Exception):
                     self._on_drop(event)
-=======
+
                 try:
                     self._on_drop(event)
                 except Exception:
                     pass
->>>>>>> origin/fix/scenario-tests-properly

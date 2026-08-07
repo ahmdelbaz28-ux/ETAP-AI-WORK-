@@ -25,7 +25,6 @@ informative errors when unavailable.
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _MODEL_NOT_TRAINED_MSG = (
     "Model has not been trained yet. Call train() first."  # NOSONAR
@@ -42,14 +41,6 @@ import numpy as np
 # NOSONAR
 _RNG = np.random.default_rng()  # NOSONAR
 
-=======
-import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
-
-import numpy as np
-
->>>>>>> origin/fix/scenario-tests-properly
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -166,7 +157,6 @@ class LoadForecaster:
             'auto' selects the best available: lstm > prophet > linear.
         """
         self.model: Any = None
-<<<<<<< HEAD
         self.scaler: Optional[Any] = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
@@ -177,32 +167,23 @@ class LoadForecaster:
         # stays at its default (24) for the next train() call.
         self._trained_window_size: Optional[int] = None
         self._fallback_weights: Optional[np.ndarray] = None
-=======
+
         self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
         self._window_size: int = 24
         self._fallback_weights: np.ndarray | None = None
->>>>>>> origin/fix/scenario-tests-properly
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
         self._fallback_std: float = 1.0
         self._method = method
-<<<<<<< HEAD
         self._training_data: Optional[np.ndarray] = None
-=======
-        self._training_data: np.ndarray | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Training
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def train(self, historical_data: np.ndarray, epochs: int = 50) -> dict[str, Any]:
-=======
-    def train(self, historical_data: np.ndarray, epochs: int = 50) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train the forecasting model on historical load data.
 
         Parameters
@@ -216,7 +197,6 @@ class LoadForecaster:
         -------
         dict
             Training summary with ``method``, ``epochs``, and ``samples`` keys.
-<<<<<<< HEAD
 
         Notes
         -----
@@ -230,24 +210,16 @@ class LoadForecaster:
         for real workloads. A 4-point floor is enforced so the linear
         solver has at least 2 sequences to fit (otherwise the normal
         equations are degenerate).
-=======
->>>>>>> origin/fix/scenario-tests-properly
         """
         if historical_data.ndim != 1:
             raise ValueError("historical_data must be a 1-D array")
 
-<<<<<<< HEAD
         # 4-point floor: linear regression needs ≥ 2 sliding-window sequences
         # to fit meaningfully. With window_size = max(1, n // 2), n=4 ⇒
         # window_size = 2 ⇒ 2 sequences. Anything smaller raises ValueError.
         if len(historical_data) < 4:
             raise ValueError(
                 f"Need at least 4 data points, got {len(historical_data)}",
-=======
-        if len(historical_data) < self._window_size * 2:
-            raise ValueError(
-                f"Need at least {self._window_size * 2} data points, got {len(historical_data)}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         self._training_data = historical_data.copy()
@@ -261,7 +233,6 @@ class LoadForecaster:
             else:
                 method = "linear"
 
-<<<<<<< HEAD
         # ─── Short-sample handling ────────────────────────────────────────
         # If the caller supplied fewer than 2 * window_size points, the
         # LSTM/Prophet paths cannot build supervised sequences. Rather than
@@ -289,8 +260,6 @@ class LoadForecaster:
         # Persist the trained window so predict() / _create_sequences() use it.
         self._trained_window_size = effective_window
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         if method == "lstm" and _HAS_TENSORFLOW:
             return self._train_lstm(historical_data, epochs)
         elif method == "prophet" and _HAS_PROPHET:
@@ -298,11 +267,7 @@ class LoadForecaster:
         else:
             return self._train_linear(historical_data)
 
-<<<<<<< HEAD
     def _train_prophet(self, data: np.ndarray) -> dict[str, Any]:
-=======
-    def _train_prophet(self, data: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train a Prophet model for load forecasting."""
         self.model = _Prophet(
             yearly_seasonality=True,
@@ -322,11 +287,7 @@ class LoadForecaster:
         self._is_lstm = False
         return {"method": "prophet", "epochs": 0, "samples": len(data)}
 
-<<<<<<< HEAD
     def _train_lstm(self, data: np.ndarray, epochs: int) -> dict[str, Any]:
-=======
-    def _train_lstm(self, data: np.ndarray, epochs: int) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train an LSTM model using Keras."""
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         scaled = self.scaler.fit_transform(data.reshape(-1, 1)).flatten()
@@ -340,11 +301,7 @@ class LoadForecaster:
                 keras.layers.LSTM(32),
                 keras.layers.Dropout(0.2),
                 keras.layers.Dense(1),
-<<<<<<< HEAD
             ],
-=======
-            ]
->>>>>>> origin/fix/scenario-tests-properly
         )
         model.compile(optimizer="adam", loss="mse")
         model.fit(X, y, epochs=epochs, batch_size=32, verbose=0)
@@ -353,18 +310,13 @@ class LoadForecaster:
         self._is_lstm = True
         return {"method": "lstm", "epochs": epochs, "samples": len(data)}
 
-<<<<<<< HEAD
     def _train_linear(self, data: np.ndarray) -> dict[str, Any]:
-=======
-    def _train_linear(self, data: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Fallback: train an autoregressive linear model (least-squares)."""
         self._fallback_mean = float(np.mean(data))
         self._fallback_std = float(np.std(data)) if np.std(data) > 0 else 1.0
         normalized = (data - self._fallback_mean) / self._fallback_std
 
         X, y = self._create_sequences(normalized)
-<<<<<<< HEAD
         x_flat = X.reshape(
             X.shape[0], X.shape[1]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -379,7 +331,7 @@ class LoadForecaster:
             self._fallback_weights = np.linalg.solve(xtx, xty)
         except np.linalg.LinAlgError:
             self._fallback_weights = np.linalg.lstsq(x_flat, y, rcond=None)[0]
-=======
+
         X_flat = X.reshape(X.shape[0], X.shape[1])
 
         XtX = X_flat.T @ X_flat
@@ -388,14 +340,12 @@ class LoadForecaster:
             self._fallback_weights = np.linalg.solve(XtX, Xty)
         except np.linalg.LinAlgError:
             self._fallback_weights = np.linalg.lstsq(X_flat, y, rcond=None)[0]
->>>>>>> origin/fix/scenario-tests-properly
         self._fallback_bias = 0.0
         self._is_lstm = False
         self._is_prophet = False
 
         return {"method": "linear_regression", "epochs": 0, "samples": len(data)}
 
-<<<<<<< HEAD
     def _create_sequences(self, data: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Create sliding-window sequences for supervised learning.
 
@@ -416,7 +366,7 @@ class LoadForecaster:
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
             x_arr = x_arr.reshape(x_arr.shape[0], x_arr.shape[1], 1)
         return x_arr, y_arr
-=======
+
     def _create_sequences(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Create sliding-window sequences for supervised learning."""
         X: List[np.ndarray] = []
@@ -429,7 +379,6 @@ class LoadForecaster:
         if self._is_lstm or (_HAS_TENSORFLOW and not self._is_prophet):
             X_arr = X_arr.reshape(X_arr.shape[0], X_arr.shape[1], 1)
         return X_arr, y_arr
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Prediction
@@ -438,13 +387,9 @@ class LoadForecaster:
     def predict(self, horizon_hours: int = 24) -> np.ndarray:
         """Predict load for the next *horizon_hours* hours."""
         if self.model is None and self._fallback_weights is None:
-<<<<<<< HEAD
             raise RuntimeError(
                 _MODEL_NOT_TRAINED_MSG  # NOSONAR
             )  # NOSONAR intentional repetition (audit constant)
-=======
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
->>>>>>> origin/fix/scenario-tests-properly
 
         if self._is_prophet:
             return self._predict_prophet(horizon_hours)
@@ -457,32 +402,22 @@ class LoadForecaster:
         """Prophet-based prediction."""
         future = self.model.make_future_dataframe(periods=horizon_hours, freq="h")
         forecast = self.model.predict(future)
-<<<<<<< HEAD
         result = forecast[
             "yhat"
         ].values[
             -horizon_hours:
         ]  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
-=======
-        result = forecast["yhat"].values[-horizon_hours:]
->>>>>>> origin/fix/scenario-tests-properly
         return np.maximum(result, 0.0)
 
     def _predict_lstm(self, horizon_hours: int) -> np.ndarray:
         """Autoregressive LSTM prediction."""
         scaled_recent = self.scaler.data_min_ + (
             self.scaler.data_max_ - self.scaler.data_min_
-<<<<<<< HEAD
         ) * _RNG.rand(  # NOSONAR
             self._window_size
         )  # NOSONAR numpy.random.Generator migration; API change required
         input_seq = scaled_recent.reshape(1, self._window_size, 1)
         predictions: list[float] = []
-=======
-        ) * np.random.rand(self._window_size)
-        input_seq = scaled_recent.reshape(1, self._window_size, 1)
-        predictions: List[float] = []
->>>>>>> origin/fix/scenario-tests-properly
         for _ in range(horizon_hours):
             pred = float(self.model.predict(input_seq, verbose=0)[0, 0])
             predictions.append(pred)
@@ -492,7 +427,6 @@ class LoadForecaster:
         return result
 
     def _predict_linear(self, horizon_hours: int) -> np.ndarray:
-<<<<<<< HEAD
         """Autoregressive linear regression prediction.
 
         The window length MUST match the length of ``_fallback_weights``
@@ -503,11 +437,10 @@ class LoadForecaster:
         w = self._trained_window_size or self._window_size
         window = np.zeros(w)
         predictions: list[float] = []
-=======
+
         """Autoregressive linear regression prediction."""
         window = np.zeros(self._window_size)
         predictions: List[float] = []
->>>>>>> origin/fix/scenario-tests-properly
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)
             predictions.append(next_val)
@@ -520,7 +453,6 @@ class LoadForecaster:
     # Evaluation
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def evaluate(self, test_data: np.ndarray) -> dict[str, float]:
         """Evaluate model accuracy on test data."""
         w = self._trained_window_size or self._window_size
@@ -529,7 +461,7 @@ class LoadForecaster:
 
         actuals: list[float] = []
         preds: list[float] = []
-=======
+
     def evaluate(self, test_data: np.ndarray) -> Dict[str, float]:
         """Evaluate model accuracy on test data."""
         if len(test_data) < self._window_size + 1:
@@ -537,7 +469,6 @@ class LoadForecaster:
 
         actuals: List[float] = []
         preds: List[float] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         for i in range(self._window_size, len(test_data)):
             actuals.append(float(test_data[i]))
@@ -569,17 +500,15 @@ class LoadForecaster:
                 np.mean(
                     np.abs(
                         (actuals_arr[nonzero_mask] - preds_arr[nonzero_mask])
-<<<<<<< HEAD
                         / actuals_arr[nonzero_mask],
                     ),
                 )
                 * 100,
-=======
+
                         / actuals_arr[nonzero_mask]
                     )
                 )
                 * 100
->>>>>>> origin/fix/scenario-tests-properly
             )
         else:
             mape = float("inf")
@@ -602,22 +531,14 @@ class FaultPredictor:
     - 3: Open circuit
     """
 
-<<<<<<< HEAD
     FAULT_LABELS: dict[int, str] = {
-=======
-    FAULT_LABELS: Dict[int, str] = {
->>>>>>> origin/fix/scenario-tests-properly
         0: "none",
         1: "short_circuit",
         2: "ground_fault",
         3: "open_circuit",
     }
 
-<<<<<<< HEAD
     FEATURE_NAMES: list[str] = [
-=======
-    FEATURE_NAMES: List[str] = [
->>>>>>> origin/fix/scenario-tests-properly
         "voltage",
         "current",
         "temperature",
@@ -636,18 +557,13 @@ class FaultPredictor:
             Use Optuna for hyperparameter optimization during training.
         """
         self.model: Any = None
-<<<<<<< HEAD
         self._is_trained: bool = (
             False  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         )
-=======
-        self._is_trained: bool = False
->>>>>>> origin/fix/scenario-tests-properly
         self._use_xgboost = use_xgboost and _HAS_XGBOOST
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP
         self._explainer: Any = None
-<<<<<<< HEAD
         self._last_training_features: Optional[np.ndarray] = None
 
     def train(  # NOSONAR
@@ -655,11 +571,6 @@ class FaultPredictor:
     ) -> dict[
         str, Any
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-        self._last_training_features: np.ndarray | None = None
-
-    def train(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train fault classifier on fault features.
 
         Parameters
@@ -706,11 +617,7 @@ class FaultPredictor:
                         "use_label_encoder": False,
                         "eval_metric": "mlogloss",
                     }
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             self.model.fit(features, labels)
             method = "xgboost"
@@ -719,7 +626,6 @@ class FaultPredictor:
             if self._optimize:
                 best_params = self._optimize_rf(features, labels)
 
-<<<<<<< HEAD
             if best_params:
                 # Explicitly pass all hyperparameters (incl. min_samples_leaf,
                 # max_features, random_state) so SonarCloud S6973/S6709 can see
@@ -742,7 +648,7 @@ class FaultPredictor:
                     random_state=42,
                     n_jobs=-1,
                 )
-=======
+
             self.model = RandomForestClassifier(
                 **(
                     best_params
@@ -755,7 +661,6 @@ class FaultPredictor:
                     }
                 )
             )
->>>>>>> origin/fix/scenario-tests-properly
             self.model.fit(features, labels)
             method = "random_forest"
 
@@ -764,20 +669,18 @@ class FaultPredictor:
         # Initialize SHAP explainer if available
         if self._use_shap and _HAS_SHAP:
             try:
-<<<<<<< HEAD
                 # TreeExplainer works for both XGBoost and sklearn tree models.
                 # The previous if/else was redundant (SonarCloud S3923).
                 self._explainer = shap.TreeExplainer(self.model)
             except Exception as e:
                 logger.warning("Could not initialize SHAP explainer: %s", e)
-=======
+
                 if self._use_xgboost:
                     self._explainer = shap.TreeExplainer(self.model)
                 else:
                     self._explainer = shap.TreeExplainer(self.model)
             except Exception as e:
                 logger.warning(f"Could not initialize SHAP explainer: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
         result = {
             "n_samples": int(features.shape[0]),
@@ -789,11 +692,7 @@ class FaultPredictor:
             result["best_params"] = best_params
         return result
 
-<<<<<<< HEAD
     def _optimize_xgboost(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
-=======
-    def _optimize_xgboost(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Optuna-based XGBoost hyperparameter optimization."""
         if not _HAS_OPTUNA:
             return {}
@@ -819,11 +718,7 @@ class FaultPredictor:
         study.optimize(objective, n_trials=20, show_progress_bar=False)
         return study.best_params
 
-<<<<<<< HEAD
     def _optimize_rf(self, features: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
-=======
-    def _optimize_rf(self, features: np.ndarray, labels: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Optuna-based Random Forest hyperparameter optimization."""
         if not _HAS_OPTUNA:
             return {}
@@ -833,19 +728,15 @@ class FaultPredictor:
                 "n_estimators": trial.suggest_int("n_estimators", 50, 300),
                 "max_depth": trial.suggest_int("max_depth", 3, 20),
                 "min_samples_split": trial.suggest_int("min_samples_split", 2, 10),
-<<<<<<< HEAD
                 # SonarCloud python:S6973 + S6709: explicit values for
                 # min_samples_leaf and max_features, and explicit random_state.
                 "min_samples_leaf": trial.suggest_int("min_samples_leaf", 1, 4),
                 "max_features": trial.suggest_categorical("max_features", ["sqrt", "log2"]),
-=======
->>>>>>> origin/fix/scenario-tests-properly
                 "random_state": 42,
                 "n_jobs": -1,
             }
             from sklearn.model_selection import cross_val_score
 
-<<<<<<< HEAD
             clf = RandomForestClassifier(
                 n_estimators=params["n_estimators"],
                 max_depth=params["max_depth"],
@@ -855,15 +746,11 @@ class FaultPredictor:
                 random_state=params["random_state"],
                 n_jobs=params["n_jobs"],
             )
-=======
-            clf = RandomForestClassifier(**params)
->>>>>>> origin/fix/scenario-tests-properly
             scores = cross_val_score(clf, features, labels, cv=3, scoring="accuracy")
             return scores.mean()
 
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=20, show_progress_bar=False)
-<<<<<<< HEAD
         # SonarCloud: ensure all hyperparameters have safe defaults
         best_params = dict(study.best_params)
         if "min_samples_leaf" not in best_params:
@@ -878,14 +765,13 @@ class FaultPredictor:
         """Predict fault probability and type."""
         if not self._is_trained or self.model is None:
             raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
-=======
+
         return study.best_params
 
     def predict(self, features: np.ndarray) -> Dict[str, Any]:
         """Predict fault probability and type."""
         if not self._is_trained or self.model is None:
             raise RuntimeError("Model has not been trained yet. Call train() first.")
->>>>>>> origin/fix/scenario-tests-properly
 
         if features.ndim == 1:
             features = features.reshape(1, -1)
@@ -893,11 +779,7 @@ class FaultPredictor:
         predictions = self.model.predict(features)
         probabilities = self.model.predict_proba(features)
 
-<<<<<<< HEAD
         results: dict[str, Any] = {
-=======
-        results: Dict[str, Any] = {
->>>>>>> origin/fix/scenario-tests-properly
             "fault_type": int(predictions[0]),
             "fault_label": self.FAULT_LABELS.get(int(predictions[0]), "unknown"),
             "probabilities": {
@@ -908,15 +790,11 @@ class FaultPredictor:
         }
         return results
 
-<<<<<<< HEAD
     def explain(
         self, features: np.ndarray
     ) -> dict[
         str, Any
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def explain(self, features: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Provide SHAP-based explanation for a prediction.
 
         Parameters
@@ -964,22 +842,13 @@ class FaultPredictor:
             feature_contributions[f"feature_{i}"] = float(sv[i])
 
         base_val = 0.0
-<<<<<<< HEAD
         # SHAP expected_value extraction is best-effort — fall back to 0.0
         with contextlib.suppress(Exception):
-=======
-        try:
->>>>>>> origin/fix/scenario-tests-properly
             ev = self._explainer.expected_value
             if isinstance(ev, (list, np.ndarray)):
                 base_val = float(np.array(ev).flatten()[0])
             else:
                 base_val = float(ev)
-<<<<<<< HEAD
-=======
-        except Exception:
-            pass
->>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "shap_values": {k: round(v, 6) for k, v in feature_contributions.items()},
@@ -987,7 +856,6 @@ class FaultPredictor:
             "method": "shap_tree_explainer",
         }
 
-<<<<<<< HEAD
     def feature_importance(self) -> dict[str, float]:
         """Return feature importance scores."""
         if not self._is_trained or self.model is None:
@@ -999,7 +867,7 @@ class FaultPredictor:
 
         n_features = min(len(self.FEATURE_NAMES), len(importances))
         result: dict[str, float] = {}
-=======
+
     def feature_importance(self) -> Dict[str, float]:
         """Return feature importance scores."""
         if not self._is_trained or self.model is None:
@@ -1012,7 +880,6 @@ class FaultPredictor:
 
         n_features = min(len(self.FEATURE_NAMES), len(importances))
         result: Dict[str, float] = {}
->>>>>>> origin/fix/scenario-tests-properly
         for i in range(n_features):
             result[self.FEATURE_NAMES[i]] = float(importances[i])
         for i in range(n_features, len(importances)):
@@ -1029,7 +896,6 @@ class AnomalyDetector:
     """Anomaly detection with Isolation Forest (sklearn) and PyOD models.
 
     Supports multiple detection algorithms:
-<<<<<<< HEAD
     - Isolation Forest (sklearn, when available)
     - PyOD IForest (enhanced isolation forest)
     - PyOD KNN (k-nearest neighbors)
@@ -1051,7 +917,7 @@ class AnomalyDetector:
         if _HAS_SKLEARN:
             return "iforest"
         return "statistical"
-=======
+
     - Isolation Forest (sklearn, always available)
     - PyOD IForest (enhanced isolation forest)
     - PyOD KNN (k-nearest neighbors)
@@ -1061,7 +927,6 @@ class AnomalyDetector:
     AVAILABLE_METHODS = ["iforest"]
     if _HAS_PYOD:
         AVAILABLE_METHODS.extend(["pyod_iforest", "pyod_knn", "pyod_autoencoder"])
->>>>>>> origin/fix/scenario-tests-properly
 
     def __init__(self, contamination: float = 0.01, method: str = "iforest") -> None:
         """Initialize the detector.
@@ -1071,7 +936,6 @@ class AnomalyDetector:
         contamination : float
             Expected proportion of anomalies in the data (0, 0.5].
         method : str
-<<<<<<< HEAD
             Detection method: 'iforest' (requires sklearn), 'pyod_iforest',
             'pyod_knn', 'pyod_autoencoder', or 'statistical' (always available).
         """
@@ -1098,7 +962,7 @@ class AnomalyDetector:
         self._train_std: Optional[float] = None
 
     def train(self, normal_data: np.ndarray) -> dict[str, Any]:
-=======
+
             Detection method: 'iforest', 'pyod_iforest', 'pyod_knn',
             or 'pyod_autoencoder'.
         """
@@ -1113,7 +977,6 @@ class AnomalyDetector:
         self._is_trained: bool = False
 
     def train(self, normal_data: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train on normal operating data.
 
         Parameters
@@ -1130,7 +993,6 @@ class AnomalyDetector:
         if normal_data.ndim != 2:
             raise ValueError("normal_data must be a 2-D array (n_samples, n_features)")
 
-<<<<<<< HEAD
         if self.method == "statistical":
             # Z-score based detection — always available, no external deps
             self._train_mean = float(np.mean(normal_data))
@@ -1139,9 +1001,6 @@ class AnomalyDetector:
             self._threshold = float(np.percentile(z_scores, (1 - self.contamination) * 100))
 
         elif self.method == "iforest":
-=======
-        if self.method == "iforest":
->>>>>>> origin/fix/scenario-tests-properly
             if not _HAS_SKLEARN:
                 raise RuntimeError("scikit-learn required for iforest method")
             self.model = IsolationForest(
@@ -1185,11 +1044,7 @@ class AnomalyDetector:
             "method": self.method,
         }
 
-<<<<<<< HEAD
     def detect(self, data: np.ndarray) -> dict[str, Any]:
-=======
-    def detect(self, data: np.ndarray) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect anomalies in real-time data.
 
         Parameters
@@ -1202,18 +1057,12 @@ class AnomalyDetector:
         dict
             Dictionary with anomaly detection results.
         """
-<<<<<<< HEAD
         if not self._is_trained:
             raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
-=======
-        if not self._is_trained or self.model is None:
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
->>>>>>> origin/fix/scenario-tests-properly
 
         if data.ndim == 1:
             data = data.reshape(1, -1)
 
-<<<<<<< HEAD
         if self.method == "statistical":
             mean = self._train_mean if self._train_mean is not None else float(np.mean(data))
             std = self._train_std if self._train_std is not None else (float(np.std(data)) or 1.0)
@@ -1224,9 +1073,6 @@ class AnomalyDetector:
             scores_list = flat_scores
 
         elif self.method == "iforest":
-=======
-        if self.method == "iforest":
->>>>>>> origin/fix/scenario-tests-properly
             predictions = self.model.predict(data)
             scores = self.model.decision_function(data)
             anomalies = [int(p) == -1 for p in predictions]
@@ -1249,11 +1095,7 @@ class AnomalyDetector:
     def get_threshold(self) -> float:
         """Get the anomaly score threshold."""
         if self._threshold is None:
-<<<<<<< HEAD
             raise RuntimeError(_MODEL_NOT_TRAINED_MSG)
-=======
-            raise RuntimeError("Model has not been trained yet. Call train() first.")
->>>>>>> origin/fix/scenario-tests-properly
         return self._threshold
 
 
@@ -1297,13 +1139,8 @@ class PowerGridGNN:
         self.num_layers = num_layers
         self.model: Any = None
         self._is_trained: bool = False
-<<<<<<< HEAD
         self._input_dim: Optional[int] = None
         self._output_dim: Optional[int] = None
-=======
-        self._input_dim: int | None = None
-        self._output_dim: int | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
     def _build_model(self, input_dim: int, output_dim: int) -> None:
         """Build the GNN model architecture."""
@@ -1360,11 +1197,7 @@ class PowerGridGNN:
         targets: np.ndarray,
         epochs: int = 100,
         lr: float = 0.01,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Train the GNN model.
 
         Parameters
@@ -1399,7 +1232,6 @@ class PowerGridGNN:
         edge_idx = torch.LongTensor(edge_index)
         y = torch.FloatTensor(targets.reshape(-1, output_dim))
 
-<<<<<<< HEAD
         optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=lr,
@@ -1408,9 +1240,6 @@ class PowerGridGNN:
             # overfitting on small graph datasets.
             weight_decay=1e-4,
         )
-=======
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
->>>>>>> origin/fix/scenario-tests-properly
         criterion = torch.nn.MSELoss()
 
         self.model.train()
@@ -1476,11 +1305,7 @@ class ModelRegistry:
     - Model artifact storage
     """
 
-<<<<<<< HEAD
     def __init__(self, tracking_uri: Optional[str] = None) -> None:
-=======
-    def __init__(self, tracking_uri: str | None = None) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Initialize ModelRegistry.
 
         Parameters
@@ -1544,20 +1369,12 @@ class ModelRegistry:
         self._active_run = mlflow.start_run(run_name=run_name)
         return self._active_run
 
-<<<<<<< HEAD
     def log_params(self, params: dict[str, Any]) -> None:
-=======
-    def log_params(self, params: Dict[str, Any]) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Log parameters for the current run."""
         if self._active_run:
             mlflow.log_params(params)
 
-<<<<<<< HEAD
     def log_metrics(self, metrics: dict[str, float]) -> None:
-=======
-    def log_metrics(self, metrics: Dict[str, float]) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Log metrics for the current run."""
         if self._active_run:
             mlflow.log_metrics(metrics)
@@ -1572,11 +1389,7 @@ class ModelRegistry:
                 try:
                     mlflow.pyfunc.log_model(artifact_path, python_model=model)
                 except Exception as e:
-<<<<<<< HEAD
                     logger.warning("Could not log model: %s", e)
-=======
-                    logger.warning(f"Could not log model: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
     def end_run(self) -> None:
         """End the current MLflow run."""
@@ -1585,16 +1398,11 @@ class ModelRegistry:
             self._active_run = None
 
     def get_best_run(
-<<<<<<< HEAD
         self,
         experiment_name: str,
         metric: str = "accuracy",
         ascending: bool = False,
     ) -> dict[str, Any] | None:
-=======
-        self, experiment_name: str, metric: str = "accuracy", ascending: bool = False
-    ) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get the best run for an experiment based on a metric.
 
         Parameters
@@ -1639,11 +1447,7 @@ class ModelRegistry:
 # ===========================================================================
 
 
-<<<<<<< HEAD
 def get_ml_capabilities() -> dict[str, Any]:
-=======
-def get_ml_capabilities() -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """Return a summary of available ML capabilities.
 
     Returns
@@ -1652,7 +1456,6 @@ def get_ml_capabilities() -> Dict[str, Any]:
         Dictionary mapping capability name to availability status and
         recommended library.
     """
-<<<<<<< HEAD
     # Forecasting best_available — extracted from nested ternary (S3358)
     if _HAS_TENSORFLOW:
         _fc_best = "lstm"
@@ -1667,8 +1470,6 @@ def get_ml_capabilities() -> Dict[str, Any]:
         _fp_best = "random_forest"
     else:
         _fp_best = "none"
-=======
->>>>>>> origin/fix/scenario-tests-properly
     return {
         "sklearn": {
             "available": _HAS_SKLEARN,
@@ -1716,41 +1517,34 @@ def get_ml_capabilities() -> Dict[str, Any]:
             "version": "2.0+",
             "purpose": "Model tracking and versioning",
         },
-<<<<<<< HEAD
         # Forecasting best_available — extracted from nested ternary (S3358)
-=======
->>>>>>> origin/fix/scenario-tests-properly
         "forecasting_methods": {
             "available": [
                 "lstm" if _HAS_TENSORFLOW else None,
                 "prophet" if _HAS_PROPHET else None,
                 "linear",
             ],
-<<<<<<< HEAD
             "best_available": _fc_best,
-=======
+
             "best_available": "lstm"
             if _HAS_TENSORFLOW
             else ("prophet" if _HAS_PROPHET else "linear"),
->>>>>>> origin/fix/scenario-tests-properly
         },
         "fault_prediction_methods": {
             "available": [
                 "xgboost" if _HAS_XGBOOST else None,
                 "random_forest" if _HAS_SKLEARN else None,
             ],
-<<<<<<< HEAD
             "best_available": _fp_best,
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector._build_available_methods(),
-=======
+
             "best_available": "xgboost"
             if _HAS_XGBOOST
             else ("random_forest" if _HAS_SKLEARN else "none"),
         },
         "anomaly_detection_methods": {
             "available": AnomalyDetector.AVAILABLE_METHODS,
->>>>>>> origin/fix/scenario-tests-properly
         },
     }

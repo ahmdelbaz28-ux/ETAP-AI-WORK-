@@ -2,7 +2,6 @@
 MFA Endpoints API Router
 =======================
 Handles all multi-factor authentication endpoints.
-<<<<<<< HEAD
 
 SECURITY AUDIT 2026-08-02 (F-04, F-05 fix — CRITICAL):
 The previous version of this file had two critical vulnerabilities:
@@ -179,7 +178,7 @@ async def setup_totp(
             )
 
         target_user_id = current_user.user_id
-=======
+
 Separated from main engineering service for better modularity.
 """
 
@@ -198,12 +197,10 @@ async def setup_totp(request: Request):
         user_id = body.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
->>>>>>> origin/fix/scenario-tests-properly
 
         from security.mfa import TOTPProvider
 
         totp = TOTPProvider()
-<<<<<<< HEAD
         secret = totp.generate_secret(target_user_id)
         qr_uri = totp.generate_qr_code(target_user_id, secret)
         totp.generate_backup_codes(target_user_id)  # side effect: stores codes in DB
@@ -230,11 +227,10 @@ async def setup_totp(request: Request):
             getLogger("etap.api.mfa").warning(
                 "mfa_auto_enable_failed user=%s err=%s", target_user_id, mfa_enable_err
             )
-=======
+
         secret = totp.generate_secret(user_id)
         qr_uri = totp.generate_qr_code(user_id, secret)
         totp.generate_backup_codes(user_id)
->>>>>>> origin/fix/scenario-tests-properly
 
         return JSONResponse(
             content={
@@ -245,11 +241,7 @@ async def setup_totp(request: Request):
                     # to prevent credential leakage. They are stored server-side only.
                 },
                 "trace_id": trace_id,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -257,7 +249,6 @@ async def setup_totp(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-<<<<<<< HEAD
         logger.exception("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -316,7 +307,7 @@ async def verify_totp(
                     # Lockout expired — clear
                     del _lockouts[target_user_id]
                     _failed_attempts.pop(target_user_id, None)
-=======
+
         logger.error("totp_setup_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
@@ -336,12 +327,10 @@ async def verify_totp(request: Request):
             raise HTTPException(status_code=400, detail="user_id is required")
         if not code:
             raise HTTPException(status_code=400, detail="code is required")
->>>>>>> origin/fix/scenario-tests-properly
 
         from security.mfa import TOTPProvider
 
         totp = TOTPProvider()
-<<<<<<< HEAD
         is_valid = totp.verify_code(target_user_id, code)
 
         # V-12: TOTP code replay protection
@@ -392,25 +381,15 @@ async def verify_totp(request: Request):
             _lockouts.pop(target_user_id, None)
             # V-12: Record this code as used
             _last_used_totp[target_user_id] = (code_hash, time.time())
-=======
-        is_valid = totp.verify_code(user_id, code)
->>>>>>> origin/fix/scenario-tests-properly
 
         return JSONResponse(
             content={
                 "success": True,
                 "data": {
-<<<<<<< HEAD
                     "valid": True,
                 },
                 "trace_id": trace_id,
             },
-=======
-                    "valid": is_valid,
-                },
-                "trace_id": trace_id,
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -418,7 +397,6 @@ async def verify_totp(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-<<<<<<< HEAD
         logger.exception("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -541,9 +519,3 @@ async def verify_backup_code(
 
 
 __all__ = ["router"]
-=======
-        logger.error("totp_verify_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
-        )
->>>>>>> origin/fix/scenario-tests-properly

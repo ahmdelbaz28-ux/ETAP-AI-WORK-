@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { HelpCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -68,7 +67,7 @@ export function ContextHelpButton({
       <span className="sr-only">{displayLabel}</span>
     </button>
   );
-=======
+
 import { HelpCircle } from 'lucide-react'
 import { cn } from '../../utils/helpers'
 
@@ -102,5 +101,4 @@ export function ContextHelpButton({ contextId, onClick, size = 'sm', className, 
       {label && <span className="ml-1 text-xs">{label}</span>}
     </button>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

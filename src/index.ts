@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * AhmedETAP - Cloudflare Worker (Security Hardened)
  * ===========================================================
@@ -23,7 +22,7 @@ import { checkRateLimit, checkIpRateLimit, recordIpAuthFailure, isIpBanned } fro
 import { recordAudit, flushAuditLog } from './utils/audit.js';
 import { bumpApiMetric, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
-=======
+
 /**
  * AhmedETAP - Cloudflare Worker (Production Hardened)
  * ===========================================================
@@ -48,7 +47,6 @@ import { recordAudit, flushAuditLog } from './utils/audit.js';
 import { bumpApiMetric, bumpPerKey, loadMetrics, saveMetrics } from './utils/metrics.js';
 import { loadCircuitBreakers } from './core/circuitBreaker.js';
 import { CONFIG } from './core/config.js';
->>>>>>> origin/fix/scenario-tests-properly
 
 import { handleRoot, handleHealth, handleMetrics } from './routes/health.js';
 import { handleListAgents, handleChat } from './routes/agents.js';
@@ -59,7 +57,6 @@ import { handleAuditLogs } from './routes/audit.js';
 let _metricsLoaded = false;
 let _circuitsLoaded = false;
 
-<<<<<<< HEAD
 export { CONFIG } from './core/config.js';
 export type { Env, ExecutionContext };
 
@@ -369,7 +366,7 @@ export default {
       auditAndFlush(rc, {
         ...baseAuditFields(rc),
         statusCode: 500,
-=======
+
 export { CONFIG };
 export type { Env, ExecutionContext };
 
@@ -569,7 +566,6 @@ export default {
         path,
         statusCode: 500,
         userAgent: request.headers.get('user-agent') || 'unknown',
->>>>>>> origin/fix/scenario-tests-properly
         action: 'INTERNAL_ERROR',
         authenticated: true,
         rateLimited: false,
@@ -577,12 +573,7 @@ export default {
         scope: auth.scope,
         details: { error: msg },
       });
-<<<<<<< HEAD
       return errorResponse(500, 'Internal server error', rc.traceId, rc.cors);
-=======
-      ctx.waitUntil(Promise.all([flushAuditLog(env), saveMetrics(env)]));
-      return errorResponse(500, 'Internal server error', traceId, cors);
->>>>>>> origin/fix/scenario-tests-properly
     }
   },
 };
@@ -593,11 +584,7 @@ function categorize(path: string, method: string): RouteCategory {
   if (path === '/api/v1/agents' && method === 'GET') return 'agents-list';
   if (path === '/api/v1/providers' && method === 'GET') return 'providers-list';
   if (/^\/api\/v1\/agents\/[^/]+\/chat$/.test(path) && method === 'POST') return 'chat';
-<<<<<<< HEAD
   if (path.startsWith('/api/v1/studies/')) return 'studies';
-=======
-  if (/^\/api\/v1\/studies\//.test(path)) return 'studies';
->>>>>>> origin/fix/scenario-tests-properly
   if (path === '/api/v1/audit/logs') return 'audit';
   return 'health';
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Relay models for protection coordination studies.
 
@@ -19,11 +18,6 @@ from curves.curves import (
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
 )
-=======
-import numpy as np
-
-from curves.curves import IEC60255Curves
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class Relay:
@@ -44,11 +38,7 @@ class Relay:
 
         Parameters
         ----------
-<<<<<<< HEAD
         value : Union[float, complex]
-=======
-        value : float | complex
->>>>>>> origin/fix/scenario-tests-properly
             Measured quantity (current, voltage, impedance, etc.).
             The base class does not interpret ``value``; subclasses
             document the expected quantity.
@@ -73,11 +63,7 @@ class Relay:
         # For time-overcurrent relays, trip logic is separate.
         return self.trip
 
-<<<<<<< HEAD
     def trip_time(self, _value):
-=======
-    def trip_time(self, value):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate trip time for time-overcurrent relays.
         Returns time in seconds, or infinity if not picked up.
@@ -86,7 +72,6 @@ class Relay:
 
 
 class OvercurrentRelay(Relay):
-<<<<<<< HEAD
     """Overcurrent relay (50/51) with IEC 60255 / IEEE C37.112 curves.
 
     V-TCC-01: All trip-time calculations now go through
@@ -191,7 +176,7 @@ class OvercurrentRelay(Relay):
         i,
         t=0,
     ):  # NOSONAR physics/engineering notation
-=======
+
     def __init__(
         self, relay_id, name="OvercurrentRelay", curve_type="standard_inverse", TMS=1.0, Ip=1.0
     ):
@@ -236,20 +221,14 @@ class OvercurrentRelay(Relay):
             raise ValueError(f"Unknown curve type: {self.curve_type}")
 
     def operate(self, I, t=0):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Operate the relay: if picked up and time exceeds trip time, then trip.
         For simplicity, we assume instantaneous trip if we pass the operate method with time.
         In practice, the relay would integrate over time.
         We'll implement: if picked up and t >= trip_time(I), then trip.
         """
-<<<<<<< HEAD
         self.pickup = self.pickup_logic(i)
         if self.pickup and t >= self.trip_time(i):
-=======
-        self.pickup = self.pickup_logic(I)
-        if self.pickup and t >= self.trip_time(I):
->>>>>>> origin/fix/scenario-tests-properly
             self.trip = True
         else:
             self.trip = False
@@ -271,7 +250,6 @@ class DistanceRelay(Relay):
         self.impedance_setting = impedance_setting
         self.offset_angle = np.radians(offset_angle)
 
-<<<<<<< HEAD
     def pickup_logic(
         self,
         v=None,
@@ -289,7 +267,7 @@ class DistanceRelay(Relay):
         i=None,  # NOSONAR
     ):  # NOSONAR see pickup_logic; signature matches the relay's measurement quantities
         self.pickup = self.pickup_logic(v, i)
-=======
+
     def pickup_logic(self, V, I):
         """
         Pickup if measured impedance is within the characteristic.
@@ -306,14 +284,12 @@ class DistanceRelay(Relay):
         Operate the distance relay.
         """
         self.pickup = self.pickup_logic(V, I)
->>>>>>> origin/fix/scenario-tests-properly
         # For distance relays, trip is typically instantaneous if picked up.
         self.trip = self.pickup
         return self.trip
 
 
 class DifferentialRelay(Relay):
-<<<<<<< HEAD
     def __init__(
         self,
         relay_id,
@@ -326,9 +302,6 @@ class DifferentialRelay(Relay):
         # Backward compatibility: accept uppercase Ip
         ip = kwargs.pop("Ip", ip)  # NOSONAR physics/engineering notation
 
-=======
-    def __init__(self, relay_id, name="DifferentialRelay", Ip=0.1, slope1=0.2, slope2=0.5):
->>>>>>> origin/fix/scenario-tests-properly
         """
         Differential relay (87).
 
@@ -340,7 +313,6 @@ class DifferentialRelay(Relay):
         slope2 (float): Slope2 of the characteristic.
         """
         super().__init__(relay_id, name)
-<<<<<<< HEAD
         self.Ip = ip  # NOSONAR physics/engineering notation
         self.slope1 = slope1
         self.slope2 = slope2
@@ -376,7 +348,7 @@ class DifferentialRelay(Relay):
         idiff = kwargs.pop("Idiff", idiff)  # NOSONAR physics/engineering notation
 
         self.pickup = self.pickup_logic(ibias, idiff)
-=======
+
         self.Ip = Ip
         self.slope1 = slope1
         self.slope2 = slope2
@@ -401,17 +373,12 @@ class DifferentialRelay(Relay):
         Operate the differential relay.
         """
         self.pickup = self.pickup_logic(Ibias, Idiff)
->>>>>>> origin/fix/scenario-tests-properly
         # Differential relays are typically instantaneous.
         self.trip = self.pickup
         return self.trip
 
 
-<<<<<<< HEAD
 class DirectionalRelay(Relay):  # NOSONAR physics/engineering notation
-=======
-class DirectionalRelay(Relay):
->>>>>>> origin/fix/scenario-tests-properly
     def __init__(self, relay_id, name="DirectionalRelay", voltage_threshold=0.1, angle_offset=0):
         """
         Directional relay (67).
@@ -426,7 +393,6 @@ class DirectionalRelay(Relay):
         self.voltage_threshold = voltage_threshold
         self.angle_offset = np.radians(angle_offset)
 
-<<<<<<< HEAD
     def pickup_logic(
         self,
         v=None,
@@ -437,7 +403,7 @@ class DirectionalRelay(Relay):
         # Calculate the angle of VI
         S = v * np.conj(i)  # complex power  # NOSONAR physics/engineering notation
         angle_S = np.angle(S)  # NOSONAR physics notation
-=======
+
     def pickup_logic(self, V, I):
         """
         Pickup if voltage is above threshold and the phase angle of VI is within the forward direction.
@@ -447,14 +413,12 @@ class DirectionalRelay(Relay):
         # Calculate the angle of VI
         S = V * np.conj(I)  # complex power
         angle_S = np.angle(S)
->>>>>>> origin/fix/scenario-tests-properly
         # Check if angle is within +/- 90 degrees of the offset angle (forward direction)
         angle_diff = angle_S - self.angle_offset
         # Normalize to [-180, 180]
         angle_diff = np.arctan2(np.sin(angle_diff), np.cos(angle_diff))
         return abs(angle_diff) < np.radians(90)
 
-<<<<<<< HEAD
     def operate(
         self, v=None, i=None
     ):  # NOSONAR see pickup_logic; S2638 default=None satisfies LSP; directional relay operates on V+I
@@ -462,7 +426,7 @@ class DirectionalRelay(Relay):
         # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
         self.trip = self.pickup
         return self.trip  # NOSONAR physics/engineering notation
-=======
+
     def operate(self, V, I):
         """
         Operate the directional relay.
@@ -471,4 +435,3 @@ class DirectionalRelay(Relay):
         # Directional relays are often used with overcurrent relays, but we treat as instantaneous for simplicity.
         self.trip = self.pickup
         return self.trip
->>>>>>> origin/fix/scenario-tests-properly

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -203,7 +202,7 @@ export default function DataImport() {
       fileInputRef.current.click();
     }
   }, []);
-=======
+
 import { motion } from 'framer-motion'
 import { Upload, CloudUpload, FileJson, FileSpreadsheet, FileText, Database, Cable } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -220,7 +219,6 @@ const supportedFormats = [
 
 export function DataImport() {
   const { notify } = useNotify()
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -231,21 +229,16 @@ export function DataImport() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Data Import</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 Import power system models from industry-standard formats
               </p>
               <ContextHelpButton contextId="data-import.overview" />
             </div>
-=======
-            <p className="text-sm text-[var(--text-tertiary)]">Import power system models and data</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
 
-<<<<<<< HEAD
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -290,7 +283,7 @@ export function DataImport() {
             </p>
             <p className="text-xs text-[var(--text-muted)] mt-2">
               Maximum file size: 20 MB · Files are parsed on the server
-=======
+
       {/* Upload Drop Zone */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card
@@ -305,13 +298,11 @@ export function DataImport() {
             <h3 className="text-base font-medium text-[var(--text-primary)]">Drop files here or click to browse</h3>
             <p className="text-sm text-[var(--text-muted)] mt-1">
               Supported: {supportedFormats.map(f => f.name).join(', ')}
->>>>>>> origin/fix/scenario-tests-properly
             </p>
           </div>
         </Card>
       </motion.div>
 
-<<<<<<< HEAD
       {/* Import Result */}
       {result && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -450,14 +441,6 @@ export function DataImport() {
           <CardHeader
             title="Supported Formats"
             subtitle="Click a format to select a file for upload"
-=======
-      {/* Supported Formats */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card padding="md">
-          <CardHeader
-            title="Supported Formats"
-            subtitle="Power system data formats"
->>>>>>> origin/fix/scenario-tests-properly
             icon={<Database className="w-4 h-4" />}
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -468,34 +451,21 @@ export function DataImport() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.03 * i }}
                 className="p-4 text-center bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)] hover:border-[var(--color-brand-500)]/30 hover:bg-[var(--bg-elevated)]/50 transition-all cursor-pointer"
-<<<<<<< HEAD
                 onClick={() => !uploading && handleFormatClick(format)}
-=======
-                onClick={() => notify('info', `Import ${format.name} coming soon`)}
->>>>>>> origin/fix/scenario-tests-properly
               >
                 <div className="text-brand-400 flex items-center justify-center mb-2">
                   {format.icon}
                 </div>
-<<<<<<< HEAD
                 <p className="text-xs font-medium text-[var(--text-primary)] font-mono">
                   {format.name}
                 </p>
                 <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{format.desc}</p>
                 <p className="text-[10px] text-[var(--text-tertiary)] mt-1">{format.ext}</p>
-=======
-                <p className="text-xs font-medium text-[var(--text-primary)] font-mono">{format.name}</p>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{format.desc}</p>
->>>>>>> origin/fix/scenario-tests-properly
               </motion.div>
             ))}
           </div>
         </Card>
       </motion.div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

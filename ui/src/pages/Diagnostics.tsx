@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import { Activity, AlertTriangle, CheckCircle, Cpu, RefreshCw, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -13,7 +12,7 @@ interface DiagnosticCheck {
   status: "pass" | "fail" | "warn";
   message: string;
   latencyMs?: number;
-=======
+
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Activity, Cpu } from 'lucide-react'
@@ -27,13 +26,11 @@ interface DiagnosticCheck {
   status: 'pass' | 'fail' | 'warn'
   message: string
   latencyMs?: number
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 const statusConfig = {
   pass: {
     icon: <CheckCircle className="w-5 h-5 text-green-400" />,
-<<<<<<< HEAD
     variant: "success" as const,
     color: "text-green-400",
     borderColor: "border-green-500/20",
@@ -136,7 +133,7 @@ export default function Diagnostics() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-=======
+
     variant: 'success' as const,
     color: 'text-green-400',
     borderColor: 'border-green-500/20',
@@ -228,14 +225,12 @@ export function Diagnostics() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
->>>>>>> origin/fix/scenario-tests-properly
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <Activity className="w-5 h-5 text-brand-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Diagnostics</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">System health checks & status</p>
               <ContextHelpButton contextId="diagnostics.overview" />
@@ -250,13 +245,12 @@ export function Diagnostics() {
           onClick={runDiagnostics}
         >
           {running ? "Running..." : "Run Diagnostics"}
-=======
+
             <p className="text-sm text-[var(--text-tertiary)]">System health checks & status</p>
           </div>
         </div>
         <Button variant="primary" size="sm" icon={RefreshCw} loading={running} onClick={runDiagnostics}>
           {running ? 'Running...' : 'Run Diagnostics'}
->>>>>>> origin/fix/scenario-tests-properly
         </Button>
       </motion.div>
 
@@ -289,7 +283,6 @@ export function Diagnostics() {
                 <CheckCircle className="w-4 h-4 text-green-400" />
                 <span className="text-sm font-medium text-green-400">Passed</span>
               </div>
-<<<<<<< HEAD
               <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">
                 {passCount}
               </p>
@@ -300,18 +293,11 @@ export function Diagnostics() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
           >
-=======
-              <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">{passCount}</p>
-            </Card>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card padding="md" className="border-amber-500/20 bg-amber-500/5">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 <span className="text-sm font-medium text-amber-400">Warnings</span>
               </div>
-<<<<<<< HEAD
               <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">
                 {warnCount}
               </p>
@@ -322,24 +308,14 @@ export function Diagnostics() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-=======
-              <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">{warnCount}</p>
-            </Card>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card padding="md" className="border-red-500/20 bg-red-500/5">
               <div className="flex items-center gap-2 mb-1">
                 <XCircle className="w-4 h-4 text-red-400" />
                 <span className="text-sm font-medium text-red-400">Failed</span>
               </div>
-<<<<<<< HEAD
               <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">
                 {failCount}
               </p>
-=======
-              <p className="text-2xl font-bold text-[var(--text-primary)] mono-engineering">{failCount}</p>
->>>>>>> origin/fix/scenario-tests-properly
             </Card>
           </motion.div>
         </div>
@@ -349,7 +325,6 @@ export function Diagnostics() {
       {checks.length > 0 ? (
         <div className="space-y-3">
           {checks.map((check, i) => {
-<<<<<<< HEAD
             const config = statusConfig[check.status];
             return (
               <motion.div
@@ -358,16 +333,10 @@ export function Diagnostics() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * i }}
               >
-=======
-            const config = statusConfig[check.status]
-            return (
-              <motion.div key={check.name} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * i }}>
->>>>>>> origin/fix/scenario-tests-properly
                 <Card padding="md" className={cn(config.borderColor, config.bgColor)}>
                   <div className="flex items-center gap-3">
                     {config.icon}
                     <div className="flex-1 min-w-0">
-<<<<<<< HEAD
                       <h4 className="text-sm font-semibold text-[var(--text-primary)]">
                         {check.name}
                       </h4>
@@ -377,13 +346,12 @@ export function Diagnostics() {
                           <span className="text-[var(--text-muted)] ml-2 mono-engineering">
                             ({check.latencyMs}ms)
                           </span>
-=======
+
                       <h4 className="text-sm font-semibold text-[var(--text-primary)]">{check.name}</h4>
                       <p className={cn('text-sm', config.color)}>
                         {check.message}
                         {check.latencyMs !== undefined && (
                           <span className="text-[var(--text-muted)] ml-2 mono-engineering">({check.latencyMs}ms)</span>
->>>>>>> origin/fix/scenario-tests-properly
                         )}
                       </p>
                     </div>
@@ -393,7 +361,6 @@ export function Diagnostics() {
                   </div>
                 </Card>
               </motion.div>
-<<<<<<< HEAD
             );
           })}
         </div>
@@ -415,7 +382,7 @@ export function Diagnostics() {
       )}
     </div>
   );
-=======
+
             )
           })}
         </div>
@@ -435,5 +402,4 @@ export function Diagnostics() {
       )}
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

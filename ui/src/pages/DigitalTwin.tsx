@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -44,7 +43,7 @@ interface DigitalTwinStatus {
   sync_sources?: SyncSource[];
   last_updated?: string;
 }
-=======
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Layers, RefreshCw, Activity, Box, HardDrive, Cpu, Wifi, WifiOff, AlertTriangle } from 'lucide-react'
@@ -77,13 +76,11 @@ const systemStats: SystemStat[] = [
   { label: 'Loads', value: 0, icon: <HardDrive className="w-4 h-4" />, color: 'text-[var(--color-engine-current)]' },
   { label: 'Generators', value: 0, icon: <Cpu className="w-4 h-4" />, color: 'text-[var(--color-engine-power)]' },
 ]
->>>>>>> origin/fix/scenario-tests-properly
 
 function DigitalTwinDiagram() {
   return (
     <div className="bg-[var(--bg-primary)] rounded-lg p-4 border border-[var(--border-primary)]">
       <div className="flex items-center justify-between mb-3">
-<<<<<<< HEAD
         <h4 className="text-sm font-semibold text-[var(--text-secondary)]">
           System One-Line Diagram
         </h4>
@@ -108,7 +105,7 @@ function DigitalTwinDiagram() {
               stroke="var(--border-primary)"
               strokeWidth="0.5"
             />
-=======
+
         <h4 className="text-sm font-semibold text-[var(--text-secondary)]">System One-Line Diagram</h4>
         <Badge variant="info" size="sm">Digital Twin</Badge>
       </div>
@@ -117,7 +114,6 @@ function DigitalTwinDiagram() {
         <defs>
           <pattern id="dt-grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border-primary)" strokeWidth="0.5" />
->>>>>>> origin/fix/scenario-tests-properly
           </pattern>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -130,7 +126,6 @@ function DigitalTwinDiagram() {
         <rect width="700" height="400" fill="url(#dt-grid)" />
 
         {/* Title block */}
-<<<<<<< HEAD
         <rect
           x="10"
           y="10"
@@ -585,7 +580,7 @@ export default function DigitalTwin() {
         </div>
       </div>
     );
-=======
+
         <rect x="10" y="10" width="200" height="30" rx="4" fill="var(--bg-card)" stroke="var(--border-primary)" />
         <text x="20" y="30" fill="var(--text-secondary)" fontSize="11" fontWeight="600">ETAP Digital Twin — 13.8kV System</text>
 
@@ -678,27 +673,21 @@ export function DigitalTwin() {
     online: { variant: 'success' as const, icon: <Wifi className="w-3 h-3" /> },
     offline: { variant: 'danger' as const, icon: <WifiOff className="w-3 h-3" /> },
     warning: { variant: 'warning' as const, icon: <AlertTriangle className="w-3 h-3" /> },
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   return (
     <div className="space-y-6">
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-=======
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
->>>>>>> origin/fix/scenario-tests-properly
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <Layers className="w-5 h-5 text-brand-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Digital Twin</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 Real-time power system topology & synchronization
@@ -727,28 +716,23 @@ export function DigitalTwin() {
             Sync Now
           </Button>
         </div>
-=======
+
             <p className="text-sm text-[var(--text-tertiary)]">Real-time power system topology & synchronization</p>
           </div>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} loading={syncing} onClick={handleSync}>
           Sync Now
         </Button>
->>>>>>> origin/fix/scenario-tests-properly
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* One-Line Diagram */}
-<<<<<<< HEAD
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="lg:col-span-2"
         >
-=======
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2">
->>>>>>> origin/fix/scenario-tests-properly
           <Card padding="md">
             <CardHeader
               title="System Topology"
@@ -762,15 +746,11 @@ export function DigitalTwin() {
         {/* Right sidebar */}
         <div className="space-y-6">
           {/* Sync Status */}
-<<<<<<< HEAD
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-=======
-          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card padding="md">
               <CardHeader
                 title="Sync Status"
@@ -778,7 +758,6 @@ export function DigitalTwin() {
                 icon={<RefreshCw className="w-4 h-4" />}
               />
               <div className="space-y-3">
-<<<<<<< HEAD
                 {syncSources.map((source) => {
                   const config = statusConfig[source.status];
                   return (
@@ -792,7 +771,7 @@ export function DigitalTwin() {
                           <p className="text-sm font-medium text-[var(--text-primary)]">
                             {source.name}
                           </p>
-=======
+
                 {syncSources.map(source => {
                   const config = statusConfig[source.status]
                   return (
@@ -801,12 +780,10 @@ export function DigitalTwin() {
                         {config.icon}
                         <div>
                           <p className="text-sm font-medium text-[var(--text-primary)]">{source.name}</p>
->>>>>>> origin/fix/scenario-tests-properly
                           <p className="text-xs text-[var(--text-muted)]">{source.lastSync}</p>
                         </div>
                       </div>
                       <Badge variant={config.variant} dot size="sm">
-<<<<<<< HEAD
                         {(() => {
                           if (source.status === "online") return "Online";
                           if (source.status === "offline") return "Offline";
@@ -815,27 +792,17 @@ export function DigitalTwin() {
                       </Badge>
                     </div>
                   );
-=======
-                        {source.status === 'online' ? 'Online' : source.status === 'offline' ? 'Offline' : 'Warning'}
-                      </Badge>
-                    </div>
-                  )
->>>>>>> origin/fix/scenario-tests-properly
                 })}
               </div>
             </Card>
           </motion.div>
 
           {/* Quick Stats */}
-<<<<<<< HEAD
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-=======
-          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card padding="md">
               <CardHeader
                 title="System Statistics"
@@ -843,7 +810,6 @@ export function DigitalTwin() {
                 icon={<HardDrive className="w-4 h-4" />}
               />
               <div className="grid grid-cols-2 gap-3">
-<<<<<<< HEAD
                 {systemStats.map((stat) => (
                   <div
                     key={stat.label}
@@ -855,14 +821,13 @@ export function DigitalTwin() {
                     <p className="text-xl font-bold text-[var(--text-primary)] mono-engineering">
                       {stat.value}
                     </p>
-=======
+
                 {systemStats.map(stat => (
                   <div key={stat.label} className="text-center p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                     <div className={cn('flex items-center justify-center mb-1.5', stat.color)}>
                       {stat.icon}
                     </div>
                     <p className="text-xl font-bold text-[var(--text-primary)] mono-engineering">{stat.value}</p>
->>>>>>> origin/fix/scenario-tests-properly
                     <p className="text-xs text-[var(--text-muted)]">{stat.label}</p>
                   </div>
                 ))}
@@ -871,15 +836,11 @@ export function DigitalTwin() {
           </motion.div>
 
           {/* Model Info */}
-<<<<<<< HEAD
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-=======
-          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
->>>>>>> origin/fix/scenario-tests-properly
             <Card padding="md">
               <CardHeader
                 title="Model Info"
@@ -909,9 +870,5 @@ export function DigitalTwin() {
         </div>
       </div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

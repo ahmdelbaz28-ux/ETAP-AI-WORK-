@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // UI components are intentionally complex for feature-rich DX
 import { motion } from "framer-motion";
 import {
@@ -87,7 +86,7 @@ function renderSelectOptions(paramName: string, defaultValue: unknown): React.Re
   // Fallback for unknown select params: show the default value as the only option
   return <option value={String(defaultValue)}>{String(defaultValue)}</option>;
 }
-=======
+
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -102,14 +101,12 @@ import { runStudy } from '../lib/api'
 import { studyCategories } from '../lib/studyCategories'
 import { Card, CardHeader, Badge, Button, Toggle, Tabs, TabPanels, useTabState } from '../components/ui'
 import { cn } from '../utils/helpers'
->>>>>>> origin/fix/scenario-tests-properly
 
 // One-line diagram SVG component for study results visualization
 function OneLineDiagram() {
   return (
     <div className="bg-[var(--bg-primary)] rounded-lg p-4 border border-[var(--border-primary)]">
       <div className="flex items-center justify-between mb-3">
-<<<<<<< HEAD
         <h4 className="text-sm font-semibold text-[var(--text-secondary)]">
           System One-Line Diagram
         </h4>
@@ -134,7 +131,7 @@ function OneLineDiagram() {
               stroke="var(--border-primary)"
               strokeWidth="0.5"
             />
-=======
+
         <h4 className="text-sm font-semibold text-[var(--text-secondary)]">System One-Line Diagram</h4>
         <Badge variant="info" size="sm">Simplified View</Badge>
       </div>
@@ -143,7 +140,6 @@ function OneLineDiagram() {
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border-primary)" strokeWidth="0.5" />
->>>>>>> origin/fix/scenario-tests-properly
           </pattern>
         </defs>
         <rect width="600" height="300" fill="url(#grid)" />
@@ -151,7 +147,6 @@ function OneLineDiagram() {
         {/* Bus 1 - Slack */}
         <line x1="50" y1="100" x2="250" y2="100" className="one-line-bus" />
         <circle cx="50" cy="100" r="15" className="one-line-generator" />
-<<<<<<< HEAD
         <text
           x="50"
           y="104"
@@ -181,7 +176,7 @@ function OneLineDiagram() {
         <text x="325" y="90" textAnchor="middle" fill="var(--text-muted)" fontSize="8">
           L1: R=0.01 X=0.05
         </text>
-=======
+
         <text x="50" y="104" textAnchor="middle" fill="var(--text-primary)" fontSize="10" fontWeight="bold">G1</text>
         <text x="50" y="130" textAnchor="middle" fill="var(--color-engine-voltage)" fontSize="9">1.05 pu</text>
         <text x="150" y="90" textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">Bus 1 (Slack)</text>
@@ -189,12 +184,10 @@ function OneLineDiagram() {
         {/* Line 1-2 */}
         <line x1="250" y1="100" x2="400" y2="100" stroke="var(--color-surface-400)" strokeWidth="1.5" />
         <text x="325" y="90" textAnchor="middle" fill="var(--text-muted)" fontSize="8">L1: R=0.01 X=0.05</text>
->>>>>>> origin/fix/scenario-tests-properly
 
         {/* Bus 2 - PV */}
         <line x1="400" y1="100" x2="550" y2="100" className="one-line-bus" />
         <circle cx="400" cy="60" r="12" className="one-line-generator" />
-<<<<<<< HEAD
         <text
           x="400"
           y="64"
@@ -216,16 +209,14 @@ function OneLineDiagram() {
         <text x="475" y="90" textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">
           Bus 2 (PV)
         </text>
-=======
+
         <text x="400" y="64" textAnchor="middle" fill="var(--text-primary)" fontSize="9" fontWeight="bold">G2</text>
         <line x1="400" y1="72" x2="400" y2="100" stroke="var(--color-engine-power)" strokeWidth="1.5" />
         <text x="475" y="90" textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">Bus 2 (PV)</text>
->>>>>>> origin/fix/scenario-tests-properly
 
         {/* Transformer symbol */}
         <circle cx="400" cy="160" r="10" className="one-line-transformer" />
         <circle cx="400" cy="180" r="10" className="one-line-transformer" />
-<<<<<<< HEAD
         <line
           x1="400"
           y1="100"
@@ -335,7 +326,7 @@ function OneLineDiagram() {
 
 // Result summary component
 function ResultSummary({ result }: { readonly result: Record<string, unknown> }) {
-=======
+
         <line x1="400" y1="100" x2="400" y2="150" stroke="var(--color-engine-impedance)" strokeWidth="1.5" />
 
         {/* Bus 3 - PQ */}
@@ -370,55 +361,37 @@ function ResultSummary({ result }: { readonly result: Record<string, unknown> })
 
 // Result summary component
 function ResultSummary({ result }: { result: Record<string, unknown> }) {
->>>>>>> origin/fix/scenario-tests-properly
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
         <Zap className="w-4 h-4 text-[var(--color-engine-voltage)] mx-auto mb-1" />
         <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering">
-<<<<<<< HEAD
           {(result.data as Record<string, unknown>)?.voltage_profile ? "Computed" : "N/A"}
-=======
-          {(result.data as Record<string, unknown>)?.voltage_profile ? 'Computed' : 'N/A'}
->>>>>>> origin/fix/scenario-tests-properly
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">Voltage Profile</p>
       </div>
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
         <BarChart3 className="w-4 h-4 text-[var(--color-engine-power)] mx-auto mb-1" />
         <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering">
-<<<<<<< HEAD
           {(result.data as Record<string, unknown>)?.power_flow ? "Computed" : "N/A"}
-=======
-          {(result.data as Record<string, unknown>)?.power_flow ? 'Computed' : 'N/A'}
->>>>>>> origin/fix/scenario-tests-properly
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">Power Flow</p>
       </div>
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
         <AlertTriangle className="w-4 h-4 text-[var(--color-engine-fault)] mx-auto mb-1" />
         <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering">
-<<<<<<< HEAD
           {(result.data as Record<string, unknown>)?.losses ? "Computed" : "N/A"}
-=======
-          {(result.data as Record<string, unknown>)?.losses ? 'Computed' : 'N/A'}
->>>>>>> origin/fix/scenario-tests-properly
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">Losses</p>
       </div>
       <div className="bg-[var(--bg-primary)] rounded-lg p-3 text-center border border-[var(--border-primary)]">
         <Clock className="w-4 h-4 text-[var(--color-engine-impedance)] mx-auto mb-1" />
         <p className="text-lg font-bold text-[var(--text-primary)] mono-engineering">
-<<<<<<< HEAD
           {result.duration_ms ? `${Number(result.duration_ms)}ms` : "N/A"}
-=======
-          {result.duration_ms ? `${result.duration_ms}ms` : 'N/A'}
->>>>>>> origin/fix/scenario-tests-properly
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">Duration</p>
       </div>
     </div>
-<<<<<<< HEAD
   );
 }
 
@@ -435,7 +408,7 @@ export default function StudyRun() {
   const { activeTab, setActiveTab } = useTabState("diagram");
 
   const category = studyCategories.find((s) => s.id === studyType);
-=======
+
   )
 }
 
@@ -451,12 +424,10 @@ export function StudyRun() {
   const { activeTab, setActiveTab } = useTabState('diagram')
 
   const category = studyCategories.find(s => s.id === studyType)
->>>>>>> origin/fix/scenario-tests-properly
 
   if (!studyType || !category) {
     return (
       <div className="text-center py-12">
-<<<<<<< HEAD
         <p className="text-[var(--text-tertiary)]">{t("common.noData")}</p>
         <button
           onClick={() => navigate("/studies")}
@@ -500,7 +471,7 @@ export function StudyRun() {
       setRunning(false);
     }
   };
-=======
+
         <p className="text-[var(--text-tertiary)]">{t('common.noData')}</p>
         <button onClick={() => navigate('/studies')} className="mt-3 text-brand-400 hover:underline text-sm">
           &larr; {t('studyRun.backToStudies')}
@@ -528,42 +499,35 @@ export function StudyRun() {
       setRunning(false)
     }
   }
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3">
-<<<<<<< HEAD
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/studies")}
             icon={ArrowLeft}
           />
-=======
-          <Button variant="ghost" size="icon" onClick={() => navigate('/studies')} icon={ArrowLeft} />
->>>>>>> origin/fix/scenario-tests-properly
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <span className="text-2xl">{category.icon}</span>
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{category.name}</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-[var(--text-tertiary)] text-sm">{category.description}</p>
               <ContextHelpButton contextId="studies.overview" />
             </div>
           </div>
           {category.standard && <Badge variant="brand">{category.standard}</Badge>}
-=======
+
             <p className="text-[var(--text-tertiary)] text-sm">{category.description}</p>
           </div>
           {category.standard && (
             <Badge variant="brand">{category.standard}</Badge>
           )}
->>>>>>> origin/fix/scenario-tests-properly
         </div>
       </motion.div>
 
@@ -579,11 +543,7 @@ export function StudyRun() {
             <Toggle
               checked={dryRun}
               onChange={setDryRun}
-<<<<<<< HEAD
               label={t("studyRun.dryRun")}
-=======
-              label={t('studyRun.dryRun')}
->>>>>>> origin/fix/scenario-tests-properly
               description="Validate inputs without computation"
             />
 
@@ -591,7 +551,6 @@ export function StudyRun() {
 
             {/* Parameters */}
             <div className="grid grid-cols-1 gap-4">
-<<<<<<< HEAD
               {category.params.map((p) => (
                 <div key={p.name}>
                   <span className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
@@ -612,7 +571,7 @@ export function StudyRun() {
                       defaultValue={p.default}
                       className="w-full px-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 outline-none transition-colors mono-engineering"
                     />
-=======
+
               {category.params.map(p => (
                 <div key={p.name}>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
@@ -631,7 +590,6 @@ export function StudyRun() {
                   ) : (
                     <input type={p.type} name={p.name} defaultValue={p.default}
                       className="w-full px-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 outline-none transition-colors mono-engineering" />
->>>>>>> origin/fix/scenario-tests-properly
                   )}
                 </div>
               ))}
@@ -646,11 +604,7 @@ export function StudyRun() {
               icon={Play}
               className="w-full"
             >
-<<<<<<< HEAD
               {dryRun ? t("studyRun.validateStudy") : t("studyRun.runStudy")}
-=======
-              {dryRun ? t('studyRun.validateStudy') : t('studyRun.runStudy')}
->>>>>>> origin/fix/scenario-tests-properly
             </Button>
           </form>
         </Card>
@@ -659,7 +613,6 @@ export function StudyRun() {
         <div className="space-y-4">
           {result ? (
             <>
-<<<<<<< HEAD
               {/* Dim overlay when re-running so user sees stale data is being replaced */}
               <div className={cn(running && "opacity-50 pointer-events-none transition-opacity")}>
                 {/* Result Status */}
@@ -764,7 +717,7 @@ export function StudyRun() {
                   </TabPanels>
                 </Card>
               </div>
-=======
+
               {/* Result Status */}
               <Card
                 padding="md"
@@ -812,7 +765,6 @@ export function StudyRun() {
                   )}
                 </TabPanels>
               </Card>
->>>>>>> origin/fix/scenario-tests-properly
             </>
           ) : (
             <Card padding="lg">
@@ -822,12 +774,8 @@ export function StudyRun() {
                 </div>
                 <h3 className="text-base font-medium text-[var(--text-secondary)]">Ready to Run</h3>
                 <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xs mx-auto">
-<<<<<<< HEAD
                   Configure the parameters and click Run Study to see results and visualizations
                   here.
-=======
-                  Configure the parameters and click Run Study to see results and visualizations here.
->>>>>>> origin/fix/scenario-tests-properly
                 </p>
               </div>
             </Card>
@@ -835,9 +783,5 @@ export function StudyRun() {
         </div>
       </div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

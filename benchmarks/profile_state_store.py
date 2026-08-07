@@ -8,10 +8,7 @@ Measures:
 4. JSON serialization size vs in-memory size
 5. Total projected memory at default max_versions=1000
 """
-<<<<<<< HEAD
 from typing import Optional, Union
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 import sys
 sys.path.insert(0, '.')
@@ -47,11 +44,7 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
                                round(0.2 + 0.1 * np.cos(i * 0.3), 4)),
             generation_power=complex(round(0.3 + 0.2 * np.sin(i * 0.5), 4),
                                      round(0.1 + 0.05 * np.cos(i * 0.5), 4)),
-<<<<<<< HEAD
             bus_type="pq" if i > 8 else ("pv" if i > 0 else "slack"),  # NOSONAR nested conditional; extract to named variable (tech debt)
-=======
-            bus_type="pq" if i > 8 else ("pv" if i > 0 else "slack"),
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     # Switch states
@@ -96,11 +89,7 @@ def _make_118_snapshot(version: int, variation: float = 0.01):
                                  for i in range(n_buses)},
         state_estimation_converged=True,
         state_estimation_bad_data=version % 10,
-<<<<<<< HEAD
         fault_currents={f"BUS_{i:04d}": complex(5.0 + np.random.uniform(-1, 1), 2.0 + np.random.uniform(-0.5, 0.5))  # NOSONAR numpy.random.Generator migration; API change required
-=======
-        fault_currents={f"BUS_{i:04d}": complex(5.0 + np.random.uniform(-1, 1), 2.0 + np.random.uniform(-0.5, 0.5))
->>>>>>> origin/fix/scenario-tests-properly
                          for i in range(min(20, n_buses))},
         arc_flash_incident_energy={f"BUS_{i:04d}": round(1.0 + 0.5 * np.sin(i * 0.7), 3)
                                     for i in range(n_buses)},
@@ -138,11 +127,7 @@ def get_rss_mb():
     except ImportError:
         return 0.0
 
-<<<<<<< HEAD
 def measure_size(obj, _label=""):
-=======
-def measure_size(obj, label=""):
->>>>>>> origin/fix/scenario-tests-properly
     """Rough size estimate using sys.getsizeof recursively."""
     seen = set()
     def _size(o):
@@ -225,11 +210,7 @@ for target in checkpoints:
         "delta_mb": round(delta, 2),
         "delta_per_snapshot_kb": round(delta * 1024 / target, 1),
     })
-<<<<<<< HEAD
     print(f"  {target:5d} snapshots, RSS={current_rss:7.2f} MB, delta={delta:7.2f} MB, {delta * 1024 / target:6.1f} KB/snap")
-=======
-    print(f"  {target:5d} snapshots | RSS={current_rss:7.2f} MB | delta={delta:7.2f} MB | {delta * 1024 / target:6.1f} KB/snap")
->>>>>>> origin/fix/scenario-tests-properly
 
 results["growth"] = growth_results
 results["growth_per_snapshot_kb"] = round(
@@ -260,11 +241,7 @@ for max_v in [50, 100, 250, 500, 1000]:
         "projected_rss_mb": round(projected_rss, 1),
         "projected_json_mb": round(snap_bytes * max_v / 1024 / 1024, 1),
     })
-<<<<<<< HEAD
     print(f"  Union[max_versions={max_v:5d}, projected] RSS={projected_rss:6.1f} Union[MB, JSON] equivalent={snap_bytes * max_v / 1024 / 1024:.1f} MB")
-=======
-    print(f"  max_versions={max_v:5d} | projected RSS={projected_rss:6.1f} MB | JSON equivalent={snap_bytes * max_v / 1024 / 1024:.1f} MB")
->>>>>>> origin/fix/scenario-tests-properly
 
 results["projections"] = projections
 
@@ -297,8 +274,4 @@ print(f"  Projected at max_versions=1000:           {projections[-1]['projected_
 print(f"  Projected at max_versions=100:            {projections[1]['projected_rss_mb']:>8.1f} MB")
 print()
 print("  Recommendation: Reduce max_versions from 1000 to 100")
-<<<<<<< HEAD
 print(f"  Savings at 100 versions: {projections[-1]['projected_rss_mb'] - projections[1]['projected_rss_mb']:.0f} MB RSS")
-=======
-print(f"  Savings at 100 versions: {projections[-1]['projected_rss_mb'] - projections[1]['projected_rss_mb']:.0f} MB RSS")
->>>>>>> origin/fix/scenario-tests-properly

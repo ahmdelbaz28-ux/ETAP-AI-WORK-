@@ -1,15 +1,11 @@
-<<<<<<< HEAD
 from __future__ import annotations
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 """GIS Integration Providers - Concrete GIS provider implementations.
 
 Provides provider implementations for ESRI ArcGIS and QGIS, implementing
 the GISProviderInterface for spatial data extraction and transformation.
 """
 
-<<<<<<< HEAD
 import os
 import sys  # NOSONAR
 from typing import Any, Optional, Union  # NOSONAR
@@ -63,12 +59,4 @@ __all__ = [
     "QGISProvider",
     "MockGISProvider",
     "get_gis_provider",
-=======
-from gis_integration.providers.arcgis_provider import ArcGISProvider
-from gis_integration.providers.qgis_provider import QGISProvider
-
-__all__ = [
-    "ArcGISProvider",
-    "QGISProvider",
->>>>>>> origin/fix/scenario-tests-properly
 ]

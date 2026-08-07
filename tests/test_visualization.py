@@ -1,16 +1,10 @@
 """
 Tests for visualization module — Visualizer class.
 """
-<<<<<<< HEAD
 
 import matplotlib
 
 matplotlib.use("Agg")  # Must be set before importing pyplot
-=======
-import matplotlib
-
-matplotlib.use('Agg')  # Must be set before importing pyplot
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 import pytest
@@ -43,13 +37,11 @@ class TestVisualizerInit:
 class TestVisualizerPlotTCC:
     def setup_method(self):
         self.v = Visualizer()
-<<<<<<< HEAD
         self.relay = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0)
-=======
+
         self.relay = OvercurrentRelay(
             relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_plot_tcc_curve_returns_axes(self):
         ax = self.v.plot_tcc_curve(self.relay)
@@ -73,46 +65,38 @@ class TestVisualizerPlotTCC:
         plt.close(fig)
 
     def test_plot_tcc_curve_very_inverse(self):
-<<<<<<< HEAD
         r = OvercurrentRelay(relay_id=2, curve_type="very_inverse", TMS=0.5, Ip=1.0)
-=======
+
         r = OvercurrentRelay(
             relay_id=2, curve_type="very_inverse", TMS=0.5, Ip=1.0
         )
->>>>>>> origin/fix/scenario-tests-properly
         ax = self.v.plot_tcc_curve(r)
         assert ax is not None
 
     def test_plot_tcc_curve_extremely_inverse(self):
-<<<<<<< HEAD
         r = OvercurrentRelay(relay_id=3, curve_type="extremely_inverse", TMS=0.3, Ip=1.0)
-=======
+
         r = OvercurrentRelay(
             relay_id=3, curve_type="extremely_inverse", TMS=0.3, Ip=1.0
         )
->>>>>>> origin/fix/scenario-tests-properly
         ax = self.v.plot_tcc_curve(r)
         assert ax is not None
 
     def test_plot_tcc_curve_long_inverse(self):
-<<<<<<< HEAD
         r = OvercurrentRelay(relay_id=4, curve_type="long_inverse", TMS=0.2, Ip=1.0)
-=======
+
         r = OvercurrentRelay(
             relay_id=4, curve_type="long_inverse", TMS=0.2, Ip=1.0
         )
->>>>>>> origin/fix/scenario-tests-properly
         ax = self.v.plot_tcc_curve(r)
         assert ax is not None
 
     def test_plot_tcc_curve_high_pickup(self):
-<<<<<<< HEAD
         r = OvercurrentRelay(relay_id=5, curve_type="standard_inverse", TMS=1.0, Ip=5.0)
-=======
+
         r = OvercurrentRelay(
             relay_id=5, curve_type="standard_inverse", TMS=1.0, Ip=5.0
         )
->>>>>>> origin/fix/scenario-tests-properly
         ax = self.v.plot_tcc_curve(r)
         assert ax is not None
 
@@ -210,11 +194,9 @@ class TestVisualizerFaultIntersection:
     def test_plot_fault_current_intersection_inf_time(self):
         v = Visualizer()
         r = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0)
-<<<<<<< HEAD
         ax = v.plot_fault_current_intersection([r], [0.5, 1.0, 5.0])  # 0.5 is below pickup
-=======
+
         ax = v.plot_fault_current_intersection(
             [r], [0.5, 1.0, 5.0]
         )  # 0.5 is below pickup
->>>>>>> origin/fix/scenario-tests-properly
         assert ax is not None

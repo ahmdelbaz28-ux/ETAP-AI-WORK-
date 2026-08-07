@@ -6,7 +6,6 @@ LABEL version="2.1.0"
 
 WORKDIR /app
 
-<<<<<<< HEAD
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR S7018: package order follows logical grouping (runtime deps first); alphanum sort would break grouping
@@ -74,7 +73,7 @@ ENV PORT=7860
 # HOST is intentionally NOT set as ENV. In Docker/HF Spaces, the app
 # reads HOST from os.environ at runtime (defaults to 0.0.0.0 inside
 # containers, 127.0.0.1 for local dev). See app.py S8392 fix.
-=======
+
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ curl \
@@ -96,7 +95,6 @@ COPY --chown=user:user . .
 # Environment
 ENV PORT=7860
 ENV HOST=0.0.0.0
->>>>>>> origin/fix/scenario-tests-properly
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -106,7 +104,6 @@ ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
-<<<<<<< HEAD
 ENV HOME=/home/user
 ENV CUA_AUDIT_DIR=/tmp/cua_audit
 
@@ -128,7 +125,7 @@ ENV ENVIRONMENT=${ENVIRONMENT:-production}
 # Redis URL — empty default means in-memory fallback (dev mode).
 # For production, inject via HF Space Secrets. SonarCloud S6472:
 # REDIS_URL is NOT a secret when empty — it's an optional service endpoint.
-=======
+
 
 # Database path (use /tmp for writable location)
 ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
@@ -143,7 +140,6 @@ ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
 ENV ENVIRONMENT=${ENVIRONMENT:-production}
 
 # Redis URL (empty = use in-memory fallback)
->>>>>>> origin/fix/scenario-tests-properly
 ENV REDIS_URL=
 
 # Health check

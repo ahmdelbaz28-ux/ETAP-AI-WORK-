@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 title: AhmedETAP
 emoji: "⚡"
@@ -324,7 +323,7 @@ attachment to the HF Space. Run locally with:
 
 ```bash
 mkdocs serve -f docs/mkdocs.yml   # http://127.0.0.1:8000
-=======
+
 <p align="center">
   <a href="https://github.com/ahmdelbaz28-ux/AhmedETAP">
     <img src="docs/assets/banner.svg" alt="AhmedETAP Banner" width="100%">
@@ -505,12 +504,10 @@ git commit -m "feat: add my feature"
 git push origin feat/my-feature
 
 # 5. Open a Pull Request
->>>>>>> origin/fix/scenario-tests-properly
 ```
 
 ---
 
-<<<<<<< HEAD
 ## 🤖 AI Agent Inventory
 
 24 specialist agents, each backed by an IEEE/IEC computational core and
@@ -571,7 +568,7 @@ See [`SECURITY.md`](SECURITY.md) and [`docs/SECURITY_OPERATIONS_MANUAL.md`](docs
 ├── requirements.txt          # Python dependencies
 ├── .env.example              # Full env-var reference (376 lines)
 └── PROJECT_INDEX.md          # Auto-generated codebase map
-=======
+
 ## Roadmap
 
 | Phase | Status | Description |
@@ -659,12 +656,10 @@ This project is licensed under the **MIT License** — see [LICENSE](LICENSE) fo
 
 ```
 MIT License — Copyright (c) 2026 Eng. Ahmed Elbaz
->>>>>>> origin/fix/scenario-tests-properly
 ```
 
 ---
 
-<<<<<<< HEAD
 ## 🧪 Testing & CI
 
 - **Unit tests:** `pytest` (backend), `vitest` (UI)
@@ -709,7 +704,7 @@ MIT — see [`LICENSE`](LICENSE).
 # Trigger CI for load-test re-run
 
 </div>
-=======
+
 ## Author
 
 <p align="center">
@@ -731,4 +726,3 @@ MIT — see [`LICENSE`](LICENSE).
 <p align="center">
   <sub>Built with precision for the power systems engineering community.</sub>
 </p
->>>>>>> origin/fix/scenario-tests-properly

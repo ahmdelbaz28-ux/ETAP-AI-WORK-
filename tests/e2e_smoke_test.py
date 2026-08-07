@@ -7,10 +7,7 @@ touching production data or external services.
 
 import os
 import subprocess
-<<<<<<< HEAD
 import sys
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def run_command(cmd, timeout=90):
@@ -31,11 +28,7 @@ class TestValidationSuiteCLI:
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all tests passing.
         """
-<<<<<<< HEAD
         result = run_command([sys.executable, "scripts/dev/validation_suite.py"])
-=======
-        result = run_command(["python3", "validation_suite.py"])
->>>>>>> origin/fix/scenario-tests-properly
 
         assert result.returncode == 0, (
             f"validation_suite.py failed with return code {result.returncode}\n"
@@ -49,7 +42,6 @@ class TestValidationSuiteCLI:
         """GIVEN the validate_syntax.py script is available
         WHEN it is executed via python3
         THEN it exits with code 0 and reports all files valid.
-<<<<<<< HEAD
 
         The script lives at scripts/maintenance/validate_syntax.py (it was
         moved during the v2.1.2 maintenance-scripts reorganisation). The
@@ -60,10 +52,6 @@ class TestValidationSuiteCLI:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         script_path = os.path.join(repo_root, "scripts", "maintenance", "validate_syntax.py")
         result = run_command([sys.executable, script_path])
-=======
-        """
-        result = run_command(["python3", "validate_syntax.py"])
->>>>>>> origin/fix/scenario-tests-properly
 
         assert result.returncode == 0, (
             f"validate_syntax.py failed with return code {result.returncode}\n"

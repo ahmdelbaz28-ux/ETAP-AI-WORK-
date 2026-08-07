@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import { AlertTriangle, Filter, Info, RefreshCw, Terminal, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -62,7 +61,7 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
           message: "No log data available. Run a study or chat to generate activity.",
         },
       ];
-=======
+
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { RefreshCw, Filter, Terminal, AlertTriangle, Info, XCircle } from 'lucide-react'
@@ -102,12 +101,10 @@ function auditToLogs(metrics: MetricsResponse | null, audit: AuditEntry[]): LogE
     })
   }
   return logs.length ? logs : [{ timestamp: '--', level: 'info' as const, source: 'system', message: 'No log data available. Run a study or chat to generate activity.' }]
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 const levelConfig = {
   info: {
-<<<<<<< HEAD
     color: "text-blue-400",
     bgColor: "bg-blue-500/5",
     borderColor: "border-blue-500/20",
@@ -165,7 +162,7 @@ export default function Logs() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-=======
+
     color: 'text-blue-400',
     bgColor: 'bg-blue-500/5',
     borderColor: 'border-blue-500/20',
@@ -217,14 +214,12 @@ export function Logs() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
->>>>>>> origin/fix/scenario-tests-properly
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <Terminal className="w-5 h-5 text-brand-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Logs</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 {logs.length} entries · Real-time activity
@@ -249,7 +244,7 @@ export function Logs() {
               { key: "warn", label: "WARN", count: warnCount },
               { key: "error", label: "ERROR", count: errorCount },
             ].map((level) => (
-=======
+
             <p className="text-sm text-[var(--text-tertiary)]">{logs.length} entries · Real-time activity</p>
           </div>
         </div>
@@ -263,12 +258,10 @@ export function Logs() {
               { key: 'warn', label: 'WARN', count: warnCount },
               { key: 'error', label: 'ERROR', count: errorCount },
             ].map(level => (
->>>>>>> origin/fix/scenario-tests-properly
               <button
                 key={level.key}
                 onClick={() => setFilter(level.key)}
                 className={cn(
-<<<<<<< HEAD
                   "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
                   filter === level.key
                     ? "bg-[var(--color-brand-500)] text-white"
@@ -278,7 +271,7 @@ export function Logs() {
               >
                 {level.label}
                 {level.count > 0 && level.key !== "all" && (
-=======
+
                   'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
                   filter === level.key
                     ? 'bg-[var(--color-brand-500)] text-white'
@@ -287,7 +280,6 @@ export function Logs() {
               >
                 {level.label}
                 {level.count > 0 && level.key !== 'all' && (
->>>>>>> origin/fix/scenario-tests-properly
                   <span className="ml-1 opacity-60">({level.count})</span>
                 )}
               </button>
@@ -297,7 +289,6 @@ export function Logs() {
       </motion.div>
 
       {/* Log Output */}
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -318,7 +309,7 @@ export function Logs() {
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex-1">
               Message
             </span>
-=======
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card padding="none">
           {/* Log Header */}
@@ -327,12 +318,10 @@ export function Logs() {
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider w-14">Level</span>
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider w-16">Source</span>
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex-1">Message</span>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
 
           {/* Log Entries */}
           <div className="max-h-[600px] overflow-y-auto font-mono text-xs">
-<<<<<<< HEAD
             {filtered.length > 0 ? (
               filtered.map((log, i) => {
                 const config = levelConfig[log.level];
@@ -357,7 +346,7 @@ export function Logs() {
                 );
               })
             ) : (
-=======
+
             {filtered.length > 0 ? filtered.map((log, i) => {
               const config = levelConfig[log.level]
               return (
@@ -378,12 +367,10 @@ export function Logs() {
                 </motion.div>
               )
             }) : (
->>>>>>> origin/fix/scenario-tests-properly
               <div className="py-12 text-center">
                 <EmptyState
                   icon={<Terminal className="w-10 h-10" />}
                   title="No logs found"
-<<<<<<< HEAD
                   description={
                     filter === "all" ? "No log data available" : `No ${filter} level log entries`
                   }
@@ -393,13 +380,12 @@ export function Logs() {
                         Clear filter
                       </Button>
                     )
-=======
+
                   description={filter !== 'all' ? `No ${filter} level log entries` : 'No log data available'}
                   action={
                     filter !== 'all' ? (
                       <Button variant="ghost" size="sm" onClick={() => setFilter('all')}>Clear filter</Button>
                     ) : undefined
->>>>>>> origin/fix/scenario-tests-properly
                   }
                 />
               </div>
@@ -408,9 +394,5 @@ export function Logs() {
         </Card>
       </motion.div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

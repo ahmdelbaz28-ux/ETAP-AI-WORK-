@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Coordination Engine - Protection coordination analysis.
 
@@ -16,10 +15,6 @@ import numpy as np
 
 from curves.curves import calculate_iec_operating_time, MAX_MULTIPLIER_OF_PICKUP, MIN_OPERATING_TIME_S
 
-=======
-import numpy as np
-
->>>>>>> origin/fix/scenario-tests-properly
 
 class CoordinationEngine:
     def __init__(
@@ -61,13 +56,9 @@ class CoordinationEngine:
         Returns:
         dict: Coordination status and times.
         """
-<<<<<<< HEAD
         # Get trip times for both relays — safety guards are enforced
         # automatically because OvercurrentRelay.trip_time() delegates
         # to calculate_iec_operating_time().
-=======
-        # Get trip times for both relays
->>>>>>> origin/fix/scenario-tests-properly
         t_up = upstream_relay.trip_time(fault_current)
         t_down = downstream_relay.trip_time(fault_current)
 
@@ -107,35 +98,24 @@ class CoordinationEngine:
         list: List of coordination results for each fault current.
         """
         results = []
-<<<<<<< HEAD
         for If in fault_currents:  # NOSONAR physics/engineering notation
-=======
-        for If in fault_currents:
->>>>>>> origin/fix/scenario-tests-properly
             results.append(self.check_coordination(upstream_relay, downstream_relay, If))
         return results
 
     def suggest_tms_adjustment(
-<<<<<<< HEAD
         self,
         upstream_relay,
         downstream_relay,
         fault_currents,
         target_margin=0.2,
-=======
-        self, upstream_relay, downstream_relay, fault_currents, target_margin=0.2
->>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
 
-<<<<<<< HEAD
         V-TCC-01: Now uses calculate_iec_operating_time() directly
         instead of the old _trip_time_for_tms() that duplicated relay
         logic. This ensures safety guards are always enforced.
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         Parameters:
         upstream_relay (OvercurrentRelay): The upstream relay (to be adjusted).
         downstream_relay (OvercurrentRelay): The downstream relay (fixed).
@@ -146,7 +126,6 @@ class CoordinationEngine:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
 
-<<<<<<< HEAD
         def _trip_time_for_tms(tms, relay, i):
             """Compute trip time for a given TMS WITHOUT mutating the relay.
 
@@ -164,7 +143,7 @@ class CoordinationEngine:
             return result["operating_time_s"]
 
         best_TMS = None  # NOSONAR physics/engineering notation
-=======
+
         # Compute the upstream trip time for a given TMS WITHOUT mutating the relay.
         # This avoids the original bug where the relay's TMS was temporarily changed
         # during the search loop, which could affect concurrent reads of the relay.
@@ -185,14 +164,12 @@ class CoordinationEngine:
                 raise ValueError(f"Unknown curve type: {relay.curve_type}")
 
         best_TMS = None
->>>>>>> origin/fix/scenario-tests-properly
         min_violation = float("inf")
         # When upstream trips before downstream the margin is negative (or zero).
         # We penalise those cases heavily so the search will never prefer a TMS
         # that lets the upstream device trip first.
         UNCOORDINATED_PENALTY = 100.0
 
-<<<<<<< HEAD
         for TMS_candidate in np.linspace(  # NOSONAR physics/engineering notation
             self.tms_search_min,
             self.tms_search_max,
@@ -200,13 +177,12 @@ class CoordinationEngine:
         ):
             violations = []
             for If in fault_currents:  # NOSONAR physics/engineering notation
-=======
+
         for TMS_candidate in np.linspace(
             self.tms_search_min, self.tms_search_max, self.tms_search_steps
         ):
             violations = []
             for If in fault_currents:
->>>>>>> origin/fix/scenario-tests-properly
                 t_up = _trip_time_for_tms(TMS_candidate, upstream_relay, If)
                 t_down = downstream_relay.trip_time(If)
 

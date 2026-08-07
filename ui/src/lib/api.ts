@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // UI components are intentionally complex for feature-rich DX
 /**
  * AhmedETAP Platform — API Client
@@ -70,7 +69,7 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   // Use a cached settings snapshot to avoid async overhead on every request.
   // The cache is populated on first call and refreshed periodically.
   Object.assign(headers, buildProviderHeaders(getCachedSettings()));
-=======
+
 /**
  * Ahmed etap Platform — API Client
  * Centralized API layer for all backend communication.
@@ -150,12 +149,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
->>>>>>> origin/fix/scenario-tests-properly
 
   const response = await fetch(url, {
     ...options,
     headers,
-<<<<<<< HEAD
     signal: options?.signal ?? AbortSignal.timeout(15000),
   });
 
@@ -236,7 +233,7 @@ export async function fetchHealth(): Promise<HealthResponse> {
 export async function fetchAgents(): Promise<AgentMeta[]> {
   const data = await request<{ agents: AgentMeta[] } | AgentMeta[]>("/api/v1/agents");
   return Array.isArray(data) ? data : (data.agents ?? []);
-=======
+
     signal: options?.signal ?? AbortSignal.timeout(30000),
   })
 
@@ -261,13 +258,11 @@ export async function fetchAgents(): Promise<AgentMeta[]> {
   } catch {
     return []
   }
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 export async function runStudy(
   studyType: string,
   params: Record<string, unknown>,
-<<<<<<< HEAD
   dryRun = false,
 ): Promise<StudyResult> {
   if (!params.system) {
@@ -275,17 +270,15 @@ export async function runStudy(
   }
   return request<StudyResult>("/api/v1/studies/run", {
     method: "POST",
-=======
+
   dryRun = false
 ): Promise<StudyResult> {
   return request<StudyResult>('/api/v1/studies/run', {
     method: 'POST',
->>>>>>> origin/fix/scenario-tests-properly
     body: JSON.stringify({
       study_type: studyType,
       params,
       dry_run: dryRun,
-<<<<<<< HEAD
       system: params.system,
     }),
   });
@@ -379,7 +372,7 @@ export interface GuardInfo {
   >;
   severity_levels: Record<string, string>;
   source: string;
-=======
+
       system: {
         base_mva: 100,
         buses: [
@@ -474,12 +467,10 @@ export interface GuardInfo {
   }>
   severity_levels: Record<string, string>
   source: string
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 export async function guardReview(
   source: string,
-<<<<<<< HEAD
   guardType = "all",
   language = "python",
 ): Promise<GuardReviewResult> {
@@ -1146,7 +1137,7 @@ export async function previewZIPLoad(
 }
 
 // ============ End of API client ============
-=======
+
   guardType: string = 'all',
   language: string = 'python'
 ): Promise<GuardReviewResult> {
@@ -1160,4 +1151,3 @@ export async function fetchGuardInfo(): Promise<GuardInfo> {
   const data = await request<{ success: boolean; data: GuardInfo }>('/api/v1/guards/info')
   return data.data
 }
->>>>>>> origin/fix/scenario-tests-properly

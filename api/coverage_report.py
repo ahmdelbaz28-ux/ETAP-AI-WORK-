@@ -24,35 +24,25 @@ Usage (programmatic)::
     from api.coverage_report import CoverageAnalyzer
     report = await CoverageAnalyzer().run()
 """
-<<<<<<< HEAD
 # ─── Module status ────────────────────────────────────────────────────────
 # INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
 # It is consumed indirectly by middleware, websocket handlers, CLI tools, or
 # other services. Do not add ``app.include_router`` for this module without a
 # corresponding audit of the consumers below.
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 from __future__ import annotations
 
 import ast
 import asyncio
-<<<<<<< HEAD
 import contextlib
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import json
 import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
-<<<<<<< HEAD
 from typing import Any
 
 import aiofiles  # async file I/O for S7493 compliance
-=======
-from typing import Any, Dict, List, Set
->>>>>>> origin/fix/scenario-tests-properly
 
 from compat import StrEnum
 
@@ -84,21 +74,19 @@ class FunctionInfo:
     is_async: bool = False
     is_method: bool = False
     class_name: str | None = None
-<<<<<<< HEAD
     decorators: list[str] = field(default_factory=list)
     has_test: bool = False
     test_names: list[str] = field(default_factory=list)
     suggested_tests: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-=======
+
     decorators: List[str] = field(default_factory=list)
     has_test: bool = False
     test_names: List[str] = field(default_factory=list)
     suggested_tests: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         return asdict(self)
 
@@ -114,15 +102,9 @@ class ModuleCoverage:
     untested_functions: int = 0
     coverage_percent: float = 0.0
     level: CoverageLevel = CoverageLevel.NONE
-<<<<<<< HEAD
     functions: list[FunctionInfo] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-=======
-    functions: List[FunctionInfo] = field(default_factory=list)
-
-    def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         result = {
             "module": self.module,
@@ -148,19 +130,17 @@ class CoverageReport:
     untested_functions: int = 0
     overall_coverage_percent: float = 0.0
     overall_level: CoverageLevel = CoverageLevel.NONE
-<<<<<<< HEAD
     modules: list[ModuleCoverage] = field(default_factory=list)
     critical_gaps: list[dict[str, Any]] = field(default_factory=list)
     suggestions: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-=======
+
     modules: List[ModuleCoverage] = field(default_factory=list)
     critical_gaps: List[Dict[str, Any]] = field(default_factory=list)
     suggestions: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         return {
             "project_root": self.project_root,
@@ -180,11 +160,7 @@ class CoverageReport:
 # Known low-coverage areas — explicit watch list
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _KNOWN_LOW_COVERAGE: dict[str, list[str]] = {
-=======
-_KNOWN_LOW_COVERAGE: Dict[str, List[str]] = {
->>>>>>> origin/fix/scenario-tests-properly
     "engineering_service": [
         "predict_load",
         "predict_fault",
@@ -240,11 +216,7 @@ _KNOWN_LOW_COVERAGE: Dict[str, List[str]] = {
 # Test-suggestion templates
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _SUGGESTION_TEMPLATES: dict[str, list[str]] = {
-=======
-_SUGGESTION_TEMPLATES: Dict[str, List[str]] = {
->>>>>>> origin/fix/scenario-tests-properly
     "endpoint": [
         "test_{name}_success — happy-path request returns 200 with valid payload",
         "test_{name}_missing_api_key — request without X-API-Key returns 401",
@@ -283,13 +255,8 @@ class _FunctionExtractor(ast.NodeVisitor):
     def __init__(self, module_name: str, file_path: str) -> None:
         self.module_name = module_name
         self.file_path = file_path
-<<<<<<< HEAD
         self.functions: list[FunctionInfo] = []
         self._class_stack: list[str] = []
-=======
-        self.functions: List[FunctionInfo] = []
-        self._class_stack: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
         """Visit a class definition and track it for qualified names."""
@@ -308,14 +275,10 @@ class _FunctionExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _add_function(
-<<<<<<< HEAD
         self,
         node: ast.FunctionDef | ast.AsyncFunctionDef,
         *,
         is_async: bool,
-=======
-        self, node: ast.FunctionDef | ast.AsyncFunctionDef, *, is_async: bool
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Record a function/method from the AST."""
         # Skip dunder methods (they are typically infrastructure)
@@ -333,11 +296,7 @@ class _FunctionExtractor(ast.NodeVisitor):
 
         qualname = f"{'.'.join(self._class_stack)}.{node.name}" if self._class_stack else node.name
 
-<<<<<<< HEAD
         decorators: list[str] = []
-=======
-        decorators: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
         for dec in node.decorator_list:
             if isinstance(dec, ast.Name):
                 decorators.append(dec.id)
@@ -377,11 +336,7 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"[_\-\s]", "", name).lower()
 
 
-<<<<<<< HEAD
 def _generate_test_patterns(func: FunctionInfo) -> list[str]:
-=======
-def _generate_test_patterns(func: FunctionInfo) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
     """Generate possible test-name patterns that would test *func*.
 
     Common conventions:
@@ -390,11 +345,7 @@ def _generate_test_patterns(func: FunctionInfo) -> List[str]:
       - ``test_<module>_<function_name>``
       - ``Test<class_name>.test_<method_name>``
     """
-<<<<<<< HEAD
     patterns: list[str] = []
-=======
-    patterns: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
     name = func.name
 
     # Direct function name
@@ -446,17 +397,15 @@ class CoverageAnalyzer:
         if project_root is None:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.project_root = os.path.abspath(project_root)
-<<<<<<< HEAD
         self._source_files: list[str] = []
         self._test_files: list[str] = []
         self._test_names: set[str] = set()
         self._test_normalized: set[str] = set()
-=======
+
         self._source_files: List[str] = []
         self._test_files: List[str] = []
         self._test_names: Set[str] = set()
         self._test_normalized: Set[str] = set()
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Public API
@@ -494,7 +443,6 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 1: File discovery
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _discover_files(  # NOSONAR
         self,
@@ -502,13 +450,12 @@ class CoverageAnalyzer:
         """Walk the project tree and classify files as source or test."""
         source_files: list[str] = []
         test_files: list[str] = []
-=======
+
 
     async def _discover_files(self) -> None:
         """Walk the project tree and classify files as source or test."""
         source_files: List[str] = []
         test_files: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Directories to skip
         skip_dirs = {
@@ -558,7 +505,6 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 2: Test name indexing
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _index_test_names(  # NOSONAR
         self,
@@ -573,7 +519,7 @@ class CoverageAnalyzer:
                 # NOSONAR
                 async with aiofiles.open(test_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
-=======
+
 
     async def _index_test_names(self) -> None:
         """Parse all test files and collect test function/method names."""
@@ -584,7 +530,6 @@ class CoverageAnalyzer:
             try:
                 with open(test_file, encoding="utf-8", errors="replace") as fh:
                     source = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
                 tree = ast.parse(source, filename=test_file)
 
                 for node in ast.walk(tree):
@@ -592,14 +537,12 @@ class CoverageAnalyzer:
                         if node.name.startswith("test_") or node.name.endswith("_test"):
                             test_names.add(node.name)
                             test_normalized.add(_normalize_name(node.name))
-<<<<<<< HEAD
-=======
+
             except SyntaxError:
                 # Skip files that can't be parsed
                 pass
             except Exception:
                 pass
->>>>>>> origin/fix/scenario-tests-properly
 
         self._test_names = test_names
         self._test_normalized = test_normalized
@@ -607,19 +550,12 @@ class CoverageAnalyzer:
     # ------------------------------------------------------------------
     # Step 3: Function extraction
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     # NOSONAR S7503: async signature required by callers; body intentionally sync
     async def _extract_all_functions(  # NOSONAR
         self,
     ) -> list[FunctionInfo]:  # NOSONAR async function uses sync I/O for compatibility reasons
         """Parse all source files and extract function/method definitions."""
         all_functions: list[FunctionInfo] = []
-=======
-
-    async def _extract_all_functions(self) -> List[FunctionInfo]:
-        """Parse all source files and extract function/method definitions."""
-        all_functions: List[FunctionInfo] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         for src_file in self._source_files:
             rel_path = os.path.relpath(src_file, self.project_root)
@@ -629,35 +565,30 @@ class CoverageAnalyzer:
             if rel_path.endswith("__init__.py"):
                 continue
 
-<<<<<<< HEAD
             with contextlib.suppress(SyntaxError, Exception):
                 # NOSONAR
                 async with aiofiles.open(src_file, encoding="utf-8", errors="replace") as fh:
                     source = await fh.read()
-=======
+
             try:
                 with open(src_file, encoding="utf-8", errors="replace") as fh:
                     source = fh.read()
->>>>>>> origin/fix/scenario-tests-properly
                 tree = ast.parse(source, filename=src_file)
 
                 extractor = _FunctionExtractor(module_name, src_file)
                 extractor.visit(tree)
                 all_functions.extend(extractor.functions)
-<<<<<<< HEAD
-=======
+
             except SyntaxError:
                 pass
             except Exception:
                 pass
->>>>>>> origin/fix/scenario-tests-properly
 
         return all_functions
 
     # ------------------------------------------------------------------
     # Step 4: Test matching
     # ------------------------------------------------------------------
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     def _match_functions_to_tests(  # NOSONAR
         self, functions: list[FunctionInfo]
@@ -666,14 +597,6 @@ class CoverageAnalyzer:
         for func in functions:
             patterns = _generate_test_patterns(func)
             matched_tests: list[str] = []
-=======
-
-    def _match_functions_to_tests(self, functions: List[FunctionInfo]) -> None:
-        """Cross-reference each function against the test-name index."""
-        for func in functions:
-            patterns = _generate_test_patterns(func)
-            matched_tests: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
             for pattern in patterns:
                 norm = _normalize_name(pattern)
@@ -694,7 +617,6 @@ class CoverageAnalyzer:
     # Step 5: Module coverage
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _build_module_coverages(self, functions: list[FunctionInfo]) -> list[ModuleCoverage]:
         """Group functions by module and compute per-module coverage."""
         by_module: dict[str, list[FunctionInfo]] = {}
@@ -702,7 +624,7 @@ class CoverageAnalyzer:
             by_module.setdefault(func.module, []).append(func)
 
         module_coverages: list[ModuleCoverage] = []
-=======
+
     def _build_module_coverages(self, functions: List[FunctionInfo]) -> List[ModuleCoverage]:
         """Group functions by module and compute per-module coverage."""
         by_module: Dict[str, List[FunctionInfo]] = {}
@@ -710,7 +632,6 @@ class CoverageAnalyzer:
             by_module.setdefault(func.module, []).append(func)
 
         module_coverages: List[ModuleCoverage] = []
->>>>>>> origin/fix/scenario-tests-properly
         for module_name, funcs in sorted(by_module.items()):
             total = len(funcs)
             tested = sum(1 for f in funcs if f.has_test)
@@ -754,26 +675,16 @@ class CoverageAnalyzer:
     # Step 6: Suggestion generation
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _generate_suggestions(self, modules: list[ModuleCoverage]) -> None:
-=======
-    def _generate_suggestions(self, modules: List[ModuleCoverage]) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate test-case suggestions for untested functions."""
         for mc in modules:
             for func in mc.functions:
                 if not func.has_test:
                     func.suggested_tests = self._suggest_tests_for(func)
 
-<<<<<<< HEAD
     def _suggest_tests_for(self, func: FunctionInfo) -> list[str]:
         """Generate specific test-case suggestions for an untested function."""
         suggestions: list[str] = []
-=======
-    def _suggest_tests_for(self, func: FunctionInfo) -> List[str]:
-        """Generate specific test-case suggestions for an untested function."""
-        suggestions: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Determine the suggestion category
         category = self._categorize_function(func)
@@ -790,11 +701,7 @@ class CoverageAnalyzer:
             if known_base == module_base or func.module == known_module:
                 if func.name in known_funcs or (func.class_name and func.class_name in known_funcs):
                     suggestions.append(
-<<<<<<< HEAD
                         f"⚠ KNOWN GAP: {func.qualname} is on the explicit low-coverage watch list",
-=======
-                        f"⚠ KNOWN GAP: {func.qualname} is on the explicit low-coverage watch list"
->>>>>>> origin/fix/scenario-tests-properly
                     )
 
         return suggestions
@@ -806,19 +713,17 @@ class CoverageAnalyzer:
             return "endpoint"
 
         # If the function is in engineering_service and its name suggests an endpoint
-<<<<<<< HEAD
         if "engineering_service" in func.module and any(
             kw in func.name for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
         ):
             return "endpoint"
-=======
+
         if "engineering_service" in func.module:
             if any(
                 kw in func.name
                 for kw in ("predict", "query", "get_", "submit_", "run_", "validate_")
             ):
                 return "endpoint"
->>>>>>> origin/fix/scenario-tests-properly
 
         # Integration module functions
         if any(kw in func.module for kw in ("etap_integration", "gis_integration", "scada_model")):
@@ -834,11 +739,7 @@ class CoverageAnalyzer:
     # Step 7: Report assembly
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _assemble_report(self, modules: list[ModuleCoverage]) -> CoverageReport:
-=======
-    def _assemble_report(self, modules: List[ModuleCoverage]) -> CoverageReport:
->>>>>>> origin/fix/scenario-tests-properly
         """Assemble the final coverage report."""
         total_functions = sum(m.total_functions for m in modules)
         tested_functions = sum(m.tested_functions for m in modules)
@@ -866,7 +767,6 @@ class CoverageAnalyzer:
             suggestions=suggestions,
         )
 
-<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     def _identify_critical_gaps(  # NOSONAR
         self, modules: list[ModuleCoverage]
@@ -875,11 +775,6 @@ class CoverageAnalyzer:
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Identify modules/functions on the known low-coverage watch list."""
         gaps: list[dict[str, Any]] = []
-=======
-    def _identify_critical_gaps(self, modules: List[ModuleCoverage]) -> List[Dict[str, Any]]:
-        """Identify modules/functions on the known low-coverage watch list."""
-        gaps: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         for mc in modules:
             for known_module, known_funcs in _KNOWN_LOW_COVERAGE.items():
@@ -904,11 +799,7 @@ class CoverageAnalyzer:
                                 "issue": "NOT IMPLEMENTED — function/class not found in source",
                                 "severity": "critical",
                                 "recommendation": f"Implement {func_name} in {known_module} and add corresponding tests",
-<<<<<<< HEAD
                             },
-=======
-                            }
->>>>>>> origin/fix/scenario-tests-properly
                         )
                     else:
                         for func in matching:
@@ -920,24 +811,14 @@ class CoverageAnalyzer:
                                         "issue": "NO TEST COVERAGE",
                                         "severity": "high",
                                         "recommendation": f"Add tests for {func.qualname} — it is on the explicit low-coverage watch list",
-<<<<<<< HEAD
                                     },
-=======
-                                    }
->>>>>>> origin/fix/scenario-tests-properly
                                 )
 
         return gaps
 
-<<<<<<< HEAD
     def _top_suggestions(self, modules: list[ModuleCoverage]) -> list[dict[str, Any]]:
         """Generate top-priority suggestions for improving coverage."""
         suggestions: list[dict[str, Any]] = []
-=======
-    def _top_suggestions(self, modules: List[ModuleCoverage]) -> List[Dict[str, Any]]:
-        """Generate top-priority suggestions for improving coverage."""
-        suggestions: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Sort modules by coverage (lowest first)
         sorted_modules = sorted(modules, key=lambda m: m.coverage_percent)
@@ -963,11 +844,7 @@ class CoverageAnalyzer:
                         if mc.coverage_percent == 0
                         else f"Expand existing tests for {mc.module}",
                     ],
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return suggestions
@@ -978,14 +855,10 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 
 
-<<<<<<< HEAD
 # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 async def _main() -> (  # NOSONAR
     None
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-async def _main() -> None:
->>>>>>> origin/fix/scenario-tests-properly
     """CLI entrypoint for running the coverage analyzer."""
     import argparse
 
@@ -1014,7 +887,6 @@ async def _main() -> None:
     analyzer = CoverageAnalyzer(project_root=args.project_root)
     report = await analyzer.run()
 
-<<<<<<< HEAD
     # NOSONAR
     if args.output != "-":
         if "\x00" in args.output:
@@ -1045,14 +917,13 @@ async def _main() -> None:
             )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
-=======
+
     if args.output == "-":
         out = sys.stdout
     else:
         out = open(args.output, "w", encoding="utf-8")
 
     try:
->>>>>>> origin/fix/scenario-tests-properly
         report_dict = report.to_dict()
 
         if not args.json_only:
@@ -1112,13 +983,11 @@ async def _main() -> None:
 
         json.dump(report_dict, out, indent=2, default=str)
         print(file=out)
-<<<<<<< HEAD
     # ExitStack closes the file automatically when leaving the `with` block.
-=======
+
     finally:
         if args.output != "-":
             out.close()
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

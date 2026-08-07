@@ -16,10 +16,7 @@ import sys
 import time
 from dataclasses import dataclass
 from enum import Enum
-<<<<<<< HEAD
 from typing import Optional
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -76,11 +73,7 @@ class RecoveryAttempt:
     success: bool
     action: str
     duration: float
-<<<<<<< HEAD
     error: Optional[str] = None
-=======
-    error: str | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ETAPErrorRecovery:
@@ -120,14 +113,10 @@ class ETAPErrorRecovery:
 
         if diag.category != ErrorCategory.COM_CONNECTION_LOST:
             return RecoveryAttempt(
-<<<<<<< HEAD
                 False,
                 "skip",
                 time.monotonic() - start,
                 f"Not a COM error: {diag.category.value}",
-=======
-                False, "skip", time.monotonic() - start, f"Not a COM error: {diag.category.value}"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         logger.warning("Attempting COM recovery: %s", diag.message)
@@ -152,14 +141,10 @@ class ETAPErrorRecovery:
             return RecoveryAttempt(True, "auto_restart", time.monotonic() - start)
 
         return RecoveryAttempt(
-<<<<<<< HEAD
             False,
             "failed",
             time.monotonic() - start,
             "No recovery method succeeded",
-=======
-            False, "failed", time.monotonic() - start, "No recovery method succeeded"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def recover_from_study_error(self, error: Exception, study_type: str) -> RecoveryAttempt:
@@ -202,14 +187,10 @@ class ETAPErrorRecovery:
                 return RecoveryAttempt(False, "retry_exhausted", time.monotonic() - start, str(e))
 
         return RecoveryAttempt(
-<<<<<<< HEAD
             False,
             "no_retry",
             time.monotonic() - start,
             "RetryHandler not available",
-=======
-            False, "no_retry", time.monotonic() - start, "RetryHandler not available"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def recover_from_project_error(self, error: Exception, project_path: str) -> RecoveryAttempt:
@@ -227,14 +208,10 @@ class ETAPErrorRecovery:
 
         if not os.path.exists(project_path):
             return RecoveryAttempt(
-<<<<<<< HEAD
                 False,
                 "file_not_found",
                 time.monotonic() - start,
                 f"File not found: {project_path}",
-=======
-                False, "file_not_found", time.monotonic() - start, f"File not found: {project_path}"
->>>>>>> origin/fix/scenario-tests-properly
             )
         if not os.access(project_path, os.R_OK):
             return RecoveryAttempt(
@@ -276,11 +253,7 @@ class ETAPErrorRecovery:
             finally:
                 pythoncom.CoUninitialize()
         except Exception as e:
-<<<<<<< HEAD
             logger.exception("Failed to restart ETAP: %s", e)
-=======
-            logger.error("Failed to restart ETAP: %s", e)
->>>>>>> origin/fix/scenario-tests-properly
         return False
 
     def is_etap_responsive(self) -> bool:
@@ -373,14 +346,10 @@ class ETAPErrorRecovery:
             )
 
         return ErrorDiagnosis(
-<<<<<<< HEAD
             ErrorCategory.UNKNOWN,
             str(error),
             "Check application logs for detailed context.",
             False,
-=======
-            ErrorCategory.UNKNOWN, str(error), "Check application logs for detailed context.", False
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     @property
@@ -417,13 +386,9 @@ class ETAPErrorRecovery:
     def _raise_study_retryable(error: Exception, study_type: str) -> None:
         raise RuntimeError(f"Study {study_type} failed after retry: {error}")
 
-<<<<<<< HEAD
     def _kill_etap_processes(  # NOSONAR
         self,
     ) -> int:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def _kill_etap_processes(self) -> int:
->>>>>>> origin/fix/scenario-tests-properly
         killed = 0
         if PSUTIL_AVAILABLE:
             for proc in psutil.process_iter(["pid", "name"]):
@@ -447,12 +412,8 @@ class ETAPErrorRecovery:
                 logger.warning("taskkill timed out while killing %s", ETAP_PROCESS_NAME)
             except FileNotFoundError:
                 logger.warning(
-<<<<<<< HEAD
                     "taskkill executable not found on PATH; cannot kill %s",
                     ETAP_PROCESS_NAME,
-=======
-                    "taskkill executable not found on PATH; cannot kill %s", ETAP_PROCESS_NAME
->>>>>>> origin/fix/scenario-tests-properly
                 )
             except OSError as os_err:
                 logger.warning("OS error while running taskkill: %s", os_err)

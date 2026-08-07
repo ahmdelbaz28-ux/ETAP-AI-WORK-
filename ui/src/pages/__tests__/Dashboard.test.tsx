@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 /**
@@ -50,7 +49,7 @@ vi.mock("../../lib/api", () => ({
     },
   ]),
 }));
-=======
+
 /**
  * @vitest-environment jsdom
  */
@@ -97,7 +96,6 @@ vi.mock('../../lib/api', () => ({
     { id: 'load-flow-agent', name: 'Load Flow Agent', description: 'Test', capabilities: ['load_flow'] },
   ]),
 }))
->>>>>>> origin/fix/scenario-tests-properly
 
 function renderDashboard() {
   return render(
@@ -105,7 +103,6 @@ function renderDashboard() {
       <NotificationProvider>
         <Dashboard />
       </NotificationProvider>
-<<<<<<< HEAD
     </MemoryRouter>,
   );
 }
@@ -136,7 +133,7 @@ describe("Dashboard", () => {
     });
   });
 });
-=======
+
     </MemoryRouter>
   )
 }
@@ -167,4 +164,3 @@ describe('Dashboard', () => {
     })
   })
 })
->>>>>>> origin/fix/scenario-tests-properly

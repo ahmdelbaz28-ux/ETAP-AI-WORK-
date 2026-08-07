@@ -1,8 +1,7 @@
-<<<<<<< HEAD
 /* App.css — intentionally empty, all styles are in index.css (Tailwind v4 + CSS custom properties)
    or inline via Tailwind utility classes. */
 /* Style sheet for CSS customizations */
-=======
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -187,4 +186,3 @@
     border-right-color: var(--border);
   }
 }
->>>>>>> origin/fix/scenario-tests-properly

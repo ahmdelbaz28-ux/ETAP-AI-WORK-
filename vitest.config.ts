@@ -10,7 +10,6 @@ dotenv.config();
 // available — the per-test check in helpers.test-types.ts gates this.
 // In CI (CI=true or VITEST=true), default to skipping to avoid invalid API key failures.
 const isCI = process.env.CI === 'true' || process.env.VITEST === 'true';
-<<<<<<< HEAD
 process.env.SKIP_LIVE_SCENARIO_TESTS =
   process.env.SKIP_LIVE_SCENARIO_TESTS || (isCI ? 'true' : 'false');
 
@@ -45,7 +44,7 @@ export default withScenario(
     },
   }),
 );
-=======
+
 process.env.SKIP_LIVE_SCENARIO_TESTS = process.env.SKIP_LIVE_SCENARIO_TESTS || (isCI ? 'true' : 'false');
 
 export default withScenario(defineConfig({
@@ -75,4 +74,3 @@ export default withScenario(defineConfig({
     ],
   },
 }));
->>>>>>> origin/fix/scenario-tests-properly

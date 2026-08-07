@@ -26,7 +26,6 @@ export const powerSystemCoordinatorAgent = new Agent({
     etapEngineerAgent,
     goalPlannerAgent,
   },
-<<<<<<< HEAD
   // ARCHITECTURE AUDIT FIX (F-06): Memory now configured with TTL and limits
   // to prevent unbounded growth and cross-session contamination.
   // maxSteps reduced from 10 to 7 with explicit early-exit guidance.
@@ -40,13 +39,12 @@ export const powerSystemCoordinatorAgent = new Agent({
     maxSteps: 7, // F-11: Reduced from 10 — bounded repair loop
     routing: {
       additionalInstructions: 'Prefer the narrowest specialist agent that can safely answer the user request. If a sub-agent returns a successful result, exit immediately. If 3 consecutive failures occur, exit with error.',
-=======
+
   memory: new Memory(),
   defaultNetworkOptions: {
     maxSteps: 10,
     routing: {
       additionalInstructions: 'Prefer the narrowest specialist agent that can safely answer the user request.',
->>>>>>> origin/fix/scenario-tests-properly
     },
   },
 });

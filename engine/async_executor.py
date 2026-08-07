@@ -16,17 +16,15 @@ from concurrent.futures import (
 )
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, List
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -58,18 +56,12 @@ class TaskStatus(enum.Enum):
 class AsyncTask:
     task_id: str
     name: str
-<<<<<<< HEAD
     coroutine: Optional[Coroutine] = None
     callable: Optional[Callable] = None
-=======
-    coroutine: Coroutine | None = None
-    callable: Callable | None = None
->>>>>>> origin/fix/scenario-tests-properly
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
     priority: TaskPriority = TaskPriority.MEDIUM
     status: TaskStatus = TaskStatus.PENDING
-<<<<<<< HEAD
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -77,7 +69,7 @@ class AsyncTask:
     error: Optional[str] = None
     tags: list[str] = field(default_factory=list)
     timeout: Optional[float] = None
-=======
+
     created_at: datetime = field(default_factory=datetime.utcnow)
     started_at: datetime | None = None
     completed_at: datetime | None = None
@@ -85,7 +77,6 @@ class AsyncTask:
     error: str | None = None
     tags: List[str] = field(default_factory=list)
     timeout: float | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class _PriorityTaskQueue:
@@ -110,11 +101,7 @@ class _PriorityTaskQueue:
             self._queues[prio].append(task)
             self._cond.notify()
 
-<<<<<<< HEAD
     def get(self, timeout: Optional[float] = None) -> Optional[AsyncTask]:
-=======
-    def get(self, timeout: float | None = None) -> AsyncTask | None:
->>>>>>> origin/fix/scenario-tests-properly
         deadline = None if timeout is None else time.monotonic() + timeout
         with self._cond:
             while True:
@@ -128,19 +115,11 @@ class _PriorityTaskQueue:
                         return None
                 self._cond.wait(timeout=remaining)
 
-<<<<<<< HEAD
     def peek(self) -> Optional[AsyncTask]:
         with self._lock:
             return self._get_highest_prio()
 
     def remove(self, task_id: str) -> Optional[AsyncTask]:
-=======
-    def peek(self) -> AsyncTask | None:
-        with self._lock:
-            return self._get_highest_prio()
-
-    def remove(self, task_id: str) -> AsyncTask | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             for prio in sorted(self._queues):
                 for i, t in enumerate(self._queues[prio]):
@@ -155,11 +134,7 @@ class _PriorityTaskQueue:
     def qsize_unlocked(self) -> int:
         return sum(len(q) for q in self._queues.values())
 
-<<<<<<< HEAD
     def _get_highest_prio(self) -> Optional[AsyncTask]:
-=======
-    def _get_highest_prio(self) -> AsyncTask | None:
->>>>>>> origin/fix/scenario-tests-properly
         for prio in sorted(self._queues):
             if self._queues[prio]:
                 return self._queues[prio].pop(0)
@@ -179,11 +154,7 @@ class AsyncExecutor:
         self._lock = threading.Lock()
         self._workers: list[threading.Thread] = []
         self._shutdown_event = threading.Event()
-<<<<<<< HEAD
         self._loop: Optional[asyncio.AbstractEventLoop] = None
-=======
-        self._loop: asyncio.AbstractEventLoop | None = None
->>>>>>> origin/fix/scenario-tests-properly
         self._loop_ready = threading.Event()
         self._stats: dict[str, Any] = {
             "total_submitted": 0,
@@ -213,23 +184,15 @@ class AsyncExecutor:
         while not self._shutdown_event.is_set():
             try:
                 task = self._queue.get(timeout=0.5)
-<<<<<<< HEAD
             except Exception:  # nosec B112 — empty queue on timeout is expected; continue polling
-=======
-            except Exception:
->>>>>>> origin/fix/scenario-tests-properly
                 continue
             if task is None:
                 continue
             self._execute_task(task)
 
-<<<<<<< HEAD
     def _execute_task(  # NOSONAR
         self, task: AsyncTask
     ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def _execute_task(self, task: AsyncTask) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             if task.status == TaskStatus.CANCELLED:
                 return
@@ -293,15 +256,13 @@ class AsyncExecutor:
         fn: Callable,
         *args: Any,
         priority: TaskPriority = TaskPriority.MEDIUM,
-<<<<<<< HEAD
         name: Optional[str] = None,
         tags: list[str] | None = None,
         timeout: Optional[float] = None,
-=======
+
         name: str | None = None,
         tags: List[str] | None = None,
         timeout: float | None = None,
->>>>>>> origin/fix/scenario-tests-properly
         **kwargs: Any,
     ) -> str:
         task_id = str(uuid.uuid4())
@@ -324,15 +285,13 @@ class AsyncExecutor:
         self,
         coro: Coroutine,
         priority: TaskPriority = TaskPriority.MEDIUM,
-<<<<<<< HEAD
         name: Optional[str] = None,
         tags: list[str] | None = None,
         timeout: Optional[float] = None,
-=======
+
         name: str | None = None,
         tags: List[str] | None = None,
         timeout: float | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> str:
         task_id = str(uuid.uuid4())
         task = AsyncTask(
@@ -351,15 +310,9 @@ class AsyncExecutor:
     async def run_parallel(
         self,
         tasks: Sequence[Any],
-<<<<<<< HEAD
         max_concurrent: Optional[int] = None,
         return_exceptions: bool = False,
     ) -> list[Any]:
-=======
-        max_concurrent: int | None = None,
-        return_exceptions: bool = False,
-    ) -> List[Any]:
->>>>>>> origin/fix/scenario-tests-properly
         semaphore = asyncio.Semaphore(max_concurrent or len(tasks))
 
         async def _run_one(t):
@@ -378,11 +331,7 @@ class AsyncExecutor:
             return await asyncio.gather(*coros, return_exceptions=True)
         return await asyncio.gather(*coros)
 
-<<<<<<< HEAD
     def get_task(self, task_id: str) -> Optional[AsyncTask]:
-=======
-    def get_task(self, task_id: str) -> AsyncTask | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             return self._tasks.get(task_id)
 
@@ -428,15 +377,13 @@ class AsyncExecutor:
 
     def wait_for_completion(
         self,
-<<<<<<< HEAD
         task_ids: list[str],
         timeout: Optional[float] = None,
     ) -> list[AsyncTask]:
-=======
+
         task_ids: List[str],
         timeout: float | None = None,
     ) -> List[AsyncTask]:
->>>>>>> origin/fix/scenario-tests-properly
         deadline = None if timeout is None else time.monotonic() + timeout
         pending = set(task_ids)
         results: list[AsyncTask] = []
@@ -469,11 +416,7 @@ class AsyncExecutor:
 class ThreadPoolManager:
     def __init__(
         self,
-<<<<<<< HEAD
         max_workers: Optional[int] = None,
-=======
-        max_workers: int | None = None,
->>>>>>> origin/fix/scenario-tests-properly
         thread_name_prefix: str = "CalcWorker",
     ) -> None:
         self._executor = ThreadPoolExecutor(
@@ -519,13 +462,8 @@ class ThreadPoolManager:
     def run_batch(
         self,
         fns: Sequence[Callable],
-<<<<<<< HEAD
         max_concurrent: Optional[int] = None,  # NOSONAR unused param kept for API compatibility
     ) -> list[Any]:
-=======
-        max_concurrent: int | None = None,
-    ) -> List[Any]:
->>>>>>> origin/fix/scenario-tests-properly
         submitted = [self._executor.submit(fn) for fn in fns]
         with self._lock:
             self._stats["total_submitted"] += len(submitted)
@@ -554,11 +492,7 @@ class ThreadPoolManager:
 
 
 class ProcessPoolManager:
-<<<<<<< HEAD
     def __init__(self, max_workers: Optional[int] = None) -> None:
-=======
-    def __init__(self, max_workers: int | None = None) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         self._executor = ProcessPoolExecutor(max_workers=max_workers)
         self._lock = threading.Lock()
         self._stats: dict[str, Any] = {
@@ -608,11 +542,7 @@ class _TimeoutContext:
     def __enter__(self) -> _TimeoutContext:
         return self
 
-<<<<<<< HEAD
     def __exit__(self, exc_type: Any, _exc_val: Any, _exc_tb: Any) -> Optional[bool]:
-=======
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
->>>>>>> origin/fix/scenario-tests-properly
         if exc_type is not None:
             return False
         if time.monotonic() > self._deadline:
@@ -628,8 +558,7 @@ class _TimeoutContext:
         return time.monotonic() > self._deadline
 
 
-<<<<<<< HEAD
-=======
+
 class _RetryContext:
     def __init__(self, max_retries: int, delay: float) -> None:
         self._max_retries = max_retries
@@ -661,30 +590,17 @@ class _RetryContext:
         return False
 
 
->>>>>>> origin/fix/scenario-tests-properly
 def async_timeout(seconds: float) -> _TimeoutContext:
     return _TimeoutContext(seconds)
 
 
-<<<<<<< HEAD
-=======
-def async_retry(max_retries: int, delay: float) -> _RetryContext:
-    return _RetryContext(max_retries, delay)
-
-
->>>>>>> origin/fix/scenario-tests-properly
 class _WorkflowStep:
     def __init__(
         self,
         name: str,
         fn: Callable,
-<<<<<<< HEAD
         depends_on: list[str] | None = None,
         timeout: Optional[float] = None,
-=======
-        depends_on: List[str] | None = None,
-        timeout: float | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self.name = name
         self.fn = fn
@@ -698,11 +614,7 @@ class WorkflowOrchestrator:
         self._workflows: dict[str, dict] = {}
         self._lock = threading.Lock()
 
-<<<<<<< HEAD
     def define_workflow(self, steps: list[dict]) -> str:
-=======
-    def define_workflow(self, steps: List[dict]) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         workflow_id = str(uuid.uuid4())
         parsed: list[_WorkflowStep] = []
         for s in steps:
@@ -712,11 +624,7 @@ class WorkflowOrchestrator:
                     fn=s["fn"],
                     depends_on=s.get("depends_on", []),
                     timeout=s.get("timeout"),
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
         with self._lock:
             self._workflows[workflow_id] = {
@@ -728,17 +636,10 @@ class WorkflowOrchestrator:
             }
         return workflow_id
 
-<<<<<<< HEAD
     def execute_workflow(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         workflow_id: str,
         initial_params: Optional[dict] = None,
-=======
-    def execute_workflow(
-        self,
-        workflow_id: str,
-        initial_params: dict | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> dict:
         with self._lock:
             wf = self._workflows.get(workflow_id)
@@ -804,11 +705,7 @@ class WorkflowOrchestrator:
             "errors": errors,
         }
 
-<<<<<<< HEAD
     def get_workflow_status(self, workflow_id: str) -> Optional[dict]:
-=======
-    def get_workflow_status(self, workflow_id: str) -> dict | None:
->>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             wf = self._workflows.get(workflow_id)
             if wf is None:
@@ -828,11 +725,7 @@ def _timeout(seconds: float):
     import threading
 
     timed_out = threading.Event()
-<<<<<<< HEAD
     exc_bucket: list[Optional[TimeoutError]] = [None]
-=======
-    exc_bucket = [None]
->>>>>>> origin/fix/scenario-tests-properly
 
     def _watchdog():
         if not timed_out.wait(timeout=seconds):
@@ -849,15 +742,13 @@ def _timeout(seconds: float):
             raise exc_bucket[0]
 
 
-<<<<<<< HEAD
 _async_executor: Optional[AsyncExecutor] = None
 _thread_pool: Optional[ThreadPoolManager] = None
 _process_pool: Optional[ProcessPoolManager] = None
-=======
+
 _async_executor: AsyncExecutor | None = None
 _thread_pool: ThreadPoolManager | None = None
 _process_pool: ProcessPoolManager | None = None
->>>>>>> origin/fix/scenario-tests-properly
 _singleton_lock = threading.Lock()
 
 
@@ -877,11 +768,7 @@ def get_async_executor(
 
 
 def get_thread_pool_manager(
-<<<<<<< HEAD
     max_workers: Optional[int] = None,
-=======
-    max_workers: int | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     thread_name_prefix: str = "CalcWorker",
 ) -> ThreadPoolManager:
     global _thread_pool
@@ -896,11 +783,7 @@ def get_thread_pool_manager(
 
 
 def get_process_pool_manager(
-<<<<<<< HEAD
     max_workers: Optional[int] = None,
-=======
-    max_workers: int | None = None,
->>>>>>> origin/fix/scenario-tests-properly
 ) -> ProcessPoolManager:
     global _process_pool
     if _process_pool is None:

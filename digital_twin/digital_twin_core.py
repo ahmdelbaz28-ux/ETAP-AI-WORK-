@@ -25,21 +25,14 @@ Hard Constraints:
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _NO_BASE_ENGINE_MSG = "No base engine available"  # NOSONAR
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 import hashlib
 import logging
 import time
 from collections.abc import Callable
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -125,7 +118,6 @@ class DigitalTwinState:
         return self._scada_db
 
     @property
-<<<<<<< HEAD
     def adms(self):  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return self._adms_engine
 
@@ -137,7 +129,7 @@ class DigitalTwinState:
             timestamp=time.time(),
             source_event=source_event,
             correlation_id=correlation_id,
-=======
+
     def adms(self):
         return self._adms_engine
 
@@ -145,7 +137,6 @@ class DigitalTwinState:
         """Capture current state of all layers into a snapshot."""
         snapshot = StateSnapshot(
             timestamp=time.time(), source_event=source_event, correlation_id=correlation_id
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Capture GIS state
@@ -213,11 +204,7 @@ class DigitalTwinState:
         """Commit a snapshot to the state store."""
         return self.state_store.commit(snapshot)
 
-<<<<<<< HEAD
     def validate(self) -> list[ValidationResult]:
-=======
-    def validate(self) -> List[ValidationResult]:
->>>>>>> origin/fix/scenario-tests-properly
         """Run full validation across all layers."""
         return self._validation_gateway.validate_all(
             gis_db=self._gis_db,
@@ -226,11 +213,7 @@ class DigitalTwinState:
             adms_engine=self._adms_engine,
         )
 
-<<<<<<< HEAD
     def get_current_snapshot(self) -> Optional[StateSnapshot]:
-=======
-    def get_current_snapshot(self) -> StateSnapshot | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get the latest committed snapshot."""
         return self.state_store.get_current()
 
@@ -278,27 +261,17 @@ class SynchronizationEngine:
     """
 
     def __init__(
-<<<<<<< HEAD
         self,
         dt_state: DigitalTwinState,
         event_bus: EventBus,
         validation_gateway: ValidationGateway,
-=======
-        self, dt_state: DigitalTwinState, event_bus: EventBus, validation_gateway: ValidationGateway
->>>>>>> origin/fix/scenario-tests-properly
     ):
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.validation_gateway = validation_gateway
-<<<<<<< HEAD
         self._sync_log: list[dict[str, Any]] = []
 
     def synchronize_gis_to_electrical(self) -> list[str]:
-=======
-        self._sync_log: List[Dict[str, Any]] = []
-
-    def synchronize_gis_to_electrical(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Synchronize GIS references to the electrical model.
         Ensures every GIS asset with electrical_id resolves to an
@@ -332,7 +305,6 @@ class SynchronizationEngine:
         for eid in electrical_ids:
             if eid not in gis_electrical_ids:
                 errors.append(f"Electrical element '{eid}' has no GIS asset (spatial truth gap)")
-<<<<<<< HEAD
         # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         return errors
 
@@ -341,12 +313,6 @@ class SynchronizationEngine:
     ) -> list[
         str
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-
-        return errors
-
-    def synchronize_adms_to_electrical(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Synchronize ADMS switching states to the electrical model.
         Ensures the topology processor reflects current switch states.
@@ -369,30 +335,18 @@ class SynchronizationEngine:
                 if did in self.dt_state.adms.topology.switches:
                     bus1, bus2 = self.dt_state.adms.topology.switches[did]
                     is_connected = bus2 in self.dt_state.adms.topology.bus_connections.get(
-<<<<<<< HEAD
                         bus1,
                         set(),
-=======
-                        bus1, set()
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     if dev.is_conducting() != is_connected:
                         errors.append(
                             f"Switch '{did}' SCADA status ({dev.status.value}) "
-<<<<<<< HEAD
                             f"does not match topology connection state ({is_connected})",
-=======
-                            f"does not match topology connection state ({is_connected})"
->>>>>>> origin/fix/scenario-tests-properly
                         )
 
         return errors
 
-<<<<<<< HEAD
     def synchronize_gis_to_adms(self) -> list[str]:
-=======
-    def synchronize_gis_to_adms(self) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Synchronize GIS positions with ADMS switch devices.
         Every switch device should have a GIS position.
@@ -412,11 +366,7 @@ class SynchronizationEngine:
 
         return errors
 
-<<<<<<< HEAD
     def full_synchronization(self) -> dict[str, list[str]]:
-=======
-    def full_synchronization(self) -> Dict[str, List[str]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Run full synchronization across all layer pairs.
 
@@ -434,20 +384,12 @@ class SynchronizationEngine:
                 "timestamp": time.time(),
                 "results": {k: len(v) for k, v in result.items()},
                 "total_errors": sum(len(v) for v in result.values()),
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return result
 
-<<<<<<< HEAD
     def get_sync_log(self) -> list[dict[str, Any]]:
-=======
-    def get_sync_log(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get synchronization history."""
         return self._sync_log
 
@@ -497,11 +439,7 @@ class ChangePropagationEngine:
         self.event_bus = event_bus
         self.sync_engine = sync_engine
         self.validation_gateway = validation_gateway
-<<<<<<< HEAD
         self._propagation_log: list[dict[str, Any]] = []
-=======
-        self._propagation_log: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
         self._load_flow_solver = None
         self._state_estimator = None
 
@@ -521,16 +459,11 @@ class ChangePropagationEngine:
         self._state_estimator = estimator
 
     def propagate_switch_change(
-<<<<<<< HEAD
         self,
         switch_id: str,
         is_opening: bool,
         reason: str = "",
     ) -> dict[str, Any]:
-=======
-        self, switch_id: str, is_opening: bool, reason: str = ""
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Propagate a switch change through the entire workflow.
 
@@ -571,11 +504,7 @@ class ChangePropagationEngine:
 
         return propagation_record
 
-<<<<<<< HEAD
     def propagate_load_change(self, bus_id: str, new_power: complex) -> dict[str, Any]:
-=======
-    def propagate_load_change(self, bus_id: str, new_power: complex) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Propagate a load change through the workflow."""
         propagation_id = f"prop_{int(time.time() * 1000)}"
         start_time = time.time()
@@ -602,12 +531,8 @@ class ChangePropagationEngine:
 
                 # Update digital twin state
                 snapshot = self.dt_state.capture_snapshot(
-<<<<<<< HEAD
                     source_event="load_changed",
                     correlation_id=propagation_id,
-=======
-                    source_event="load_changed", correlation_id=propagation_id
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 validation_results = self.dt_state.validate()
                 snapshot.validation_passed = all(r.passed for r in validation_results)
@@ -620,11 +545,7 @@ class ChangePropagationEngine:
                         validation_passed=snapshot.validation_passed,
                         source="change_propagation",
                         correlation_id=propagation_id,
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
                 return {
@@ -641,11 +562,7 @@ class ChangePropagationEngine:
             "error": "Electrical model not bound or bus not found",
         }
 
-<<<<<<< HEAD
     def _run_load_flow(self) -> dict[str, Any]:
-=======
-    def _run_load_flow(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Run load flow on the bound system."""
         if self.dt_state.system is None:
             return {"converged": False, "error": "No system bound"}
@@ -666,17 +583,10 @@ class ChangePropagationEngine:
                 "bus_voltages": bus_voltages,
             }
         except Exception as e:
-<<<<<<< HEAD
             logger.exception("Load flow failed: %s", e)
             return {"converged": False, "error": str(e)}
 
     def _run_state_estimation(self) -> dict[str, Any]:
-=======
-            logger.error(f"Load flow failed: {e}")
-            return {"converged": False, "error": str(e)}
-
-    def _run_state_estimation(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Run state estimation if measurements are available."""
         if self.dt_state.system is None or self.dt_state.scada is None:
             return {"converged": False, "error": "System or SCADA not bound"}
@@ -699,15 +609,10 @@ class ChangePropagationEngine:
                 if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
-<<<<<<< HEAD
             ybus = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             result = estimator.estimate(ybus, measurements, [str(bid) for bid in bus_ids])
-=======
-            Ybus = self.dt_state.system.get_ybus(seq="1")
-            result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
->>>>>>> origin/fix/scenario-tests-properly
 
             return {
                 "converged": result.status.value == "converged",
@@ -715,17 +620,10 @@ class ChangePropagationEngine:
                 "max_residual": result.max_residual,
             }
         except Exception as e:
-<<<<<<< HEAD
             logger.warning("State estimation failed: %s", e)
             return {"converged": False, "error": str(e)}
 
     def _refresh_short_circuit(self) -> dict[str, Any]:
-=======
-            logger.warning(f"State estimation failed: {e}")
-            return {"converged": False, "error": str(e)}
-
-    def _refresh_short_circuit(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Refresh short circuit analysis."""
         if self.dt_state.system is None:
             return {"error": "No system bound"}
@@ -735,11 +633,7 @@ class ChangePropagationEngine:
         except Exception as e:
             return {"error": str(e)}
 
-<<<<<<< HEAD
     def _refresh_arc_flash(self) -> dict[str, Any]:
-=======
-    def _refresh_arc_flash(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Refresh arc flash analysis using current fault current data.
 
         Builds sequence networks from the current topology, computes fault
@@ -751,7 +645,6 @@ class ChangePropagationEngine:
         try:
             import math
 
-<<<<<<< HEAD
             from fault_analysis.fault import (
                 FaultAnalyzer,
             )
@@ -775,7 +668,7 @@ class ChangePropagationEngine:
             )
 
             results: dict[str, Any] = {}
-=======
+
             from fault_analysis.fault import FaultAnalyzer
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
@@ -788,7 +681,6 @@ class ChangePropagationEngine:
             )
 
             results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -797,7 +689,6 @@ class ChangePropagationEngine:
                 fault_ka = fault.get("fault_current_ka", 0.0)
                 # Simplified IEEE 1584-2018 incident energy estimate
                 # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-<<<<<<< HEAD
                 arc_duration = 0.2
                 working_distance_mm = 610.0  # 24 inches
                 k1, k2, x_ie = -0.153, -0.276, 1.0
@@ -815,7 +706,7 @@ class ChangePropagationEngine:
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 E = e_base * arc_duration / (working_distance_mm**x_ie)
                 boundary_mm = (e_base * arc_duration / 1.2) ** (1.0 / x_ie)
-=======
+
                 arc_duration = 0.2  # default 200ms clearing time
                 working_distance_mm = 610.0  # 24 inches
                 k1, k2, x_ie = -0.153, -0.276, 1.0
@@ -825,7 +716,6 @@ class ChangePropagationEngine:
                 E_base = 10**log_E
                 E = E_base * arc_duration / (working_distance_mm**x_ie)
                 boundary_mm = (E_base * arc_duration / 1.2) ** (1.0 / x_ie)
->>>>>>> origin/fix/scenario-tests-properly
 
                 if E <= 1.2:
                     ppe = "0"
@@ -844,28 +734,17 @@ class ChangePropagationEngine:
                     "incident_energy_cal_cm2": round(E, 4),
                     "arc_flash_boundary_mm": round(boundary_mm, 1),
                     "ppe_level": ppe,
-<<<<<<< HEAD
                     "arc_current_ka": round(iarc, 4),
-=======
-                    "arc_current_ka": round(Iarc, 4),
->>>>>>> origin/fix/scenario-tests-properly
                     "fault_current_ka": round(fault_ka, 4),
                     "method": "IEEE 1584-2018 (estimated)",
                 }
 
             return {"status": "refreshed", "bus_count": len(results), "results": results}
         except Exception as e:
-<<<<<<< HEAD
             logger.warning("Arc flash refresh failed: %s", e)
             return {"status": "error", "error": str(e)}
 
     def _refresh_protection(self) -> dict[str, Any]:
-=======
-            logger.warning(f"Arc flash refresh failed: {e}")
-            return {"status": "error", "error": str(e)}
-
-    def _refresh_protection(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Refresh protection coordination using current fault current data.
 
         Builds sequence networks, computes fault currents, and verifies
@@ -877,7 +756,6 @@ class ChangePropagationEngine:
         try:
             from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
-<<<<<<< HEAD
             from relays.relay import (
                 OvercurrentRelay,
             )
@@ -902,7 +780,7 @@ class ChangePropagationEngine:
 
             # Calculate fault currents at all buses
             fault_currents: list[float] = []
-=======
+
             from relays.relay import OvercurrentRelay
 
             self.dt_state.system.build_sequence_networks(for_fault=True)
@@ -916,7 +794,6 @@ class ChangePropagationEngine:
 
             # Calculate fault currents at all buses
             fault_currents: List[float] = []
->>>>>>> origin/fix/scenario-tests-properly
             bus_ids = sorted(self.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
             for bus_id in bus_ids:
@@ -943,13 +820,9 @@ class ChangePropagationEngine:
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
-<<<<<<< HEAD
                 relay1,
                 relay2,
                 representative_faults,
-=======
-                relay1, relay2, representative_faults
->>>>>>> origin/fix/scenario-tests-properly
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -962,17 +835,10 @@ class ChangePropagationEngine:
                 "coordination_standard": "IEC 60255",
             }
         except Exception as e:
-<<<<<<< HEAD
             logger.warning("Protection refresh failed: %s", e)
             return {"status": "error", "error": str(e)}
 
     def get_propagation_log(self) -> list[dict[str, Any]]:
-=======
-            logger.warning(f"Protection refresh failed: {e}")
-            return {"status": "error", "error": str(e)}
-
-    def get_propagation_log(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get propagation history."""
         return self._propagation_log
 
@@ -1008,11 +874,7 @@ class EventProcessor:
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.propagation = propagation_engine
-<<<<<<< HEAD
         self._processed_events: list[dict[str, Any]] = []
-=======
-        self._processed_events: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
         self._subscribe_to_events()
 
     def _subscribe_to_events(self) -> None:
@@ -1024,13 +886,9 @@ class EventProcessor:
         self.event_bus.subscribe(EventType.PV_CHANGED, self._on_pv_changed, priority=10)
         self.event_bus.subscribe(EventType.BATTERY_DISPATCH, self._on_battery_dispatch, priority=10)
         self.event_bus.subscribe(
-<<<<<<< HEAD
             EventType.SCADA_UPDATE_RECEIVED,
             self._on_scada_update,
             priority=10,
-=======
-            EventType.SCADA_UPDATE_RECEIVED, self._on_scada_update, priority=10
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_switch_opened(self, event: DomainEvent) -> None:
@@ -1038,13 +896,9 @@ class EventProcessor:
         if not isinstance(event, SwitchOpened):
             return
         result = self.propagation.propagate_switch_change(
-<<<<<<< HEAD
             switch_id=event.switch_id,
             is_opening=True,
             reason=event.reason,
-=======
-            switch_id=event.switch_id, is_opening=True, reason=event.reason
->>>>>>> origin/fix/scenario-tests-properly
         )
         self._processed_events.append(
             {
@@ -1052,11 +906,7 @@ class EventProcessor:
                 "event_type": "switch_opened",
                 "switch_id": event.switch_id,
                 "result": result,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_switch_closed(self, event: DomainEvent) -> None:
@@ -1064,13 +914,9 @@ class EventProcessor:
         if not isinstance(event, SwitchClosed):
             return
         result = self.propagation.propagate_switch_change(
-<<<<<<< HEAD
             switch_id=event.switch_id,
             is_opening=False,
             reason=event.reason,
-=======
-            switch_id=event.switch_id, is_opening=False, reason=event.reason
->>>>>>> origin/fix/scenario-tests-properly
         )
         self._processed_events.append(
             {
@@ -1078,11 +924,7 @@ class EventProcessor:
                 "event_type": "switch_closed",
                 "switch_id": event.switch_id,
                 "result": result,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_fault_detected(self, event: DomainEvent) -> None:
@@ -1093,12 +935,8 @@ class EventProcessor:
         if self.dt_state.adms is not None:
             try:
                 flisr_result = self.dt_state.adms.execute_flisr(
-<<<<<<< HEAD
                     tripped_switch_ids=event.tripped_switches,
                     scada_db=self.dt_state.scada,
-=======
-                    tripped_switch_ids=event.tripped_switches, scada_db=self.dt_state.scada
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 result = {
                     "flisr_executed": True,
@@ -1117,11 +955,7 @@ class EventProcessor:
                 result = {"flisr_executed": False, "error": str(e)}
 
         self._processed_events.append(
-<<<<<<< HEAD
             {"event_id": event.event_id, "event_type": "fault_detected", "result": result},
-=======
-            {"event_id": event.event_id, "event_type": "fault_detected", "result": result}
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_load_changed(self, event: DomainEvent) -> None:
@@ -1129,12 +963,8 @@ class EventProcessor:
         if not isinstance(event, LoadChanged):
             return
         result = self.propagation.propagate_load_change(
-<<<<<<< HEAD
             bus_id=event.bus_id,
             new_power=event.new_power,
-=======
-            bus_id=event.bus_id, new_power=event.new_power
->>>>>>> origin/fix/scenario-tests-properly
         )
         self._processed_events.append(
             {
@@ -1142,11 +972,7 @@ class EventProcessor:
                 "event_type": "load_changed",
                 "bus_id": event.bus_id,
                 "result": result,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_pv_changed(self, event: DomainEvent) -> None:
@@ -1163,11 +989,7 @@ class EventProcessor:
                 "event_type": "pv_changed",
                 "bus_id": event.bus_id,
                 "result": result,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_battery_dispatch(self, event: DomainEvent) -> None:
@@ -1184,11 +1006,7 @@ class EventProcessor:
                 "event_type": "battery_dispatch",
                 "bus_id": event.bus_id,
                 "result": result,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     def _on_scada_update(self, event: DomainEvent) -> None:
@@ -1213,11 +1031,7 @@ class EventProcessor:
                     )
                     self.dt_state.scada.add_measurement(meas)
                 except Exception as e:
-<<<<<<< HEAD
                     logger.warning("Failed to add SCADA measurement: %s", e)
-=======
-                    logger.warning(f"Failed to add SCADA measurement: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
             # Update switch statuses
             for switch_id, status_str in event.switch_statuses.items():
@@ -1227,11 +1041,7 @@ class EventProcessor:
                     new_status = SwitchStatus(status_str)
                     self.dt_state.scada.operate_switch(switch_id, new_status)
                 except Exception as e:
-<<<<<<< HEAD
                     logger.warning("Failed to update switch %s: %s", switch_id, e)
-=======
-                    logger.warning(f"Failed to update switch {switch_id}: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
         self._processed_events.append(
             {
@@ -1239,17 +1049,10 @@ class EventProcessor:
                 "event_type": "scada_update",
                 "measurement_count": len(event.measurements),
                 "switch_update_count": len(event.switch_statuses),
-<<<<<<< HEAD
             },
         )
 
     def get_processed_events(self, limit: int = 100) -> list[dict[str, Any]]:
-=======
-            }
-        )
-
-    def get_processed_events(self, limit: int = 100) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get history of processed events."""
         return self._processed_events[-limit:]
 
@@ -1286,25 +1089,19 @@ class TimeSteppedSimulator:
         self.time_step = 1.0  # seconds
         self.current_time = 0.0
         self.running = False
-<<<<<<< HEAD
         self._event_queue: list[dict[str, Any]] = []
         self._step_log: list[dict[str, Any]] = []
         self._scada_injector: Callable[[float], list[DomainEvent]] | None = None
-=======
+
         self._event_queue: List[Dict[str, Any]] = []
         self._step_log: List[Dict[str, Any]] = []
         self._scada_injector: Callable[[float], List[DomainEvent]] | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
     def set_time_step(self, dt: float) -> None:
         """Set simulation time step in seconds."""
         self.time_step = dt
 
-<<<<<<< HEAD
     def set_scada_injector(self, injector: Callable[[float], list[DomainEvent]]) -> None:
-=======
-    def set_scada_injector(self, injector: Callable[[float], List[DomainEvent]]) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Set a SCADA data injector function.
 
@@ -1318,11 +1115,7 @@ class TimeSteppedSimulator:
         self._event_queue.append({"event": event, "scheduled_time": at_time})
         self._event_queue.sort(key=lambda x: x["scheduled_time"])
 
-<<<<<<< HEAD
     def step(self) -> dict[str, Any]:
-=======
-    def step(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Execute a single simulation time step.
 
@@ -1345,11 +1138,7 @@ class TimeSteppedSimulator:
                     self.event_bus.publish(event)
                     events_processed += 1
             except Exception as e:
-<<<<<<< HEAD
                 logger.exception("SCADA injection error at t=%s: %s", self.current_time, e)
-=======
-                logger.error(f"SCADA injection error at t={self.current_time}: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
         # Process scheduled events
         due_events = [e for e in self._event_queue if e["scheduled_time"] <= self.current_time]
@@ -1363,12 +1152,8 @@ class TimeSteppedSimulator:
 
         # Capture state snapshot
         snapshot = self.dt_state.capture_snapshot(
-<<<<<<< HEAD
             source_event="time_step",
             correlation_id=f"step_{self.current_time}",
-=======
-            source_event="time_step", correlation_id=f"step_{self.current_time}"
->>>>>>> origin/fix/scenario-tests-properly
         )
         snapshot.simulation_time = self.current_time
         version = self.dt_state.commit_snapshot(snapshot)
@@ -1383,11 +1168,7 @@ class TimeSteppedSimulator:
                     "state_version": version,
                     "events_processed": events_processed,
                 },
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         step_record = {
@@ -1400,11 +1181,7 @@ class TimeSteppedSimulator:
 
         return step_record
 
-<<<<<<< HEAD
     def run(self, duration: float, time_step: float = None) -> list[dict[str, Any]]:
-=======
-    def run(self, duration: float, time_step: float = None) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Run simulation for a given duration.
 
@@ -1424,11 +1201,7 @@ class TimeSteppedSimulator:
                 event_type=EventType.SIMULATION_STARTED,
                 source="time_stepped_simulator",
                 metadata={"duration": duration, "time_step": self.time_step},
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         results = []
@@ -1444,11 +1217,7 @@ class TimeSteppedSimulator:
                 event_type=EventType.SIMULATION_STOPPED,
                 source="time_stepped_simulator",
                 metadata={"final_time": self.current_time, "steps": len(results)},
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return results
@@ -1457,11 +1226,7 @@ class TimeSteppedSimulator:
         """Stop the running simulation."""
         self.running = False
 
-<<<<<<< HEAD
     def get_step_log(self) -> list[dict[str, Any]]:
-=======
-    def get_step_log(self) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get simulation step history."""
         return self._step_log
 
@@ -1496,11 +1261,7 @@ class LivePowerSystemEngine:
         """
         self.dt_state = dt_state
         self.event_bus = event_bus
-<<<<<<< HEAD
         self._operation_log: list[dict[str, Any]] = []
-=======
-        self._operation_log: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Import and create the base engine if system is bound
         self._base_engine = None
@@ -1510,11 +1271,7 @@ class LivePowerSystemEngine:
 
                 self._base_engine = PowerSystemEngine(dt_state.system)
             except Exception as e:
-<<<<<<< HEAD
                 logger.warning("Could not create base PowerSystemEngine: %s", e)
-=======
-                logger.warning(f"Could not create base PowerSystemEngine: {e}")
->>>>>>> origin/fix/scenario-tests-properly
 
     def _ensure_ybus_current(self) -> None:
         """Ensure Ybus reflects current topology by forcing rebuild."""
@@ -1530,15 +1287,9 @@ class LivePowerSystemEngine:
 
                 self._base_engine = PowerSystemEngine(self.dt_state.system)
             except Exception as e:
-<<<<<<< HEAD
                 logger.warning("Could not rebuild base engine: %s", e)
 
     def run_load_flow(self) -> dict[str, Any]:
-=======
-                logger.warning(f"Could not rebuild base engine: {e}")
-
-    def run_load_flow(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Run load flow with current live topology.
 
@@ -1553,14 +1304,10 @@ class LivePowerSystemEngine:
 
         # Run load flow
         if self._base_engine is None:
-<<<<<<< HEAD
             return {
                 "converged": False,
                 "error": _NO_BASE_ENGINE_MSG,  # NOSONAR
             }  # NOSONAR intentional repetition (audit constant)
-=======
-            return {"converged": False, "error": "No base engine available"}
->>>>>>> origin/fix/scenario-tests-properly
 
         try:
             result = self._base_engine.run_load_flow()
@@ -1587,11 +1334,7 @@ class LivePowerSystemEngine:
                 iterations=result.get("iterations", 0),
                 bus_voltages=result.get("bus_voltages", {}),
                 source="live_engine",
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         operation_record = {
@@ -1604,11 +1347,7 @@ class LivePowerSystemEngine:
 
         return {**result, "state_version": version}
 
-<<<<<<< HEAD
     def run_fault_analysis(self, fault_type: str, bus_id) -> dict[str, Any]:
-=======
-    def run_fault_analysis(self, fault_type: str, bus_id) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Run fault analysis with current live topology.
         """
@@ -1620,11 +1359,7 @@ class LivePowerSystemEngine:
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-<<<<<<< HEAD
             return {"error": _NO_BASE_ENGINE_MSG}
-=======
-            return {"error": "No base engine available"}
->>>>>>> origin/fix/scenario-tests-properly
 
         try:
             result = self._base_engine.run_fault_analysis(fault_type, bus_id)
@@ -1634,11 +1369,7 @@ class LivePowerSystemEngine:
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="fault_analysis")
         snapshot.simulation_results.fault_currents = {
-<<<<<<< HEAD
             str(bus_id): result.get("fault_current", complex(0, 0)),
-=======
-            str(bus_id): result.get("fault_current", complex(0, 0))
->>>>>>> origin/fix/scenario-tests-properly
         }
         version = self.dt_state.commit_snapshot(snapshot)
 
@@ -1648,33 +1379,23 @@ class LivePowerSystemEngine:
                 fault_bus=str(bus_id),
                 fault_current_pu=abs(result.get("fault_current", complex(0, 0))),
                 source="live_engine",
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return {**result, "state_version": version}
 
     def run_protection_coordination(
-<<<<<<< HEAD
         self,
         upstream_relay_id: int,
         downstream_relay_id: int,
         fault_currents: list,
     ) -> dict[str, Any]:
-=======
-        self, upstream_relay_id: int, downstream_relay_id: int, fault_currents: list
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Run protection coordination with current live topology.
         """
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-<<<<<<< HEAD
             return {"error": _NO_BASE_ENGINE_MSG}
 
         try:
@@ -1682,13 +1403,6 @@ class LivePowerSystemEngine:
                 upstream_relay_id,
                 downstream_relay_id,
                 fault_currents,
-=======
-            return {"error": "No base engine available"}
-
-        try:
-            result = self._base_engine.run_protection_coordination(
-                upstream_relay_id, downstream_relay_id, fault_currents
->>>>>>> origin/fix/scenario-tests-properly
             )
         except Exception as e:
             return {"error": str(e)}
@@ -1696,12 +1410,8 @@ class LivePowerSystemEngine:
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="protection_coordination")
         snapshot.simulation_results.protection_coordination_ok = result.get(
-<<<<<<< HEAD
             "all_coordinated",
             False,
-=======
-            "all_coordinated", False
->>>>>>> origin/fix/scenario-tests-properly
         )
         version = self.dt_state.commit_snapshot(snapshot)
 
@@ -1709,20 +1419,12 @@ class LivePowerSystemEngine:
             ProtectionRefreshed(
                 coordination_issues=0 if result.get("all_coordinated", False) else 1,
                 source="live_engine",
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return {**result, "state_version": version}
 
-<<<<<<< HEAD
     def open_switch(self, switch_id: str, reason: str = "") -> dict[str, Any]:
-=======
-    def open_switch(self, switch_id: str, reason: str = "") -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Open a switch and propagate through the entire workflow.
 
@@ -1738,15 +1440,11 @@ class LivePowerSystemEngine:
 
         # Publish event -> EventProcessor -> ChangePropagationEngine
         event = SwitchOpened(
-<<<<<<< HEAD
             switch_id=switch_id,
             bus1=bus1,
             bus2=bus2,
             reason=reason,
             source="live_engine",
-=======
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine"
->>>>>>> origin/fix/scenario-tests-properly
         )
         self.event_bus.publish(event)
 
@@ -1759,11 +1457,7 @@ class LivePowerSystemEngine:
             "validation_passed": snapshot.validation_passed if snapshot else False,
         }
 
-<<<<<<< HEAD
     def close_switch(self, switch_id: str, reason: str = "") -> dict[str, Any]:
-=======
-    def close_switch(self, switch_id: str, reason: str = "") -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Close a switch and propagate through the entire workflow.
         """
@@ -1772,15 +1466,11 @@ class LivePowerSystemEngine:
             bus1, bus2 = self.dt_state.adms.topology.switches[switch_id]
 
         event = SwitchClosed(
-<<<<<<< HEAD
             switch_id=switch_id,
             bus1=bus1,
             bus2=bus2,
             reason=reason,
             source="live_engine",
-=======
-            switch_id=switch_id, bus1=bus1, bus2=bus2, reason=reason, source="live_engine"
->>>>>>> origin/fix/scenario-tests-properly
         )
         self.event_bus.publish(event)
 
@@ -1792,11 +1482,7 @@ class LivePowerSystemEngine:
             "validation_passed": snapshot.validation_passed if snapshot else False,
         }
 
-<<<<<<< HEAD
     def change_load(self, bus_id: str, new_power: complex) -> dict[str, Any]:
-=======
-    def change_load(self, bus_id: str, new_power: complex) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Change load at a bus and propagate through the workflow.
         """
@@ -1811,16 +1497,11 @@ class LivePowerSystemEngine:
         }
 
     def detect_fault(
-<<<<<<< HEAD
         self,
         fault_type: str,
         bus_id: str,
         tripped_switches: list[str] = None,
     ) -> dict[str, Any]:
-=======
-        self, fault_type: str, bus_id: str, tripped_switches: List[str] = None
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect a fault and trigger FLISR workflow.
         """
@@ -1841,15 +1522,10 @@ class LivePowerSystemEngine:
         }
 
     def inject_scada_update(
-<<<<<<< HEAD
         self,
         measurements: list[dict[str, Any]] = None,
         switch_statuses: dict[str, str] = None,
     ) -> dict[str, Any]:
-=======
-        self, measurements: List[Dict[str, Any]] = None, switch_statuses: Dict[str, str] = None
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Inject SCADA update and process.
         """
@@ -1868,19 +1544,11 @@ class LivePowerSystemEngine:
             "state_version": snapshot.version if snapshot else 0,
         }
 
-<<<<<<< HEAD
     def get_operation_log(self) -> list[dict[str, Any]]:
         """Get history of operations performed."""
         return self._operation_log
 
     def get_system_status(self) -> dict[str, Any]:
-=======
-    def get_operation_log(self) -> List[Dict[str, Any]]:
-        """Get history of operations performed."""
-        return self._operation_log
-
-    def get_system_status(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get current system status summary."""
         snapshot = self.dt_state.get_current_snapshot()
         return {

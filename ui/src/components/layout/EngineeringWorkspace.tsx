@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react';
 import { cn } from '../../utils/helpers';
 import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react';
@@ -16,7 +15,7 @@ interface EngineeringWorkspaceProps {
 
 export function EngineeringWorkspace({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-=======
+
 import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react'
 import { cn } from '../../utils/helpers'
 import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react'
@@ -33,7 +32,6 @@ interface EngineeringWorkspaceProps {
 }
 
 export function EngineeringWorkspace({
->>>>>>> origin/fix/scenario-tests-properly
   leftPanel,
   centerPanel,
   rightPanel,
@@ -43,7 +41,6 @@ export function EngineeringWorkspace({
   defaultRightWidth = 300,
   minPanelWidth = 180,
 }: EngineeringWorkspaceProps) {
-<<<<<<< HEAD
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
   const [rightWidth, setRightWidth] = useState(defaultRightWidth);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -95,7 +92,7 @@ export function EngineeringWorkspace({
       document.body.style.userSelect = '';
     };
   }, [dragging, leftWidth, rightWidth, minPanelWidth]);
-=======
+
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth)
   const [rightWidth, setRightWidth] = useState(defaultRightWidth)
   const [leftCollapsed, setLeftCollapsed] = useState(false)
@@ -138,7 +135,6 @@ export function EngineeringWorkspace({
       document.body.style.userSelect = ''
     }
   }, [dragging, leftWidth, rightWidth, minPanelWidth])
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div ref={containerRef} className="flex h-full overflow-hidden">
@@ -148,11 +144,7 @@ export function EngineeringWorkspace({
           <div
             className={cn(
               'shrink-0 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] overflow-hidden transition-all duration-200',
-<<<<<<< HEAD
               leftCollapsed ? 'w-10' : '',
-=======
-              leftCollapsed ? 'w-10' : ''
->>>>>>> origin/fix/scenario-tests-properly
             )}
             style={leftCollapsed ? {} : { width: leftWidth }}
           >
@@ -169,13 +161,9 @@ export function EngineeringWorkspace({
             ) : (
               <>
                 <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-primary)]">
-<<<<<<< HEAD
                   <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                     {leftTitle}
                   </span>
-=======
-                  <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">{leftTitle}</span>
->>>>>>> origin/fix/scenario-tests-properly
                   <button
                     onClick={() => setLeftCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
@@ -184,32 +172,22 @@ export function EngineeringWorkspace({
                     <PanelLeftClose className="w-3.5 h-3.5" />
                   </button>
                 </div>
-<<<<<<< HEAD
                 <div className="flex-1 overflow-y-auto">{leftPanel}</div>
-=======
+
                 <div className="flex-1 overflow-y-auto">
                   {leftPanel}
                 </div>
->>>>>>> origin/fix/scenario-tests-properly
               </>
             )}
           </div>
 
           {/* Left Resize Handle */}
           {!leftCollapsed && (
-<<<<<<< HEAD
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('left')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
                 dragging === 'left' && 'bg-[var(--accent-primary)]/30',
-=======
-            <div
-              onMouseDown={handleMouseDown('left')}
-              className={cn(
-                'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
-                dragging === 'left' && 'bg-[var(--accent-primary)]/30'
->>>>>>> origin/fix/scenario-tests-properly
               )}
             >
               <GripVertical className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -219,32 +197,22 @@ export function EngineeringWorkspace({
       )}
 
       {/* Center Panel */}
-<<<<<<< HEAD
       <div className="flex-1 overflow-auto min-w-0">{centerPanel}</div>
-=======
+
       <div className="flex-1 overflow-auto min-w-0">
         {centerPanel}
       </div>
->>>>>>> origin/fix/scenario-tests-properly
 
       {/* Right Panel */}
       {rightPanel && (
         <>
           {/* Right Resize Handle */}
           {!rightCollapsed && (
-<<<<<<< HEAD
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('right')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
                 dragging === 'right' && 'bg-[var(--accent-primary)]/30',
-=======
-            <div
-              onMouseDown={handleMouseDown('right')}
-              className={cn(
-                'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
-                dragging === 'right' && 'bg-[var(--accent-primary)]/30'
->>>>>>> origin/fix/scenario-tests-properly
               )}
             >
               <GripVertical className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -254,11 +222,7 @@ export function EngineeringWorkspace({
           <div
             className={cn(
               'shrink-0 flex flex-col bg-[var(--bg-secondary)] border-l border-[var(--border-primary)] overflow-hidden transition-all duration-200',
-<<<<<<< HEAD
               rightCollapsed ? 'w-10' : '',
-=======
-              rightCollapsed ? 'w-10' : ''
->>>>>>> origin/fix/scenario-tests-properly
             )}
             style={rightCollapsed ? {} : { width: rightWidth }}
           >
@@ -275,13 +239,9 @@ export function EngineeringWorkspace({
             ) : (
               <>
                 <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-primary)]">
-<<<<<<< HEAD
                   <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                     {rightTitle}
                   </span>
-=======
-                  <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">{rightTitle}</span>
->>>>>>> origin/fix/scenario-tests-properly
                   <button
                     onClick={() => setRightCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
@@ -290,22 +250,16 @@ export function EngineeringWorkspace({
                     <PanelRightClose className="w-3.5 h-3.5" />
                   </button>
                 </div>
-<<<<<<< HEAD
                 <div className="flex-1 overflow-y-auto">{rightPanel}</div>
-=======
+
                 <div className="flex-1 overflow-y-auto">
                   {rightPanel}
                 </div>
->>>>>>> origin/fix/scenario-tests-properly
               </>
             )}
           </div>
         </>
       )}
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

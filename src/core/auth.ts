@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Scoped API key validation — SECURITY HARDENED.
  *
@@ -12,7 +11,7 @@
 import type { Env } from './types.js';
 import type { ApiKeyScope } from './config.js';
 import { CONFIG } from './config.js';
-=======
+
 /**
  * Scoped API key validation.
  *
@@ -24,7 +23,6 @@ import { CONFIG } from './config.js';
  */
 import type { Env } from './types.js';
 import type { ApiKeyScope } from './config.js';
->>>>>>> origin/fix/scenario-tests-properly
 
 interface ApiKeyRecord {
   createdAt: number;
@@ -39,7 +37,6 @@ interface ApiKeyScopeRecord {
 }
 
 export type AuthResult =
-<<<<<<< HEAD
   | { valid: true; scope: ApiKeyScope; keyId: string; nearExpiry?: boolean }
   | { valid: false; error: string; auditAction: string };
 
@@ -96,20 +93,18 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
   // Enforce minimum key length (prevents trivial brute-force on short keys)
   if (apiKey.length < CONFIG.API_KEY_MIN_LENGTH) {
     return { valid: false, error: 'Invalid API key', auditAction: 'AUTH_FAILURE' };
-=======
+
   | { valid: true; scope: ApiKeyScope; keyId: string }
   | { valid: false; error: string };
 
 export async function validateApiKey(env: Env, apiKey: string | null): Promise<AuthResult> {
   if (!apiKey) {
     return { valid: false, error: 'Missing x-api-key header' };
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   // 1. KV-backed key with optional scope record
   if (env.API_KEYS_KV) {
     try {
-<<<<<<< HEAD
       const record = (await env.API_KEYS_KV.get(`api-key:${apiKey}`, {
         type: 'json',
       })) as ApiKeyRecord | null;
@@ -126,7 +121,7 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
         const keyId = await generateKeyId(apiKey);
         const nearExpiry = isKeyNearExpiry(record.createdAt);
         return { valid: true, scope: scopeRecord?.scope ?? 'full', keyId, nearExpiry };
-=======
+
       const record = (await env.API_KEYS_KV.get(`api-key:${apiKey}`, { type: 'json' })) as ApiKeyRecord | null;
       if (record) {
         if (record.revoked) return { valid: false, error: 'API key has been revoked' };
@@ -135,7 +130,6 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
           type: 'json',
         })) as ApiKeyScopeRecord | null;
         return { valid: true, scope: scopeRecord?.scope ?? 'full', keyId: apiKey.slice(0, 8) };
->>>>>>> origin/fix/scenario-tests-properly
       }
     } catch {
       // Fall through to legacy secret
@@ -145,7 +139,6 @@ export async function validateApiKey(env: Env, apiKey: string | null): Promise<A
   // 2. Legacy single secret — full scope
   const secret = env.API_KEY_SECRET;
   if (!secret) {
-<<<<<<< HEAD
     return { valid: false, error: 'API_KEY_SECRET is not configured in environment', auditAction: 'AUTH_FAILURE' };
   }
 
@@ -166,7 +159,7 @@ export function scopePermitsRoute(scope: ApiKeyScope, routeCategory: RouteCatego
     case 'studies': return scope === 'studies';
     case 'audit': case 'metrics': return false;
     default: return false;
-=======
+
     return { valid: false, error: 'API_KEY_SECRET is not configured in environment' };
   }
   if (apiKey !== secret) {
@@ -200,14 +193,12 @@ export function scopePermitsRoute(scope: ApiKeyScope, routeCategory: RouteCatego
 
     default:
       return false;
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 
 export type RouteCategory =
-<<<<<<< HEAD
   | 'health' | 'agents-list' | 'chat' | 'studies' | 'providers-list' | 'audit' | 'metrics';
-=======
+
   | 'health'
   | 'agents-list'
   | 'chat'
@@ -215,4 +206,3 @@ export type RouteCategory =
   | 'providers-list'
   | 'audit'
   | 'metrics';
->>>>>>> origin/fix/scenario-tests-properly

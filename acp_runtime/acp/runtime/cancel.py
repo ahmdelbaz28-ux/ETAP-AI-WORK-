@@ -10,10 +10,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-<<<<<<< HEAD
 from typing import Optional
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 import anyio
 
@@ -22,11 +19,7 @@ __all__ = ["cancellable", "is_cancelled_exception"]
 
 @asynccontextmanager
 async def cancellable(
-<<<<<<< HEAD
     deadline_ms: Optional[int] = None,
-=======
-    deadline_ms: int | None = None,
->>>>>>> origin/fix/scenario-tests-properly
 ) -> AsyncIterator[anyio.CancelScope]:
     """A cancel scope with an optional deadline.
 

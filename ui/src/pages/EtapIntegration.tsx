@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -29,7 +28,7 @@ export default function EtapIntegration() {
     { name: "Short Circuit - Substation B", status: "completed", date: "2026-06-07" },
     { name: "Arc Flash - MCC Panel", status: "completed", date: "2026-06-05" },
   ];
-=======
+
 import { motion } from 'framer-motion'
 import { Cable, Settings2, Link2, Activity, Clock, CheckCircle, Server, FileText } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -50,7 +49,6 @@ export function EtapIntegration() {
     { name: 'Short Circuit - Substation B', status: 'completed', date: '2026-06-07' },
     { name: 'Arc Flash - MCC Panel', status: 'completed', date: '2026-06-05' },
   ]
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -61,31 +59,23 @@ export function EtapIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">ETAP Integration</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 Connect to ETAP engineering platform
               </p>
               <ContextHelpButton contextId="etap-integration.overview" />
             </div>
-=======
-            <p className="text-sm text-[var(--text-tertiary)]">Connect to ETAP engineering platform</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Connection Status */}
-<<<<<<< HEAD
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-=======
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
->>>>>>> origin/fix/scenario-tests-properly
           <Card padding="md">
             <CardHeader
               title="Connection Status"
@@ -93,16 +83,11 @@ export function EtapIntegration() {
               icon={<Settings2 className="w-4 h-4" />}
             />
             <div className="space-y-3">
-<<<<<<< HEAD
               {connectionItems.map((item) => (
                 <div
                   key={item.label}
                   className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
                 >
-=======
-              {connectionItems.map(item => (
-                <div key={item.label} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
->>>>>>> origin/fix/scenario-tests-properly
                   <div className="flex items-center gap-2">
                     <Server className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                     <span className="text-sm text-[var(--text-tertiary)]">{item.label}</span>
@@ -118,13 +103,9 @@ export function EtapIntegration() {
                 variant="primary"
                 size="sm"
                 icon={Link2}
-<<<<<<< HEAD
                 onClick={() =>
                   notify("info", "ETAP connection requires Windows with ETAP installed")
                 }
-=======
-                onClick={() => notify('info', 'ETAP connection requires Windows with ETAP installed')}
->>>>>>> origin/fix/scenario-tests-properly
                 className="w-full"
               >
                 Connect to ETAP
@@ -134,15 +115,11 @@ export function EtapIntegration() {
         </motion.div>
 
         {/* Recent Studies */}
-<<<<<<< HEAD
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-=======
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
->>>>>>> origin/fix/scenario-tests-properly
           <Card padding="md">
             <CardHeader
               title="Recent Studies"
@@ -150,16 +127,11 @@ export function EtapIntegration() {
               icon={<Activity className="w-4 h-4" />}
             />
             <div className="space-y-3">
-<<<<<<< HEAD
               {recentStudies.map((study) => (
                 <div
                   key={study.name}
                   className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
                 >
-=======
-              {recentStudies.map((study, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
->>>>>>> origin/fix/scenario-tests-properly
                   <div className="flex items-center gap-2.5">
                     <div className="p-1.5 rounded-md bg-green-500/10">
                       <FileText className="w-3.5 h-3.5 text-green-400" />
@@ -183,15 +155,11 @@ export function EtapIntegration() {
       </div>
 
       {/* Integration Info */}
-<<<<<<< HEAD
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-=======
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
->>>>>>> origin/fix/scenario-tests-properly
         <Card padding="md">
           <CardHeader
             title="Integration Requirements"
@@ -202,43 +170,27 @@ export function EtapIntegration() {
             <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
               <CheckCircle className="w-5 h-5 text-amber-400 mb-2" />
               <h4 className="text-sm font-medium text-[var(--text-primary)]">ETAP Installation</h4>
-<<<<<<< HEAD
               <p className="text-xs text-[var(--text-muted)] mt-1">
                 ETAP must be installed on a Windows machine with a valid license
               </p>
-=======
-              <p className="text-xs text-[var(--text-muted)] mt-1">ETAP must be installed on a Windows machine with a valid license</p>
->>>>>>> origin/fix/scenario-tests-properly
             </div>
             <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
               <CheckCircle className="w-5 h-5 text-amber-400 mb-2" />
               <h4 className="text-sm font-medium text-[var(--text-primary)]">Worker Service</h4>
-<<<<<<< HEAD
               <p className="text-xs text-[var(--text-muted)] mt-1">
                 ETAP worker service must be running and accessible from the AI platform
               </p>
-=======
-              <p className="text-xs text-[var(--text-muted)] mt-1">ETAP worker service must be running and accessible from the AI platform</p>
->>>>>>> origin/fix/scenario-tests-properly
             </div>
             <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
               <CheckCircle className="w-5 h-5 text-amber-400 mb-2" />
               <h4 className="text-sm font-medium text-[var(--text-primary)]">License Path</h4>
-<<<<<<< HEAD
               <p className="text-xs text-[var(--text-muted)] mt-1">
                 Configure the ETAP license path in Settings under ETAP Integration
               </p>
-=======
-              <p className="text-xs text-[var(--text-muted)] mt-1">Configure the ETAP license path in Settings under ETAP Integration</p>
->>>>>>> origin/fix/scenario-tests-properly
             </div>
           </div>
         </Card>
       </motion.div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

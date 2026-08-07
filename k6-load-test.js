@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // =============================================================================
 // AhmedETAP — k6 Load Test Suite (CI Smoke Profile)
 // =============================================================================
@@ -456,7 +455,7 @@ export function handleSummary(data) {
     'load-test-results/k6/summary.json': JSON.stringify(data, null, 2),
   };
 }
-=======
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
@@ -525,4 +524,3 @@ export default function () {
   errorRate.add(studyResp.status !== 200);
   sleep(2);
 }
->>>>>>> origin/fix/scenario-tests-properly

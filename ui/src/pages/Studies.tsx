@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -71,7 +70,7 @@ export default function Studies() {
       })
       .catch(() => {});
   }, []);
-=======
+
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -94,7 +93,6 @@ const categoryColors: Record<string, string> = {
 export function Studies() {
   const { t } = useTranslation()
   const navigate = useNavigate()
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -104,22 +102,16 @@ export function Studies() {
             <Beaker className="w-6 h-6 text-brand-400" />
           </div>
           <div>
-<<<<<<< HEAD
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t("studies.title")}</h2>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-[var(--text-tertiary)]">{t("studies.subtitle")}</p>
               <ContextHelpButton contextId="studies.overview" />
             </div>
-=======
-            <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('studies.title')}</h2>
-            <p className="text-[var(--text-tertiary)] mt-0.5">{t('studies.subtitle')}</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-<<<<<<< HEAD
         {studyCategories.map((s, index) => {
           const isDisabled = disabledStudies.has(s.id);
           const LucideIcon = studyIconMap[s.lucideIcon] || Zap;
@@ -202,7 +194,7 @@ export function Studies() {
       </div>
     </div>
   );
-=======
+
         {studyCategories.map((s, index) => (
           <motion.div
             key={s.id}
@@ -250,5 +242,4 @@ export function Studies() {
       </div>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

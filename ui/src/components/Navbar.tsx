@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   AlertCircle,
   AlertTriangle,
@@ -233,7 +232,7 @@ export function Navbar() {
           )}
         >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
-=======
+
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Bell, X, Globe, User, Clock, Command, Maximize2, Minimize2 } from 'lucide-react'
@@ -300,12 +299,10 @@ export function Navbar() {
           showSearch ? 'w-64 md:w-80' : 'w-0 overflow-hidden'
         )}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
->>>>>>> origin/fix/scenario-tests-properly
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-<<<<<<< HEAD
             placeholder={t("navbar.searchPlaceholder") || "Search..."}
             className="w-full pl-9 pr-10 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
           />
@@ -350,7 +347,7 @@ export function Navbar() {
             type="button"
           >
             <Search className="w-5 h-5" />
-=======
+
             placeholder={t('navbar.searchPlaceholder')}
             className="w-full pl-9 pr-16 py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 transition-colors"
             autoFocus={showSearch}
@@ -376,12 +373,10 @@ export function Navbar() {
             <Search className="w-4 h-4" />
             <span className="hide-mobile text-xs">{t('navbar.searchPlaceholder')}</span>
             <kbd className="hide-mobile text-[10px] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--border-primary)] font-mono">⌘K</kbd>
->>>>>>> origin/fix/scenario-tests-properly
           </button>
         )}
       </div>
 
-<<<<<<< HEAD
       {/* ─── Center: Brand (hidden on mobile) ──────────────────────── */}
       <div className="hidden lg:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
         <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-[var(--bg-primary)]/40 border border-[var(--border-primary)]/30">
@@ -687,7 +682,7 @@ export function Navbar() {
       </div>
     </header>
   );
-=======
+
       <div className="flex items-center gap-1">
         {/* Language Toggle */}
         <button
@@ -733,5 +728,4 @@ export function Navbar() {
       </div>
     </header>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

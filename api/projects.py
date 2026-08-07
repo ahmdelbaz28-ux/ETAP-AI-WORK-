@@ -17,7 +17,6 @@ accept either a JWT or a valid ``X-API-Key`` header.
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -33,7 +32,7 @@ from api.database import Base
 from compat import StrEnum
 
 router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
-=======
+
 import json
 import uuid
 from datetime import UTC, datetime
@@ -83,7 +82,6 @@ async def _require_api_key_or_jwt(
     if not API_KEY:
         return "dev"
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +130,6 @@ class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-<<<<<<< HEAD
     tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
@@ -142,11 +139,6 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
     system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-=======
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
-    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
->>>>>>> origin/fix/scenario-tests-properly
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -166,7 +158,6 @@ class StudyResult(Base):
     __tablename__ = "study_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-<<<<<<< HEAD
     tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
@@ -179,23 +170,18 @@ class StudyResult(Base):
     config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
-=======
+
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
->>>>>>> origin/fix/scenario-tests-properly
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-<<<<<<< HEAD
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-=======
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
->>>>>>> origin/fix/scenario-tests-properly
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
@@ -210,13 +196,8 @@ class ProjectCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=255)
-<<<<<<< HEAD
     description: Optional[str] = Field(default=None, max_length=2000)
     system_config: Optional[dict[str, Any]] = None
-=======
-    description: str | None = Field(default=None, max_length=2000)
-    system_config: Dict[str, Any] | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -224,7 +205,6 @@ class ProjectUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-<<<<<<< HEAD
     name: Optional[str] = Field(default=None, min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=2000)
     system_config: Optional[dict[str, Any]] = None
@@ -233,7 +213,7 @@ class ProjectUpdateRequest(BaseModel):
     @field_validator("status")
     @classmethod
     def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
-=======
+
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     system_config: Dict[str, Any] | None = None
@@ -242,7 +222,6 @@ class ProjectUpdateRequest(BaseModel):
     @field_validator("status")
     @classmethod
     def reject_deleted_status(cls, v: ProjectStatus | None) -> ProjectStatus | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
             raise ValueError("Use DELETE endpoint to soft-delete a project")
@@ -256,7 +235,6 @@ class ProjectResponse(BaseModel):
 
     id: str
     name: str
-<<<<<<< HEAD
     description: Optional[str] = None
     system_config: Optional[dict[str, Any]] = None
     created_at: Optional[datetime] = None
@@ -264,14 +242,13 @@ class ProjectResponse(BaseModel):
     created_by: str
     status: str
     tenant_id: Optional[str] = None
-=======
+
     description: str | None = None
     system_config: Dict[str, Any] | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     created_by: str
     status: str
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ProjectListResponse(BaseModel):
@@ -279,11 +256,7 @@ class ProjectListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-<<<<<<< HEAD
     projects: list[ProjectResponse]
-=======
-    projects: List[ProjectResponse]
->>>>>>> origin/fix/scenario-tests-properly
     total: int
     page: int
     page_size: int
@@ -300,11 +273,7 @@ class StudyRunRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     study_type: StudyType
-<<<<<<< HEAD
     config: Optional[dict[str, Any]] = None
-=======
-    config: Dict[str, Any] | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class StudyResultResponse(BaseModel):
@@ -316,7 +285,6 @@ class StudyResultResponse(BaseModel):
     project_id: str
     study_type: str
     status: str
-<<<<<<< HEAD
     config: Optional[dict[str, Any]] = None
     results: Optional[dict[str, Any]] = None
     error_message: Optional[str] = None
@@ -324,14 +292,13 @@ class StudyResultResponse(BaseModel):
     completed_at: Optional[datetime] = None
     created_by: str
     tenant_id: Optional[str] = None
-=======
+
     config: Dict[str, Any] | None = None
     results: Dict[str, Any] | None = None
     error_message: str | None = None
     created_at: datetime | None = None
     completed_at: datetime | None = None
     created_by: str
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class StudyListResponse(BaseModel):
@@ -339,11 +306,7 @@ class StudyListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-<<<<<<< HEAD
     studies: list[StudyResultResponse]
-=======
-    studies: List[StudyResultResponse]
->>>>>>> origin/fix/scenario-tests-properly
     total: int
     page: int
     page_size: int
@@ -357,7 +320,6 @@ router = APIRouter(prefix="/api/v1/projects", tags=["Projects"])
 
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Endpoints
 # ---------------------------------------------------------------------------
 #
@@ -447,7 +409,7 @@ async def list_projects(
     if status_filter is not None:
         base_query = base_query.where(Project.status == status_filter.value)
 
-=======
+
 # Endpoints — Projects CRUD
 # ---------------------------------------------------------------------------
 
@@ -516,30 +478,20 @@ async def list_projects(
         base_query = base_query.where(Project.status != ProjectStatus.DELETED.value)
 
     # Total count
->>>>>>> origin/fix/scenario-tests-properly
     count_query = select(func.count()).select_from(base_query.subquery())
     count_result = await db.execute(count_query)
     total = count_result.scalar_one()
 
-<<<<<<< HEAD
     result = await db.execute(
         base_query.order_by(Project.updated_at.desc())
         .offset(pagination.offset)
         .limit(pagination.page_size),
-=======
-    # Paginated results
-    result = await db.execute(
-        base_query.order_by(Project.updated_at.desc())
-        .offset(pagination.offset)
-        .limit(pagination.page_size)
->>>>>>> origin/fix/scenario-tests-properly
     )
     projects = result.scalars().all()
 
     return ProjectListResponse(
-<<<<<<< HEAD
         projects=[ProjectResponse.model_validate(p) for p in projects],
-=======
+
         projects=[
             ProjectResponse(
                 id=str(p.id),
@@ -553,14 +505,12 @@ async def list_projects(
             )
             for p in projects
         ],
->>>>>>> origin/fix/scenario-tests-properly
         total=total,
         page=pagination.page,
         page_size=pagination.page_size,
     )
 
 
-<<<<<<< HEAD
 @router.post(
     "",
     response_model=ProjectResponse,
@@ -622,7 +572,7 @@ async def get_project(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     return ProjectResponse.model_validate(project)
-=======
+
 @router.get(
     "/{project_id}",
     response_model=ProjectResponse,
@@ -659,7 +609,6 @@ async def get_project(
         created_by=project.created_by,
         status=project.status,
     )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.put(
@@ -670,7 +619,6 @@ async def get_project(
 async def update_project(
     project_id: str,
     body: ProjectUpdateRequest,
-<<<<<<< HEAD
     db: DbDep,
     user: UserDep,
 ) -> Any:
@@ -687,7 +635,7 @@ async def update_project(
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
-=======
+
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Any:
@@ -708,26 +656,18 @@ async def update_project(
         )
 
     # Apply updates
->>>>>>> origin/fix/scenario-tests-properly
     if body.name is not None:
         project.name = body.name
     if body.description is not None:
         project.description = body.description
     if body.system_config is not None:
         project.system_config = body.system_config
-<<<<<<< HEAD
-=======
-    if body.status is not None:
-        project.status = body.status.value
-
->>>>>>> origin/fix/scenario-tests-properly
     project.updated_at = datetime.now(UTC)
     db.add(project)
     await db.flush()
     await db.refresh(project)
-<<<<<<< HEAD
     return ProjectResponse.model_validate(project)
-=======
+
 
     return ProjectResponse(
         id=str(project.id),
@@ -739,7 +679,6 @@ async def update_project(
         created_by=project.created_by,
         status=project.status,
     )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.delete(
@@ -749,7 +688,6 @@ async def update_project(
 )
 async def delete_project(
     project_id: str,
-<<<<<<< HEAD
     db: DbDep,
     user: UserDep,
 ) -> dict:
@@ -767,7 +705,7 @@ async def delete_project(
     # V-07: Tenant isolation — only owner or admin can delete
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
-=======
+
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
@@ -787,25 +725,15 @@ async def delete_project(
             detail="Project has already been deleted",
         )
 
->>>>>>> origin/fix/scenario-tests-properly
     project.status = ProjectStatus.DELETED.value
     project.updated_at = datetime.now(UTC)
     db.add(project)
     await db.flush()
-<<<<<<< HEAD
     return {"message": "Project soft-deleted successfully", "project_id": project_id}
 
 
 # ---------------------------------------------------------------------------
 # Study endpoints
-=======
-
-    return {"message": "Project has been soft-deleted"}
-
-
-# ---------------------------------------------------------------------------
-# Endpoints — Studies
->>>>>>> origin/fix/scenario-tests-properly
 # ---------------------------------------------------------------------------
 
 
@@ -813,7 +741,6 @@ async def delete_project(
     "/{project_id}/studies",
     response_model=StudyResultResponse,
     status_code=status.HTTP_201_CREATED,
-<<<<<<< HEAD
     summary="Run a study on a project",
 )
 async def run_project_study(
@@ -850,7 +777,7 @@ async def run_project_study(
     await db.flush()
     await db.refresh(study)
     return StudyResultResponse.model_validate(study)
-=======
+
     summary="Run a study on a saved project config",
 )
 async def run_study(
@@ -934,13 +861,11 @@ async def run_study(
         completed_at=study.completed_at,
         created_by=study.created_by,
     )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.get(
     "/{project_id}/studies",
     response_model=StudyListResponse,
-<<<<<<< HEAD
     summary="List study results for a project",
 )
 async def list_project_studies(
@@ -964,7 +889,7 @@ async def list_project_studies(
 
     count_query = (
         select(func.count()).select_from(StudyResult).where(StudyResult.project_id == project_id)
-=======
+
     summary="List study results for a project (paginated)",
 )
 async def list_studies(
@@ -987,32 +912,22 @@ async def list_studies(
     # Total count
     count_query = select(func.count()).select_from(
         select(StudyResult).where(StudyResult.project_id == project_id).subquery()
->>>>>>> origin/fix/scenario-tests-properly
     )
     count_result = await db.execute(count_query)
     total = count_result.scalar_one()
 
-<<<<<<< HEAD
-=======
-    # Paginated results
->>>>>>> origin/fix/scenario-tests-properly
     result = await db.execute(
         select(StudyResult)
         .where(StudyResult.project_id == project_id)
         .order_by(StudyResult.created_at.desc())
         .offset(pagination.offset)
-<<<<<<< HEAD
         .limit(pagination.page_size),
-=======
-        .limit(pagination.page_size)
->>>>>>> origin/fix/scenario-tests-properly
     )
     studies = result.scalars().all()
 
     return StudyListResponse(
-<<<<<<< HEAD
         studies=[StudyResultResponse.model_validate(s) for s in studies],
-=======
+
         studies=[
             StudyResultResponse(
                 id=str(s.id),
@@ -1028,13 +943,11 @@ async def list_studies(
             )
             for s in studies
         ],
->>>>>>> origin/fix/scenario-tests-properly
         total=total,
         page=pagination.page,
         page_size=pagination.page_size,
     )
-<<<<<<< HEAD
-=======
+
 
 
 # ---------------------------------------------------------------------------
@@ -1145,4 +1058,3 @@ def _sanitize_result(obj: Any) -> Any:
         return json.loads(json.dumps(obj, default=str))
     except Exception:
         return str(obj)
->>>>>>> origin/fix/scenario-tests-properly

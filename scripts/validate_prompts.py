@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 from __future__ import annotations
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 #!/usr/bin/env python3
 """LangWatch Prompt Validation Script.
 
@@ -53,7 +50,6 @@ ENGINEERING_STANDARDS = {
     "IEC 60909",
     "IEEE 1584",
     "IEC 60255",
-<<<<<<< HEAD
     "IEEE C37",
     "NEC Article 250",
     "IEEE 519",
@@ -217,7 +213,7 @@ def validate_all_prompts(  # NOSONAR
     yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
     if not yaml_files:
         print(f"ERROR: No prompt files found in {PROMPTS_DIR}")
-=======
+
     "IEEE 519",
     "IEEE 399",
     "IEC 60364",
@@ -352,12 +348,10 @@ def validate_all_prompts(strict: bool = False) -> bool:
     yaml_files = sorted(PROMPTS_DIR.glob("*.yaml"))
     if not yaml_files:
         print("ERROR: No YAML prompt files found")
->>>>>>> origin/fix/scenario-tests-properly
         return False
 
     print(f"Validating {len(yaml_files)} prompt files in {PROMPTS_DIR}...\n")
 
-<<<<<<< HEAD
     passed = 0
     total_errors = 0
     total_warnings = 0
@@ -382,7 +376,7 @@ def validate_all_prompts(strict: bool = False) -> bool:
                 elif issue.startswith("INFO:"):
                     total_info += 1
                     print(f"{prefix}[INFO] {issue}")
-=======
+
     total_errors = 0
     total_warnings = 0
     total_info = 0
@@ -406,7 +400,6 @@ def validate_all_prompts(strict: bool = False) -> bool:
                 elif issue.startswith("INFO:"):
                     total_info += 1
                     print(f"{prefix}ℹ️  {issue}")
->>>>>>> origin/fix/scenario-tests-properly
 
     print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{len(yaml_files)} files passed")
@@ -420,7 +413,6 @@ def validate_all_prompts(strict: bool = False) -> bool:
 
 
 def sync_to_langwatch() -> None:
-<<<<<<< HEAD
     """Delegate to the standalone sync_to_langwatch.py script."""
     sync_script = Path(__file__).resolve().parent / "sync_to_langwatch.py"
     if not sync_script.is_file():
@@ -435,7 +427,7 @@ def sync_to_langwatch() -> None:
         capture_output=False,
     )
     sys.exit(result.returncode)
-=======
+
     """Sync validated prompts to LangWatch.
 
     Uploads each YAML prompt file to LangWatch so that the
@@ -520,7 +512,6 @@ def sync_to_langwatch() -> None:
     except Exception as e:
         print(f"ERROR: LangWatch sync failed: {e}")
         sys.exit(1)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

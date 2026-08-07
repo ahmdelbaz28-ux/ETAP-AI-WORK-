@@ -34,11 +34,7 @@ __all__ = [
 # ------------------------------------------------------------------ TraceContext
 
 
-<<<<<<< HEAD
 @dataclass(frozen=True)
-=======
-@dataclass(frozen=True, slots=True)
->>>>>>> origin/fix/scenario-tests-properly
 class TraceContext:
     """Immutable trace context that propagates across layers.
 
@@ -72,11 +68,7 @@ class TraceContext:
 # ------------------------------------------------------------------ Span
 
 
-<<<<<<< HEAD
 @dataclass(frozen=True)
-=======
-@dataclass(frozen=True, slots=True)
->>>>>>> origin/fix/scenario-tests-properly
 class Span:
     """An immutable record of a completed span.
 
@@ -141,11 +133,7 @@ class Tracer:
     Subclasses must implement ``start_span``, ``finish_span``, and ``record_span``.
     """
 
-<<<<<<< HEAD
     def start_span(self, _name: str, context: TraceContext | None = None) -> TraceContext:
-=======
-    def start_span(self, name: str, context: TraceContext | None = None) -> TraceContext:
->>>>>>> origin/fix/scenario-tests-properly
         """Start a new span and return its context.
 
         The default implementation generates a span_id, creates a child
@@ -189,11 +177,7 @@ class Tracer:
         """Generate a short unique span id."""
         import random
 
-<<<<<<< HEAD
         return f"{random.getrandbits(64):016x}"  # NOSONAR
-=======
-        return f"{random.getrandbits(64):016x}"
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ------------------------------------------------------------------ NullTracer
@@ -203,11 +187,7 @@ class NullTracer(Tracer):
     """No-op tracer."""
 
     def record_span(self, span: Span) -> None:
-<<<<<<< HEAD
         pass  # NOSONAR
-=======
-        pass
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ------------------------------------------------------------------ InMemoryTracer
@@ -249,11 +229,7 @@ class JsonTracer(Tracer):
         encoding: file encoding (default "utf-8").
     """
 
-<<<<<<< HEAD
     def __init__(self, path: str | Path, encoding: str = "utf-8") -> None:
-=======
-    def __init__(self, path: str | Path, *, encoding: str = "utf-8") -> None:
->>>>>>> origin/fix/scenario-tests-properly
         self._path = Path(path)
         self._encoding = encoding
         self._lock = threading.Lock()

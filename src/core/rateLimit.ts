@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Rate limiting: per-key + per-agent + per-endpoint + per-IP brute-force defense.
  *
@@ -6,7 +5,7 @@
  *   - Per-IP rate limiting for unauthenticated requests
  *   - IP ban mechanism (sustained abuse = auto 15-min ban)
  *   - Per-endpoint custom rate limits (studies tighter than chat)
-=======
+
 /**
  * Per-API-key rate limiting with optional agent-id dimension.
  *
@@ -14,7 +13,6 @@
  *   - Rate limit key is the API key (not IP) — prevents NAT starvation
  *   - Optional agent-id dimension for chat endpoints
  *   - Falls back to KV → Cache API → in-memory Map (3-tier)
->>>>>>> origin/fix/scenario-tests-properly
  */
 import type { Env } from './types.js';
 import { CONFIG } from './config.js';
@@ -29,7 +27,6 @@ const _RATE_LIMIT_MAP_MAX_SIZE = 10_000;
 let _lastMapCleanup = 0;
 const _MAP_CLEANUP_INTERVAL_MS = 60_000;
 
-<<<<<<< HEAD
 function _evictStaleEntries(): void {
   const now = Date.now();
   for (const [key, state] of _rateLimitMap) {
@@ -38,7 +35,7 @@ function _evictStaleEntries(): void {
   if (_rateLimitMap.size > _RATE_LIMIT_MAP_MAX_SIZE) {
     const entries = [..._rateLimitMap.entries()].sort((a, b) => a[1].resetAt - b[1].resetAt);
     for (const [key] of entries.slice(0, entries.length - _RATE_LIMIT_MAP_MAX_SIZE)) {
-=======
+
 function _evictStaleRateLimitEntries(): void {
   const now = Date.now();
   for (const [key, state] of _rateLimitMap) {
@@ -52,18 +49,16 @@ function _evictStaleRateLimitEntries(): void {
     entries.sort((a, b) => a[1].resetAt - b[1].resetAt);
     const toDelete = entries.slice(0, entries.length - _RATE_LIMIT_MAP_MAX_SIZE);
     for (const [key] of toDelete) {
->>>>>>> origin/fix/scenario-tests-properly
       _rateLimitMap.delete(key);
     }
   }
 }
 
-<<<<<<< HEAD
 function isRlState(value: unknown): value is RateLimitState {
   return typeof value === 'object' && value !== null &&
     typeof (value as Record<string, unknown>).count === 'number' &&
     typeof (value as Record<string, unknown>).resetAt === 'number';
-=======
+
 function isRateLimitEntry(value: unknown): value is RateLimitState {
   return (
     typeof value === 'object' &&
@@ -73,7 +68,6 @@ function isRateLimitEntry(value: unknown): value is RateLimitState {
     typeof (value as Record<string, unknown>).count === 'number' &&
     typeof (value as Record<string, unknown>).resetAt === 'number'
   );
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 function evaluateLimit(state: RateLimitState | null, now: number, limit: number) {
@@ -86,7 +80,6 @@ function evaluateLimit(state: RateLimitState | null, now: number, limit: number)
   return { allowed: true, newState: { count: state.count + 1, resetAt: state.resetAt } };
 }
 
-<<<<<<< HEAD
 async function kvCheck(env: Env, key: string, limit: number): Promise<{ allowed: boolean; retryAfter?: number } | null> {
   if (!env.RATE_LIMIT_KV) return null;
   try {
@@ -114,7 +107,7 @@ function mapCheck(key: string, limit: number): { allowed: boolean; retryAfter?: 
 function resolveKeyLimit(env: Env): number {
   if (env.RATE_LIMIT_REQUESTS_PER_MINUTE) {
     const n = Number.parseInt(env.RATE_LIMIT_REQUESTS_PER_MINUTE, 10);
-=======
+
 async function checkRateLimitKV(
   env: Env,
   key: string,
@@ -160,13 +153,11 @@ function checkRateLimitMap(
 function resolveKeyLimit(env: Env): number {
   if (env.RATE_LIMIT_REQUESTS_PER_MINUTE) {
     const n = parseInt(env.RATE_LIMIT_REQUESTS_PER_MINUTE, 10);
->>>>>>> origin/fix/scenario-tests-properly
     if (!Number.isNaN(n) && n > 0) return n;
   }
   return CONFIG.RATE_LIMIT_PER_KEY_PER_MINUTE;
 }
 
-<<<<<<< HEAD
 /*
  * Per-endpoint rate limit (most sensitive routes get tighter limits).
  * Per Better Auth skill: customRules per endpoint.
@@ -263,19 +254,17 @@ export type RateLimitResult = {
 
 /*
  * Per-API-key rate limit with per-agent and per-endpoint dimensions.
-=======
+
 /**
  * Per-API-key rate limit.
  * If `agentId` is provided, adds an extra (lower) limit on that dimension.
  *
  * The env var RATE_LIMIT_REQUESTS_PER_MINUTE can override the per-key
  * limit for backward-compatibility and test scenarios.
->>>>>>> origin/fix/scenario-tests-properly
  */
 export async function checkRateLimit(
   env: Env,
   apiKeyId: string,
-<<<<<<< HEAD
   agentId?: string,
   method?: string,
   path?: string
@@ -284,19 +273,17 @@ export async function checkRateLimit(
   const keyLimit = resolveKeyLimit(env);
   const kv = await kvCheck(env, baseKey, keyLimit);
   const result = kv ?? mapCheck(baseKey, keyLimit);
-=======
+
   agentId?: string
 ): Promise<{ allowed: boolean; retryAfter?: number; dimension?: 'key' | 'agent' }> {
   const baseKey = `rl:key:${apiKeyId}`;
   const keyLimit = resolveKeyLimit(env);
   const kv = await checkRateLimitKV(env, baseKey, keyLimit);
   const result = kv ?? checkRateLimitMap(baseKey, keyLimit);
->>>>>>> origin/fix/scenario-tests-properly
   if (!result.allowed) return { ...result, dimension: 'key' };
 
   if (agentId) {
     const agentKey = `rl:key:${apiKeyId}:agent:${agentId}`;
-<<<<<<< HEAD
     const kvAgent = await kvCheck(env, agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
     const agentResult = kvAgent ?? mapCheck(agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
     if (!agentResult.allowed) return { ...agentResult, dimension: 'agent' };
@@ -307,12 +294,5 @@ export async function checkRateLimit(
     if (!epResult.allowed) return { ...epResult, dimension: 'endpoint' };
   }
 
-=======
-    const kvAgent = await checkRateLimitKV(env, agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
-    const agentResult = kvAgent ?? checkRateLimitMap(agentKey, CONFIG.RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE);
-    if (!agentResult.allowed) return { ...agentResult, dimension: 'agent' };
-  }
-
->>>>>>> origin/fix/scenario-tests-properly
   return { allowed: true };
 }

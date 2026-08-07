@@ -23,25 +23,22 @@ import os
 import re
 import stat
 import threading
-<<<<<<< HEAD
 from datetime import datetime, timezone
 from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from pathlib import Path
 from typing import Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
 SECRETS_DIR = Path(
     os.environ.get("ETAP_SECRETS_DIR", str(Path.home() / ".etap-platform" / "secrets"))
 )
@@ -54,11 +51,6 @@ _ENCRYPTION_KEY_FILENAME = ".encryption_key"
 # in 3 places (_fallback_service_name, list_secrets, _service_file).
 _SERVICE_NAME_SANITIZE_REGEX = r"[^a-zA-Z0-9_-]"
 ENCRYPTION_KEY_FILE = SECRETS_DIR / _ENCRYPTION_KEY_FILENAME
-=======
-SECRETS_DIR = Path.home() / ".etap-platform" / "secrets"
-AUDIT_DIR = Path(__file__).parent / "audit"
-ENCRYPTION_KEY_FILE = SECRETS_DIR / ".encryption_key"
->>>>>>> origin/fix/scenario-tests-properly
 REQUIRED_SECRETS = [
     "JWT_SECRET_KEY",
     "ENCRYPTION_KEY",
@@ -71,7 +63,6 @@ REQUIRED_SECRETS = [
 
 
 def _ensure_dir(path: Path) -> Path:
-<<<<<<< HEAD
     try:
         path.mkdir(parents=True, exist_ok=True, mode=0o700)
         # Harden directory permissions to owner-only (0o700) so that other
@@ -107,13 +98,6 @@ def _ensure_dir(path: Path) -> Path:
 
 
 def _get_cipher(key: Optional[bytes] = None) -> tuple[Fernet, bytes]:
-=======
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-def _get_cipher(key: bytes | None = None) -> Tuple[Fernet, bytes]:
->>>>>>> origin/fix/scenario-tests-properly
     if key:
         return Fernet(key), key
     key = Fernet.generate_key()
@@ -153,11 +137,7 @@ class VaultSecretsManager:
 
         # Disk-backed fallback (no in-memory secret loss on restart).
         # We reuse LocalSecretsManager (Fernet-encrypted files under SECRETS_DIR).
-<<<<<<< HEAD
         self._fallback_store: Optional[LocalSecretsManager] = None
-=======
-        self._fallback_store: LocalSecretsManager | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
         self._init_vault_client()
 
@@ -167,7 +147,6 @@ class VaultSecretsManager:
         return self._vault_token
 
     def __repr__(self) -> str:
-<<<<<<< HEAD
         # Show only first 4 chars of the token for debugging (mask the rest).
         _VAULT_TOKEN_PREVIEW_LEN = 4
         masked = (
@@ -178,12 +157,6 @@ class VaultSecretsManager:
         return f"VaultSecretsManager(addr={self.vault_addr!r}, token={masked!r})"
 
     def _init_vault_client(self) -> None:
-=======
-        masked = self._vault_token[:4] + "****" if len(self._vault_token) > 4 else "****"
-        return f"VaultSecretsManager(addr={self.vault_addr!r}, token={masked!r})"
-
-    def _init_vault_client(self):
->>>>>>> origin/fix/scenario-tests-properly
         try:
             import hvac
 
@@ -210,27 +183,17 @@ class VaultSecretsManager:
             else:
                 raise RuntimeError(
                     f"Cannot connect to Vault at {self.vault_addr} "
-<<<<<<< HEAD
                     "and use_mock_if_unavailable is False",
-=======
-                    "and use_mock_if_unavailable is False"
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
     def _fallback_service_name(self, path: str, key: str) -> str:
         # Deterministic mapping from Vault (path, key) to LocalSecretsManager service file.
         # Sanitize path characters the same way _service_file does (replace non-alnum with _)
         raw = f"{self.mount_path}__{path}__{key}"
-<<<<<<< HEAD
         return re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", raw)
 
     def get_secret(self, path: str, key: str) -> Optional[str]:
         """Retrieve a secret from Vault or local fallback."""
-=======
-        return re.sub(r"[^a-zA-Z0-9_-]", "_", raw)
-
-    def get_secret(self, path: str, key: str) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -240,11 +203,7 @@ class VaultSecretsManager:
                 data = response.get("data", {}).get("data", {})
                 return data.get(key)
             except Exception as exc:
-<<<<<<< HEAD
                 logger.exception("Vault get_secret failed for %s/%s: %s", path, key, exc)
-=======
-                logger.error("Vault get_secret failed for %s/%s: %s", path, key, exc)
->>>>>>> origin/fix/scenario-tests-properly
                 return None
 
         if self._fallback_store:
@@ -253,10 +212,7 @@ class VaultSecretsManager:
         return None
 
     def set_secret(self, path: str, key: str, value: str) -> bool:
-<<<<<<< HEAD
         """Store a secret in Vault (or local fallback)."""
-=======
->>>>>>> origin/fix/scenario-tests-properly
         if self._connected and self._client:
             try:
                 self._client.secrets.kv.v2.create_or_update_secret(
@@ -266,11 +222,7 @@ class VaultSecretsManager:
                 )
                 return True
             except Exception as exc:
-<<<<<<< HEAD
                 logger.exception("Vault set_secret failed for %s/%s: %s", path, key, exc)
-=======
-                logger.error("Vault set_secret failed for %s/%s: %s", path, key, exc)
->>>>>>> origin/fix/scenario-tests-properly
                 return False
 
         if self._fallback_store:
@@ -282,10 +234,7 @@ class VaultSecretsManager:
         return False
 
     def delete_secret(self, path: str, key: str) -> bool:
-<<<<<<< HEAD
         """Delete a secret from Vault (or local fallback)."""
-=======
->>>>>>> origin/fix/scenario-tests-properly
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.read_secret_version(
@@ -310,11 +259,7 @@ class VaultSecretsManager:
                     )
                 return True
             except Exception as exc:
-<<<<<<< HEAD
                 logger.exception("Vault delete_secret failed for %s/%s: %s", path, key, exc)
-=======
-                logger.error("Vault delete_secret failed for %s/%s: %s", path, key, exc)
->>>>>>> origin/fix/scenario-tests-properly
                 return False
 
         if self._fallback_store:
@@ -322,12 +267,8 @@ class VaultSecretsManager:
 
         return False
 
-<<<<<<< HEAD
     def list_secrets(self, path: str) -> list[str]:
         """List all secret keys under a Vault path."""
-=======
-    def list_secrets(self, path: str) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         if self._connected and self._client:
             try:
                 response = self._client.secrets.kv.v2.list_secrets(
@@ -336,7 +277,6 @@ class VaultSecretsManager:
                 )
                 return response.get("data", {}).get("keys", [])
             except Exception as exc:
-<<<<<<< HEAD
                 logger.exception("Vault list_secrets failed for %s: %s", path, exc)
                 return []
         # For fallback, list all keys we have persisted under this (mount_path, path).
@@ -344,7 +284,7 @@ class VaultSecretsManager:
             prefix = re.sub(_SERVICE_NAME_SANITIZE_REGEX, "_", f"{self.mount_path}__{path}__")
             services = self._fallback_store.list_services()
             keys: list[str] = []
-=======
+
                 logger.error("Vault list_secrets failed for %s: %s", path, exc)
                 return []
         # For fallback, list all keys we have persisted under this (mount_path, path).
@@ -352,7 +292,6 @@ class VaultSecretsManager:
             prefix = re.sub(r"[^a-zA-Z0-9_-]", "_", f"{self.mount_path}__{path}__")
             services = self._fallback_store.list_services()
             keys: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
             for svc in services:
                 if svc.startswith(prefix):
                     keys.append(svc[len(prefix) :])
@@ -372,11 +311,7 @@ class LocalSecretsManager:
     but maintains its own independent key for isolation.
     """
 
-<<<<<<< HEAD
     def __init__(self, encryption_key: Optional[bytes] = None):
-=======
-    def __init__(self, encryption_key: bytes | None = None):
->>>>>>> origin/fix/scenario-tests-properly
         _ensure_dir(SECRETS_DIR)
         self._key: bytes
         self._cipher: Fernet
@@ -412,7 +347,6 @@ class LocalSecretsManager:
         # Cross-platform: os.chmod with Unix permission bits is ineffective on Windows.
         if os.name != "nt":
             os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
-<<<<<<< HEAD
         # Log only that the key was generated, not the file path.
         # CodeQL py/clear-text-logging-sensitive-data flags
         # ENCRYPTION_KEY_FILE because its name matches the `*_KEY` secret
@@ -428,34 +362,17 @@ class LocalSecretsManager:
 
     def set_api_key(self, service_name: str, api_key: str) -> bool:
         """Encrypt and store an API key for *service_name*."""
-=======
-        logger.info("Generated new encryption key at %s", ENCRYPTION_KEY_FILE)
-        return key
-
-    def _service_file(self, service_name: str) -> Path:
-        safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", service_name)
-        return SECRETS_DIR / f"{safe_name}.enc"
-
-    def set_api_key(self, service_name: str, api_key: str) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         try:
             encrypted = self._cipher.encrypt(api_key.encode())
             self._service_file(service_name).write_bytes(encrypted)
             logger.info("Stored encrypted API key for %s", service_name)
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("Failed to store API key for %s: %s", service_name, exc)
             return False
 
     def get_api_key(self, service_name: str) -> Optional[str]:
         """Retrieve a stored API key for *service_name*."""
-=======
-            logger.error("Failed to store API key for %s: %s", service_name, exc)
-            return False
-
-    def get_api_key(self, service_name: str) -> str | None:
->>>>>>> origin/fix/scenario-tests-properly
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No stored API key for %s", service_name)
@@ -464,7 +381,6 @@ class LocalSecretsManager:
             encrypted = path.read_bytes()
             return self._cipher.decrypt(encrypted).decode()
         except InvalidToken:
-<<<<<<< HEAD
             logger.exception("Decryption failed for %s; key may have been rotated", service_name)
             return None
         except Exception as exc:
@@ -473,26 +389,13 @@ class LocalSecretsManager:
 
     def rotate_key(self) -> bool:
         """Rotate the local Fernet encryption key (re-encrypts all stored keys)."""
-=======
-            logger.error("Decryption failed for %s; key may have been rotated", service_name)
-            return None
-        except Exception as exc:
-            logger.error("Failed to retrieve API key for %s: %s", service_name, exc)
-            return None
-
-    def rotate_key(self) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         try:
             old_cipher = self._cipher
             new_key = Fernet.generate_key()
             new_cipher = Fernet(new_key)
 
             for enc_file in SECRETS_DIR.glob("*.enc"):
-<<<<<<< HEAD
                 if enc_file.name == _ENCRYPTION_KEY_FILENAME:
-=======
-                if enc_file.name == ".encryption_key":
->>>>>>> origin/fix/scenario-tests-properly
                     continue
                 try:
                     plaintext = old_cipher.decrypt(enc_file.read_bytes())
@@ -510,18 +413,11 @@ class LocalSecretsManager:
             logger.info("Encryption key rotated successfully")
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("Key rotation failed: %s", exc)
             return False
 
     def delete_api_key(self, service_name: str) -> bool:
         """Delete a stored API key for *service_name*."""
-=======
-            logger.error("Key rotation failed: %s", exc)
-            return False
-
-    def delete_api_key(self, service_name: str) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         path = self._service_file(service_name)
         if not path.exists():
             logger.warning("No API key to delete for %s", service_name)
@@ -531,20 +427,18 @@ class LocalSecretsManager:
             logger.info("Deleted API key for %s", service_name)
             return True
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("Failed to delete API key for %s: %s", service_name, exc)
             return False
 
     def list_services(self) -> list[str]:
         """Return a list of service names that have stored API keys."""
         return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != _ENCRYPTION_KEY_FILENAME]
-=======
+
             logger.error("Failed to delete API key for %s: %s", service_name, exc)
             return False
 
     def list_services(self) -> List[str]:
         return [f.stem for f in SECRETS_DIR.glob("*.enc") if f.name != ".encryption_key"]
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class KeyAccessAuditor:
@@ -564,17 +458,10 @@ class KeyAccessAuditor:
     ACTION_ROTATE = "rotate"
     ACTION_LIST = "list"
 
-<<<<<<< HEAD
     def __init__(self, audit_logger: Optional[Any] = None):
         _ensure_dir(AUDIT_DIR)
         self._log_file = AUDIT_DIR / "key_access.log"
         self._log_handler: Optional[logging.Handler] = None
-=======
-    def __init__(self, audit_logger=None):
-        _ensure_dir(AUDIT_DIR)
-        self._log_file = AUDIT_DIR / "key_access.log"
-        self._log_handler: logging.Handler | None = None
->>>>>>> origin/fix/scenario-tests-properly
         self._setup_logger()
         if audit_logger is None:
             try:
@@ -586,11 +473,7 @@ class KeyAccessAuditor:
         else:
             self._framework_audit = audit_logger
 
-<<<<<<< HEAD
     def _setup_logger(self) -> None:
-=======
-    def _setup_logger(self):
->>>>>>> origin/fix/scenario-tests-properly
         self._logger = logging.getLogger("key_access_audit")
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
@@ -613,14 +496,9 @@ class KeyAccessAuditor:
         key_name: str,
         action: str,
         success: bool,
-<<<<<<< HEAD
         details: Optional[dict] = None,
     ) -> None:
         """Log a key access event to the audit log."""
-=======
-        details: Dict | None = None,
-    ):
->>>>>>> origin/fix/scenario-tests-properly
         entry = {
             "timestamp": datetime.now(UTC).isoformat(),
             "user_id": user_id,
@@ -641,7 +519,6 @@ class KeyAccessAuditor:
                 success=success,
             )
 
-<<<<<<< HEAD
     def get_access_logs(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         key_name: Optional[str] = None,
@@ -653,7 +530,7 @@ class KeyAccessAuditor:
         if not self._log_file.exists():
             return []
         records: list[dict] = []
-=======
+
     def get_access_logs(
         self,
         key_name: str | None = None,
@@ -664,7 +541,6 @@ class KeyAccessAuditor:
         if not self._log_file.exists():
             return []
         records: List[Dict] = []
->>>>>>> origin/fix/scenario-tests-properly
         try:
             raw = self._log_file.read_text(encoding="utf-8").strip().splitlines()
             for line in raw:
@@ -688,18 +564,11 @@ class KeyAccessAuditor:
                         continue
                 records.append(record)
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("Failed to read access logs: %s", exc)
         return records
 
     def get_recent_access(self, limit: int = 100) -> list[dict]:
         """Return the most recent *limit* key access log entries."""
-=======
-            logger.error("Failed to read access logs: %s", exc)
-        return records
-
-    def get_recent_access(self, limit: int = 100) -> List[Dict]:
->>>>>>> origin/fix/scenario-tests-properly
         records = self.get_access_logs()
         records.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
         return records[:limit]
@@ -716,7 +585,6 @@ class EnvironmentValidator:
     - Generates .env.example template from required secrets
     """
 
-<<<<<<< HEAD
     def __init__(
         self,
         env_path: Optional[Path] = None,
@@ -728,14 +596,13 @@ class EnvironmentValidator:
     def check_missing_secrets(self) -> list[str]:
         """Return a list of required secret names that are not configured."""
         missing: list[str] = []
-=======
+
     def __init__(self, env_path: Path | None = None, required_secrets: List[str] | None = None):
         self.env_path = env_path or Path.cwd() / ".env"
         self.required_secrets = required_secrets or REQUIRED_SECRETS
 
     def check_missing_secrets(self) -> List[str]:
         missing: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
         for secret in self.required_secrets:
             value = os.environ.get(secret, "")
             if not value or value.startswith("generate-") or "your-" in value.lower():
@@ -746,14 +613,10 @@ class EnvironmentValidator:
             logger.info("All required secrets are configured")
         return missing
 
-<<<<<<< HEAD
     def check_file_permissions(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require splitting POSIX/Windows branches into separate methods (scheduled for follow-up)
         self,
     ) -> bool:
         """Verify that the secrets file has restrictive permissions (0o600)."""
-=======
-    def check_file_permissions(self) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         env_path = self.env_path
         if not env_path.exists():
             logger.warning(".env file not found at %s", env_path)
@@ -784,12 +647,8 @@ class EnvironmentValidator:
                     import win32security
 
                     sd = win32security.GetFileSecurity(
-<<<<<<< HEAD
                         str(env_path),
                         win32security.OWNER_SECURITY_INFORMATION,
-=======
-                        str(env_path), win32security.OWNER_SECURITY_INFORMATION
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     owner_sid = sd.GetSecurityDescriptorOwner()
                     owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid)
@@ -803,7 +662,6 @@ class EnvironmentValidator:
                     logger.info("pywin32 not available; skipping Windows permission check")
                     return True
         except OSError as exc:
-<<<<<<< HEAD
             logger.exception("Cannot check .env permissions: %s", exc)
             return False
 
@@ -811,12 +669,6 @@ class EnvironmentValidator:
         self, file_patterns: list[str] | None = None
     ) -> list[dict]:
         """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
-=======
-            logger.error("Cannot check .env permissions: %s", exc)
-            return False
-
-    def check_for_hardcoded_secrets(self, file_patterns: List[str] | None = None) -> List[Dict]:
->>>>>>> origin/fix/scenario-tests-properly
         if file_patterns is None:
             file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
         patterns = [
@@ -827,11 +679,7 @@ class EnvironmentValidator:
             (r"(?i)(BEGIN\s+(RSA\s+)?PRIVATE\s+KEY)", "Private Key"),
         ]
         root = Path.cwd()
-<<<<<<< HEAD
         findings: list[dict] = []
-=======
-        findings: List[Dict] = []
->>>>>>> origin/fix/scenario-tests-properly
         for pattern in file_patterns:
             for fpath in root.rglob(pattern):
                 if (
@@ -850,11 +698,7 @@ class EnvironmentValidator:
                                     "line": content[: match.start()].count("\n") + 1,
                                     "type": label,
                                     "match_preview": match.group(0)[:60],
-<<<<<<< HEAD
                                 },
-=======
-                                }
->>>>>>> origin/fix/scenario-tests-properly
                             )
                 except (OSError, UnicodeDecodeError):
                     continue
@@ -865,23 +709,15 @@ class EnvironmentValidator:
             logger.info("No hardcoded secrets detected")
         return findings
 
-<<<<<<< HEAD
     def generate_env_template(self, output_path: Optional[Path] = None) -> str:
         """Generate a .env.example template listing all required environment variables."""
-=======
-    def generate_env_template(self, output_path: Path | None = None) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         out = output_path or Path.cwd() / ".env.example"
         lines = [
             "# AhmedETAP - Environment Configuration",
             "# Copy this file to .env and fill in your actual values",
             "# cp .env.example .env",
             "",
-<<<<<<< HEAD
             "# ==========================================",  # NOSONAR intentional repetition (audit constant)
-=======
-            "# ==========================================",
->>>>>>> origin/fix/scenario-tests-properly
             "# Required Secrets (must be configured)",
             "# ==========================================",
         ]
@@ -899,11 +735,7 @@ class EnvironmentValidator:
                 "ENVIRONMENT=development",
                 "LOG_LEVEL=INFO",
                 "DEBUG=false",
-<<<<<<< HEAD
             ],
-=======
-            ]
->>>>>>> origin/fix/scenario-tests-properly
         )
         content = "\n".join(lines) + "\n"
         out.write_text(content, encoding="utf-8")

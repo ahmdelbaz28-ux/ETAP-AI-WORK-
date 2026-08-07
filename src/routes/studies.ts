@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Studies run and status routes.
  * All engineering studies route through the Python Engineering Service.
@@ -9,7 +8,7 @@ import { recordAudit } from '../utils/audit.js';
 import { bumpApiMetric } from '../utils/metrics.js';
 import { CONFIG } from '../core/config.js';
 import { callEngineeringService, isEngineeringServiceConfigured, type EngineeringServiceRequest } from '../core/engineeringService.js';
-=======
+
 /**
  * Studies run and status routes.
  *
@@ -27,7 +26,6 @@ import {
   isEngineeringServiceConfigured,
   type EngineeringServiceRequest,
 } from '../core/engineeringService.js';
->>>>>>> origin/fix/scenario-tests-properly
 
 interface TaskRecord {
   studyType: string;
@@ -44,19 +42,16 @@ export async function getTask(env: Env, taskId: string): Promise<TaskRecord | nu
   try {
     const raw = (await env.TASK_STORE_KV.get(`task:${taskId}`, { type: 'json' })) as TaskRecord | null;
     if (raw && typeof raw === 'object' && 'studyType' in raw) return raw;
-<<<<<<< HEAD
   } catch { /* silent */ }
-=======
+
   } catch {
     // silent
   }
->>>>>>> origin/fix/scenario-tests-properly
   return null;
 }
 
 export async function setTask(env: Env, taskId: string, task: TaskRecord): Promise<void> {
   if (!env.TASK_STORE_KV) return;
-<<<<<<< HEAD
   try { await env.TASK_STORE_KV.put(`task:${taskId}`, JSON.stringify(task), { expirationTtl: CONFIG.TASK_TTL_SECONDS }); } catch { /* silent */ }
 }
 
@@ -76,7 +71,7 @@ export async function handleStudyRun(
   let body: { studyType?: string; parameters?: Record<string, unknown>; dryRun?: boolean; system?: Record<string, unknown>; useEtap?: boolean; etapProjectPath?: string } = {};
   try { body = (await request.json()) as typeof body; } catch {
     return errorResponse(400, 'Invalid JSON body', traceId, corsHeaders(origin, env));
-=======
+
   try {
     await env.TASK_STORE_KV.put(`task:${taskId}`, JSON.stringify(task), { expirationTtl: CONFIG.TASK_TTL_SECONDS });
   } catch {
@@ -125,16 +120,14 @@ export async function handleStudyRun(
     body = (await request.json()) as typeof body;
   } catch {
     return errorResponse(400, 'Invalid JSON body', traceId, corsHeaders(origin));
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   const studyType = body.studyType;
   const parameters = body.parameters || {};
-<<<<<<< HEAD
   if (!studyType) return errorResponse(400, 'studyType is required', traceId, corsHeaders(origin, env));
   if (!VALID_STUDY_TYPES.includes(studyType)) {
     return errorResponse(400, `Invalid studyType. Must be one of: ${VALID_STUDY_TYPES.join(', ')}`, traceId, corsHeaders(origin, env));
-=======
+
   if (!studyType) {
     return errorResponse(400, 'studyType is required', traceId, corsHeaders(origin));
   }
@@ -145,14 +138,12 @@ export async function handleStudyRun(
       traceId,
       corsHeaders(origin)
     );
->>>>>>> origin/fix/scenario-tests-properly
   }
 
   const taskId = traceId;
   const task: TaskRecord = { studyType, parameters, status: 'queued', createdAt: Date.now() };
   await setTask(env, taskId, task);
 
-<<<<<<< HEAD
   if (body.dryRun === true) {
     task.status = 'dry_run'; task.startedAt = Date.now(); task.completedAt = Date.now();
     task.result = { dryRun: true, message: 'Dry-run mode: study parameters validated.', studyType, parameters };
@@ -188,7 +179,7 @@ export async function handleStudyRun(
     bumpApiMetric('studyFailed'); bumpApiMetric('errors');
     recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE_ERROR', authenticated: true, rateLimited: false, apiKeyId, scope, details: { studyType, taskId, error: msg } });
     return errorResponse(502, `Engineering Service error: ${msg}`, traceId, corsHeaders(origin, env));
-=======
+
   // Dry-run: validate inputs without executing computation (no Engineering Service needed)
   if (body.dryRun === true) {
     task.status = 'dry_run';
@@ -370,12 +361,10 @@ export async function handleStudyRun(
     });
 
     return errorResponse(502, `Engineering Service error: ${msg}`, traceId, corsHeaders(origin));
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 
 export async function handleStudyStatus(
-<<<<<<< HEAD
   request: Request, env: Env, ctx: ExecutionContext,
   apiKeyId: string, scope: string, traceId: string, taskId: string
 ): Promise<Response> {
@@ -383,7 +372,7 @@ export async function handleStudyStatus(
   const task = await getTask(env, taskId);
   if (!task) return errorResponse(404, `Task "${taskId}" not found`, traceId, corsHeaders(origin, env));
   return jsonResponse(200, { studyType: task.studyType, parameters: task.parameters, status: task.status, createdAt: task.createdAt, startedAt: task.startedAt, completedAt: task.completedAt, result: task.result, taskId, traceId }, corsHeaders(origin, env));
-=======
+
   request: Request,
   env: Env,
   ctx: ExecutionContext,
@@ -412,5 +401,4 @@ export async function handleStudyStatus(
     },
     corsHeaders(origin)
   );
->>>>>>> origin/fix/scenario-tests-properly
 }

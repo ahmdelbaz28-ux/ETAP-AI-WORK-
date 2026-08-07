@@ -1,11 +1,6 @@
 import { LangWatch } from 'langwatch';
-<<<<<<< HEAD
 import fs from 'node:fs';
 import path from 'node:path';
-=======
-import fs from 'fs';
-import path from 'path';
->>>>>>> origin/fix/scenario-tests-properly
 
 const langwatch = new LangWatch({
   apiKey: process.env.LANGWATCH_API_KEY,
@@ -47,11 +42,7 @@ function stringifyContent(content: unknown): string {
 /**
  * Improved YAML parser that handles basic structures, multiline strings, and pipe operators
  */
-<<<<<<< HEAD
 function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-function parseSimpleYaml(content: string): Record<string, unknown> {
->>>>>>> origin/fix/scenario-tests-properly
   const result: Record<string, unknown> = {};
   const lines = content.split('\n');
   let currentKey = '';
@@ -62,29 +53,22 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
   let inMultilineContent = false;
   let multilineIndent = 0;
   
-<<<<<<< HEAD
   // SonarCloud typescript:S4138: use for-of since `i` is never used
   // except to index `lines`. Behaviour is identical.
   for (const line of lines) {
-=======
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
->>>>>>> origin/fix/scenario-tests-properly
     
     // Handle multiline content started with |
     if (inMultilineContent) {
       const trimmedLine = line.trim();
       if (line.startsWith(' '.repeat(multilineIndent)) || trimmedLine === '') {
         // This line is part of the multiline content
-<<<<<<< HEAD
         currentMessageContent += '\n' + line.substring(multilineIndent);
-=======
+
         if (line.trim() !== '') {
           currentMessageContent += '\n' + line.substring(multilineIndent);
         } else {
           currentMessageContent += '\n' + line.substring(multilineIndent);
         }
->>>>>>> origin/fix/scenario-tests-properly
       } else {
         // End of multiline content
         inMultilineContent = false;
@@ -102,45 +86,29 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
       continue;
     }
     
-<<<<<<< HEAD
     if (inMessages && line.match(/^\s*- role:/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-=======
-    if (inMessages && line.match(/^\s*- role:/)) {
->>>>>>> origin/fix/scenario-tests-properly
       // Save previous message if exists
       if (currentMessageRole && currentMessageContent) {
         currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
       }
       
-<<<<<<< HEAD
       currentMessageRole = line.split(':')[1]?.trim().replaceAll('"', '').replaceAll("'", '') || '';
       currentMessageContent = '';
     } else if (inMessages && line.match(/^\s+content:\s*\|/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-=======
-      currentMessageRole = line.split(':')[1]?.trim().replace(/"/g, '').replace(/'/g, '') || '';
-      currentMessageContent = '';
-    } else if (inMessages && line.match(/^\s+content:\s*\|/)) {
->>>>>>> origin/fix/scenario-tests-properly
       // Handle multiline content with pipe operator
       currentMessageContent = '';
       inMultilineContent = true;
       multilineIndent = line.search(/\S/); // Find the position of first non-space character
       
       // Extract content after the pipe if there's anything
-<<<<<<< HEAD
       const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       if (pipeMatch?.[1]) {
-=======
-      const pipeMatch = line.match(/^\s+content:\s*\|\s*(.*)/);
-      if (pipeMatch && pipeMatch[1]) {
->>>>>>> origin/fix/scenario-tests-properly
         currentMessageContent = pipeMatch[1];
       }
       
       // Next line should be indented content
       multilineIndent += 2; // Content after pipe should be indented more
       continue;
-<<<<<<< HEAD
     } else if (inMessages && line.match(/^\s+content:/)) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
       // Handle single-line content
       const contentMatch = line.match(/^\s+content:(.*)/);  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
@@ -148,7 +116,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
         currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
       }
     } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-=======
+
     } else if (inMessages && line.match(/^\s+content:/)) {
       // Handle single-line content
       const contentMatch = line.match(/^\s+content:(.*)/);
@@ -156,17 +124,12 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
         currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
       }
     } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {
->>>>>>> origin/fix/scenario-tests-properly
       // Handle content continuation lines (indented)
       const contentIndent = line.search(/\S/);
       if (contentIndent > multilineIndent && currentMessageContent) {
         currentMessageContent += '\n' + line.trim();
       }
-<<<<<<< HEAD
     } else if (line.match(/^\S+:/) && !line.startsWith('messages')) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
-=======
-    } else if (line.match(/^\S+:/) && !line.startsWith('messages')) {
->>>>>>> origin/fix/scenario-tests-properly
       // Handle regular key-value pairs
       inMessages = false;
       inMultilineContent = false;
@@ -209,11 +172,7 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
         } else if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
           // Handle boolean values
           result[currentKey] = value.toLowerCase() === 'true';
-<<<<<<< HEAD
         } else if (!Number.isNaN(Number(value))) {
-=======
-        } else if (!isNaN(Number(value))) {
->>>>>>> origin/fix/scenario-tests-properly
           // Handle numeric values
           result[currentKey] = Number(value);
         } else if (value !== '') {
@@ -224,17 +183,15 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
     }
   }
   
-<<<<<<< HEAD
   // Handle remaining content after loop ends. Both the multiline and
   // single-line cases push the same shape, so the inMultilineContent
   // branch is not needed (SonarCloud S1871).
   if (currentMessageRole && currentMessageContent) {
-=======
+
   // Handle remaining content after loop ends
   if (inMultilineContent && currentMessageRole && currentMessageContent) {
     currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
   } else if (currentMessageRole && currentMessageContent) {
->>>>>>> origin/fix/scenario-tests-properly
     currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
   }
   
@@ -248,22 +205,14 @@ function parseSimpleYaml(content: string): Record<string, unknown> {
 /**
  * Load prompt from local YAML file as fallback when LangWatch API is unavailable.
  */
-<<<<<<< HEAD
 function loadLocalPrompt(handle: string): string | null {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-function loadLocalPrompt(handle: string): string | null {
->>>>>>> origin/fix/scenario-tests-properly
   try {
     const promptsDir = path.join(process.cwd(), 'prompts');
     // Try different filename patterns
     const possibleFiles = [
       `${handle}.yaml`,
       `${handle}.prompt.yaml`,
-<<<<<<< HEAD
       `${handle}_agent.prompt.yaml`,
-=======
-      `${handle.replace(/_/g, '_')}_agent.prompt.yaml`,
->>>>>>> origin/fix/scenario-tests-properly
     ];
     
     for (const filename of possibleFiles) {
@@ -320,7 +269,6 @@ function loadLocalPrompt(handle: string): string | null {
   }
 }
 
-<<<<<<< HEAD
 /**
  * Try to fetch the system prompt from LangWatch.
  * Returns the trimmed prompt string, or null if unavailable / empty.
@@ -356,7 +304,7 @@ export async function getSystemPrompt(handle: string): Promise<string> {
     return langwatchPrompt;
   }
 
-=======
+
 export async function getSystemPrompt(handle: string): Promise<string> {
   // Try LangWatch first (unless we're in deployment verification mode)
   if (process.env.DEPLOYMENT_VERIFICATION !== 'true') {
@@ -378,7 +326,6 @@ export async function getSystemPrompt(handle: string): Promise<string> {
     }
   }
   
->>>>>>> origin/fix/scenario-tests-properly
   // Fall back to local YAML file
   const localPrompt = loadLocalPrompt(handle);
   if (localPrompt) {

@@ -8,17 +8,13 @@
   "sidebar": {
     "dashboard": "لوحة التحكم",
     "studies": "الدراسات",
-<<<<<<< HEAD
     "gridEditor": "محرر الشبكة",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "assistant": "مساعد الذكاء الاصطناعي",
     "projects": "المشاريع",
     "results": "النتائج",
     "reports": "التقارير",
     "settings": "الإعدادات",
     "administration": "الإدارة",
-<<<<<<< HEAD
     "rbacAdmin": "إدارة الصلاحيات",
     "emailDashboard": "لوحة البريد",
     "emailDigest": "ملخص البريد",
@@ -31,22 +27,12 @@
     "digitalTwin": "التوأم الرقمي",
     "assetManagement": "إدارة الأصول",
     "equipment": "المعدات",
-=======
-    "diagnostics": "التشخيصات",
-    "etapIntegration": "تكامل ETAP",
-    "gisIntegration": "تكامل GIS",
-    "digitalTwin": "التوأم الرقمي",
-    "assetManagement": "إدارة الأصول",
->>>>>>> origin/fix/scenario-tests-properly
     "dataImport": "استيراد البيانات",
     "dataExport": "تصدير البيانات",
     "logs": "السجلات",
     "codeGuard": "حارس الكود",
-<<<<<<< HEAD
     "cuaMonitor": "مراقب CUA",
     "dualControl": "التحكم المزدوج",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "darkMode": "الوضع الداكن",
     "lightMode": "الوضع الفاتح",
     "logout": "تسجيل الخروج",
@@ -54,15 +40,11 @@
     "expand": "توسيع",
     "engineering": "الهندسة",
     "integration": "التكامل",
-<<<<<<< HEAD
     "system": "النظام",
     "studyVersions": "إصدارات الدراسة",
     "emailOtp": "OTP البريد",
     "magicLinks": "الروابط السحرية",
     "mfa": "المصادقة الثنائية"
-=======
-    "system": "النظام"
->>>>>>> origin/fix/scenario-tests-properly
   },
   "navbar": {
     "welcome": "مرحباً",
@@ -71,7 +53,6 @@
     "noNotifications": "لا توجد إشعارات جديدة",
     "markAllRead": "تحديد الكل كمقروء"
   },
-<<<<<<< HEAD
   "voiceInput": {
     "start": "بدء الإدخال الصوتي",
     "stop": "إيقاف الإدخال الصوتي",
@@ -81,8 +62,6 @@
     "microphoneDenied": "تم رفض الوصول إلى الميكروفون. يرجى السماح بالوصول لاستخدام الكتابة بالصوت.",
     "recognitionFailed": "فشل التعرف على الصوت"
   },
-=======
->>>>>>> origin/fix/scenario-tests-properly
   "dashboard": {
     "title": "لوحة التحكم",
     "welcomeMessage": "مرحباً بك في منصة Ahmed etap",
@@ -221,7 +200,6 @@
     "completed": "مكتمل",
     "failed": "فشل",
     "cancelled": "ملغى"
-<<<<<<< HEAD
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -419,7 +397,5 @@
         "loadFailed": "فشل تحميل المعاينة: {{error}}"
       }
     }
-=======
->>>>>>> origin/fix/scenario-tests-properly
   }
 }

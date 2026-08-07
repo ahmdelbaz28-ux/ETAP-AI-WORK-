@@ -617,12 +617,8 @@ vault kv put secret/etap-platform jwt_secret_key=...
 2. **Use multiprocessing for parallel calculations:**
    ```python
    from multiprocessing import Pool
-<<<<<<< HEAD
 
 
-=======
-   
->>>>>>> origin/fix/scenario-tests-properly
    def parallel_load_flow(systems):
        with Pool(processes=4) as pool:
            results = pool.map(run_load_flow, systems)
@@ -741,7 +737,6 @@ vault kv put secret/etap-platform jwt_secret_key=...
    pytest tests/
    ```
 
-<<<<<<< HEAD
 ## GIS & ETAP COM SDK Configuration
 
 ### 1. Remote ETAP Windows Worker
@@ -791,8 +786,6 @@ This enables `MockGISProvider` to generate high-fidelity simulated power grids, 
 
 ---
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 ## Compliance & Certification
 
 ### Industry Standards

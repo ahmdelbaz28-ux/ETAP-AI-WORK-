@@ -14,11 +14,7 @@ set -euo pipefail
 
 PORT="${PORT:-8000}"
 
-<<<<<<< HEAD
 command -v docker >/dev/null 2>&1 || { echo "ERROR: docker is not installed" >&2; exit 1; }
-=======
-command -v docker >/dev/null 2>&1 || { echo "ERROR: docker is not installed"; exit 1; }
->>>>>>> origin/fix/scenario-tests-properly
 command -v cloudflared >/dev/null 2>&1 || {
   echo "cloudflared not found. Install:"
   echo "  Windows: winget install Cloudflare.cloudflared"
@@ -58,11 +54,7 @@ fi
 echo "Waiting for /health to return 200..."
 for i in $(seq 1 30); do
   code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/health" || echo 000)
-<<<<<<< HEAD
   if [[ "${code}" = "200" ]]; then echo "  Ready after ${i}s"; break; fi
-=======
-  if [ "${code}" = "200" ]; then echo "  Ready after ${i}s"; break; fi
->>>>>>> origin/fix/scenario-tests-properly
   sleep 1
 done
 

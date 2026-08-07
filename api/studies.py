@@ -7,7 +7,6 @@ Separated from main engineering service for better modularity.
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import json
 import logging
 import math
@@ -58,7 +57,7 @@ __all__ = [
     "SystemSpec",
     "TransformerSpec",
 ]
-=======
+
 import asyncio
 import json
 import time
@@ -70,7 +69,6 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from api.dependencies import get_api_key
 from core.metrics import count_executions, track_skill_operation
->>>>>>> origin/fix/scenario-tests-properly
 from engine.caching import StudyCache
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
@@ -83,7 +81,6 @@ from core_model.load import Load
 from core_model.system import System
 from core_model.transformer import Transformer
 
-<<<<<<< HEAD
 # All Spec/Request/Result classes are imported from core_model.specs
 # (see import block at the top of this file).
 
@@ -91,7 +88,7 @@ from core_model.transformer import Transformer
 def _to_jsonable(  # NOSONAR
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
+
 
 class BusSpec(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -285,7 +282,6 @@ class StudyResult(BaseModel):
 
 
 def _to_jsonable(obj: Any) -> Any:
->>>>>>> origin/fix/scenario-tests-properly
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     import numpy as np
@@ -293,14 +289,9 @@ def _to_jsonable(obj: Any) -> Any:
     if obj is None or isinstance(obj, (str, bool)):
         return obj
     if isinstance(obj, (int, float)):
-<<<<<<< HEAD
         # Reject NaN/inf which are not valid JSON (math.isnan/isinf clearer
         # than the `obj != obj` NaN trick).
         if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-=======
-        # Reject nan/inf which are not valid JSON
-        if isinstance(obj, float) and (obj != obj or obj in (float("inf"), float("-inf"))):
->>>>>>> origin/fix/scenario-tests-properly
             return None
         return obj
     if isinstance(obj, complex):
@@ -312,11 +303,7 @@ def _to_jsonable(obj: Any) -> Any:
         return int(obj.item())
     if isinstance(obj, (np.floating,)):
         v = float(obj.item())
-<<<<<<< HEAD
         if math.isnan(v) or math.isinf(v):
-=======
-        if v != v or v in (float("inf"), float("-inf")):
->>>>>>> origin/fix/scenario-tests-properly
             return None
         return v
     if isinstance(obj, (np.bool_,)):
@@ -334,19 +321,12 @@ def _to_jsonable(obj: Any) -> Any:
         return str(obj)
 
 
-<<<<<<< HEAD
 def _build_system_from_spec(  # NOSONAR
     spec: SystemSpec,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Build a Python System object from a SystemSpec."""
     system = System(base_mva=spec.base_mva)
     bus_map: Mapping[int, Any] = {}
-=======
-def _build_system_from_spec(spec: SystemSpec) -> Any:
-    """Build a Python System object from a SystemSpec."""
-    system = System(base_mva=spec.base_mva)
-    bus_map: Dict[int, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     for b in spec.buses:
         bus = Bus(
@@ -404,19 +384,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
             impedance={
                 "1": complex(g.r1, g.x1),
                 "2": complex(
-<<<<<<< HEAD
                     g.r2 if g.r2 is not None else g.r1,
                     g.x2 if g.x2 is not None else g.x1,
                 ),
                 "0": complex(
                     g.r0 if g.r0 is not None else g.r1,
                     g.x0 if g.x0 is not None else g.x1,
-=======
-                    g.r2 if g.r2 is not None else g.r1, g.x2 if g.x2 is not None else g.x1
-                ),
-                "0": complex(
-                    g.r0 if g.r0 is not None else g.r1, g.x0 if g.x0 is not None else g.x1
->>>>>>> origin/fix/scenario-tests-properly
                 ),
             },
         )
@@ -439,19 +412,12 @@ def _build_system_from_spec(spec: SystemSpec) -> Any:
 _STUDIES_REQUIRING_SYSTEM = {
     "load_flow",
     "short_circuit",
-<<<<<<< HEAD
     "harmonic_analysis",
     "protection_coordination",
-=======
-    "fault",
-    "protection_coordination",
-    "coordination",
->>>>>>> origin/fix/scenario-tests-properly
     "motor_starting",
 }
 
 
-<<<<<<< HEAD
 def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
     system: Any | None,
@@ -477,12 +443,6 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
     }
     study_type = _NATIVE_ALIASES.get(study_type, study_type)
 
-=======
-def _run_native_study(
-    study_type: str, system: Any | None, parameters: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Execute a study using the native PowerSystemEngine."""
->>>>>>> origin/fix/scenario-tests-properly
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
@@ -497,7 +457,6 @@ def _run_native_study(
             raise ValueError("'question' field is required for study_type='etap_expert'")
         return agent.answer(question)
 
-<<<<<<< HEAD
     # ETAP GUI Agent — Computer Use Agent for desktop apps.
     # Falls back gracefully on headless servers (returns Format U).
     if study_type == "etap_gui":
@@ -581,30 +540,21 @@ def _run_native_study(
             "validation_errors": result.validation_errors,
         }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     from engine.engine import PowerSystemEngine
 
     engine = PowerSystemEngine(system)
 
     if study_type in ("load_flow",):
         return engine.run_load_flow()
-<<<<<<< HEAD
     elif study_type in ("short_circuit",):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")
         if bus_id is None and system and hasattr(system, "buses") and system.buses:
             bus_id = system.buses[0].bus_id
-=======
-    elif study_type in ("short_circuit", "fault"):
-        fault_type = parameters.get("fault_type", "three_phase")
-        bus_id = parameters.get("bus_id")
->>>>>>> origin/fix/scenario-tests-properly
         if bus_id is None:
             raise ValueError("bus_id is required for fault analysis")
         return engine.run_fault_analysis(fault_type, bus_id)
     elif study_type == "arc_flash":
-<<<<<<< HEAD
         # Safe defaults if parameters are missing (e.g. from static E2E tests)
         voltage_kv = parameters.get("voltage_kv", 13.8)
         bolted_fault_current_ka = parameters.get("bolted_fault_current_ka", 20.0)
@@ -616,7 +566,7 @@ def _run_native_study(
             bolted_fault_current_ka=float(bolted_fault_current_ka),
             arc_duration_sec=float(arc_duration_sec),
             working_distance_mm=float(working_distance_mm),
-=======
+
         required = (
             "voltage_kv",
             "bolted_fault_current_ka",
@@ -633,24 +583,18 @@ def _run_native_study(
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
             arc_duration_sec=float(parameters["arc_duration_sec"]),
             working_distance_mm=float(parameters["working_distance_mm"]),
->>>>>>> origin/fix/scenario-tests-properly
             electrode_config=str(parameters.get("electrode_config", "VCB")),
             enclosure_type=str(parameters.get("enclosure_type", "box")),
             enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
             enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
             enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
         )
-<<<<<<< HEAD
     elif study_type == "protection_coordination":
-=======
-    elif study_type in ("protection_coordination", "coordination"):
->>>>>>> origin/fix/scenario-tests-properly
         upstream = parameters.get("upstream_relay_id", 1)
         downstream = parameters.get("downstream_relay_id", 2)
         fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
         return engine.run_protection_coordination(upstream, downstream, fault_currents)
     else:
-<<<<<<< HEAD
         # Audit item 1.7 — UI Coverage Audit 2026-07-29:
         #   This branch is reached for 10 of the 16 StudyType enum members
         #   that are NOT handled by the native engine above:
@@ -1037,7 +981,7 @@ async def run_study(
     data: dict[str, Any] = {}
     provider_name = "native"
 
-=======
+
         raise ValueError(f"Unsupported native study type: {study_type}")
 
 
@@ -1049,7 +993,6 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     task_id = payload.task_id or str(uuid.uuid4())
     start = time.perf_counter()
 
->>>>>>> origin/fix/scenario-tests-properly
     from core.bootstrap import _add_execution_time, _increment_counter
 
     _increment_counter("request")
@@ -1057,11 +1000,7 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     from logging import getLogger
 
     logger = getLogger("engineering_service")
-<<<<<<< HEAD
     logger.info(  # NOSONAR logging injection; user input is sanitized upstream
-=======
-    logger.info(
->>>>>>> origin/fix/scenario-tests-properly
         "study_run_start study_type=%s use_etap=%s task_id=%s",
         payload.study_type,
         payload.use_etap,
@@ -1069,13 +1008,12 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         extra={"trace_id": trace_id},
     )
 
-<<<<<<< HEAD
     try:
         study_cache = _init_study_cache()
         data, warnings, errors, provider_name = await _execute_study(
             payload, study_cache, trace_id, warnings, errors
         )
-=======
+
     warnings: List[str] = []
     errors: List[str] = []
     data: Dict[str, Any] = {}
@@ -1186,12 +1124,10 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
                     "Cache store failed (non-fatal): %s", cache_err, extra={"trace_id": trace_id}
                 )
 
->>>>>>> origin/fix/scenario-tests-properly
         _increment_counter("success")
         status = "success"
     except HTTPException:
         raise
-<<<<<<< HEAD
     except ValueError as ve:
         # Validation errors (missing question, missing system, invalid params)
         # must return HTTP 400 Bad Request — not HTTP 200 with errors list.
@@ -1208,28 +1144,18 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     except Exception as e:
         _increment_counter("failed")
         logger.exception(  # NOSONAR logging injection; user input is sanitized upstream
-=======
-    except Exception as e:
-        _increment_counter("failed")
-        logger.error(
->>>>>>> origin/fix/scenario-tests-properly
             "study_run_failed study_type=%s error=%s",
             payload.study_type,
             str(e),
             extra={"trace_id": trace_id},
         )
-<<<<<<< HEAD
         errors.append("Study execution failed")
-=======
-        errors.append(str(e))
->>>>>>> origin/fix/scenario-tests-properly
         status = "failed"
         data = {}
 
     # Strip numpy types so FastAPI / Pydantic can serialize the response
     data = _to_jsonable(data)
 
-<<<<<<< HEAD
     # --- F-12: AI Failure Mode Detection at API boundary ---
     # Scan AI-generated content in the response for the 14 systematic
     # LLM failure patterns (catch-all swallowing, hardcoded success,
@@ -1243,12 +1169,6 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
     _add_execution_time(elapsed_sec)
 
     logger.info(  # NOSONAR logging injection; user input is sanitized upstream
-=======
-    elapsed_sec = time.perf_counter() - start
-    _add_execution_time(elapsed_sec)
-
-    logger.info(
->>>>>>> origin/fix/scenario-tests-properly
         "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
         payload.study_type,
         status,
@@ -1268,7 +1188,6 @@ async def run_study(request: Request, payload: StudyRequest, _: str = Depends(ge
         study_type=payload.study_type,
         provider=provider_name,
     )
-<<<<<<< HEAD
 
 
 @router.get("/types")
@@ -1363,5 +1282,3 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
     except Exception as scan_err:
         logger.warning("F-12: AI failure mode scan failed (non-blocking): %s", scan_err)
         return []
-=======
->>>>>>> origin/fix/scenario-tests-properly

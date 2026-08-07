@@ -773,11 +773,7 @@ with ETAPAutomation(visible=False) as etap:
 
 4. Switch solution method if using Fast Decoupled, try Newton-Raphson:
    ```python
-<<<<<<< HEAD
    engine.parameters.method = "NEWTON_RAPHSON"
-=======
-   engine.parameters.method = 'NEWTON_RAPHSON'
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 5. Gradually apply loads (continuation power flow approach):
@@ -836,51 +832,35 @@ print(f'Converged in {engine.iteration_count} iterations. Max voltage: {result.m
 1. Verify generator data:
    ```python
    from core_model.system import System
-<<<<<<< HEAD
 
    sys = System.load("system.json")
    for gen in sys.generators:
        if gen.xd_subtransient is None or gen.xd_subtransient == 0:
            print(f"Warning: Generator {gen.id} missing subtransient reactance")
-=======
-   sys = System.load('system.json')
-   for gen in sys.generators:
-       if gen.xd_subtransient is None or gen.xd_subtransient == 0:
-           print(f'Warning: Generator {gen.id} missing subtransient reactance')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 2. Check transformer grounding configuration:
    ```python
    for tx in sys.transformers:
-<<<<<<< HEAD
        if tx.winding1_connection == "Y" and not tx.winding1_grounded:
            print(f"Warning: Transformer {tx.id} ungrounded wye on primary")
        if tx.winding2_connection == "Y" and not tx.winding2_grounded:
            print(f"Warning: Transformer {tx.id} ungrounded wye on secondary")
-=======
+
        if tx.winding1_connection == 'Y' and not tx.winding1_grounded:
            print(f'Warning: Transformer {tx.id} ungrounded wye on primary')
        if tx.winding2_connection == 'Y' and not tx.winding2_grounded:
            print(f'Warning: Transformer {tx.id} ungrounded wye on secondary')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 3. Validate zero-sequence network:
    ```python
    from fault_analysis.fault import FaultAnalyzer
-<<<<<<< HEAD
 
    analyzer = FaultAnalyzer(sys)
    z_network = analyzer.build_zero_sequence_network()
    if z_network.is_singular():
        print("Zero-sequence network is singular - check grounding")
-=======
-   analyzer = FaultAnalyzer(sys)
-   z_network = analyzer.build_zero_sequence_network()
-   if z_network.is_singular():
-       print('Zero-sequence network is singular - check grounding')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 4. Verify IEC 60909 voltage factor (c):
@@ -895,10 +875,7 @@ print(f'Converged in {engine.iteration_count} iterations. Max voltage: {result.m
 5. Test with a simple 3-bus system to verify the algorithm:
    ```python
    from fault_analysis.test_fault_debug import test_simple_fault
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
    test_simple_fault()
    ```
 
@@ -939,7 +916,6 @@ print('Short circuit results validated')
 1. Verify harmonic source data:
    ```python
    from fault_analysis.harmonic_analysis import HarmonicAnalyzer
-<<<<<<< HEAD
 
    analyzer = HarmonicAnalyzer(sys)
    sources = analyzer.get_harmonic_sources()
@@ -947,14 +923,6 @@ print('Short circuit results validated')
        print(f"Bus {bus}: {len(source.spectrum)} harmonics")
        if max(source.spectrum.keys()) < 50:
            print(f"  Warning: Only analyzing up to {max(source.spectrum.keys())}th harmonic")
-=======
-   analyzer = HarmonicAnalyzer(sys)
-   sources = analyzer.get_harmonic_sources()
-   for bus, source in sources.items():
-       print(f'Bus {bus}: {len(source.spectrum)} harmonics')
-       if max(source.spectrum.keys()) < 50:
-           print(f'  Warning: Only analyzing up to {max(source.spectrum.keys())}th harmonic')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 2. Check for resonance near 50/60 Hz:
@@ -963,11 +931,7 @@ print('Short circuit results validated')
    resonances = impedance_scan.find_resonances()
    for r in resonances:
        if abs(r.frequency - 50) < 5 or abs(r.frequency - 60) < 5:
-<<<<<<< HEAD
            print(f"CRITICAL: Resonance near fundamental at {r.frequency} Hz")
-=======
-           print(f'CRITICAL: Resonance near fundamental at {r.frequency} Hz')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 3. Increase harmonic order range:
@@ -1029,47 +993,28 @@ print(f'Max THDv: {thd_v:.2f}%, Max THDi: {thd_i:.2f}%')
    ```python
    total_load = sum(bus.load.p for bus in sys.buses)
    total_gen = sum(gen.p_max for gen in sys.generators)
-<<<<<<< HEAD
    print(f"Total load: {total_load} MW, Total gen capacity: {total_gen} MW")
    if total_load > total_gen:
        print("ERROR: Load exceeds generation capacity")
-=======
-   print(f'Total load: {total_load} MW, Total gen capacity: {total_gen} MW')
-   if total_load > total_gen:
-       print('ERROR: Load exceeds generation capacity')
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 3. Relax constraint limits progressively:
    ```python
    opf.parameters.line_flow_limit_multiplier = 1.2  # 20% headroom
-<<<<<<< HEAD
    opf.parameters.voltage_limit_tolerance = 0.02  # +/- 0.02 pu tolerance
-=======
-   opf.parameters.voltage_limit_tolerance = 0.02     # +/- 0.02 pu tolerance
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 4. Try AC-OPF with different initial guess:
    ```python
-<<<<<<< HEAD
    opf.parameters.initialization = "flat_start"
    opf.parameters.method = "SLSQP"
-=======
-   opf.parameters.initialization = 'flat_start'
-   opf.parameters.method = 'SLSQP'
->>>>>>> origin/fix/scenario-tests-properly
    opf.parameters.max_iterations = 1000
    ```
 
 5. For non-convex cost curves, convert to piecewise linear approximation:
    ```python
    for gen in sys.generators:
-<<<<<<< HEAD
        if gen.cost_curve_type == "quadratic":
-=======
-       if gen.cost_curve_type == 'quadratic':
->>>>>>> origin/fix/scenario-tests-properly
            gen.linearize_cost_curve(n_segments=10)
    ```
 
@@ -1229,20 +1174,13 @@ print(f'Permission granted: {result}')
 
 1. Switch solver method for better performance:
    ```python
-<<<<<<< HEAD
    engine.parameters.method = "FAST_DECOUPLED"  # 2-5x faster for transmission systems
-=======
-   engine.parameters.method = 'FAST_DECOUPLED'  # 2-5x faster for transmission systems
->>>>>>> origin/fix/scenario-tests-properly
    ```
 
 2. Enable sparse matrix solvers:
    ```python
    from scipy.sparse.linalg import spsolve
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
    engine.use_sparse = True
    ```
 

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   type ReactNode,
   createContext,
@@ -44,7 +43,7 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
 export function useTheme() {
   return useContext(ThemeContext);
 }
-=======
+
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
 type Theme = 'dark' | 'light'
@@ -75,4 +74,3 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() { return useContext(ThemeContext) }
->>>>>>> origin/fix/scenario-tests-properly

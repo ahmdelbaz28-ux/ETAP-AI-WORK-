@@ -8,17 +8,13 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "studies": "Studies",
-<<<<<<< HEAD
     "gridEditor": "Grid Editor",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "assistant": "AI Assistant",
     "projects": "Projects",
     "results": "Results",
     "reports": "Reports",
     "settings": "Settings",
     "administration": "Administration",
-<<<<<<< HEAD
     "rbacAdmin": "RBAC Admin",
     "emailDashboard": "Email Dashboard",
     "emailDigest": "Email Digest",
@@ -31,22 +27,12 @@
     "digitalTwin": "Digital Twin",
     "assetManagement": "Asset Management",
     "equipment": "Equipment",
-=======
-    "diagnostics": "Diagnostics",
-    "etapIntegration": "ETAP Integration",
-    "gisIntegration": "GIS Integration",
-    "digitalTwin": "Digital Twin",
-    "assetManagement": "Asset Management",
->>>>>>> origin/fix/scenario-tests-properly
     "dataImport": "Data Import",
     "dataExport": "Data Export",
     "logs": "Logs",
     "codeGuard": "Code Guard",
-<<<<<<< HEAD
     "cuaMonitor": "CUA Monitor",
     "dualControl": "Dual-Control",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "logout": "Logout",
@@ -54,15 +40,11 @@
     "expand": "Expand",
     "engineering": "Engineering",
     "integration": "Integration",
-<<<<<<< HEAD
     "system": "System",
     "studyVersions": "Study Versions",
     "emailOtp": "Email OTP",
     "magicLinks": "Magic Links",
     "mfa": "MFA"
-=======
-    "system": "System"
->>>>>>> origin/fix/scenario-tests-properly
   },
   "navbar": {
     "welcome": "Welcome",
@@ -71,7 +53,6 @@
     "noNotifications": "No new notifications",
     "markAllRead": "Mark all as read"
   },
-<<<<<<< HEAD
   "voiceInput": {
     "start": "Start voice input",
     "stop": "Stop voice input",
@@ -81,8 +62,6 @@
     "microphoneDenied": "Microphone access denied. Please allow microphone access to use voice typing.",
     "recognitionFailed": "Voice recognition failed"
   },
-=======
->>>>>>> origin/fix/scenario-tests-properly
   "dashboard": {
     "title": "Dashboard",
     "welcomeMessage": "Welcome to Ahmed etap Platform",
@@ -221,7 +200,6 @@
     "completed": "Completed",
     "failed": "Failed",
     "cancelled": "Cancelled"
-<<<<<<< HEAD
   },
   "auth": {
     "loginTitle": "Sign In",
@@ -419,7 +397,5 @@
         "loadFailed": "Failed to load preview: {{error}}"
       }
     }
-=======
->>>>>>> origin/fix/scenario-tests-properly
   }
 }

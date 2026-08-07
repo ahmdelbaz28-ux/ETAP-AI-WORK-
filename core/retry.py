@@ -13,10 +13,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-<<<<<<< HEAD
-=======
-from typing import Type, Union
->>>>>>> origin/fix/scenario-tests-properly
 
 from tenacity import (
     after_log,
@@ -105,11 +101,7 @@ def skill_retry(
 def bounded_retry(
     max_attempts: int = 3,
     max_delay_seconds: float = 30.0,
-<<<<<<< HEAD
     exceptions: type[Exception] | tuple[type[Exception], ...] = Exception,
-=======
-    exceptions: Union[Type[Exception], tuple[Type[Exception], ...]] = Exception,
->>>>>>> origin/fix/scenario-tests-properly
     reraise: bool = True,
 ) -> Callable:
     """General-purpose bounded retry decorator.

@@ -1,21 +1,12 @@
-<<<<<<< HEAD
 import { readFileSync, writeFileSync } from 'node:fs';
-=======
-import { readFileSync, writeFileSync } from 'fs';
->>>>>>> origin/fix/scenario-tests-properly
 
 // Read lockfile
 const lock = readFileSync('pnpm-lock.yaml', 'utf-8');
 
 function extractVersion(name) {
-<<<<<<< HEAD
   // SonarCloud javascript:S7780: use String.raw for regex patterns
   const esc = name.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   const regex = new RegExp("'" + esc + String.raw`@([0-9]+\.[0-9]+\.[0-9]+[^'\n:]*?)'`, 'i');
-=======
-  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp("'" + esc + "@([0-9]+\\.[0-9]+\\.[0-9]+[^'\\n:]*?)'", 'i');
->>>>>>> origin/fix/scenario-tests-properly
   const match = lock.match(regex);
   if (match) {
     let v = match[1];

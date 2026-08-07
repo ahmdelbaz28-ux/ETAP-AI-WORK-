@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ETAP-AI-WORK- Remediation Worklog
 
 Multi-agent shared work log. Append-only.
@@ -212,7 +211,7 @@ Final commit graph on pass-2 (after self-critique):
   2ed2e4d1 feat(ui): add AIPlayground page with 5 capability tabs
   04b809a9 feat(api,ui): add feature-flags router + Administration panel
   6b07b300 fix(ui,api): replace hardcoded MCP_SERVERS with /api/v1/agents/mcp-servers round-trip
-=======
+
 # AhmedETAP Platform - Worklog
 
 ---
@@ -380,4 +379,3 @@ Stage Summary:
   * Test 4 (ADMS): 🔷 ADMS REQUEST ANALYSIS + DSE/FLISR/VVO navigation
 - Bug fix verified: POST /api/v1/studies/run no longer returns HTTP 500.
 - Skill is now ACTUALLY active at runtime, not just present as files.
->>>>>>> origin/fix/scenario-tests-properly

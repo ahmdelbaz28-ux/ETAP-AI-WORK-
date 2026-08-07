@@ -2,18 +2,14 @@
 AhmedETAP - Enterprise Engineering Intelligence Platform
 Hugging Face Spaces Entry Point
 Author: Eng. Ahmed Elbaz
-<<<<<<< HEAD
 
 This file now imports shared logic from ``api.shared_handlers`` so that
 constants, models, agent lists, study execution, rate limiting, and auth
 are defined in one place and reused by both the HF Space and the main API.
-=======
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _DOCS_PATH = "/docs"  # NOSONAR
 _REDOC_PATH = "/redoc"  # NOSONAR datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
@@ -81,7 +77,7 @@ from api.shared_handlers import (
     run_study_lightweight,
     verify_api_key,
 )
-=======
+
 import hmac
 import logging
 import os
@@ -99,12 +95,10 @@ from pydantic import BaseModel
 
 # -- Version (single source of truth) -----------------------------------------
 VERSION = "2.1.0"
->>>>>>> origin/fix/scenario-tests-properly
 
 # -- Logging ------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-<<<<<<< HEAD
     format="%(asctime)s, %(levelname)s, %(name)s, %(message)s",
 )
 logger = logging.getLogger("etap-ai")
@@ -117,7 +111,7 @@ logger = logging.getLogger("etap-ai")
 def _utc_now_iso() -> str:
     """Return current UTC time as an ISO-8601 'Z' timestamp."""
     return time.strftime(ISO_8601_UTC_FMT, time.gmtime())
-=======
+
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger("etap-ai")
@@ -176,12 +170,10 @@ def _check_rate_limit(client_id: str) -> bool:
             return False
         _rate_store[client_id].append(now)
         return True
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # -- Lifespan -----------------------------------------------------------------
 @asynccontextmanager
-<<<<<<< HEAD
 async def lifespan(_app: FastAPI):
     logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
     logger.info(
@@ -208,14 +200,6 @@ async def lifespan(_app: FastAPI):
         # to apply but never actually did. Verified by reading line 112.
         logger.exception("Database init failed")
 
-=======
-async def lifespan(app: FastAPI):
-    logger.info("AhmedETAP v%s started on Hugging Face Spaces", VERSION)
-    logger.info(
-        "Knowledge base: %d ETAP manuals + %d Zenon guides", ETAP_MANUAL_COUNT, ZENON_GUIDE_COUNT
-    )
-    logger.info("Active agents: %d", AGENT_COUNT)
->>>>>>> origin/fix/scenario-tests-properly
     yield
     logger.info("AhmedETAP shutting down")
 
@@ -228,27 +212,17 @@ app = FastAPI(
         "Covers Load Flow (IEEE 3002.7), Short Circuit (IEC 60909), Arc Flash (IEEE 1584), "
         "Protection Coordination (IEC 60255), Motor Starting (IEEE 399), Harmonics (IEEE 519), "
         "Transient Stability, Cable Sizing (IEC 60364), Ground Grid (IEEE 80), OPF, "
-<<<<<<< HEAD
         "SCADA (IEC 61850 via Zenon), and more - powered by 25 specialized AI agents."
-=======
-        "SCADA (IEC 61850 via Zenon), and more - powered by 23+ specialized AI agents."
->>>>>>> origin/fix/scenario-tests-properly
     ),
     version=VERSION,
     contact={"name": "Eng. Ahmed Elbaz", "email": "ahmdelbaz28@gmail.com"},
     license_info={"name": "MIT"},
-<<<<<<< HEAD
     docs_url=_DOCS_PATH,  # NOSONAR
     redoc_url=_REDOC_PATH,  # NOSONAR
-=======
-    docs_url="/docs",
-    redoc_url="/redoc",
->>>>>>> origin/fix/scenario-tests-properly
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
 
-<<<<<<< HEAD
 # Register the auth router so /api/v1/auth/register, /login, /refresh, /me
 # are available on the HF Space. Without this, users cannot register or
 # log in — the endpoints returned 404.
@@ -478,7 +452,7 @@ async def auth_and_rate_limit(request: Request, call_next):
                 status_code=429,
                 content={"detail": "Rate limit exceeded"},
                 headers={"Retry-After": str(rate_limiter.window)},
-=======
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -517,12 +491,10 @@ async def auth_and_rate_limit(request: Request, call_next):
                 status_code=429,
                 content={"detail": "Rate limit exceeded"},
                 headers={"Retry-After": str(_RATE_WINDOW)},
->>>>>>> origin/fix/scenario-tests-properly
             )
     return await call_next(request)
 
 
-<<<<<<< HEAD
 # -- Akamai edge protection middleware ----------------------------------------
 #
 # IMPORTANT: This middleware is added AFTER auth_and_rate_limit so it runs
@@ -602,7 +574,7 @@ async def root(request: Request):
                 },
             }
         )
-=======
+
 # -- Models -------------------------------------------------------------------
 class StudyRequest(BaseModel):
     study_type: str
@@ -620,7 +592,6 @@ class AgentRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse, tags=["Platform"])
 async def root():
     uptime = round(time.time() - START_TIME, 1)
->>>>>>> origin/fix/scenario-tests-properly
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -665,19 +636,17 @@ async def root():
       <div class="stat"><div class="stat-num">{AGENT_COUNT}</div><div class="stat-label">AI Agents</div></div>
       <div class="stat"><div class="stat-num">{ETAP_MANUAL_COUNT}+</div><div class="stat-label">ETAP Manuals</div></div>
       <div class="stat"><div class="stat-num">{ZENON_GUIDE_COUNT}</div><div class="stat-label">Zenon Guides</div></div>
-<<<<<<< HEAD
       <div class="stat"><div class="stat-num">{len(SUPPORTED_STANDARDS)}</div><div class="stat-label">Standards</div></div>
     </div>
     <div class="links">
       <a href=_DOCS_PATH>Swagger Docs</a>
       <a href=_REDOC_PATH>ReDoc</a>
-=======
+
       <div class="stat"><div class="stat-num">548</div><div class="stat-label">Tests Passing</div></div>
     </div>
     <div class="links">
       <a href="/docs">Swagger Docs</a>
       <a href="/redoc">ReDoc</a>
->>>>>>> origin/fix/scenario-tests-properly
       <a href="/healthz">Health</a>
       <a href="/api/v1/agents">Agents</a>
       <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" target="_blank">GitHub</a>
@@ -688,7 +657,6 @@ async def root():
     return HTMLResponse(content=html)
 
 
-<<<<<<< HEAD
 # -- Health (delegates to shared builders) ------------------------------------
 # SECURITY AUDIT 2026-07-29 (self-critique pass, RR-03):
 # Previous /healthz unconditionally returned {"status": "ok"} with HTTP 200,
@@ -726,17 +694,10 @@ async def healthz():
     return JSONResponse(
         content={"status": "ok", "backend": db_health.get("backend")}, status_code=200
     )
-=======
-# -- Health -------------------------------------------------------------------
-@app.get("/healthz", tags=["Health"])
-async def healthz():
-    return JSONResponse(content={"status": "ok"}, status_code=200)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @app.head("/healthz", tags=["Health"])
 async def healthz_head():
-<<<<<<< HEAD
     # HEAD must mirror GET status code (per RFC 7231 §4.3.2) so load
     # balancers that probe with HEAD get the same signal.
     try:
@@ -747,8 +708,6 @@ async def healthz_head():
         return JSONResponse(content={}, status_code=503)
     if db_health.get("status") == "unhealthy":
         return JSONResponse(content={}, status_code=503)
-=======
->>>>>>> origin/fix/scenario-tests-properly
     return JSONResponse(content={}, status_code=200)
 
 
@@ -759,9 +718,8 @@ async def readyz():
 
 @app.get("/health", tags=["Health"])
 async def health():
-<<<<<<< HEAD
     return build_health_response(platform="huggingface-spaces")
-=======
+
     uptime = round(time.time() - START_TIME, 2)
     return {
         "status": "healthy",
@@ -773,41 +731,33 @@ async def health():
         "etap_manuals": ETAP_MANUAL_COUNT,
         "zenon_guides": ZENON_GUIDE_COUNT,
     }
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @app.get("/ready", tags=["Health"])
 async def ready():
-<<<<<<< HEAD
     return build_ready_response()
-=======
-    return {"status": "ready", "uptime": round(time.time() - START_TIME, 2)}
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # -- Metrics ------------------------------------------------------------------
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
-<<<<<<< HEAD
     return build_metrics_response(platform="huggingface-spaces")
-=======
+
     return {
         "uptime_seconds": round(time.time() - START_TIME, 2),
         "platform": "huggingface-spaces",
         "version": VERSION,
     }
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # -- Platform Info ------------------------------------------------------------
 @app.get("/api/v1/info", tags=["Platform"])
 async def platform_info():
-<<<<<<< HEAD
     return build_platform_info()
 
 
 # -- Agents -------------------------------------------------------------------
-=======
+
     return {
         "name": "AhmedETAP",
         "version": VERSION,
@@ -973,7 +923,6 @@ AGENTS = [
 ]
 
 
->>>>>>> origin/fix/scenario-tests-properly
 @app.get("/api/v1/agents", tags=["Agents"])
 async def list_agents():
     return {"count": len(AGENTS), "agents": AGENTS}
@@ -987,7 +936,6 @@ async def get_agent(agent_id: str):
     return agent
 
 
-<<<<<<< HEAD
 @app.post("/api/v1/agents/etap-expert/chat", tags=["Agents"])
 async def etap_expert_chat(request: SharedETAPExpertChatRequest):
     """Chat with the ETAP Expert skill agent.
@@ -1618,7 +1566,7 @@ async def etap_gui_siem_events(limit: int = 50):
 
 
 # -- Studies ------------------------------------------------------------------
-=======
+
 # -- Studies ------------------------------------------------------------------
 STUDY_TYPES = [
     "load_flow",
@@ -1637,13 +1585,11 @@ STUDY_TYPES = [
 ]
 
 
->>>>>>> origin/fix/scenario-tests-properly
 @app.get("/api/v1/studies/types", tags=["Studies"])
 async def study_types():
     return {"study_types": STUDY_TYPES}
 
 
-<<<<<<< HEAD
 # -- CRITICAL #2 fix (AhmedETAP_Error_Report_AR.pdf):
 # These three endpoints were documented (TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
 # curl examples in README.hf.md) but missing from hf-space/app.py, causing HTTP 404
@@ -1814,7 +1760,7 @@ async def analyze_impact(request: SharedImpactAnalysisRequest):
     if status:
         return JSONResponse(status_code=status, content=result)
     return result
-=======
+
 @app.post("/api/v1/studies/run", tags=["Studies"])
 async def run_study(request: StudyRequest):
     if request.study_type not in STUDY_TYPES:
@@ -1906,13 +1852,11 @@ async def run_study(request: StudyRequest):
             "Full computation engine available in self-hosted deployment. See /docs for details."
         )
     return response
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # -- Knowledge Base Info ------------------------------------------------------
 @app.get("/api/v1/knowledge", tags=["Knowledge"])
 async def knowledge_info():
-<<<<<<< HEAD
     return build_knowledge_info()
 
 
@@ -2153,7 +2097,7 @@ async def settings_health():
     return {"success": True, "data": api_key_store.health_check()}
 
 
-=======
+
     return {
         "etap": {
             "manuals": ETAP_MANUAL_COUNT,
@@ -2206,7 +2150,6 @@ async def settings_health():
     }
 
 
->>>>>>> origin/fix/scenario-tests-properly
 # -- HEAD at root for HF health probe -----------------------------------------
 @app.head("/", include_in_schema=False)
 async def root_head():
@@ -2217,13 +2160,12 @@ async def root_head():
 @app.get("/api/v1/ml/capabilities", tags=["AI/ML"])
 async def ml_capabilities():
     """Discover available ML/AI capabilities and their status."""
-<<<<<<< HEAD
     result = handle_ml_capabilities()
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)
     return result
-=======
+
     try:
         from ml.predictive import get_ml_capabilities
 
@@ -2231,20 +2173,18 @@ async def ml_capabilities():
         return {"success": True, "data": caps}
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @app.post("/api/v1/predict/load", tags=["AI/ML"])
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
-<<<<<<< HEAD
     body = await request.json()
     result = handle_predict_load(body)
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)
     return result
-=======
+
     try:
         body = await request.json()
         historical = body.get("historical_data", [])
@@ -2275,13 +2215,11 @@ async def predict_load(request: Request):
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @app.post("/api/v1/predict/anomaly", tags=["AI/ML"])
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD."""
-<<<<<<< HEAD
     body = await request.json()
     result = handle_detect_anomalies(body)
     status = result.pop("_status", None)
@@ -2330,7 +2268,7 @@ async def ui_catch_all(full_path: str):
         return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
 
     return HTMLResponse(content="<h1>UI not built</h1>", status_code=503)
-=======
+
     try:
         body = await request.json()
         data = body.get("data", [])
@@ -2354,12 +2292,10 @@ async def ui_catch_all(full_path: str):
         return {"success": True, "data": result}
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-<<<<<<< HEAD
     # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
     # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
     # SonarCloud S8392: 0.0.0.0 is intentionally NOT the default — it's only
@@ -2369,12 +2305,6 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host=host,
-=======
-    logger.info("Starting server on port %d", port)
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
->>>>>>> origin/fix/scenario-tests-properly
         port=port,
         log_level="info",
         access_log=True,

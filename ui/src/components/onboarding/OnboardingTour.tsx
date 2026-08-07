@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   Activity,
   CheckCircle,
@@ -305,7 +304,7 @@ export function OnboardingTour() {
             onClick={handleSkip}
             className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors px-2 py-1.5 -ml-2"
             type="button"
-=======
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronRight, ChevronLeft, Zap, LayoutDashboard, FolderPlus, Radio, HelpCircle, Activity, CheckCircle } from 'lucide-react'
@@ -495,7 +494,6 @@ export function OnboardingTour() {
           <button
             onClick={handleSkip}
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
->>>>>>> origin/fix/scenario-tests-properly
           >
             Skip tour
           </button>
@@ -504,23 +502,16 @@ export function OnboardingTour() {
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-<<<<<<< HEAD
                 className="flex items-center gap-1 px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
                 type="button"
               >
                 <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} />
-=======
-                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
->>>>>>> origin/fix/scenario-tests-properly
                 Back
               </button>
             )}
             <button
               onClick={handleNext}
               className={cn(
-<<<<<<< HEAD
                 "flex items-center gap-1.5 px-5 py-2 text-[13px] font-semibold rounded-lg transition-all",
                 "shadow-lg active:scale-95",
                 isLast
@@ -535,7 +526,7 @@ export function OnboardingTour() {
               ) : (
                 <ChevronRight className="w-4 h-4" strokeWidth={2.5} />
               )}
-=======
+
                 'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all',
                 isLast
                   ? 'bg-green-600 hover:bg-green-500 text-white'
@@ -544,12 +535,10 @@ export function OnboardingTour() {
             >
               {isLast ? 'Get Started' : 'Next'}
               {!isLast && <ChevronRight className="w-3.5 h-3.5" />}
->>>>>>> origin/fix/scenario-tests-properly
             </button>
           </div>
         </div>
 
-<<<<<<< HEAD
         {/* Keyboard hint */}
         <div className="relative px-7 pb-3 -mt-1 text-[10px] text-[var(--text-muted)] text-center">
           Press{" "}
@@ -565,7 +554,7 @@ export function OnboardingTour() {
       </div>
     </dialog>
   );
-=======
+
         {/* Step counter */}
         <div className="text-center pb-4 text-[10px] text-[var(--text-muted)]">
           {currentStep + 1} of {steps.length}
@@ -573,5 +562,4 @@ export function OnboardingTour() {
       </div>
     </div>
   )
->>>>>>> origin/fix/scenario-tests-properly
 }

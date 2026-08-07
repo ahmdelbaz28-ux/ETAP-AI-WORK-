@@ -5,11 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Sequence
 from enum import Enum
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Tuple, Union
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 from numpy.linalg import LinAlgError, cholesky, cond, inv, lstsq, matrix_rank, norm, solve
@@ -35,7 +31,6 @@ class NumericalBounds(Enum):
     model faults, or solver divergence.
     """
 
-<<<<<<< HEAD
     VOLTAGE_PU: tuple[float, float] = (0.0, 2.0)
     CURRENT_PU: tuple[float, float] = (0.0, 100.0)
     POWER_MW: tuple[float, float] = (-1e6, 1e6)
@@ -49,7 +44,7 @@ class NumericalBounds(Enum):
 
     @classmethod
     def get_bounds(cls, name: str) -> tuple[float, float]:
-=======
+
     VOLTAGE_PU: Tuple[float, float] = (0.0, 2.0)
     CURRENT_PU: Tuple[float, float] = (0.0, 100.0)
     POWER_MW: Tuple[float, float] = (-1e6, 1e6)
@@ -63,7 +58,6 @@ class NumericalBounds(Enum):
 
     @classmethod
     def get_bounds(cls, name: str) -> Tuple[float, float]:
->>>>>>> origin/fix/scenario-tests-properly
         """Retrieve bounds by parameter name.
 
         Parameters
@@ -85,11 +79,7 @@ class NumericalBounds(Enum):
             return cls[name].value
         except KeyError as err:
             raise ValueError(
-<<<<<<< HEAD
                 f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}",
-=======
-                f"Unknown parameter '{name}'. Available: {[e.name for e in cls]}"
->>>>>>> origin/fix/scenario-tests-properly
             ) from err
 
 
@@ -100,7 +90,6 @@ class NumericalGuard:
     logarithm/root of non-positive numbers, and out-of-bounds values.
     """
 
-<<<<<<< HEAD
     def __init__(
         self,
         warn_on_clamp: bool = True,
@@ -110,13 +99,6 @@ class NumericalGuard:
         self.log = logger_instance or logger
 
     def check_inf_nan(self, value: float | np.ndarray, name: str = "value") -> np.ndarray:
-=======
-    def __init__(self, warn_on_clamp: bool = True, logger_instance: logging.Logger | None = None):
-        self.warn_on_clamp = warn_on_clamp
-        self.log = logger_instance or logger
-
-    def check_inf_nan(self, value: Union[float, np.ndarray], name: str = "value") -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """Detect and replace NaN (→0.0) and Inf (→±1e300) values."""
         arr = np.asarray(value, dtype=float)
         if np.any(np.isnan(arr)):
@@ -135,33 +117,20 @@ class NumericalGuard:
         diffs = np.abs(np.diff(arr))
         return bool(np.any(diffs > threshold) or np.any(np.abs(arr[-3:]) > threshold))
 
-<<<<<<< HEAD
     def safe_log(self, value: float | np.ndarray, epsilon: float = 1e-300) -> np.ndarray:
-=======
-    def safe_log(self, value: Union[float, np.ndarray], epsilon: float = 1e-300) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """Safe natural logarithm: clips value to epsilon before taking log."""
         arr = np.asarray(value, dtype=float)
         return np.log(np.maximum(arr, epsilon))
 
-<<<<<<< HEAD
     def safe_sqrt(self, value: float | np.ndarray, epsilon: float = 0.0) -> np.ndarray:
-=======
-    def safe_sqrt(self, value: Union[float, np.ndarray], epsilon: float = 0.0) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """Safe square root: clips value to epsilon before taking sqrt."""
         arr = np.asarray(value, dtype=float)
         return np.sqrt(np.maximum(arr, epsilon))
 
     def safe_division(
         self,
-<<<<<<< HEAD
         numerator: float | np.ndarray,
         denominator: float | np.ndarray,
-=======
-        numerator: Union[float, np.ndarray],
-        denominator: Union[float, np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         default: float = 0.0,
         epsilon: float = 1e-300,
     ) -> np.ndarray:
@@ -171,21 +140,13 @@ class NumericalGuard:
         mask = np.abs(den) < epsilon
         if np.any(mask):
             self.log.warning(
-<<<<<<< HEAD
                 "Division by near-zero denominator detected — using default %s",
                 default,
-=======
-                "Division by near-zero denominator detected — using default %s", default
->>>>>>> origin/fix/scenario-tests-properly
             )
         safe_den = np.where(mask, np.inf, den)
         return np.divide(num, safe_den, out=np.full_like(num, default, dtype=float), where=~mask)
 
-<<<<<<< HEAD
     def safe_angle(self, complex_val: complex | np.ndarray) -> np.ndarray:
-=======
-    def safe_angle(self, complex_val: Union[complex, np.ndarray]) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """Compute phase angle safely: zero-magnitude values return 0.0 radians."""
         arr = np.asarray(complex_val, dtype=complex)
         mask = np.abs(arr) < 1e-300
@@ -195,11 +156,7 @@ class NumericalGuard:
 
     def clamp_to_bounds(
         self,
-<<<<<<< HEAD
         value: float | np.ndarray,
-=======
-        value: Union[float, np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         min_val: float,
         max_val: float,
         name: str = "value",
@@ -220,13 +177,8 @@ class NumericalGuard:
         return np.clip(arr, min_val, max_val)
 
     def is_within_bounds(
-<<<<<<< HEAD
         self, value: float | np.ndarray, min_val: float, max_val: float, _name: str = "value"
     ) -> bool:  # NOSONAR param kept for API symmetry with clamp_to_bounds
-=======
-        self, value: Union[float, np.ndarray], min_val: float, max_val: float
-    ) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         """Check whether all elements lie within [min_val, max_val]."""
         arr = np.asarray(value, dtype=float)
         return bool(np.all((arr >= min_val) & (arr <= max_val)))
@@ -234,11 +186,7 @@ class NumericalGuard:
     def validate_matrix(
         self,
         matrix: np.ndarray,
-<<<<<<< HEAD
         expected_shape: tuple[int, ...] | None = None,
-=======
-        expected_shape: Tuple[int, ...] | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> np.ndarray:
         """Sanitise a matrix by replacing NaN/Inf and verifying shape.
 
@@ -298,11 +246,7 @@ class ConvergenceMonitor:
         self._iterations = iteration if iteration is not None else len(self._history)
 
     def is_converged(self, current_value: float) -> bool:
-<<<<<<< HEAD
         """Check Union[whether, current_value|] <= tolerance."""
-=======
-        """Check whether |current_value| <= tolerance."""
->>>>>>> origin/fix/scenario-tests-properly
         return bool(abs(current_value) <= self.tolerance)
 
     def is_diverging(self, current_value: float) -> bool:
@@ -321,11 +265,7 @@ class ConvergenceMonitor:
                     len(diffs) >= 2
                     and diffs[-1] > self.divergence_threshold
                     and diffs[-1] > np.mean(diffs[:-1]) * 10
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             if len(diffs) >= 1
             else False
@@ -333,11 +273,7 @@ class ConvergenceMonitor:
         return absolute_exceeded or step_exceeded
 
     def get_convergence_rate(self, window: int = 5) -> float:
-<<<<<<< HEAD
         """Mean Union[ratio, x_k] / Union[x_{k-1}, over] last *window* iterations (<1 = converging)."""
-=======
-        """Mean ratio |x_k / x_{k-1}| over last *window* iterations (<1 = converging)."""
->>>>>>> origin/fix/scenario-tests-properly
         if len(self._history) < 2:
             return 0.0
         recent = np.array(self._history[-window:], dtype=float)
@@ -383,15 +319,13 @@ class ConsistencyCheck:
 
     def check_power_balance(
         self,
-<<<<<<< HEAD
         total_gen: float | np.ndarray,
         total_load: float | np.ndarray,
         total_losses: float | np.ndarray,
-=======
+
         total_gen: Union[float, np.ndarray],
         total_load: Union[float, np.ndarray],
         total_losses: Union[float, np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         tolerance_mw: float = 1.0,
     ) -> dict[str, Any]:
         """Verify that generation = load + losses within tolerance_mw."""
@@ -413,11 +347,7 @@ class ConsistencyCheck:
 
     def check_voltage_profile(
         self,
-<<<<<<< HEAD
         voltages: Sequence[float] | np.ndarray,
-=======
-        voltages: Union[Sequence[float], np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         vmin: float = 0.95,
         vmax: float = 1.05,
     ) -> dict[str, Any]:
@@ -442,11 +372,7 @@ class ConsistencyCheck:
 
     def check_kirchhoff_current_law(
         self,
-<<<<<<< HEAD
         bus_currents: Sequence[float] | np.ndarray,
-=======
-        bus_currents: Union[Sequence[float], np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         tolerance: float = 1e-6,
     ) -> dict[str, Any]:
         """Check KCL: sum of currents at each bus should be near zero."""
@@ -464,11 +390,7 @@ class ConsistencyCheck:
 
     def check_kirchhoff_voltage_law(
         self,
-<<<<<<< HEAD
         loop_voltages: Sequence[float] | np.ndarray,
-=======
-        loop_voltages: Union[Sequence[float], np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         tolerance: float = 1e-6,
     ) -> dict[str, Any]:
         """Check KVL: sum of voltages around any loop should be near zero."""
@@ -486,15 +408,13 @@ class ConsistencyCheck:
 
     def check_energy_conservation(
         self,
-<<<<<<< HEAD
         energy_in: float | np.ndarray,
         energy_out: float | np.ndarray,
         losses: float | np.ndarray,
-=======
+
         energy_in: Union[float, np.ndarray],
         energy_out: Union[float, np.ndarray],
         losses: Union[float, np.ndarray],
->>>>>>> origin/fix/scenario-tests-properly
         tolerance: float = 0.01,
     ) -> dict[str, Any]:
         """Verify energy_in = energy_out + losses within tolerance."""
@@ -565,7 +485,6 @@ class MatrixStabilizer:
             self.log.warning("Matrix inversion failed — falling back to pseudo-inverse")
             return lstsq(mat, eye, rcond=self.default_tolerance)[0]
 
-<<<<<<< HEAD
     def safe_solve(
         self,
         a: np.ndarray,
@@ -585,7 +504,7 @@ class MatrixStabilizer:
 
     def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
         """Check if matrix is square Union[and, |A] - Union[A^T|, _inf] <= tolerance."""
-=======
+
     def safe_solve(self, A: np.ndarray, b: np.ndarray, method: str = "lu") -> np.ndarray:
         """Solve Ax = b with fallback to least-squares on singular systems."""
         A_arr = np.asarray(A, dtype=float)
@@ -598,7 +517,6 @@ class MatrixStabilizer:
 
     def is_symmetric(self, matrix: np.ndarray, tolerance: float | None = None) -> bool:
         """Check if matrix is square and ||A - A^T||_inf <= tolerance."""
->>>>>>> origin/fix/scenario-tests-properly
         mat = np.asarray(matrix, dtype=float)
         tol = tolerance if tolerance is not None else self.default_tolerance
         if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
@@ -623,11 +541,7 @@ class MatrixStabilizer:
 
 def wrap_solver(
     solver_fn: Callable[..., Any],
-<<<<<<< HEAD
     numerical_guard: NumericalGuard,  # NOSONAR unused param kept for API compatibility
-=======
-    numerical_guard: NumericalGuard,
->>>>>>> origin/fix/scenario-tests-properly
     convergence_monitor: ConvergenceMonitor,
 ) -> Callable[..., Any]:
     """Wrap a solver function with convergence monitoring.

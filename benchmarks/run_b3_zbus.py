@@ -38,8 +38,4 @@ print(f'  Recommendation: Replace dense inversion with LU factorisation in Fault
 # Save summary
 with open('benchmarks/zbus_lu_comparison.json', 'w') as f:
     json.dump(result, f, indent=2, default=str)
-<<<<<<< HEAD
 print('  Full results saved to benchmarks/zbus_lu_comparison.json')
-=======
-print(f'  Full results saved to benchmarks/zbus_lu_comparison.json')
->>>>>>> origin/fix/scenario-tests-properly

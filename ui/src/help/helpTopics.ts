@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 import type { HelpTopic } from "./types";
-=======
-import type { HelpTopic } from './types'
->>>>>>> origin/fix/scenario-tests-properly
 
 export const helpTopics: HelpTopic[] = [
   // ─── Getting Started ──────────────────────────────────────────────
   {
-<<<<<<< HEAD
     id: "dashboard.overview",
     category: "getting-started",
     title: { en: "Dashboard Overview", ar: "نظرة عامة على لوحة التحكم" },
@@ -176,7 +171,7 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     },
     tags: ["magic", "help", "inspector", "inspect", "سحري", "مساعدة", "فحص"],
     relatedTopics: ["keyboard-shortcuts", "dashboard.overview"],
-=======
+
     id: 'dashboard.overview',
     category: 'getting-started',
     title: { en: 'Dashboard Overview', ar: 'نظرة عامة على لوحة التحكم' },
@@ -200,12 +195,10 @@ Magic Help is an interactive inspector that lets you click on ANY element in the
     },
     tags: ['keyboard', 'shortcuts', 'hotkeys', 'keys', 'لوحة مفاتيح', 'اختصارات'],
     relatedTopics: ['dashboard.overview'],
->>>>>>> origin/fix/scenario-tests-properly
   },
 
   // ─── Projects ─────────────────────────────────────────────────────
   {
-<<<<<<< HEAD
     id: "projects.create",
     category: "projects",
     title: { en: "Creating a Project", ar: "إنشاء مشروع" },
@@ -1191,7 +1184,7 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     tags: ["gis", "arcgis", "qgis", "postgis", "geo", "جغرافي"],
     navigateTo: "/gis",
     relatedTopics: ["asset-management.overview", "digital-twin.overview"],
-=======
+
     id: 'projects.create',
     category: 'projects',
     title: { en: 'Creating a Project', ar: 'إنشاء مشروع' },
@@ -1257,12 +1250,10 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     tags: ['symbol', 'library', 'fire', 'detector', 'module', 'رمز', 'مكتبة', 'حريق'],
     navigateTo: '/studies',
     relatedTopics: ['fire-alarm.detector-placement', 'fire-alarm.zone-navigation'],
->>>>>>> origin/fix/scenario-tests-properly
   },
 
   // ─── Reports ──────────────────────────────────────────────────────
   {
-<<<<<<< HEAD
     id: "reports.generate",
     category: "reports",
     title: { en: "Generating Reports", ar: "إنشاء التقارير" },
@@ -1333,7 +1324,7 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     tags: ["report", "generate", "pdf", "compliance", "تقرير", "إنشاء", "امتثال"],
     navigateTo: "/reports",
     relatedTopics: ["projects.manage", "studies.overview"],
-=======
+
     id: 'reports.generate',
     category: 'reports',
     title: { en: 'Generating Reports', ar: 'إنشاء التقارير' },
@@ -1345,12 +1336,10 @@ The GIS Integration page connects AhmedETAP to Geographic Information Systems (A
     tags: ['report', 'generate', 'pdf', 'compliance', 'تقرير', 'إنشاء', 'امتثال'],
     navigateTo: '/reports',
     relatedTopics: ['projects.manage', 'fire-alarm.detector-placement'],
->>>>>>> origin/fix/scenario-tests-properly
   },
 
   // ─── Digital Twin ─────────────────────────────────────────────────
   {
-<<<<<<< HEAD
     id: "digital-twin.overview",
     category: "digital-twin",
     title: { en: "Digital Twin Overview", ar: "نظرة عامة على التوأم الرقمي" },
@@ -1419,7 +1408,7 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     tags: ["digital", "twin", "sync", "real-time", "توأم", "رقمي", "مزامنة"],
     navigateTo: "/digital-twin",
     relatedTopics: ["dashboard.overview", "integration.scada"],
-=======
+
     id: 'digital-twin.overview',
     category: 'digital-twin',
     title: { en: 'Digital Twin Overview', ar: 'نظرة عامة على التوأم الرقمي' },
@@ -1431,12 +1420,10 @@ A digital twin is a real-time virtual replica of your physical power system. It 
     tags: ['digital', 'twin', 'sync', 'real-time', 'توأم', 'رقمي', 'مزامنة'],
     navigateTo: '/digital-twin',
     relatedTopics: ['dashboard.overview'],
->>>>>>> origin/fix/scenario-tests-properly
   },
 
   // ─── Settings ─────────────────────────────────────────────────────
   {
-<<<<<<< HEAD
     id: "settings.backend",
     category: "settings",
     title: { en: "Backend Configuration", ar: "تكوين الخادم" },
@@ -2786,7 +2773,7 @@ export const helpCategories = [
     label: { en: "Keyboard Shortcuts", ar: "اختصارات لوحة المفاتيح" },
   },
 ] as const;
-=======
+
     id: 'settings.backend',
     category: 'settings',
     title: { en: 'Backend Configuration', ar: 'تكوين الخادم' },
@@ -2853,4 +2840,3 @@ export const helpCategories = [
   { id: 'troubleshooting' as const, label: { en: 'Troubleshooting', ar: 'استكشاف الأخطاء' } },
   { id: 'keyboard-shortcuts' as const, label: { en: 'Keyboard Shortcuts', ar: 'اختصارات لوحة المفاتيح' } },
 ] as const
->>>>>>> origin/fix/scenario-tests-properly

@@ -17,7 +17,6 @@ Standards:
 - IEEE 1584-2018: Guide for Performing Arc-Flash Hazard Calculations
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -25,25 +24,21 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
-=======
+
 import logging
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
-<<<<<<< HEAD
 # Module-level numpy Generator for reproducible non-crypto sampling.
 # NOSONAR
 _RNG = np.random.default_rng()  # NOSONAR
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +79,6 @@ class StabilityAgent(BaseAgent):
 
     def analyze_transient_stability(
         self,
-<<<<<<< HEAD
         H: np.ndarray,  # NOSONAR
         D: np.ndarray,  # NOSONAR
         pm: np.ndarray,  # NOSONAR
@@ -94,7 +88,7 @@ class StabilityAgent(BaseAgent):
         fault_bus: int,
         fault_Ybus: np.ndarray,  # NOSONAR
         post_fault_Ybus: np.ndarray,  # NOSONAR
-=======
+
         H: np.ndarray,
         D: np.ndarray,
         Pm: np.ndarray,
@@ -104,16 +98,11 @@ class StabilityAgent(BaseAgent):
         fault_bus: int,
         fault_Ybus: np.ndarray,
         post_fault_Ybus: np.ndarray,
->>>>>>> origin/fix/scenario-tests-properly
         t_fault: float,
         t_clear: float,
         t_total: float,
         dt: float = 0.01,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Perform transient stability analysis using the swing equation.
 
@@ -172,7 +161,6 @@ class StabilityAgent(BaseAgent):
 
         def electrical_power(d: np.ndarray, Y: np.ndarray) -> np.ndarray:
             """Calculate electrical power output for each machine."""
-<<<<<<< HEAD
             pe = np.zeros(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 n_gen
             )  # NOSONAR
@@ -183,25 +171,20 @@ class StabilityAgent(BaseAgent):
             for i in range(n_gen):
                 pe[i] = np.real(e_complex[i] * np.conj(I[i]))
             return pe
-=======
+
             Pe = np.zeros(n_gen)
             E_complex = E * np.exp(1j * d)
             I = Y @ E_complex
             for i in range(n_gen):
                 Pe[i] = np.real(E_complex[i] * np.conj(I[i]))
             return Pe
->>>>>>> origin/fix/scenario-tests-properly
 
         for step in range(1, n_steps):
             t = time_array[step]
 
             # Select appropriate Ybus based on time period
             if t < t_fault:
-<<<<<<< HEAD
                 Y = ybus_red
-=======
-                Y = Ybus_red
->>>>>>> origin/fix/scenario-tests-properly
             elif t < t_clear:
                 Y = fault_Ybus
             else:
@@ -209,7 +192,6 @@ class StabilityAgent(BaseAgent):
 
             # RK4 integration
             def derivatives(
-<<<<<<< HEAD
                 d: np.ndarray,
                 w: np.ndarray,
                 _Y: np.ndarray = Y,  # NOSONAR
@@ -219,13 +201,12 @@ class StabilityAgent(BaseAgent):
                 )  # NOSONAR
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (pm - pe - D * ddelta)
-=======
+
                 d: np.ndarray, w: np.ndarray, _Y: np.ndarray = Y
             ) -> Tuple[np.ndarray, np.ndarray]:
                 Pe = electrical_power(d, _Y)
                 ddelta = w - self.omega_synchronous
                 domega = (self.omega_synchronous / (2.0 * H)) * (Pm - Pe - D * ddelta)
->>>>>>> origin/fix/scenario-tests-properly
                 return ddelta, domega
 
             k1_d, k1_w = derivatives(delta, omega)
@@ -241,11 +222,7 @@ class StabilityAgent(BaseAgent):
 
         # Stability criterion: max angle spread < 360 degrees (practical: 180 deg)
         max_angle_spread = np.max(np.degrees(delta_history[-1])) - np.min(
-<<<<<<< HEAD
             np.degrees(delta_history[-1]),
-=======
-            np.degrees(delta_history[-1])
->>>>>>> origin/fix/scenario-tests-properly
         )
         stable = max_angle_spread < 180.0
 
@@ -258,7 +235,6 @@ class StabilityAgent(BaseAgent):
             "angles_final_deg": np.degrees(delta_history[-1]).tolist(),
         }
 
-<<<<<<< HEAD
     def analyze_small_signal_stability(  # NOSONAR
         self,
         H: np.ndarray,  # NOSONAR
@@ -268,7 +244,7 @@ class StabilityAgent(BaseAgent):
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
     ) -> dict[str, Any]:
-=======
+
     def analyze_small_signal_stability(
         self,
         H: np.ndarray,
@@ -278,7 +254,6 @@ class StabilityAgent(BaseAgent):
         E: np.ndarray,
         delta0: np.ndarray,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Perform small-signal stability analysis via eigenvalue method.
 
@@ -323,7 +298,6 @@ class StabilityAgent(BaseAgent):
         eps = 1e-6
 
         for j in range(n_gen):
-<<<<<<< HEAD
             delta_pert = delta0.copy()
             delta_pert[j] += eps
 
@@ -349,7 +323,7 @@ class StabilityAgent(BaseAgent):
             )  # NOSONAR
 
             K_S[:, j] = (pe_plus - pe_minus) / (2.0 * eps)
-=======
+
             # Perturb delta_j
             delta_pert = delta0.copy()
             delta_pert[j] += eps
@@ -364,7 +338,6 @@ class StabilityAgent(BaseAgent):
             Pe_minus = np.real(E_minus * np.conj(I_minus))
 
             K_S[:, j] = (Pe_plus - Pe_minus) / (2.0 * eps)
->>>>>>> origin/fix/scenario-tests-properly
 
         # Build state matrix A (2n x 2n)
         # State vector: [delta_1, ..., delta_n, omega_1, ..., omega_n]
@@ -376,7 +349,6 @@ class StabilityAgent(BaseAgent):
         # Lower-left block: -M^{-1} K_S (synchronizing)
         # The linearized swing equation is d(Δω)/dt = M⁻¹(-K_S·Δδ - D·Δω),
         # so the synchronizing-coefficient block carries a negative sign.
-<<<<<<< HEAD
         m_inv = np.diag(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             1.0 / M
         )  # NOSONAR
@@ -384,13 +356,12 @@ class StabilityAgent(BaseAgent):
 
         # Lower-right block: M^{-1} D (damping)
         A[n_gen:, n_gen:] = -m_inv @ np.diag(D)
-=======
+
         M_inv = np.diag(1.0 / M)
         A[n_gen:, :n_gen] = -M_inv @ K_S
 
         # Lower-right block: M^{-1} D (damping)
         A[n_gen:, n_gen:] = -M_inv @ np.diag(D)
->>>>>>> origin/fix/scenario-tests-properly
 
         # Compute eigenvalues AND eigenvectors in a single call (avoids
         # ordering inconsistencies between eigvals() and eig()).
@@ -429,11 +400,7 @@ class StabilityAgent(BaseAgent):
                         "damping_ratio": float(zeta),
                         "frequency_hz": float(freq),
                         "type": "unstable" if sigma > 0 else "poorly_damped",
-<<<<<<< HEAD
                     },
-=======
-                    }
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Participation factor analysis (reuse eigenvectors from same call)
@@ -441,11 +408,7 @@ class StabilityAgent(BaseAgent):
 
         participation_factors = []
         for i in range(2 * n_gen):
-<<<<<<< HEAD
             # Participation factor for mode i: P_ki Union[=, left_i][k] * right_k[i]|
-=======
-            # Participation factor for mode i: P_ki = |left_i[k] * right_k[i]|
->>>>>>> origin/fix/scenario-tests-properly
             # left_vecs[i, :] is the i-th left eigenvector (row)
             # right_vecs[:, i] is the i-th right eigenvector (column)
             p = np.abs(left_vecs[i, :] * right_vecs[:, i])
@@ -467,7 +430,6 @@ class StabilityAgent(BaseAgent):
 
     def critical_clearing_time(
         self,
-<<<<<<< HEAD
         H: float,  # NOSONAR
         pm: float,  # NOSONAR
         E_gen: float,  # NOSONAR
@@ -476,7 +438,7 @@ class StabilityAgent(BaseAgent):
         X_faulted: float,  # NOSONAR
         delta0: float,
     ) -> dict[str, Any]:
-=======
+
         H: float,
         Pm: float,
         E_gen: float,
@@ -485,7 +447,6 @@ class StabilityAgent(BaseAgent):
         X_faulted: float,
         delta0: float,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Compute critical clearing time using the equal area criterion.
 
@@ -524,7 +485,6 @@ class StabilityAgent(BaseAgent):
         """
         omega_s = self.omega_synchronous
 
-<<<<<<< HEAD
         pmax_pre = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             E_gen * V_inf / X_total
         )  # NOSONAR
@@ -538,7 +498,7 @@ class StabilityAgent(BaseAgent):
         # Initial angle where Pm = Pmax_pre * sin(delta0)
         # delta0 is given; verify Pm <= Pmax_pre
         if pm > pmax_pre:
-=======
+
         # Maximum power transfer pre-fault and during fault
         Pmax_pre = E_gen * V_inf / X_total
         Pmax_fault = E_gen * V_inf / X_faulted if X_faulted < 1e6 else 0.0
@@ -549,32 +509,22 @@ class StabilityAgent(BaseAgent):
         # Initial angle where Pm = Pmax_pre * sin(delta0)
         # delta0 is given; verify Pm <= Pmax_pre
         if Pm > Pmax_pre:
->>>>>>> origin/fix/scenario-tests-properly
             return {
                 "critical_clearing_angle_rad": float(delta0),
                 "critical_clearing_angle_deg": float(np.degrees(delta0)),
                 "critical_clearing_time_s": 0.0,
                 "equal_area_method": "infeasible",
                 "stable": False,
-<<<<<<< HEAD
                 "error": f"Pm ({pm:.3f}) > Pmax_pre ({pmax_pre:.3f}): operating point invalid",
-=======
-                "error": f"Pm ({Pm:.3f}) > Pmax_pre ({Pmax_pre:.3f}): operating point invalid",
->>>>>>> origin/fix/scenario-tests-properly
             }
 
         # Find delta_max: angle where Pm = Pmax_post * sin(delta_max)
         # delta_max = pi - arcsin(Pm / Pmax_post)
-<<<<<<< HEAD
         delta_max = np.pi - np.arcsin(min(pm / Pmax_post, 1.0))
-=======
-        delta_max = np.pi - np.arcsin(min(Pm / Pmax_post, 1.0))
->>>>>>> origin/fix/scenario-tests-properly
 
         # Critical clearing angle from equal area criterion:
         # cos(delta_cr) = [Pm*(delta_max - delta0) + Pmax_post*cos(delta_max)
         #                   - Pmax_fault*cos(delta0)] / (Pmax_post - Pmax_fault)
-<<<<<<< HEAD
         if abs(Pmax_post - pmax_fault) < 1e-10:
             # Three-phase fault at generator terminals: Pmax_fault ≈ 0
             pmax_fault = 0.0
@@ -583,7 +533,7 @@ class StabilityAgent(BaseAgent):
             pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - pmax_fault * np.cos(delta0)
         )
         denominator = Pmax_post - pmax_fault
-=======
+
         if abs(Pmax_post - Pmax_fault) < 1e-10:
             # Three-phase fault at generator terminals: Pmax_fault ≈ 0
             Pmax_fault = 0.0
@@ -592,7 +542,6 @@ class StabilityAgent(BaseAgent):
             Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - Pmax_fault * np.cos(delta0)
         )
         denominator = Pmax_post - Pmax_fault
->>>>>>> origin/fix/scenario-tests-properly
 
         cos_delta_cr = numerator / denominator if abs(denominator) > 1e-12 else 0.0
         cos_delta_cr = np.clip(cos_delta_cr, -1.0, 1.0)
@@ -601,13 +550,8 @@ class StabilityAgent(BaseAgent):
         # Critical clearing time
         # From the swing equation with Pmax_fault = 0 during fault:
         # t_cr = sqrt(2H * (delta_cr - delta0) / (omega_s * Pm))
-<<<<<<< HEAD
         if delta_cr > delta0 and pm > 0:
             t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * pm))
-=======
-        if delta_cr > delta0 and Pm > 0:
-            t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * Pm))
->>>>>>> origin/fix/scenario-tests-properly
         else:
             t_cr = 0.0
 
@@ -619,13 +563,8 @@ class StabilityAgent(BaseAgent):
             "initial_angle_deg": float(np.degrees(delta0)),
             "maximum_angle_rad": float(delta_max),
             "maximum_angle_deg": float(np.degrees(delta_max)),
-<<<<<<< HEAD
             "Pmax_pre_fault_pu": float(pmax_pre),
             "Pmax_during_fault_pu": float(pmax_fault),
-=======
-            "Pmax_pre_fault_pu": float(Pmax_pre),
-            "Pmax_during_fault_pu": float(Pmax_fault),
->>>>>>> origin/fix/scenario-tests-properly
             "Pmax_post_fault_pu": float(Pmax_post),
             "equal_area_method": "solved",
             "stable": bool(delta_cr > delta0),
@@ -651,7 +590,6 @@ class StabilityAgent(BaseAgent):
             self.log_execution(f"Starting stability analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
 
             if analysis_type in ("transient", "full"):
@@ -692,7 +630,7 @@ class StabilityAgent(BaseAgent):
                 # Fault Ybus: add large shunt at fault_bus
                 fault_bus = task.parameters.get("fault_bus", 0)
                 fault_Ybus = ybus_red.copy()  # NOSONAR
-=======
+
             results: Dict[str, Any] = {}
 
             # --- Transient stability ---
@@ -724,16 +662,11 @@ class StabilityAgent(BaseAgent):
                 # Fault Ybus: add large shunt at fault_bus
                 fault_bus = task.parameters.get("fault_bus", 0)
                 fault_Ybus = Ybus_red.copy()
->>>>>>> origin/fix/scenario-tests-properly
                 fault_impedance = task.parameters.get("fault_impedance_pu", 1e-6)
                 fault_Ybus[fault_bus, fault_bus] += 1.0 / fault_impedance
 
                 # Post-fault Ybus: slightly modified
-<<<<<<< HEAD
                 post_fault_Ybus = ybus_red.copy()  # NOSONAR
-=======
-                post_fault_Ybus = Ybus_red.copy()
->>>>>>> origin/fix/scenario-tests-properly
                 line_out = task.parameters.get("tripped_line_from_bus", None)
                 if line_out is not None and line_out < n_gen:
                     post_fault_Ybus[line_out, line_out] += 1j * 2.0
@@ -746,13 +679,8 @@ class StabilityAgent(BaseAgent):
                 transient_result = self.analyze_transient_stability(
                     H=H,
                     D=D,
-<<<<<<< HEAD
                     pm=pm,
                     ybus_red=ybus_red,
-=======
-                    Pm=Pm,
-                    Ybus_red=Ybus_red,
->>>>>>> origin/fix/scenario-tests-properly
                     E=E,
                     delta0=delta0,
                     fault_bus=fault_bus,
@@ -769,7 +697,6 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("small_signal", "full"):
                 H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
                 D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-<<<<<<< HEAD
                 pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
                 n_gen = len(H)
 
@@ -803,7 +730,7 @@ class StabilityAgent(BaseAgent):
                     ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
-=======
+
                 Pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
                 n_gen = len(H)
 
@@ -826,7 +753,6 @@ class StabilityAgent(BaseAgent):
 
                 ss_result = self.analyze_small_signal_stability(
                     H=H, D=D, Pm=Pm, Ybus_red=Ybus_red, E=E, delta0=delta0
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 results["small_signal_stability"] = ss_result
 
@@ -834,11 +760,7 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("critical_clearing_time", "full"):
                 cct_result = self.critical_clearing_time(
                     H=float(task.parameters.get("smib_H", 5.0)),
-<<<<<<< HEAD
                     pm=float(task.parameters.get("smib_Pm", 0.8)),
-=======
-                    Pm=float(task.parameters.get("smib_Pm", 0.8)),
->>>>>>> origin/fix/scenario-tests-properly
                     E_gen=float(task.parameters.get("smib_E", 1.1)),
                     V_inf=float(task.parameters.get("smib_V_inf", 1.0)),
                     X_total=float(task.parameters.get("smib_X_total", 0.5)),
@@ -875,7 +797,6 @@ class StabilityAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-<<<<<<< HEAD
     # NOSONAR
     # Validation
     # ------------------------------------------------------------------
@@ -883,13 +804,6 @@ class StabilityAgent(BaseAgent):
     def validate_result(  # NOSONAR
         self, result: AgentResult
     ) -> bool:  # NOSONAR
-=======
-    # ------------------------------------------------------------------
-    # Validation
-    # ------------------------------------------------------------------
-
-    def validate_result(self, result: AgentResult) -> bool:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Validate stability analysis results.
 
@@ -898,7 +812,6 @@ class StabilityAgent(BaseAgent):
         - Small-signal: all eigenvalues have negative real parts
         - CCT: critical clearing time is positive
         """
-<<<<<<< HEAD
         errors: list[str] = []
 
         ts_data = result.data.get("transient_stability")
@@ -907,7 +820,7 @@ class StabilityAgent(BaseAgent):
                 f"Transient instability: max angle spread "
                 f"{ts_data.get('max_angle_spread_deg', 0):.1f}°",
             )
-=======
+
         errors: List[str] = []
 
         ts_data = result.data.get("transient_stability")
@@ -917,7 +830,6 @@ class StabilityAgent(BaseAgent):
                     f"Transient instability: max angle spread "
                     f"{ts_data.get('max_angle_spread_deg', 0):.1f}°"
                 )
->>>>>>> origin/fix/scenario-tests-properly
 
         ss_data = result.data.get("small_signal_stability")
         if ss_data is not None:
@@ -927,25 +839,19 @@ class StabilityAgent(BaseAgent):
                         ev = mode["eigenvalue"]
                         errors.append(
                             f"Unstable mode: eigenvalue={ev.real:.4f}{ev.imag:+.4f}j, "
-<<<<<<< HEAD
                             f"ζ={mode['damping_ratio']:.4f}",
-=======
-                            f"ζ={mode['damping_ratio']:.4f}"
->>>>>>> origin/fix/scenario-tests-properly
                         )
             min_zeta = ss_data.get("min_damping_ratio", 0.0)
             if min_zeta < 0.03:
                 errors.append(f"Very low damping ratio: ζ_min={min_zeta:.4f} (< 0.03 threshold)")
 
         cct_data = result.data.get("critical_clearing_time")
-<<<<<<< HEAD
         if cct_data is not None and not cct_data.get("stable", True):
             errors.append("CCT analysis indicates system cannot be stabilised")
-=======
+
         if cct_data is not None:
             if not cct_data.get("stable", True):
                 errors.append("CCT analysis indicates system cannot be stabilised")
->>>>>>> origin/fix/scenario-tests-properly
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

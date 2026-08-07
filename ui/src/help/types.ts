@@ -1,5 +1,4 @@
 export interface HelpContent {
-<<<<<<< HEAD
   en: string;
   ar: string;
 }
@@ -38,7 +37,7 @@ export interface SmartHelpState {
   activeTopic: string | null;
   searchQuery: string;
   selectedCategory: HelpCategory | "all";
-=======
+
   en: string
   ar: string
 }
@@ -77,5 +76,4 @@ export interface SmartHelpState {
   activeTopic: string | null
   searchQuery: string
   selectedCategory: HelpCategory | 'all'
->>>>>>> origin/fix/scenario-tests-properly
 }

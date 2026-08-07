@@ -5,7 +5,6 @@ Handles all SCADA data model endpoints.
 Separated from main engineering service for better modularity.
 """
 
-<<<<<<< HEAD
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
@@ -22,12 +21,6 @@ router = APIRouter(
 # (POST /commands, WS /ws/scada) are handled by the websocket handler in
 # api/websocket.py and the upstream scada_model package. Registering here so
 # the UI can render a live-data card without opening a websocket.
-=======
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
-
-router = APIRouter(prefix="/api/v1/scada", tags=["scada"])
->>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.get("/live")
@@ -67,24 +60,14 @@ async def get_scada_live_data(request: Request):
                     "supported_protocols": ["IEC 61850", "IEC 60870-5-104", "Modbus TCP"],
                 },
                 "trace_id": trace_id,
-<<<<<<< HEAD
             },
-=======
-            }
->>>>>>> origin/fix/scenario-tests-properly
         )
     except Exception as e:
         from logging import getLogger
 
         logger = getLogger("engineering_service")
-<<<<<<< HEAD
         logger.exception("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
-=======
-        logger.error("scada_live_failed error=%s", str(e), extra={"trace_id": trace_id})
-        return JSONResponse(
-            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
->>>>>>> origin/fix/scenario-tests-properly
         )

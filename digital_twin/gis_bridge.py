@@ -11,7 +11,6 @@ Synchronization Flow:
   Digital Twin Change -> State Snapshot -> GIS Bridge -> PostGIS -> QGIS
 
 Asset Mapping:
-<<<<<<< HEAD
   GIS Union[Object, Electrical] Object
   Union[------------------, ------------------]
   Substation Union[Point, Bus] (slack/pv)
@@ -20,7 +19,7 @@ Asset Mapping:
   Switch Union[Point, Switch/Breaker]
   Load Area Union[Polygon, Load]
   Generator Union[Point, Generator]
-=======
+
   GIS Object        | Electrical Object
   ------------------|------------------
   Substation Point  | Bus (slack/pv)
@@ -29,7 +28,6 @@ Asset Mapping:
   Switch Point      | Switch/Breaker
   Load Area Polygon | Load
   Generator Point   | Generator
->>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
@@ -37,11 +35,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any, Optional
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from digital_twin.event_bus import (
     DigitalTwinStateUpdated,
@@ -59,11 +53,7 @@ logger = logging.getLogger(__name__)
 # GIS ↔ Electrical Asset Mapping
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 GIS_TO_ELECTRICAL_MAP: dict[str, str] = {
-=======
-GIS_TO_ELECTRICAL_MAP: Dict[str, str] = {
->>>>>>> origin/fix/scenario-tests-properly
     "substation": "bus",
     "bus": "bus",
     "transformer": "transformer",
@@ -79,11 +69,7 @@ GIS_TO_ELECTRICAL_MAP: Dict[str, str] = {
     "sectionalizer": "switch",
 }
 
-<<<<<<< HEAD
 ELECTRICAL_TO_GIS_MAP: dict[str, str] = {
-=======
-ELECTRICAL_TO_GIS_MAP: Dict[str, str] = {
->>>>>>> origin/fix/scenario-tests-properly
     "bus": "substation",
     "transformer": "transformer",
     "line": "feeder",
@@ -102,11 +88,7 @@ class SyncRecord:
     asset_type: str
     action: str  # created, updated, deleted
     success: bool
-<<<<<<< HEAD
     details: dict[str, Any] = field(default_factory=dict)
-=======
-    details: Dict[str, Any] = field(default_factory=dict)
->>>>>>> origin/fix/scenario-tests-properly
     timestamp: float = field(default_factory=time.time)
 
 
@@ -132,11 +114,7 @@ class GISSyncBridge:
         self.dt_state = dt_state
         self.event_bus = event_bus
         self.postgis = postgis
-<<<<<<< HEAD
         self._sync_log: list[SyncRecord] = []
-=======
-        self._sync_log: List[SyncRecord] = []
->>>>>>> origin/fix/scenario-tests-properly
         self._subscribed = False
         self._ensure_subscriptions()
 
@@ -163,11 +141,7 @@ class GISSyncBridge:
     # Direction: GIS -> Digital Twin
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def sync_gis_to_digital_twin(self) -> list[SyncRecord]:
-=======
-    def sync_gis_to_digital_twin(self) -> List[SyncRecord]:
->>>>>>> origin/fix/scenario-tests-properly
         """Pull changes from PostGIS and push them into the digital twin.
 
         Step-by-step:
@@ -198,19 +172,11 @@ class GISSyncBridge:
                     TopologyChanged(
                         change_description=f"GIS sync: {len(all_assets)} assets processed",
                         source="gis_bridge",
-<<<<<<< HEAD
                     ),
                 )
                 logger.info("GIS sync: Ybus rebuilt after %d assets", len(all_assets))
             except Exception as exc:
                 logger.exception("GIS sync: Ybus rebuild failed: %s", exc)
-=======
-                    )
-                )
-                logger.info("GIS sync: Ybus rebuilt after %d assets", len(all_assets))
-            except Exception as exc:
-                logger.error("GIS sync: Ybus rebuild failed: %s", exc)
->>>>>>> origin/fix/scenario-tests-properly
 
         self._sync_log.extend(records)
         return records
@@ -258,11 +224,7 @@ class GISSyncBridge:
                 details={"electrical_type": electrical_type, "electrical_id": electrical_id},
             )
         except Exception as exc:
-<<<<<<< HEAD
             logger.exception("GIS sync failed for %s: %s", asset.asset_id, exc)
-=======
-            logger.error("GIS sync failed for %s: %s", asset.asset_id, exc)
->>>>>>> origin/fix/scenario-tests-properly
             return SyncRecord(
                 direction="gis_to_dt",
                 asset_id=asset.asset_id,
@@ -272,11 +234,7 @@ class GISSyncBridge:
                 details={"error": str(exc)},
             )
 
-<<<<<<< HEAD
     def _upsert_bus(self, bus_id: str, _coords: Optional[tuple]) -> None:
-=======
-    def _upsert_bus(self, bus_id: str, coords: tuple | None) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Create or update a bus in the electrical model."""
         from core_model.bus import Bus
 
@@ -295,7 +253,6 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_bus(bus)
 
-<<<<<<< HEAD
     def _upsert_transformer(self, xf_id: str, _coords: Optional[tuple]) -> None:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
@@ -306,13 +263,6 @@ class GISSyncBridge:
             xid = int(xf_id)
         else:
             xid = 1
-=======
-    def _upsert_transformer(self, xf_id: str, coords: tuple | None) -> None:
-        """Create or update a transformer in the electrical model."""
-        from core_model.transformer import Transformer
-
-        xid = int(xf_id.split("_")[-1]) if "_" in xf_id else int(xf_id) if xf_id.isdigit() else 1
->>>>>>> origin/fix/scenario-tests-properly
         # Ensure the transformer exists — default to unit transformer if buses not yet present
         existing = [t for t in self.dt_state.system.transformers if t.transformer_id == xid]
         if not existing:
@@ -328,22 +278,14 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_transformer(xf)
 
-<<<<<<< HEAD
     def _upsert_line(self, line_id: str, _coords: Optional[tuple], _geometry: dict) -> None:
-=======
-    def _upsert_line(self, line_id: str, coords: tuple | None, geometry: Dict) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Create or update a line in the electrical model."""
         from core_model.line import Line
 
         lid = (
             int(line_id.split("_")[-1])
             if "_" in line_id
-<<<<<<< HEAD
             else int(line_id)  # NOSONAR nested conditional; extract to named variable (tech debt)
-=======
-            else int(line_id)
->>>>>>> origin/fix/scenario-tests-properly
             if line_id.isdigit()
             else 1
         )
@@ -361,7 +303,6 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_line(line)
 
-<<<<<<< HEAD
     def _upsert_switch(self, switch_id: str, _coords: Optional[tuple]) -> None:
         """Register a switch in the digital twin."""
         if (
@@ -377,7 +318,7 @@ class GISSyncBridge:
                 self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
     def _upsert_load(self, load_id: str, _coords: Optional[tuple], props: dict) -> None:
-=======
+
     def _upsert_switch(self, switch_id: str, coords: tuple | None) -> None:
         """Register a switch in the digital twin."""
         if self.dt_state.adms is not None:
@@ -392,30 +333,21 @@ class GISSyncBridge:
                         self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
     def _upsert_load(self, load_id: str, coords: tuple | None, props: Dict) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 
         lid = (
             int(load_id.split("_")[-1])
             if "_" in load_id
-<<<<<<< HEAD
             else int(load_id)  # NOSONAR nested conditional; extract to named variable (tech debt)
-=======
-            else int(load_id)
->>>>>>> origin/fix/scenario-tests-properly
             if load_id.isdigit()
             else 1
         )
         existing = [l for l in self.dt_state.system.loads if l.load_id == lid]
         if not existing and self.dt_state.system.buses:
-<<<<<<< HEAD
             first_bus = next(
                 iter(self.dt_state.system.buses.values())
             )  # NOSONAR false positive — already uses next(iter(...))
-=======
-            first_bus = list(self.dt_state.system.buses.values())[0]
->>>>>>> origin/fix/scenario-tests-properly
             p_mw = float(props.get("load_mw", 0))
             q_mvar = float(props.get("load_mvar", 0))
             load = Load(
@@ -428,16 +360,11 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_load(load)
 
-<<<<<<< HEAD
     def _upsert_generator(self, gen_id: str, _coords: Optional[tuple], _props: dict) -> None:
-=======
-    def _upsert_generator(self, gen_id: str, coords: tuple | None, props: Dict) -> None:
->>>>>>> origin/fix/scenario-tests-properly
         """Create or update a generator in the electrical model."""
         from core_model.generator import Generator
 
         gid = (
-<<<<<<< HEAD
             int(gen_id.split("_")[-1])
             if "_" in gen_id
             else int(
@@ -451,13 +378,6 @@ class GISSyncBridge:
             first_bus = next(
                 iter(self.dt_state.system.buses.values())
             )  # NOSONAR false positive — already uses next(iter(...))
-=======
-            int(gen_id.split("_")[-1]) if "_" in gen_id else int(gen_id) if gen_id.isdigit() else 1
-        )
-        existing = [g for g in self.dt_state.system.generators if g.generator_id == gid]
-        if not existing and self.dt_state.system.buses:
-            first_bus = list(self.dt_state.system.buses.values())[0]
->>>>>>> origin/fix/scenario-tests-properly
             gen = Generator(
                 generator_id=gid,
                 bus=first_bus,
@@ -487,15 +407,11 @@ class GISSyncBridge:
                     asset.properties["is_closed"] = is_closed
                     self.postgis.upsert_asset(asset)
 
-<<<<<<< HEAD
     def sync_digital_twin_to_gis(  # NOSONAR
         self,
     ) -> list[
         SyncRecord
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    def sync_digital_twin_to_gis(self) -> List[SyncRecord]:
->>>>>>> origin/fix/scenario-tests-properly
         """Push digital twin state changes back to PostGIS/QGIS.
 
         Captures a current snapshot and writes bus states, switch states,
@@ -561,11 +477,7 @@ class GISSyncBridge:
                         asset_type="bus",
                         action="updated",
                         success=True,
-<<<<<<< HEAD
                     ),
-=======
-                    )
->>>>>>> origin/fix/scenario-tests-properly
                 )
             except Exception as exc:
                 logger.warning("DT->GIS sync failed for bus %s: %s", bid, exc)
@@ -611,10 +523,6 @@ class GISSyncBridge:
             sim = snapshot.simulation_results
             if sim and hasattr(sim, "load_flow_converged"):
                 metadata_asset = self.postgis.get_asset("_simulation_metadata")
-<<<<<<< HEAD
-=======
-                from gis_integration.providers.postgis_provider import SpatialAsset
->>>>>>> origin/fix/scenario-tests-properly
 
                 if metadata_asset:
                     metadata_asset.properties.update(
@@ -623,11 +531,7 @@ class GISSyncBridge:
                             "protection_coordination_ok": sim.protection_coordination_ok,
                             "state_estimation_converged": sim.state_estimation_converged,
                             "synced_at": time.time(),
-<<<<<<< HEAD
                         },
-=======
-                        }
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     self.postgis.upsert_asset(metadata_asset)
         except Exception as exc:
@@ -641,11 +545,7 @@ class GISSyncBridge:
     # Electrical Network Mapping
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def build_electrical_network_map(self) -> dict[str, Any]:
-=======
-    def build_electrical_network_map(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Build a complete GIS-compatible electrical network map.
 
         Returns a GeoJSON FeatureCollection with:
@@ -692,11 +592,7 @@ class GISSyncBridge:
             },
         }
 
-<<<<<<< HEAD
     def _build_bus_feature(self, bid, bus) -> dict[str, Any] | None:
-=======
-    def _build_bus_feature(self, bid, bus) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Build a GeoJSON Feature for a bus."""
         coord = self._get_bus_coordinates(bid)
         if coord is None:
@@ -716,11 +612,7 @@ class GISSyncBridge:
             },
         }
 
-<<<<<<< HEAD
     def _build_line_feature(self, line) -> dict[str, Any] | None:
-=======
-    def _build_line_feature(self, line) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Build a GeoJSON Feature for a line."""
         from_bus = line.from_bus
         to_bus = line.to_bus
@@ -745,11 +637,7 @@ class GISSyncBridge:
             },
         }
 
-<<<<<<< HEAD
     def _build_transformer_feature(self, xf) -> dict[str, Any] | None:
-=======
-    def _build_transformer_feature(self, xf) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Build a GeoJSON Feature for a transformer."""
         from_coord = self._get_bus_coordinates(xf.from_bus.bus_id)
         to_coord = self._get_bus_coordinates(xf.to_bus.bus_id)
@@ -771,11 +659,7 @@ class GISSyncBridge:
             },
         }
 
-<<<<<<< HEAD
     def _get_bus_coordinates(self, bus_id) -> Optional[tuple]:
-=======
-    def _get_bus_coordinates(self, bus_id) -> tuple | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Try to get GIS coordinates for a bus from PostGIS."""
         if self.postgis is not None:
             asset = self.postgis.get_asset(str(bus_id))
@@ -790,11 +674,7 @@ class GISSyncBridge:
         return None
 
     @staticmethod
-<<<<<<< HEAD
     def _extract_coords(geometry: Optional[dict]) -> Optional[tuple]:
-=======
-    def _extract_coords(geometry: Dict | None) -> tuple | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Extract (lon, lat) from a GeoJSON geometry dict."""
         if geometry is None:
             return None
@@ -805,24 +685,16 @@ class GISSyncBridge:
         if gtype == "Point":
             return (coords[0], coords[1])
         if gtype in ("LineString", "MultiPoint"):
-<<<<<<< HEAD
             # coords is guaranteed non-empty by the early return above
             # (SonarCloud S2583 flagged the redundant `if coords` check).
             return (coords[0][0], coords[0][1])
-=======
-            return (coords[0][0], coords[0][1]) if coords else None
->>>>>>> origin/fix/scenario-tests-properly
         return None
 
     # ------------------------------------------------------------------
     # Sync Log
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def get_sync_log(self, limit: int = 100) -> list[dict[str, Any]]:
-=======
-    def get_sync_log(self, limit: int = 100) -> List[Dict[str, Any]]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get recent sync activity."""
         recent = self._sync_log[-limit:]
         return [
@@ -838,11 +710,7 @@ class GISSyncBridge:
             for r in recent
         ]
 
-<<<<<<< HEAD
     def get_sync_statistics(self) -> dict[str, Any]:
-=======
-    def get_sync_statistics(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get sync statistics."""
         total = len(self._sync_log)
         success = sum(1 for r in self._sync_log if r.success)
@@ -857,11 +725,7 @@ class GISSyncBridge:
             "postgis_connected": self.postgis.is_connected() if self.postgis else False,
         }
 
-<<<<<<< HEAD
     def run_full_sync(self) -> dict[str, Any]:
-=======
-    def run_full_sync(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Run a full bidirectional sync cycle.
 
         1. GIS -> DT: pull spatial assets, update electrical model

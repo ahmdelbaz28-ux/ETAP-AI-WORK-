@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -39,7 +38,7 @@ export default function GisIntegration() {
     },
     fail: { variant: "danger" as const, icon: <XCircle className="w-4 h-4 text-red-400" /> },
   };
-=======
+
 import { motion } from 'framer-motion'
 import { Map, Layers, CheckCircle, XCircle, AlertTriangle, Shield, RefreshCw, Globe, Database } from 'lucide-react'
 import { useNotify } from '../context/NotificationContext'
@@ -66,7 +65,6 @@ export function GisIntegration() {
     warn: { variant: 'warning' as const, icon: <AlertTriangle className="w-4 h-4 text-amber-400" /> },
     fail: { variant: 'danger' as const, icon: <XCircle className="w-4 h-4 text-red-400" /> },
   }
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
@@ -77,31 +75,23 @@ export function GisIntegration() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">GIS Integration</h2>
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
               <p className="text-sm text-[var(--text-tertiary)]">
                 Geographic information system connectivity
               </p>
               <ContextHelpButton contextId="gis-integration.overview" />
             </div>
-=======
-            <p className="text-sm text-[var(--text-tertiary)]">Geographic information system connectivity</p>
->>>>>>> origin/fix/scenario-tests-properly
           </div>
         </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* GIS Providers */}
-<<<<<<< HEAD
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-=======
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
->>>>>>> origin/fix/scenario-tests-properly
           <Card padding="md">
             <CardHeader
               title="GIS Providers"
@@ -109,7 +99,6 @@ export function GisIntegration() {
               icon={<Layers className="w-4 h-4" />}
             />
             <div className="space-y-3">
-<<<<<<< HEAD
               {providers.map((p) => (
                 <div
                   key={p.name}
@@ -122,7 +111,7 @@ export function GisIntegration() {
                         p.status === "configured" ? "bg-green-500/10" : "bg-[var(--bg-elevated)]",
                       )}
                     >
-=======
+
               {providers.map(p => (
                 <div key={p.name} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                   <div className="flex items-center gap-2.5">
@@ -130,22 +119,19 @@ export function GisIntegration() {
                       'p-1.5 rounded-md',
                       p.status === 'configured' ? 'bg-green-500/10' : 'bg-[var(--bg-elevated)]'
                     )}>
->>>>>>> origin/fix/scenario-tests-properly
                       {p.icon}
                     </div>
                     <span className="text-sm font-medium text-[var(--text-primary)]">{p.name}</span>
                   </div>
-<<<<<<< HEAD
                   <Badge variant={p.status === "configured" ? "success" : "default"} dot size="sm">
                     {p.status === "configured" ? "Ready" : "Not configured"}
-=======
+
                   <Badge
                     variant={p.status === 'configured' ? 'success' : 'default'}
                     dot
                     size="sm"
                   >
                     {p.status === 'configured' ? 'Ready' : 'Not configured'}
->>>>>>> origin/fix/scenario-tests-properly
                   </Badge>
                 </div>
               ))}
@@ -160,15 +146,11 @@ export function GisIntegration() {
         </motion.div>
 
         {/* GIS Validation */}
-<<<<<<< HEAD
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-=======
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
->>>>>>> origin/fix/scenario-tests-properly
           <Card padding="md">
             <CardHeader
               title="GIS Validation"
@@ -176,7 +158,6 @@ export function GisIntegration() {
               icon={<Shield className="w-4 h-4" />}
             />
             <div className="space-y-3">
-<<<<<<< HEAD
               {validators.map((v) => {
                 const config =
                   validatorStatusConfig[v.status as keyof typeof validatorStatusConfig];
@@ -185,12 +166,11 @@ export function GisIntegration() {
                     key={v.label}
                     className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]"
                   >
-=======
+
               {validators.map(v => {
                 const config = validatorStatusConfig[v.status as keyof typeof validatorStatusConfig]
                 return (
                   <div key={v.label} className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
->>>>>>> origin/fix/scenario-tests-properly
                     <div className="flex items-center gap-2.5">
                       {config.icon}
                       <div>
@@ -202,11 +182,7 @@ export function GisIntegration() {
                       {v.status}
                     </Badge>
                   </div>
-<<<<<<< HEAD
                 );
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
               })}
             </div>
             <div className="mt-4 pt-4 border-t border-[var(--border-primary)]">
@@ -214,11 +190,7 @@ export function GisIntegration() {
                 variant="primary"
                 size="sm"
                 icon={RefreshCw}
-<<<<<<< HEAD
                 onClick={() => notify("info", "GIS validation requires connected data sources")}
-=======
-                onClick={() => notify('info', 'GIS validation requires connected data sources')}
->>>>>>> origin/fix/scenario-tests-properly
                 className="w-full"
               >
                 Run Validation
@@ -228,9 +200,5 @@ export function GisIntegration() {
         </motion.div>
       </div>
     </div>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

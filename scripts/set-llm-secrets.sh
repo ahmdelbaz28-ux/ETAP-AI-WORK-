@@ -38,10 +38,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-<<<<<<< HEAD
 HR_DIVIDER='───────────────────────────────────────────────────────────────────────────────'
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 print_header() {
   echo ""
@@ -49,7 +46,6 @@ print_header() {
   echo "║           ETAP AI Platform — API Secret Setup                               ║"
   echo "╚══════════════════════════════════════════════════════════════════════════════╝"
   echo ""
-<<<<<<< HEAD
   return 0
 }
 
@@ -57,34 +53,25 @@ print_success() { local param="$1"; echo -e "${GREEN}✅${NC} ${param}"; return 
 print_error()   { local param="$1"; echo -e "${RED}❌${NC} ${param}"; return 0; }
 print_warn()    { local param="$1"; echo -e "${YELLOW}⚠️${NC} ${param}"; return 0; }
 print_info()    { local param="$1"; echo -e "${BLUE}ℹ️${NC} ${param}"; return 0; }
-=======
+
 }
 
 print_success() { echo -e "${GREEN}✅${NC} $1"; }
 print_error()   { echo -e "${RED}❌${NC} $1"; }
 print_warn()    { echo -e "${YELLOW}⚠️${NC} $1"; }
 print_info()    { echo -e "${BLUE}ℹ️${NC} $1"; }
->>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Worker name: env var > wrangler.jsonc > fallback
 # ---------------------------------------------------------------------------
 detect_worker_name() {
-<<<<<<< HEAD
   if [[ -n "${WRANGLER_WORKER_NAME:-}" ]]; then
-=======
-  if [ -n "${WRANGLER_WORKER_NAME:-}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     echo "${WRANGLER_WORKER_NAME}"
     return
   fi
   local detected
   detected=$(grep -oP '"name"\s*:\s*"\K[^"]+' "${PROJECT_DIR}/wrangler.jsonc" 2>/dev/null | head -1)
-<<<<<<< HEAD
   if [[ -n "${detected}" ]]; then
-=======
-  if [ -n "${detected}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     echo "${detected}"
     return
   fi
@@ -106,10 +93,7 @@ check_wrangler() {
   fi
 
   print_success "wrangler is available"
-<<<<<<< HEAD
   return 0
-=======
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 # Check if user is logged in to Cloudflare
@@ -131,10 +115,7 @@ check_login() {
   account=$(npx wrangler whoami 2>/dev/null | grep -E "Account|Email" | head -2 || true)
   print_info "Account info:"
   echo "${account}" | sed 's/^/   /'
-<<<<<<< HEAD
   return 0
-=======
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 # Prompt for a secret (hidden input)
@@ -150,10 +131,7 @@ prompt_secret() {
   read -rsp "   Enter ${name} (or press Enter to skip): " value
   echo ""
   echo "${value}"
-<<<<<<< HEAD
   return 0
-=======
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 # Set a single secret via wrangler — shows errors on failure
@@ -161,11 +139,7 @@ set_secret() {
   local name="$1"
   local value="$2"
 
-<<<<<<< HEAD
   if [[ -z "${value}" ]]; then
-=======
-  if [ -z "${value}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     print_warn "Skipping ${name} — no value provided"
     return 0
   fi
@@ -186,21 +160,13 @@ main() {
   check_login
 
   echo ""
-<<<<<<< HEAD
   echo "${HR_DIVIDER}"
-=======
-  echo "───────────────────────────────────────────────────────────────────────────────"
->>>>>>> origin/fix/scenario-tests-properly
   print_info "You will be prompted for 5 API keys (4 LLM + 1 observability)."
   print_info "If you don't have a key yet, press Enter to skip and set it later."
   print_info "These keys are stored as encrypted Cloudflare Worker secrets."
   print_info "For local development, set them in your .env file separately."
   print_info "Links to obtain keys are in .env.example"
-<<<<<<< HEAD
   echo "${HR_DIVIDER}"
-=======
-  echo "───────────────────────────────────────────────────────────────────────────────"
->>>>>>> origin/fix/scenario-tests-properly
   print_info "Target Worker: ${WORKER_NAME}"
   echo ""
 
@@ -220,15 +186,9 @@ main() {
   langwatch_key=$(prompt_secret "LANGWATCH_API_KEY" "Agent observability & prompt management. Get one at: https://app.langwatch.ai/")
 
   echo ""
-<<<<<<< HEAD
   echo "${HR_DIVIDER}"
   print_info "Setting secrets on Cloudflare Workers..."
   echo "${HR_DIVIDER}"
-=======
-  echo "───────────────────────────────────────────────────────────────────────────────"
-  print_info "Setting secrets on Cloudflare Workers..."
-  echo "───────────────────────────────────────────────────────────────────────────────"
->>>>>>> origin/fix/scenario-tests-properly
 
   set_secret "OPENAI_API_KEY" "${openai_key}"
   set_secret "QWEN_API_KEY" "${qwen_key}"
@@ -245,14 +205,9 @@ main() {
   echo "   1. Verify secrets are set:   ./scripts/verify-secrets.sh"
   echo "   2. Deploy the worker:         npx wrangler deploy"
   echo "   3. Test a provider:           curl -H 'x-api-key: YOUR_KEY' \\"
-<<<<<<< HEAD
   echo                                  "https://ahmed-etap.ahmdelbaz28.workers.dev/api/v1/providers"
   echo ""
   return 0
-=======
-  echo "                                  https://ahmed-etap.ahmdelbaz28.workers.dev/api/v1/providers"
-  echo ""
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 main "$@"

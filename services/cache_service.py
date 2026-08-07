@@ -10,32 +10,21 @@ Public API aligned to: tests/test_cache_service.py
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 import contextlib
 import json
 import logging
 import time
 from typing import Any, Optional
-=======
-import json
-import logging
-import time
-from typing import Any, Dict
->>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
 
 def _is_redis_url(redis_url: str) -> bool:
-<<<<<<< HEAD
     # str.startswith accepts a TUPLE of prefixes — passing two string args
     # was a bug (the second arg is interpreted as a start index, causing
     # TypeError at runtime). The previous code had a noqa-style comment claiming
     # this was "already tuple form" - it was NOT, and the test suite caught it.
     return redis_url.startswith(("redis://", "rediss://"))
-=======
-    return redis_url.startswith("redis://") or redis_url.startswith("rediss://")
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class StudyCache:
@@ -45,11 +34,7 @@ class StudyCache:
     Tests expect:
       - StudyCache(redis_url="...", ttl=...)
       - await cache.set(key, value, ttl=...)
-<<<<<<< HEAD
       - await cache.get(key) -> Optional[dict]
-=======
-      - await cache.get(key) -> dict | None
->>>>>>> origin/fix/scenario-tests-properly
       - await cache.ping() -> True (even for in-memory fallback)
       - await cache.clear()
     """
@@ -62,13 +47,8 @@ class StudyCache:
         self._use_redis = False
 
         # In-memory fallback store.
-<<<<<<< HEAD
         # Maps key -> {"value": <Any>, "expires_at": <Optional[float]>}
         self._memory_cache: dict[str, dict[str, Any]] = {}
-=======
-        # Maps key -> {"value": <Any>, "expires_at": <float|None>}
-        self._memory_cache: Dict[str, Dict[str, Any]] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
         if _is_redis_url(redis_url):
             try:
@@ -86,7 +66,6 @@ class StudyCache:
             self._use_redis = False
             self._redis_client = None
 
-<<<<<<< HEAD
     @property
     def redis_client(self) -> Any:
         return self._redis_client
@@ -96,9 +75,6 @@ class StudyCache:
         return self._memory_cache
 
     def _generate_key(self, study_type: str, params: dict[str, Any]) -> str:
-=======
-    def _generate_key(self, study_type: str, params: Dict[str, Any]) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Best-effort key generator used by legacy callers:
         await cache.get(study_type: str, params: Dict[str, Any])
@@ -117,30 +93,19 @@ class StudyCache:
         if expires_at is not None and time.time() >= float(expires_at):
             self._memory_cache.pop(key, None)
 
-<<<<<<< HEAD
     async def get(  # NOSONAR
         self, key: str, *args: Any, **kwargs: Any
     ) -> (
         dict[str, Any] | None
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-=======
-    async def get(self, key: str, *args: Any, **kwargs: Any) -> Dict[str, Any] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get cached value by key.
 
         Primary/tested signature:
-<<<<<<< HEAD
             await cache.get("some_key") -> Optional[dict]
 
         Best-effort backward compatibility:
             await cache.get(study_type: str, params: Dict[str, Any]) -> Optional[dict]
-=======
-            await cache.get("some_key") -> dict | None
-
-        Best-effort backward compatibility:
-            await cache.get(study_type: str, params: Dict[str, Any]) -> dict | None
->>>>>>> origin/fix/scenario-tests-properly
         """
         # Legacy: get(study_type, params)
         if len(args) == 1 and isinstance(args[0], dict) and not kwargs:
@@ -174,30 +139,24 @@ class StudyCache:
 
         # If stored non-dict, attempt to decode json string.
         if isinstance(value, str):
-<<<<<<< HEAD
             with contextlib.suppress(Exception):
                 decoded = json.loads(value)
                 if isinstance(decoded, dict):
                     return decoded
-=======
+
             try:
                 decoded = json.loads(value)
                 if isinstance(decoded, dict):
                     return decoded
             except Exception:
                 pass
->>>>>>> origin/fix/scenario-tests-properly
         return None
 
     async def set(
         self,
         key: str,
         value: Any,
-<<<<<<< HEAD
         ttl: Optional[int] = None,
-=======
-        ttl: int | None = None,
->>>>>>> origin/fix/scenario-tests-properly
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -208,13 +167,9 @@ class StudyCache:
             await cache.set(key, value, ttl=...)
 
         Returns:
-<<<<<<< HEAD
           - True when the value was stored in Redis OR in-memory fallback.
           - False only when both the Redis write AND the in-memory write
             failed (the latter is rare but possible under MemoryError).
-=======
-          - bool indicating whether the operation was accepted.
->>>>>>> origin/fix/scenario-tests-properly
         """
         effective_ttl = self.ttl if ttl is None else int(ttl)
         expires_at = None if effective_ttl <= 0 else (time.time() + effective_ttl)
@@ -224,19 +179,14 @@ class StudyCache:
             try:
                 payload = json.dumps(value)
                 await self._redis_client.set(
-<<<<<<< HEAD
                     key,
                     payload,
                     ex=effective_ttl if effective_ttl > 0 else None,
-=======
-                    key, payload, ex=effective_ttl if effective_ttl > 0 else None
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 return True
             except Exception as e:
                 logger.warning("Redis SET failed (%s); using memory cache", e)
 
-<<<<<<< HEAD
         # In-memory fallback — track actual write success so the return
         # value is meaningful (SonarCloud S3516: invariant return).
         try:
@@ -248,11 +198,10 @@ class StudyCache:
                 "In-memory cache SET failed for key %r: %s", key, e
             )
             return False
-=======
+
         # In-memory fallback
         self._memory_cache[key] = {"value": value, "expires_at": expires_at}
         return True
->>>>>>> origin/fix/scenario-tests-properly
 
     async def clear(self) -> None:
         """Clear all cached entries (memory fallback always; best-effort for redis)."""
@@ -268,11 +217,7 @@ class StudyCache:
     async def ping(self) -> bool:
         """Ping cache backend. Must return True even for in-memory fallback (per tests)."""
         if self._use_redis and self._redis_client:
-<<<<<<< HEAD
             try:  # NOSONAR async function uses sync I/O for compatibility reasons
-=======
-            try:
->>>>>>> origin/fix/scenario-tests-properly
                 await self._redis_client.ping()
                 return True
             except Exception:
@@ -280,11 +225,7 @@ class StudyCache:
         return True
 
 
-<<<<<<< HEAD
 async def get_study_cache() -> StudyCache:  # NOSONAR async function uses sync I/O; compatibility
-=======
-async def get_study_cache() -> StudyCache:
->>>>>>> origin/fix/scenario-tests-properly
     """
     Async factory expected by tests.
 
@@ -294,19 +235,10 @@ async def get_study_cache() -> StudyCache:
     default_ttl = 3600
 
     # Environment overrides (best-effort; tests don't require them).
-<<<<<<< HEAD
     with contextlib.suppress(Exception):
-=======
-    try:
->>>>>>> origin/fix/scenario-tests-properly
         import os
 
         redis_url = os.getenv("REDIS_URL", redis_url)
         default_ttl = int(os.getenv("CACHE_TTL", str(default_ttl)))
-<<<<<<< HEAD
-=======
-    except Exception:
-        pass
->>>>>>> origin/fix/scenario-tests-properly
 
     return StudyCache(redis_url=redis_url, ttl=default_ttl)

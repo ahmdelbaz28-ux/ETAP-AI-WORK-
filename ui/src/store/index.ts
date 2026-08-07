@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { create } from "zustand";
 
 interface ContextItem {
@@ -11,7 +10,7 @@ interface SelectedItem {
   type: string;
   name: string;
   details?: ContextItem[];
-=======
+
 import { create } from 'zustand'
 
 interface ContextItem {
@@ -24,12 +23,10 @@ interface SelectedItem {
   type: string
   name: string
   details?: ContextItem[]
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 interface AppState {
   // Sidebar
-<<<<<<< HEAD
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -65,7 +62,7 @@ interface AppState {
   // Error state
   lastError: Error | string | null;
   setLastError: (error: Error | string | null) => void;
-=======
+
   sidebarCollapsed: boolean
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
@@ -97,7 +94,6 @@ interface AppState {
   // Error state
   lastError: Error | string | null
   setLastError: (error: Error | string | null) => void
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -105,7 +101,6 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-<<<<<<< HEAD
   // Mobile sidebar (drawer overlay) — separate from desktop collapse state
   mobileSidebarOpen: false,
   toggleMobileSidebar: () => set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
@@ -117,15 +112,6 @@ export const useAppStore = create<AppState>((set) => ({
 
   // Search
   searchQuery: "",
-=======
-
-  // Language
-  language: (localStorage.getItem('i18nextLng') as 'en' | 'ar') || 'en',
-  setLanguage: (language) => set({ language }),
-
-  // Search
-  searchQuery: '',
->>>>>>> origin/fix/scenario-tests-properly
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   // Command Palette
@@ -147,8 +133,4 @@ export const useAppStore = create<AppState>((set) => ({
   // Error state
   lastError: null,
   setLastError: (lastError) => set({ lastError }),
-<<<<<<< HEAD
 }));
-=======
-}))
->>>>>>> origin/fix/scenario-tests-properly

@@ -64,11 +64,7 @@
 |---------|---------|---------|
 | react | 19.2.6 | UI framework |
 | react-dom | 19.2.6 | React DOM |
-<<<<<<< HEAD
 | react-router | 8.3.0 | Routing |
-=======
-| react-router-dom | 7.17.0 | Routing |
->>>>>>> origin/fix/scenario-tests-properly
 | zustand | 5.0.14 | State management |
 
 ### UI

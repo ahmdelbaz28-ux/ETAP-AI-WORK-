@@ -20,29 +20,24 @@ Standards:
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
-<<<<<<< HEAD
 # Module-level numpy Generator for reproducible non-crypto sampling.
 # NOSONAR
 _RNG = np.random.default_rng()  # NOSONAR
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 logger = logging.getLogger(__name__)
 
 
@@ -168,11 +163,7 @@ class SCADAMeasurement:
         self.iec61850_ref = iec61850_ref
         self.unit = unit
 
-<<<<<<< HEAD
     def to_dict(self) -> dict[str, Any]:
-=======
-    def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         return {
             "tag": self.tag,
             "value": self.value,
@@ -191,7 +182,6 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-<<<<<<< HEAD
         self.last_poll_time: Optional[datetime] = None
 
     def connect(self) -> bool:
@@ -209,13 +199,12 @@ class SCADAConnection:
         if not self.server or self.port <= 0 or self.port > 65535:
             self.connected = False
             return False
-=======
+
         self.last_poll_time: datetime | None = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection."""
         # In production, this would open a real MMS/IEC 61850 connection
->>>>>>> origin/fix/scenario-tests-properly
         self.connected = True
         return True
 
@@ -248,13 +237,8 @@ class SCADAAgent(BaseAgent):
     def __init__(self) -> None:
         super().__init__("SCADAAgent")
         self.standards = ["IEC 61850", "IEC 60870-5-104"]
-<<<<<<< HEAD
         self.connections: dict[str, SCADAConnection] = {}
         self.measurement_cache: dict[str, list[SCADAMeasurement]] = {}
-=======
-        self.connections: Dict[str, SCADAConnection] = {}
-        self.measurement_cache: Dict[str, List[SCADAMeasurement]] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Connection management
@@ -266,11 +250,7 @@ class SCADAAgent(BaseAgent):
         port: int = 102,
         protocol: str = "IEC61850",
         timeout_ms: int = 5000,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Establish connection to SCADA server.
 
@@ -325,15 +305,13 @@ class SCADAAgent(BaseAgent):
     def read_measurements(
         self,
         connection_id: str,
-<<<<<<< HEAD
         measurement_tags: list[str] | None = None,
         iec61850_refs: list[str] | None = None,
     ) -> dict[str, Any]:
-=======
+
         measurement_tags: List[str] | None = None,
         iec61850_refs: List[str] | None = None,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Read measurements from SCADA server.
 
@@ -379,7 +357,6 @@ class SCADAAgent(BaseAgent):
             filtered = cached
 
         # Update values with slight random variation (simulate real-time)
-<<<<<<< HEAD
         # NOSONAR
         np.random.seed(int(now.timestamp()) % 2**31)
         result_measurements = []
@@ -387,13 +364,6 @@ class SCADAAgent(BaseAgent):
             noise = _RNG.normal(  # NOSONAR
                 0, 0.005
             )  # NOSONAR
-=======
-        # Copy cached objects to avoid mutating the cache
-        np.random.seed(int(now.timestamp()) % 2**31)
-        result_measurements = []
-        for m in filtered:
-            noise = np.random.normal(0, 0.005)  # 0.5% noise
->>>>>>> origin/fix/scenario-tests-properly
             new_value = m.value * (1.0 + noise)
             result_measurements.append(
                 SCADAMeasurement(
@@ -403,11 +373,7 @@ class SCADAAgent(BaseAgent):
                     quality=m.quality,
                     iec61850_ref=m.iec61850_ref,
                     unit=m.unit,
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             conn.last_poll_time = now
 
@@ -423,7 +389,6 @@ class SCADAAgent(BaseAgent):
     # Bus data mapping
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def map_to_bus_data(  # NOSONAR
         self,
         measurements: list[dict[str, Any]],
@@ -431,7 +396,7 @@ class SCADAAgent(BaseAgent):
         nominal_kv: float = 13.8,
         base_mva: float = 100.0,
     ) -> dict[str, Any]:
-=======
+
     def map_to_bus_data(
         self,
         measurements: List[Dict[str, Any]],
@@ -439,7 +404,6 @@ class SCADAAgent(BaseAgent):
         nominal_kv: float = 13.8,
         base_mva: float = 100.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Map SCADA measurements to power system bus data.
 
@@ -479,30 +443,24 @@ class SCADAAgent(BaseAgent):
             Bus data suitable for load flow / state estimation input.
         """
         # Index measurements by tag
-<<<<<<< HEAD
         meas_by_tag: dict[str, dict[str, Any]] = {}
-=======
-        meas_by_tag: Dict[str, Dict[str, Any]] = {}
->>>>>>> origin/fix/scenario-tests-properly
         for m in measurements:
             tag = m.get("tag", "")
             meas_by_tag[tag] = m
 
-<<<<<<< HEAD
         bus_data: dict[str, dict[str, Any]] = {}
         mapping_issues: list[str] = []
         base_kv = nominal_kv
 
         for bus_id, tag_map in bus_mapping.items():
             bus_entry: dict[str, Any] = {"bus_id": bus_id}
-=======
+
         bus_data: Dict[str, Dict[str, Any]] = {}
         mapping_issues: List[str] = []
         base_kv = nominal_kv
 
         for bus_id, tag_map in bus_mapping.items():
             bus_entry: Dict[str, Any] = {"bus_id": bus_id}
->>>>>>> origin/fix/scenario-tests-properly
 
             # Voltage magnitude
             v_tag = tag_map.get("voltage_tag")
@@ -523,13 +481,8 @@ class SCADAAgent(BaseAgent):
                 bus_entry["angle_deg"] = 0.0
 
             # Load power
-<<<<<<< HEAD
             P_load = 0.0  # NOSONAR
             Q_load = 0.0  # NOSONAR
-=======
-            P_load = 0.0
-            Q_load = 0.0
->>>>>>> origin/fix/scenario-tests-properly
             p_load_tag = tag_map.get("P_load_tag")
             q_load_tag = tag_map.get("Q_load_tag")
             if p_load_tag and p_load_tag in meas_by_tag:
@@ -544,13 +497,8 @@ class SCADAAgent(BaseAgent):
             )
 
             # Generation power
-<<<<<<< HEAD
             P_gen = 0.0  # NOSONAR
             Q_gen = 0.0  # NOSONAR
-=======
-            P_gen = 0.0
-            Q_gen = 0.0
->>>>>>> origin/fix/scenario-tests-properly
             p_gen_tag = tag_map.get("P_gen_tag")
             q_gen_tag = tag_map.get("Q_gen_tag")
             if p_gen_tag and p_gen_tag in meas_by_tag:
@@ -568,12 +516,8 @@ class SCADAAgent(BaseAgent):
             bus_entry["P_net_mw"] = P_gen - P_load
             bus_entry["Q_net_mvar"] = Q_gen - Q_load
             bus_entry["S_net_pu"] = complex(
-<<<<<<< HEAD
                 (P_gen - P_load) / base_mva,
                 (Q_gen - Q_load) / base_mva,
-=======
-                (P_gen - P_load) / base_mva, (Q_gen - Q_load) / base_mva
->>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Quality assessment
@@ -596,11 +540,7 @@ class SCADAAgent(BaseAgent):
                     b.get("voltage_pu", 1.0) * np.sin(np.radians(b.get("angle_deg", 0))),
                 )
                 for b in bus_data.values()
-<<<<<<< HEAD
             ],
-=======
-            ]
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         return {
@@ -617,7 +557,6 @@ class SCADAAgent(BaseAgent):
     # Real-time data processing
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def process_realtime_data(  # NOSONAR
         self,
         measurements: list[dict[str, Any]],
@@ -626,7 +565,7 @@ class SCADAAgent(BaseAgent):
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,
     ) -> dict[str, Any]:
-=======
+
     def process_realtime_data(
         self,
         measurements: List[Dict[str, Any]],
@@ -635,7 +574,6 @@ class SCADAAgent(BaseAgent):
         filter_window: int = 5,
         anomaly_threshold_sigma: float = 3.0,
     ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Process real-time SCADA measurements.
 
@@ -671,11 +609,7 @@ class SCADAAgent(BaseAgent):
             validation_rules = {}
 
         # 1. Validate measurements
-<<<<<<< HEAD
         validated: list[dict[str, Any]] = []
-=======
-        validated: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
         for m in measurements:
             tag = m.get("tag", "")
             value = m.get("value", 0.0)
@@ -695,11 +629,7 @@ class SCADAAgent(BaseAgent):
                     **m,
                     "quality": quality,
                     "original_value": value,
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # 2. Apply filtering
@@ -735,11 +665,7 @@ class SCADAAgent(BaseAgent):
         mean_val = np.mean(values_arr)
         std_val = np.std(values_arr, ddof=1) if len(values_arr) > 1 else 0.0
 
-<<<<<<< HEAD
         anomalies: list[dict[str, Any]] = []
-=======
-        anomalies: List[Dict[str, Any]] = []
->>>>>>> origin/fix/scenario-tests-properly
         for _i, m in enumerate(validated):
             if std_val > 0:
                 z_score = abs(m["value"] - mean_val) / std_val
@@ -754,11 +680,7 @@ class SCADAAgent(BaseAgent):
                             ],
                             "z_score": float(z_score),
                             "timestamp": m.get("timestamp", ""),
-<<<<<<< HEAD
                         },
-=======
-                        }
->>>>>>> origin/fix/scenario-tests-properly
                     )
                     m["quality"] = "questionable"
 
@@ -793,11 +715,7 @@ class SCADAAgent(BaseAgent):
     def get_iec61850_model(
         self,
         logical_device: str = "LD0",
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Return the IEC 61850 data model mapping for the configured
         logical device.
@@ -841,16 +759,11 @@ class SCADAAgent(BaseAgent):
     @staticmethod
     def _generate_simulated_measurements(
         timestamp: datetime,
-<<<<<<< HEAD
     ) -> list[SCADAMeasurement]:
-=======
-    ) -> List[SCADAMeasurement]:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate a set of simulated SCADA measurements for a substation."""
         np.random.seed(42)
         measurements = []
 
-<<<<<<< HEAD
         # NOSONAR
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
@@ -860,12 +773,6 @@ class SCADAAgent(BaseAgent):
                     0, 0.02
                 )  # NOSONAR
             )  # NOSONAR
-=======
-        # Bus measurements (3 buses)
-        for bus_id in ["BUS1", "BUS2", "BUS3"]:
-            v_nom = 13.8  # kV
-            v_kv = v_nom * (1.0 + np.random.normal(0, 0.02))
->>>>>>> origin/fix/scenario-tests-properly
 
             measurements.append(
                 SCADAMeasurement(
@@ -875,7 +782,6 @@ class SCADAAgent(BaseAgent):
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$Vol$mag$f",
                     unit="kV",
-<<<<<<< HEAD
                 ),
             )
             measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
@@ -885,19 +791,17 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 10
                     ),  # NOSONAR
-=======
+
                 )
             )
             measurements.append(
                 SCADAMeasurement(
                     tag=f"A_{bus_id}_A",
                     value=500 + np.random.normal(0, 10),
->>>>>>> origin/fix/scenario-tests-properly
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$A$mag$f",
                     unit="A",
-<<<<<<< HEAD
                 ),
             )
             measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
@@ -907,19 +811,17 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.1
                     ),  # NOSONAR
-=======
+
                 )
             )
             measurements.append(
                 SCADAMeasurement(
                     tag=f"P_{bus_id}_MW",
                     value=5.0 + np.random.normal(0, 0.1),
->>>>>>> origin/fix/scenario-tests-properly
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$W$mag$f",
                     unit="MW",
-<<<<<<< HEAD
                 ),
             )
             measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
@@ -929,19 +831,17 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.05
                     ),  # NOSONAR
-=======
+
                 )
             )
             measurements.append(
                 SCADAMeasurement(
                     tag=f"Q_{bus_id}_MVAR",
                     value=1.0 + np.random.normal(0, 0.05),
->>>>>>> origin/fix/scenario-tests-properly
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$var$mag$f",
                     unit="MVAR",
-<<<<<<< HEAD
                 ),
             )
             measurements.append(  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
@@ -951,19 +851,17 @@ class SCADAAgent(BaseAgent):
                     + _RNG.normal(  # NOSONAR
                         0, 0.01
                     ),  # NOSONAR
-=======
+
                 )
             )
             measurements.append(
                 SCADAMeasurement(
                     tag=f"PF_{bus_id}",
                     value=0.95 + np.random.normal(0, 0.01),
->>>>>>> origin/fix/scenario-tests-properly
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bus_id}.MMXU$PF$mag$f",
                     unit="pu",
-<<<<<<< HEAD
                 ),
             )
 
@@ -975,7 +873,7 @@ class SCADAAgent(BaseAgent):
                 + _RNG.normal(  # NOSONAR
                     0, 0.01
                 ),  # NOSONAR
-=======
+
                 )
             )
 
@@ -984,16 +882,11 @@ class SCADAAgent(BaseAgent):
             SCADAMeasurement(
                 tag="FREQ_HZ",
                 value=60.0 + np.random.normal(0, 0.01),
->>>>>>> origin/fix/scenario-tests-properly
                 timestamp=timestamp,
                 quality="good",
                 iec61850_ref="LD0/LLN0.MMXU$Hz$mag$f",
                 unit="Hz",
-<<<<<<< HEAD
             ),
-=======
-            )
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Breaker status
@@ -1001,20 +894,12 @@ class SCADAAgent(BaseAgent):
             measurements.append(
                 SCADAMeasurement(
                     tag=f"{bk_id}_STATUS",
-<<<<<<< HEAD
                     value=1.0,  # NOSONAR
-=======
-                    value=1.0,  # 1 = closed
->>>>>>> origin/fix/scenario-tests-properly
                     timestamp=timestamp,
                     quality="good",
                     iec61850_ref=f"LD0/{bk_id}.XCBR$Pos$stVal",
                     unit="bool",
-<<<<<<< HEAD
                 ),
-=======
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return measurements
@@ -1042,11 +927,7 @@ class SCADAAgent(BaseAgent):
             self.log_execution(f"Starting SCADA integration for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
             p = task.parameters
 
             if analysis_type in ("connect", "full"):
@@ -1154,11 +1035,7 @@ class SCADAAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate SCADA integration results."""
-<<<<<<< HEAD
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         conn = result.data.get("connection")
         if conn is not None and conn.get("status") == "failed":

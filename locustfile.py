@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from __future__ import annotations
 
 # =============================================================================
@@ -403,7 +402,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(5)
     def validate_system(self):
         """Validate a power system model."""
-=======
+
 from locust import HttpUser, between, task
 
 
@@ -434,14 +433,12 @@ class EngineeringServiceUser(HttpUser):
 
     @task(1)
     def validate_system(self):
->>>>>>> origin/fix/scenario-tests-properly
         self.client.post(
             "/api/v1/system/validate",
             json={
                 "buses": [
                     {"id": "BUS1", "nominal_kv": 13.8, "type": "swing"},
                     {"id": "BUS2", "nominal_kv": 4.16, "type": "load"},
-<<<<<<< HEAD
                     {"id": "BUS3", "nominal_kv": 0.48, "type": "pq"},
                 ],
                 "branches": [
@@ -508,9 +505,3 @@ class LightHealthCheckUser(HttpUser):
     @task(2)
     def root(self):
         self.client.get("/", name="GET / [light]")
-=======
-                ],
-                "branches": [{"from_bus": "BUS1", "to_bus": "BUS2", "r": 0.01, "x": 0.05}],
-            },
-        )
->>>>>>> origin/fix/scenario-tests-properly

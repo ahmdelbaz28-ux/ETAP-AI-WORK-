@@ -177,10 +177,7 @@ import csv
 import json
 import paho.mqtt.client as mqtt
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def export_power_system_data():
     """
     Export power system data (CSV/XML) from ETAP ADMS
@@ -190,7 +187,6 @@ def export_power_system_data():
         "timestamp": "2026-06-18T06:53:19Z",
         "devices": [
             {"id": "ups_001", "status": "online", "voltage": 230.5, "current": 12.3},
-<<<<<<< HEAD
             {"id": "redundancy_001", "status": "active", "load_percentage": 75.2},
         ],
     }
@@ -206,7 +202,7 @@ def export_power_system_data():
     return power_data
 
 
-=======
+
             {"id": "redundancy_001", "status": "active", "load_percentage": 75.2}
         ]
     }
@@ -221,14 +217,12 @@ def export_power_system_data():
     
     return power_data
 
->>>>>>> origin/fix/scenario-tests-properly
 def publish_to_mqtt(data):
     """
     Publish ETAP data to MQTT broker for consumption by SCADA systems
     """
     client = mqtt.Client()
     client.connect("localhost", 1883, 60)
-<<<<<<< HEAD
 
     # Publish power system status
     for device in data["devices"]:
@@ -239,17 +233,6 @@ def publish_to_mqtt(data):
     client.disconnect()
 
 
-=======
-    
-    # Publish power system status
-    for device in data['devices']:
-        topic = f"project/power/{device['id']}/status"
-        payload = json.dumps(device)
-        client.publish(topic, payload)
-    
-    client.disconnect()
-
->>>>>>> origin/fix/scenario-tests-properly
 # Main execution
 if __name__ == "__main__":
     power_data = export_power_system_data()
@@ -264,10 +247,7 @@ import json
 import paho.mqtt.client as mqtt
 import pandas as pd
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def on_message(client, userdata, msg):
     """
     Handle incoming MQTT messages from ETAP
@@ -275,30 +255,20 @@ def on_message(client, userdata, msg):
     try:
         data = json.loads(msg.payload.decode())
         print(f"Received ETAP data on {msg.topic}: {data}")
-<<<<<<< HEAD
 
         # Process ETAP power system data
         if "power" in msg.topic:
-=======
-        
-        # Process ETAP power system data
-        if 'power' in msg.topic:
->>>>>>> origin/fix/scenario-tests-properly
             process_power_data(data)
     except json.JSONDecodeError:
         print(f"Could not decode JSON from {msg.topic}")
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def process_power_data(data):
     """
     Process power system data received from ETAP
     """
     print(f"Processing power data: {data}")
     # Here you would typically update SCADA tags with ETAP data
-<<<<<<< HEAD
 
     # Example: Update UPS/redundancy status for stability analysis
     if data.get("id") == "ups_001":
@@ -307,22 +277,12 @@ def process_power_data(data):
         print(f"Redundancy Status: {data.get('status')}, Load: {data.get('load_percentage')}%")
 
 
-=======
-    
-    # Example: Update UPS/redundancy status for stability analysis
-    if data.get('id') == 'ups_001':
-        print(f"UPS Status: {data.get('status')}, Voltage: {data.get('voltage')}V")
-    elif data.get('id') == 'redundancy_001':
-        print(f"Redundancy Status: {data.get('status')}, Load: {data.get('load_percentage')}%")
-
->>>>>>> origin/fix/scenario-tests-properly
 def setup_etap_integration():
     """
     Setup MQTT subscription for ETAP data
     """
     client = mqtt.Client()
     client.on_message = on_message
-<<<<<<< HEAD
 
     # Connect to MQTT broker
     client.connect("localhost", 1883, 60)
@@ -334,18 +294,6 @@ def setup_etap_integration():
     return client
 
 
-=======
-    
-    # Connect to MQTT broker
-    client.connect("localhost", 1883, 60)
-    
-    # Subscribe to ETAP topics
-    client.subscribe("project/power/+/status")
-    
-    print("Subscribed to ETAP power system data")
-    return client
-
->>>>>>> origin/fix/scenario-tests-properly
 # Main execution
 if __name__ == "__main__":
     client = setup_etap_integration()
@@ -381,10 +329,7 @@ import os
 from qgis.core import QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY
 from qgis.PyQt.QtCore import QVariant
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def create_scada_tags_geojson():
     """
     Create GeoJSON from SCADA tags for QGIS import
@@ -394,25 +339,20 @@ def create_scada_tags_geojson():
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-<<<<<<< HEAD
                 "coordinates": [31.2357, 30.0444],  # Cairo coordinates as example
-=======
-                "coordinates": [31.2357, 30.0444]  # Cairo coordinates as example
->>>>>>> origin/fix/scenario-tests-properly
             },
             "properties": {
                 "id": "detector_001",
                 "zone": "zone_A",
                 "type": "smoke",
                 "coverage": "45m²",
-<<<<<<< HEAD
                 "status": "normal",
             },
         },
         {
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [31.2457, 30.0544]},
-=======
+
                 "status": "normal"
             }
         },
@@ -422,14 +362,12 @@ def create_scada_tags_geojson():
                 "type": "Point",
                 "coordinates": [31.2457, 30.0544]
             },
->>>>>>> origin/fix/scenario-tests-properly
             "properties": {
                 "id": "extinguisher_001",
                 "zone": "zone_A",
                 "type": "water_mist",
                 "pressure": "10bar",
                 "flow": "120L/min",
-<<<<<<< HEAD
                 "status": "ready",
             },
         },
@@ -447,7 +385,7 @@ def create_scada_tags_geojson():
     print("SCADA tags exported to scada_export/tags.geojson")
 
 
-=======
+
                 "status": "ready"
             }
         }
@@ -467,14 +405,12 @@ def create_scada_tags_geojson():
     
     print("SCADA tags exported to scada_export/tags.geojson")
 
->>>>>>> origin/fix/scenario-tests-properly
 def load_scada_layer_to_qgis():
     """
     Load SCADA tags layer into QGIS (conceptual - actual implementation would require QGIS Python API)
     """
     # Path to the GeoJSON file
     geojson_path = "scada_export/tags.geojson"
-<<<<<<< HEAD
 
     # Create vector layer from GeoJSON
     layer = QgsVectorLayer(geojson_path, "SCADA_Tags", "ogr")
@@ -487,19 +423,6 @@ def load_scada_layer_to_qgis():
     return layer
 
 
-=======
-    
-    # Create vector layer from GeoJSON
-    layer = QgsVectorLayer(geojson_path, "SCADA_Tags", "ogr")
-    
-    if not layer.isValid():
-        print("Layer failed to load!")
-        return None
-    
-    print("SCADA tags layer loaded successfully")
-    return layer
-
->>>>>>> origin/fix/scenario-tests-properly
 # Main execution
 if __name__ == "__main__":
     create_scada_tags_geojson()
@@ -531,58 +454,35 @@ import paho.mqtt.client as mqtt
 import os
 from datetime import datetime
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def create_feature_classes():
     """
     Create feature classes for SCADA data in ArcGIS Pro
     """
     # Set workspace
     arcpy.env.workspace = r"C:\temp\scada_geodatabase.gdb"
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Create geodatabase if it doesn't exist
     gdb_path = r"C:\temp\scada_geodatabase.gdb"
     if not arcpy.Exists(gdb_path):
         arcpy.CreateFileGDB_management(r"C:\temp", "scada_geodatabase.gdb")
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Create feature classes
     detectors_fc = arcpy.CreateFeatureclass_management(
         gdb_path, "detectors", "POINT", spatial_reference=arcpy.SpatialReference(4326)
     )
-<<<<<<< HEAD
 
     extinguishers_fc = arcpy.CreateFeatureclass_management(
         gdb_path, "extinguishers", "POLYGON", spatial_reference=arcpy.SpatialReference(4326)
     )
 
-=======
-    
-    extinguishers_fc = arcpy.CreateFeatureclass_management(
-        gdb_path, "extinguishers", "POLYGON", spatial_reference=arcpy.SpatialReference(4326)
-    )
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Add fields to detectors
     arcpy.AddField_management(detectors_fc, "ID", "TEXT", field_length=50)
     arcpy.AddField_management(detectors_fc, "ZONE", "TEXT", field_length=50)
     arcpy.AddField_management(detectors_fc, "TYPE", "TEXT", field_length=50)
     arcpy.AddField_management(detectors_fc, "STATUS", "TEXT", field_length=50)
     arcpy.AddField_management(detectors_fc, "TIMESTAMP", "DATE")
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Add fields to extinguishers
     arcpy.AddField_management(extinguishers_fc, "ID", "TEXT", field_length=50)
     arcpy.AddField_management(extinguishers_fc, "ZONE", "TEXT", field_length=50)
@@ -591,21 +491,14 @@ def create_feature_classes():
     arcpy.AddField_management(extinguishers_fc, "FLOW", "DOUBLE")
     arcpy.AddField_management(extinguishers_fc, "STATUS", "TEXT", field_length=50)
     arcpy.AddField_management(extinguishers_fc, "TIMESTAMP", "DATE")
-<<<<<<< HEAD
 
     print("Feature classes created successfully")
 
 
-=======
-    
-    print("Feature classes created successfully")
-
->>>>>>> origin/fix/scenario-tests-properly
 def process_scada_tags(tags_geojson_path):
     """
     Process SCADA tags from GeoJSON and add to feature classes
     """
-<<<<<<< HEAD
     with open(tags_geojson_path, "r") as f:
         tags_data = json.load(f)
 
@@ -638,7 +531,7 @@ def process_scada_tags(tags_geojson_path):
         elif properties["type"] in ["water_mist", "foam", "co2"]:
             # For extinguishers, create a simple polygon around the point
             center_x, center_y = geometry["coordinates"][0], geometry["coordinates"][1]
-=======
+
     with open(tags_geojson_path, 'r') as f:
         tags_data = json.load(f)
     
@@ -662,14 +555,12 @@ def process_scada_tags(tags_geojson_path):
         elif properties['type'] in ['water_mist', 'foam', 'co2']:
             # For extinguishers, create a simple polygon around the point
             center_x, center_y = geometry['coordinates'][0], geometry['coordinates'][1]
->>>>>>> origin/fix/scenario-tests-properly
             # Create a small square polygon (10m x 10m) as example
             polygon_points = [
                 [center_x - 0.0001, center_y - 0.0001],
                 [center_x + 0.0001, center_y - 0.0001],
                 [center_x + 0.0001, center_y + 0.0001],
                 [center_x - 0.0001, center_y + 0.0001],
-<<<<<<< HEAD
                 [center_x - 0.0001, center_y - 0.0001],  # Close the polygon
             ]
 
@@ -706,7 +597,7 @@ def process_scada_tags(tags_geojson_path):
     print(f"Processed {len(tags_data['features'])} SCADA tags")
 
 
-=======
+
                 [center_x - 0.0001, center_y - 0.0001]  # Close the polygon
             ]
             
@@ -722,7 +613,6 @@ def process_scada_tags(tags_geojson_path):
     
     print(f"Processed {len(tags_data['features'])} SCADA tags")
 
->>>>>>> origin/fix/scenario-tests-properly
 def publish_gis_service():
     """
     Publish GIS service with SCADA layers
@@ -730,17 +620,10 @@ def publish_gis_service():
     # Define connection file and service name
     connection_file = r"C:\temp\arcgis_connection.ags"
     service_name = "SCADA_Fire_Alarm"
-<<<<<<< HEAD
 
     # Create service definition draft
     sddraft_path = f"C:\\temp\\{service_name}.sddraft"
 
-=======
-    
-    # Create service definition draft
-    sddraft_path = f"C:\\temp\\{service_name}.sddraft"
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Create SD draft from the feature dataset
     arcpy.mapping.CreateMapSDDraft(
         map_document=r"C:\temp\scada_map.mxd",  # This would be an actual map document
@@ -751,20 +634,12 @@ def publish_gis_service():
         copy_data_to_server=False,
         folder_name="SCADA_Integration",
         summary="SCADA Fire Alarm System Layers",
-<<<<<<< HEAD
         tags="SCADA,Fire,Alarm,GIS",
     )
 
     print(f"Service definition draft created at {sddraft_path}")
 
 
-=======
-        tags="SCADA,Fire,Alarm,GIS"
-    )
-    
-    print(f"Service definition draft created at {sddraft_path}")
-
->>>>>>> origin/fix/scenario-tests-properly
 # Main execution
 if __name__ == "__main__":
     create_feature_classes()
@@ -782,17 +657,13 @@ import json
 import threading
 import time
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 class ArcGISProMQTTClient:
     def __init__(self):
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
-<<<<<<< HEAD
 
         # SCADA tags storage
         self.scada_tags = {}
@@ -800,53 +671,29 @@ class ArcGISProMQTTClient:
     def on_connect(self, client, userdata, flags, rc):
         print(f"Connected to MQTT broker with result code {rc}")
 
-=======
-        
-        # SCADA tags storage
-        self.scada_tags = {}
-        
-    def on_connect(self, client, userdata, flags, rc):
-        print(f"Connected to MQTT broker with result code {rc}")
-        
->>>>>>> origin/fix/scenario-tests-properly
         # Subscribe to SCADA topics
         client.subscribe("project/fire/alarm")
         client.subscribe("project/fire/extinguish")
         client.subscribe("project/power/+/status")
         print("Subscribed to SCADA topics")
-<<<<<<< HEAD
 
     def on_message(self, client, userdata, msg):
         print(f"Received message on topic {msg.topic}: {msg.payload.decode()}")
 
-=======
-        
-    def on_message(self, client, userdata, msg):
-        print(f"Received message on topic {msg.topic}: {msg.payload.decode()}")
-        
->>>>>>> origin/fix/scenario-tests-properly
         try:
             data = json.loads(msg.payload.decode())
             self.update_scada_tag(msg.topic, data)
         except json.JSONDecodeError:
             print(f"Could not decode JSON from {msg.topic}")
-<<<<<<< HEAD
 
     def on_disconnect(self, client, userdata, rc):
         print("Disconnected from MQTT broker")
 
-=======
-    
-    def on_disconnect(self, client, userdata, rc):
-        print("Disconnected from MQTT broker")
-        
->>>>>>> origin/fix/scenario-tests-properly
     def update_scada_tag(self, topic, data):
         """
         Update SCADA tag in ArcGIS Pro
         """
         # Store the tag data
-<<<<<<< HEAD
         self.scada_tags[topic] = {"data": data, "timestamp": time.time()}
 
         # In a real implementation, this would update the corresponding feature in the geodatabase
@@ -857,7 +704,7 @@ class ArcGISProMQTTClient:
             detector_id = topic.split("/")[-1]  # Extract detector ID from topic
             self.update_detector_status(detector_id, "alarm_triggered")
 
-=======
+
         self.scada_tags[topic] = {
             'data': data,
             'timestamp': time.time()
@@ -871,13 +718,11 @@ class ArcGISProMQTTClient:
             detector_id = topic.split('/')[-1]  # Extract detector ID from topic
             self.update_detector_status(detector_id, 'alarm_triggered')
     
->>>>>>> origin/fix/scenario-tests-properly
     def update_detector_status(self, detector_id, status):
         """
         Update detector status in ArcGIS Pro feature class
         """
         gdb_path = r"C:\temp\scada_geodatabase.gdb"
-<<<<<<< HEAD
 
         # Update the detector status
         with arcpy.da.UpdateCursor(
@@ -892,7 +737,7 @@ class ArcGISProMQTTClient:
 
         print(f"Updated detector {detector_id} status to {status}")
 
-=======
+
         
         # Update the detector status
         with arcpy.da.UpdateCursor(f"{gdb_path}\\detectors", 
@@ -905,7 +750,6 @@ class ArcGISProMQTTClient:
         
         print(f"Updated detector {detector_id} status to {status}")
     
->>>>>>> origin/fix/scenario-tests-properly
     def connect(self, broker_host="localhost", broker_port=1883):
         """
         Connect to MQTT broker
@@ -913,11 +757,7 @@ class ArcGISProMQTTClient:
         self.client.connect(broker_host, broker_port, 60)
         print("Starting MQTT client loop")
         self.client.loop_start()
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> origin/fix/scenario-tests-properly
     def disconnect(self):
         """
         Disconnect from MQTT broker
@@ -926,17 +766,11 @@ class ArcGISProMQTTClient:
         self.client.disconnect()
         print("MQTT client disconnected")
 
-<<<<<<< HEAD
 
 # Global instance for use in ArcGIS Pro
 mqtt_client = None
 
 
-=======
-# Global instance for use in ArcGIS Pro
-mqtt_client = None
-
->>>>>>> origin/fix/scenario-tests-properly
 def initialize_mqtt_client():
     """
     Initialize MQTT client for ArcGIS Pro
@@ -949,10 +783,7 @@ def initialize_mqtt_client():
     else:
         print("MQTT client already initialized")
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def cleanup_mqtt_client():
     """
     Cleanup MQTT client when ArcGIS Pro closes
@@ -963,18 +794,11 @@ def cleanup_mqtt_client():
         mqtt_client = None
         print("MQTT client cleaned up")
 
-<<<<<<< HEAD
 
 # Example usage in ArcGIS Pro
 if __name__ == "__main__":
     initialize_mqtt_client()
 
-=======
-# Example usage in ArcGIS Pro
-if __name__ == "__main__":
-    initialize_mqtt_client()
-    
->>>>>>> origin/fix/scenario-tests-properly
     # Keep the client running
     try:
         while True:
@@ -1004,19 +828,12 @@ curl -I http://localhost:8000
 # Test ETAP connectivity
 import socket
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def test_etap_connection():
     try:
         # Assuming ETAP ADMS is running on localhost port 8081
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-<<<<<<< HEAD
         result = sock.connect_ex(("localhost", 8081))
-=======
-        result = sock.connect_ex(('localhost', 8081))
->>>>>>> origin/fix/scenario-tests-properly
         if result == 0:
             print("ETAP ADMS connection successful")
         else:
@@ -1025,10 +842,7 @@ def test_etap_connection():
     except Exception as e:
         print(f"Error testing ETAP connection: {e}")
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 test_etap_connection()
 ```
 
@@ -1037,31 +851,20 @@ test_etap_connection()
 # Test QGIS layer loading
 import os
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 def test_qgis_layers():
     geojson_path = "scada_export/tags.geojson"
     if os.path.exists(geojson_path):
         print("SCADA tags GeoJSON file exists")
-<<<<<<< HEAD
         with open(geojson_path, "r") as f:
             import json
 
-=======
-        with open(geojson_path, 'r') as f:
-            import json
->>>>>>> origin/fix/scenario-tests-properly
             data = json.load(f)
             print(f"Loaded {len(data['features'])} SCADA tags")
     else:
         print("SCADA tags GeoJSON file does not exist")
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 test_qgis_layers()
 ```
 

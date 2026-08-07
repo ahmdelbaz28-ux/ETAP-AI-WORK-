@@ -31,7 +31,6 @@ Data Classes:
     - StudyType: Power system study types enum
 """
 
-<<<<<<< HEAD
 from agents.arc_flash_agent import ArcFlashAgent
 from agents.battery_storage_agent import BatteryStorageAgent
 from agents.cable_sizing_agent import CableSizingAgent
@@ -40,11 +39,6 @@ from agents.earth_grid_agent import EarthGridAgent
 from agents.etap_expert_agent import ETAPExpertAgent
 from agents.etap_gui_agent import ETAPGUIAgent
 from agents.motor_starting_agent import MotorStartingAgent
-=======
-from agents.battery_storage_agent import BatteryStorageAgent
-from agents.cable_sizing_agent import CableSizingAgent
-from agents.earth_grid_agent import EarthGridAgent
->>>>>>> origin/fix/scenario-tests-properly
 from agents.orchestrator import (
     AgentResult,
     AgentStatus,
@@ -84,7 +78,6 @@ ALL_AGENT_CLASSES = [
     SCADAAgent,
 ]
 
-<<<<<<< HEAD
 # Mapping from StudyType to the agent that handles it.
 #
 # NOTE (audit item 2.10 — UI Coverage Audit 2026-07-29):
@@ -112,16 +105,12 @@ ALL_AGENT_CLASSES = [
 #   whose constructors or execute() paths don't satisfy that contract would
 #   break the test. Each candidate agent needs per-class verification before
 #   being added to the registry. See audit item 2.10 follow-up.
-=======
-# Mapping from StudyType to the agent that handles it
->>>>>>> origin/fix/scenario-tests-properly
 STUDY_TYPE_AGENT_MAP = {
     StudyType.LOAD_FLOW: LoadFlowAgent,
     StudyType.SHORT_CIRCUIT: ShortCircuitAgent,
     StudyType.HARMONIC_ANALYSIS: HarmonicAnalysisAgent,
     StudyType.OPTIMAL_POWER_FLOW: OptimalPowerFlowAgent,
     StudyType.PROTECTION_COORDINATION: ProtectionCoordinationAgent,
-<<<<<<< HEAD
     StudyType.MOTOR_STARTING: MotorStartingAgent,
     StudyType.TRANSIENT_STABILITY: StabilityAgent,
     StudyType.ARC_FLASH: ArcFlashAgent,
@@ -133,11 +122,6 @@ STUDY_TYPE_AGENT_MAP = {
     StudyType.DIGITAL_TWIN: DigitalTwinAgent,
     StudyType.ETAP_EXPERT: ETAPExpertAgent,
     StudyType.ETAP_GUI: ETAPGUIAgent,
-=======
-    StudyType.MOTOR_STARTING: LoadFlowAgent,  # Handled by LoadFlowAgent with motor model
-    StudyType.TRANSIENT_STABILITY: StabilityAgent,
-    StudyType.ARC_FLASH: ShortCircuitAgent,  # Requires fault current from ShortCircuitAgent
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 __all__ = [
@@ -163,14 +147,11 @@ __all__ = [
     "RenewableAgent",
     "BatteryStorageAgent",
     "SCADAAgent",
-<<<<<<< HEAD
     "MotorStartingAgent",
     "ArcFlashAgent",
     "DigitalTwinAgent",
     "ETAPExpertAgent",
     "ETAPGUIAgent",
-=======
->>>>>>> origin/fix/scenario-tests-properly
     # Orchestrator
     "ChiefEngineeringOrchestrator",
     "get_orchestrator",

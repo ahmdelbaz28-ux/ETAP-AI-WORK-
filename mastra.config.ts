@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { createOpenAI } from '@ai-sdk/openai';
-=======
-import { createOpenAI } from "@ai-sdk/openai";
->>>>>>> origin/fix/scenario-tests-properly
 
 export default {
   dir: './src/mastra',
@@ -17,8 +13,4 @@ export default {
       model: process.env.OPENAI_MODEL_ID || 'gpt-4o',
     },
   ],
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> origin/fix/scenario-tests-properly

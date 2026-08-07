@@ -1,5 +1,4 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-<<<<<<< HEAD
 import scenario, {
   AgentAdapter,
   AgentRole,
@@ -12,11 +11,6 @@ import {
   createMockEtapScenario,
   type StudyTypeStr,
 } from './helpers.mock-etap';
-=======
-import scenario, { AgentAdapter, AgentRole, type AgentInput, type AgentReturnTypes } from '@langwatch/scenario';
-import { mastra } from '../../src/mastra';
-import { MockEtapProvider, createMockEtapScenario, type StudyTypeStr } from './helpers.mock-etap';
->>>>>>> origin/fix/scenario-tests-properly
 import { isRealProviderAvailable } from './helpers.test-types';
 
 class MastraEtapAdapter extends AgentAdapter {
@@ -41,13 +35,11 @@ class MastraEtapAdapter extends AgentAdapter {
 
 describe('ETAP Integration Scenarios', () => {
   let mockEtap: MockEtapProvider;
-<<<<<<< HEAD
   const runIfProvider = isRealProviderAvailable() ? it : it.skip.bind(it);
-=======
+
   const runIfProvider = isRealProviderAvailable()
     ? it
     : it.skip.bind(it);
->>>>>>> origin/fix/scenario-tests-properly
 
   beforeEach(async () => {
     const setup = createMockEtapScenario();
@@ -82,11 +74,7 @@ describe('ETAP Integration Scenarios', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'Please open the industrial plant ETAP project at C:\\Projects\\Industrial_Plant_v2.etap and validate it. I need to confirm all study cases are properly configured before we proceed with analysis.',
-=======
-          'Please open the industrial plant ETAP project at C:\\Projects\\Industrial_Plant_v2.etap and validate it. I need to confirm all study cases are properly configured before we proceed with analysis.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -121,11 +109,7 @@ describe('ETAP Integration Scenarios', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'Run a load flow study on the Industrial_Plant project. Use Newton-Raphson method with 100 max iterations. I need to see the bus voltage profile and branch loading results.',
-=======
-          'Run a load flow study on the Industrial_Plant project. Use Newton-Raphson method with 100 max iterations. I need to see the bus voltage profile and branch loading results.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -160,11 +144,7 @@ describe('ETAP Integration Scenarios', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'Open the project at C:\\Projects\\Nonexistent_Project.etap and run a short circuit study on it.',
-=======
-          'Open the project at C:\\Projects\\Nonexistent_Project.etap and run a short circuit study on it.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -200,11 +180,7 @@ describe('ETAP Integration Scenarios', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'Run a harmonic analysis on the Industrial_Plant project to check IEEE 519 compliance. The system has several VFDs that might cause resonance issues.',
-=======
-          'Run a harmonic analysis on the Industrial_Plant project to check IEEE 519 compliance. The system has several VFDs that might cause resonance issues.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -252,23 +228,15 @@ describe('ETAP Integration Scenarios', () => {
     mockEtap.setFailureMode('none');
     await mockEtap.connect();
     mockEtap.setFailureMode('validation');
-<<<<<<< HEAD
     await expect(mockEtap.openProject(`${projectPath}.bad`)).rejects.toThrow('Project not found');
-=======
-    await expect(mockEtap.openProject(projectPath + '.bad')).rejects.toThrow('Project not found');
->>>>>>> origin/fix/scenario-tests-properly
 
     mockEtap.setFailureMode('execution');
     const opened = await mockEtap.openProject('C:\\Projects\\Good.etap');
     expect(opened.isValid).toBe(true);
-<<<<<<< HEAD
     const execResult = await mockEtap.executeStudy(
       'C:\\Projects\\Good.etap',
       'LOAD_FLOW' as StudyTypeStr,
     );
-=======
-    const execResult = await mockEtap.executeStudy('C:\\Projects\\Good.etap', 'LOAD_FLOW' as StudyTypeStr);
->>>>>>> origin/fix/scenario-tests-properly
     expect(execResult.success).toBe(false);
     expect(execResult.errors.length).toBeGreaterThan(0);
 

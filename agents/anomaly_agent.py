@@ -21,17 +21,15 @@ Standards:
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional, Union
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -85,11 +83,7 @@ class AnomalyAgent(BaseAgent):
         self,
         data: np.ndarray,
         sigma_threshold: float = 3.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect anomalies using Statistical Process Control (3-sigma rule).
 
@@ -117,11 +111,7 @@ class AnomalyAgent(BaseAgent):
         lcl = mu - sigma_threshold * sigma
 
         anomaly_mask = (data > ucl) | (data < lcl)
-<<<<<<< HEAD
         anomaly_indices = np.nonzero(anomaly_mask)[0].tolist()
-=======
-        anomaly_indices = np.where(anomaly_mask)[0].tolist()
->>>>>>> origin/fix/scenario-tests-properly
         anomaly_values = data[anomaly_mask].tolist()
 
         anomaly_pct = (len(anomaly_indices) / len(data) * 100.0) if len(data) > 0 else 0.0
@@ -153,17 +143,10 @@ class AnomalyAgent(BaseAgent):
     def detect_cusum(
         self,
         data: np.ndarray,
-<<<<<<< HEAD
         target: Optional[float] = None,
         k: float = 0.5,
         h: float = 5.0,
     ) -> dict[str, Any]:
-=======
-        target: float | None = None,
-        k: float = 0.5,
-        h: float = 5.0,
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect mean shifts using the CUSUM (Cumulative Sum) method.
 
@@ -203,13 +186,8 @@ class AnomalyAgent(BaseAgent):
             s_hi[i] = max(0.0, s_hi[i - 1] + (data[i] - target) - k_val)
             s_lo[i] = max(0.0, s_lo[i - 1] - (data[i] - target) - k_val)
 
-<<<<<<< HEAD
         hi_shifts = np.nonzero(s_hi > h_val)[0].tolist()
         lo_shifts = np.nonzero(s_lo > h_val)[0].tolist()
-=======
-        hi_shifts = np.where(s_hi > h_val)[0].tolist()
-        lo_shifts = np.where(s_lo > h_val)[0].tolist()
->>>>>>> origin/fix/scenario-tests-properly
 
         shift_detected = len(hi_shifts) > 0 or len(lo_shifts) > 0
         shift_direction = "none"
@@ -237,11 +215,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         lam: float = 0.1,
         l_factor: float = 2.7,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect small persistent shifts using EWMA (Exponentially Weighted
         Moving Average) control chart.
@@ -290,11 +264,7 @@ class AnomalyAgent(BaseAgent):
             lcl[i] = mu0 - limit_factor
 
         anomaly_mask = (z > ucl) | (z < lcl)
-<<<<<<< HEAD
         anomaly_indices = np.nonzero(anomaly_mask)[0].tolist()
-=======
-        anomaly_indices = np.where(anomaly_mask)[0].tolist()
->>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "ewma_values": z.tolist(),
@@ -312,11 +282,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         upper_limit: float,
         lower_limit: float,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect violations of hard operational limits.
 
@@ -341,15 +307,9 @@ class AnomalyAgent(BaseAgent):
         """
         over_mask = data > upper_limit
         under_mask = data < lower_limit
-<<<<<<< HEAD
         violation_mask = Union[over_mask, under_mask]
 
         violation_indices = np.nonzero(violation_mask)[0].tolist()
-=======
-        violation_mask = over_mask | under_mask
-
-        violation_indices = np.where(violation_mask)[0].tolist()
->>>>>>> origin/fix/scenario-tests-properly
         violation_values = data[violation_mask].tolist()
 
         violation_pct = (len(violation_indices) / len(data) * 100.0) if len(data) > 0 else 0.0
@@ -390,11 +350,7 @@ class AnomalyAgent(BaseAgent):
         data_a: np.ndarray,
         data_b: np.ndarray,
         correlation_threshold: float = 0.7,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Detect anomalies via cross-correlation between related measurements.
 
@@ -457,11 +413,7 @@ class AnomalyAgent(BaseAgent):
         data: np.ndarray,
         method: str = "iforest",
         contamination: float = 0.05,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         ML-based anomaly detection using Isolation Forest / PyOD.
 
@@ -512,7 +464,6 @@ class AnomalyAgent(BaseAgent):
     # Agent execute method
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def _run_spc(self, method: str, data: np.ndarray, task: EngineeringTask, results: dict) -> None:
         """Run SPC anomaly detection when selected."""
         if method in ("spc", "full"):
@@ -622,8 +573,6 @@ class AnomalyAgent(BaseAgent):
                 overall_severity = sev
         return overall_severity
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     async def execute(self, task: EngineeringTask) -> AgentResult:
         """
         Execute anomaly detection task.
@@ -640,11 +589,7 @@ class AnomalyAgent(BaseAgent):
             self.log_execution(f"Starting anomaly detection for task {task.task_id}")
 
             method = task.parameters.get("detection_method", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
             measurements = task.parameters.get("measurements")
             if measurements is None:
@@ -652,7 +597,6 @@ class AnomalyAgent(BaseAgent):
 
             data = np.array(measurements, dtype=float)
 
-<<<<<<< HEAD
             self._run_spc(method, data, task, results)
             self._run_cusum(method, data, task, results)
             self._run_ewma(method, data, task, results)
@@ -662,7 +606,7 @@ class AnomalyAgent(BaseAgent):
 
             # Determine overall severity (worst case)
             overall_severity = self._worst_severity(results)
-=======
+
             # --- SPC anomaly detection ---
             if method in ("spc", "full"):
                 sigma_threshold = float(task.parameters.get("sigma_threshold", 3.0))
@@ -755,7 +699,6 @@ class AnomalyAgent(BaseAgent):
                 sev = val.get("severity", "LOW")
                 if severity_order.get(sev, 0) > severity_order.get(overall_severity, 0):
                     overall_severity = sev
->>>>>>> origin/fix/scenario-tests-properly
 
             result = AgentResult(
                 agent_name=self.agent_name,
@@ -776,11 +719,7 @@ class AnomalyAgent(BaseAgent):
 
             self.log_execution(
                 f"Anomaly detection completed in {execution_time:.2f}s "
-<<<<<<< HEAD
                 f"(severity={overall_severity})",
-=======
-                f"(severity={overall_severity})"
->>>>>>> origin/fix/scenario-tests-properly
             )
             return result
 
@@ -807,11 +746,7 @@ class AnomalyAgent(BaseAgent):
         - Anomaly counts are non-negative integers
         - Severity classification is valid
         """
-<<<<<<< HEAD
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         if not result.data:
             errors.append("No anomaly detection results produced")

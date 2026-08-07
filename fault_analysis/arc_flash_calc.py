@@ -14,10 +14,7 @@ PPE descriptions, enclosure details, etc.) should import and use
 from __future__ import annotations
 
 import json
-<<<<<<< HEAD
 from typing import Optional
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 from fault_analysis.arc_flash_engine import (
     ArcFlashEngine,
@@ -27,11 +24,7 @@ from fault_analysis.arc_flash_engine import (
 
 # Lazy singleton — avoids repeated object creation overhead since the
 # engine is stateless (all computation lives in static methods).
-<<<<<<< HEAD
 _engine: Optional[ArcFlashEngine] = None
-=======
-_engine: ArcFlashEngine | None = None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 def _get_engine() -> ArcFlashEngine:
@@ -109,16 +102,12 @@ def calculate_arc_flash(
 
 
 def _validate_arc_flash_input(
-<<<<<<< HEAD
     voltage_kv,
     bolted_fault_ka,
     duration_sec,
     distance_mm,
     enclosure,
     electrode,
-=======
-    voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
->>>>>>> origin/fix/scenario-tests-properly
 ):
     """Validate arc flash CLI inputs against IEEE 1584-2018 bounds."""
     import math
@@ -138,11 +127,7 @@ def _validate_arc_flash_input(
         or bolted_fault_ka < 0
     ):
         errors.append(
-<<<<<<< HEAD
             f"bolted_fault_current_ka must be a non-negative number, got {bolted_fault_ka!r}",
-=======
-            f"bolted_fault_current_ka must be a non-negative number, got {bolted_fault_ka!r}"
->>>>>>> origin/fix/scenario-tests-properly
         )
     if (
         not isinstance(duration_sec, (int, float))
@@ -176,15 +161,13 @@ if __name__ == "__main__":
             print(
                 json.dumps(
                     {
-<<<<<<< HEAD
                         "error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}",
                     },
                 ),
-=======
+
                         "error": f"Expected 6 arguments (voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode), got {len(args)}"
                     }
                 )
->>>>>>> origin/fix/scenario-tests-properly
             )
             sys.exit(1)
         # Parse and validate inputs before computation
@@ -196,41 +179,28 @@ if __name__ == "__main__":
         electrode = args[5]
 
         validation_errors = _validate_arc_flash_input(
-<<<<<<< HEAD
             voltage_kv,
             bolted_fault_ka,
             duration_sec,
             distance_mm,
             enclosure,
             electrode,
-=======
-            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
->>>>>>> origin/fix/scenario-tests-properly
         )
         if validation_errors:
             print(
                 json.dumps(
-<<<<<<< HEAD
                     {"error": "Input validation failed", "validation_errors": validation_errors},
                 ),
-=======
-                    {"error": "Input validation failed", "validation_errors": validation_errors}
-                )
->>>>>>> origin/fix/scenario-tests-properly
             )
             sys.exit(1)
 
         res = calculate_arc_flash(
-<<<<<<< HEAD
             voltage_kv,
             bolted_fault_ka,
             duration_sec,
             distance_mm,
             enclosure,
             electrode,
-=======
-            voltage_kv, bolted_fault_ka, duration_sec, distance_mm, enclosure, electrode
->>>>>>> origin/fix/scenario-tests-properly
         )
         print(json.dumps(res))
     except ValueError as e:

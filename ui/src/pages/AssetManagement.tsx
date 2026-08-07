@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -42,7 +41,7 @@ interface AssetListResponse {
   total: number;
   page: number;
   page_size: number;
-=======
+
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Cpu, Zap, Cable, Settings2, Activity, Wrench, Search, Filter } from 'lucide-react'
@@ -73,7 +72,6 @@ function loadAssets(): Asset[] {
     if (stored) return JSON.parse(stored) as Asset[]
   } catch { /* ignore */ }
   return defaultAssets
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -83,7 +81,6 @@ const typeIcons: Record<string, React.ReactNode> = {
   Motor: <Activity className="w-5 h-5" />,
   Line: <Cable className="w-5 h-5" />,
   Relay: <Settings2 className="w-5 h-5" />,
-<<<<<<< HEAD
   Capacitor: <Zap className="w-5 h-5" />,
   Reactor: <Zap className="w-5 h-5" />,
   Bus: <Cpu className="w-5 h-5" />,
@@ -281,7 +278,7 @@ export default function AssetManagement() {
     const matchesFilter = filterStatus === "all" || a.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
-=======
+
 }
 
 const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger' | 'default'; label: string }> = {
@@ -310,12 +307,10 @@ export function AssetManagement() {
     const matchesFilter = filterStatus === 'all' || a.status === filterStatus
     return matchesSearch && matchesFilter
   })
->>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-<<<<<<< HEAD
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
@@ -334,7 +329,7 @@ export function AssetManagement() {
           <Button variant="primary" size="sm" icon={Plus} onClick={() => setShowCreateModal(true)}>
             Add Asset
           </Button>
-=======
+
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
             <Cpu className="w-5 h-5 text-brand-400" />
@@ -343,13 +338,11 @@ export function AssetManagement() {
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Asset Management</h2>
             <p className="text-sm text-[var(--text-tertiary)]">{assets.length} assets in inventory</p>
           </div>
->>>>>>> origin/fix/scenario-tests-properly
         </div>
       </motion.div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-<<<<<<< HEAD
         {summaryCards.map((card, i) => {
           const iconColor = getVariantColor(card.variant);
           return (
@@ -379,7 +372,7 @@ export function AssetManagement() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-=======
+
         {summaryCards.map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
             <Card padding="md" className="text-center">
@@ -401,7 +394,6 @@ export function AssetManagement() {
 
       {/* Search/Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
->>>>>>> origin/fix/scenario-tests-properly
         <Card padding="sm">
           <div className="flex items-center gap-3">
             <div className="flex-1 relative">
@@ -416,29 +408,23 @@ export function AssetManagement() {
             </div>
             <div className="flex items-center gap-1.5">
               <Filter className="w-4 h-4 text-[var(--text-muted)]" />
-<<<<<<< HEAD
               {["all", ...ASSET_STATUSES].map((status) => (
-=======
-              {['all', 'active', 'maintenance', 'faulted', 'offline'].map(status => (
->>>>>>> origin/fix/scenario-tests-properly
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
                   className={cn(
-<<<<<<< HEAD
                     "px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize",
                     filterStatus === status
                       ? "bg-[var(--color-brand-500)] text-white"
                       : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
                   )}
                   type="button"
-=======
+
                     'px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize',
                     filterStatus === status
                       ? 'bg-[var(--color-brand-500)] text-white'
                       : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
                   )}
->>>>>>> origin/fix/scenario-tests-properly
                 >
                   {status}
                 </button>
@@ -448,7 +434,6 @@ export function AssetManagement() {
         </Card>
       </motion.div>
 
-<<<<<<< HEAD
       {/* Loading State */}
       {loading && (
         <Card padding="lg">
@@ -487,7 +472,7 @@ export function AssetManagement() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * i }}
               >
-=======
+
       {/* Asset Cards Grid */}
       {filteredAssets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -495,7 +480,6 @@ export function AssetManagement() {
             const config = statusConfig[asset.status] || statusConfig.offline
             return (
               <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
->>>>>>> origin/fix/scenario-tests-properly
                 <Card variant="bordered" padding="md">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -503,13 +487,9 @@ export function AssetManagement() {
                         {typeIcons[asset.type] || <Cpu className="w-5 h-5" />}
                       </div>
                       <div>
-<<<<<<< HEAD
                         <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                           {asset.name}
                         </h3>
-=======
-                        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{asset.name}</h3>
->>>>>>> origin/fix/scenario-tests-properly
                         <p className="text-xs text-[var(--text-muted)]">{asset.type}</p>
                       </div>
                     </div>
@@ -518,7 +498,6 @@ export function AssetManagement() {
                     </Badge>
                   </div>
                   <CardSection>
-<<<<<<< HEAD
                     <div className="flex items-center justify-between">
                       <div className="grid grid-cols-2 gap-3 text-xs flex-1">
                         <div>
@@ -543,7 +522,7 @@ export function AssetManagement() {
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
-=======
+
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
                         <p className="text-[var(--text-muted)]">Rating</p>
@@ -553,12 +532,10 @@ export function AssetManagement() {
                         <p className="text-[var(--text-muted)]">Voltage</p>
                         <p className="text-[var(--text-primary)] font-medium mt-0.5 mono-engineering">{asset.voltage}</p>
                       </div>
->>>>>>> origin/fix/scenario-tests-properly
                     </div>
                   </CardSection>
                 </Card>
               </motion.div>
-<<<<<<< HEAD
             );
           })}
         </div>
@@ -595,7 +572,7 @@ export function AssetManagement() {
                   Clear filters
                 </Button>
               )
-=======
+
             )
           })}
         </div>
@@ -609,12 +586,10 @@ export function AssetManagement() {
               <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setFilterStatus('all') }}>
                 Clear filters
               </Button>
->>>>>>> origin/fix/scenario-tests-properly
             }
           />
         </Card>
       )}
-<<<<<<< HEAD
 
       {/* Create Asset Modal */}
       {showCreateModal && (
@@ -780,8 +755,4 @@ export function AssetManagement() {
       )}
     </div>
   );
-=======
-    </div>
-  )
->>>>>>> origin/fix/scenario-tests-properly
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { AlertTriangle, ExternalLink, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "../../utils/helpers";
@@ -188,7 +187,7 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       aria-modal="false"
       aria-label={help.title}
     >
-=======
+
 import { useState, useEffect, useCallback } from 'react'
 import { AlertTriangle, X, ExternalLink, RefreshCw, HelpCircle, ChevronRight } from 'lucide-react'
 import { cn } from '../../utils/helpers'
@@ -367,7 +366,6 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       'transition-all duration-300',
       expanded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'
     )}>
->>>>>>> origin/fix/scenario-tests-properly
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-primary)]">
         <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
@@ -377,26 +375,18 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
           <div className="text-sm font-medium text-[var(--text-primary)]">{help.title}</div>
           <div className="text-xs text-[var(--text-muted)]">{help.topic}</div>
         </div>
-<<<<<<< HEAD
         <button
           type="button"
           onClick={onDismiss}
           className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"
           aria-label="Dismiss error"
         >
-=======
-        <button onClick={onDismiss} className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]">
->>>>>>> origin/fix/scenario-tests-properly
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Body */}
-<<<<<<< HEAD
       <div className="px-4 py-3" role="alert" aria-live="assertive" aria-atomic="true">
-=======
-      <div className="px-4 py-3">
->>>>>>> origin/fix/scenario-tests-properly
         <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{help.description}</p>
       </div>
 
@@ -404,15 +394,11 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
       <div className="px-4 pb-3 flex gap-2">
         {onRetry && (
           <button
-<<<<<<< HEAD
             type="button"
             onClick={() => {
               onRetry();
               onDismiss();
             }}
-=======
-            onClick={() => { onRetry(); onDismiss() }}
->>>>>>> origin/fix/scenario-tests-properly
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] rounded-lg hover:bg-[var(--accent-primary)]/20 transition-colors"
           >
             <RefreshCw className="w-3 h-3" />
@@ -421,12 +407,8 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
         )}
         {help.actions?.map((a, i) => (
           <button
-<<<<<<< HEAD
             type="button"
             key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
-=======
-            key={i}
->>>>>>> origin/fix/scenario-tests-properly
             onClick={() => handleAction(a.action)}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--border-primary)] transition-colors"
           >
@@ -446,7 +428,6 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
         )}
       </div>
     </div>
-<<<<<<< HEAD
   );
 }
 
@@ -464,7 +445,7 @@ export function useErrorRecovery() {
   }, []);
 
   return { error, reportError, dismissError };
-=======
+
   )
 }
 
@@ -481,5 +462,4 @@ export function useErrorRecovery() {
   }, [])
 
   return { error, reportError, dismissError }
->>>>>>> origin/fix/scenario-tests-properly
 }

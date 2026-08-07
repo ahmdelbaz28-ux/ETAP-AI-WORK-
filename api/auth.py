@@ -27,7 +27,6 @@ Security features
 from __future__ import annotations
 
 import hashlib
-<<<<<<< HEAD
 import logging as _logging
 import os
 import time
@@ -84,7 +83,7 @@ import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func, select
-=======
+
 import os
 import time
 import uuid
@@ -98,7 +97,6 @@ import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Boolean, DateTime, String, func, select
->>>>>>> origin/fix/scenario-tests-properly
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -120,7 +118,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "3
 REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
 RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
-<<<<<<< HEAD
 # V-07 (Phase 2): Default tenant ID for new user registrations.
 # This must match the value in migrations/versions/006_add_tenant_id_and_rls.py.
 _DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
@@ -143,7 +140,7 @@ _REPLICA_COUNT: int = max(1, int(os.getenv("REPLICA_COUNT", "1")))
 
 # ---------------------------------------------------------------------------
 # Token blacklist (Redis-backed with in-memory fallback)
-=======
+
 # ---------------------------------------------------------------------------
 # Rate-limiting (in-memory, per username)
 # ---------------------------------------------------------------------------
@@ -154,7 +151,6 @@ _RATE_LIMIT_WINDOW_SEC: int = 15 * 60  # 15 minutes
 
 # ---------------------------------------------------------------------------
 # Token blacklist (Redis-backed)
->>>>>>> origin/fix/scenario-tests-properly
 # ---------------------------------------------------------------------------
 
 try:
@@ -168,7 +164,6 @@ except ImportError:
 _REDIS_URL = os.getenv("REDIS_URL", "").strip()
 _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 
-<<<<<<< HEAD
 # In-memory token blacklist fallback (with TTL cleanup)
 _token_blacklist_memory: dict[str, float] = {}  # jti -> expiry timestamp
 _token_blacklist_lock = threading.RLock()
@@ -253,7 +248,7 @@ async def _is_token_blacklisted(jti: str) -> bool:
         if expiry is not None and expiry > time.time():
             return True
     return False
-=======
+
 _redis_client = None
 
 
@@ -286,7 +281,6 @@ async def _is_token_blacklisted(jti: str) -> bool:
     key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
     val = await r.get(key)
     return val is not None
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -294,10 +288,7 @@ async def _is_token_blacklisted(jti: str) -> bool:
 # ---------------------------------------------------------------------------
 
 _COMMON_PASSWORDS: set[str] = {
-<<<<<<< HEAD
     # Top 50 most common passwords (2024)
-=======
->>>>>>> origin/fix/scenario-tests-properly
     "password",
     "12345678",
     "qwerty12",
@@ -318,7 +309,6 @@ _COMMON_PASSWORDS: set[str] = {
     "master12",
     "login123",
     "hello123",
-<<<<<<< HEAD
     "123456",
     "1234567890",
     "1234567",
@@ -360,8 +350,6 @@ _COMMON_PASSWORDS: set[str] = {
     "etap2024",
     "ahmed123",
     "elbaz123",
-=======
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 
@@ -369,20 +357,16 @@ _COMMON_PASSWORDS: set[str] = {
 # SQLAlchemy ORM model
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 # Type aliases for FastAPI dependencies (SonarCloud S8410: use Annotated)
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user_from_header)]
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 class User(Base):
     """Persisted user account."""
 
     __tablename__ = "users"
 
-<<<<<<< HEAD
     __table_args__ = (
         # Composite index for login queries (username + password_hash)
         # and for reset-password flow (reset_token + expires)
@@ -397,9 +381,6 @@ class User(Base):
         nullable=True,
         index=True,
     )
-=======
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
->>>>>>> origin/fix/scenario-tests-properly
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -418,12 +399,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
     reset_token_expires: Mapped[datetime | None] = mapped_column(
-<<<<<<< HEAD
         DateTime(timezone=True),
         nullable=True,
-=======
-        DateTime(timezone=True), nullable=True
->>>>>>> origin/fix/scenario-tests-properly
     )
 
 
@@ -440,27 +417,22 @@ class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-<<<<<<< HEAD
     # SECURITY AUDIT 2026-07-25 — Fix S-02: role field removed from registration.
     # Previously allowed self-assigned "admin" role → privilege escalation.
     # New users always get "viewer" role. Admin promotion via admin-only endpoint.
-=======
-    role: str = Field(default="engineer", pattern=r"^(admin|engineer|viewer)$")
->>>>>>> origin/fix/scenario-tests-properly
 
     @field_validator("password")
     @classmethod
     def validate_password_strength(cls, v: str, info) -> str:
         """Enforce password policy: length, not common, not same as username."""
         if len(v) < 8:
-<<<<<<< HEAD
             raise ValueError(MSG_PASSWORD_MIN_LENGTH)
         if v.lower() in _COMMON_PASSWORDS:
             raise ValueError(MSG_PASSWORD_TOO_COMMON)
         # Check if password contains the username (if available in validation context)
         if info.data and "username" in info.data and info.data["username"].lower() in v.lower():
             raise ValueError("Password must not contain the username")
-=======
+
             raise ValueError("Password must be at least 8 characters")
         if v.lower() in _COMMON_PASSWORDS:
             raise ValueError("Password is too common — choose a stronger one")
@@ -468,12 +440,10 @@ class RegisterRequest(BaseModel):
         if info.data and "username" in info.data:
             if info.data["username"].lower() in v.lower():
                 raise ValueError("Password must not contain the username")
->>>>>>> origin/fix/scenario-tests-properly
         return v
 
 
 class LoginRequest(BaseModel):
-<<<<<<< HEAD
     """Payload for ``POST /login``.
 
     SECURITY AUDIT 2026-08-02 (F-06 fix):
@@ -488,15 +458,11 @@ class LoginRequest(BaseModel):
     lifetime 5 minutes, and bound to the user_id. It is NOT a session
     token — it can only be used to complete the MFA leg of login.
     """
-=======
-    """Payload for ``POST /login``."""
->>>>>>> origin/fix/scenario-tests-properly
 
     model_config = ConfigDict(strict=False)
 
     username: str
     password: str
-<<<<<<< HEAD
     mfa_code: str | None = None
     mfa_challenge_token: str | None = None
 
@@ -518,8 +484,6 @@ class LoginResponse(BaseModel):
     expires_in: int | None = None
     mfa_required: bool = False
     mfa_challenge_token: str | None = None
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class TokenResponse(BaseModel):
@@ -552,17 +516,15 @@ class ChangePasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_new_password(cls, v: str) -> str:
-<<<<<<< HEAD
         """Validate password meets strength requirements."""
         return _validate_password_strength(v)
-=======
+
         """Enforce password policy on the new password."""
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         if v.lower() in _COMMON_PASSWORDS:
             raise ValueError("Password is too common — choose a stronger one")
         return v
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -584,7 +546,6 @@ class ResetPasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_new_password(cls, v: str) -> str:
-<<<<<<< HEAD
         """Validate the new password meets strength requirements."""
         return _validate_password_strength(v)
 
@@ -596,7 +557,7 @@ class UpdateProfileRequest(BaseModel):
     password or a valid TOTP code. This prevents an attacker who steals a
     session token from completely disabling MFA protection.
     """
-=======
+
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         if v.lower() in _COMMON_PASSWORDS:
@@ -606,13 +567,11 @@ class UpdateProfileRequest(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     """Payload for ``PUT /me``."""
->>>>>>> origin/fix/scenario-tests-properly
 
     model_config = ConfigDict(strict=False)
 
     email: EmailStr | None = None
     mfa_enabled: bool | None = None
-<<<<<<< HEAD
     # V-7: Required when mfa_enabled is set to False
     current_password: str | None = Field(
         default=None,
@@ -626,8 +585,6 @@ class UpdateProfileRequest(BaseModel):
         max_length=20,
         description="TOTP code (required when disabling MFA if no password provided)",
     )
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class UserResponse(BaseModel):
@@ -651,11 +608,7 @@ class UserListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-<<<<<<< HEAD
     users: list[UserResponse]
-=======
-    users: List[UserResponse]
->>>>>>> origin/fix/scenario-tests-properly
     total: int
     page: int
     page_size: int
@@ -669,7 +622,6 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # V-1 FIX: CSRF Protection — Origin header validation
 # ---------------------------------------------------------------------------
 # Validates that state-changing requests (POST, PUT, DELETE) originate from
@@ -741,8 +693,6 @@ def _validate_csrf_origin(request: Request) -> None:
 
 
 # ---------------------------------------------------------------------------
-=======
->>>>>>> origin/fix/scenario-tests-properly
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -771,7 +721,6 @@ def _verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
-<<<<<<< HEAD
 def _create_access_token(user_id: str, role: str, tenant_id: str = "") -> str:
     """Create a short-lived JWT access token.
 
@@ -780,21 +729,13 @@ def _create_access_token(user_id: str, role: str, tenant_id: str = "") -> str:
     the untrusted X-Tenant-ID header) and set the PostgreSQL RLS
     session variable.
     """
-=======
-def _create_access_token(user_id: str, role: str) -> str:
-    """Create a short-lived JWT access token."""
->>>>>>> origin/fix/scenario-tests-properly
     now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "role": role,
-<<<<<<< HEAD
         "tenant_id": tenant_id,
         "type": "access",
         "jti": str(uuid.uuid4()),  # V-60 FIX: Add jti for individual token revocation
-=======
-        "type": "access",
->>>>>>> origin/fix/scenario-tests-properly
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }
@@ -814,7 +755,6 @@ def _create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
-<<<<<<< HEAD
 # SECURITY AUDIT 2026-08-02 (F-06 fix):
 # MFA challenge token — short-lived (5 min) JWT issued after password
 # verification when the user has MFA enabled. The client must present
@@ -894,7 +834,7 @@ async def _check_rate_limit(username: str) -> None:
         _LOGIN_ATTEMPTS[username] = attempts
 
     if len(attempts) >= effective_limit:
-=======
+
 def _check_rate_limit(username: str) -> None:
     """Raise 429 if *username* has exceeded the login attempt threshold."""
     now = time.monotonic()
@@ -904,14 +844,12 @@ def _check_rate_limit(username: str) -> None:
     _LOGIN_ATTEMPTS[username] = attempts
 
     if len(attempts) >= _RATE_LIMIT_MAX_ATTEMPTS:
->>>>>>> origin/fix/scenario-tests-properly
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Please try again later.",
         )
 
 
-<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Forgot-password per-email rate limit
 # ---------------------------------------------------------------------------
@@ -1101,12 +1039,6 @@ async def _reset_rate_limit(username: str) -> None:
             pass
     with _LOGIN_ATTEMPTS_LOCK:
         _LOGIN_ATTEMPTS.pop(username, None)
-=======
-def _record_failed_attempt(username: str) -> None:
-    """Record a failed login attempt for rate-limiting."""
-    now = time.monotonic()
-    _LOGIN_ATTEMPTS.setdefault(username, []).append(now)
->>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -1122,18 +1054,13 @@ def _record_failed_attempt(username: str) -> None:
 )
 async def register(
     body: RegisterRequest,
-<<<<<<< HEAD
     request: Request,
     db: DbDep,
-=======
-    db: AsyncSession = Depends(get_db),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Create a new user account.
 
     Returns the created user on success, or 409 if the username/email is
     already taken.
-<<<<<<< HEAD
 
     SECURITY: Email comparison is case-insensitive (User@Example.com and
     user@example.com are treated as the same email) to prevent account
@@ -1145,9 +1072,6 @@ async def register(
     # Normalise email to lowercase to ensure case-insensitive uniqueness.
     normalised_email = body.email.strip().lower()
 
-=======
-    """
->>>>>>> origin/fix/scenario-tests-properly
     # Check username uniqueness
     existing = await db.execute(select(User).where(User.username == body.username))
     if existing.scalar_one_or_none() is not None:
@@ -1156,20 +1080,14 @@ async def register(
             detail="Username already registered",
         )
 
-<<<<<<< HEAD
     # Check email uniqueness (case-insensitive)
     existing = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
-=======
-    # Check email uniqueness
-    existing = await db.execute(select(User).where(User.email == body.email))
->>>>>>> origin/fix/scenario-tests-properly
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered",
         )
 
-<<<<<<< HEAD
     # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-09):
     # The pre-check above is a TOCTOU race window — two concurrent
     # registrations with the same username/email can both pass the check
@@ -1237,7 +1155,7 @@ async def register(
                 "welcome_email_failed email=%s err=%s", user.email, exc
             )
 
-=======
+
     user = User(
         id=str(uuid.uuid4()),
         username=body.username,
@@ -1249,7 +1167,6 @@ async def register(
     await db.flush()
     await db.refresh(user)
 
->>>>>>> origin/fix/scenario-tests-properly
     return UserResponse(
         id=str(user.id),
         username=user.username,
@@ -1265,7 +1182,6 @@ async def register(
 
 @router.post(
     "/login",
-<<<<<<< HEAD
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
 )
@@ -1368,7 +1284,7 @@ async def login(
     result = await db.execute(
         select(User).where((User.username == body.username) | (User.email == body.username))
     )
-=======
+
     response_model=TokenResponse,
     summary="Authenticate and receive JWT tokens",
 )
@@ -1384,15 +1300,11 @@ async def login(
     _check_rate_limit(body.username)
 
     result = await db.execute(select(User).where(User.username == body.username))
->>>>>>> origin/fix/scenario-tests-properly
     user = result.scalar_one_or_none()
 
     if user is None or not _verify_password(body.password, user.password_hash):
         _record_failed_attempt(body.username)
-<<<<<<< HEAD
         _record_ip_failed_attempt(ip)
-=======
->>>>>>> origin/fix/scenario-tests-properly
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -1404,7 +1316,6 @@ async def login(
             detail="Account is deactivated",
         )
 
-<<<<<<< HEAD
     # F-06 fix: enforce MFA if enabled.
     if user.mfa_enabled:
         # If the client also sent an mfa_code in leg 1 (some clients do
@@ -1464,7 +1375,7 @@ async def login(
         token_type="bearer",
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         mfa_required=False,
-=======
+
     # Update last_login
     user.last_login = datetime.now(UTC)
     db.add(user)
@@ -1477,7 +1388,6 @@ async def login(
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
->>>>>>> origin/fix/scenario-tests-properly
     )
 
 
@@ -1488,11 +1398,7 @@ async def login(
 )
 async def refresh(
     body: RefreshRequest,
-<<<<<<< HEAD
     db: DbDep,
-=======
-    db: AsyncSession = Depends(get_db),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     try:
@@ -1516,7 +1422,6 @@ async def refresh(
 
     # Check if the refresh token has been blacklisted (logged out)
     jti = payload.get("jti")
-<<<<<<< HEAD
     if jti and await _is_token_blacklisted(jti):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1526,7 +1431,7 @@ async def refresh(
     user_id: str | None = payload.get("sub")
     # V-61 FIX: Also reject empty string sub (consistent with dependencies.py)
     if user_id is None or not user_id.strip():
-=======
+
     if jti:
         if await _is_token_blacklisted(jti):
             raise HTTPException(
@@ -1536,15 +1441,11 @@ async def refresh(
 
     user_id: str | None = payload.get("sub")
     if user_id is None:
->>>>>>> origin/fix/scenario-tests-properly
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
-<<<<<<< HEAD
     user_id = user_id.strip()
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -1552,7 +1453,6 @@ async def refresh(
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
         )
 
@@ -1571,14 +1471,6 @@ async def refresh(
             old_ttl = int(old_exp - datetime.now(tz=UTC).timestamp())
         await _blacklist_token(jti, ttl_seconds=old_ttl)
 
-=======
-            detail="User not found or deactivated",
-        )
-
-    access_token = _create_access_token(str(user.id), user.role)
-    new_refresh = _create_refresh_token(str(user.id))
-
->>>>>>> origin/fix/scenario-tests-properly
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh,
@@ -1589,7 +1481,6 @@ async def refresh(
 @router.post(
     "/logout",
     status_code=status.HTTP_204_NO_CONTENT,
-<<<<<<< HEAD
     response_class=Response,
     summary="Revoke session",
 )
@@ -1597,14 +1488,13 @@ async def logout(
     user: CurrentUserDep,
     body: RefreshRequest | None = Body(None),  # NOSONAR  # S8410
 ) -> Response:
-=======
+
     summary="Revoke session",
 )
 async def logout(
     body: RefreshRequest | None = Body(None),
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> None:
->>>>>>> origin/fix/scenario-tests-properly
     """Log the current user out by blacklisting the provided refresh token.
 
     If a refresh_token is supplied in the body, its JTI is blacklisted
@@ -1631,11 +1521,8 @@ async def logout(
         except jwt.InvalidTokenError:
             pass  # Invalid token — nothing to blacklist
 
-<<<<<<< HEAD
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 @router.get(
     "/me",
@@ -1643,13 +1530,8 @@ async def logout(
     summary="Get current user profile",
 )
 async def get_me(
-<<<<<<< HEAD
     user: CurrentUserDep,
     db: DbDep,
-=======
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Return the authenticated user's full profile."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -1658,11 +1540,7 @@ async def get_me(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND,
-=======
-            detail="User not found",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     return UserResponse(
@@ -1685,13 +1563,8 @@ async def get_me(
 )
 async def update_me(
     body: UpdateProfileRequest,
-<<<<<<< HEAD
     user: CurrentUserDep,
     db: DbDep,
-=======
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Update the authenticated user's email and/or MFA preference."""
     result = await db.execute(select(User).where(User.id == user.user_id))
@@ -1700,7 +1573,6 @@ async def update_me(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND,
         )
 
@@ -1713,7 +1585,7 @@ async def update_me(
                 func.lower(User.email) == new_email,
                 User.id != user.user_id,
             ),
-=======
+
             detail="User not found",
         )
 
@@ -1721,14 +1593,12 @@ async def update_me(
         # Check email uniqueness
         existing = await db.execute(
             select(User).where(User.email == body.email, User.id != user.user_id)
->>>>>>> origin/fix/scenario-tests-properly
         )
         if existing.scalar_one_or_none() is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Email already in use",
             )
-<<<<<<< HEAD
         db_user.email = new_email
 
     if body.mfa_enabled is not None:
@@ -1754,11 +1624,6 @@ async def update_me(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Cannot disable MFA without verification. Provide current_password or mfa_code.",
                 )
-=======
-        db_user.email = body.email
-
-    if body.mfa_enabled is not None:
->>>>>>> origin/fix/scenario-tests-properly
         db_user.mfa_enabled = body.mfa_enabled
 
     db_user.updated_at = datetime.now(UTC)
@@ -1786,13 +1651,8 @@ async def update_me(
 )
 async def change_password(
     body: ChangePasswordRequest,
-<<<<<<< HEAD
     user: CurrentUserDep,
     db: DbDep,
-=======
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
-    db: AsyncSession = Depends(get_db),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Change the authenticated user's password.
 
@@ -1805,11 +1665,7 @@ async def change_password(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND,
-=======
-            detail="User not found",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     if not _verify_password(body.current_password, db_user.password_hash):
@@ -1838,7 +1694,6 @@ async def change_password(
     await db.flush()
     await db.refresh(db_user)
 
-<<<<<<< HEAD
     # Send password-change confirmation email via Resend
     try:
         from services.email_send_log import log_email_send
@@ -1865,8 +1720,6 @@ async def change_password(
             "password_change_email_failed email=%s err=%s", db_user.email, exc
         )
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
     return UserResponse(
         id=str(db_user.id),
         username=db_user.username,
@@ -1887,18 +1740,12 @@ async def change_password(
 )
 async def forgot_password(
     body: ForgotPasswordRequest,
-<<<<<<< HEAD
     db: DbDep,
 ) -> dict[str, str]:
-=======
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
->>>>>>> origin/fix/scenario-tests-properly
     """Generate a password-reset token for the given email.
 
     Always returns a success message to prevent email-enumeration attacks,
     even if the email does not exist.
-<<<<<<< HEAD
 
     SECURITY: Email lookup is case-insensitive to match the registration
     flow (emails are stored lowercased).
@@ -1921,10 +1768,6 @@ async def forgot_password(
     await _check_forgot_password_rate_limit(normalised_email)
 
     result = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
-=======
-    """
-    result = await db.execute(select(User).where(User.email == body.email))
->>>>>>> origin/fix/scenario-tests-properly
     user = result.scalar_one_or_none()
 
     if user is not None and user.is_active:
@@ -1936,7 +1779,6 @@ async def forgot_password(
         db.add(user)
         await db.flush()
 
-<<<<<<< HEAD
         # Send password-reset email via Resend (additive, best-effort)
         try:
             import os as _os
@@ -1990,14 +1832,13 @@ async def forgot_password(
                 "reset_token": reset_token,
             }
         return {"message": "If the email exists, a reset token has been sent"}
-=======
+
         # In production, send the token via email. The raw token is NOT
         # included in the response — only its SHA-256 hash is stored in
         # the DB.  For testing, use the /reset-password endpoint directly.
         return {
             "message": "If the email exists, a reset token has been sent",
         }
->>>>>>> origin/fix/scenario-tests-properly
 
     # Deliberately return the same message to avoid enumeration
     return {"message": "If the email exists, a reset token has been generated"}
@@ -2010,23 +1851,14 @@ async def forgot_password(
 )
 async def reset_password(
     body: ResetPasswordRequest,
-<<<<<<< HEAD
     db: DbDep,
 ) -> dict[str, str]:
-=======
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-) -> Dict[str, str]:
->>>>>>> origin/fix/scenario-tests-properly
     """Set a new password using a valid reset token."""
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
     result = await db.execute(select(User).where(User.reset_token == token_hash))
     user = result.scalar_one_or_none()
 
-<<<<<<< HEAD
     if user is None or not user.is_active:
-=======
-    if user is None:
->>>>>>> origin/fix/scenario-tests-properly
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",
@@ -2063,15 +1895,13 @@ async def reset_password(
     summary="List all users (admin only)",
 )
 async def list_users(
-<<<<<<< HEAD
     db: DbDep,
     user: CurrentUser = Depends(require_role("admin")),  # NOSONAR
     pagination=Depends(pagination_params),  # NOSONAR
-=======
+
     user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
     pagination=Depends(pagination_params),  # noqa: B008
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
     # Total count
@@ -2083,11 +1913,7 @@ async def list_users(
         select(User)
         .order_by(User.created_at.desc())
         .offset(pagination.offset)
-<<<<<<< HEAD
         .limit(pagination.page_size),
-=======
-        .limit(pagination.page_size)
->>>>>>> origin/fix/scenario-tests-properly
     )
     users = result.scalars().all()
 
@@ -2119,15 +1945,13 @@ async def list_users(
 )
 async def delete_user(
     user_id: str,
-<<<<<<< HEAD
     db: DbDep,
     user: CurrentUser = Depends(require_role("admin")),  # NOSONAR
 ) -> dict[str, str]:
-=======
+
     user: CurrentUser = Depends(require_role("admin")),  # noqa: B008
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> Dict[str, str]:
->>>>>>> origin/fix/scenario-tests-properly
     """Soft-delete a user by setting ``is_active = False``.
 
     Admins cannot delete themselves.
@@ -2144,11 +1968,7 @@ async def delete_user(
     if target is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND,
-=======
-            detail="User not found",
->>>>>>> origin/fix/scenario-tests-properly
         )
 
     target.is_active = False

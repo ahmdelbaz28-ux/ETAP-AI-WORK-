@@ -12,11 +12,7 @@ Mapping Architecture:
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from typing import Any
-=======
-from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 from autodesk_connector.shared.models import (
     Breaker,
@@ -51,11 +47,7 @@ class MappingDirection(StrEnum):
 # Drawing Element Definitions
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 ENTITY_DRAWING_RULES: dict[str, dict] = {
-=======
-ENTITY_DRAWING_RULES: Dict[str, dict] = {
->>>>>>> origin/fix/scenario-tests-properly
     "Bus": {
         "autocad": {
             "entity_type": "block",
@@ -84,11 +76,7 @@ ENTITY_DRAWING_RULES: Dict[str, dict] = {
             "size": 15.0,
         },
         "revit": {
-<<<<<<< HEAD
             "family_category": "Electrical Equipment",  # NOSONAR intentional repetition (audit constant)
-=======
-            "family_category": "Electrical Equipment",
->>>>>>> origin/fix/scenario-tests-properly
             "family_name": "Transformer",
             "parameters": [
                 "rated_power_mva",
@@ -280,11 +268,7 @@ class TranslationEngine:
     """
 
     def __init__(self):
-<<<<<<< HEAD
         self._translation_log: list[dict] = []
-=======
-        self._translation_log: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Mapping rules
@@ -295,11 +279,7 @@ class TranslationEngine:
         rules = ENTITY_DRAWING_RULES.get(entity_type, {})
         return rules.get(target_system, {})
 
-<<<<<<< HEAD
     def get_all_mapping_rules(self) -> dict[str, dict]:
-=======
-    def get_all_mapping_rules(self) -> Dict[str, dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get all mapping rules."""
         return ENTITY_DRAWING_RULES
 
@@ -321,7 +301,6 @@ class TranslationEngine:
         dict
             Unified Engineering Model compatible dictionary.
         """
-<<<<<<< HEAD
         buses: list[Bus] = []
         transformers: list[Transformer] = []
         cables: list[Cable] = []
@@ -329,7 +308,7 @@ class TranslationEngine:
         loads: list[Load] = []
         breakers: list[Breaker] = []
         panels: list[Panel] = []
-=======
+
         buses: List[Bus] = []
         transformers: List[Transformer] = []
         cables: List[Cable] = []
@@ -337,7 +316,6 @@ class TranslationEngine:
         loads: List[Load] = []
         breakers: List[Breaker] = []
         panels: List[Panel] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Translate buses
         for bid, bus_data in etap_data.get("buses", {}).items():
@@ -430,21 +408,13 @@ class TranslationEngine:
     # Unified Model → AutoCAD
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def unified_to_autocad_commands(self, unified_data: dict) -> list[dict]:
-=======
-    def unified_to_autocad_commands(self, unified_data: dict) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Generate AutoCAD drawing commands from Unified Model data.
 
         Returns a list of command dicts that can be sent to the
         AutoCAD Plugin client in sequence.
         """
-<<<<<<< HEAD
         commands: list[dict] = []
-=======
-        commands: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
         options = {
             "start_x": 50,
             "start_y": 200,
@@ -467,11 +437,7 @@ class TranslationEngine:
                 {
                     "command": "create_layer",
                     "params": {"name": layer_name, "color": "1", "linetype": "Continuous"},
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Draw buses
@@ -490,11 +456,7 @@ class TranslationEngine:
                             "VMAG": f"{bus_data.get('voltage_magnitude_pu', 1.0):.3f}",
                         },
                     },
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Draw cables
@@ -533,11 +495,7 @@ class TranslationEngine:
                             "vertices": [[fx, options["start_y"], 0], [tx, options["start_y"], 0]],
                             "layer": "E-CABLE",
                         },
-<<<<<<< HEAD
                     },
-=======
-                    }
->>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Draw transformers
@@ -554,11 +512,7 @@ class TranslationEngine:
                             "Z_PCT": str(xf_data.get("impedance_percent", "")),
                         },
                     },
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return commands
@@ -567,11 +521,7 @@ class TranslationEngine:
     # ETAP ↔ AutoCAD (via Unified Model)
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
     def etap_to_autocad(self, etap_data: dict) -> list[dict]:
-=======
-    def etap_to_autocad(self, etap_data: dict) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         """Translate ETAP data directly to AutoCAD commands."""
         unified = self.etap_to_unified(etap_data)
         return self.unified_to_autocad_commands(unified)
@@ -601,11 +551,7 @@ class TranslationEngine:
                     "id": level_data.get("id", ""),
                     "name": level_data.get("name", ""),
                     "elevation_m": level_data.get("elevation", 0.0),
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Translate rooms
@@ -616,11 +562,7 @@ class TranslationEngine:
                     "name": room_data.get("name", ""),
                     "area_sqm": room_data.get("area", 0.0),
                     "level_id": room_data.get("level_id", ""),
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Translate MEP elements to unified model
@@ -637,15 +579,9 @@ class TranslationEngine:
 
         return unified
 
-<<<<<<< HEAD
     def unified_to_revit_commands(self, unified_data: dict) -> list[dict]:
         """Generate Revit API commands from Unified Model data."""
         commands: list[dict] = []
-=======
-    def unified_to_revit_commands(self, unified_data: dict) -> List[dict]:
-        """Generate Revit API commands from Unified Model data."""
-        commands: List[dict] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         # Create levels
         for level_data in unified_data.get("levels", []):
@@ -656,11 +592,7 @@ class TranslationEngine:
                         "name": level_data.get("name", "Level 1"),
                         "elevation": level_data.get("elevation_m", 0.0),
                     },
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Create panels
@@ -675,11 +607,7 @@ class TranslationEngine:
                             "parameters": panel_data,
                         },
                     },
-<<<<<<< HEAD
                 },
-=======
-                }
->>>>>>> origin/fix/scenario-tests-properly
             )
 
         return commands
@@ -702,11 +630,7 @@ class TranslationEngine:
 
         Returns
         -------
-<<<<<<< HEAD
         Union[dict, list]
-=======
-        dict | list
->>>>>>> origin/fix/scenario-tests-properly
             Translated data in the target system's format
         """
         if source_system == "etap" and target_system == "unified":
@@ -722,11 +646,7 @@ class TranslationEngine:
         elif source_system == "unified" and target_system == "revit":
             return self.unified_to_revit_commands(data)
         else:
-<<<<<<< HEAD
             logger.warning("Unsupported translation: %s → %s", source_system, target_system)
-=======
-            logger.warning(f"Unsupported translation: {source_system} → {target_system}")
->>>>>>> origin/fix/scenario-tests-properly
             return data
 
     # ------------------------------------------------------------------
@@ -743,15 +663,11 @@ class TranslationEngine:
         return mapping.get(etap_type.lower(), "pq")
 
     def _log_translation(
-<<<<<<< HEAD
         self,
         direction: str,
         entity_type: str,
         source_id: str,
         target_id: str,
-=======
-        self, direction: str, entity_type: str, source_id: str, target_id: str
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self._translation_log.append(
             {
@@ -760,17 +676,10 @@ class TranslationEngine:
                 "source_id": source_id,
                 "target_id": target_id,
                 "timestamp": __import__("time").time(),
-<<<<<<< HEAD
             },
         )
 
     def get_translation_log(self, limit: int = 100) -> list[dict]:
-=======
-            }
-        )
-
-    def get_translation_log(self, limit: int = 100) -> List[dict]:
->>>>>>> origin/fix/scenario-tests-properly
         return self._translation_log[-limit:]
 
     def get_statistics(self) -> dict:

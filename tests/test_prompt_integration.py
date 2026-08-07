@@ -68,15 +68,13 @@ class TestPromptLoader:
         for handle in agent_handles:
             clear_prompt_cache()
             prompt = get_system_prompt(handle)
-<<<<<<< HEAD
             assert (
                 len(prompt) > 20
             ), f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
-=======
+
             assert len(prompt) > 20, (
                 f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
             )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_fallback_for_missing_prompt(self):
         """A non-existent prompt handle should return a fallback string, not crash."""
@@ -87,7 +85,6 @@ class TestPromptLoader:
         assert isinstance(prompt, str)
         assert len(prompt) > 0, "Fallback prompt should not be empty"
 
-<<<<<<< HEAD
     def test_missing_prompts_dir_graceful(self, monkeypatch):
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
@@ -98,7 +95,7 @@ class TestPromptLoader:
         assert isinstance(prompt, str)
         assert len(prompt) > 0
         clear_prompt_cache()
-=======
+
     def test_missing_prompts_dir_graceful(self):
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
@@ -116,7 +113,6 @@ class TestPromptLoader:
             else:
                 os.environ.pop("ETAP_PROMPTS_DIR", None)
             clear_prompt_cache()
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_prompt_caching(self):
         """Second call to same handle should return cached result."""
@@ -166,15 +162,13 @@ class TestAgentPromptIntegration:
         from agents.orchestrator import LoadFlowAgent
 
         agent = LoadFlowAgent()
-<<<<<<< HEAD
         assert (
             agent.prompt_handle == "load_flow_agent"
         ), f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
-=======
+
         assert agent.prompt_handle == "load_flow_agent", (
             f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
         )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_load_flow_agent_prompt_loaded(self):
         """LoadFlowAgent should have its prompt loaded at init."""
@@ -191,21 +185,19 @@ class TestAgentPromptIntegration:
 
         orch = ChiefEngineeringOrchestrator()
         for key, agent in orch.agents.items():
-<<<<<<< HEAD
             assert (
                 agent._system_prompt is not None
             ), f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
             assert (
                 len(agent._system_prompt) > 20
             ), f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
-=======
+
             assert agent._system_prompt is not None, (
                 f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
             )
             assert len(agent._system_prompt) > 20, (
                 f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
             )
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_orchestrator_has_prompt(self):
         """ChiefEngineeringOrchestrator should have its own prompt loaded."""
@@ -261,7 +253,6 @@ class TestAgentPromptIntegration:
             assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
             assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
 
-<<<<<<< HEAD
     def test_agent_graceful_prompt_failure(self, monkeypatch):
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
@@ -276,7 +267,7 @@ class TestAgentPromptIntegration:
         # Agent should still be functional
         assert agent.agent_name == "LoadFlowAgent"
         clear_prompt_cache()
-=======
+
     def test_agent_graceful_prompt_failure(self):
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
@@ -298,7 +289,6 @@ class TestAgentPromptIntegration:
             else:
                 os.environ.pop("ETAP_PROMPTS_DIR", None)
             clear_prompt_cache()
->>>>>>> origin/fix/scenario-tests-properly
 
     def test_explicit_prompt_handle_overrides_derived(self):
         """Explicit prompt_handle in subclass should override derived one."""
@@ -339,7 +329,6 @@ class TestPromptHandleMapping:
             "validation_agent": "ValidationAgent",
             "report_agent": "ReportGenerationAgent",
             "etap_engineer_agent": "ETAPExecutionAgent + etapEngineerAgent (TS)",
-<<<<<<< HEAD
             "etap_engineer_agent_v2": "Filename alias of etap_engineer_agent (same file)",
             "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
             "arcflash_agent": "arcFlashAgent (TS) — primary handle",
@@ -357,7 +346,7 @@ class TestPromptHandleMapping:
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
-=======
+
             "etap_engineer_agent_v2": "Reserved for V2 agent variant",
             "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
             "arcflash_agent_prompt": "arcFlashAgent (TS)",
@@ -374,7 +363,6 @@ class TestPromptHandleMapping:
             "digital_twin_agent": "DigitalTwinAgent (future DT)",
             "predictive_agent": "PredictiveAgent (future ML)",
             "sample_prompt": "Template/sample only",
->>>>>>> origin/fix/scenario-tests-properly
         }
 
         prompts = list_available_prompts()
@@ -383,15 +371,13 @@ class TestPromptHandleMapping:
             if p not in prompt_consumers:
                 unmapped.append(p)
 
-<<<<<<< HEAD
         assert (
             len(unmapped) == 0
         ), f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
-=======
+
         assert len(unmapped) == 0, (
             f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
         )
->>>>>>> origin/fix/scenario-tests-properly
 
 
 if __name__ == "__main__":

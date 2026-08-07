@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const { execSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -7,7 +6,7 @@ const BASE_URL = 'http://localhost:5173';
 const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots', 'ui');
 // SonarCloud javascript:S7780: use String.raw to avoid escaping backslashes
 const EDGE = String.raw`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`;
-=======
+
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +14,6 @@ const path = require('path');
 const BASE_URL = 'http://localhost:5173';
 const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots', 'ui');
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
->>>>>>> origin/fix/scenario-tests-properly
 
 const pages = [
   { name: 'dashboard-dark', path: '/dashboard' },
@@ -44,13 +42,8 @@ for (const p of pages) {
       const size = fs.statSync(filePath).size;
       console.log(`${p.name}.png — ${Math.round(size/1024)}KB`);
     }
-<<<<<<< HEAD
   } catch (e) {  // NOSONAR — javascript:S2486: best-effort screenshot capture
     console.log(`Failed: ${p.name} — ${e instanceof Error ? e.message : String(e)}`);
-=======
-  } catch (e) {
-    console.log(`Failed: ${p.name}`);
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 console.log('Done');

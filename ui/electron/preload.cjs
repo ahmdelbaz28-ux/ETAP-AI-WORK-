@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const { contextBridge, ipcRenderer } = require("electron");
 
 // SECURITY: Using contextBridge.exposeInMainWorld is the correct pattern.
@@ -74,7 +73,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 });
-=======
+
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -102,4 +101,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSave: (callback) => ipcRenderer.on('menu:save', () => callback()),
   onExport: (callback) => ipcRenderer.on('menu:export', () => callback()),
 })
->>>>>>> origin/fix/scenario-tests-properly

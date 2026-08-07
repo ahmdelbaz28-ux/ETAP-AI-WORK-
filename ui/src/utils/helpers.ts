@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -27,7 +26,7 @@ export function formatDuration(seconds: number): string {
 
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 9) + Date.now().toString(36); // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
-=======
+
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -56,5 +55,4 @@ export function formatDuration(seconds: number): string {
 
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 9) + Date.now().toString(36)
->>>>>>> origin/fix/scenario-tests-properly
 }

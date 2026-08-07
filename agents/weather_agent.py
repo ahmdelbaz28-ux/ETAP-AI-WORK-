@@ -17,7 +17,6 @@ Standards:
 - NERC TPL standards: Transmission planning during extreme weather
 """
 
-<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -25,13 +24,12 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
-=======
+
 import logging
 from datetime import UTC, datetime
 
 UTC = UTC
 from typing import Any, Dict, List
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -95,11 +93,7 @@ class WeatherAgent(BaseAgent):
         reference_temp_c: float = 25.0,
         max_hotspot_temp_c: float = 110.0,
         equipment_type: str = "transformer",
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate equipment derating factor due to ambient temperature.
 
@@ -124,13 +118,11 @@ class WeatherAgent(BaseAgent):
         delta_max = max_hotspot_temp_c - ambient_temp_c
         delta_ref = max_hotspot_temp_c - reference_temp_c
 
-<<<<<<< HEAD
         if delta_ref <= 0 or delta_max <= 0:
-=======
+
         if delta_ref <= 0:
             rating_factor = 0.0
         elif delta_max <= 0:
->>>>>>> origin/fix/scenario-tests-properly
             rating_factor = 0.0
         else:
             rating_factor = float(np.sqrt(delta_max / delta_ref))
@@ -172,11 +164,7 @@ class WeatherAgent(BaseAgent):
         emissivity: float = 0.5,
         static_rating_a: float = 1000.0,
         static_rating_ambient_c: float = 40.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate dynamic line rating based on wind conditions per
         IEEE 738.
@@ -213,13 +201,8 @@ class WeatherAgent(BaseAgent):
             Dictionary with 'dynamic_rating_a', 'static_rating_a',
             'rating_increase_percent', 'wind_speed_ms'.
         """
-<<<<<<< HEAD
         T_c = conductor_max_temp_c  # NOSONAR
         T_a = ambient_temp_c  # NOSONAR
-=======
-        T_c = conductor_max_temp_c
-        T_a = ambient_temp_c
->>>>>>> origin/fix/scenario-tests-properly
         D = conductor_diameter_m
         R = conductor_resistance_per_m
 
@@ -228,7 +211,6 @@ class WeatherAgent(BaseAgent):
         # Simplified for wind perpendicular to conductor
 
         # Air properties at film temperature
-<<<<<<< HEAD
         t_film = (T_c + T_a) / 2.0 + 273.15  # NOSONAR
         k_air = 0.0242 + 7.0e-5 * (t_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (t_film - 300.0)  # Kinematic viscosity m²/s
@@ -240,7 +222,7 @@ class WeatherAgent(BaseAgent):
         if re > 0:
             nu = 0.3 + 0.62 * re**0.5 * 0.71 ** (1.0 / 3.0)  # NOSONAR
             h_conv = nu * k_air / D
-=======
+
         T_film = (T_c + T_a) / 2.0 + 273.15  # K
         k_air = 0.0242 + 7.0e-5 * (T_film - 300.0)  # Thermal conductivity W/(m·K)
         nu_air = 1.516e-5 + 4.0e-8 * (T_film - 300.0)  # Kinematic viscosity m²/s
@@ -252,7 +234,6 @@ class WeatherAgent(BaseAgent):
         if Re > 0:
             Nu = 0.3 + 0.62 * Re**0.5 * 0.71 ** (1.0 / 3.0)  # Simplified
             h_conv = Nu * k_air / D
->>>>>>> origin/fix/scenario-tests-properly
         else:
             # Natural convection (no wind)
             h_conv = 5.0  # W/(m²·K) approximate
@@ -261,15 +242,13 @@ class WeatherAgent(BaseAgent):
 
         # Radiative heat loss
         sigma_sb = 5.67e-8  # Stefan-Boltzmann constant
-<<<<<<< HEAD
         t_c_k = T_c + 273.15  # NOSONAR
         t_a_k = T_a + 273.15  # NOSONAR
         q_rad = emissivity * sigma_sb * np.pi * D * (t_c_k**4 - t_a_k**4)
-=======
+
         T_c_K = T_c + 273.15
         T_a_K = T_a + 273.15
         q_rad = emissivity * sigma_sb * np.pi * D * (T_c_K**4 - T_a_K**4)
->>>>>>> origin/fix/scenario-tests-properly
 
         # Solar heat gain
         q_solar = solar_absorptivity * solar_radiation_wm2 * D
@@ -281,13 +260,12 @@ class WeatherAgent(BaseAgent):
         # I²R = q_loss - q_solar
         q_joule = q_loss - q_solar
 
-<<<<<<< HEAD
         i_dynamic = float(np.sqrt(q_joule / R)) if q_joule > 0 and R > 0 else 0.0  # NOSONAR
 
         # Rating increase vs static
         rating_increase = (
             (i_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
-=======
+
         if q_joule > 0 and R > 0:
             I_dynamic = float(np.sqrt(q_joule / R))
         else:
@@ -296,13 +274,11 @@ class WeatherAgent(BaseAgent):
         # Rating increase vs static
         rating_increase = (
             (I_dynamic / static_rating_a - 1.0) * 100.0 if static_rating_a > 0 else 0.0
->>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Simple DLR as cross-check: I ∝ sqrt((T_max - T_amb) / (T_max - T_static_amb))
         dlr_factor = np.sqrt(
             max(0, (conductor_max_temp_c - ambient_temp_c))
-<<<<<<< HEAD
             / max(1, (conductor_max_temp_c - static_rating_ambient_c)),
         )
         i_dlr_simple = static_rating_a * dlr_factor  # NOSONAR
@@ -310,7 +286,7 @@ class WeatherAgent(BaseAgent):
         return {
             "dynamic_rating_a": round(i_dynamic, 1),
             "dynamic_rating_simple_a": round(i_dlr_simple, 1),
-=======
+
             / max(1, (conductor_max_temp_c - static_rating_ambient_c))
         )
         I_dlr_simple = static_rating_a * dlr_factor
@@ -318,7 +294,6 @@ class WeatherAgent(BaseAgent):
         return {
             "dynamic_rating_a": round(I_dynamic, 1),
             "dynamic_rating_simple_a": round(I_dlr_simple, 1),
->>>>>>> origin/fix/scenario-tests-properly
             "static_rating_a": static_rating_a,
             "rating_increase_percent": round(rating_increase, 2),
             "wind_speed_ms": wind_speed_ms,
@@ -327,19 +302,11 @@ class WeatherAgent(BaseAgent):
             "convective_heat_loss_wm": round(q_conv, 2),
             "radiative_heat_loss_wm": round(q_rad, 2),
             "solar_heat_gain_wm": round(q_solar, 2),
-<<<<<<< HEAD
             "reynolds_number": round(re, 1),
             "assessment": self._assess_wind_impact(wind_speed_ms, rating_increase),
         }
 
     def _assess_wind_impact(self, wind_speed: float, _rating_increase: float) -> str:
-=======
-            "reynolds_number": round(Re, 1),
-            "assessment": self._assess_wind_impact(wind_speed_ms, rating_increase),
-        }
-
-    def _assess_wind_impact(self, wind_speed: float, rating_increase: float) -> str:
->>>>>>> origin/fix/scenario-tests-properly
         """Assess wind impact on line rating."""
         if wind_speed < 0.5:
             return "Calm conditions — static rating applicable; no dynamic uplift"
@@ -357,11 +324,7 @@ class WeatherAgent(BaseAgent):
         description: str,
         affected_area: str = "",
         duration_hours: float = 0.0,
-<<<<<<< HEAD
     ) -> dict[str, Any]:
-=======
-    ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Process a severe weather alert and assess power system impact.
 
@@ -385,11 +348,7 @@ class WeatherAgent(BaseAgent):
             Dictionary with 'alert_type', 'severity', 'power_system_impact',
             'recommended_actions', 'risk_level'.
         """
-<<<<<<< HEAD
         impact_map: dict[str, str] = {
-=======
-        impact_map: Dict[str, str] = {
->>>>>>> origin/fix/scenario-tests-properly
             "thunderstorm": "Lightning-induced surges, protection misoperation risk, "
             "potential equipment damage from direct strikes",
             "ice_storm": "Conductor galloping, ice loading on lines and structures, "
@@ -406,11 +365,7 @@ class WeatherAgent(BaseAgent):
             "widespread infrastructure damage, extended restoration",
         }
 
-<<<<<<< HEAD
         action_map: dict[str, list[str]] = {
-=======
-        action_map: Dict[str, List[str]] = {
->>>>>>> origin/fix/scenario-tests-properly
             "thunderstorm": [
                 "Verify surge arrester condition",
                 "Review protection relay settings for lightning coordination",
@@ -458,19 +413,12 @@ class WeatherAgent(BaseAgent):
             "affected_area": affected_area,
             "duration_hours": duration_hours,
             "power_system_impact": impact_map.get(
-<<<<<<< HEAD
                 alert_type,
                 "Assess impact based on local conditions",
             ),
             "recommended_actions": action_map.get(
                 alert_type,
                 ["Monitor conditions and follow standard procedures"],
-=======
-                alert_type, "Assess impact based on local conditions"
-            ),
-            "recommended_actions": action_map.get(
-                alert_type, ["Monitor conditions and follow standard procedures"]
->>>>>>> origin/fix/scenario-tests-properly
             ),
             "risk_level": risk_level,
         }
@@ -494,11 +442,7 @@ class WeatherAgent(BaseAgent):
             self.log_execution(f"Starting weather impact analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
-<<<<<<< HEAD
             results: dict[str, Any] = {}
-=======
-            results: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
             # --- Temperature derating ---
             if analysis_type in ("temperature_derating", "full"):
@@ -577,11 +521,7 @@ class WeatherAgent(BaseAgent):
         - Dynamic ratings are non-negative
         - Weather alert risk levels are valid
         """
-<<<<<<< HEAD
         errors: list[str] = []
-=======
-        errors: List[str] = []
->>>>>>> origin/fix/scenario-tests-properly
 
         td_data = result.data.get("temperature_derating")
         if td_data is not None:

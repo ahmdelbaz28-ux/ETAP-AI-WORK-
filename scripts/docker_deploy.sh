@@ -21,10 +21,7 @@ ENV_FILE="${PROJECT_DIR}/.env"
 PROFILES="production"
 ROLLBACK="false"
 STACK_NAME="etap-platform"
-<<<<<<< HEAD
 DIVIDER='=========================================='
-=======
->>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Parse arguments
@@ -61,7 +58,6 @@ done
 # ---------------------------------------------------------------------------
 # Validate
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed" >&2; exit 1; }
 
 if [[ ! -f "${ENV_FILE}" ]]; then
@@ -73,7 +69,7 @@ fi
 echo "${DIVIDER}"
 echo " ETAP AI Platform - Deploy"
 echo "${DIVIDER}"
-=======
+
 command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
 
 if [ ! -f "${ENV_FILE}" ]; then
@@ -85,16 +81,11 @@ fi
 echo "=========================================="
 echo " ETAP AI Platform - Deploy"
 echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly
 echo "Stack:          ${STACK_NAME}"
 echo "Profiles:       ${PROFILES}"
 echo "Environment:    ${ENV_FILE}"
 echo "Rollback:       ${ROLLBACK}"
-<<<<<<< HEAD
 echo "${DIVIDER}"
-=======
-echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Pull latest images
@@ -142,20 +133,12 @@ echo "  ✓ Backup created"
 # ---------------------------------------------------------------------------
 # Deploy
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 if [[ "${ROLLBACK}" = "true" ]]; then
-=======
-if [ "${ROLLBACK}" = "true" ]; then
->>>>>>> origin/fix/scenario-tests-properly
   echo ""
   echo "[4/4] Performing rollback to previous version..."
   # Restore previous docker-compose
   PREVIOUS=$(ls -t "${PROJECT_DIR}/backups/" | head -2 | tail -1)
-<<<<<<< HEAD
   if [[ -n "${PREVIOUS}" ]]; then
-=======
-  if [ -n "${PREVIOUS}" ]; then
->>>>>>> origin/fix/scenario-tests-properly
     cp "${PROJECT_DIR}/backups/${PREVIOUS}/docker-compose.yml.backup" "${PROJECT_DIR}/docker-compose.yml"
     echo "  Restored compose config from ${PREVIOUS}"
   fi
@@ -181,15 +164,9 @@ fi
 # Post-deploy verification
 # ---------------------------------------------------------------------------
 echo ""
-<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " Post-Deploy Verification"
 echo "${DIVIDER}"
-=======
-echo "=========================================="
-echo " Post-Deploy Verification"
-echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly
 
 # Wait for services to be healthy
 echo "Waiting for services to become healthy..."
@@ -212,16 +189,14 @@ for service in $(docker compose \
 done
 
 echo ""
-<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " Deploy Complete"
 echo "${DIVIDER}"
 echo "Run 'docker compose logs -f' to tail logs."
 echo "${DIVIDER}"
-=======
+
 echo "=========================================="
 echo " Deploy Complete"
 echo "=========================================="
 echo "Run 'docker compose logs -f' to tail logs."
 echo "=========================================="
->>>>>>> origin/fix/scenario-tests-properly

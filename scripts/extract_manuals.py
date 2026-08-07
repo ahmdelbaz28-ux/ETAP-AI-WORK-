@@ -3,17 +3,11 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-<<<<<<< HEAD
 from typing import Optional
 
 # SECURITY: PyPDF2 is deprecated since 2022 and contains 30+ CVEs.
 # Migrated to pypdf (the maintained successor — same API, drop-in replacement).
 from pypdf import PdfReader
-=======
-from typing import List, Tuple
-
-from PyPDF2 import PdfReader
->>>>>>> origin/fix/scenario-tests-properly
 
 
 class ManualExtractor:
@@ -49,13 +43,8 @@ class ManualExtractor:
             "files": [],
         }
 
-<<<<<<< HEAD
     def extract_pdf_text(self, pdf_path: Path) -> tuple[Optional[str], int]:
         """Extract text using pypdf (fast and memory-efficient)."""
-=======
-    def extract_pdf_text(self, pdf_path: Path) -> Tuple[str | None, int]:
-        """Extract text using PyPDF2 (fast and memory-efficient)."""
->>>>>>> origin/fix/scenario-tests-properly
         try:
             reader = PdfReader(pdf_path)
             page_count = len(reader.pages)
@@ -95,11 +84,7 @@ class ManualExtractor:
             text = text.replace("\n\n\n", "\n\n")
         return text.strip()
 
-<<<<<<< HEAD
     def create_chunks(self, text: str, chunk_size: int = 1000, overlap: int = 100) -> list[str]:
-=======
-    def create_chunks(self, text: str, chunk_size: int = 1000, overlap: int = 100) -> List[str]:
->>>>>>> origin/fix/scenario-tests-properly
         if not text:
             return []
         chunks = []
@@ -136,11 +121,7 @@ class ManualExtractor:
 
         for idx, pdf_path in enumerate(pdf_files, 1):
             print(
-<<<<<<< HEAD
                 f"\n[{idx}/{len(pdf_files)}] Extracting: {pdf_path.name} ({pdf_path.stat().st_size / 1024 / 1024:.2f} MB)",
-=======
-                f"\n[{idx}/{len(pdf_files)}] Extracting: {pdf_path.name} ({pdf_path.stat().st_size / 1024 / 1024:.2f} MB)"
->>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Extract text
@@ -186,17 +167,10 @@ class ManualExtractor:
                         "pages": page_count,
                         "chunks": len(chunks),
                         "status": "success",
-<<<<<<< HEAD
                     },
                 )
                 print(
                     f"  [OK] Success: {page_count} pages, {len(chunks)} chunks, {len(cleaned)} chars",
-=======
-                    }
-                )
-                print(
-                    f"  [OK] Success: {page_count} pages, {len(chunks)} chunks, {len(cleaned)} chars"
->>>>>>> origin/fix/scenario-tests-properly
                 )
             else:
                 self.summary["failed"] += 1
@@ -205,11 +179,7 @@ class ManualExtractor:
                         "filename": pdf_path.name,
                         "status": "failed",
                         "error": "Failed to extract text or content too short",
-<<<<<<< HEAD
                     },
-=======
-                    }
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 print("  [FAIL] Failed: No text extracted")
 
@@ -242,11 +212,7 @@ class ManualExtractor:
                         "pages": data["metadata"]["pages"],
                         "characters": data["metadata"]["characters"],
                         "chunks": data["chunks"],
-<<<<<<< HEAD
                     },
-=======
-                    }
->>>>>>> origin/fix/scenario-tests-properly
                 )
                 master_index["total_documents"] += 1
                 master_index["total_chunks"] += data["chunk_count"]
@@ -255,11 +221,7 @@ class ManualExtractor:
         with open(self.index_dir / "master_index.json", "w", encoding="utf-8") as f:
             json.dump(master_index, f, indent=2, ensure_ascii=False)
         print(
-<<<<<<< HEAD
             f"  [OK] Master index saved. Total documents: {master_index['total_documents']}, Total chunks: {master_index['total_chunks']}",
-=======
-            f"  [OK] Master index saved. Total documents: {master_index['total_documents']}, Total chunks: {master_index['total_chunks']}"
->>>>>>> origin/fix/scenario-tests-properly
         )
 
 

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Loader2 } from "lucide-react";
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../../utils/helpers";
@@ -46,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-=======
+
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 import { cn } from '../../utils/helpers'
 import { Loader2 } from 'lucide-react'
@@ -79,13 +78,11 @@ const sizeStyles: Record<ButtonSize, string> = {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, icon: Icon, className, children, disabled, ...props }, ref) => {
->>>>>>> origin/fix/scenario-tests-properly
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-<<<<<<< HEAD
           "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 select-none",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           "btn-press relative",
@@ -108,7 +105,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-=======
+
           'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 select-none',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           variantStyles[variant],
@@ -129,4 +126,3 @@ Button.displayName = "Button";
 )
 
 Button.displayName = 'Button'
->>>>>>> origin/fix/scenario-tests-properly

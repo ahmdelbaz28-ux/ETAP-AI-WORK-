@@ -18,7 +18,6 @@ Integration with the engineering service::
         StructuredFormatter,
     )
 """
-<<<<<<< HEAD
 # ─── Module status ────────────────────────────────────────────────────────
 # INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
 # It is consumed indirectly by middleware, websocket handlers, CLI tools, or
@@ -28,11 +27,6 @@ Integration with the engineering service::
 from __future__ import annotations
 
 import contextlib
-=======
-
-from __future__ import annotations
-
->>>>>>> origin/fix/scenario-tests-properly
 import json
 import logging
 import os
@@ -41,7 +35,6 @@ import sys
 import traceback
 import uuid
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -51,7 +44,7 @@ from compat import StrEnum
 
 _REDACTED_REPLACEMENT = r"\1***REDACTED***"
 
-=======
+
 from datetime import UTC, datetime
 
 UTC = UTC
@@ -59,7 +52,6 @@ from typing import Any, Dict, List
 
 from compat import StrEnum
 
->>>>>>> origin/fix/scenario-tests-properly
 # ---------------------------------------------------------------------------
 # Error-code registry
 # ---------------------------------------------------------------------------
@@ -299,11 +291,7 @@ ERR_NETWORK_002 = ErrorCode(
 
 
 # Full registry for lookups
-<<<<<<< HEAD
 _ERROR_CODE_REGISTRY: dict[str, ErrorCode] = {
-=======
-_ERROR_CODE_REGISTRY: Dict[str, ErrorCode] = {
->>>>>>> origin/fix/scenario-tests-properly
     ec.code: ec
     for ec in [
         ERR_STUDY_001,
@@ -338,11 +326,7 @@ _ERROR_CODE_REGISTRY: Dict[str, ErrorCode] = {
 }
 
 
-<<<<<<< HEAD
 def lookup_error_code(code: str) -> Optional[ErrorCode]:
-=======
-def lookup_error_code(code: str) -> ErrorCode | None:
->>>>>>> origin/fix/scenario-tests-properly
     """Look up an :class:`ErrorCode` by its string code.
 
     Args:
@@ -369,15 +353,13 @@ class ETAPPlatformError(Exception):
         self,
         message: str,
         error_code: ErrorCode = ERR_SYSTEM_001,
-<<<<<<< HEAD
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -387,11 +369,7 @@ class ETAPPlatformError(Exception):
         self.cause = cause
         self.timestamp = datetime.now(UTC).isoformat()
 
-<<<<<<< HEAD
     def to_dict(self) -> dict[str, Any]:
-=======
-    def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         result = {
             "error_code": self.error_code.code,
@@ -418,19 +396,17 @@ class StudyExecutionError(ETAPPlatformError):
     def __init__(
         self,
         message: str,
-<<<<<<< HEAD
         study_type: Optional[str] = None,
         error_code: ErrorCode = ERR_STUDY_001,
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         study_type: str | None = None,
         error_code: ErrorCode = ERR_STUDY_001,
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         ctx = context or {}
         if study_type:
@@ -456,19 +432,17 @@ class SystemValidationError(ETAPPlatformError):
     def __init__(
         self,
         message: str,
-<<<<<<< HEAD
         validation_errors: list[str] | None = None,
         error_code: ErrorCode = ERR_VALIDATION_001,
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         validation_errors: List[str] | None = None,
         error_code: ErrorCode = ERR_VALIDATION_001,
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         ctx = context or {}
         if validation_errors:
@@ -494,15 +468,13 @@ class AuthenticationError(ETAPPlatformError):
         self,
         message: str,
         error_code: ErrorCode = ERR_AUTH_001,
-<<<<<<< HEAD
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         super().__init__(
             message=message,
@@ -524,15 +496,13 @@ class RateLimitError(ETAPPlatformError):
         message: str = "Rate limit exceeded",
         retry_after_sec: int = 60,
         error_code: ErrorCode = ERR_RATE_LIMIT_001,
-<<<<<<< HEAD
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         ctx = context or {}
         ctx["retry_after_sec"] = retry_after_sec
@@ -556,15 +526,13 @@ class DatabaseError(ETAPPlatformError):
         self,
         message: str,
         error_code: ErrorCode = ERR_DATABASE_001,
-<<<<<<< HEAD
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
         cause: Optional[Exception] = None,
-=======
+
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
         cause: Exception | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         super().__init__(
             message=message,
@@ -596,11 +564,7 @@ class ErrorContextBuilder:
     def __init__(
         self,
         request: Any = None,
-<<<<<<< HEAD
         extra: dict[str, Any] | None = None,
-=======
-        extra: Dict[str, Any] | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Initialize the context builder.
 
@@ -611,21 +575,13 @@ class ErrorContextBuilder:
         self._request = request
         self._extra = extra or {}
 
-<<<<<<< HEAD
     async def build(self) -> dict[str, Any]:
-=======
-    async def build(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Build the full error context dictionary.
 
         Returns:
             A dictionary suitable for inclusion in an error report.
         """
-<<<<<<< HEAD
         ctx: dict[str, Any] = {}
-=======
-        ctx: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
         # Request details
         if self._request is not None:
@@ -643,21 +599,13 @@ class ErrorContextBuilder:
 
         return ctx
 
-<<<<<<< HEAD
     def build_sync(self) -> dict[str, Any]:
-=======
-    def build_sync(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Synchronous version of :meth:`build`.
 
         Note: request details may be incomplete if the request body
         needs to be read asynchronously.
         """
-<<<<<<< HEAD
         ctx: dict[str, Any] = {}
-=======
-        ctx: Dict[str, Any] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
         if self._request is not None:
             ctx["request"] = self._extract_request_info_sync(self._request)
@@ -671,15 +619,9 @@ class ErrorContextBuilder:
         return ctx
 
     @staticmethod
-<<<<<<< HEAD
     async def _extract_request_info(request: Any) -> dict[str, Any]:
         """Extract relevant details from a FastAPI Request object."""
         info: dict[str, Any] = {
-=======
-    async def _extract_request_info(request: Any) -> Dict[str, Any]:
-        """Extract relevant details from a FastAPI Request object."""
-        info: Dict[str, Any] = {
->>>>>>> origin/fix/scenario-tests-properly
             "method": getattr(request, "method", "UNKNOWN"),
             "url": str(getattr(request, "url", "UNKNOWN")),
             "path": str(getattr(request.url, "path", "UNKNOWN"))
@@ -723,15 +665,9 @@ class ErrorContextBuilder:
         return info
 
     @staticmethod
-<<<<<<< HEAD
     def _extract_request_info_sync(request: Any) -> dict[str, Any]:
         """Synchronous version of request info extraction."""
         info: dict[str, Any] = {
-=======
-    def _extract_request_info_sync(request: Any) -> Dict[str, Any]:
-        """Synchronous version of request info extraction."""
-        info: Dict[str, Any] = {
->>>>>>> origin/fix/scenario-tests-properly
             "method": getattr(request, "method", "UNKNOWN"),
             "url": str(getattr(request, "url", "UNKNOWN")),
             "path": str(getattr(request.url, "path", "UNKNOWN"))
@@ -752,11 +688,7 @@ class ErrorContextBuilder:
         return "".join(traceback.format_stack())
 
     @staticmethod
-<<<<<<< HEAD
     def _extract_environment() -> dict[str, Any]:
-=======
-    def _extract_environment() -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Extract environment and platform information."""
         return {
             "python_version": platform.python_version(),
@@ -775,7 +707,6 @@ def _redact_secrets(text: str) -> str:
     with ``***REDACTED***``.
     """
     patterns = [
-<<<<<<< HEAD
         (
             r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?',
             _REDACTED_REPLACEMENT,  # NOSONAR
@@ -784,13 +715,12 @@ def _redact_secrets(text: str) -> str:
         (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', _REDACTED_REPLACEMENT),
         (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', _REDACTED_REPLACEMENT),
         (r"(bearer\s+)[\w\-\.]+", _REDACTED_REPLACEMENT),
-=======
+
         (r'(api[_-]?key["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
         (r'(token["\s:=]+)["\']?[\w\-\.]{8,}["\']?', r"\1***REDACTED***"),
         (r'(password["\s:=]+)["\']?[\w\-]{4,}["\']?', r"\1***REDACTED***"),
         (r'(secret["\s:=]+)["\']?[\w\-]{8,}["\']?', r"\1***REDACTED***"),
         (r"(bearer\s+)[\w\-\.]+", r"\1***REDACTED***"),
->>>>>>> origin/fix/scenario-tests-properly
     ]
 
     result = text
@@ -805,11 +735,7 @@ def _redact_secrets(text: str) -> str:
 # Error-recovery suggestions
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 _RECOVERY_SUGGESTIONS: dict[str, list[dict[str, str]]] = {
-=======
-_RECOVERY_SUGGESTIONS: Dict[str, List[Dict[str, str]]] = {
->>>>>>> origin/fix/scenario-tests-properly
     ERR_STUDY_001.code: [
         {
             "action": "retry",
@@ -953,11 +879,7 @@ _RECOVERY_SUGGESTIONS: Dict[str, List[Dict[str, str]]] = {
 }
 
 
-<<<<<<< HEAD
 def get_recovery_suggestions(error_code: str) -> list[dict[str, str]]:
-=======
-def get_recovery_suggestions(error_code: str) -> List[Dict[str, str]]:
->>>>>>> origin/fix/scenario-tests-properly
     """Look up recovery suggestions for an error code.
 
     Args:
@@ -1002,21 +924,19 @@ class ErrorReport:
     http_status: int
     trace_id: str
     timestamp: str
-<<<<<<< HEAD
     context: dict[str, Any] = field(default_factory=dict)
     recovery_suggestions: list[dict[str, str]] = field(default_factory=list)
     request_id: Optional[str] = None
     documentation_url: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-=======
+
     context: Dict[str, Any] = field(default_factory=dict)
     recovery_suggestions: List[Dict[str, str]] = field(default_factory=list)
     request_id: str | None = None
     documentation_url: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
         """Convert to a JSON-serializable dictionary."""
         result = {
             "error_code": self.error_code,
@@ -1060,11 +980,7 @@ class ErrorReportGenerator:
         self,
         exc: Exception,
         request: Any = None,
-<<<<<<< HEAD
         trace_id: Optional[str] = None,
-=======
-        trace_id: str | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> ErrorReport:
         """Build an error report from an exception.
 
@@ -1089,20 +1005,18 @@ class ErrorReportGenerator:
 
         # Build extra context from the request
         if request is not None:
-<<<<<<< HEAD
             # Context building must not mask the original error
             with contextlib.suppress(Exception):
                 builder = ErrorContextBuilder(request=request)
                 request_ctx = await builder.build()
                 context["debug"] = request_ctx
-=======
+
             try:
                 builder = ErrorContextBuilder(request=request)
                 request_ctx = await builder.build()
                 context["debug"] = request_ctx
             except Exception:
                 pass  # Context building must not mask the original error
->>>>>>> origin/fix/scenario-tests-properly
 
         # Look up recovery suggestions
         suggestions = get_recovery_suggestions(error_code.code)
@@ -1126,15 +1040,13 @@ class ErrorReportGenerator:
     def from_error_code(
         self,
         error_code: ErrorCode,
-<<<<<<< HEAD
         message: Optional[str] = None,
         context: dict[str, Any] | None = None,
         trace_id: Optional[str] = None,
-=======
+
         message: str | None = None,
         context: Dict[str, Any] | None = None,
         trace_id: str | None = None,
->>>>>>> origin/fix/scenario-tests-properly
     ) -> ErrorReport:
         """Build an error report from an error code.
 
@@ -1207,11 +1119,7 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format a log record as a JSON string."""
-<<<<<<< HEAD
         log_entry: dict[str, Any] = {
-=======
-        log_entry: Dict[str, Any] = {
->>>>>>> origin/fix/scenario-tests-properly
             "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,

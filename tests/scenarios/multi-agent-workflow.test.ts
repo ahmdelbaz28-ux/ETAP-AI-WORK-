@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest';
-<<<<<<< HEAD
 import scenario, {
   AgentAdapter,
   AgentRole,
   type AgentInput,
   type AgentReturnTypes,
 } from '@langwatch/scenario';
-=======
-import scenario, { AgentAdapter, AgentRole, type AgentInput, type AgentReturnTypes } from '@langwatch/scenario';
->>>>>>> origin/fix/scenario-tests-properly
 import { mastra } from '../../src/mastra';
 import { isRealProviderAvailable } from './helpers.test-types';
 
@@ -35,7 +31,6 @@ class MastraCoordinatorAdapter extends AgentAdapter {
 }
 
 describe('Multi-Agent Workflow Integration', () => {
-<<<<<<< HEAD
   const runIfProvider = isRealProviderAvailable() ? it : it.skip.bind(it);
 
   // Unconditional smoke test so the file always contains at least one
@@ -84,7 +79,7 @@ describe('Multi-Agent Workflow Integration', () => {
     },
   );
 
-=======
+
   const runIfProvider = isRealProviderAvailable()
     ? it
     : it.skip.bind(it);
@@ -124,7 +119,6 @@ describe('Multi-Agent Workflow Integration', () => {
     expect(coordinator.lastTraceId).toBeTruthy();
   });
 
->>>>>>> origin/fix/scenario-tests-properly
   runIfProvider('handles harmonic analysis and filter design workflow', async () => {
     const coordinator = new MastraCoordinatorAdapter();
 
@@ -148,11 +142,7 @@ describe('Multi-Agent Workflow Integration', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'We are experiencing harmonic issues at our plant due to multiple VFDs. I need a harmonic analysis per IEEE 519 and recommendations for passive filter design. The system is 13.8 kV with 5 MVA transformer, and the main harmonics are 5th and 7th from 500 kW VFDs.',
-=======
-          'We are experiencing harmonic issues at our plant due to multiple VFDs. I need a harmonic analysis per IEEE 519 and recommendations for passive filter design. The system is 13.8 kV with 5 MVA transformer, and the main harmonics are 5th and 7th from 500 kW VFDs.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -186,11 +176,7 @@ describe('Multi-Agent Workflow Integration', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'I need to verify my access credentials are correct before I can share the system one-line diagram. Also, we need to perform an arc flash study on our 480 V switchboard. The bolted fault current is approximately 35 kA.',
-=======
-          'I need to verify my access credentials are correct before I can share the system one-line diagram. Also, we need to perform an arc flash study on our 480 V switchboard. The bolted fault current is approximately 35 kA.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -225,11 +211,7 @@ describe('Multi-Agent Workflow Integration', () => {
       ],
       script: [
         scenario.user(
-<<<<<<< HEAD
           'We need to check if our 500 HP induction motor can start successfully across the line. It feeds a centrifitial pump. The system is 4.16 kV fed from a 2.5 MVA transformer with 6% impedance.',
-=======
-          'We need to check if our 500 HP induction motor can start successfully across the line. It feeds a centrifitial pump. The system is 4.16 kV fed from a 2.5 MVA transformer with 6% impedance.'
->>>>>>> origin/fix/scenario-tests-properly
         ),
         scenario.agent(),
         scenario.judge(),
@@ -241,7 +223,6 @@ describe('Multi-Agent Workflow Integration', () => {
     expect(coordinator.lastTraceId).toBeTruthy();
   });
 
-<<<<<<< HEAD
   runIfProvider(
     'executes a complete protection coordination workflow across multiple specialist agents',
     async () => {
@@ -279,7 +260,7 @@ describe('Multi-Agent Workflow Integration', () => {
       expect(coordinator.lastTraceId).toBeTruthy();
     },
   );
-=======
+
   runIfProvider('executes a complete protection coordination workflow across multiple specialist agents', async () => {
     const coordinator = new MastraCoordinatorAdapter();
 
@@ -314,5 +295,4 @@ describe('Multi-Agent Workflow Integration', () => {
     expect(result.success, result.reasoning).toBe(true);
     expect(coordinator.lastTraceId).toBeTruthy();
   });
->>>>>>> origin/fix/scenario-tests-properly
 });

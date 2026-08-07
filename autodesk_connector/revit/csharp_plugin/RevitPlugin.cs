@@ -71,13 +71,10 @@ namespace AhmedETAP.RevitPlugin
         private bool _running = false;
         private UIControlledApplication _uiApp;
 
-<<<<<<< HEAD
         // Security Fix V-02: Strict hard timeout for all command execution
         private static readonly TimeSpan COMMAND_TIMEOUT = TimeSpan.FromSeconds(180); // Revit operations may take longer
         private static readonly TimeSpan READ_BODY_TIMEOUT = TimeSpan.FromSeconds(30);
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         public PluginHttpServer(UIControlledApplication uiApp)
         {
             _uiApp = uiApp;
@@ -139,7 +136,6 @@ namespace AhmedETAP.RevitPlugin
                 }
                 else if (path.StartsWith("/api/") && method == "POST")
                 {
-<<<<<<< HEAD
                     // Security Fix V-02: Async read with timeout
                     using var cts = new CancellationTokenSource(READ_BODY_TIMEOUT);
                     var body = await ReadRequestBodyAsync(request.InputStream, cts.Token);
@@ -149,13 +145,12 @@ namespace AhmedETAP.RevitPlugin
                     using var cmdCts = new CancellationTokenSource(COMMAND_TIMEOUT);
                     var result = await Task.Run(() => ExecuteOnRevitThread(path, payload), cmdCts.Token)
                         .ConfigureAwait(false);
-=======
+
                     string body = new StreamReader(request.InputStream).ReadToEnd();
                     var payload = JsonSerializer.Deserialize<Dictionary<string, object>>(body) ?? new Dictionary<string, object>();
 
                     // Execute on Revit's main thread via ExternalEvent
                     var result = ExecuteOnRevitThread(path, payload);
->>>>>>> origin/fix/scenario-tests-properly
                     await SendJson(response, 200, result);
                 }
                 else
@@ -163,21 +158,17 @@ namespace AhmedETAP.RevitPlugin
                     await SendJson(response, 404, new { success = false, error = "Not found" });
                 }
             }
-<<<<<<< HEAD
             catch (OperationCanceledException)
             {
                 // Security Fix V-02: Return safe timeout error instead of deadlock
                 await SendJson(response, 504, new { success = false, error = "Revit command execution timed out — the operation took too long and was cancelled for safety" });
             }
-=======
->>>>>>> origin/fix/scenario-tests-properly
             catch (Exception ex)
             {
                 await SendJson(response, 500, new { success = false, error = ex.Message });
             }
         }
 
-<<<<<<< HEAD
         /// <summary>
         /// Security Fix V-02: Async body read with timeout and cancellation.
         /// Replaces the blocking ReadToEnd() call.
@@ -196,8 +187,6 @@ namespace AhmedETAP.RevitPlugin
             return sb.ToString();
         }
 
-=======
->>>>>>> origin/fix/scenario-tests-properly
         private object ExecuteOnRevitThread(string path, Dictionary<string, object> payload)
         {
             // Revit API must be called from the main thread.

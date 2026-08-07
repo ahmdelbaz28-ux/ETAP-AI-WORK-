@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Audit logging with dedicated KV namespace and HMAC integrity.
  *
@@ -9,7 +8,7 @@
  *   4. Overflow audit event (logs its own overflow)
  *   5. 90-day retention (CONFIG.AUDIT_RETENTION_DAYS)
  *   6. v2 format: { entries, _hmac, _version } with v1 backward compat
-=======
+
 /**
  * Audit logging buffer with KV fallback flush.
  *
@@ -18,7 +17,6 @@
  *     oldest batch is flushed to KV before being discarded.
  *   - Fallback flush to KV on each request boundary (background).
  *   - Buffers are typed and include scope info for compliance.
->>>>>>> origin/fix/scenario-tests-properly
  */
 import type { Env } from '../core/types.js';
 import { CONFIG } from '../core/config.js';
@@ -38,7 +36,6 @@ export interface AuditLogEntry {
   scope?: string;
   latencyMs?: number;
   details?: Record<string, unknown>;
-<<<<<<< HEAD
   severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
 }
 
@@ -56,15 +53,12 @@ function classifySeverity(action: string): AuditLogEntry['severity'] {
   if (action === 'AGENT_CHAT') return 'medium';
   if (action === 'LIST_AGENTS' || action === 'LIST_PROVIDERS') return 'low';
   return 'info';
-=======
->>>>>>> origin/fix/scenario-tests-properly
 }
 
 const _auditBuffer: AuditLogEntry[] = [];
 let _lastFlush = 0;
 
 export function recordAudit(entry: AuditLogEntry): void {
-<<<<<<< HEAD
   if (!entry.severity) entry.severity = classifySeverity(entry.action);
   _auditBuffer.push(entry);
 
@@ -79,7 +73,7 @@ export function recordAudit(entry: AuditLogEntry): void {
     _auditBuffer.splice(0, CONFIG.AUDIT_FLUSH_THRESHOLD);
     _auditBuffer.unshift(overflow);
     _lastFlush = Date.now();
-=======
+
   _auditBuffer.push(entry);
 
   // Hardening: prevent unbounded memory growth when KV flush is delayed.
@@ -93,7 +87,6 @@ export function recordAudit(entry: AuditLogEntry): void {
     // overflow entries are dropped — this is bounded loss (at most
     // AUDIT_FLUSH_THRESHOLD entries) and only happens under extreme load
     // when KV writes are not keeping up.
->>>>>>> origin/fix/scenario-tests-properly
   }
 }
 
@@ -101,7 +94,6 @@ export function getAuditBufferLength(): number {
   return _auditBuffer.length;
 }
 
-<<<<<<< HEAD
 /* Prefer dedicated AUDIT_KV, fall back to RATE_LIMIT_KV */
 function getAuditKv(env: Env) {
   return env.AUDIT_KV ?? env.RATE_LIMIT_KV;
@@ -111,18 +103,16 @@ export async function flushAuditLog(env: Env): Promise<number> {
   const kv = getAuditKv(env);
   if (!kv || _auditBuffer.length === 0) return 0;
 
-=======
+
 /** Flush to KV. Returns the number of entries flushed. */
 export async function flushAuditLog(env: Env): Promise<number> {
   if (!env.RATE_LIMIT_KV || _auditBuffer.length === 0) return 0;
 
   // Snapshot the buffer and clear immediately to avoid races.
->>>>>>> origin/fix/scenario-tests-properly
   const batch = _auditBuffer.splice(0, _auditBuffer.length);
   if (batch.length === 0) return 0;
 
   try {
-<<<<<<< HEAD
     const hmac = CONFIG.AUDIT_INTEGRITY_ENABLED && env.AUDIT_HMAC_SECRET
       ? await computeBatchHmac(batch, env.AUDIT_HMAC_SECRET)
       : undefined;
@@ -135,7 +125,7 @@ export async function flushAuditLog(env: Env): Promise<number> {
     return batch.length;
   } catch {
     for (const entry of [...batch].reverse()) {
-=======
+
     const key = `audit:${new Date().toISOString().split('T')[0]}:${crypto.randomUUID()}`;
     await env.RATE_LIMIT_KV.put(key, JSON.stringify(batch), { expirationTtl: 90 * 24 * 60 * 60 });
     _lastFlush = Date.now();
@@ -144,7 +134,6 @@ export async function flushAuditLog(env: Env): Promise<number> {
     // Best-effort: re-add to the front of the buffer (loss bounded
     // by next flush), but cap the in-memory buffer to MAX_AUDIT_BUFFER.
     for (const entry of batch.reverse()) {
->>>>>>> origin/fix/scenario-tests-properly
       _auditBuffer.unshift(entry);
       if (_auditBuffer.length > CONFIG.MAX_AUDIT_BUFFER) _auditBuffer.shift();
     }
@@ -153,17 +142,12 @@ export async function flushAuditLog(env: Env): Promise<number> {
 }
 
 export async function getAuditLogs(env: Env, date?: string): Promise<AuditLogEntry[]> {
-<<<<<<< HEAD
   const kv = getAuditKv(env);
   if (!kv) return [];
-=======
-  if (!env.RATE_LIMIT_KV) return [];
->>>>>>> origin/fix/scenario-tests-properly
   const targetDate = date || new Date().toISOString().split('T')[0];
   const prefix = `audit:${targetDate}:`;
   const logs: AuditLogEntry[] = [];
   try {
-<<<<<<< HEAD
     const listResult = await kv.list({ prefix });
     for (const key of listResult.keys) {
       const raw = await kv.get(key.name, { type: 'json' }) as unknown;
@@ -174,7 +158,7 @@ export async function getAuditLogs(env: Env, date?: string): Promise<AuditLogEnt
       }
     }
   } catch { /* fail silently */ }
-=======
+
     const listResult = await env.RATE_LIMIT_KV.list({ prefix });
     for (const key of listResult.keys) {
       const raw = (await env.RATE_LIMIT_KV.get(key.name, { type: 'json' })) as AuditLogEntry[] | null;
@@ -183,6 +167,5 @@ export async function getAuditLogs(env: Env, date?: string): Promise<AuditLogEnt
   } catch {
     // Fail silently
   }
->>>>>>> origin/fix/scenario-tests-properly
   return logs;
 }

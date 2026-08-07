@@ -12,11 +12,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-<<<<<<< HEAD
 from typing import Optional
-=======
-from typing import Dict, List, Tuple
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -97,11 +93,7 @@ class SwitchDevice:
     status: SwitchStatus = SwitchStatus.CLOSED
     rated_current: float = 1000.0  # Amps
     trip_count: int = 0
-<<<<<<< HEAD
     last_operation_time: Optional[float] = None
-=======
-    last_operation_time: float | None = None
->>>>>>> origin/fix/scenario-tests-properly
     protection_enabled: bool = True
     auto_reclosing_enabled: bool = True
     auto_reclosing_attempts: int = 0
@@ -151,17 +143,15 @@ class SCADADatabase:
         Parameters:
         measurement_ttl_seconds: Time-to-live for measurements (default 5 min).
         """
-<<<<<<< HEAD
         self.measurements: dict[str, Measurement] = {}
         self.switch_devices: dict[str, SwitchDevice] = {}
         self.measurement_ttl = measurement_ttl_seconds
         self.measurement_history: dict[str, list[Measurement]] = {}
-=======
+
         self.measurements: Dict[str, Measurement] = {}
         self.switch_devices: Dict[str, SwitchDevice] = {}
         self.measurement_ttl = measurement_ttl_seconds
         self.measurement_history: Dict[str, List[Measurement]] = {}
->>>>>>> origin/fix/scenario-tests-properly
         self.max_history_per_point = 1000
 
     # --- Measurement Management ---
@@ -179,7 +169,6 @@ class SCADADatabase:
                 -self.max_history_per_point :
             ]
 
-<<<<<<< HEAD
     def get_measurement(self, measurement_id: str) -> Optional[Measurement]:
         return self.measurements.get(measurement_id)
 
@@ -192,7 +181,7 @@ class SCADADatabase:
         return [m for m in self.measurements.values() if m.measurement_type == mtype]
 
     def get_latest_voltage(self, bus_id: str) -> Optional[float]:
-=======
+
     def get_measurement(self, measurement_id: str) -> Measurement | None:
         return self.measurements.get(measurement_id)
 
@@ -205,7 +194,6 @@ class SCADADatabase:
         return [m for m in self.measurements.values() if m.measurement_type == mtype]
 
     def get_latest_voltage(self, bus_id: str) -> float | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get latest voltage magnitude for a bus."""
         for m in self.measurements.values():
             if m.element_id == bus_id and m.measurement_type == MeasurementType.VOLTAGE_MAGNITUDE:
@@ -213,11 +201,7 @@ class SCADADatabase:
                     return m.value
         return None
 
-<<<<<<< HEAD
     def get_latest_power(self, element_id: str) -> tuple[float, float] | None:
-=======
-    def get_latest_power(self, element_id: str) -> Tuple[float, float] | None:
->>>>>>> origin/fix/scenario-tests-properly
         """Get latest P, Q for an element."""
         p, q = None, None
         for m in self.measurements.values():
@@ -230,11 +214,7 @@ class SCADADatabase:
             return (p, q)
         return None
 
-<<<<<<< HEAD
     def get_expired_measurements(self) -> list[Measurement]:
-=======
-    def get_expired_measurements(self) -> List[Measurement]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get measurements that have exceeded TTL."""
         return [m for m in self.measurements.values() if m.age_seconds() > self.measurement_ttl]
 
@@ -250,11 +230,7 @@ class SCADADatabase:
     def add_switch_device(self, device: SwitchDevice) -> None:
         self.switch_devices[device.device_id] = device
 
-<<<<<<< HEAD
     def get_switch_device(self, device_id: str) -> Optional[SwitchDevice]:
-=======
-    def get_switch_device(self, device_id: str) -> SwitchDevice | None:
->>>>>>> origin/fix/scenario-tests-properly
         return self.switch_devices.get(device_id)
 
     def operate_switch(self, device_id: str, new_status: SwitchStatus) -> bool:
@@ -264,7 +240,6 @@ class SCADADatabase:
             return device.operate(new_status)
         return False
 
-<<<<<<< HEAD
     def get_open_switches(self) -> list[SwitchDevice]:
         return [s for s in self.switch_devices.values() if not s.is_conducting()]
 
@@ -272,7 +247,7 @@ class SCADADatabase:
         return [s for s in self.switch_devices.values() if s.is_conducting()]
 
     def get_switches_between(self, element1: str, element2: str) -> list[SwitchDevice]:
-=======
+
     def get_open_switches(self) -> List[SwitchDevice]:
         return [s for s in self.switch_devices.values() if not s.is_conducting()]
 
@@ -280,7 +255,6 @@ class SCADADatabase:
         return [s for s in self.switch_devices.values() if s.is_conducting()]
 
     def get_switches_between(self, element1: str, element2: str) -> List[SwitchDevice]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get all switches between two elements."""
         results = []
         for s in self.switch_devices.values():
@@ -292,11 +266,7 @@ class SCADADatabase:
 
     # --- Real-Time State Vectors ---
 
-<<<<<<< HEAD
     def get_voltage_state_vector(self, bus_ids: list[str]) -> np.ndarray:
-=======
-    def get_voltage_state_vector(self, bus_ids: List[str]) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get voltage state vector for given buses.
         Returns complex voltage array. Missing data = 1.0∠0.
@@ -314,19 +284,11 @@ class SCADADatabase:
                         vang = m.value
                     break
             voltages.append(
-<<<<<<< HEAD
                 complex(vmag * np.cos(np.radians(vang)), vmag * np.sin(np.radians(vang))),
             )
         return np.array(voltages)
 
     def get_power_injection_vector(self, bus_ids: list[str]) -> np.ndarray:
-=======
-                complex(vmag * np.cos(np.radians(vang)), vmag * np.sin(np.radians(vang)))
-            )
-        return np.array(voltages)
-
-    def get_power_injection_vector(self, bus_ids: List[str]) -> np.ndarray:
->>>>>>> origin/fix/scenario-tests-properly
         """
         Get power injection vector for given buses.
         Returns complex power array. Missing data = 0+0j.
@@ -340,11 +302,7 @@ class SCADADatabase:
                 injections.append(complex(0, 0))
         return np.array(injections)
 
-<<<<<<< HEAD
     def get_topology_switching_state(self) -> dict[str, bool]:
-=======
-    def get_topology_switching_state(self) -> Dict[str, bool]:
->>>>>>> origin/fix/scenario-tests-properly
         """Get current switching state as dict of device_id -> is_closed."""
         return {did: dev.is_conducting() for did, dev in self.switch_devices.items()}
 

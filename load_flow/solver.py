@@ -14,11 +14,7 @@ solve_load_flow_sparse(buses, branches, options)
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from typing import Any, Dict, Union
-=======
-from typing import Any, Dict, List, Union
->>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -46,11 +42,7 @@ BranchInput = Union[Dict[str, Any], Any]
 # ---------------------------------------------------------------------------
 
 
-<<<<<<< HEAD
 def _bus_to_bus_data(bus: BusInput, index_map: dict[int, int]) -> Any:
-=======
-def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
->>>>>>> origin/fix/scenario-tests-properly
     """Convert various bus representations to ``BusData``.
 
     Parameters
@@ -115,11 +107,7 @@ def _bus_to_bus_data(bus: BusInput, index_map: Dict[int, int]) -> Any:
 
 def _branch_to_branch_data(
     branch: BranchInput,
-<<<<<<< HEAD
     index_map: dict[int, int],
-=======
-    index_map: Dict[int, int],
->>>>>>> origin/fix/scenario-tests-properly
 ) -> Any:
     """Convert various branch representations to ``BranchData``.
 
@@ -183,17 +171,15 @@ def _branch_to_branch_data(
 
 
 def solve_load_flow_sparse(
-<<<<<<< HEAD
     buses: list[BusInput],
     branches: list[BranchInput],
     options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-=======
+
     buses: List[BusInput],
     branches: List[BranchInput],
     options: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
->>>>>>> origin/fix/scenario-tests-properly
     """Solve load flow using the sparse Y-bus Newton-Raphson solver.
 
     This is the primary integration point for the sparse solver.  It
@@ -229,11 +215,7 @@ def solve_load_flow_sparse(
         * ``iterations`` (int)
         * ``max_mismatch`` (float)
         * ``voltages`` (dict) – ``{bus_id: complex_voltage}``
-<<<<<<< HEAD
         * ``magnitudes`` (dict) – Union[``{bus_id:, V|}``]
-=======
-        * ``magnitudes`` (dict) – ``{bus_id: |V|}``
->>>>>>> origin/fix/scenario-tests-properly
         * ``angles_deg`` (dict) – ``{bus_id: angle_degrees}``
         * ``active_power`` (dict) – ``{bus_id: P}``
         * ``reactive_power`` (dict) – ``{bus_id: Q}``
@@ -253,13 +235,8 @@ def solve_load_flow_sparse(
 
     # --- Convert inputs to standard BusData / BranchData ---
     # First pass: build bus_id → sequential index mapping
-<<<<<<< HEAD
     bus_id_to_idx: dict[int, int] = {}
     bus_data_list: list[BusData] = []
-=======
-    bus_id_to_idx: Dict[int, int] = {}
-    bus_data_list: List[BusData] = []
->>>>>>> origin/fix/scenario-tests-properly
 
     for idx, bus in enumerate(buses):
         bd = _bus_to_bus_data(bus, bus_id_to_idx)
@@ -269,11 +246,7 @@ def solve_load_flow_sparse(
     # Re-assign indices now that mapping is complete
     bus_id_to_idx = {bd.bus_id: i for i, bd in enumerate(bus_data_list)}
 
-<<<<<<< HEAD
     branch_data_list: list[BranchData] = []
-=======
-    branch_data_list: List[BranchData] = []
->>>>>>> origin/fix/scenario-tests-properly
     for branch in branches:
         bd = _branch_to_branch_data(branch, bus_id_to_idx)
         branch_data_list.append(bd)
@@ -313,19 +286,17 @@ def solve_load_flow_sparse(
         )
 
     # --- Format results ---
-<<<<<<< HEAD
     voltages_dict: dict[int, complex] = {}
     magnitudes_dict: dict[int, float] = {}
     angles_deg_dict: dict[int, float] = {}
     p_dict: dict[int, float] = {}
     q_dict: dict[int, float] = {}
-=======
+
     voltages_dict: Dict[int, complex] = {}
     magnitudes_dict: Dict[int, float] = {}
     angles_deg_dict: Dict[int, float] = {}
     p_dict: Dict[int, float] = {}
     q_dict: Dict[int, float] = {}
->>>>>>> origin/fix/scenario-tests-properly
 
     for i, bd in enumerate(bus_data_list):
         if i < len(result.voltages):
