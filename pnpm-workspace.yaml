@@ -1,6 +1,7 @@
 packages:
   - "ui"
 
+<<<<<<< HEAD
 # =============================================================================
 # pnpm overrides — SECURITY: force upgraded versions of vulnerable transitive
 # dependencies. pnpm 11+ reads overrides from pnpm-workspace.yaml (NOT from
@@ -79,3 +80,9 @@ allowBuilds:
   protobufjs: true
 
 onlyBuiltDependencies: ''
+=======
+allowBuilds:
+  electron-winstaller: set this to true or false
+  esbuild: true
+  protobufjs: true
+>>>>>>> origin/fix/scenario-tests-properly

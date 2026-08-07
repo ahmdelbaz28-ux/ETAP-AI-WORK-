@@ -18,7 +18,11 @@ import sys
 import threading
 import time
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, Union
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -38,11 +42,19 @@ QUICK_MODE = "--quick" in sys.argv
 IEEE_SIZES = [14, 30, 57] if QUICK_MODE else [14, 30, 57, 118]
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
 # NOSONAR
 
 def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 1: Jacobian build time — analytical vs finite-difference
+# ═══════════════════════════════════════════════════════════════════════════
+
+def benchmark_1_jacobian() -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Compare analytical vs finite-difference Jacobian speed and accuracy."""
     print("\n" + "=" * 72)
     print("BENCHMARK 1: Jacobian Build -- Analytical vs Finite-Difference")
@@ -68,9 +80,15 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; s
         t0 = time.perf_counter()
         n_trials = 20 if QUICK_MODE else 100
         for _ in range(n_trials):
+<<<<<<< HEAD
             J_ana = _build_dense_jacobian(V, ybus, pv, pq, n_uk)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # Trigger PV→PQ switching simulation by adding a small perturbation
             V_test = V * (1.0 + 1e-8 * np.random.randn(len(V)))  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+            J_ana = _build_dense_jacobian(V, ybus, pv, pq, n_uk)
+            # Trigger PV→PQ switching simulation by adding a small perturbation
+            V_test = V * (1.0 + 1e-8 * np.random.randn(len(V)))
+>>>>>>> origin/fix/scenario-tests-properly
             _ = _build_dense_jacobian(V_test, ybus, pv, pq, n_uk)
         t_ana = (time.perf_counter() - t0) / (n_trials * 2) * 1000  # ms
 
@@ -78,11 +96,19 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; s
         eps_theta = 1e-6
         eps_v = 1e-6
 
+<<<<<<< HEAD
         def _fd_jacobian(V_trial):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             I = ybus @ V_trial
             S = V_trial * np.conj(I)
             dP = S.real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             dQ = S.imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        def _fd_jacobian(V_trial):
+            I = ybus @ V_trial
+            S = V_trial * np.conj(I)
+            dP = S.real
+            dQ = S.imag
+>>>>>>> origin/fix/scenario-tests-properly
             m = np.zeros(n_uk)
             for k, i in enumerate(pv):
                 m[k] = dP[i]
@@ -96,9 +122,15 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; s
 
         t0 = time.perf_counter()
         for _ in range(n_trials):
+<<<<<<< HEAD
             J_fd = np.zeros((n_uk, n_uk))  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             for col_k, i in enumerate(pv + pq):
                 V_trial = V.copy()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+            J_fd = np.zeros((n_uk, n_uk))
+            for col_k, i in enumerate(pv + pq):
+                V_trial = V.copy()
+>>>>>>> origin/fix/scenario-tests-properly
                 th = np.angle(V_trial[i])
                 V_trial[i] = abs(V_trial[i]) * np.exp(1j * (th + eps_theta))
                 J_fd[:, col_k] = (_fd_jacobian(V_trial) - base_m) / eps_theta
@@ -130,14 +162,24 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; s
               f"analytical={t_ana:8.3f}ms  "
               f"FD={t_fd:8.3f}ms  "
               f"speedup={entry['speedup']:>5.1f}x  "
+<<<<<<< HEAD
               f"|ana-FD| max={max_diff:.2e}")
+=======
+              f"|ana-FD|_max={max_diff:.2e}")
+>>>>>>> origin/fix/scenario-tests-properly
 
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 2: Load flow solver — iterations & switching
 # NOSONAR
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 2: Load flow solver — iterations & switching
+# ═══════════════════════════════════════════════════════════════════════════
+>>>>>>> origin/fix/scenario-tests-properly
 
 def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     """Track iterations, Jacobian builds, and PV→PQ switches."""
@@ -229,11 +271,19 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
 # NOSONAR
 
 def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 3: Zbus computation — dense inversion vs LU factorization
+# ═══════════════════════════════════════════════════════════════════════════
+
+def benchmark_3_zbus() -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Compare dense inversion vs LU factorization for Zbus computation."""
     print("\n" + "=" * 72)
     print("BENCHMARK 3: Zbus Computation -- Dense Inversion vs LU Factorisation")
@@ -251,13 +301,21 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; sched
     for n in IEEE_SIZES:
         # Create random Ybus
         np.random.seed(42)
+<<<<<<< HEAD
         Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+>>>>>>> origin/fix/scenario-tests-properly
         Y = Y @ Y.conj().T + np.eye(n) * 0.1  # Positive definite-ish
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)  # Diagonally dominant
 
         # ── Dense inversion ──
         t0 = time.perf_counter()
+<<<<<<< HEAD
         Z_inv = np.linalg.inv(Y)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Z_inv = np.linalg.inv(Y)
+>>>>>>> origin/fix/scenario-tests-properly
         t_dense = (time.perf_counter() - t0) * 1000  # ms
 
         # Verify accuracy: Z @ Y ≈ I
@@ -273,7 +331,11 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; sched
             t_factor = (time.perf_counter() - t0) * 1000
 
             t0 = time.perf_counter()
+<<<<<<< HEAD
             Z_lu = np.zeros_like(Y)  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+            Z_lu = np.zeros_like(Y)
+>>>>>>> origin/fix/scenario-tests-properly
             for k in range(n):
                 e_k = np.zeros(n, dtype=complex)
                 e_k[k] = 1.0
@@ -298,14 +360,24 @@ def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; sched
         speedup_str = f"  speedup={entry['speedup']:.1f}x" if entry['speedup'] else ""
         print(f"  n={n:3d}  dense_inv={t_dense:9.2f}ms  "
               f"LU_total={t_lu or 0:9.2f}ms{speedup_str}"
+<<<<<<< HEAD
               f"ZY-I|={accuracy_inv:.2e}")
+=======
+              f"  |ZY-I|={accuracy_inv:.2e}")
+>>>>>>> origin/fix/scenario-tests-properly
 
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 4: Cache hit rate simulation
 # NOSONAR
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 4: Cache hit rate simulation
+# ═══════════════════════════════════════════════════════════════════════════
+>>>>>>> origin/fix/scenario-tests-properly
 
 def benchmark_4_cache() -> Dict[str, Any]:
     """Simulate cache hit/miss with Zipfian workload (80/20 pattern)."""
@@ -375,9 +447,15 @@ def benchmark_4_cache() -> Dict[str, Any]:
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 5: Native study latency distribution
 # NOSONAR
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 5: Native study latency distribution
+# ═══════════════════════════════════════════════════════════════════════════
+>>>>>>> origin/fix/scenario-tests-properly
 
 def benchmark_5_study_latency() -> Dict[str, Any]:
     """Measure P50/P95/P99 latency for native studies."""
@@ -429,15 +507,27 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         lf_latencies: List[float] = []
         fault_latencies: List[float] = []
 
+<<<<<<< HEAD
         for run in range(n_runs):  # NOSONAR unused local kept for clarity/debugging
+=======
+        for run in range(n_runs):
+>>>>>>> origin/fix/scenario-tests-properly
             engine = PowerSystemEngine(sys_model)
 
             # Load flow
             t0 = time.perf_counter()
+<<<<<<< HEAD
             lf_latencies.append(time.perf_counter() - t0)
 
             # Fault analysis
             fault_bus = next(iter(sys_model.buses.keys()))
+=======
+            result = engine.run_load_flow()
+            lf_latencies.append(time.perf_counter() - t0)
+
+            # Fault analysis
+            fault_bus = list(sys_model.buses.keys())[0]
+>>>>>>> origin/fix/scenario-tests-properly
             t0 = time.perf_counter()
             engine.run_fault_analysis("three_phase", fault_bus)
             fault_latencies.append(time.perf_counter() - t0)
@@ -459,7 +549,11 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
         print(f"  n={n:3d}  "
               f"LF P50={entry['load_flow_ms_p50']:6.1f}ms  "
               f"P95={entry['load_flow_ms_p95']:6.1f}ms  "
+<<<<<<< HEAD
               f"P99={entry['load_flow_ms_p99']:6.1f}ms  "
+=======
+              f"P99={entry['load_flow_ms_p99']:6.1f}ms  |  "
+>>>>>>> origin/fix/scenario-tests-properly
               f"Fault P50={entry['fault_ms_p50']:6.1f}ms  "
               f"P95={entry['fault_ms_p95']:6.1f}ms  "
               f"P99={entry['fault_ms_p99']:6.1f}ms")
@@ -467,9 +561,15 @@ def benchmark_5_study_latency() -> Dict[str, Any]:
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Benchmark 6: Concurrent request throughput
 # NOSONAR
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 6: Concurrent request throughput
+# ═══════════════════════════════════════════════════════════════════════════
+>>>>>>> origin/fix/scenario-tests-properly
 
 def benchmark_6_concurrent() -> Dict[str, Any]:
     """Measure throughput under concurrent load using thread pools."""
@@ -520,23 +620,36 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     engine_class = PowerSystemEngine
 
     concurrency_levels = [4, 8] if QUICK_MODE else [2, 4, 8, 16]
+<<<<<<< HEAD
+=======
+    n_requests = 200 if QUICK_MODE else 500
+>>>>>>> origin/fix/scenario-tests-properly
 
     for n_workers in concurrency_levels:
         results_list: List[float] = []
         lock = threading.Lock()
 
+<<<<<<< HEAD
         # SonarCloud python:S1515: pass lock + results_list as default args
         # so each worker captures them by VALUE at function-definition time,
         # not by reference (which would be a late-binding bug if the loop
         # reassigned them — it doesn't here, but explicit is safer).
         def worker(_lock: threading.Lock = lock, _results: List[float] = results_list):
+=======
+        def worker():
+>>>>>>> origin/fix/scenario-tests-properly
             # Each thread creates its own engine
             engine = engine_class(sys_model)
             t0 = time.perf_counter()
             engine.run_load_flow()
             elapsed = time.perf_counter() - t0
+<<<<<<< HEAD
             with _lock:
                 _results.append(elapsed)
+=======
+            with lock:
+                results_list.append(elapsed)
+>>>>>>> origin/fix/scenario-tests-properly
 
         t0 = time.perf_counter()
         threads = []
@@ -572,9 +685,15 @@ def benchmark_6_concurrent() -> Dict[str, Any]:
     return results
 
 
+<<<<<<< HEAD
 # NOSONAR
 #  Report generator
 # NOSONAR
+=======
+# ═══════════════════════════════════════════════════════════════════════════
+#  Report generator
+# ═══════════════════════════════════════════════════════════════════════════
+>>>>>>> origin/fix/scenario-tests-properly
 
 @dataclass
 class BenchmarkReport:
@@ -585,15 +704,25 @@ class BenchmarkReport:
     latency: Dict[str, Any] = field(default_factory=dict)
     concurrent: Dict[str, Any] = field(default_factory=dict)
 
+<<<<<<< HEAD
     def print_summary(self) -> None:  # NOSONAR cognitive complexity; refactoring sprint
         print("\n\n" + "#" * 72)
         print("#  BENCHMARK SUMMARY REPORT")  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def print_summary(self) -> None:
+        print("\n\n" + "#" * 72)
+        print("#  BENCHMARK SUMMARY REPORT")
+>>>>>>> origin/fix/scenario-tests-properly
         print("#" * 72)
 
         # B1: Jacobian
         if self.jacobian:
             print("\n-- 1. Jacobian Build Time -------------------------------")
+<<<<<<< HEAD
             print(f"  {'Buses':>5}  {'Analytical':>10}  {'FD':>10}  {'Speedup':>8}  {'|diff| max':>12}")
+=======
+            print(f"  {'Buses':>5}  {'Analytical':>10}  {'FD':>10}  {'Speedup':>8}  {'|diff|_max':>12}")
+>>>>>>> origin/fix/scenario-tests-properly
             for s in self.jacobian.get("systems", []):
                 print(f"  {s['n_buses']:5d}  {s['analytical_ms']:>10.3f}ms  "
                       f"{s['fd_ms']:>10.3f}ms  "
@@ -603,7 +732,11 @@ class BenchmarkReport:
         if self.load_flow:
             print("\n-- 2. Load Flow Solver -----------------------------------")
             print(f"  {'Buses':>5}  {'Converged':>10}  {'Iters':>6}  {'PV→PQ':>6}  "
+<<<<<<< HEAD
                   f"{'Final':>10}  {'Time':>8}")
+=======
+                  f"{'Final|m|':>10}  {'Time':>8}")
+>>>>>>> origin/fix/scenario-tests-properly
             for s in self.load_flow.get("systems", []):
                 print(f"  {s['n_buses']:5d}  {str(s['converged']):>10}  "
                       f"{s['iterations']:6d}  {s['pv_pq_switches']:6d}  "
@@ -635,11 +768,19 @@ class BenchmarkReport:
         # B5: Latency
         if self.latency:
             print("\n-- 5. Study Latency Distribution -------------------------")
+<<<<<<< HEAD
             print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  "
                   f"{'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
             for s in self.latency.get("studies", []):
                 print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
                       f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
+=======
+            print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  |"
+                  f"  {'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
+            for s in self.latency.get("studies", []):
+                print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
+                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms  |"
+>>>>>>> origin/fix/scenario-tests-properly
                       f"  {s['fault_ms_p50']:>7.1f}ms  {s['fault_ms_p95']:>7.1f}ms  "
                       f"{s['fault_ms_p99']:>7.1f}ms")
 
@@ -668,6 +809,7 @@ class BenchmarkReport:
 
         ca = self.cache.get("scenarios", [])
         if ca:
+<<<<<<< HEAD
             best_hit = max(s["hit_rate_pct"] for s in ca)  # NOSONAR false positive — actual code, not a comment
             print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
 
@@ -681,6 +823,21 @@ def main() -> int:
     print("\nAhmedETAP -- Benchmark Suite")
     print(f"Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
     print(f"System sizes: {IEEE_SIZES}")
+=======
+            best_hit = max(s["hit_rate_pct"] for s in ca)
+            print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Main
+# ═══════════════════════════════════════════════════════════════════════════
+
+def main() -> int:
+    print("+" + "-" * 70 + "+")
+    print("|  AhmedETAP -- Benchmark Suite")
+    print(f"|  Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
+    print(f"|  System sizes: {IEEE_SIZES}")
+>>>>>>> origin/fix/scenario-tests-properly
     print("+" + "-" * 70 + "+")
 
     report = BenchmarkReport()

@@ -1,7 +1,11 @@
 [build-system]
+<<<<<<< HEAD
 # SECURITY: requires setuptools>=83 to fix CVE-2026-XXXXX (MANIFEST.in
 # exclusion bypass via Unicode NFC/NFD normalization on macOS APFS/HFS+).
 requires = ["setuptools>=83.0.0", "wheel"]
+=======
+requires = ["setuptools>=68", "wheel"]
+>>>>>>> origin/fix/scenario-tests-properly
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,7 +13,11 @@ name = "etap-ai-platform"
 version = "2.1.0"
 description = "Enterprise-grade autonomous engineering intelligence for validated power-system studies, ETAP automation, GIS enrichment, AI workflows, and production operations."
 readme = "README.md"
+<<<<<<< HEAD
 requires-python = ">=3.12,<3.14"
+=======
+requires-python = ">=3.12"
+>>>>>>> origin/fix/scenario-tests-properly
 license = { text = "MIT" }
 keywords = ["power-system", "etap", "gis", "engineering", "ai", "load-flow", "short-circuit", "arc-flash"]
 
@@ -18,7 +26,11 @@ authors = [
 ]
 
 classifiers = [
+<<<<<<< HEAD
     "Development Status :: 5 - Production/Stable",
+=======
+    "Development Status :: 4 - Beta",
+>>>>>>> origin/fix/scenario-tests-properly
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -33,6 +45,7 @@ dependencies = [
     "pandas>=1.3.0",
     "matplotlib>=3.4.0",
     "psutil>=5.8.0",
+<<<<<<< HEAD
     "requests>=2.32.4",  # SECURITY: CVE-2024-35195, CVE-2024-47081
     "ezdxf>=1.3.0",
     "pyyaml>=6.0",
@@ -55,11 +68,28 @@ dependencies = [
     "tree-sitter-python>=0.21.0",
     "pdfplumber>=0.7.0",
     "nltk>=3.10.0",  # SECURITY: bumped 3.9.4 → 3.10.0 — fixes URL-Encoded Path Traversal in nltk.data.load()
+=======
+    "requests>=2.26.0",
+    "pyyaml>=6.0",
+    "structlog>=21.0.0",
+    "cryptography>=3.6.0",
+    "hvac>=2.0.0",
+    "bcrypt>=4.0.0",
+    "PyJWT>=2.6.0",
+    "pydantic[email]>=2.0.0",
+    "fastapi>=0.104.0",
+    "tenacity>=8.2.0",
+    "uvicorn[standard]>=0.24.0",
+    "PyPDF2>=3.0.0",
+    "pdfplumber>=0.7.0",
+    "nltk>=3.6.0",
+>>>>>>> origin/fix/scenario-tests-properly
     "python-docx>=0.8.11",
     "openpyxl>=3.0.0",
     "reportlab>=3.6.0",
     "tqdm>=4.62.0",
     "beautifulsoup4>=4.10.0",
+<<<<<<< HEAD
     "lxml>=6.1.0",  # SECURITY: PYSEC-2026-87 (XXE) fixed
     "typing-extensions>=4.0.0",
     "starlette>=1.3.1",  # SECURITY: 6 CVEs fixed (3 HIGH + 3 MED) — see requirements.txt for details
@@ -78,11 +108,26 @@ dependencies = [
     "httpx>=0.25.0",
     "aiosqlite>=0.19.0",
     "asyncpg>=0.29.0",
+=======
+    "lxml>=4.6.0",
+    "typing-extensions>=4.0.0",
+    "starlette>=0.38.0",
+    "redis>=5.0.0",
+    "prometheus-client>=0.19.0",
+    "celery>=5.3.0",
+    "websockets>=11.0.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-instrumentation-fastapi>=0.41.0",
+    "httpx>=0.25.0",
+    "aiosqlite>=0.19.0",
+>>>>>>> origin/fix/scenario-tests-properly
     "sqlalchemy[asyncio]>=2.0.0",
     "email-validator>=2.0.0",
     "python-multipart>=0.0.6",
     "alembic>=1.13.0",
     "pyotp>=2.9.0",
+<<<<<<< HEAD
     "neo4j>=5.25.0,<7",
     # LangChain 1.x — SECURITY: pinned to >=1.0 to fix CVEs in langchain-core /
     # langchain-openai / langsmith that affected the 0.3.x line.
@@ -102,6 +147,8 @@ dependencies = [
     # affected the 0.1.x / 0.2.x lines.
     "langsmith>=0.10.0,<0.11",
     "qdrant-client>=1.7.0",
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 ]
 
 [project.optional-dependencies]
@@ -109,7 +156,11 @@ test = [
     "pytest>=7.0.0",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
+<<<<<<< HEAD
     "fastapi>=0.135.0",
+=======
+    "fastapi>=0.104.0",
+>>>>>>> origin/fix/scenario-tests-properly
     "httpx>=0.25.0",
 ]
 win32 = [
@@ -139,6 +190,7 @@ etap = [
     "pywin32>=303; sys_platform == 'win32'",  # Required for ETAP COM automation on Windows
 ]
 
+<<<<<<< HEAD
 # ArcGIS integration extra.
 # IMPORTANT: `arcpy` is ESRI's proprietary package — it is NOT on PyPI.
 # It is bundled with ArcGIS Pro's Python on Windows only. Listing it as a
@@ -153,6 +205,11 @@ etap = [
 # The [arcgis] extra is kept as a metadata placeholder for discoverability
 # (so users know the integration exists) but installs no extra packages.
 arcgis = []
+=======
+arcgis = [
+    "arcpy>=2.8.0",  # ArcGIS Python API
+]
+>>>>>>> origin/fix/scenario-tests-properly
 
 # Combined optional dependencies
 full = [
@@ -195,6 +252,7 @@ include = [
 ]
 
 [tool.pytest.ini_options]
+<<<<<<< HEAD
 testpaths = ["tests",     "acp_runtime/acp_tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -209,13 +267,23 @@ filterwarnings = [
     # the test suite runs warning-free.
     "ignore:Python 3.8 is no longer supported by the Python core team:DeprecationWarning",
 ]
+=======
+testpaths = ["tests", "acp_runtime/tests"]
+asyncio_mode = "auto"
+python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
+addopts = "-v --tb=short -x"
+>>>>>>> origin/fix/scenario-tests-properly
 markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",
     "regression: marks tests as regression tests",
+<<<<<<< HEAD
     "unit: marks tests as unit tests",
     "timeout: marks tests with a timeout limit",
     "auth_enabled: marks tests that run with AUTH_ENABLED (no AUTH_DISABLED)",
+=======
+    "unit: marks tests as unit tests"
+>>>>>>> origin/fix/scenario-tests-properly
 ]
 
 [tool.coverage.run]
@@ -236,12 +304,15 @@ source = [
     "visualization",
     "backend",
     "core",
+<<<<<<< HEAD
     "services",      # CRITICAL FIX: Added services/ to coverage
     "skills",        # CRITICAL FIX: Added skills/ to coverage
     "worker",        # CRITICAL FIX: Added worker/ to coverage
     "api",           # CRITICAL FIX: Added api/ to coverage
     "ml",            # CRITICAL FIX: Added ml/ to coverage
     "utils",         # CRITICAL FIX: Added utils/ to coverage
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 ]
 
 [tool.coverage.report]
@@ -251,6 +322,7 @@ exclude_lines = [
     "raise NotImplementedError",
     "def __repr__",
     "def __str__",
+<<<<<<< HEAD
 ]
 # CRITICAL FIX: Unified coverage gate — previously 20% here vs 80% in CI,
 # which was inconsistent and caused confusion. Set to 40% as a realistic
@@ -265,3 +337,6 @@ extraPaths = ["."]
 [tool.pyrefly]
 include = ["."]
 extraPaths = ["."]
+=======
+]
+>>>>>>> origin/fix/scenario-tests-properly

@@ -9,6 +9,7 @@ license: mit
 app_port: 7860
 ---
 
+<<<<<<< HEAD
 <div align="center">
 
 <img src="docs/assets/logo.svg" alt="AhmedETAP Logo" width="120" height="120"/>
@@ -22,6 +23,13 @@ app_port: 7860
 </div>
 
 ---
+=======
+# AhmedETAP — Enterprise Engineering Intelligence Platform
+
+**Developed by Eng. Ahmed Elbaz**
+
+Enterprise-grade autonomous engineering intelligence for power-system analysis, ETAP automation, and AI-powered engineering decision support.
+>>>>>>> origin/fix/scenario-tests-properly
 
 ## Features
 
@@ -30,21 +38,31 @@ app_port: 7860
 - Arc Flash Analysis (IEEE 1584-2018)
 - Harmonic Analysis (IEEE 519-2022)
 - Protection Coordination (IEC 60255 relay curves)
+<<<<<<< HEAD
 - 25 Specialized AI Agents with rule-based expert system
 - 10 IEEE/IEC engineering standards supported
 - REST API with Swagger docs at `/docs`
 - Computer Use Agent (Browser CUA) via Playwright + Gemini Vision
 - Life-safety system with kill-switch + tamper-evident audit chain
+=======
+- 23 Specialized AI Agents with RAG context
+- REST API with Swagger docs at `/docs`
+>>>>>>> origin/fix/scenario-tests-properly
 
 ## API Endpoints
 
 | Endpoint | Description |
 |----------|-------------|
+<<<<<<< HEAD
 | `GET /` | Platform homepage |
+=======
+| `GET /` | Platform info |
+>>>>>>> origin/fix/scenario-tests-properly
 | `GET /healthz` | Liveness probe |
 | `GET /readyz` | Readiness probe |
 | `GET /health` | Detailed health check |
 | `GET /docs` | Swagger API documentation |
+<<<<<<< HEAD
 | `GET /redoc` | ReDoc API documentation |
 | `GET /api/v1/agents` | List all AI agents |
 | `GET /api/v1/info` | Platform metadata |
@@ -53,10 +71,15 @@ app_port: 7860
 | `POST /api/v1/agents/etap-gui/execute` | Execute Browser CUA loop |
 | `POST /api/v1/studies/run` | Run engineering study |
 | `POST /api/v1/context/impact` | Code Property Graph impact analysis |
+=======
+| `POST /api/v1/studies/run` | Run engineering study |
+| `POST /api/v1/system/validate` | Validate system model |
+>>>>>>> origin/fix/scenario-tests-properly
 
 ## Quick Test
 
 ```bash
+<<<<<<< HEAD
 # Health check (public — no API key required)
 curl https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz
 
@@ -81,12 +104,20 @@ curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents/etap-
 # (everything except /, /healthz, /readyz, /health, /ready, /docs, /redoc,
 # /openapi.json, /metrics) require this header:
 curl -H "x-api-key: $HF_API_KEY" https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents
+=======
+curl https://ahmdelbaz28-etap-ai-platform.hf.space/healthz
+
+curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
+  -H "Content-Type: application/json" \
+  -d '{"study_type":"load_flow","system":{"base_mva":100,"buses":[{"bus_id":1,"bus_type":"slack","voltage_magnitude":1.0},{"bus_id":2,"bus_type":"pq","load_power_real":1.0}],"lines":[{"line_id":1,"from_bus_id":1,"to_bus_id":2,"r1":0.01,"x1":0.05}]}}'
+>>>>>>> origin/fix/scenario-tests-properly
 ```
 
 ## Platform Stats
 
 | Metric | Value |
 |--------|-------|
+<<<<<<< HEAD
 | AI Agents | 25 (rule-based expert system) |
 | ETAP Manuals | 35 |
 | Zenon SCADA Guides | 4 |
@@ -117,4 +148,14 @@ how to enable them on a self-hosted deployment.
 ## Links
 
 - [GitHub Repository](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
+=======
+| Tests | 548 passing |
+| Validation | 31/31 gates |
+| AI Agents | 23 specialized |
+| Standards | IEEE/IEC/NFPA |
+
+## Links
+
+- [GitHub Repository](https://github.com/ahmdelbaz28-ux/AhmedETAP)
+>>>>>>> origin/fix/scenario-tests-properly
 - [Author Email](mailto:ahmdelbaz28@gmail.com)

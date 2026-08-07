@@ -25,6 +25,10 @@ Tools exposed:
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
+=======
+from typing import Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from autodesk_connector.autocad.connector import AutoCADConnector
 from autodesk_connector.revit.connector import RevitConnector
@@ -46,7 +50,11 @@ logger = logging.getLogger(__name__)
 # Tool Definitions (MCP-compatible tool schema)
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 MCP_TOOL_DEFINITIONS: list[dict] = [
+=======
+MCP_TOOL_DEFINITIONS: List[dict] = [
+>>>>>>> origin/fix/scenario-tests-properly
     {
         "name": "create_drawing",
         "description": "Create a new AutoCAD DWG drawing file with optional template",
@@ -327,7 +335,11 @@ class CopilotMCPServer:
     # Tool registry
     # ------------------------------------------------------------------
 
+<<<<<<< HEAD
     def _build_tool_registry(self) -> dict[str, callable]:
+=======
+    def _build_tool_registry(self) -> Dict[str, callable]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Build the mapping of tool names to handler methods."""
         return {
             "create_drawing": self._handle_create_drawing,
@@ -347,7 +359,11 @@ class CopilotMCPServer:
             "run_engineering_checks": self._handle_run_engineering_checks,
         }
 
+<<<<<<< HEAD
     def list_tools(self) -> list[dict]:
+=======
+    def list_tools(self) -> List[dict]:
+>>>>>>> origin/fix/scenario-tests-properly
         """List all available MCP tools with their schemas."""
         return MCP_TOOL_DEFINITIONS
 
@@ -373,7 +389,11 @@ class CopilotMCPServer:
         try:
             return handler(arguments)
         except Exception as e:
+<<<<<<< HEAD
             logger.exception("Tool %s failed", tool_name)
+=======
+            logger.exception(f"Tool {tool_name} failed")
+>>>>>>> origin/fix/scenario-tests-properly
             return {"success": False, "error": str(e)}
 
     # ------------------------------------------------------------------
@@ -573,8 +593,12 @@ class CopilotMCPServer:
     def _handle_validate_design(self, args: dict) -> dict:
         """Run validation checks on the current model."""
         check_types = args.get(
+<<<<<<< HEAD
             "check_types",
             ["overcurrent", "voltage", "coordination", "cable_sizing"],
+=======
+            "check_types", ["overcurrent", "voltage", "coordination", "cable_sizing"]
+>>>>>>> origin/fix/scenario-tests-properly
         )
         results: dict = {}
 
@@ -625,7 +649,11 @@ class CopilotMCPServer:
                 if panel.main_breaker_a > panel.bus_rating_a:
                     issues.append(
                         f"Panel {panel.name}: main breaker ({panel.main_breaker_a}A) "
+<<<<<<< HEAD
                         f"> bus rating ({panel.bus_rating_a}A)",
+=======
+                        f"> bus rating ({panel.bus_rating_a}A)"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return {"passed": len(issues) == 0, "issues": issues}
 
@@ -636,7 +664,11 @@ class CopilotMCPServer:
                 if panel.main_breaker_a and feeder.rated_current_a >= panel.main_breaker_a:
                     issues.append(
                         f"Panel {panel.name}: feeder {feeder.load_name} "
+<<<<<<< HEAD
                         f"({feeder.rated_current_a}A) >= main breaker ({panel.main_breaker_a}A)",
+=======
+                        f"({feeder.rated_current_a}A) >= main breaker ({panel.main_breaker_a}A)"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return {"passed": len(issues) == 0, "issues": issues}
 

@@ -226,8 +226,14 @@ class TestSparseSolver:
 
     def test_sparse_fill_percentage(self):
         """Test 6: Fill percentage decreases for larger systems."""
+<<<<<<< HEAD
         solver_3 = SparseYBus()  # NOSONAR unused local kept for clarity/debugging
         buses_3, branches_3 = _make_3bus_data()  # NOSONAR unused local kept for clarity/debugging
+=======
+        solver_3 = SparseYBus()
+        buses_3, branches_3 = _make_3bus_data()
+        mem_3 = solver_3.compare_memory(buses_3, branches_3)
+>>>>>>> origin/fix/scenario-tests-properly
 
         solver_14 = SparseYBus()
         buses_14, branches_14 = _make_14bus_data()
@@ -259,6 +265,7 @@ class TestSparseSolver:
             Y = ybus.toarray()
             V = result.voltages
             S = V * np.conj(Y @ V)
+<<<<<<< HEAD
             P_gen = sum(
                 b.p_generation for b in buses
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
@@ -267,6 +274,12 @@ class TestSparseSolver:
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             P_loss = S.real.sum()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             # NOSONAR
+=======
+            P_gen = sum(b.p_generation for b in buses)
+            P_load = sum(b.p_load for b in buses)
+            P_loss = S.real.sum()
+            # Power balance: generation - load ≈ losses
+>>>>>>> origin/fix/scenario-tests-properly
             balance = abs(P_gen - P_load - P_loss)
             # Allow some tolerance for numerical precision
             assert balance < 1.0 or P_loss < 1.0

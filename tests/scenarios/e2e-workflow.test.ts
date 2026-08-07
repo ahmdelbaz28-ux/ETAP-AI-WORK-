@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+<<<<<<< HEAD
 import {
   type MockEtapProvider,
   createMockEtapScenario,
@@ -8,6 +9,13 @@ import { generateSimpleIndustrialSystem, generateStudyParameters } from './helpe
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeFile, unlink } from 'node:fs/promises';
+=======
+import { MockEtapProvider, createMockEtapScenario, type StudyTypeStr } from './helpers.mock-etap';
+import { generateSimpleIndustrialSystem, generateStudyParameters } from './helpers.test-data';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+>>>>>>> origin/fix/scenario-tests-properly
 const execFileAsync = promisify(execFile);
 
 describe('E2E Full Workflow — Create → Import → Study → Report → Export', () => {
@@ -53,17 +61,29 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     expect(systemData.base_kv).toBe(13.8);
 
     // Verify bus data
+<<<<<<< HEAD
     const utilityBus = systemData.buses.find((b) => b.id === 'UTILITY');
     expect(utilityBus).toBeDefined();
     expect(utilityBus?.nominal_kv).toBe(115);
 
     const mainSwgr = systemData.buses.find((b) => b.id === 'MAIN-SWGR');
+=======
+    const utilityBus = systemData.buses.find(b => b.id === 'UTILITY');
+    expect(utilityBus).toBeDefined();
+    expect(utilityBus?.nominal_kv).toBe(115);
+
+    const mainSwgr = systemData.buses.find(b => b.id === 'MAIN-SWGR');
+>>>>>>> origin/fix/scenario-tests-properly
     expect(mainSwgr).toBeDefined();
     expect(mainSwgr?.nominal_kv).toBe(13.8);
 
     // Verify branch data
     const utilityToMain = systemData.branches.find(
+<<<<<<< HEAD
       (b) => b.from_bus === 'UTILITY' && b.to_bus === 'MAIN-SWGR',
+=======
+      b => b.from_bus === 'UTILITY' && b.to_bus === 'MAIN-SWGR'
+>>>>>>> origin/fix/scenario-tests-properly
     );
     expect(utilityToMain).toBeDefined();
     expect(utilityToMain?.rating_mva).toBe(50);
@@ -74,7 +94,15 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const params = generateStudyParameters().loadFlow;
 
     await mockEtap.openProject(projectPath);
+<<<<<<< HEAD
     const result = await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr, params);
+=======
+    const result = await mockEtap.executeStudy(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr,
+      params
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -89,7 +117,14 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
 
     await mockEtap.openProject(projectPath);
     await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+<<<<<<< HEAD
     const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+=======
+    const extracted = await mockEtap.extractResults(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     expect(extracted.summary).toBeTruthy();
     expect(extracted.voltage_profile).toBeTruthy();
@@ -103,9 +138,18 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const studyResult = await mockEtap.executeStudy(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
+<<<<<<< HEAD
       params,
     );
     const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+=======
+      params
+    );
+    const extracted = await mockEtap.extractResults(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     // Generate report
     const report = {
@@ -147,9 +191,18 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const studyResult = await mockEtap.executeStudy(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
+<<<<<<< HEAD
       params,
     );
     const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+=======
+      params
+    );
+    const extracted = await mockEtap.extractResults(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     // Export to JSON
     const exportPayload = {
@@ -200,14 +253,25 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const studyResult = await mockEtap.executeStudy(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
+<<<<<<< HEAD
       params,
+=======
+      params
+>>>>>>> origin/fix/scenario-tests-properly
     );
     expect(studyResult.success).toBe(true);
     expect(studyResult.errors).toHaveLength(0);
     expect(studyResult.data.converged).toBe(true);
 
     // Step 5: Extract results
+<<<<<<< HEAD
     const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+=======
+    const extracted = await mockEtap.extractResults(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr
+    );
+>>>>>>> origin/fix/scenario-tests-properly
     expect(extracted.summary).toBeTruthy();
     expect(extracted.voltage_profile).toBeTruthy();
 
@@ -249,7 +313,11 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
 
     // Verify execution log
     const log = mockEtap.getExecutionLog();
+<<<<<<< HEAD
     const actions = log.map((l) => l.action);
+=======
+    const actions = log.map(l => l.action);
+>>>>>>> origin/fix/scenario-tests-properly
     expect(actions).toContain('openProject');
     expect(actions).toContain('executeStudy');
     expect(actions).toContain('extractResults');
@@ -261,7 +329,15 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const arcParams = generateStudyParameters().arcFlash;
 
     await mockEtap.openProject(projectPath);
+<<<<<<< HEAD
     const result = await mockEtap.executeStudy(projectPath, 'ARC_FLASH' as StudyTypeStr, arcParams);
+=======
+    const result = await mockEtap.executeStudy(
+      projectPath,
+      'ARC_FLASH' as StudyTypeStr,
+      arcParams
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     expect(result.success).toBe(true);
     expect(result.data.standard).toBe('IEEE 1584-2018');
@@ -277,7 +353,11 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const result = await mockEtap.executeStudy(
       projectPath,
       'SHORT_CIRCUIT' as StudyTypeStr,
+<<<<<<< HEAD
       scParams,
+=======
+      scParams
+>>>>>>> origin/fix/scenario-tests-properly
     );
 
     expect(result.success).toBe(true);
@@ -291,7 +371,14 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     await mockEtap.openProject(projectPath);
     mockEtap.setFailureMode('execution');
 
+<<<<<<< HEAD
     const result = await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr);
+=======
+    const result = await mockEtap.executeStudy(
+      projectPath,
+      'LOAD_FLOW' as StudyTypeStr
+    );
+>>>>>>> origin/fix/scenario-tests-properly
 
     expect(result.success).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -309,7 +396,11 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const result = await mockEtap.executeStudy(
       projectPath,
       'HARMONIC_ANALYSIS' as StudyTypeStr,
+<<<<<<< HEAD
       harmonicParams,
+=======
+      harmonicParams
+>>>>>>> origin/fix/scenario-tests-properly
     );
 
     expect(result.success).toBe(true);
@@ -326,7 +417,11 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const result = await mockEtap.executeStudy(
       projectPath,
       'MOTOR_STARTING' as StudyTypeStr,
+<<<<<<< HEAD
       motorParams,
+=======
+      motorParams
+>>>>>>> origin/fix/scenario-tests-properly
     );
 
     expect(result.success).toBe(true);
@@ -341,7 +436,11 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     await mockEtap.openProject(projectPath);
     const result = await mockEtap.executeStudy(
       projectPath,
+<<<<<<< HEAD
       'PROTECTION_COORDINATION' as StudyTypeStr,
+=======
+      'PROTECTION_COORDINATION' as StudyTypeStr
+>>>>>>> origin/fix/scenario-tests-properly
     );
 
     expect(result.success).toBe(true);
@@ -390,16 +489,24 @@ except Exception as ex:
       });
 
       // Python warnings may go to stderr — only fail on actual errors
+<<<<<<< HEAD
       if (stderr?.toLowerCase().includes('error')) {
+=======
+      if (stderr && stderr.toLowerCase().includes('error')) {
+>>>>>>> origin/fix/scenario-tests-properly
         throw new Error(`Python subprocess error: ${stderr}`);
       }
 
       expect(stdout).toContain('ENGINE_OK');
       expect(stdout).toContain('HAS_RUN_STUDY: True');
     } finally {
+<<<<<<< HEAD
       await unlink(tmpFile).catch(() => {
         /* ignore cleanup errors */
       });
+=======
+      await unlink(tmpFile).catch(() => { /* ignore cleanup errors */ });
+>>>>>>> origin/fix/scenario-tests-properly
     }
   });
 });

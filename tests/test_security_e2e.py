@@ -23,10 +23,16 @@ import os
 import sys
 import time
 import uuid
+<<<<<<< HEAD
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
+=======
+from datetime import UTC, datetime, timedelta, timezone
+
+UTC = UTC
+>>>>>>> origin/fix/scenario-tests-properly
 from unittest.mock import patch
 
 import jwt
@@ -40,6 +46,7 @@ from security.mfa import TOTPProvider
 from security.rasp import RASPAction, RASPEngine, create_default_rasp_engine
 from security.siem import SecurityEvent, SIEMForwarder
 
+<<<<<<< HEAD
 # Test credentials — module-level constants so SonarCloud S2068
 # (hard-coded credentials) is satisfied. These are NOT real secrets;
 # they exist only to exercise auth code paths in the test suite.
@@ -49,6 +56,8 @@ TEST_PASSWORD_4 = "Wrong6!"  # NOSONAR test credential constant, not a real secr
 TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR test credential constant, not a real secret
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 # ===========================================================================
 # 1. API key bypass attempt
 # ===========================================================================
@@ -70,9 +79,14 @@ class TestAPIKeyBypass:
         # so get_api_key always passes.  We test the logic by verifying
         # that when an API key IS required, missing keys are rejected.
         with patch("api.dependencies.API_KEY", "test-secret-key"):
+<<<<<<< HEAD
             # Send request WITHOUT Authorization header to ensure the
             # API-key check is evaluated (JWT bypass would otherwise skip it).
             resp = client.get("/api/v1/projects/")
+=======
+            # Reload the dependency with the patched value
+            resp = client.get("/api/v1/projects/", headers=auth_headers)
+>>>>>>> origin/fix/scenario-tests-properly
             # Should fail because no X-API-Key header was provided
             assert resp.status_code == 401, f"Expected 401 without API key, got {resp.status_code}"
 
@@ -81,22 +95,38 @@ class TestAPIKeyBypass:
         with patch("api.dependencies.API_KEY", "test-secret-key"):
             resp = client.get(
                 "/api/v1/projects/",
+<<<<<<< HEAD
                 headers={"X-API-Key": "test-secret-key"},
             )
             assert (
                 resp.status_code == 200
             ), f"Expected 200 with correct API key, got {resp.status_code}"
+=======
+                headers={**auth_headers, "X-API-Key": "test-secret-key"},
+            )
+            assert resp.status_code == 200, (
+                f"Expected 200 with correct API key, got {resp.status_code}"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_project_list_with_wrong_api_key(self, client, auth_headers):
         """When an incorrect API key is provided, the request is rejected."""
         with patch("api.dependencies.API_KEY", "test-secret-key"):
             resp = client.get(
                 "/api/v1/projects/",
+<<<<<<< HEAD
                 headers={"X-API-Key": "wrong-key"},
             )
             assert (
                 resp.status_code == 401
             ), f"Expected 401 with wrong API key, got {resp.status_code}"
+=======
+                headers={**auth_headers, "X-API-Key": "wrong-key"},
+            )
+            assert resp.status_code == 401, (
+                f"Expected 401 with wrong API key, got {resp.status_code}"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -107,7 +137,10 @@ class TestAPIKeyBypass:
 class TestJWTExpiryAndRefresh:
     """Test the full lifecycle: obtain token → expiry → refresh."""
 
+<<<<<<< HEAD
     @pytest.mark.timeout(60)
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     def test_token_lifecycle(self, client):
         """Register, login, verify access, simulate expiry, then refresh."""
         # Step 1: Register and login
@@ -116,12 +149,20 @@ class TestJWTExpiryAndRefresh:
             json={
                 "username": "lifecycle_user",
                 "email": "lifecycle@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         login_resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "lifecycle_user", "password": TEST_USER_PASSWORD},
+=======
+            json={"username": "lifecycle_user", "password": "S3cureP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert login_resp.status_code == 200
         tokens = login_resp.json()
@@ -332,7 +373,10 @@ class TestRASPBlockingPathTraversal:
 class TestRateLimitEnforcement:
     """Test rate limiting: exceed limit, then wait and retry."""
 
+<<<<<<< HEAD
     @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     def test_rate_limit_then_cooldown(self, client):
         """After exceeding the rate limit, waiting should allow retries.
 
@@ -348,7 +392,11 @@ class TestRateLimitEnforcement:
             json={
                 "username": "rl_user1",
                 "email": "rl_user1@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         client.post(
@@ -356,7 +404,11 @@ class TestRateLimitEnforcement:
             json={
                 "username": "rl_user2",
                 "email": "rl_user2@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
 
@@ -364,22 +416,31 @@ class TestRateLimitEnforcement:
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
+<<<<<<< HEAD
                 json={
                     "username": "rl_user1",
                     "password": f"Wrong{i}!",
                 },  # NOSONAR test credential constant, not a real secret
+=======
+                json={"username": "rl_user1", "password": f"Wrong{i}!"},
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # 6th attempt for user1 should be rate-limited
         resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "rl_user1", "password": TEST_PASSWORD_4},
+=======
+            json={"username": "rl_user1", "password": "Wrong6!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 429, "Rate limit should trigger"
 
         # user2 should NOT be rate-limited (different username)
         resp2 = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "rl_user2", "password": TEST_PASSWORD_2},
         )
         assert (
@@ -387,6 +448,14 @@ class TestRateLimitEnforcement:
         ), "Different user should not be affected by another's rate limit"
 
     @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
+=======
+            json={"username": "rl_user2", "password": "WrongPass!"},
+        )
+        assert resp2.status_code == 401, (
+            "Different user should not be affected by another's rate limit"
+        )
+
+>>>>>>> origin/fix/scenario-tests-properly
     def test_rate_limit_per_username_isolation(self, client):
         """Rate limiting for one username does not affect another."""
         client.post(
@@ -394,23 +463,35 @@ class TestRateLimitEnforcement:
             json={
                 "username": "isolated_user",
                 "email": "isolated@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         # 5 failed attempts
         for i in range(5):
             client.post(
                 "/api/v1/auth/login",
+<<<<<<< HEAD
                 json={
                     "username": "isolated_user",
                     "password": f"Wrong{i}!",
                 },  # NOSONAR test credential constant, not a real secret
+=======
+                json={"username": "isolated_user", "password": f"Wrong{i}!"},
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Should be rate limited
         resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "isolated_user", "password": TEST_PASSWORD_3},
+=======
+            json={"username": "isolated_user", "password": "WrongAgain!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 429
 
@@ -440,12 +521,18 @@ class TestBodySizeLimit:
             },
         )
         # The server should either accept or reject gracefully, not crash
+<<<<<<< HEAD
         assert resp.status_code in (
             201,
             413,
             422,
             400,
         ), f"Server should handle large body gracefully, got {resp.status_code}"
+=======
+        assert resp.status_code in (201, 413, 422, 400), (
+            f"Server should handle large body gracefully, got {resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_normal_sized_body_works(self, client, auth_headers):
         """A normally-sized request body works fine."""
@@ -519,9 +606,15 @@ class TestABACPolicyEnforcement:
             headers=auth_headers,
             json={"study_type": "load_flow"},
         )
+<<<<<<< HEAD
         assert (
             study_resp.status_code == 201
         ), f"Engineer should be able to run studies, got {study_resp.status_code}"
+=======
+        assert study_resp.status_code == 201, (
+            f"Engineer should be able to run studies, got {study_resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_abac_engine_deny_viewer_study(self):
         """Test the ABAC engine directly: viewer role is denied for study execution."""
@@ -672,12 +765,17 @@ class TestSIEMEventSubmission:
 
         json_str = event.to_json()
         assert isinstance(json_str, str)
+<<<<<<< HEAD
         parsed = json_str  # NOSONAR
+=======
+        parsed = json_str  # Already a string
+>>>>>>> origin/fix/scenario-tests-properly
         assert "access" in json_str
 
     def test_siem_forwarder_initialization(self):
         """SIEMForwarder can be initialized with configuration."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://loki:3100/loki/api/v1/push",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
             siem_type="loki",
         )
@@ -685,12 +783,23 @@ class TestSIEMEventSubmission:
         assert (
             forwarder.endpoint == "http://loki:3100/loki/api/v1/push"
         )  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://loki:3100/loki/api/v1/push",
+            siem_type="loki",
+        )
+        assert forwarder.siem_type == "loki"
+        assert forwarder.endpoint == "http://loki:3100/loki/api/v1/push"
+>>>>>>> origin/fix/scenario-tests-properly
         assert forwarder.retry_attempts == 3
 
     def test_siem_forwarder_elk_mode(self):
         """SIEMForwarder supports ELK (Elasticsearch) mode."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://elasticsearch:9200/etap-security-*/_doc",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://elasticsearch:9200/etap-security-*/_doc",
+>>>>>>> origin/fix/scenario-tests-properly
             siem_type="elk",
         )
         assert forwarder.siem_type == "elk"
@@ -698,7 +807,11 @@ class TestSIEMEventSubmission:
     def test_siem_forwarder_buffer(self):
         """SIEMForwarder buffers events when the endpoint is unreachable."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://unreachable-siem:9999/push",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://unreachable-siem:9999/push",
+>>>>>>> origin/fix/scenario-tests-properly
             siem_type="loki",
             buffer_size=100,
         )
@@ -712,7 +825,11 @@ class TestSIEMEventSubmission:
     def test_siem_forwarder_unknown_type_defaults_loki(self):
         """An unknown SIEM type defaults to 'loki'."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://siem:9999/push",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://siem:9999/push",
+>>>>>>> origin/fix/scenario-tests-properly
             siem_type="splunk",
         )
         assert forwarder.siem_type == "loki", "Unknown SIEM type should default to loki"
@@ -720,7 +837,11 @@ class TestSIEMEventSubmission:
     def test_siem_loki_payload_format(self):
         """Loki payload is correctly formatted with streams and values."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://loki:3100/loki/api/v1/push",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://loki:3100/loki/api/v1/push",
+>>>>>>> origin/fix/scenario-tests-properly
             siem_type="loki",
         )
         events = [
@@ -743,7 +864,11 @@ class TestSIEMEventSubmission:
     def test_siem_elk_payload_format(self):
         """ELK payload is correctly formatted as NDJSON bulk action."""
         forwarder = SIEMForwarder(
+<<<<<<< HEAD
             endpoint="http://elasticsearch:9200/etap-security-*/_doc",  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+=======
+            endpoint="http://elasticsearch:9200/etap-security-*/_doc",
+>>>>>>> origin/fix/scenario-tests-properly
             siem_type="elk",
         )
         events = [

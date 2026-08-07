@@ -450,7 +450,14 @@ import requests
 
 api_key = "مفتاح-الواجهة-الخاص-بك"
 base_url = "http://localhost:8000/api/v1"
+<<<<<<< HEAD
 headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+=======
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
+>>>>>>> origin/fix/scenario-tests-properly
 
 # تشغيل تحليل تدفق القدرة
 response = requests.post(
@@ -458,9 +465,15 @@ response = requests.post(
     json={
         "study_type": "load_flow",
         "system": {"base_mva": 100, "buses": [...], "lines": [...]},
+<<<<<<< HEAD
         "parameters": {"method": "newton_raphson"},
     },
     headers=headers,
+=======
+        "parameters": {"method": "newton_raphson"}
+    },
+    headers=headers
+>>>>>>> origin/fix/scenario-tests-properly
 )
 result = response.json()
 print(f"تقارب: {result['converged']}")

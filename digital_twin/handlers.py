@@ -26,14 +26,21 @@ Usage::
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _NO_ELECTRICAL_MODEL_MSG = "No electrical model bound"  # NOSONAR
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -70,13 +77,18 @@ class PropagationContext:
     state_estimator: Any = None
 
     # --- Accumulated results ---
+<<<<<<< HEAD
     steps: list[dict[str, Any]] = field(default_factory=list)
+=======
+    steps: List[Dict[str, Any]] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
     success: bool = True
     stop: bool = False  # Set to True to abort the chain
     start_time: float = field(default_factory=time.time)
     elapsed_seconds: float = 0.0
 
     # --- Short-circuit cache (set by YbusRebuildHandler, read by LoadFlowHandler etc.) ---
+<<<<<<< HEAD
     ybus_sequences: dict[str, Any] = field(default_factory=dict)
 
     def record_step(
@@ -84,6 +96,12 @@ class PropagationContext:
         step_name: str,
         step_success: bool,
         details: dict[str, Any] | None = None,
+=======
+    ybus_sequences: Dict[str, Any] = field(default_factory=dict)
+
+    def record_step(
+        self, step_name: str, step_success: bool, details: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self.steps.append(
             {
@@ -91,7 +109,11 @@ class PropagationContext:
                 "success": step_success,
                 "timestamp": time.time(),
                 "details": details or {},
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
         if not step_success:
             self.success = False
@@ -147,9 +169,13 @@ class TopologyUpdateHandler(PropagationHandler):
                 ctx.dt_state.adms.topology.identify_sections()
 
             ctx.record_step(
+<<<<<<< HEAD
                 "topology_update",
                 True,
                 {"switch_id": ctx.switch_id, "opened": ctx.is_opening},
+=======
+                "topology_update", True, {"switch_id": ctx.switch_id, "opened": ctx.is_opening}
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             if ctx.event_bus is not None:
@@ -163,7 +189,11 @@ class TopologyUpdateHandler(PropagationHandler):
                         affected_switches=[ctx.switch_id],
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             ctx.record_step("topology_update", False, {"error": str(e)})
@@ -191,6 +221,7 @@ class YbusRebuildHandler(PropagationHandler):
                             sequences_rebuilt=["1"],
                             source="change_propagation",
                             correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                         ),
                     )
             else:
@@ -201,6 +232,12 @@ class YbusRebuildHandler(PropagationHandler):
                         "error": _NO_ELECTRICAL_MODEL_MSG
                     },  # NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
+=======
+                        )
+                    )
+            else:
+                ctx.record_step("ybus_rebuild", False, {"error": "No electrical model bound"})
+>>>>>>> origin/fix/scenario-tests-properly
                 ctx.stop = True
         except Exception as e:
             ctx.record_step("ybus_rebuild", False, {"error": str(e)})
@@ -250,7 +287,11 @@ class LoadFlowHandler(PropagationHandler):
                         bus_voltages=bus_voltages,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
             if not converged:
@@ -281,7 +322,11 @@ class StateEstimationHandler(PropagationHandler):
             estimator = ctx.state_estimator if ctx.state_estimator is not None else WLSEstimator()
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
 
+<<<<<<< HEAD
             measurements: dict[str, Any] = {
+=======
+            measurements: Dict[str, Any] = {
+>>>>>>> origin/fix/scenario-tests-properly
                 "voltage_mag": {},
                 "power_injection": {},
                 "power_flow": {},
@@ -294,10 +339,15 @@ class StateEstimationHandler(PropagationHandler):
                 if pq is not None:
                     measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
 
+<<<<<<< HEAD
             ybus = ctx.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             result = estimator.estimate(ybus, measurements, [str(bid) for bid in bus_ids])
+=======
+            Ybus = ctx.dt_state.system.get_ybus(seq="1")
+            result = estimator.estimate(Ybus, measurements, [str(bid) for bid in bus_ids])
+>>>>>>> origin/fix/scenario-tests-properly
 
             ctx.record_step(
                 "state_estimation",
@@ -318,7 +368,11 @@ class StateEstimationHandler(PropagationHandler):
                         max_residual=result.max_residual,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             logger.warning("State estimation failed (non-fatal): %s", e)
@@ -334,17 +388,25 @@ class ShortCircuitRefreshHandler(PropagationHandler):
     def handle(self, ctx: PropagationContext) -> PropagationContext:
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
+<<<<<<< HEAD
                 "short_circuit_refresh",
                 True,
                 {"status": "skipped", "reason": "No system bound"},
+=======
+                "short_circuit_refresh", True, {"status": "skipped", "reason": "No system bound"}
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return ctx
         try:
             ctx.dt_state.system.build_sequence_networks()
             ctx.record_step(
+<<<<<<< HEAD
                 "short_circuit_refresh",
                 True,
                 {"status": "refreshed", "sequences_built": True},
+=======
+                "short_circuit_refresh", True, {"status": "refreshed", "sequences_built": True}
+>>>>>>> origin/fix/scenario-tests-properly
             )
             if ctx.event_bus is not None:
                 from .event_bus import FaultAnalysisCompleted
@@ -353,7 +415,11 @@ class ShortCircuitRefreshHandler(PropagationHandler):
                     FaultAnalysisCompleted(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             logger.warning("Short-circuit refresh failed (non-fatal): %s", e)
@@ -370,17 +436,27 @@ class ArcFlashRefreshHandler(PropagationHandler):
     returns (single-source-of-truth for the IEEE 1584 coefficients).
     """
 
+<<<<<<< HEAD
     # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
     fatal = False
 
     def handle(  # NOSONAR
         self, ctx: PropagationContext
     ) -> PropagationContext:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    fatal = False
+
+    def handle(self, ctx: PropagationContext) -> PropagationContext:
+>>>>>>> origin/fix/scenario-tests-properly
         if ctx.dt_state is None or ctx.dt_state.system is None:
             ctx.record_step(
                 "arc_flash_refresh",
                 True,
+<<<<<<< HEAD
                 {"status": "skipped", "reason": _NO_ELECTRICAL_MODEL_MSG},
+=======
+                {"status": "skipped", "reason": "No electrical model bound"},
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return ctx
         try:
@@ -389,6 +465,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 ElectrodeConfig,
                 EnclosureType,
             )
+<<<<<<< HEAD
             from fault_analysis.fault import (
                 FaultAnalyzer,
             )
@@ -413,6 +490,21 @@ class ArcFlashRefreshHandler(PropagationHandler):
 
             af_engine = ArcFlashEngine()
             results: dict[str, Any] = {}
+=======
+            from fault_analysis.fault import FaultAnalyzer
+
+            ctx.dt_state.system.build_sequence_networks(for_fault=True)
+            Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")
+            Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")
+            Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")
+
+            analyzer = FaultAnalyzer(
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
+            )
+
+            af_engine = ArcFlashEngine()
+            results: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             system_base_kv = getattr(ctx.dt_state.system, "base_kv", None) or 115.0  # kV
@@ -428,7 +520,14 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 # Compute the bus voltage in kV.  bus.voltage is in per-unit,
                 # system.base_kv is the system-wide kV base (e.g. 115 kV).
                 bus = ctx.dt_state.system.buses.get(bus_id)
+<<<<<<< HEAD
                 bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
+=======
+                if bus is not None:
+                    bus_kv = abs(bus.voltage) * system_base_kv
+                else:
+                    bus_kv = system_base_kv
+>>>>>>> origin/fix/scenario-tests-properly
 
                 # IEEE 1584-2018 valid range: 0.208–15 kV.
                 # Buses above 15 kV (transmission) use Ralph Lee fallback.
@@ -511,7 +610,11 @@ class ArcFlashRefreshHandler(PropagationHandler):
                     ArcFlashRefreshed(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             logger.warning("Arc flash refresh failed (non-fatal): %s", e)
@@ -529,12 +632,17 @@ class ProtectionRefreshHandler(PropagationHandler):
             ctx.record_step(
                 "protection_refresh",
                 True,
+<<<<<<< HEAD
                 {"status": "skipped", "reason": _NO_ELECTRICAL_MODEL_MSG},
+=======
+                {"status": "skipped", "reason": "No electrical model bound"},
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return ctx
         try:
             from coordination.coordination import CoordinationEngine
             from fault_analysis.fault import FaultAnalyzer
+<<<<<<< HEAD
             from relays.relay import (
                 OvercurrentRelay,
             )
@@ -558,6 +666,20 @@ class ProtectionRefreshHandler(PropagationHandler):
             )
 
             fault_currents: list[float] = []
+=======
+            from relays.relay import OvercurrentRelay
+
+            ctx.dt_state.system.build_sequence_networks(for_fault=True)
+            Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")
+            Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")
+            Ybus_zero = ctx.dt_state.system.get_ybus(seq="0")
+
+            analyzer = FaultAnalyzer(
+                Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
+            )
+
+            fault_currents: List[float] = []
+>>>>>>> origin/fix/scenario-tests-properly
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             for bus_id in bus_ids:
@@ -576,9 +698,13 @@ class ProtectionRefreshHandler(PropagationHandler):
             relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
 
             coord_results = coord_engine.check_coordination_range(
+<<<<<<< HEAD
                 relay1,
                 relay2,
                 representative_faults,
+=======
+                relay1, relay2, representative_faults
+>>>>>>> origin/fix/scenario-tests-properly
             )
             all_coordinated = all(r["coordinated"] for r in coord_results)
             min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
@@ -599,7 +725,11 @@ class ProtectionRefreshHandler(PropagationHandler):
                     ProtectionRefreshed(
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             logger.warning("Protection refresh failed (non-fatal): %s", e)
@@ -626,6 +756,7 @@ class DigitalTwinUpdateHandler(PropagationHandler):
             snapshot.validation_errors = [r.message for r in validation_results if not r.passed]
 
             if ctx.dt_state.system is not None and ctx.load_flow_solver is not None:
+<<<<<<< HEAD
                 # NOSONAR list() is intentional — creates a
                 # snapshot so we can mutate snapshot.bus_states during iteration.
                 for (
@@ -633,6 +764,9 @@ class DigitalTwinUpdateHandler(PropagationHandler):
                 ) in list(  # NOSONAR S7504: snapshot needed for safe mutation during iteration
                     snapshot.bus_states.keys()
                 ):  # NOSONAR intentional snapshot for safe mutation during iteration
+=======
+                for bid_str in list(snapshot.bus_states.keys()):
+>>>>>>> origin/fix/scenario-tests-properly
                     try:
                         bid_int = int(bid_str)
                     except (ValueError, TypeError):
@@ -654,7 +788,11 @@ class DigitalTwinUpdateHandler(PropagationHandler):
                         validation_passed=snapshot.validation_passed,
                         source="change_propagation",
                         correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         except Exception as e:
             ctx.record_step("digital_twin_update", False, {"error": str(e)})
@@ -674,7 +812,11 @@ class PropagationChain:
     recorded and a ``ValidationErrorEvent`` is published if any step failed.
     """
 
+<<<<<<< HEAD
     def __init__(self, handlers: list[PropagationHandler] | None = None):
+=======
+    def __init__(self, handlers: List[PropagationHandler] | None = None):
+>>>>>>> origin/fix/scenario-tests-properly
         self.handlers = list(handlers) if handlers is not None else list(_DEFAULT_HANDLERS)
 
     def execute(self, ctx: PropagationContext) -> PropagationContext:
@@ -699,7 +841,11 @@ class PropagationChain:
                     layer="propagation",
                     source="change_propagation",
                     correlation_id=ctx.propagation_id,
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         return ctx
@@ -709,7 +855,11 @@ class PropagationChain:
 # Default chain — used by ChangePropagationEngine when no custom chain given
 # ============================================================================
 
+<<<<<<< HEAD
 _DEFAULT_HANDLERS: list[PropagationHandler] = [
+=======
+_DEFAULT_HANDLERS: List[PropagationHandler] = [
+>>>>>>> origin/fix/scenario-tests-properly
     TopologyUpdateHandler(),
     YbusRebuildHandler(),
     LoadFlowHandler(),

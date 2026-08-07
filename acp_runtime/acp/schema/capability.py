@@ -10,7 +10,11 @@ from __future__ import annotations
 
 import re
 
+<<<<<<< HEAD
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+=======
+from pydantic import BaseModel, ConfigDict, Field
+>>>>>>> origin/fix/scenario-tests-properly
 
 CAPABILITY_NAME_PATTERN = r"^[a-z][a-z0-9_.\-]{0,127}$"
 SCOPE_PATTERN = r"^[a-z][a-z0-9_.\-]{0,127}$"
@@ -35,6 +39,7 @@ class CapabilityDescriptor(BaseModel):
     name: str = Field(pattern=CAPABILITY_NAME_PATTERN)
     scopes: tuple[str, ...] = Field(default_factory=tuple)
 
+<<<<<<< HEAD
     @model_validator(mode="after")
     def _validate_scopes(self) -> CapabilityDescriptor:
         # Validate scopes after model construction (Field(pattern=) only
@@ -44,3 +49,14 @@ class CapabilityDescriptor(BaseModel):
             if not is_valid_scope(s):
                 raise ValueError(f"Invalid scope: {s!r}")
         return self
+=======
+    def __init__(self, *, name: str, scopes: tuple[str, ...] | list[str] = ()) -> None:
+        # Validate scopes at construction (Field(pattern=) only validates
+        # string elements when the field type is list[str]; for tuple,
+        # validate explicitly).
+        scopes_t = tuple(scopes)
+        for s in scopes_t:
+            if not is_valid_scope(s):
+                raise ValueError(f"Invalid scope: {s!r}")
+        super().__init__(name=name, scopes=scopes_t)
+>>>>>>> origin/fix/scenario-tests-properly

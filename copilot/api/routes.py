@@ -21,6 +21,7 @@ Endpoints:
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _COPILOT_API_BASE_4820 = "http://localhost:4820"  # NOSONAR
 _COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR
@@ -29,6 +30,12 @@ import json
 import logging
 import time
 from typing import Annotated, Optional
+=======
+import json
+import logging
+import time
+from typing import List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -67,6 +74,7 @@ def _get_etap_provider():
 
 class ProcessRequest(BaseModel):
     prompt: str = Field(..., description="Natural language engineering request")
+<<<<<<< HEAD
     autocad_url: str = Field(
         _COPILOT_API_BASE_4820,
         description="AutoCAD plugin URL",  # NOSONAR
@@ -75,6 +83,10 @@ class ProcessRequest(BaseModel):
         _COPILOT_API_BASE_4830,
         description="Revit plugin URL",  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
+=======
+    autocad_url: str = Field("http://localhost:4820", description="AutoCAD plugin URL")
+    revit_url: str = Field("http://localhost:4830", description="Revit plugin URL")
+>>>>>>> origin/fix/scenario-tests-properly
     auto_sync: bool = Field(True, description="Automatically sync to connected systems")
 
 
@@ -95,12 +107,21 @@ class ToolCallRequest(BaseModel):
 class SyncRequest(BaseModel):
     project_path: str = Field("", description="Path to project file")
     direction: str = Field("full", description="import, export, or full")
+<<<<<<< HEAD
     systems: list[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
 
 
 class ValidateRequest(BaseModel):
     model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
     checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
+=======
+    systems: List[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
+
+
+class ValidateRequest(BaseModel):
+    model_json: str | None = Field(None, description="Optional model JSON to validate")
+    checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -113,8 +134,13 @@ class CopilotAPI:
 
     def __init__(
         self,
+<<<<<<< HEAD
         autocad_url: str = _COPILOT_API_BASE_4820,
         revit_url: str = _COPILOT_API_BASE_4830,
+=======
+        autocad_url: str = "http://localhost:4820",
+        revit_url: str = "http://localhost:4830",
+>>>>>>> origin/fix/scenario-tests-properly
     ):
         self.mcp = CopilotMCPServer(
             autocad_url=autocad_url,
@@ -126,6 +152,7 @@ class CopilotAPI:
             autocad_connector=self.mcp.autocad,
             revit_connector=self.mcp.revit,
             etap_provider=self.etap_provider,
+<<<<<<< HEAD
         )  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         self.start_time = time.time()
         self._call_count = 0
@@ -133,6 +160,13 @@ class CopilotAPI:
     def get_router(  # NOSONAR
         self,
     ) -> APIRouter:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+        )
+        self.start_time = time.time()
+        self._call_count = 0
+
+    def get_router(self) -> APIRouter:
+>>>>>>> origin/fix/scenario-tests-properly
         """Create and return the FastAPI router."""
         router = APIRouter(prefix="/copilot", tags=["Engineering Copilot"])
 
@@ -168,6 +202,7 @@ class CopilotAPI:
 
         @router.post("/tools/{tool_name}")
         async def call_tool(tool_name: str, request: ToolCallRequest):
+<<<<<<< HEAD
             """Execute a specific MCP tool."""  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
             self._call_count += 1
             result = self.mcp.call_tool(tool_name, request.arguments)
@@ -175,6 +210,13 @@ class CopilotAPI:
                 raise HTTPException(  # NOSONAR
                     status_code=400, detail=result.get("error")
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            """Execute a specific MCP tool."""
+            self._call_count += 1
+            result = self.mcp.call_tool(tool_name, request.arguments)
+            if not result.get("success"):
+                raise HTTPException(status_code=400, detail=result.get("error"))
+>>>>>>> origin/fix/scenario-tests-properly
             return result
 
         @router.get("/model")
@@ -189,6 +231,7 @@ class CopilotAPI:
         async def set_model(request: ModelUpdateRequest):
             """Set/replace the unified engineering model."""
             try:
+<<<<<<< HEAD
                 model = UnifiedEngineeringModel.from_json(
                     request.model_json
                 )  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
@@ -198,15 +241,27 @@ class CopilotAPI:
                 raise HTTPException(  # NOSONAR
                     status_code=400, detail=f"Invalid model: {e}"
                 ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+                model = UnifiedEngineeringModel.from_json(request.model_json)
+                self.mcp._model = model
+                return {"success": True, "message": "Model updated"}
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid model: {e}") from e
+>>>>>>> origin/fix/scenario-tests-properly
 
         @router.post("/etap/sync")
         async def sync_etap(request: SyncRequest):
             """Synchronize with ETAP project."""
             self._call_count += 1
             if not request.project_path:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                     status_code=400,
                     detail="project_path is required for ETAP sync",
+=======
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for ETAP sync"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             result = self.mcp.call_tool(
                 "sync_etap",
@@ -222,9 +277,14 @@ class CopilotAPI:
             """Synchronize with AutoCAD drawing."""
             self._call_count += 1
             if not request.project_path:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                     status_code=400,
                     detail="project_path is required for AutoCAD sync",
+=======
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for AutoCAD sync"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             result = self.mcp.call_tool(
                 "sync_autocad",
@@ -240,9 +300,14 @@ class CopilotAPI:
             """Synchronize with Revit model."""
             self._call_count += 1
             if not request.project_path:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                     status_code=400,
                     detail="project_path is required for Revit sync",
+=======
+                raise HTTPException(
+                    status_code=400, detail="project_path is required for Revit sync"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             result = self.mcp.call_tool(
                 "sync_revit",
@@ -251,6 +316,7 @@ class CopilotAPI:
                     "direction": request.direction,
                 },
             )
+<<<<<<< HEAD
             return result  # NOSONAR S8410: Annotated migration in progress; this endpoint uses legacy Depends pattern
 
         @router.post("/autocad/draw")
@@ -258,19 +324,33 @@ class CopilotAPI:
             entity_type: Annotated[str, Query(...)] = ...,  # NOSONAR
             params: dict | None = None,
         ):
+=======
+            return result
+
+        @router.post("/autocad/draw")
+        async def draw_in_autocad(entity_type: str = Query(...), params: dict = None):
+>>>>>>> origin/fix/scenario-tests-properly
             """Draw a specific entity in AutoCAD.
 
             Entity types: bus, transformer, cable, breaker, panel, load, equipment
             """
             if params is None:
+<<<<<<< HEAD
                 params = {}  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+=======
+                params = {}
+>>>>>>> origin/fix/scenario-tests-properly
             self._call_count += 1
             cad = self.mcp.autocad
 
             if not cad.is_connected:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR
                     status_code=503, detail="AutoCAD plugin not connected"
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+                raise HTTPException(status_code=503, detail="AutoCAD plugin not connected")
+>>>>>>> origin/fix/scenario-tests-properly
 
             handlers = {
                 "bus": lambda p: cad.draw_bus(Bus(**p)),
@@ -278,24 +358,37 @@ class CopilotAPI:
                 "cable": lambda p: cad.draw_cable(Cable(**p)),
                 "breaker": lambda p: cad.draw_breaker(Breaker(**p)),
                 "panel": lambda p: cad.draw_panel(Panel(**p)),
+<<<<<<< HEAD
                 "load": lambda p: cad.draw_load(
                     Load(**p)
                 ),  # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+=======
+                "load": lambda p: cad.draw_load(Load(**p)),
+>>>>>>> origin/fix/scenario-tests-properly
             }
 
             handler = handlers.get(entity_type)
             if not handler:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR
                     status_code=400, detail=f"Unknown entity type: {entity_type}"
                 )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
+=======
+                raise HTTPException(status_code=400, detail=f"Unknown entity type: {entity_type}")
+
+>>>>>>> origin/fix/scenario-tests-properly
             try:
                 result = handler(params)
                 return {"success": True, "result": result}
             except Exception as e:
+<<<<<<< HEAD
                 raise HTTPException(  # NOSONAR
                     status_code=500, detail=str(e)
                 ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+                raise HTTPException(status_code=500, detail=str(e)) from e
+>>>>>>> origin/fix/scenario-tests-properly
 
         @router.post("/validate")
         async def validate_design(request: ValidateRequest):
@@ -353,8 +446,13 @@ class CopilotAPI:
 
 
 def create_app(
+<<<<<<< HEAD
     autocad_url: str = _COPILOT_API_BASE_4820,
     revit_url: str = _COPILOT_API_BASE_4830,
+=======
+    autocad_url: str = "http://localhost:4820",
+    revit_url: str = "http://localhost:4830",
+>>>>>>> origin/fix/scenario-tests-properly
 ) -> FastAPI:
     """Create the standalone FastAPI application.
 

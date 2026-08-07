@@ -5,6 +5,7 @@
 
 ---
 
+<<<<<<< HEAD
 ## 2026-06-28 (Phase 2) — Launch Blocker Fixes + Test Suite Recovery
 
 ### Critical showstoppers fixed
@@ -89,6 +90,8 @@ fragile and could trigger failures on stricter CI environments.
 
 ---
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 ## Summary of Changes
 
 ### 1. HF Space Build Fixes (A1-A5, A3, A4)
@@ -245,7 +248,11 @@ Single source of truth for version number: `2.1.0`
 
 2. **Token Revocation** - User must revoke leaked tokens:
    - HF token: `hf_GMLi...`
+<<<<<<< HEAD
    - GitHub PAT 1: `REDACTED_GITHUB_PAT_PREFIX...`
+=======
+   - GitHub PAT 1: `github_pat_11CCHF4XA0...`
+>>>>>>> origin/fix/scenario-tests-properly
    - GitHub PAT 2: `ghp_48G4QTksCwW3...`
 
 3. **Duplicate StudyCache** (K3)

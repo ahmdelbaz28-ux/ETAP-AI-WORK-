@@ -24,10 +24,16 @@ import os
 import sys
 import time
 import uuid
+<<<<<<< HEAD
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
+=======
+from datetime import UTC, datetime, timedelta, timezone
+
+UTC = UTC
+>>>>>>> origin/fix/scenario-tests-properly
 
 import jwt
 import pytest
@@ -37,6 +43,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
+<<<<<<< HEAD
 # Test credentials — module-level constants so SonarCloud S2068
 # (hard-coded credentials) is satisfied. These are NOT real secrets;
 # they exist only to exercise auth code paths in the test suite.
@@ -52,6 +59,8 @@ TEST_PASSWORD_9 = "OldP@ssw0rd!"  # NOSONAR test credential constant, not a real
 TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR test credential constant, not a real secret
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 # ===========================================================================
 # 1. POST /api/v1/auth/register
 # ===========================================================================
@@ -67,18 +76,28 @@ class TestRegister:
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+                "role": "engineer",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         assert resp.status_code == 201, f"Expected 201, got {resp.status_code}: {resp.text}"
         data = resp.json()
         assert data["username"] == "newuser", "Username should match"
         assert data["email"] == "newuser@example.com", "Email should match"
+<<<<<<< HEAD
         assert data["role"] == "viewer", "Default role should be viewer (S-02 security fix)"
+=======
+        assert data["role"] == "engineer", "Default role should be engineer"
+>>>>>>> origin/fix/scenario-tests-properly
         assert data["is_active"] is True, "User should be active by default"
         assert "id" in data, "Response should include user ID"
         assert "password_hash" not in data, "Password hash must never be in response"
 
+<<<<<<< HEAD
     def test_register_ignores_role_field(self, client):
         """S-02 security: the register endpoint must ignore any 'role' field
         in the request body.  Even if a caller sends role='admin', the
@@ -104,6 +123,8 @@ class TestRegister:
             "all new users must get role='viewer'"
         )
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     def test_register_duplicate_username(self, client):
         """Registering with an existing username returns 409."""
         client.post(
@@ -111,7 +132,11 @@ class TestRegister:
             json={
                 "username": "dupuser",
                 "email": "first@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         resp = client.post(
@@ -119,12 +144,21 @@ class TestRegister:
             json={
                 "username": "dupuser",
                 "email": "second@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
             },
         )
         assert (
             resp.status_code == 409
         ), f"Expected 409 for duplicate username, got {resp.status_code}"
+=======
+                "password": "S3cureP@ss!",
+            },
+        )
+        assert resp.status_code == 409, (
+            f"Expected 409 for duplicate username, got {resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
         assert "Username already registered" in resp.json()["detail"]
 
     def test_register_duplicate_email(self, client):
@@ -134,7 +168,11 @@ class TestRegister:
             json={
                 "username": "user_a",
                 "email": "same@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         resp = client.post(
@@ -142,7 +180,11 @@ class TestRegister:
             json={
                 "username": "user_b",
                 "email": "same@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         assert resp.status_code == 409, f"Expected 409 for duplicate email, got {resp.status_code}"
@@ -175,7 +217,11 @@ class TestRegister:
             json={
                 "username": "commonpw",
                 "email": "common@example.com",
+<<<<<<< HEAD
                 "password": TEST_PASSWORD_10,  # in blocklist
+=======
+                "password": "12345678",  # in blocklist
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         assert resp.status_code == 422, f"Expected 422 for common password, got {resp.status_code}"
@@ -187,12 +233,21 @@ class TestRegister:
             json={
                 "username": "myname",
                 "email": "myname@example.com",
+<<<<<<< HEAD
                 "password": TEST_PASSWORD_3,
             },
         )
         assert (
             resp.status_code == 422
         ), f"Expected 422 for password containing username, got {resp.status_code}"
+=======
+                "password": "mynameS3cure!",
+            },
+        )
+        assert resp.status_code == 422, (
+            f"Expected 422 for password containing username, got {resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -203,9 +258,13 @@ class TestRegister:
 class TestLogin:
     """Tests for the login endpoint."""
 
+<<<<<<< HEAD
     def _register_and_login(
         self, client, username="logintest", password="S3cureP@ss!"
     ):  # NOSONAR test credential constant, not a real secret
+=======
+    def _register_and_login(self, client, username="logintest", password="S3cureP@ss!"):
+>>>>>>> origin/fix/scenario-tests-properly
         """Helper: register a user then attempt login."""
         client.post(
             "/api/v1/auth/register",
@@ -237,12 +296,20 @@ class TestLogin:
             json={
                 "username": "wrongpw",
                 "email": "wrongpw@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "wrongpw", "password": TEST_PASSWORD_2},
+=======
+            json={"username": "wrongpw", "password": "WrongP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 401, f"Expected 401, got {resp.status_code}"
         assert "Invalid credentials" in resp.json()["detail"]
@@ -251,6 +318,7 @@ class TestLogin:
         """Login with non-existent user returns 401 (same error as wrong password)."""
         resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "ghost_user", "password": TEST_PASSWORD_8},
         )
         assert resp.status_code == 401, f"Expected 401, got {resp.status_code}"
@@ -258,6 +326,15 @@ class TestLogin:
         assert (
             "Invalid credentials" in resp.json()["detail"]
         ), "Error for non-existent user should be identical to wrong password error"
+=======
+            json={"username": "ghost_user", "password": "Whatever123!"},
+        )
+        assert resp.status_code == 401, f"Expected 401, got {resp.status_code}"
+        # Must be the SAME error message to avoid user enumeration
+        assert "Invalid credentials" in resp.json()["detail"], (
+            "Error for non-existent user should be identical to wrong password error"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_login_rate_limiting(self, client):
         """After 5 failed login attempts, the 6th is rate-limited (429)."""
@@ -267,28 +344,44 @@ class TestLogin:
             json={
                 "username": username,
                 "email": "ratelimit@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         # Make 5 failed attempts
         for i in range(5):
             resp = client.post(
                 "/api/v1/auth/login",
+<<<<<<< HEAD
                 json={
                     "username": username,
                     "password": f"WrongP@ss{i}!",
                 },  # NOSONAR test credential constant, not a real secret
+=======
+                json={"username": username, "password": f"WrongP@ss{i}!"},
+>>>>>>> origin/fix/scenario-tests-properly
             )
             assert resp.status_code == 401, f"Attempt {i + 1} should return 401"
 
         # 6th attempt should be rate-limited
         resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": username, "password": TEST_PASSWORD_1},
         )
         assert (
             resp.status_code == 429
         ), f"Expected 429 after 5 failed attempts, got {resp.status_code}"
+=======
+            json={"username": username, "password": "WrongP@ss6!"},
+        )
+        assert resp.status_code == 429, (
+            f"Expected 429 after 5 failed attempts, got {resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -307,12 +400,20 @@ class TestRefresh:
             json={
                 "username": "refreshuser",
                 "email": "refresh@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         login_resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "refreshuser", "password": TEST_USER_PASSWORD},
+=======
+            json={"username": "refreshuser", "password": "S3cureP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         refresh_token = login_resp.json()["refresh_token"]
 
@@ -361,12 +462,20 @@ class TestRefresh:
             json={
                 "username": "tokentypeuser",
                 "email": "tokentype@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         login_resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "tokentypeuser", "password": TEST_USER_PASSWORD},
+=======
+            json={"username": "tokentypeuser", "password": "S3cureP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         access_token = login_resp.json()["access_token"]
 
@@ -374,9 +483,15 @@ class TestRefresh:
             "/api/v1/auth/refresh",
             json={"refresh_token": access_token},
         )
+<<<<<<< HEAD
         assert (
             resp.status_code == 401
         ), f"Access token should not be accepted as refresh token, got {resp.status_code}"
+=======
+        assert resp.status_code == 401, (
+            f"Access token should not be accepted as refresh token, got {resp.status_code}"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
@@ -474,7 +589,11 @@ class TestUpdateMe:
             json={
                 "username": "seconduser",
                 "email": "second@example.com",
+<<<<<<< HEAD
                 "password": TEST_PASSWORD_5,
+=======
+                "password": "S3cureP@ss2!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         # Try to update testuser's email to seconduser's email
@@ -500,8 +619,13 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
+<<<<<<< HEAD
                 "current_password": "Str0ngP@ss!",  # NOSONAR test credential constant, not a real secret
                 "new_password": "N3wS3cureP@ss!",  # NOSONAR test credential constant, not a real secret
+=======
+                "current_password": "Str0ngP@ss!",
+                "new_password": "N3wS3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
@@ -509,7 +633,11 @@ class TestChangePassword:
         # Verify login works with new password
         login_resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "testuser", "password": TEST_PASSWORD_7},
+=======
+            json={"username": "testuser", "password": "N3wS3cureP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert login_resp.status_code == 200, "Should be able to login with new password"
 
@@ -519,8 +647,13 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
+<<<<<<< HEAD
                 "current_password": "WrongCurrentP@ss!",  # NOSONAR test credential constant, not a real secret
                 "new_password": "N3wS3cureP@ss!",  # NOSONAR test credential constant, not a real secret
+=======
+                "current_password": "WrongCurrentP@ss!",
+                "new_password": "N3wS3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
@@ -532,7 +665,11 @@ class TestChangePassword:
             "/api/v1/auth/me/password",
             headers=auth_headers,
             json={
+<<<<<<< HEAD
                 "current_password": "Str0ngP@ss!",  # NOSONAR test credential constant, not a real secret
+=======
+                "current_password": "Str0ngP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
                 "new_password": "password",  # blocklisted
             },
         )
@@ -564,6 +701,7 @@ class TestForgotPassword:
             "/api/v1/auth/forgot-password",
             json={"email": "nonexistent@example.com"},
         )
+<<<<<<< HEAD
         assert (
             resp.status_code == 200
         ), f"Expected 200 for non-existent email (no enumeration), got {resp.status_code}"
@@ -595,6 +733,14 @@ class TestForgotPassword:
             "AUTH_RETURN_RESET_TOKEN=false — it should only be sent via email"
         )
 
+=======
+        assert resp.status_code == 200, (
+            f"Expected 200 for non-existent email (no enumeration), got {resp.status_code}"
+        )
+        data = resp.json()
+        assert "reset_token" not in data, "Non-existent email must NOT return a reset token"
+
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ===========================================================================
 # 9. POST /api/v1/auth/reset-password
@@ -611,7 +757,11 @@ class TestResetPassword:
             json={
                 "username": "resetuser",
                 "email": email,
+<<<<<<< HEAD
                 "password": TEST_PASSWORD_9,
+=======
+                "password": "OldP@ssw0rd!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         resp = client.post(
@@ -625,17 +775,25 @@ class TestResetPassword:
         token = self._get_reset_token(client)
         resp = client.post(
             "/api/v1/auth/reset-password",
+<<<<<<< HEAD
             json={
                 "token": token,
                 "new_password": "Br4ndN3wP@ss!",
             },  # NOSONAR test credential constant, not a real secret
+=======
+            json={"token": token, "new_password": "Br4ndN3wP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
 
         # Verify login with new password
         login_resp = client.post(
             "/api/v1/auth/login",
+<<<<<<< HEAD
             json={"username": "resetuser", "password": TEST_PASSWORD_6},
+=======
+            json={"username": "resetuser", "password": "Br4ndN3wP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert login_resp.status_code == 200, "Should login with reset password"
 
@@ -646,6 +804,7 @@ class TestResetPassword:
         # the forgot-password endpoint and then manipulate the DB.
         # However, since we cannot easily modify the DB directly through
         # the API, we test with a completely bogus token.
+<<<<<<< HEAD
         # NOTE: token uses env-var lookup so SonarCloud S6418 does not
         # flag it as a hard-coded secret. The default value is a clearly
         # fake placeholder — never a real credential.
@@ -655,17 +814,28 @@ class TestResetPassword:
         resp = client.post(
             "/api/v1/auth/reset-password",
             json={"token": f"{expired_test_token}_expired_12345", "new_password": "Br4ndN3wP@ss!"},
+=======
+        resp = client.post(
+            "/api/v1/auth/reset-password",
+            json={"token": "expired-token-12345", "new_password": "Br4ndN3wP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 400, f"Expected 400 for expired token, got {resp.status_code}"
 
     def test_reset_password_invalid_token(self, client):
         """A completely invalid token returns 400."""
+<<<<<<< HEAD
         invalid_test_token = os.environ.get(
             "TEST_FAKE_TOKEN", "test_token_not_a_real_secret_placeholder"
         )
         resp = client.post(
             "/api/v1/auth/reset-password",
             json={"token": f"{invalid_test_token}_invalid_xyz", "new_password": "Br4ndN3wP@ss!"},
+=======
+        resp = client.post(
+            "/api/v1/auth/reset-password",
+            json={"token": "invalid-token-xyz", "new_password": "Br4ndN3wP@ss!"},
+>>>>>>> origin/fix/scenario-tests-properly
         )
         assert resp.status_code == 400, f"Expected 400 for invalid token, got {resp.status_code}"
 
@@ -709,7 +879,11 @@ class TestDeleteUser:
             json={
                 "username": "deleteme",
                 "email": "deleteme@example.com",
+<<<<<<< HEAD
                 "password": TEST_USER_PASSWORD,
+=======
+                "password": "S3cureP@ss!",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         user_id = reg.json()["id"]

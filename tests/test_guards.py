@@ -547,9 +547,15 @@ def calculate_bus_impedance(voltage: float, current: complex) -> complex:
 '''
     result = guard.scan(eng_code)
     must_fix = [v for v in result.violations if v.severity == GuardSeverity.MUST_FIX]
+<<<<<<< HEAD
     assert (
         len(must_fix) == 0
     ), f"Engineering code has MUST_FIX: {[(v.rule_id, v.description) for v in must_fix]}"
+=======
+    assert len(must_fix) == 0, (
+        f"Engineering code has MUST_FIX: {[(v.rule_id, v.description) for v in must_fix]}"
+    )
+>>>>>>> origin/fix/scenario-tests-properly
     print("PASS: test_etap_engineering_code_quality")
 
 

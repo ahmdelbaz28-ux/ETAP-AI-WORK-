@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import math
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import numpy as np
 
 
@@ -26,9 +29,15 @@ class System:
         self.buses = {}  # bus_id -> Bus
         self.lines = []  # list of Line
         self.transformers = []  # list of Transformer
+<<<<<<< HEAD
         self.generators = []  # NOSONAR
         self.loads = []  # list of Load
         self.Ybus_seq = {}  # NOSONAR IEEE/IEC notation for sequence-component Y-bus matrix  # sequence -> Ybus matrix
+=======
+        self.generators = []  # list of Generator
+        self.loads = []  # list of Load
+        self.Ybus_seq = {}  # sequence -> Ybus matrix
+>>>>>>> origin/fix/scenario-tests-properly
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow
 
     def add_bus(self, bus):
@@ -51,9 +60,15 @@ class System:
         """Add a load to the system and accumulate its power at the connected bus."""
         self.loads.append(load)
         # Accumulate load power at the connected bus (was previously in Load.__init__)
+<<<<<<< HEAD
         load.bus.load_power += load.load_power  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
     def build_ybus(self, seq="1"):  # NOSONAR cognitive complexity; refactoring sprint
+=======
+        load.bus.load_power += load.load_power
+
+    def build_ybus(self, seq="1"):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Build the Ybus admittance matrix for the system for a given sequence.
 
@@ -67,11 +82,17 @@ class System:
         bus_ids = sorted(self.buses.keys())
         n = len(bus_ids)
         bus_index = {bus_id: i for i, bus_id in enumerate(bus_ids)}
+<<<<<<< HEAD
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Initialize Ybus as zero matrix
         ybus = np.zeros(
             (n, n), dtype=complex
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+
+        # Initialize Ybus as zero matrix
+        Ybus = np.zeros((n, n), dtype=complex)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Add contributions from lines
         for line in self.lines:
@@ -82,12 +103,21 @@ class System:
             # Shunt susceptance/2 at each end
             y_shunt = line.get_shunt_admittance(seq) / 2.0
 
+<<<<<<< HEAD
             ybus[i, i] += y + y_shunt
             ybus[j, j] += y + y_shunt
             # Off-diagonal elements: Ybus[i,j] = Ybus[j,i] = -y (symmetric for real y)
             # For complex y (e.g., from complex impedance), both off-diagonals are -y
             ybus[i, j] -= y
             ybus[j, i] -= y
+=======
+            Ybus[i, i] += y + y_shunt
+            Ybus[j, j] += y + y_shunt
+            # Off-diagonal elements: Ybus[i,j] = Ybus[j,i] = -y (symmetric for real y)
+            # For complex y (e.g., from complex impedance), both off-diagonals are -y
+            Ybus[i, j] -= y
+            Ybus[j, i] -= y
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Add contributions from transformers
         for xf in self.transformers:
@@ -103,12 +133,17 @@ class System:
             tap = xf.tap_ratio
             phase_shift = xf.phase_shift
 
+<<<<<<< HEAD
             if not math.isclose(tap, 1.0) or not math.isclose(phase_shift, 0.0):
+=======
+            if tap != 1.0 or phase_shift != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                 # Off-nominal tap ratio transformer model
                 # Complex tap ratio: a = tap * exp(j * phase_shift)
                 a = tap * np.exp(1j * phase_shift)
 
                 # Ybus entries for tap-changing transformer (standard formulation)
+<<<<<<< HEAD
                 # Shunt on tapped side (bus i) must be referred Union[through, a|²]
                 ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
                 ybus[j, j] += y + y_shunt_half
@@ -120,6 +155,19 @@ class System:
                 ybus[j, j] += y + y_shunt_half
                 ybus[i, j] -= y
                 ybus[j, i] -= y
+=======
+                # Shunt on tapped side (bus i) must be referred through |a|²
+                Ybus[i, i] += (y / (abs(a) ** 2)) + y_shunt_half / (abs(a) ** 2)
+                Ybus[j, j] += y + y_shunt_half
+                Ybus[i, j] -= y / np.conj(a)
+                Ybus[j, i] -= y / a
+            else:
+                # Standard transformer (tap = 1.0, no phase shift)
+                Ybus[i, i] += y + y_shunt_half
+                Ybus[j, j] += y + y_shunt_half
+                Ybus[i, j] -= y
+                Ybus[j, i] -= y
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Add generator impedance contributions to Ybus diagonal
         # For positive sequence with include_gen_impedance=True (fault analysis),
@@ -132,7 +180,11 @@ class System:
                 zg = gen.get_impedance(seq)
                 if abs(zg) > 1e-12:
                     yg = 1.0 / zg
+<<<<<<< HEAD
                     ybus[i, i] += yg
+=======
+                    Ybus[i, i] += yg
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Add load contributions to Ybus for constant-impedance loads
         # For constant power loads (default), no Ybus modification is needed
@@ -144,10 +196,17 @@ class System:
                 z_load = load.get_impedance(seq)
                 if abs(z_load) > 1e-12 and abs(z_load) < 1e8:
                     y_load = 1.0 / z_load
+<<<<<<< HEAD
                     ybus[i, i] += y_load
 
         self.Ybus_seq[seq] = ybus
         return ybus
+=======
+                    Ybus[i, i] += y_load
+
+        self.Ybus_seq[seq] = Ybus
+        return Ybus
+>>>>>>> origin/fix/scenario-tests-properly
 
     def get_ybus(self, seq="1"):
         """

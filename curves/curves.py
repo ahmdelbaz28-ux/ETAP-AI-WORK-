@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SECURITY AUDIT 2026-07-25 — Fix S-22: Boundary consistency.
 # Changed all curve guard conditions from `Ip >= I` to `Ip > I`.
 # Previously, at exactly I == Ip, curves returned inf (never trips) but
@@ -234,10 +235,20 @@ class IEC60255Curves:
         i,
         ip,
     ):  # NOSONAR physics/engineering notation
+=======
+class IEC60255Curves:
+    """
+    IEC 60255 inverse time curves for overcurrent relays.
+    """
+
+    @staticmethod
+    def standard_inverse(TMS, I, Ip):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
         """
+<<<<<<< HEAD
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -252,10 +263,19 @@ class IEC60255Curves:
         i,
         ip,
     ):  # NOSONAR physics/engineering notation
+=======
+        if I <= Ip:
+            return float("inf")
+        return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
+
+    @staticmethod
+    def very_inverse(TMS, I, Ip):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
+<<<<<<< HEAD
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -270,10 +290,19 @@ class IEC60255Curves:
         i,
         ip,
     ):  # NOSONAR physics/engineering notation
+=======
+        if I <= Ip:
+            return float("inf")
+        return TMS * (13.5 / ((I / Ip) - 1))
+
+    @staticmethod
+    def extremely_inverse(TMS, I, Ip):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
+<<<<<<< HEAD
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -288,10 +317,19 @@ class IEC60255Curves:
         i,
         ip,
     ):  # NOSONAR physics/engineering notation
+=======
+        if I <= Ip:
+            return float("inf")
+        return TMS * (80 / ((I / Ip) ** 2 - 1))
+
+    @staticmethod
+    def long_inverse(TMS, I, Ip):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
         """
+<<<<<<< HEAD
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -299,3 +337,8 @@ class IEC60255Curves:
             curve_type="long_inverse",
         )
         return result["operating_time_s"]
+=======
+        if I <= Ip:
+            return float("inf")
+        return TMS * (120 / ((I / Ip) - 1))
+>>>>>>> origin/fix/scenario-tests-properly

@@ -69,4 +69,8 @@
       "degradedGracefully": true
     }
   ]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly

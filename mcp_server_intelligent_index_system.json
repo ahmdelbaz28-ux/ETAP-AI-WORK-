@@ -202,7 +202,11 @@
   },
   "integration_with_etap_ai_platform": {
     "existing_architecture_alignment": {
+<<<<<<< HEAD
       "ai_agent_layer_integration": "Connect MCP Server to the 25 specialized AI agents",
+=======
+      "ai_agent_layer_integration": "Connect MCP Server to the 23 specialized AI agents",
+>>>>>>> origin/fix/scenario-tests-properly
       "computation_engine_enhancement": "Provide contextual documentation for engineering calculations",
       "gis_integration_support": "Supply detailed ArcGIS/QGIS documentation for GIS-enabled analysis"
     },
@@ -244,4 +248,8 @@
       "performance_monitoring": "Track response times and search accuracy metrics"
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly

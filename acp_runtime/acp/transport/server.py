@@ -20,7 +20,11 @@ from __future__ import annotations
 
 import json
 import logging
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any
+>>>>>>> origin/fix/scenario-tests-properly
 
 from acp.transport.base import Transport
 
@@ -50,8 +54,13 @@ class Server:
         router: Any,
         transport: Transport,
         *,
+<<<<<<< HEAD
         metrics: Optional[Any] = None,
         logger: Optional[Any] = None,
+=======
+        metrics: Any | None = None,
+        logger: Any | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self._router = router
         self._transport = transport
@@ -59,6 +68,7 @@ class Server:
         self._logger = logger
         self._log = logging.getLogger("acp.server")
 
+<<<<<<< HEAD
     def _record_received(self, raw: str) -> None:
         """Record message-received metrics, if configured."""
         if self._metrics is not None:
@@ -96,6 +106,9 @@ class Server:
     async def run(
         self,
     ) -> None:
+=======
+    async def run(self) -> None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run the read → parse → dispatch → write loop.
 
         The loop exits when the transport returns ``None`` (EOF) or when
@@ -109,18 +122,47 @@ class Server:
                     break
 
                 # Observability: record message received
+<<<<<<< HEAD
                 self._record_received(raw)
+=======
+                if self._metrics is not None:
+                    self._metrics.get_or_create_counter(
+                        "acp.transport.messages.received", "Messages received"
+                    ).inc()
+                    self._metrics.get_or_create_counter(
+                        "acp.transport.bytes.received", "Bytes received"
+                    ).inc(len(raw.encode("utf-8")))
+>>>>>>> origin/fix/scenario-tests-properly
 
                 try:
                     envelope = json.loads(raw)
                 except json.JSONDecodeError as exc:
+<<<<<<< HEAD
                     self._record_parse_error()
+=======
+                    if self._metrics is not None:
+                        self._metrics.get_or_create_counter(
+                            "acp.transport.messages.parse_errors", "Parse errors"
+                        ).inc()
+>>>>>>> origin/fix/scenario-tests-properly
                     await self._send_parse_error(exc)
                     continue
 
                 response = await self._router.handle(envelope)
                 if response is not None:
+<<<<<<< HEAD
                     await self._send_response(response)
+=======
+                    resp_json = json.dumps(response)
+                    await self._transport.write_message(resp_json)
+                    if self._metrics is not None:
+                        self._metrics.get_or_create_counter(
+                            "acp.transport.messages.sent", "Messages sent"
+                        ).inc()
+                        self._metrics.get_or_create_counter(
+                            "acp.transport.bytes.sent", "Bytes sent"
+                        ).inc(len(resp_json.encode("utf-8")))
+>>>>>>> origin/fix/scenario-tests-properly
         except Exception as e:
             self._log.exception("server error: %s", e)
         finally:

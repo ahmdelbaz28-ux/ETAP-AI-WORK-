@@ -31,6 +31,7 @@ class TestStabilityAgent:
 
         H = np.array([5.0])
         D = np.array([2.0])
+<<<<<<< HEAD
         Pm = np.array(
             [0.8]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -44,6 +45,17 @@ class TestStabilityAgent:
         fault_Ybus[0, 0] += 1.0 / 1e-6
 
         post_fault_Ybus = Ybus_red.copy()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Pm = np.array([0.8])
+        Ybus_red = np.array([[5.0 - 20j]])
+        E = np.array([1.1 * np.exp(1j * 0.3)])
+        delta0 = np.array([0.3])
+
+        fault_Ybus = Ybus_red.copy()
+        fault_Ybus[0, 0] += 1.0 / 1e-6
+
+        post_fault_Ybus = Ybus_red.copy()
+>>>>>>> origin/fix/scenario-tests-properly
 
         result = agent.analyze_transient_stability(
             H=H,
@@ -73,10 +85,15 @@ class TestStabilityAgent:
         n_gen = 2
         H = np.array([4.0, 5.0])
         D = np.array([2.0, 2.0])
+<<<<<<< HEAD
         Pm = np.array(
             [0.7, 0.5]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Ybus_red = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Pm = np.array([0.7, 0.5])
+        Ybus_red = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [
                 [3.0 - 10j, -1.0 + 5j],
                 [-1.0 + 5j, 3.0 - 10j],
@@ -235,9 +252,13 @@ class TestEarthGridAgent:
 
         agent = EarthGridAgent()
 
+<<<<<<< HEAD
         Cs = agent._surface_derating_factor(
             rho_s=2000, rho_b=100, hs=0.1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Cs = agent._surface_derating_factor(rho_s=2000, rho_b=100, hs=0.1)
+>>>>>>> origin/fix/scenario-tests-properly
         assert 0 < Cs <= 1.0
 
     def test_allowable_voltages_standard(self):
@@ -443,6 +464,10 @@ class TestBatteryStorageAgent:
             annual_revenue_usd=80000,
         )
         assert isinstance(result, dict)
+<<<<<<< HEAD
+=======
+        npv = result.get("npv", result.get("net_present_value", None))
+>>>>>>> origin/fix/scenario-tests-properly
         payback = result.get("payback_years", result.get("simple_payback", None))
         if payback is not None:
             assert payback > 0

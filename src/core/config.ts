@@ -2,6 +2,7 @@
  * Centralized configuration constants.
  * Single source of truth for all production-hardened behavior.
  * No magic numbers elsewhere in the codebase.
+<<<<<<< HEAD
  *
  * Security hardening applied per Better Auth Security Best Practices skill:
  *   - Trusted origins whitelist (CORS never reflects arbitrary origins)
@@ -14,22 +15,33 @@
  *   - HMAC audit log integrity
  *   - Security-critical event categorization
  *   - Cache-Control on all API responses
+=======
+>>>>>>> origin/fix/scenario-tests-properly
  */
 export const CONFIG = {
   // Body size limit (HTTP 413 above this)
   MAX_BODY_SIZE: 100_000, // 100 KB
 
   // Provider retry / timeout
+<<<<<<< HEAD
   MAX_RETRIES: 1,
   PROVIDER_TIMEOUT_MS: 8_000,
 
   // Failover bounds
   MAX_PROVIDERS_PER_REQUEST: 2,
+=======
+  MAX_RETRIES: 1, // Per-provider retry budget
+  PROVIDER_TIMEOUT_MS: 8_000, // 8 s hard timeout via AbortController
+
+  // Failover bounds
+  MAX_PROVIDERS_PER_REQUEST: 2, // Never cascade beyond 2 providers per request
+>>>>>>> origin/fix/scenario-tests-properly
 
   // Circuit breaker
   CIRCUIT_BREAKER_FAILURE_THRESHOLD: 3,
   CIRCUIT_BREAKER_COOLDOWN_MS: 60_000,
 
+<<<<<<< HEAD
   // Rate limiting — per API key
   RATE_LIMIT_PER_KEY_PER_MINUTE: 60,
   RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE: 30,
@@ -65,15 +77,26 @@ export const CONFIG = {
   // IP security
   MAX_IP_HEADER_CHAIN: 2,
 
+=======
+  // Rate limiting
+  RATE_LIMIT_PER_KEY_PER_MINUTE: 60,
+  RATE_LIMIT_PER_KEY_PER_AGENT_PER_MINUTE: 30,
+
+>>>>>>> origin/fix/scenario-tests-properly
   // Idempotency
   IDEMPOTENCY_TTL_MS: 5 * 60 * 1000, // 5 minutes
 
   // Metrics persistence
   METRICS_SAVE_INTERVAL_MS: 60_000,
+<<<<<<< HEAD
   MAX_AUDIT_BUFFER: 500,
   AUDIT_FLUSH_THRESHOLD: 50,
   AUDIT_INTEGRITY_ENABLED: true,
   AUDIT_RETENTION_DAYS: 90,
+=======
+  MAX_AUDIT_BUFFER: 200,
+  AUDIT_FLUSH_THRESHOLD: 50, // Flush when buffer reaches this size
+>>>>>>> origin/fix/scenario-tests-properly
 
   // Tasks
   MAX_TASK_STORE_SIZE: 1000,
@@ -82,6 +105,7 @@ export const CONFIG = {
   // Engineering Service
   ENGINEERING_SERVICE_TIMEOUT_MS: 30_000,
   ENGINEERING_SERVICE_MAX_RETRIES: 2,
+<<<<<<< HEAD
 
   // Security-critical actions that trigger elevated audit
   SECURITY_CRITICAL_ACTIONS: [
@@ -128,4 +152,45 @@ export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
   cloudflare: '@cf/moonshotai/kimi-k2.6',
 });
 
+=======
+} as const;
+
+/**
+ * Built-in provider allowlist.
+ * Hardening decision: only providers with verified working credentials
+ * are included. Qwen and GLM are intentionally excluded because
+ * their API keys are expired/invalid and they cause cascade failures.
+ * Kilo and OpenCode are also excluded — see "No single-provider
+ * dependency" followup below. To re-enable, add a new entry here and
+ * set the corresponding wrangler secret.
+ */
+export const BUILTIN_PROVIDERS = ['nvidia', 'openai'] as const;
+export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
+
+/**
+ * Default base URLs for built-in providers.
+ * Only used when the corresponding env secret is not set.
+ */
+export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze({
+  nvidia: 'https://integrate.api.nvidia.com/v1',
+  openai: 'https://api.openai.com/v1',
+});
+
+/**
+ * Default model identifiers per provider.
+ * Only used when the corresponding env secret is not set.
+ */
+export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
+  nvidia: 'meta/llama-3.1-8b-instruct',
+  openai: 'gpt-4o-mini',
+});
+
+/**
+ * API key scopes.
+ * - full: every route
+ * - chat: only chat + status endpoints
+ * - studies: only studies + status
+ * - read: only listing / health / metrics
+ */
+>>>>>>> origin/fix/scenario-tests-properly
 export type ApiKeyScope = 'full' | 'chat' | 'studies' | 'read';

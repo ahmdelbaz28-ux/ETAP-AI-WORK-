@@ -12,7 +12,11 @@
 
 ### الإنجازات الرئيسية
 
+<<<<<<< HEAD
 ✅ **نظام Multi-Agent متكامل** - 25 وكلاء هندسيون متخصصون  
+=======
+✅ **نظام Multi-Agent متكامل** - 9 وكلاء هندسيون متخصصون  
+>>>>>>> origin/fix/scenario-tests-properly
 ✅ **محركات حسابية متقدمة** - Load Flow, Fault, Harmonics, OPF, Protection  
 ✅ **تكامل مباشر مع ETAP** - أتمتة كاملة عبر COM API  
 ✅ **قاعدة معرفية RAG** - امتثال للمعايير الدولية  
@@ -196,7 +200,11 @@ if balance_error > 1.0:  # 1 MW tolerance
 # التحقق من قيم تيارات القصر
 for bus_id, faults in fault_results.items():
     for fault_type, fault_data in faults.items():
+<<<<<<< HEAD
         current = abs(fault_data["fault_current"])
+=======
+        current = abs(fault_data['fault_current'])
+>>>>>>> origin/fix/scenario-tests-properly
         if current > 100:  # 100 kA threshold
             violations.append(f"Very high fault current: {current:.2f} kA")
 ```
@@ -659,7 +667,12 @@ orchestrator = get_orchestrator()
 
 # تنفيذ سير عمل مستقل
 results = await orchestrator.execute_autonomous_workflow(
+<<<<<<< HEAD
     user_goal="Analyze voltage profile and optimize power flow", system_data=system
+=======
+    user_goal="Analyze voltage profile and optimize power flow",
+    system_data=system
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 print(f"Task ID: {results['task_id']}")
@@ -701,6 +714,7 @@ report_agent = get_report_agent()
 # إنشاء تقرير كامل
 generated_files = await report_agent.generate_complete_report(
     analysis_results={
+<<<<<<< HEAD
         "load_flow": lf_results,
         "short_circuit": sc_results,
         "harmonic": harm_results,
@@ -709,6 +723,16 @@ generated_files = await report_agent.generate_complete_report(
     },
     formats=["pdf", "docx", "xlsx"],
     output_path="./reports",
+=======
+        'load_flow': lf_results,
+        'short_circuit': sc_results,
+        'harmonic': harm_results,
+        'opf': opf_results,
+        'recommendations': recommendations
+    },
+    formats=['pdf', 'docx', 'xlsx'],
+    output_path='./reports'
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 print(f"Reports generated: {list(generated_files.keys())}")
@@ -755,7 +779,11 @@ print(f"Reports generated: {list(generated_files.keys())}")
 
 تم بنجاح تصميم وتنفيذ **منصة AhmedETAP للهندسة الكهربائية** كنظام متكامل ومتقدم يفي بجميع المتطلبات المحددة:
 
+<<<<<<< HEAD
 ✅ **نظام Multi-Agent مستقل** - 25 وكلاء متخصصون  
+=======
+✅ **نظام Multi-Agent مستقل** - 9 وكلاء متخصصون  
+>>>>>>> origin/fix/scenario-tests-properly
 ✅ **محركات حسابية شاملة** - Load Flow, Fault, Harmonics, OPF, Protection  
 ✅ **تكامل ETAP كامل** - أتمتة عبر COM API  
 ✅ **قاعدة معرفة RAG** - امتثال IEEE/IEC/NFPA  

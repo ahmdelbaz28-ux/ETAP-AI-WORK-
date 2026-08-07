@@ -1,6 +1,7 @@
 """
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
+<<<<<<< HEAD
 
 import os
 import tempfile
@@ -17,6 +18,14 @@ import atexit
 
 atexit.register(lambda: __import__("shutil").rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
+=======
+import os
+import tempfile
+from datetime import datetime, timezone
+
+import pytest
+
+>>>>>>> origin/fix/scenario-tests-properly
 from reporting.advanced_reports import (
     ChartGenerator,
     PDFReportGenerator,
@@ -41,6 +50,7 @@ class TestReportSection:
 
     def test_with_charts_and_tables(self):
         s = ReportSection(
+<<<<<<< HEAD
             title="Load Flow",
             content="Results",
             order=2,
@@ -54,6 +64,15 @@ class TestReportSection:
         assert s.include_charts is True
         assert s.include_tables is True
         assert s.data["chart_path"] == os.path.join(_TEST_REPORT_DIR, "chart.png")
+=======
+            title="Load Flow", content="Results", order=2,
+            include_charts=True, include_tables=True,
+            data={"chart_path": "/tmp/chart.png", "table_data": [["a", "b"]]},
+        )
+        assert s.include_charts is True
+        assert s.include_tables is True
+        assert s.data["chart_path"] == "/tmp/chart.png"
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_ordering(self):
         s1 = ReportSection(title="B", content="", order=2)
@@ -69,7 +88,13 @@ class TestReportSection:
 
 class TestReportMetadata:
     def test_defaults(self):
+<<<<<<< HEAD
         m = ReportMetadata(report_id="RPT_001", title="Test", prepared_by="Engineer")
+=======
+        m = ReportMetadata(
+            report_id="RPT_001", title="Test", prepared_by="Engineer"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
         assert m.report_id == "RPT_001"
         assert m.title == "Test"
         assert m.prepared_by == "Engineer"
@@ -173,6 +198,7 @@ class TestTableGenerator:
 
     def test_load_flow_table(self):
         bus_data = {
+<<<<<<< HEAD
             "B1": {
                 "voltage_magnitude_pu": 1.01,
                 "voltage_angle_deg": -2.0,
@@ -185,6 +211,12 @@ class TestTableGenerator:
                 "active_power_mw": 30,
                 "reactive_power_mvar": 15,
             },
+=======
+            "B1": {"voltage_magnitude_pu": 1.01, "voltage_angle_deg": -2.0,
+                   "active_power_mw": 50, "reactive_power_mvar": 10},
+            "B2": {"voltage_magnitude_pu": 0.94, "voltage_angle_deg": -3.5,
+                   "active_power_mw": 30, "reactive_power_mvar": 15},
+>>>>>>> origin/fix/scenario-tests-properly
         }
         table = self.gen.generate_load_flow_table(bus_data)
         assert "LOAD FLOW RESULTS" in table
@@ -195,12 +227,17 @@ class TestTableGenerator:
 
     def test_load_flow_table_over_voltage(self):
         bus_data = {
+<<<<<<< HEAD
             "B1": {
                 "voltage_magnitude_pu": 1.06,
                 "voltage_angle_deg": 0.0,
                 "active_power_mw": 0,
                 "reactive_power_mvar": 0,
             },
+=======
+            "B1": {"voltage_magnitude_pu": 1.06, "voltage_angle_deg": 0.0,
+                   "active_power_mw": 0, "reactive_power_mvar": 0},
+>>>>>>> origin/fix/scenario-tests-properly
         }
         table = self.gen.generate_load_flow_table(bus_data)
         assert "OVER" in table
@@ -229,6 +266,7 @@ class TestTableGenerator:
 
     def test_compliance_table_pass(self):
         results = [
+<<<<<<< HEAD
             {
                 "standard": "IEEE 519",
                 "parameter": "THD",
@@ -236,6 +274,10 @@ class TestTableGenerator:
                 "limit": 5.0,
                 "compliant": True,
             },
+=======
+            {"standard": "IEEE 519", "parameter": "THD", "value": 2.5,
+             "limit": 5.0, "compliant": True},
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         table = self.gen.generate_compliance_table(results)
         assert "COMPLIANCE" in table
@@ -243,6 +285,7 @@ class TestTableGenerator:
 
     def test_compliance_table_fail(self):
         results = [
+<<<<<<< HEAD
             {
                 "standard": "IEEE 519",
                 "parameter": "THD",
@@ -250,6 +293,10 @@ class TestTableGenerator:
                 "limit": 5.0,
                 "compliant": False,
             },
+=======
+            {"standard": "IEEE 519", "parameter": "THD", "value": 8.0,
+             "limit": 5.0, "compliant": False},
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         table = self.gen.generate_compliance_table(results)
         assert "FAIL" in table
@@ -263,7 +310,13 @@ class TestPDFReportGenerator:
     def test_fallback_pdf(self):
         try:
             gen = PDFReportGenerator()
+<<<<<<< HEAD
             meta = ReportMetadata(report_id="TEST_001", title="Test", prepared_by="Engineer")
+=======
+            meta = ReportMetadata(
+                report_id="TEST_001", title="Test", prepared_by="Engineer"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
             sections = [
                 ReportSection(title="Section 1", content="Content 1", order=1),
             ]
@@ -316,12 +369,20 @@ class TestReportGenerationAgent:
 
     def test_convert_to_table_data(self):
         agent = ReportGenerationAgent()
+<<<<<<< HEAD
         text = '" | A, B, C, |\n, 1 | 2, 3 |"'
+=======
+        text = "| A | B | C |\n| 1 | 2 | 3 |"
+>>>>>>> origin/fix/scenario-tests-properly
         rows = agent._convert_to_table_data(text)
         assert len(rows) >= 1
         assert "A" in rows[0]
 
     def test_empty_sections_when_no_match(self):
         agent = ReportGenerationAgent()
+<<<<<<< HEAD
         sections = agent._compile_sections({}, _TEST_REPORT_DIR)
+=======
+        sections = agent._compile_sections({}, "/tmp")
+>>>>>>> origin/fix/scenario-tests-properly
         assert len(sections) >= 2  # executive summary + system description

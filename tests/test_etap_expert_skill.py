@@ -216,9 +216,15 @@ def test_workflow_steps_count(agent):
         "How does FLISR work for fault on Feeder 1?",
     ]:
         result = agent.answer(question)
+<<<<<<< HEAD
         assert (
             result["workflow_steps_executed"] == 6
         ), f"Question '{question}' did not complete 6 workflow steps"
+=======
+        assert result["workflow_steps_executed"] == 6, (
+            f"Question '{question}' did not complete 6 workflow steps"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -294,7 +300,11 @@ def test_prompt_yaml_registered_in_prompts_json():
     from pathlib import Path
 
     prompts_json = Path(__file__).resolve().parent.parent / "prompts.json"
+<<<<<<< HEAD
     data = json.loads(prompts_json.read_text(encoding="utf-8"))
+=======
+    data = json.loads(prompts_json.read_text())
+>>>>>>> origin/fix/scenario-tests-properly
     assert "etap_expert_agent" in data["prompts"]
     assert data["prompts"]["etap_expert_agent"] == "prompts/etap_expert_agent.prompt.yaml"
 
@@ -305,7 +315,11 @@ def test_prompt_yaml_file_exists():
 
     p = Path(__file__).resolve().parent.parent / "prompts" / "etap_expert_agent.prompt.yaml"
     assert p.exists()
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "ETAP Expert Agent" in content
     assert "6-STEP WORKFLOW" in content or "6-step workflow" in content.lower()
     assert "Format A" in content
@@ -328,7 +342,11 @@ def test_mastra_agent_ts_file_exists():
         / "etap-expert-agent.ts"
     )
     assert p.exists(), f"Mastra agent file missing: {p}"
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "etapExpertAgent" in content
     assert "etap-expert-agent" in content
     assert "etap_expert_agent" in content  # prompt handle
@@ -339,7 +357,11 @@ def test_mastra_agent_registered_in_index_ts():
     from pathlib import Path
 
     p = Path(__file__).resolve().parent.parent / "src" / "mastra" / "index.ts"
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "from './agents/etap-expert-agent'" in content
     assert "etapExpertAgent" in content
 
@@ -349,7 +371,11 @@ def test_ts_agent_registry_includes_etap_expert():
     from pathlib import Path
 
     p = Path(__file__).resolve().parent.parent / "src" / "core" / "agents.ts"
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "'etap-expert-agent'" in content
     assert "ETAP Expert Skill Agent" in content
     assert "6-step workflow" in content.lower() or "6-step" in content.lower()
@@ -365,7 +391,11 @@ def test_chat_endpoint_registered():
     from pathlib import Path
 
     p = Path(__file__).resolve().parent.parent / "api" / "agents.py"
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "/etap-expert/chat" in content
     assert "ETAPExpertChatRequest" in content
     assert "etap_expert_chat" in content
@@ -376,6 +406,10 @@ def test_agents_router_registered_in_routes():
     from pathlib import Path
 
     p = Path(__file__).resolve().parent.parent / "api" / "routes.py"
+<<<<<<< HEAD
     content = p.read_text(encoding="utf-8")
+=======
+    content = p.read_text()
+>>>>>>> origin/fix/scenario-tests-properly
     assert "from api.agents import router as agents_router" in content
     assert "app.include_router(agents_router)" in content

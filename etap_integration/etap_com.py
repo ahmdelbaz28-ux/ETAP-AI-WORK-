@@ -3,6 +3,7 @@ ETAP COM Automation Interface
 ==============================
 Provides direct integration with ETAP Power System software via COM automation.
 
+<<<<<<< HEAD
 ⚠️⚠️⚠️ SAFETY-CRITICAL WARNING ⚠️⚠️⚠️
 =====================================
 This module reads engineering values (fault currents, voltages, arc flash
@@ -31,6 +32,8 @@ ETAP 2021 (pending Windows testing):
 
 If verify_etap_2021.py reports incompatibility, DO NOT use results.
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 Requirements:
 - Windows OS
 - ETAP installed (v12.0 or later)
@@ -56,6 +59,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
@@ -73,6 +77,12 @@ def _sanitize_for_log(value: str, max_len: int = 200) -> str:
 
 
 
+=======
+from typing import Any, Dict, List, Union
+
+logger = logging.getLogger(__name__)
+
+>>>>>>> origin/fix/scenario-tests-properly
 # Only import on Windows
 if sys.platform == "win32":
     try:
@@ -128,6 +138,7 @@ except ImportError:
     HAS_INPUT_VALIDATOR = False
 
 
+<<<<<<< HEAD
 # ─── Unified types (single source of truth) ─────────────────────────────
 # ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
 # to eliminate the 3-way duplication that caused type-mismatch bugs.
@@ -140,6 +151,23 @@ from etap_integration.unified_etap_types import (  # noqa: E402
 # Backward compat: re-export for code that imports from etap_com
 __all__ = ["ETAPStudyType", "ETAPResult", "ETAPProject", "ETAPAutomation",
            "STUDY_TYPE_PARAMETER_SCHEMAS"]
+=======
+class ETAPStudyType(Enum):
+    """ETAP study types."""
+
+    LOAD_FLOW = "LoadFlow"
+    SHORT_CIRCUIT = "ShortCircuit"
+    MOTOR_ACCELERATION = "MotorAcceleration"
+    MOTOR_STARTING = "MotorStarting"
+    TRANSIENT_STABILITY = "TransientStability"
+    HARMONIC_ANALYSIS = "HarmonicAnalysis"
+    OPTIMAL_POWER_FLOW = "OptimalPowerFlow"
+    PROTECTION_COORDINATION = "ProtectionCoordination"
+    ARC_FLASH = "ArcFlash"
+    CABLE_AMACITY = "CableAmpacity"
+    GROUND_GRID = "GroundGrid"
+    RELIABILITY = "Reliability"
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # =============================================================================
@@ -148,7 +176,11 @@ __all__ = ["ETAPStudyType", "ETAPResult", "ETAPProject", "ETAPAutomation",
 # Each entry maps parameter name -> {"type": ..., "required": bool,
 # "min": ..., "max": ..., "allowed": [...]}
 
+<<<<<<< HEAD
 STUDY_TYPE_PARAMETER_SCHEMAS: dict[ETAPStudyType, dict[str, dict[str, Any]]] = {
+=======
+STUDY_TYPE_PARAMETER_SCHEMAS: Dict[ETAPStudyType, Dict[str, Dict[str, Any]]] = {
+>>>>>>> origin/fix/scenario-tests-properly
     ETAPStudyType.LOAD_FLOW: {
         "method": {
             "type": "string",
@@ -274,8 +306,22 @@ STUDY_TYPE_PARAMETER_SCHEMAS: dict[ETAPStudyType, dict[str, dict[str, Any]]] = {
     },
 }
 
+<<<<<<< HEAD
 # NOTE: ETAPResult is now imported from unified_etap_types.py (see top of file).
 # The old local dataclass definition has been removed to avoid duplication.
+=======
+
+@dataclass
+class ETAPResult:
+    """Container for ETAP study results."""
+
+    study_type: str
+    success: bool
+    data: Dict[str, Any]
+    warnings: List[str]
+    errors: List[str]
+    timestamp: float
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class ETAPProject:
@@ -307,8 +353,13 @@ class ETAPProject:
         ETAPAutomation._validate_study_parameters(study_type, kwargs)
 
         start_time = time.time()
+<<<<<<< HEAD
         warnings: list[str] = []
         errors: list[str] = []
+=======
+        warnings: List[str] = []
+        errors: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         try:
             if study_type == ETAPStudyType.LOAD_FLOW:
@@ -355,7 +406,11 @@ class ETAPProject:
 
         except Exception as e:
             errors.append(str(e))
+<<<<<<< HEAD
             logger.exception("Study %s failed: %s", study_type.value, e)
+=======
+            logger.error(f"Study {study_type.value} failed: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             return ETAPResult(
                 study_type=study_type.value,
                 success=False,
@@ -365,7 +420,11 @@ class ETAPProject:
                 timestamp=start_time,
             )
 
+<<<<<<< HEAD
     def _run_load_flow(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_load_flow(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run load flow study (params already validated by run_study)."""
         try:
             lf_module = self._com_project.LoadFlow
@@ -407,17 +466,29 @@ class ETAPProject:
 
         except pythoncom.com_error as e:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"COM error during load flow execution (timeout={self._com_timeout}s): {e}",
+=======
+                f"COM error during load flow execution (timeout={self._com_timeout}s): {e}"
+>>>>>>> origin/fix/scenario-tests-properly
             ) from e
         except Exception as e:
             raise RuntimeError(f"Load flow execution failed: {e}") from e
 
+<<<<<<< HEAD
     def _run_short_circuit(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_short_circuit(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run short circuit study (params already validated by run_study)."""
         fault_type = kwargs.get("fault_type", "ThreePhase")
         if fault_type not in VALID_FAULT_TYPES:
             raise ValueError(
+<<<<<<< HEAD
                 f"Invalid fault_type '{fault_type}'. Must be one of {sorted(VALID_FAULT_TYPES)}",
+=======
+                f"Invalid fault_type '{fault_type}'. Must be one of {sorted(VALID_FAULT_TYPES)}"
+>>>>>>> origin/fix/scenario-tests-properly
             )
         try:
             sc_module = self._com_project.ShortCircuit
@@ -429,6 +500,7 @@ class ETAPProject:
                 for bus in self._com_project.Buses:
                     bus_id = getattr(bus, "ID", "")
                     ETAPAutomation._validate_bus_id(bus_id)
+<<<<<<< HEAD
                     # ETAP 2021 COM property names for short-circuit currents:
                     # - I3PhaseKA: three-phase fault current (kA)
                     # - ILGKA: line-to-ground fault current (kA)
@@ -441,6 +513,12 @@ class ETAPProject:
                         "three_phase_ka": getattr(bus, "I3PhaseKA", 0.0),
                         "line_to_ground_ka": getattr(bus, "ILGKA", 0.0),
                         "line_to_line_ka": getattr(bus, "ILLKA", 0.0),  # fixed: was "IllKA"
+=======
+                    faults[bus_id] = {
+                        "three_phase_ka": getattr(bus, "I3PhaseKA", 0.0),
+                        "line_to_ground_ka": getattr(bus, "ILGKA", 0.0),
+                        "line_to_line_ka": getattr(bus, "IllKA", 0.0),
+>>>>>>> origin/fix/scenario-tests-properly
                         "double_line_to_ground_ka": getattr(bus, "IDLGKA", 0.0),
                     }
 
@@ -452,11 +530,16 @@ class ETAPProject:
 
         except pythoncom.com_error as e:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"COM error during short circuit execution (timeout={self._com_timeout}s): {e}",
+=======
+                f"COM error during short circuit execution (timeout={self._com_timeout}s): {e}"
+>>>>>>> origin/fix/scenario-tests-properly
             ) from e
         except Exception as e:
             raise RuntimeError(f"Short circuit execution failed: {e}") from e
 
+<<<<<<< HEAD
     def _run_arc_flash(self, **kwargs) -> dict[str, Any]:
         """Run arc flash study (params already validated by run_study)."""
         working_distance = kwargs.get("working_distance_mm", 610)
@@ -465,6 +548,13 @@ class ETAPProject:
             "numeric",
             min_val=WORKING_DISTANCE_MIN,
             max_val=WORKING_DISTANCE_MAX,
+=======
+    def _run_arc_flash(self, **kwargs) -> Dict[str, Any]:
+        """Run arc flash study (params already validated by run_study)."""
+        working_distance = kwargs.get("working_distance_mm", 610)
+        working_distance = ETAPAutomation._validate_input(
+            working_distance, "numeric", min_val=WORKING_DISTANCE_MIN, max_val=WORKING_DISTANCE_MAX
+>>>>>>> origin/fix/scenario-tests-properly
         )
         try:
             af_module = self._com_project.ArcFlash
@@ -491,11 +581,16 @@ class ETAPProject:
 
         except pythoncom.com_error as e:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"COM error during arc flash execution (timeout={self._com_timeout}s): {e}",
+=======
+                f"COM error during arc flash execution (timeout={self._com_timeout}s): {e}"
+>>>>>>> origin/fix/scenario-tests-properly
             ) from e
         except Exception as e:
             raise RuntimeError(f"Arc flash execution failed: {e}") from e
 
+<<<<<<< HEAD
     def _run_harmonic_analysis(self, **kwargs) -> dict[str, Any]:
         """Run harmonic analysis study via ETAP COM.
 
@@ -518,6 +613,18 @@ class ETAPProject:
                     "(tried both 'Harmonic' for ETAP 2021+ and "
                     "'HarmonicAnalysis' for older versions)"
                 )
+=======
+    def _run_harmonic_analysis(self, **kwargs) -> Dict[str, Any]:
+        """Run harmonic analysis study via ETAP COM.
+
+        Raises RuntimeError if COM module is unavailable or returns no data.
+        """
+        buses = {}
+        try:
+            harm_module = getattr(self._com_project, "HarmonicAnalysis", None)
+            if harm_module is None or not hasattr(harm_module, "Calculate"):
+                raise RuntimeError("HarmonicAnalysis module not available in ETAP project")
+>>>>>>> origin/fix/scenario-tests-properly
             harm_module.Calculate()
             for bus in self._com_project.Buses:
                 bus_id = str(getattr(bus, "ID", ""))
@@ -548,7 +655,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_optimal_power_flow(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_optimal_power_flow(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run optimal power flow study via ETAP COM.
 
         Raises RuntimeError if COM module is unavailable or returns no data.
@@ -592,7 +703,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_motor_starting(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_motor_starting(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run motor starting / acceleration study via ETAP COM.
 
         Raises RuntimeError if COM module is unavailable or returns no data.
@@ -610,7 +725,11 @@ class ETAPProject:
                 if motor_id:
                     motors[motor_id] = {
                         "starting_current_multiplier": float(
+<<<<<<< HEAD
                             getattr(motor, "StartingCurrentMult", 0.0),
+=======
+                            getattr(motor, "StartingCurrentMult", 0.0)
+>>>>>>> origin/fix/scenario-tests-properly
                         ),
                         "acceleration_time_sec": float(getattr(motor, "AccelTime", 0.0)),
                         "min_voltage_during_start_pu": float(getattr(motor, "MinVoltagePU", 0.0)),
@@ -641,7 +760,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_transient_stability(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_transient_stability(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run transient stability study via ETAP COM.
 
@@ -654,7 +777,11 @@ class ETAPProject:
         time_step = float(kwargs.get("time_step_sec", 0.01))
         max_points = max(1, min(int(duration / time_step), 1000))
 
+<<<<<<< HEAD
         generators: dict[str, Any] = {}
+=======
+        generators: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             ts_module = getattr(self._com_project, "TransientStability", None)
             if ts_module is None or not hasattr(ts_module, "Calculate"):
@@ -664,6 +791,7 @@ class ETAPProject:
                 gen_id = str(getattr(gen, "ID", ""))
                 if not gen_id:
                     continue
+<<<<<<< HEAD
                 # Read trajectories from COM module.
                 # ETAP 2021 COM property names for transient stability:
                 # - RotorAngle (scalar, final value) — most reliable
@@ -672,17 +800,25 @@ class ETAPProject:
                 # - Speed (scalar, final value)
                 # - TimeTrajectory (array, time series)
                 # We try the trajectory form first, then fall back to scalar.
+=======
+                # Read trajectories from COM module
+>>>>>>> origin/fix/scenario-tests-properly
                 raw_angles = getattr(gen, "RotorAngleTrajectory", None)
                 raw_times = getattr(gen, "TimeTrajectory", None)
                 if raw_angles and raw_times:
                     angles = [float(a) for a in raw_angles[:max_points]]
                     times = [float(t) for t in raw_times[:max_points]]
                 else:
+<<<<<<< HEAD
                     # Fallback: use scalar RotorAngle (final value) + single
                     # time point at the simulation duration
                     final_angle = float(getattr(gen, "RotorAngle", 0.0))
                     angles = [final_angle]
                     times = [duration]
+=======
+                    angles = []
+                    times = []
+>>>>>>> origin/fix/scenario-tests-properly
                 generators[gen_id] = {
                     "rotor_angle_deg": angles,
                     "time_sec": times,
@@ -710,7 +846,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_cable_ampacity(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_cable_ampacity(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run cable ampacity (current-carrying capacity) study via ETAP COM.
 
@@ -719,7 +859,11 @@ class ETAPProject:
         installation = str(kwargs.get("installation_method", "conduit"))
         ambient_c = float(kwargs.get("ambient_temperature_c", 30.0))
 
+<<<<<<< HEAD
         cables: dict[str, Any] = {}
+=======
+        cables: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             cable_module = getattr(self._com_project, "Cables", None)
             if cable_module is None:
@@ -755,7 +899,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_ground_grid(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_ground_grid(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run ground grid analysis per IEEE 80 via ETAP COM.
 
@@ -797,7 +945,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_reliability(self, **kwargs) -> dict[str, Any]:
+=======
+    def _run_reliability(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run reliability analysis (SAIDI / SAIFI / CAIDI / ASAI) via ETAP COM.
 
@@ -853,11 +1005,15 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def _run_protection_coordination(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
         self, **kwargs
     ) -> dict[
         str, Any
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def _run_protection_coordination(self, **kwargs) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run protection coordination study via ETAP COM.
 
@@ -867,7 +1023,11 @@ class ETAPProject:
         tms_min = float(kwargs.get("tms_min", 0.025))
         tms_max = float(kwargs.get("tms_max", 10.0))
 
+<<<<<<< HEAD
         pairs: dict[str, Any] = {}
+=======
+        pairs: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             prot_module = getattr(self._com_project, "ProtectionCoordination", None)
             if prot_module is None or not hasattr(prot_module, "Calculate"):
@@ -893,7 +1053,11 @@ class ETAPProject:
                                 "backup_trip_time_sec": float(getattr(entry, "BackupTime", 0.0)),
                                 "cti_margin_sec": float(getattr(entry, "CTI", 0.0)),
                                 "coordinated": bool(getattr(entry, "Coordinated", False)),
+<<<<<<< HEAD
                             },
+=======
+                            }
+>>>>>>> origin/fix/scenario-tests-properly
                         )
                 pairs[pid] = {
                     "curve_type": str(getattr(relay, "CurveType", curve_type)),
@@ -924,7 +1088,11 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+<<<<<<< HEAD
     def get_bus_data(self, bus_id: str) -> dict[str, Any] | None:
+=======
+    def get_bus_data(self, bus_id: str) -> Dict[str, Any] | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get data for a specific bus."""
         ETAPAutomation._validate_bus_id(bus_id)
         try:
@@ -939,6 +1107,7 @@ class ETAPProject:
                     "type": bus.BusType,
                 }
         except pythoncom.com_error as e:
+<<<<<<< HEAD
             logger.warning(
                 "COM error retrieving bus %s (timeout=%ss): %s", bus_id, self._com_timeout, e
             )
@@ -947,6 +1116,14 @@ class ETAPProject:
         return None
 
     def get_all_buses(self) -> list[dict[str, Any]]:
+=======
+            logger.warning(f"COM error retrieving bus {bus_id} (timeout={self._com_timeout}s): {e}")
+        except Exception as e:
+            logger.warning(f"Could not retrieve bus {bus_id}: {e}")
+        return None
+
+    def get_all_buses(self) -> List[Dict[str, Any]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get data for all buses."""
         buses = []
         try:
@@ -957,24 +1134,41 @@ class ETAPProject:
                     if data:
                         buses.append(data)
         except pythoncom.com_error as e:
+<<<<<<< HEAD
             logger.exception("COM error retrieving buses (timeout=%ss): %s", self._com_timeout, e)
         except Exception as e:
             logger.exception("Error retrieving buses: %s", e)
         return buses
 
     def save(self, file_path: Optional[str] = None) -> bool:
+=======
+            logger.error(f"COM error retrieving buses (timeout={self._com_timeout}s): {e}")
+        except Exception as e:
+            logger.error(f"Error retrieving buses: {e}")
+        return buses
+
+    def save(self, file_path: str | None = None) -> bool:
+>>>>>>> origin/fix/scenario-tests-properly
         """Save the project."""
         try:
             path = file_path or self.file_path
             if path is not None and len(str(path)) > MAX_PROJECT_PATH_LENGTH:
                 raise ValueError(
+<<<<<<< HEAD
                     f"File path length {len(str(path))} exceeds maximum {MAX_PROJECT_PATH_LENGTH}",
+=======
+                    f"File path length {len(str(path))} exceeds maximum {MAX_PROJECT_PATH_LENGTH}"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             self._com_project.SaveAs(path)
             self.file_path = path
             return True
         except Exception as e:
+<<<<<<< HEAD
             logger.exception("Failed to save project: %s", e)
+=======
+            logger.error(f"Failed to save project: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             return False
 
     def close(self) -> bool:
@@ -984,7 +1178,11 @@ class ETAPProject:
             self.is_open = False
             return True
         except Exception as e:
+<<<<<<< HEAD
             logger.exception("Failed to close project: %s", e)
+=======
+            logger.error(f"Failed to close project: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             return False
 
 
@@ -1015,23 +1213,40 @@ class ETAPAutomation:
             raise ImportError("pywin32 is required for ETAP automation on Windows")
 
         self._com_app = None
+<<<<<<< HEAD
         self._projects: dict[str, ETAPProject] = {}
         self.visible = visible
         self.com_timeout_seconds = com_timeout_seconds
         self.is_running = False
         self._allowed_project_dirs: list[str] = []
+=======
+        self._projects: Dict[str, ETAPProject] = {}
+        self.visible = visible
+        self.com_timeout_seconds = com_timeout_seconds
+        self.is_running = False
+        self._allowed_project_dirs: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
     # -------------------------------------------------------------------------
     # Input validation helpers
     # -------------------------------------------------------------------------
 
     @staticmethod
+<<<<<<< HEAD
     def _validate_input(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         value,
         value_type: str,
         min_val: Optional[float] = None,
         max_val: Optional[float] = None,
         max_length: Optional[int] = None,
+=======
+    def _validate_input(
+        value,
+        value_type: str,
+        min_val: float | None = None,
+        max_val: float | None = None,
+        max_length: int | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> Union[int, float, str, bool]:
         """
         Generic input validator.
@@ -1056,7 +1271,11 @@ class ETAPAutomation:
                 raise ValueError(f"Expected numeric value, got {type(value).__name__}") from err
             if not (MIN_NUMERIC_VALUE <= num <= MAX_NUMERIC_VALUE):
                 raise ValueError(
+<<<<<<< HEAD
                     f"Value {num} outside system range [{MIN_NUMERIC_VALUE}, {MAX_NUMERIC_VALUE}]",
+=======
+                    f"Value {num} outside system range [{MIN_NUMERIC_VALUE}, {MAX_NUMERIC_VALUE}]"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             if min_val is not None and num < min_val:
                 raise ValueError(f"Value {num} below minimum {min_val}")
@@ -1114,10 +1333,16 @@ class ETAPAutomation:
         return sanitized
 
     @staticmethod
+<<<<<<< HEAD
     def _validate_study_parameters(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         study_type: ETAPStudyType,
         params: dict[str, Any],
     ) -> dict[str, Any]:
+=======
+    def _validate_study_parameters(
+        study_type: ETAPStudyType, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate study parameters against the per-study-type schema.
 
@@ -1145,7 +1370,11 @@ class ETAPAutomation:
         for key in params:
             if not isinstance(key, str):
                 raise ValueError(
+<<<<<<< HEAD
                     f"Study parameter key must be string, got {type(key).__name__} for key={key}",
+=======
+                    f"Study parameter key must be string, got {type(key).__name__} for key={key}"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             if len(key) > 256:
                 raise ValueError(f"Study parameter key too long ({len(key)} chars): {key[:50]}...")
@@ -1155,7 +1384,11 @@ class ETAPAutomation:
                 allowed = sorted(schema.keys()) if schema else ["(none)"]
                 raise ValueError(
                     f"Unknown parameter '{key}' for study type {study_type.value}. "
+<<<<<<< HEAD
                     f"Allowed parameters: {allowed}",
+=======
+                    f"Allowed parameters: {allowed}"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
             rule = schema[key]
@@ -1168,7 +1401,11 @@ class ETAPAutomation:
                     value = float(value)
                 except (ValueError, TypeError) as err:
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' must be numeric, got {type(value).__name__}",
+=======
+                        f"Parameter '{key}' must be numeric, got {type(value).__name__}"
+>>>>>>> origin/fix/scenario-tests-properly
                     ) from err
                 min_val = rule.get("min")
                 max_val = rule.get("max")
@@ -1182,7 +1419,11 @@ class ETAPAutomation:
                     value = int(value)
                 except (ValueError, TypeError) as err:
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' must be integer, got {type(value).__name__}",
+=======
+                        f"Parameter '{key}' must be integer, got {type(value).__name__}"
+>>>>>>> origin/fix/scenario-tests-properly
                     ) from err
                 min_val = rule.get("min")
                 max_val = rule.get("max")
@@ -1194,36 +1435,60 @@ class ETAPAutomation:
             elif expected_type == "string":
                 if not isinstance(value, str):
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' must be string, got {type(value).__name__}",
+=======
+                        f"Parameter '{key}' must be string, got {type(value).__name__}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 allowed_vals = rule.get("allowed")
                 if allowed_vals is not None and value not in allowed_vals:
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' value '{value}' not in allowed: {allowed_vals}",
+=======
+                        f"Parameter '{key}' value '{value}' not in allowed: {allowed_vals}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
             elif expected_type == "boolean":
                 if not isinstance(value, bool):
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' must be boolean, got {type(value).__name__}",
+=======
+                        f"Parameter '{key}' must be boolean, got {type(value).__name__}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
             elif expected_type == "list":
                 if not isinstance(value, list):
                     raise ValueError(
+<<<<<<< HEAD
                         f"Parameter '{key}' must be a list, got {type(value).__name__}",
+=======
+                        f"Parameter '{key}' must be a list, got {type(value).__name__}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
             else:
                 raise ValueError(
+<<<<<<< HEAD
                     f"Internal error: unknown schema type '{expected_type}' for parameter '{key}'",
+=======
+                    f"Internal error: unknown schema type '{expected_type}' for parameter '{key}'"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Check required parameters
         for key, rule in schema.items():
             if rule.get("required", False) and key not in params:
                 raise ValueError(
+<<<<<<< HEAD
                     f"Required parameter '{key}' missing for study type {study_type.value}",
+=======
+                    f"Required parameter '{key}' missing for study type {study_type.value}"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         return params
@@ -1240,7 +1505,11 @@ class ETAPAutomation:
         Sanitized project name safe for file system and ETAP
         """
         sanitized = ETAPAutomation._sanitize_string_input(name, max_length=256)
+<<<<<<< HEAD
         sanitized = re.sub(r"[^\w]", "_", sanitized)
+=======
+        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", sanitized)
+>>>>>>> origin/fix/scenario-tests-properly
         if not sanitized:
             raise ValueError("Project name is empty after sanitization")
         return sanitized
@@ -1267,9 +1536,14 @@ class ETAPAutomation:
 
     @staticmethod
     def _check_result_size(
+<<<<<<< HEAD
         result_dict: dict[str, Any],
         max_entries: int = MAX_RESULT_ENTRIES,
     ) -> dict[str, Any]:
+=======
+        result_dict: Dict[str, Any], max_entries: int = MAX_RESULT_ENTRIES
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Check that a result dictionary does not exceed maximum entry count.
 
@@ -1289,7 +1563,13 @@ class ETAPAutomation:
             raise TypeError(f"Expected dict, got {type(result_dict).__name__}")
         total = 0
         for _key, value in result_dict.items():
+<<<<<<< HEAD
             if isinstance(value, (dict, list, tuple)):
+=======
+            if isinstance(value, dict):
+                total += len(value)
+            elif isinstance(value, (list, tuple)):
+>>>>>>> origin/fix/scenario-tests-properly
                 total += len(value)
             else:
                 total += 1
@@ -1314,20 +1594,29 @@ class ETAPAutomation:
         Validates path length against configured maximum.
         """
         if not file_path or not isinstance(file_path, str):
+<<<<<<< HEAD
             logger.warning(
                 "Invalid project path type or empty: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+=======
+            logger.warning(f"Invalid project path type or empty: {file_path}")
+>>>>>>> origin/fix/scenario-tests-properly
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
+<<<<<<< HEAD
                 "Project path length %d exceeds maximum %d",
                 _sanitize_for_log(len(file_path)),
                 MAX_PROJECT_PATH_LENGTH,
+=======
+                f"Project path length {len(file_path)} exceeds maximum {MAX_PROJECT_PATH_LENGTH}"
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return False
 
         if not file_path.endswith(".edb"):
+<<<<<<< HEAD
             logger.warning(
                 "Invalid project file extension: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
@@ -1389,14 +1678,34 @@ class ETAPAutomation:
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return False
 
+=======
+            logger.warning(f"Invalid project file extension: {file_path}")
+            return False
+
+        try:
+            resolved = pathlib.Path(file_path).resolve()
+        except (ValueError, RuntimeError):
+            logger.warning(f"Invalid path format: {file_path}")
+            return False
+
+        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
+        if file_path.startswith("\\\\") or file_path.startswith("//"):
+            logger.warning(f"UNC path not allowed (SMB relay risk): {file_path}")
+            return False
+
+>>>>>>> origin/fix/scenario-tests-properly
         if self._allowed_project_dirs:
             is_allowed = any(
                 str(resolved).startswith(allowed_dir) for allowed_dir in self._allowed_project_dirs
             )
             if not is_allowed:
+<<<<<<< HEAD
                 logger.warning(
                     "Project path outside allowed directories: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+=======
+                logger.warning(f"Project path outside allowed directories: {file_path}")
+>>>>>>> origin/fix/scenario-tests-properly
                 return False
 
         return True
@@ -1409,21 +1718,27 @@ class ETAPAutomation:
         """
         Launch ETAP application.
 
+<<<<<<< HEAD
         SECURITY (LAUNCH-BLOCKER): CoInitialize() is required for COM to
         work in threads other than the main thread (Celery workers, FastAPI
         to_thread). Without it, Dispatch() fails with
         'CoInitialize has not been called'.
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         Returns:
         True if successful
         """
         try:
+<<<<<<< HEAD
             # SECURITY (LAUNCH-BLOCKER): Initialize COM for this thread
             import sys as _sys
             if _sys.platform == "win32":
                 import pythoncom
                 pythoncom.CoInitialize()
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             self._com_app = win32com.client.Dispatch("ETAP.Application")
 
             if hasattr(self._com_app, "Visible"):
@@ -1437,10 +1752,17 @@ class ETAPAutomation:
             return True
 
         except Exception as e:
+<<<<<<< HEAD
             logger.exception("Failed to launch ETAP: %s", e)
             return False
 
     def open_project(self, file_path: str) -> Optional[ETAPProject]:
+=======
+            logger.error(f"Failed to launch ETAP: {e}")
+            return False
+
+    def open_project(self, file_path: str) -> ETAPProject | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Open an existing ETAP project.
 
@@ -1454,9 +1776,13 @@ class ETAPAutomation:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
         if not self._validate_project_path(file_path):
+<<<<<<< HEAD
             logger.error(
                 "Project path validation failed: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+=======
+            logger.error(f"Project path validation failed: {file_path}")
+>>>>>>> origin/fix/scenario-tests-properly
             return None
 
         try:
@@ -1465,6 +1791,7 @@ class ETAPAutomation:
             if com_project:
                 project = ETAPProject(com_project, file_path, com_timeout=self.com_timeout_seconds)
                 self._projects[file_path] = project
+<<<<<<< HEAD
                 logger.info(
                     "Opened project: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
@@ -1488,6 +1815,24 @@ class ETAPAutomation:
             return None
 
     def create_project(self, project_name: str = "NewProject") -> Optional[ETAPProject]:
+=======
+                logger.info(f"Opened project: {file_path}")
+                return project
+            else:
+                logger.error(f"Failed to open project: {file_path}")
+                return None
+
+        except pythoncom.com_error as e:
+            logger.error(
+                f"COM error opening project {file_path} (timeout={self.com_timeout_seconds}s): {e}"
+            )
+            return None
+        except Exception as e:
+            logger.error(f"Error opening project {file_path}: {e}")
+            return None
+
+    def create_project(self, project_name: str = "NewProject") -> ETAPProject | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Create a new ETAP project.
 
@@ -1513,13 +1858,18 @@ class ETAPAutomation:
                 temp_path = os.path.join(temp_dir, f"{safe_name}.edb")
                 project = ETAPProject(com_project, temp_path, com_timeout=self.com_timeout_seconds)
                 self._projects[temp_path] = project
+<<<<<<< HEAD
                 logger.info("Created new project: %s", safe_name)
+=======
+                logger.info(f"Created new project: {safe_name}")
+>>>>>>> origin/fix/scenario-tests-properly
                 return project
             else:
                 logger.error("Failed to create new project")
                 return None
 
         except pythoncom.com_error as e:
+<<<<<<< HEAD
             logger.exception(
                 "COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e
             )
@@ -1529,6 +1879,15 @@ class ETAPAutomation:
             return None
 
     def get_active_project(self) -> Optional[ETAPProject]:
+=======
+            logger.error(f"COM error creating project (timeout={self.com_timeout_seconds}s): {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Error creating project: {e}")
+            return None
+
+    def get_active_project(self) -> ETAPProject | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get the currently active project."""
         if not self.is_running:
             return None
@@ -1541,6 +1900,7 @@ class ETAPAutomation:
                         return proj
 
                 project = ETAPProject(
+<<<<<<< HEAD
                     com_project,
                     "ActiveProject",
                     com_timeout=self.com_timeout_seconds,
@@ -1554,6 +1914,17 @@ class ETAPAutomation:
             )
         except Exception as e:
             logger.exception("Error getting active project: %s", e)
+=======
+                    com_project, "ActiveProject", com_timeout=self.com_timeout_seconds
+                )
+                return project
+        except pythoncom.com_error as e:
+            logger.error(
+                f"COM error getting active project (timeout={self.com_timeout_seconds}s): {e}"
+            )
+        except Exception as e:
+            logger.error(f"Error getting active project: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
 
         return None
 
@@ -1570,11 +1941,15 @@ class ETAPAutomation:
     def close_all_projects(self) -> int:
         """Close all open projects. Returns count of closed projects."""
         count = 0
+<<<<<<< HEAD
         # list() creates a snapshot so we can safely del from self._projects
         # while iterating (otherwise RuntimeError: dict changed during iteration).
         for path in list(  # NOSONAR S7504: snapshot needed for safe deletion during iteration
             self._projects.keys()
         ):  # NOSONAR snapshot needed for safe deletion during iteration
+=======
+        for path in list(self._projects.keys()):
+>>>>>>> origin/fix/scenario-tests-properly
             if self.close_project(path):
                 count += 1
         return count
@@ -1598,6 +1973,7 @@ class ETAPAutomation:
             return True
 
         except pythoncom.com_error as e:
+<<<<<<< HEAD
             logger.exception(
                 "COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e
             )
@@ -1607,6 +1983,15 @@ class ETAPAutomation:
             return False
 
     def get_version(self) -> Optional[str]:
+=======
+            logger.error(f"COM error shutting down ETAP (timeout={self.com_timeout_seconds}s): {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error shutting down ETAP: {e}")
+            return False
+
+    def get_version(self) -> str | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get ETAP version information."""
         if not self.is_running:
             return None
@@ -1616,7 +2001,11 @@ class ETAPAutomation:
                 return self._com_app.Version
             return "Unknown"
         except Exception as e:
+<<<<<<< HEAD
             logger.exception("Error getting ETAP version: %s", e)
+=======
+            logger.error(f"Error getting ETAP version: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             return None
 
     def __enter__(self):
@@ -1624,7 +2013,11 @@ class ETAPAutomation:
         self.launch()
         return self
 
+<<<<<<< HEAD
     def __exit__(self, exc_type, _exc_val, _exc_tb):
+=======
+    def __exit__(self, exc_type, exc_val, exc_tb):
+>>>>>>> origin/fix/scenario-tests-properly
         """Context manager exit."""
         self.shutdown()
 

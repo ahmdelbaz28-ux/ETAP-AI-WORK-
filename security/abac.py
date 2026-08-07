@@ -27,6 +27,7 @@ import operator
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -36,6 +37,12 @@ from typing import Any, Union
 # Module-level so they can be tuned without code changes.
 BUSINESS_HOURS_START = 8  # 8 AM local time
 BUSINESS_HOURS_END = 18  # 6 PM local time
+=======
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from compat import StrEnum
 
@@ -45,7 +52,11 @@ logger = logging.getLogger(__name__)
 # Operator mapping for declarative rule conditions
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 _OPS: dict[str, Callable[[Any, Any], bool]] = {
+=======
+_OPS: Dict[str, Callable[[Any, Any], bool]] = {
+>>>>>>> origin/fix/scenario-tests-properly
     "==": operator.eq,
     "!=": operator.ne,
     "<": operator.lt,
@@ -124,7 +135,11 @@ class ABACPolicy:
     """
 
     name: str
+<<<<<<< HEAD
     rules: list[ABACRule] = field(default_factory=list)
+=======
+    rules: List[ABACRule] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
     priority: int = 0
     effect: str = "allow"
     description: str = ""
@@ -135,14 +150,25 @@ class ABACPolicy:
 # ---------------------------------------------------------------------------
 
 
+<<<<<<< HEAD
 def _resolve_path(context: dict[str, Any], path: str) -> Any:
+=======
+def _resolve_path(context: Dict[str, Any], path: str) -> Any:
+>>>>>>> origin/fix/scenario-tests-properly
     """Walk *path* (e.g. ``"resource.clearance_level"``) on *context*.
 
     Returns ``None`` if any segment is missing.
     """
     current: Any = context
     for part in path.split("."):
+<<<<<<< HEAD
         current = current.get(part) if isinstance(current, dict) else getattr(current, part, None)
+=======
+        if isinstance(current, dict):
+            current = current.get(part)
+        else:
+            current = getattr(current, part, None)
+>>>>>>> origin/fix/scenario-tests-properly
         if current is None:
             return None
     return current
@@ -166,6 +192,7 @@ class ABACPolicyEngine:
     5. If no policy matches → DENY (default-deny).
     """
 
+<<<<<<< HEAD
     def __init__(self, policies: list[ABACPolicy] | None = None) -> None:
         self._policies: list[ABACPolicy] = policies or []
 
@@ -188,6 +215,15 @@ class ABACPolicyEngine:
                 self.add_policy(p)
             return
 
+=======
+    def __init__(self, policies: List[ABACPolicy] | None = None) -> None:
+        self._policies: List[ABACPolicy] = policies or []
+
+    # -- policy management ---------------------------------------------------
+
+    def add_policy(self, policy: ABACPolicy) -> None:
+        """Add a policy to the engine."""
+>>>>>>> origin/fix/scenario-tests-properly
         self._policies.append(policy)
         self._policies.sort(key=lambda p: p.priority, reverse=True)
         logger.info(
@@ -206,19 +242,28 @@ class ABACPolicyEngine:
             logger.info("ABAC policy removed: %s", name)
         return removed
 
+<<<<<<< HEAD
     def list_policies(self) -> list[str]:
+=======
+    def list_policies(self) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return names of all registered policies in priority order."""
         return [p.name for p in self._policies]
 
     # -- rule evaluation -----------------------------------------------------
 
     @staticmethod
+<<<<<<< HEAD
     def _evaluate_rule(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         rule: ABACRule,
         subject: dict,
         action: str,
         resource: dict,
         environment: dict,
+=======
+    def _evaluate_rule(
+        rule: ABACRule, subject: dict, action: str, resource: dict, environment: dict
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> bool:
         """Evaluate a single rule against the request context.
 
@@ -227,12 +272,22 @@ class ABACPolicyEngine:
         """
         # Select the context dict based on rule type
         if rule.rule_type == RuleType.ROLE:
+<<<<<<< HEAD
             context: dict[str, Any] = {"role": subject.get("role", ""), **subject}
+=======
+            context: Dict[str, Any] = {"role": subject.get("role", ""), **subject}
+>>>>>>> origin/fix/scenario-tests-properly
         elif rule.rule_type == RuleType.ATTRIBUTE:
             context = subject
         elif rule.rule_type == RuleType.RESOURCE:
             context = {"resource": resource, **resource}
+<<<<<<< HEAD
         elif rule.rule_type == RuleType.TIME or rule.rule_type == RuleType.IP:
+=======
+        elif rule.rule_type == RuleType.TIME:
+            context = environment
+        elif rule.rule_type == RuleType.IP:
+>>>>>>> origin/fix/scenario-tests-properly
             context = environment
         else:
             logger.warning("Unknown ABAC rule type: %s", rule.rule_type)
@@ -336,9 +391,13 @@ class ABACPolicyEngine:
             t: datetime = env["time"]
             env.setdefault("hour", t.hour)
             env.setdefault("day_of_week", t.weekday())
+<<<<<<< HEAD
             env.setdefault(
                 "is_business_hours", BUSINESS_HOURS_START <= t.hour <= BUSINESS_HOURS_END
             )
+=======
+            env.setdefault("is_business_hours", 8 <= t.hour <= 18)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Evaluate policies in priority order
         allow_matched = False
@@ -449,9 +508,15 @@ if _HAS_STARLETTE:
         def __init__(
             self,
             app: Any,
+<<<<<<< HEAD
             policies: list[ABACPolicy] | None = None,
             jwt_decode_fn: Callable[..., Any] | None = None,
             public_paths: list[str] | None = None,
+=======
+            policies: List[ABACPolicy] | None = None,
+            jwt_decode_fn: Callable[..., Any] | None = None,
+            public_paths: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
         ) -> None:
             super().__init__(app)
             self.engine = ABACPolicyEngine(policies or [])
@@ -462,7 +527,11 @@ if _HAS_STARLETTE:
             """Add a policy at runtime."""
             self.engine.add_policy(policy)
 
+<<<<<<< HEAD
         async def _decode_jwt(self, token: str) -> dict[str, Any]:
+=======
+        async def _decode_jwt(self, token: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
             """Decode a JWT token into claims dict."""
             if self._jwt_decode_fn is not None:
                 return await self._jwt_decode_fn(token)
@@ -505,7 +574,11 @@ if _HAS_STARLETTE:
                 )
 
             # Build ABAC context
+<<<<<<< HEAD
             subject: dict[str, Any] = {
+=======
+            subject: Dict[str, Any] = {
+>>>>>>> origin/fix/scenario-tests-properly
                 "user_id": claims.get("user_id", ""),
                 "role": claims.get("role", "guest"),
                 "department": claims.get("department", ""),
@@ -517,7 +590,11 @@ if _HAS_STARLETTE:
             action = f"{request.method.lower()}:{path}"
 
             # Resource: query params + path info
+<<<<<<< HEAD
             resource: dict[str, Any] = {
+=======
+            resource: Dict[str, Any] = {
+>>>>>>> origin/fix/scenario-tests-properly
                 "path": path,
                 "method": request.method,
                 "clearance_level": 0,  # default; override per-route as needed
@@ -525,7 +602,11 @@ if _HAS_STARLETTE:
 
             # Environment
             client_ip = request.client.host if request.client else "0.0.0.0"
+<<<<<<< HEAD
             environment: dict[str, Any] = {
+=======
+            environment: Dict[str, Any] = {
+>>>>>>> origin/fix/scenario-tests-properly
                 "time": datetime.now(UTC),
                 "ip": client_ip,
                 "source": "abac_middleware",
@@ -562,8 +643,13 @@ else:
 
 def make_role_policy(
     name: str,
+<<<<<<< HEAD
     allowed_roles: list[str],
     actions: list[str] | None = None,
+=======
+    allowed_roles: List[str],
+    actions: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     priority: int = 10,
 ) -> ABACPolicy:
     """Create a policy that allows subjects with a role in *allowed_roles*.
@@ -584,7 +670,11 @@ def make_role_policy(
     -------
     ABACPolicy
     """
+<<<<<<< HEAD
     rules: list[ABACRule] = [
+=======
+    rules: List[ABACRule] = [
+>>>>>>> origin/fix/scenario-tests-properly
         ABACRule(
             rule_type=RuleType.ROLE,
             field_path="role",
@@ -611,7 +701,11 @@ def make_business_hours_policy(
     start_hour: int = 8,
     end_hour: int = 18,
     priority: int = 5,
+<<<<<<< HEAD
 ) -> list[ABACPolicy]:
+=======
+) -> List[ABACPolicy]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Create deny policies that block access outside business hours.
 
     Parameters
@@ -666,7 +760,11 @@ def make_business_hours_policy(
 
 def make_ip_allowlist_policy(
     name: str,
+<<<<<<< HEAD
     allowed_cidrs: list[str],
+=======
+    allowed_cidrs: List[str],
+>>>>>>> origin/fix/scenario-tests-properly
     priority: int = 20,
 ) -> ABACPolicy:
     """Create an allow policy restricted to IP CIDR ranges.
@@ -741,6 +839,7 @@ def make_clearance_policy(
 
 
 def create_default_etap_abac_engine() -> ABACPolicyEngine:
+<<<<<<< HEAD
     # RFC1918 private address ranges used for internal-network allowlisting.
     # NOSONAR
     _PRIVATE_NETWORK_CIDRS = (
@@ -748,6 +847,8 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
         "172.16.0.0/12",
         "192.168.0.0/16",
     )  # NOSONAR
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     """Create an :class:`ABACPolicyEngine` pre-loaded with ETAP platform defaults.
 
     Default policies:
@@ -771,7 +872,11 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="admin_full_access",
             allowed_roles=["admin"],
             priority=100,
+<<<<<<< HEAD
         ),
+=======
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Engineer can run studies
@@ -780,6 +885,7 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             name="engineer_studies",
             allowed_roles=["engineer"],
             actions=[
+<<<<<<< HEAD
                 "get:/api/studies",  # NOSONAR intentional repetition (audit constant)
                 "post:/api/studies",
                 "get:/api/projects",  # NOSONAR intentional repetition (audit constant)
@@ -787,6 +893,15 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
             ],
             priority=50,
         ),
+=======
+                "get:/api/studies",
+                "post:/api/studies",
+                "get:/api/projects",
+                "post:/api/projects",
+            ],
+            priority=50,
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Analyst read
@@ -799,7 +914,11 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
                 "get:/api/projects",
             ],
             priority=50,
+<<<<<<< HEAD
         ),
+=======
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Viewer read
@@ -812,18 +931,28 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
                 "get:/api/projects",
             ],
             priority=40,
+<<<<<<< HEAD
         ),
+=======
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Internal network allow
     engine.add_policy(
         make_ip_allowlist_policy(
             name="internal_network",
+<<<<<<< HEAD
             allowed_cidrs=list(
                 _PRIVATE_NETWORK_CIDRS
             ),  # NOSONAR S1313: RFC1918 ranges (10/8, 172.16/12, 192.168/16); not user-facing
             priority=30,
         ),
+=======
+            allowed_cidrs=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+            priority=30,
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Business hours deny

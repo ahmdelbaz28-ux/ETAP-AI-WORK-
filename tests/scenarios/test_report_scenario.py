@@ -6,6 +6,7 @@ PDF/DOCX/XLSX export, report compilation, and recommendation generation.
 
 import os
 import sys
+<<<<<<< HEAD
 import tempfile
 
 import pytest
@@ -18,6 +19,11 @@ import atexit
 
 atexit.register(lambda: __import__("shutil").rmtree(_TEST_REPORT_DIR, ignore_errors=True))
 
+=======
+
+import pytest
+
+>>>>>>> origin/fix/scenario-tests-properly
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from agents.orchestrator import (
@@ -67,7 +73,11 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
+<<<<<<< HEAD
                 "output_path": _TEST_REPORT_DIR,
+=======
+                "output_path": "/tmp/etap_test_reports",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         result = await agent.execute(task)
@@ -85,7 +95,11 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "docx",
+<<<<<<< HEAD
                 "output_path": _TEST_REPORT_DIR,
+=======
+                "output_path": "/tmp/etap_test_reports",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         result = await agent.execute(task)
@@ -102,7 +116,11 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "xlsx",
+<<<<<<< HEAD
                 "output_path": _TEST_REPORT_DIR,
+=======
+                "output_path": "/tmp/etap_test_reports",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         result = await agent.execute(task)
@@ -119,7 +137,11 @@ class TestReportScenario:
             parameters={
                 "results": [],
                 "format": "rtf",
+<<<<<<< HEAD
                 "output_path": _TEST_REPORT_DIR,
+=======
+                "output_path": "/tmp/etap_test_reports",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         result = await agent.execute(task)
@@ -135,7 +157,11 @@ class TestReportScenario:
             parameters={
                 "results": [_sample_load_flow_result()],
                 "format": "pdf",
+<<<<<<< HEAD
                 "output_path": _TEST_REPORT_DIR,
+=======
+                "output_path": "/tmp/etap_test_reports",
+>>>>>>> origin/fix/scenario-tests-properly
             },
         )
         result = await agent.execute(task)

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import gc
 import logging
+<<<<<<< HEAD
 import math
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import sys
 import time
 from contextlib import contextmanager
@@ -13,7 +16,11 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 from collections.abc import Callable
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List, Union
+>>>>>>> origin/fix/scenario-tests-properly
 
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, issparse
 from scipy.sparse.linalg import splu
@@ -43,10 +50,14 @@ class SparseMatrixManager:
     def to_dense(self, mat: Any) -> np.ndarray:
         return mat.toarray() if issparse(mat) else np.asarray(mat)
 
+<<<<<<< HEAD
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def build_sparse_ybus(  # NOSONAR
         self, system: System, seq: str = "1"
     ) -> csr_matrix:  # NOSONAR cognitive complexity; refactoring sprint
+=======
+    def build_sparse_ybus(self, system: System, seq: str = "1") -> csr_matrix:
+>>>>>>> origin/fix/scenario-tests-properly
         bids = sorted(system.buses.keys())
         n = len(bids)
         bi = {b: i for i, b in enumerate(bids)}
@@ -64,7 +75,11 @@ class SparseMatrixManager:
             z = xf.get_impedance(seq)
             y = 1.0 / z if z else 0
             ys = xf.get_shunt_admittance(seq) / 2.0
+<<<<<<< HEAD
             if not math.isclose(xf.tap_ratio, 1.0) or not math.isclose(xf.phase_shift, 0.0):
+=======
+            if xf.tap_ratio != 1.0 or xf.phase_shift != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                 a = xf.tap_ratio * np.exp(1j * xf.phase_shift)
                 rows += [i, j, i, j]
                 cols += [i, j, j, i]
@@ -87,6 +102,7 @@ class SparseMatrixManager:
                     rows.append(i), cols.append(i), data.append(1.0 / zl)
         return coo_matrix((data, (rows, cols)), shape=(n, n), dtype=complex).tocsr()
 
+<<<<<<< HEAD
     # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     def sparse_lu_solve(
         self,
@@ -108,6 +124,19 @@ class SparseMatrixManager:
         return a_factor.solve(b)
 
     def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> dict[str, Any]:
+=======
+    def sparse_lu_solve(self, A: Any, b: np.ndarray) -> np.ndarray:
+        if not issparse(A):
+            A = csr_matrix(A)
+        if A.shape[0] <= self.size_threshold:
+            return np.linalg.solve(A.toarray(), b)
+        return splu(A).solve(b)
+
+    def sparse_factored_solve(self, A_factor: Any, b: np.ndarray) -> np.ndarray:
+        return A_factor.solve(b)
+
+    def estimate_memory_savings(self, dense_size: int, sparse_size: int) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         if dense_size == 0:
             return {
                 "dense_bytes": 0,
@@ -142,7 +171,11 @@ BUS_DTYPE = np.dtype(
         ("qmin", np.float64),
         ("qmax", np.float64),
         ("vms", np.float64),
+<<<<<<< HEAD
     ],
+=======
+    ]
+>>>>>>> origin/fix/scenario-tests-properly
 )
 BTYPE_MAP = {"slack": 0, "pv": 1, "pq": 2}
 BTYPE_REV = {0: "slack", 1: "pv", 2: "pq"}
@@ -164,10 +197,17 @@ class MemoryOptimizedSystem:
         "_ids",
         "_vmag",
         "_vang",
+<<<<<<< HEAD
         "_pl",
         "_ql",
         "_pg",
         "_qg",
+=======
+        "_pL",
+        "_qL",
+        "_pG",
+        "_qG",
+>>>>>>> origin/fix/scenario-tests-properly
         "_kv",
         "_bt",
         "_qmin",
@@ -184,6 +224,7 @@ class MemoryOptimizedSystem:
         self.lines = []
         self.transformers = []
         self.generators = []
+<<<<<<< HEAD
         self.loads = []  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_seq = {}  # NOSONAR
         self._inc_gen_z = False
@@ -192,6 +233,14 @@ class MemoryOptimizedSystem:
             None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         )
         self._pl = self._ql = self._pg = self._qg = None
+=======
+        self.loads = []
+        self.Ybus_seq = {}
+        self._inc_gen_z = False
+        self._use_arr = False
+        self._ids = self._vmag = self._vang = None
+        self._pL = self._qL = self._pG = self._qG = None
+>>>>>>> origin/fix/scenario-tests-properly
         self._kv = self._bt = self._qmin = self._qmax = self._vms = None
         self._buses = None
         self._sm = SparseMatrixManager()
@@ -236,10 +285,17 @@ class MemoryOptimizedSystem:
             ("_ids", "bus_id"),
             ("_vmag", "vmag"),
             ("_vang", "vang"),
+<<<<<<< HEAD
             ("_pl", "pL"),
             ("_ql", "qL"),
             ("_pg", "pG"),
             ("_qg", "qG"),
+=======
+            ("_pL", "pL"),
+            ("_qL", "qL"),
+            ("_pG", "pG"),
+            ("_qG", "qG"),
+>>>>>>> origin/fix/scenario-tests-properly
             ("_kv", "kv"),
             ("_bt", "bt"),
             ("_qmin", "qmin"),
@@ -247,25 +303,37 @@ class MemoryOptimizedSystem:
             ("_vms", "vms"),
         ]:
             setattr(self, attr, a[f])
+<<<<<<< HEAD
         # NOSONAR list() is intentional — creates a snapshot
         # so we can safely mutate self.Ybus_seq inside the loop if needed.
         for k in list(self.Ybus_seq.keys()):  # NOSONAR intentional snapshot for safe mutation
+=======
+        for k in list(self.Ybus_seq.keys()):
+>>>>>>> origin/fix/scenario-tests-properly
             yb = self.Ybus_seq[k]
             if isinstance(yb, np.ndarray) and yb.shape[0] >= self.THRESH:
                 self.Ybus_seq[k] = self._sm.to_sparse(yb)
         return self
 
     def _b_idx(self, bid: int) -> int:
+<<<<<<< HEAD
         idx = np.nonzero(
             self._ids == bid
         )[
             0
         ]  # NOSONAR np.nonzero returns indices of True elements; equivalent to np.where(cond)[0] but clearer (S6729)
+=======
+        idx = np.where(self._ids == bid)[0]
+>>>>>>> origin/fix/scenario-tests-properly
         if len(idx) == 0:
             raise KeyError(f"Bus {bid} not found")
         return int(idx[0])
 
+<<<<<<< HEAD
     def get_bus_data(self, bus_id: int) -> dict[str, Any]:
+=======
+    def get_bus_data(self, bus_id: int) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         if not self._use_arr:
             b = self._buses[bus_id]
             return {
@@ -286,8 +354,13 @@ class MemoryOptimizedSystem:
             "voltage_magnitude": float(self._vmag[i]),
             "voltage_angle": float(self._vang[i]),
             "voltage": self._vmag[i] * np.exp(1j * self._vang[i]),
+<<<<<<< HEAD
             "load_power": complex(float(self._pl[i]), float(self._ql[i])),
             "generation_power": complex(float(self._pg[i]), float(self._qg[i])),
+=======
+            "load_power": complex(float(self._pL[i]), float(self._qL[i])),
+            "generation_power": complex(float(self._pG[i]), float(self._qG[i])),
+>>>>>>> origin/fix/scenario-tests-properly
             "base_kv": None if np.isnan(self._kv[i]) else float(self._kv[i]),
             "bus_type": BTYPE_REV.get(int(self._bt[i]), "pq"),
             "q_min": float(self._qmin[i]),
@@ -305,8 +378,12 @@ class MemoryOptimizedSystem:
             self.Ybus_seq[seq] = self._sm.build_sparse_ybus(self.to_system(), seq)
         return self.Ybus_seq[seq]
 
+<<<<<<< HEAD
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def to_system(self) -> System:  # NOSONAR cognitive complexity; refactoring sprint
+=======
+    def to_system(self) -> System:
+>>>>>>> origin/fix/scenario-tests-properly
         s = System(base_mva=self.base_mva)
         if self._use_arr:
             for i in range(self.bus_count):
@@ -314,8 +391,13 @@ class MemoryOptimizedSystem:
                     bus_id=int(self._ids[i]),
                     voltage_magnitude=float(self._vmag[i]),
                     voltage_angle=float(self._vang[i]),
+<<<<<<< HEAD
                     load_power=complex(float(self._pl[i]), float(self._ql[i])),
                     generation_power=complex(float(self._pg[i]), float(self._qg[i])),
+=======
+                    load_power=complex(float(self._pL[i]), float(self._qL[i])),
+                    generation_power=complex(float(self._pG[i]), float(self._qG[i])),
+>>>>>>> origin/fix/scenario-tests-properly
                     base_kv=None if np.isnan(self._kv[i]) else float(self._kv[i]),
                     bus_type=BTYPE_REV.get(int(self._bt[i]), "pq"),
                     q_min=float(self._qmin[i]),
@@ -343,7 +425,11 @@ class MemoryOptimizedSystem:
     def get_bus_count(self) -> int:
         return self.bus_count
 
+<<<<<<< HEAD
     def estimate_memory_usage(self) -> dict[str, Any]:
+=======
+    def estimate_memory_usage(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         base = sys.getsizeof(self)
         if self._use_arr:
             bus_mem = sum(
@@ -352,10 +438,17 @@ class MemoryOptimizedSystem:
                     "_ids",
                     "_vmag",
                     "_vang",
+<<<<<<< HEAD
                     "_pl",
                     "_ql",
                     "_pg",
                     "_qg",
+=======
+                    "_pL",
+                    "_qL",
+                    "_pG",
+                    "_qG",
+>>>>>>> origin/fix/scenario-tests-properly
                     "_kv",
                     "_bt",
                     "_qmin",
@@ -400,11 +493,16 @@ class BatchProcessor:
             "total_time": 0.0,
         }
 
+<<<<<<< HEAD
     def process_buses(self, buses: dict | list, fn: Callable) -> list[Any]:
+=======
+    def process_buses(self, buses: Union[Dict, List], fn: Callable) -> List[Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         return self._batch_process(
             list(buses.items()) if isinstance(buses, dict) else list(buses), fn
         )
 
+<<<<<<< HEAD
     def process_lines(self, lines: list, fn: Callable) -> list[Any]:
         return self._batch_process(list(lines), fn)
 
@@ -413,6 +511,18 @@ class BatchProcessor:
         return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
 
     def _batch_process(self, items: list, fn: Callable) -> list[Any]:
+=======
+    def process_lines(self, lines: List, fn: Callable) -> List[Any]:
+        return self._batch_process(list(lines), fn)
+
+    def process_faults(
+        self, buses: Union[Dict, List], ftypes: List[str], fn: Callable
+    ) -> List[Any]:
+        items = list(buses.items()) if isinstance(buses, dict) else list(buses)
+        return self._batch_process([(b, ft) for b in items for ft in ftypes], fn)
+
+    def _batch_process(self, items: List, fn: Callable) -> List[Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         results, n = [], len(items)
         s = self._stats
         s.update(total_items=n, num_batches=0)
@@ -430,7 +540,11 @@ class BatchProcessor:
         s["total_time"] = time.perf_counter() - t0
         return results
 
+<<<<<<< HEAD
     def get_batch_statistics(self) -> dict[str, Any]:
+=======
+    def get_batch_statistics(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         s = dict(self._stats)
         t, sz = s["batch_times"], s["batch_sizes"]
         s.update(
@@ -449,7 +563,11 @@ class DataCompressor:
     def __init__(self):
         self._orig = self._comp = 0
 
+<<<<<<< HEAD
     def compress_results(self, results: dict[str, Any], precision: int = 6) -> dict[str, Any]:
+=======
+    def compress_results(self, results: Dict[str, Any], precision: int = 6) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         comp = {}
         self._orig = self._comp = 0
         for key, value in results.items():
@@ -471,9 +589,14 @@ class DataCompressor:
         comp["_precision"] = precision
         return comp
 
+<<<<<<< HEAD
     def decompress_results(self, compressed: dict[str, Any]) -> dict[str, Any]:
         # _precision is intentionally stripped from the restored dict (it's
         # metadata about the compression, not a restorable array).
+=======
+    def decompress_results(self, compressed: Dict[str, Any]) -> Dict[str, Any]:
+        compressed.get("_precision", 6)
+>>>>>>> origin/fix/scenario-tests-properly
         restored = {}
         for k, v in compressed.items():
             if k == "_precision":
@@ -489,7 +612,11 @@ class DataCompressor:
                 restored[k] = v.copy() if isinstance(v, np.ndarray) else v
         return restored
 
+<<<<<<< HEAD
     def compress_system_state(self, system: System | MemoryOptimizedSystem) -> dict[str, Any]:
+=======
+    def compress_system_state(self, system: Union[System, MemoryOptimizedSystem]) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         s = system.to_system() if isinstance(system, MemoryOptimizedSystem) else system
         bids = sorted(s.buses.keys())
         vmag = np.array([s.buses[b].voltage_magnitude for b in bids], dtype=np.float32)
@@ -538,7 +665,11 @@ class DataCompressor:
         self._comp = int(vmag.nbytes + vang.nbytes + sys.getsizeof(btypes))
         return comp
 
+<<<<<<< HEAD
     def decompress_system_state(self, compressed: dict[str, Any]) -> System:
+=======
+    def decompress_system_state(self, compressed: Dict[str, Any]) -> System:
+>>>>>>> origin/fix/scenario-tests-properly
         s = System(base_mva=float(compressed["base_mva"]))
         for i, bid in enumerate(compressed["bus_ids"]):
             s.add_bus(
@@ -547,7 +678,11 @@ class DataCompressor:
                     voltage_magnitude=float(compressed["bus_vmag"][i]),
                     voltage_angle=float(compressed["bus_vang"][i]),
                     bus_type=str(compressed["bus_types"][i]),
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
         from core_model.generator import Generator
         from core_model.line import Line
@@ -556,11 +691,16 @@ class DataCompressor:
         for ld in compressed.get("lines", []):
             s.add_line(
                 Line(
+<<<<<<< HEAD
                     ld["id"],
                     s.buses[ld["fr"]],
                     s.buses[ld["to"]],
                     z1=complex(ld["z1r"], ld["z1i"]),
                 ),
+=======
+                    ld["id"], s.buses[ld["fr"]], s.buses[ld["to"]], z1=complex(ld["z1r"], ld["z1i"])
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
         for td in compressed.get("transformers", []):
             s.add_transformer(
@@ -571,7 +711,11 @@ class DataCompressor:
                     z1=complex(td["z1r"], td["z1i"]),
                     tap_ratio=td["tap"],
                     phase_shift=td["ph"],
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
         for gd in compressed.get("generators", []):
             s.add_generator(
@@ -579,11 +723,19 @@ class DataCompressor:
                     gd["id"],
                     s.buses[gd["bus"]],
                     internal_voltage={"1": complex(gd["v1r"], gd["v1i"]), "2": 0j, "0": 0j},
+<<<<<<< HEAD
                 ),
             )
         return s
 
     def get_compression_ratio(self) -> dict[str, Any]:
+=======
+                )
+            )
+        return s
+
+    def get_compression_ratio(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         if self._orig == 0:
             return {"original_bytes": 0, "compressed_bytes": 0, "ratio": 1.0, "percent_saved": 0.0}
         return {
@@ -601,7 +753,11 @@ class PerformanceProfiler:
     def __init__(self):
         self._profiles = []
 
+<<<<<<< HEAD
     def profile_function(self, fn: Callable, *args: Any, **kwargs: Any) -> dict[str, Any]:
+=======
+    def profile_function(self, fn: Callable, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         gc_was = gc.isenabled()
         gc.disable()
         has_tm = False
@@ -663,7 +819,11 @@ class PerformanceProfiler:
                     "memory_after_mb": after,
                     "memory_delta_mb": after - before,
                     "tracemalloc_top": details,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     def _get_mem(self) -> float:
@@ -680,10 +840,17 @@ class PerformanceProfiler:
         except Exception:
             return 0.0
 
+<<<<<<< HEAD
     def get_profile_report(self) -> list[dict[str, Any]]:
         return list(self._profiles)
 
     def suggest_optimizations(self, profile_data: dict[str, Any] | None = None) -> list[str]:
+=======
+    def get_profile_report(self) -> List[Dict[str, Any]]:
+        return list(self._profiles)
+
+    def suggest_optimizations(self, profile_data: Dict[str, Any] | None = None) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         d = profile_data or (self._profiles[-1] if self._profiles else {})
         sug = []
         e, m = d.get("elapsed_seconds", 0), d.get("memory_delta_mb", 0)
@@ -701,7 +868,11 @@ class PerformanceProfiler:
 class LargeSystemAdapter:
     """Adapts calculation engines for large power system models."""
 
+<<<<<<< HEAD
     def __init__(self, system: System | MemoryOptimizedSystem, memory_limit_mb: int = 1024):
+=======
+    def __init__(self, system: Union[System, MemoryOptimizedSystem], memory_limit_mb: int = 1024):
+>>>>>>> origin/fix/scenario-tests-properly
         self.memory_limit_mb = memory_limit_mb
         self.optimized_system = (
             MemoryOptimizedSystem(system) if isinstance(system, System) else system
@@ -711,11 +882,18 @@ class LargeSystemAdapter:
         self._n = self.optimized_system.get_bus_count()
         self._large, self._xl = self._n >= 1000, self._n >= 10000
 
+<<<<<<< HEAD
     def run_load_flow_optimized(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         p = params or {}
         Y = self.sparse_manager.build_sparse_ybus(
             self.optimized_system.to_system(),
             p.get("seq", "1"),
+=======
+    def run_load_flow_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        p = params or {}
+        Y = self.sparse_manager.build_sparse_ybus(
+            self.optimized_system.to_system(), p.get("seq", "1")
+>>>>>>> origin/fix/scenario-tests-properly
         )
         r = {
             "Ybus": Y,
@@ -733,6 +911,7 @@ class LargeSystemAdapter:
             )
         else:
             r.update(solver="dense", initial_voltages=self.optimized_system.get_all_bus_voltages())
+<<<<<<< HEAD
         if self._xl:
             r["system_type"] = "xl"
         elif self._large:
@@ -746,11 +925,21 @@ class LargeSystemAdapter:
         self,
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+=======
+        r["system_type"] = "xl" if self._xl else ("large" if self._large else "normal")
+        return r
+
+    def run_fault_analysis_optimized(self, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         p = params or {}
         sys_o = self.optimized_system.to_system()
         sys_o.build_sequence_networks(for_fault=True)
         sm = self.sparse_manager
+<<<<<<< HEAD
         Y1, Y2, Y0 = (sm.build_sparse_ybus(sys_o, s) for s in ("1", "2", "0"))
+=======
+        Y1, Y2, Y0 = [sm.build_sparse_ybus(sys_o, s) for s in ("1", "2", "0")]
+>>>>>>> origin/fix/scenario-tests-properly
         r = {"Ybus_pos": Y1, "Ybus_neg": Y2, "Ybus_zero": Y0}
         if self._large:
             r["Zbus_pos"] = sm.sparse_lu_solve(Y1, np.eye(self._n, dtype=complex))
@@ -780,7 +969,11 @@ class LargeSystemAdapter:
             )
         return r
 
+<<<<<<< HEAD
     def get_optimization_strategy(self) -> dict[str, Any]:
+=======
+    def get_optimization_strategy(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         n = self._n
         if n >= 10000:
             flags = {
@@ -791,8 +984,13 @@ class LargeSystemAdapter:
                 "need_memory_monitoring": True,
             }
             recs = [
+<<<<<<< HEAD
                 "Use SparseMatrixManager for all matrix operations.",  # NOSONAR intentional repetition (audit constant)
                 "Use MemoryOptimizedSystem array storage.",  # NOSONAR string duplication; extract constant (tech debt)
+=======
+                "Use SparseMatrixManager for all matrix operations.",
+                "Use MemoryOptimizedSystem array storage.",
+>>>>>>> origin/fix/scenario-tests-properly
                 "Use BatchProcessor for fault analysis.",
                 "Use DataCompressor for caching as float32/complex64.",
                 "Consider iterative solvers (GMRES, BiCGSTAB).",

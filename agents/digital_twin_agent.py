@@ -22,10 +22,17 @@ Standards:
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
+=======
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -84,12 +91,21 @@ class DigitalTwinAgent(BaseAgent):
     # Core computation methods
     # ------------------------------------------------------------------
 
+<<<<<<< HEAD
     def compute_model_deviation_index(  # NOSONAR
         self,
         predicted: np.ndarray,
         measured: np.ndarray,
         covariance: Optional[np.ndarray] = None,
     ) -> dict[str, Any]:
+=======
+    def compute_model_deviation_index(
+        self,
+        predicted: np.ndarray,
+        measured: np.ndarray,
+        covariance: np.ndarray | None = None,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Compute Model Deviation Index (MDI) between predicted and
         measured values.
@@ -141,11 +157,19 @@ class DigitalTwinAgent(BaseAgent):
                         "index": i,
                         "absolute": float(abs_diff[i]),
                         "percent": float(abs_diff[i] / abs(measured[i]) * 100.0),
+<<<<<<< HEAD
                     },
                 )
             else:
                 deviation_per_var.append(
                     {"index": i, "absolute": float(abs_diff[i]), "percent": None},
+=======
+                    }
+                )
+            else:
+                deviation_per_var.append(
+                    {"index": i, "absolute": float(abs_diff[i]), "percent": None}
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Status classification
@@ -169,10 +193,17 @@ class DigitalTwinAgent(BaseAgent):
             "status": status,
         }
 
+<<<<<<< HEAD
     def compute_data_quality_index(  # NOSONAR
         self,
         measurements: list[dict[str, Any]],
     ) -> dict[str, Any]:
+=======
+    def compute_data_quality_index(
+        self,
+        measurements: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Compute Data Quality Index (DQI) for SCADA measurements.
 
@@ -204,7 +235,11 @@ class DigitalTwinAgent(BaseAgent):
 
         now = datetime.now(UTC)
         good_count = 0
+<<<<<<< HEAD
         bad_tags: list[str] = []
+=======
+        bad_tags: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
         timely_count = 0
         valid_count = 0
 
@@ -256,9 +291,15 @@ class DigitalTwinAgent(BaseAgent):
 
     def compute_predictive_confidence(
         self,
+<<<<<<< HEAD
         historical_mdi: list[float],
         recent_window: int = 10,
     ) -> dict[str, Any]:
+=======
+        historical_mdi: List[float],
+        recent_window: int = 10,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Compute Predictive Confidence Level (PCL) based on historical
         model deviation trends.
@@ -346,7 +387,11 @@ class DigitalTwinAgent(BaseAgent):
             self.log_execution(f"Starting digital twin synchronization for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
+<<<<<<< HEAD
             results: dict[str, Any] = {}
+=======
+            results: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
             # --- Model Deviation Index ---
             if analysis_type in ("model_deviation", "full"):
@@ -355,7 +400,11 @@ class DigitalTwinAgent(BaseAgent):
                 if predicted is None or measured is None:
                     raise ValueError(
                         "'predicted_values' and 'measured_values' required "
+<<<<<<< HEAD
                         "for model deviation analysis",
+=======
+                        "for model deviation analysis"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 pred_arr = np.array(predicted, dtype=float)
                 meas_arr = np.array(measured, dtype=float)
@@ -416,6 +465,7 @@ class DigitalTwinAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
+<<<<<<< HEAD
     def _validate_model_deviation(self, md_data, errors: list[str]) -> None:
         """Check MDI is non-negative, finite, and the sync status is valid."""
         if md_data is None:
@@ -452,6 +502,8 @@ class DigitalTwinAgent(BaseAgent):
         if pcl < 0 or pcl > 100:
             errors.append(f"PCL out of range: {pcl:.2f}%")
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     def validate_result(self, result: AgentResult) -> bool:
         """
         Validate digital twin synchronization results.
@@ -462,11 +514,45 @@ class DigitalTwinAgent(BaseAgent):
         - PCL is between 0 and 100
         - Synchronization status is valid
         """
+<<<<<<< HEAD
         errors: list[str] = []
 
         self._validate_model_deviation(result.data.get("model_deviation"), errors)
         self._validate_data_quality(result.data.get("data_quality"), errors)
         self._validate_predictive_confidence(result.data.get("predictive_confidence"), errors)
+=======
+        errors: List[str] = []
+
+        md_data = result.data.get("model_deviation")
+        if md_data is not None:
+            mdi = md_data.get("mdi", 0.0)
+            if mdi < 0:
+                errors.append(f"MDI is negative: {mdi:.6f}")
+            if not np.isfinite(mdi):
+                errors.append(f"MDI is not finite: {mdi}")
+            status = md_data.get("status", "")
+            valid_statuses = {
+                "synchronized",
+                "minor_drift",
+                "moderate_drift",
+                "significant_drift",
+                "critical_drift",
+            }
+            if status and status not in valid_statuses:
+                errors.append(f"Invalid synchronization status: {status}")
+
+        dq_data = result.data.get("data_quality")
+        if dq_data is not None:
+            dqi = dq_data.get("dqi_percent", 0.0)
+            if dqi < 0 or dqi > 100:
+                errors.append(f"DQI out of range: {dqi:.2f}%")
+
+        pcl_data = result.data.get("predictive_confidence")
+        if pcl_data is not None:
+            pcl = pcl_data.get("pcl_percent", 0.0)
+            if pcl < 0 or pcl > 100:
+                errors.append(f"PCL out of range: {pcl:.2f}%")
+>>>>>>> origin/fix/scenario-tests-properly
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

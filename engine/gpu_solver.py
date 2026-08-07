@@ -17,8 +17,13 @@ Mathematical background
 -----------------------
 Newton-Raphson update (same formulation as the sparse solver)::
 
+<<<<<<< HEAD
     [Union[ΔP/, V|]]   [J1  J2] [Δθ        ]
     [Union[ΔQ/, V|]] = [J3  J4] [Union[Δ|V|/, V|]  ]
+=======
+    [ΔP/|V|]   [J1  J2] [Δθ        ]
+    [ΔQ/|V|] = [J3  J4] [Δ|V|/|V|  ]
+>>>>>>> origin/fix/scenario-tests-properly
 
 The Jacobian is constructed in sparse form (CSR).  The linear system
 is solved via ``cupy.sparse.linalg.spsolve`` on GPU or
@@ -28,9 +33,14 @@ is solved via ``cupy.sparse.linalg.spsolve`` on GPU or
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
 import math
 import time
 from typing import Any, Union
+=======
+import time
+from typing import Any, Dict, List, Union
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
@@ -101,12 +111,17 @@ class GPUSolver:
     def __init__(self, device_id: int = 0) -> None:
         self._device_id = device_id
         self._gpu_available = _CUPY_AVAILABLE
+<<<<<<< HEAD
         self._xp = (
             _cp if self._gpu_available else np
         )  # NOSONAR intentional repetition (audit constant)
         self._device_name: str = (
             "CPU (NumPy/SciPy)"  # NOSONAR string duplication; extract constant (tech debt)
         )
+=======
+        self._xp = _cp if self._gpu_available else np
+        self._device_name: str = "CPU (NumPy/SciPy)"
+>>>>>>> origin/fix/scenario-tests-properly
 
         if self._gpu_available:
             try:
@@ -146,11 +161,19 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Main solver
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def newton_raphson_gpu(  # NOSONAR cognitive complexity; refactoring sprint
         self,
         ybus: Union[np.ndarray, csr_matrix] | Any,
         bus_data: list[BusData],
+=======
+
+    def newton_raphson_gpu(
+        self,
+        ybus: Union[np.ndarray, csr_matrix, Any],
+        bus_data: List[BusData],
+>>>>>>> origin/fix/scenario-tests-properly
         max_iter: int = 50,
         tol: float = 1e-8,
     ) -> SparseConvergenceResult:
@@ -198,6 +221,7 @@ class GPUSolver:
                 [b.voltage_magnitude * _cp.exp(1j * b.voltage_angle) for b in bus_data],
                 dtype=_cp.complex128,
             )
+<<<<<<< HEAD
             if sp_issparse(
                 ybus
             ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -206,11 +230,18 @@ class GPUSolver:
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
             else:
                 ybus_dense = _cp.asarray(np.asarray(ybus))
+=======
+            if sp_issparse(ybus):
+                Ybus_dense = _cp.asarray(ybus.toarray())
+            else:
+                Ybus_dense = _cp.asarray(np.asarray(ybus))
+>>>>>>> origin/fix/scenario-tests-properly
         else:
             V = np.array(
                 [b.voltage_magnitude * np.exp(1j * b.voltage_angle) for b in bus_data],
                 dtype=complex,
             )
+<<<<<<< HEAD
             ybus_dense = ybus.toarray() if sp_issparse(ybus) else np.asarray(ybus)
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         p_sch = xp.array(
@@ -219,22 +250,40 @@ class GPUSolver:
         q_sch = xp.array(
             [b.q_generation - b.q_load for b in bus_data], dtype=float
         )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+            if sp_issparse(ybus):
+                Ybus_dense = ybus.toarray()
+            else:
+                Ybus_dense = np.asarray(ybus)
+
+        P_sch = xp.array([b.p_generation - b.p_load for b in bus_data], dtype=float)
+        Q_sch = xp.array([b.q_generation - b.q_load for b in bus_data], dtype=float)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Set PV bus voltages to scheduled values
         for i in pv_idx:
             V[i] = bus_data[i].v_scheduled * xp.exp(1j * xp.angle(V[i]))
 
+<<<<<<< HEAD
         iteration_log: list[dict[str, Any]] = []
+=======
+        iteration_log: List[Dict[str, Any]] = []
+>>>>>>> origin/fix/scenario-tests-properly
         converged = False
         max_mismatch = 0.0
 
         for iteration in range(max_iter):
             # Power calculations (on device)
+<<<<<<< HEAD
             I = ybus_dense @ V
+=======
+            I = Ybus_dense @ V
+>>>>>>> origin/fix/scenario-tests-properly
             S = V * xp.conj(I)
             P = S.real
             Q = S.imag
 
+<<<<<<< HEAD
             # NOSONAR
             deltap = (
                 p_sch - P
@@ -246,6 +295,17 @@ class GPUSolver:
                 mismatch[k] = deltap[i]
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + k] = deltap[i]
+=======
+            # Mismatch
+            deltaP = P_sch - P
+            deltaQ = Q_sch - Q
+
+            mismatch = xp.zeros(n_unknowns)
+            for k, i in enumerate(pv_idx):
+                mismatch[k] = deltaP[i]
+            for k, i in enumerate(pq_idx):
+                mismatch[n_pv + k] = deltaP[i]
+>>>>>>> origin/fix/scenario-tests-properly
             for k, i in enumerate(pq_idx):
                 mismatch[n_pv + n_pq + k] = deltaQ[i]
 
@@ -257,13 +317,18 @@ class GPUSolver:
                     "max_mismatch": max_mismatch,
                     "n_pv": n_pv,
                     "n_pq": n_pq,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             if max_mismatch < tol:
                 converged = True
                 break
 
+<<<<<<< HEAD
             # NOSONAR
             j_sparse = self._build_jacobian(
                 V, ybus_dense, pv_idx, pq_idx, n_unknowns
@@ -271,6 +336,13 @@ class GPUSolver:
 
             # --- Solve linear system ---
             dx = self._solve_linear(j_sparse, mismatch, n_unknowns)
+=======
+            # --- Build sparse Jacobian ---
+            J_sparse = self._build_jacobian(V, Ybus_dense, pv_idx, pq_idx, n_unknowns)
+
+            # --- Solve linear system ---
+            dx = self._solve_linear(J_sparse, mismatch, n_unknowns)
+>>>>>>> origin/fix/scenario-tests-properly
 
             # --- Update voltages ---
             for k, i in enumerate(pv_idx):
@@ -286,6 +358,7 @@ class GPUSolver:
                 vmag = xp.clip(vmag, 0.5, 1.5)
                 V[i] = vmag * xp.exp(1j * xp.angle(V[i]))
 
+<<<<<<< HEAD
         # NOSONAR
         v_host = (
             _cp.asnumpy(V) if self._gpu_available else np.asarray(V)
@@ -307,6 +380,22 @@ class GPUSolver:
         else:
             p_final = np.asarray(s_final.real)
             q_final = np.asarray(s_final.imag)
+=======
+        # --- Copy results back to host ---
+        if self._gpu_available:
+            V_host = _cp.asnumpy(V)
+        else:
+            V_host = np.asarray(V)
+
+        I_final = Ybus_dense @ V
+        S_final = V * xp.conj(I_final)
+        if self._gpu_available:
+            P_final = _cp.asnumpy(S_final.real)
+            Q_final = _cp.asnumpy(S_final.imag)
+        else:
+            P_final = np.asarray(S_final.real)
+            Q_final = np.asarray(S_final.imag)
+>>>>>>> origin/fix/scenario-tests-properly
 
         elapsed = time.perf_counter() - t0
 
@@ -315,11 +404,19 @@ class GPUSolver:
             converged=converged,
             iterations=iteration + 1 if iteration_log else 0,
             max_mismatch=float(max_mismatch),
+<<<<<<< HEAD
             voltages=v_host,
             angles=np.angle(v_host),
             magnitudes=np.abs(v_host),
             active_power=p_final,
             reactive_power=q_final,
+=======
+            voltages=V_host,
+            angles=np.angle(V_host),
+            magnitudes=np.abs(V_host),
+            active_power=P_final,
+            reactive_power=Q_final,
+>>>>>>> origin/fix/scenario-tests-properly
             iteration_log=iteration_log,
             solver_type=solver_tag,
             solve_time_seconds=elapsed,
@@ -328,6 +425,7 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Jacobian construction
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _build_jacobian(  # NOSONAR cognitive complexity; refactoring sprint
         self,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -335,6 +433,15 @@ class GPUSolver:
         Ybus: Any,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
         pv_idx: list[int],
         pq_idx: list[int],
+=======
+
+    def _build_jacobian(
+        self,
+        V: Any,
+        Ybus: Any,
+        pv_idx: List[int],
+        pq_idx: List[int],
+>>>>>>> origin/fix/scenario-tests-properly
         n_unknowns: int,
     ) -> Any:
         """Build the Jacobian in sparse format on the active device.
@@ -360,11 +467,17 @@ class GPUSolver:
         """
         xp = self._xp
         len(V)
+<<<<<<< HEAD
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         vmag = xp.abs(
             V
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Vang = xp.angle(V)  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+
+        Vmag = xp.abs(V)
+        Vang = xp.angle(V)
+>>>>>>> origin/fix/scenario-tests-properly
         G = Ybus.real
         B = Ybus.imag
 
@@ -386,30 +499,50 @@ class GPUSolver:
 
         # Row groups: [PV+PQ P-mismatch rows, PQ Q-mismatch rows]
         theta_cols = pv_idx + pq_idx  # column indices for θ unknowns
+<<<<<<< HEAD
         v_cols = pq_idx  # column indices Union[for, V|] unknowns
+=======
+        v_cols = pq_idx  # column indices for |V| unknowns
+>>>>>>> origin/fix/scenario-tests-properly
 
         for row_k, i in enumerate(pv_idx + pq_idx):
             # H: ∂P_i/∂θ_j
             for col_k, j in enumerate(theta_cols):
                 if i == j:
                     val = (
+<<<<<<< HEAD
                         float(-Q[i] - B[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
                         else float(xp.asnumpy(-Q[i] - B[i, i] * vmag[i] ** 2))
+=======
+                        float(-Q[i] - B[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(-Q[i] - B[i, i] * Vmag[i] ** 2))
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 else:
                     val = (
                         float(
+<<<<<<< HEAD
                             vmag[i]
                             * vmag[j]
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
                             ),
+=======
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                            )
+>>>>>>> origin/fix/scenario-tests-properly
                         )
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
+<<<<<<< HEAD
                                 vmag[i]
                                 * vmag[j]
                                 * (
@@ -421,35 +554,71 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
+=======
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
+                if self._gpu_available:
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         rows.append(row_k)
                         cols.append(col_k)
                         data.append(val)
                 else:
+<<<<<<< HEAD
                     if not math.isclose(val, 0.0):
                         J[row_k, col_k] = val
 
             # N: Union[∂P_i/∂|V, _j]  (Union[PQ, V|] unknowns only)
+=======
+                    if val != 0.0:
+                        J[row_k, col_k] = val
+
+            # N: ∂P_i/∂|V|_j  (PQ |V| unknowns only)
+>>>>>>> origin/fix/scenario-tests-properly
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:
                     val = (
+<<<<<<< HEAD
                         float(P[i] + G[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
                         else float(xp.asnumpy(P[i] + G[i, i] * vmag[i] ** 2))
+=======
+                        float(P[i] + G[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(P[i] + G[i, i] * Vmag[i] ** 2))
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 else:
                     val = (
                         float(
+<<<<<<< HEAD
                             vmag[i]
                             * vmag[j]
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
                             ),
+=======
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                            )
+>>>>>>> origin/fix/scenario-tests-properly
                         )
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
+<<<<<<< HEAD
                                 vmag[i]
                                 * vmag[j]
                                 * (
@@ -461,11 +630,28 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
+=======
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
+                if self._gpu_available:
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         rows.append(row_k)
                         cols.append(col)
                         data.append(val)
                 else:
+<<<<<<< HEAD
                     if not math.isclose(val, 0.0):
+=======
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         J[row_k, col] = val
 
         for row_k, i in enumerate(pq_idx):
@@ -474,23 +660,39 @@ class GPUSolver:
             for col_k, j in enumerate(theta_cols):
                 if i == j:
                     val = (
+<<<<<<< HEAD
                         float(P[i] - G[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
                         else float(xp.asnumpy(P[i] - G[i, i] * vmag[i] ** 2))
+=======
+                        float(P[i] - G[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(P[i] - G[i, i] * Vmag[i] ** 2))
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 else:
                     val = (
                         float(
+<<<<<<< HEAD
                             -vmag[i]
                             * vmag[j]
                             * (
                                 G[i, j] * xp.cos(Vang[i] - Vang[j])
                                 + B[i, j] * xp.sin(Vang[i] - Vang[j])
                             ),
+=======
+                            -Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                            )
+>>>>>>> origin/fix/scenario-tests-properly
                         )
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
+<<<<<<< HEAD
                                 -vmag[i]
                                 * vmag[j]
                                 * (
@@ -502,35 +704,71 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
+=======
+                                -Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.cos(Vang[i] - Vang[j])
+                                    + B[i, j] * xp.sin(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
+                if self._gpu_available:
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         rows.append(row)
                         cols.append(col_k)
                         data.append(val)
                 else:
+<<<<<<< HEAD
                     if not math.isclose(val, 0.0):
                         J[row, col_k] = val
 
             # L: Union[∂Q_i/∂|V, _j]
+=======
+                    if val != 0.0:
+                        J[row, col_k] = val
+
+            # L: ∂Q_i/∂|V|_j
+>>>>>>> origin/fix/scenario-tests-properly
             for col_k, j in enumerate(v_cols):
                 col = n_pv + n_pq + col_k
                 if i == j:
                     val = (
+<<<<<<< HEAD
                         float(Q[i] - B[i, i] * vmag[i] ** 2)
                         if not self._gpu_available
                         else float(xp.asnumpy(Q[i] - B[i, i] * vmag[i] ** 2))
+=======
+                        float(Q[i] - B[i, i] * Vmag[i] ** 2)
+                        if not self._gpu_available
+                        else float(xp.asnumpy(Q[i] - B[i, i] * Vmag[i] ** 2))
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 else:
                     val = (
                         float(
+<<<<<<< HEAD
                             vmag[i]
                             * vmag[j]
                             * (
                                 G[i, j] * xp.sin(Vang[i] - Vang[j])
                                 - B[i, j] * xp.cos(Vang[i] - Vang[j])
                             ),
+=======
+                            Vmag[i]
+                            * Vmag[j]
+                            * (
+                                G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                            )
+>>>>>>> origin/fix/scenario-tests-properly
                         )
                         if not self._gpu_available
                         else float(
                             xp.asnumpy(
+<<<<<<< HEAD
                                 vmag[i]
                                 * vmag[j]
                                 * (
@@ -542,11 +780,28 @@ class GPUSolver:
                     )
                 if self._gpu_available:
                     if not math.isclose(val, 0.0):
+=======
+                                Vmag[i]
+                                * Vmag[j]
+                                * (
+                                    G[i, j] * xp.sin(Vang[i] - Vang[j])
+                                    - B[i, j] * xp.cos(Vang[i] - Vang[j])
+                                )
+                            )
+                        )
+                    )
+                if self._gpu_available:
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         rows.append(row)
                         cols.append(col)
                         data.append(val)
                 else:
+<<<<<<< HEAD
                     if not math.isclose(val, 0.0):
+=======
+                    if val != 0.0:
+>>>>>>> origin/fix/scenario-tests-properly
                         J[row, col] = val
 
         # Assemble sparse matrix
@@ -554,8 +809,13 @@ class GPUSolver:
             data_arr = np.array(data, dtype=np.float64)
             rows_arr = np.array(rows, dtype=np.int32)
             cols_arr = np.array(cols, dtype=np.int32)
+<<<<<<< HEAD
             # NOSONAR
             J_coo = _cp.sparse.coo_matrix(  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+            # Build CuPy CSR matrix via COO
+            J_coo = _cp.sparse.coo_matrix(
+>>>>>>> origin/fix/scenario-tests-properly
                 (data_arr, (rows_arr, cols_arr)),
                 shape=(n_unknowns, n_unknowns),
             )
@@ -566,10 +826,17 @@ class GPUSolver:
     # ------------------------------------------------------------------
     # Linear solver
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def _solve_linear(  # NOSONAR cognitive complexity; refactoring sprint
         self,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         A: Any,  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+
+    def _solve_linear(
+        self,
+        A: Any,
+>>>>>>> origin/fix/scenario-tests-properly
         b: Any,
         n_unknowns: int,
     ) -> Any:
@@ -596,6 +863,7 @@ class GPUSolver:
         if self._gpu_available:
             try:
                 # Ensure b is a CuPy array
+<<<<<<< HEAD
                 b_gpu = _cp.asarray(np.asarray(b)) if not isinstance(b, _cp.ndarray) else b
 
                 # NOSONAR
@@ -604,12 +872,27 @@ class GPUSolver:
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
                 x = _cp_spsolve(a_gpu, b_gpu)
+=======
+                if not isinstance(b, _cp.ndarray):
+                    b_gpu = _cp.asarray(np.asarray(b))
+                else:
+                    b_gpu = b
+
+                # Ensure A is a CuPy sparse matrix
+                if not _cp.sparse.issparse(A):
+                    A_gpu = _cp.sparse.csr_matrix(_cp.asarray(A))
+                else:
+                    A_gpu = A
+
+                x = _cp_spsolve(A_gpu, b_gpu)
+>>>>>>> origin/fix/scenario-tests-properly
                 return x
             except Exception as exc:
                 logger.warning(
                     "GPU spsolve failed (%s) — falling back to CPU for this solve.",
                     exc,
                 )
+<<<<<<< HEAD
                 # NOSONAR
                 a_cpu = (
                     A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
@@ -619,6 +902,15 @@ class GPUSolver:
                     x_cpu = scipy_spsolve(a_cpu.tocsr(), b_cpu)
                 else:
                     x_cpu = np.linalg.solve(np.asarray(a_cpu), b_cpu)
+=======
+                # Fallback: transfer to CPU, solve, transfer back
+                A_cpu = A.get() if _cp.sparse.issparse(A) else _cp.asnumpy(A)
+                b_cpu = _cp.asnumpy(b) if isinstance(b, _cp.ndarray) else np.asarray(b)
+                if sp_issparse(A_cpu):
+                    x_cpu = scipy_spsolve(A_cpu.tocsr(), b_cpu)
+                else:
+                    x_cpu = np.linalg.solve(np.asarray(A_cpu), b_cpu)
+>>>>>>> origin/fix/scenario-tests-properly
                 return _cp.asarray(x_cpu)
         else:
             # CPU path
@@ -639,8 +931,13 @@ class GPUSolver:
 
     def benchmark_cpu_vs_gpu(
         self,
+<<<<<<< HEAD
         sizes: list[int] | None = None,
     ) -> dict[str, Any]:
+=======
+        sizes: List[int] | None = None,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Benchmark CPU vs GPU solver performance for various system sizes.
 
         Generates synthetic systems and runs the Newton-Raphson solver
@@ -660,7 +957,11 @@ class GPUSolver:
         if sizes is None:
             sizes = [100, 500, 1000]
 
+<<<<<<< HEAD
         results: dict[str, Any] = {"device": self._device_name, "sizes": []}
+=======
+        results: Dict[str, Any] = {"device": self._device_name, "sizes": []}
+>>>>>>> origin/fix/scenario-tests-properly
 
         from engine.sparse_solver import SparseYBus as _SparseYBus
 
@@ -669,12 +970,17 @@ class GPUSolver:
 
             # Build sparse Y-bus once
             builder = _SparseYBus()
+<<<<<<< HEAD
             ybus = builder.build_sparse_ybus(
                 buses, branches
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             ybus_dense = (
                 ybus.toarray()
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
+=======
+            ybus = builder.build_sparse_ybus(buses, branches)
+            Ybus_dense = ybus.toarray()
+>>>>>>> origin/fix/scenario-tests-properly
 
             # --- CPU benchmark ---
             solver_cpu = GPUSolver.__new__(GPUSolver)
@@ -684,7 +990,11 @@ class GPUSolver:
 
             t0 = time.perf_counter()
             result_cpu = solver_cpu.newton_raphson_gpu(
+<<<<<<< HEAD
                 ybus_dense,
+=======
+                Ybus_dense,
+>>>>>>> origin/fix/scenario-tests-properly
                 buses,
                 max_iter=20,
                 tol=1e-6,
@@ -697,7 +1007,11 @@ class GPUSolver:
             if self._gpu_available:
                 t0 = time.perf_counter()
                 self.newton_raphson_gpu(
+<<<<<<< HEAD
                     ybus_dense,
+=======
+                    Ybus_dense,
+>>>>>>> origin/fix/scenario-tests-properly
                     buses,
                     max_iter=20,
                     tol=1e-6,

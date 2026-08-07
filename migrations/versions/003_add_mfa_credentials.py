@@ -67,7 +67,11 @@ def upgrade() -> None:
             "verified",
             sa.Boolean(),
             nullable=False,
+<<<<<<< HEAD
             server_default=sa.text("false"),
+=======
+            server_default=sa.text("0"),
+>>>>>>> origin/fix/scenario-tests-properly
             comment="Whether the user has completed MFA setup verification",
         ),
         sa.Column(

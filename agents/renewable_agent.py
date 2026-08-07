@@ -16,6 +16,7 @@ Standards:
 - IEEE 1547.1-2020: Conformance Test Procedures
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -24,11 +25,19 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
+=======
+import logging
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+<<<<<<< HEAD
 # Module-level numpy Generator for reproducible non-crypto sampling.
 # NOSONAR
 _RNG = np.random.default_rng()  # NOSONAR
@@ -52,6 +61,11 @@ class PVSystemLossConfig:
     availability_pct: float = 99.0
 
 
+=======
+logger = logging.getLogger(__name__)
+
+
+>>>>>>> origin/fix/scenario-tests-properly
 class RenewableAgent(BaseAgent):
     """
     Renewable Energy Integration Agent (IEEE 1547).
@@ -83,6 +97,7 @@ class RenewableAgent(BaseAgent):
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
+<<<<<<< HEAD
         irradiance_kw_m2: Optional[np.ndarray] = None,
         temperature_c: Optional[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.ndarray
@@ -94,6 +109,21 @@ class RenewableAgent(BaseAgent):
         azimuth_deg: float = 180.0,
         latitude_deg: float = 33.0,
     ) -> dict[str, Any]:
+=======
+        irradiance_kw_m2: np.ndarray = None,
+        temperature_C: np.ndarray = None,
+        noct_C: float = 45.0,
+        temp_coeff_power_pctK: float = -0.40,
+        soiling_loss_pct: float = 2.0,
+        mismatch_loss_pct: float = 2.0,
+        wiring_loss_pct: float = 1.0,
+        inverter_efficiency_pct: float = 96.0,
+        availability_pct: float = 99.0,
+        tilt_deg: float = 25.0,
+        azimuth_deg: float = 180.0,
+        latitude_deg: float = 33.0,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Perform solar PV integration analysis.
 
@@ -125,9 +155,18 @@ class RenewableAgent(BaseAgent):
             Nominal Operating Cell Temperature in °C.
         temp_coeff_power_pctK : float
             Power temperature coefficient in %/°C (negative for c-Si).
+<<<<<<< HEAD
         losses : PVSystemLossConfig, optional
             PV system loss and efficiency configuration. If None, defaults
             are used (see PVSystemLossConfig).
+=======
+        soiling_loss_pct, mismatch_loss_pct, wiring_loss_pct : float
+            System loss factors in percent.
+        inverter_efficiency_pct : float
+            Inverter weighted efficiency in percent.
+        availability_pct : float
+            System availability in percent.
+>>>>>>> origin/fix/scenario-tests-properly
         tilt_deg : float
             Array tilt angle in degrees.
         azimuth_deg : float
@@ -141,23 +180,31 @@ class RenewableAgent(BaseAgent):
             PV system analysis with annual energy, capacity factor,
             losses breakdown, and inverter loading ratio.
         """
+<<<<<<< HEAD
         # Apply default loss config if not provided
         if losses is None:
             losses = PVSystemLossConfig()
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         # Generate synthetic hourly data if not provided (8760 hours)
         hours = 8760
         if irradiance_kw_m2 is None:
             irradiance_kw_m2 = self._generate_synthetic_irradiance(
+<<<<<<< HEAD
                 hours,
                 tilt_deg,
                 azimuth_deg,
                 latitude_deg,
+=======
+                hours, tilt_deg, azimuth_deg, latitude_deg
+>>>>>>> origin/fix/scenario-tests-properly
             )
         else:
             irradiance_kw_m2 = np.asarray(irradiance_kw_m2, dtype=float)
             hours = len(irradiance_kw_m2)
 
+<<<<<<< HEAD
         if temperature_c is None:
             # Synthetic temperature: sinusoidal daily pattern
             temperature_c = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
@@ -205,6 +252,43 @@ class RenewableAgent(BaseAgent):
 
         # Annual energy
         annual_energy_kwh = float(np.sum(p_ac_final))
+=======
+        if temperature_C is None:
+            # Synthetic temperature: sinusoidal daily pattern
+            temperature_C = 20.0 + 10.0 * np.sin(2.0 * np.pi * (np.arange(hours) - 2200) / hours)
+        else:
+            temperature_C = np.asarray(temperature_C, dtype=float)
+
+        G_stc = 1.0  # kW/m² (STC)
+        T_stc = 25.0  # °C
+
+        # Cell temperature per NOCT method (IEEE 1547 / IEC 61215)
+        # T_cell = T_amb + (NOCT - 20) × G / 800
+        T_cell = temperature_C + (noct_C - 20.0) * (irradiance_kw_m2 * 1000.0) / 800.0
+
+        # DC power output (kW)
+        gamma = temp_coeff_power_pctK / 100.0  # Convert %/°C to per-unit/°C
+        P_dc = dc_capacity_kw * (irradiance_kw_m2 / G_stc) * (1.0 + gamma * (T_cell - T_stc))
+        P_dc = np.maximum(P_dc, 0.0)
+
+        # Inverter clipping
+        P_ac_pre_loss = P_dc * (inverter_efficiency_pct / 100.0)
+        P_ac_clipped = np.minimum(P_ac_pre_loss, ac_capacity_kw)
+        clipping_loss_kw = P_ac_pre_loss - P_ac_clipped
+
+        # System losses
+        loss_factor = (
+            (1.0 - soiling_loss_pct / 100.0)
+            * (1.0 - mismatch_loss_pct / 100.0)
+            * (1.0 - wiring_loss_pct / 100.0)
+            * (availability_pct / 100.0)
+        )
+
+        P_ac_final = P_ac_clipped * loss_factor
+
+        # Annual energy
+        annual_energy_kwh = float(np.sum(P_ac_final))
+>>>>>>> origin/fix/scenario-tests-properly
         capacity_factor = annual_energy_kwh / (dc_capacity_kw * hours) * 100.0
 
         # Inverter loading ratio (DC/AC)
@@ -214,10 +298,17 @@ class RenewableAgent(BaseAgent):
         specific_yield = annual_energy_kwh / dc_capacity_kw if dc_capacity_kw > 0 else 0.0
 
         # Loss breakdown
+<<<<<<< HEAD
         total_dc_energy = float(np.sum(p_dc))
         inverter_loss = total_dc_energy - float(np.sum(p_ac_pre_loss))
         clipping_energy = float(np.sum(clipping_loss_kw))
         system_losses = float(np.sum(p_ac_clipped)) - annual_energy_kwh
+=======
+        total_dc_energy = float(np.sum(P_dc))
+        inverter_loss = total_dc_energy - float(np.sum(P_ac_pre_loss))
+        clipping_energy = float(np.sum(clipping_loss_kw))
+        system_losses = float(np.sum(P_ac_clipped)) - annual_energy_kwh
+>>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "dc_capacity_kw": dc_capacity_kw,
@@ -226,15 +317,24 @@ class RenewableAgent(BaseAgent):
             "annual_energy_kwh": annual_energy_kwh,
             "capacity_factor_pct": float(capacity_factor),
             "specific_yield_kwh_kw": float(specific_yield),
+<<<<<<< HEAD
             "peak_output_kw": float(np.max(p_ac_final)),
             "hours_at_peak": int(np.sum(p_ac_final >= 0.99 * np.max(p_ac_final))),
             "losses": {
                 "temperature_loss_kwh": float(
                     total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc)),
+=======
+            "peak_output_kw": float(np.max(P_ac_final)),
+            "hours_at_peak": int(np.sum(P_ac_final >= 0.99 * np.max(P_ac_final))),
+            "losses": {
+                "temperature_loss_kwh": float(
+                    total_dc_energy - np.sum(dc_capacity_kw * (irradiance_kw_m2 / G_stc))
+>>>>>>> origin/fix/scenario-tests-properly
                 ),
                 "inverter_loss_kwh": float(inverter_loss),
                 "clipping_loss_kwh": float(clipping_energy),
                 "system_losses_kwh": float(system_losses),
+<<<<<<< HEAD
                 "soiling_pct": losses.soiling_loss_pct,
                 "mismatch_pct": losses.mismatch_loss_pct,
                 "wiring_pct": losses.wiring_loss_pct,
@@ -243,15 +343,29 @@ class RenewableAgent(BaseAgent):
             },
             "monthly_energy_kwh": [
                 float(np.sum(p_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
+=======
+                "soiling_pct": soiling_loss_pct,
+                "mismatch_pct": mismatch_loss_pct,
+                "wiring_pct": wiring_loss_pct,
+                "inverter_efficiency_pct": inverter_efficiency_pct,
+                "availability_pct": availability_pct,
+            },
+            "monthly_energy_kwh": [
+                float(np.sum(P_ac_final[(m * 730) : min((m + 1) * 730, hours)])) for m in range(12)
+>>>>>>> origin/fix/scenario-tests-properly
             ],
         }
 
     @staticmethod
     def _generate_synthetic_irradiance(
+<<<<<<< HEAD
         hours: int,
         tilt_deg: float,
         azimuth_deg: float,
         latitude_deg: float,
+=======
+        hours: int, tilt_deg: float, azimuth_deg: float, latitude_deg: float
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> np.ndarray:
         """Generate a synthetic clear-sky irradiance profile (kW/m²)."""
         day_of_year = np.arange(hours) // 24
@@ -269,17 +383,27 @@ class RenewableAgent(BaseAgent):
         ha_rad = np.radians(hour_angle)
 
         sin_elev = np.sin(lat_rad) * np.sin(dec_rad) + np.cos(lat_rad) * np.cos(dec_rad) * np.cos(
+<<<<<<< HEAD
             ha_rad,
+=======
+            ha_rad
+>>>>>>> origin/fix/scenario-tests-properly
         )
         elevation = np.arcsin(np.clip(sin_elev, -1, 1))
 
         # Clear-sky irradiance on horizontal plane
+<<<<<<< HEAD
         # Clamp sin(elevation) to a small positive value to avoid overflow
         # when np.where evaluates both branches.
         safe_sin = np.clip(np.sin(elevation), 0.01, None)
         ghi = np.where(
             elevation > 0,
             1.0 * safe_sin * (0.7 ** (1.0 / safe_sin)),
+=======
+        ghi = np.where(
+            elevation > 0,
+            1.0 * np.sin(elevation) * (0.7 ** (1.0 / (np.sin(elevation) + 0.01))),
+>>>>>>> origin/fix/scenario-tests-properly
             0.0,
         )
 
@@ -292,6 +416,7 @@ class RenewableAgent(BaseAgent):
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
+<<<<<<< HEAD
         poa = np.clip(
             poa, 0.0, 1.2
         )  # NOSONAR
@@ -305,6 +430,13 @@ class RenewableAgent(BaseAgent):
                 hours
             )
         )  # NOSONAR
+=======
+        poa = np.clip(poa, 0.0, 1.2)  # kW/m²
+
+        # Add some cloud randomness
+        np.random.seed(42)
+        cloud_factor = 0.7 + 0.3 * np.random.random(hours)
+>>>>>>> origin/fix/scenario-tests-properly
         poa = poa * cloud_factor
 
         return np.clip(poa, 0.0, 1.2)
@@ -326,7 +458,11 @@ class RenewableAgent(BaseAgent):
         air_density_kgm3: float = 1.225,
         availability_pct: float = 97.0,
         losses_pct: float = 10.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Perform wind turbine integration analysis.
 
@@ -406,11 +542,17 @@ class RenewableAgent(BaseAgent):
         weibull_pdf = weibull_pdf / (np.sum(weibull_pdf) * dv)
 
         # Annual energy production (AEP)
+<<<<<<< HEAD
         p_avg = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             np.sum(P * weibull_pdf) * dv
         )  # NOSONAR
         hours_per_year = 8760.0
         aep_gross = p_avg * hours_per_year
+=======
+        P_avg = np.sum(P * weibull_pdf) * dv  # Average power in kW
+        hours_per_year = 8760.0
+        aep_gross = P_avg * hours_per_year
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Apply losses and availability
         loss_factor = (availability_pct / 100.0) * (1.0 - losses_pct / 100.0)
@@ -423,12 +565,20 @@ class RenewableAgent(BaseAgent):
         swept_area = np.pi * (rotor_diameter_m / 2.0) ** 2
         specific_power = rated_power_kw / swept_area * 1000.0  # W/m²
 
+<<<<<<< HEAD
         mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
 
         # Theoretical max power (Betz limit)
         p_betz = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
             0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0
         )  # NOSONAR
+=======
+        # Mean wind speed from Weibull parameters
+        mean_wind_speed = weibull_c * gamma_func(1.0 + 1.0 / weibull_k)
+
+        # Theoretical max power (Betz limit)
+        P_betz = 0.5 * air_density_kgm3 * swept_area * (16.0 / 27.0) * mean_wind_speed**3 / 1000.0
+>>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "rated_power_kw": rated_power_kw,
@@ -445,9 +595,15 @@ class RenewableAgent(BaseAgent):
             "aep_gross_kwh": float(aep_gross),
             "aep_net_kwh": float(aep_net),
             "capacity_factor_pct": float(capacity_factor),
+<<<<<<< HEAD
             "average_power_kw": float(p_avg),
             "betz_limit_power_kw": float(p_betz),
             "power_coefficient": float(p_avg / p_betz) if p_betz > 0 else 0.0,
+=======
+            "average_power_kw": float(P_avg),
+            "betz_limit_power_kw": float(P_betz),
+            "power_coefficient": float(P_avg / P_betz) if P_betz > 0 else 0.0,
+>>>>>>> origin/fix/scenario-tests-properly
             "availability_pct": availability_pct,
             "losses_pct": losses_pct,
             "power_curve": {
@@ -468,6 +624,7 @@ class RenewableAgent(BaseAgent):
         self,
         der_capacity_kw: float,
         feeder_capacity_kva: float,
+<<<<<<< HEAD
         point_of_interconnection_voltage_V: float,  # NOSONAR
         voltage_regulation_pct: float,
         frequency_response_Hz: float,  # NOSONAR
@@ -476,6 +633,16 @@ class RenewableAgent(BaseAgent):
         power_factor_range: tuple[float, float] = (0.9, 1.0),
         der_category: str = "II",
     ) -> dict[str, Any]:
+=======
+        point_of_interconnection_voltage_V: float,
+        voltage_regulation_pct: float,
+        frequency_response_Hz: float,
+        has_ride_through: bool = True,
+        has_anti_islanding: bool = True,
+        power_factor_range: Tuple[float, float] = (0.9, 1.0),
+        der_category: str = "II",
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Verify DER interconnection compliance per IEEE 1547-2018.
 
@@ -518,7 +685,11 @@ class RenewableAgent(BaseAgent):
         Dict[str, Any]
             Compliance verification results.
         """
+<<<<<<< HEAD
         checks: list[dict[str, Any]] = []
+=======
+        checks: List[Dict[str, Any]] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         # 1. Penetration level
         penetration = der_capacity_kw / feeder_capacity_kva * 100.0
@@ -527,7 +698,11 @@ class RenewableAgent(BaseAgent):
             "Within limits"
             if penetration <= 15.0
             else (
+<<<<<<< HEAD
                 "Simplified interconnection if ≤15%"  # NOSONAR
+=======
+                "Simplified interconnection if ≤15%"
+>>>>>>> origin/fix/scenario-tests-properly
                 if penetration <= 100.0
                 else "Exceeds feeder capacity"
             )
@@ -539,7 +714,11 @@ class RenewableAgent(BaseAgent):
                 "limit": "≤100% of feeder capacity",
                 "compliant": penetration_ok,
                 "note": penetration_note,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 2. Voltage regulation
@@ -552,7 +731,11 @@ class RenewableAgent(BaseAgent):
                 "limit": f"≤±{v_reg_limit}%",
                 "compliant": v_reg_ok,
                 "note": "Per ANSI C84.5 Range A",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 3. Frequency response (IEEE 1547 Table 15)
@@ -573,7 +756,11 @@ class RenewableAgent(BaseAgent):
                 f"OF≤{freq_limits['over_freq_Hz']} Hz",
                 "compliant": freq_ok,
                 "note": f"Clearing time ≤{freq_limits['clear_time_s']}s",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 4. Ride-through
@@ -586,7 +773,11 @@ class RenewableAgent(BaseAgent):
                 "limit": f"Required for Category {cat}",
                 "compliant": ride_through_ok,
                 "note": "Mandatory for Cat II/III per IEEE 1547-2018 §6",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 5. Anti-islanding
@@ -597,7 +788,11 @@ class RenewableAgent(BaseAgent):
                 "limit": "Required for all categories",
                 "compliant": has_anti_islanding,
                 "note": "Must trip within 2.0 s per IEEE 1547.1",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 6. Power factor capability
@@ -610,7 +805,11 @@ class RenewableAgent(BaseAgent):
                 "limit": "≥0.90 leading/lagging",
                 "compliant": pf_ok,
                 "note": "DER must be capable of operating at PF=0.90",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # 7. PCC voltage level
@@ -633,7 +832,11 @@ class RenewableAgent(BaseAgent):
                 "limit": "Standard nominal voltage",
                 "compliant": pcc_ok,
                 "note": "Must match utility nominal voltage",
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         all_compliant = all(c["compliant"] for c in checks)
@@ -665,7 +868,11 @@ class RenewableAgent(BaseAgent):
         current_loading_pct: float = 60.0,
         reverse_power_allowed: bool = False,
         pf_der: float = 1.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate DER hosting capacity of the feeder.
 
@@ -700,6 +907,7 @@ class RenewableAgent(BaseAgent):
         # 1. Voltage-limited hosting capacity
         voltage_rise_budget = (max_voltage_pu - 1.0) * 100.0  # % above nominal
         if max_voltage_rise_pct_per_kw > 0:
+<<<<<<< HEAD
             hc_voltage = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 voltage_rise_budget / max_voltage_rise_pct_per_kw
             )  # NOSONAR
@@ -754,6 +962,46 @@ class RenewableAgent(BaseAgent):
             "limiting_constraint": limiting_constraint,
             "constraints": constraints,
             "penetration_at_HC_pct": float(penetration_at_hc),
+=======
+            HC_voltage = voltage_rise_budget / max_voltage_rise_pct_per_kw  # kW
+        else:
+            HC_voltage = float("inf")
+
+        # 2. Thermal-limited hosting capacity
+        thermal_headroom_pct = max_thermal_loading_pct - current_loading_pct
+        HC_thermal = feeder_head_kva * (thermal_headroom_pct / 100.0)  # kVA
+        HC_thermal_kw = HC_thermal * pf_der  # Convert to kW at DER PF
+
+        # 3. Reverse power constraint
+        if reverse_power_allowed:
+            HC_reverse = float("inf")
+        else:
+            # DER can't exceed current load (no reverse flow)
+            HC_reverse = feeder_head_kva * (current_loading_pct / 100.0) * pf_der  # kW
+
+        # 4. Protection coordination margin (conservative 80% of thermal)
+        HC_protection = HC_thermal_kw * 0.80
+
+        # Overall hosting capacity = minimum of all constraints
+        constraints = {
+            "voltage_limit_kw": float(HC_voltage),
+            "thermal_limit_kw": float(HC_thermal_kw),
+            "reverse_power_limit_kw": float(HC_reverse),
+            "protection_limit_kw": float(HC_protection),
+        }
+
+        HC_overall = min(HC_voltage, HC_thermal_kw, HC_reverse, HC_protection)
+        limiting_constraint = min(constraints, key=constraints.get)
+
+        penetration_at_HC = (HC_overall / feeder_head_kva) * 100.0 if feeder_head_kva > 0 else 0.0
+
+        return {
+            "hosting_capacity_kw": float(HC_overall),
+            "hosting_capacity_kva": float(HC_overall / pf_der) if pf_der > 0 else 0.0,
+            "limiting_constraint": limiting_constraint,
+            "constraints": constraints,
+            "penetration_at_HC_pct": float(penetration_at_HC),
+>>>>>>> origin/fix/scenario-tests-properly
             "feeder_head_kva": feeder_head_kva,
             "voltage_range_pu": {"min": min_voltage_pu, "max": max_voltage_pu},
             "current_loading_pct": current_loading_pct,
@@ -782,16 +1030,31 @@ class RenewableAgent(BaseAgent):
             self.log_execution(f"Starting renewable analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
+<<<<<<< HEAD
             results: dict[str, Any] = {}
             p = task.parameters
 
             if analysis_type in ("solar_pv", "full"):
                 pv_losses = PVSystemLossConfig(
+=======
+            results: Dict[str, Any] = {}
+            p = task.parameters
+
+            if analysis_type in ("solar_pv", "full"):
+                results["solar_pv"] = self.analyze_solar_pv(
+                    dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
+                    ac_capacity_kw=float(p.get("pv_ac_capacity_kw", 400)),
+                    irradiance_kw_m2=p.get("irradiance_profile"),
+                    temperature_C=p.get("temperature_profile"),
+                    noct_C=float(p.get("noct_C", 45.0)),
+                    temp_coeff_power_pctK=float(p.get("temp_coeff_pctK", -0.40)),
+>>>>>>> origin/fix/scenario-tests-properly
                     soiling_loss_pct=float(p.get("soiling_loss_pct", 2.0)),
                     mismatch_loss_pct=float(p.get("mismatch_loss_pct", 2.0)),
                     wiring_loss_pct=float(p.get("wiring_loss_pct", 1.0)),
                     inverter_efficiency_pct=float(p.get("inverter_efficiency_pct", 96.0)),
                     availability_pct=float(p.get("pv_availability_pct", 99.0)),
+<<<<<<< HEAD
                 )
                 results["solar_pv"] = self.analyze_solar_pv(
                     dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
@@ -801,6 +1064,8 @@ class RenewableAgent(BaseAgent):
                     noct_C=float(p.get("noct_C", 45.0)),
                     temp_coeff_power_pctK=float(p.get("temp_coeff_pctK", -0.40)),
                     losses=pv_losses,
+=======
+>>>>>>> origin/fix/scenario-tests-properly
                     tilt_deg=float(p.get("tilt_deg", 25.0)),
                     azimuth_deg=float(p.get("azimuth_deg", 180.0)),
                     latitude_deg=float(p.get("latitude_deg", 33.0)),
@@ -880,7 +1145,11 @@ class RenewableAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate renewable analysis results."""
+<<<<<<< HEAD
         errors: list[str] = []
+=======
+        errors: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         pv = result.data.get("solar_pv")
         if pv is not None:
@@ -888,6 +1157,7 @@ class RenewableAgent(BaseAgent):
                 errors.append("Solar PV annual energy is zero or negative")
             if pv.get("capacity_factor_pct", 0) > 35:
                 errors.append(
+<<<<<<< HEAD
                     f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%",
                 )
 
@@ -896,6 +1166,17 @@ class RenewableAgent(BaseAgent):
             errors.append(
                 f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%",
             )
+=======
+                    f"Suspiciously high PV capacity factor: {pv['capacity_factor_pct']:.1f}%"
+                )
+
+        wind = result.data.get("wind")
+        if wind is not None:
+            if wind.get("capacity_factor_pct", 0) > 60:
+                errors.append(
+                    f"Suspiciously high wind capacity factor: {wind['capacity_factor_pct']:.1f}%"
+                )
+>>>>>>> origin/fix/scenario-tests-properly
 
         compliance = result.data.get("ieee1547_compliance")
         if compliance is not None and not compliance.get("overall_compliant", True):

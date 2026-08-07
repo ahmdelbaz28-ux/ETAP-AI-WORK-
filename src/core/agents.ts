@@ -15,6 +15,7 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     id: 'power-system-coordinator-agent',
     name: 'Power System Coordinator Agent',
     description: 'Orchestrates multi-study power system engineering workflows.',
+<<<<<<< HEAD
     capabilities: [
       'load_flow',
       'short_circuit',
@@ -23,6 +24,9 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
       'arc_flash',
       'motor_starting',
     ],
+=======
+    capabilities: ['load_flow', 'short_circuit', 'protection', 'harmonics', 'arc_flash', 'motor_starting'],
+>>>>>>> origin/fix/scenario-tests-properly
   },
   'load-flow-agent': {
     id: 'load-flow-agent',
@@ -51,6 +55,7 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
   'etap-expert-agent': {
     id: 'etap-expert-agent',
     name: 'ETAP Expert Skill Agent',
+<<<<<<< HEAD
     description:
       'ETAP Expert skill — 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA) with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines). Covers ALL ETAP modules: Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial.',
     capabilities: [
@@ -80,6 +85,16 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
       'format_b_incomplete',
       'format_c_wrong',
       'format_d_adms',
+=======
+    description: 'ETAP Expert skill — 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA) with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines). Covers ALL ETAP modules: Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial.',
+    capabilities: [
+      'etap_consultation', 'load_flow', 'short_circuit', 'arc_flash',
+      'protection_coordination', 'adms', 'flisr', 'vvo', 'derms',
+      'renewables', 'pv', 'wind', 'bess', 'cable_sizing', 'transformer_sizing',
+      'ieee_1584', 'ieee_80', 'ieee_519', 'iec_60909', 'iec_61850',
+      'nec', 'nfpa_70e', 'format_a_complete', 'format_b_incomplete',
+      'format_c_wrong', 'format_d_adms',
+>>>>>>> origin/fix/scenario-tests-properly
     ],
   },
   'protection-agent': {
@@ -109,6 +124,7 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
   'code-guard-agent': {
     id: 'code-guard-agent',
     name: 'Code Guard Agent',
+<<<<<<< HEAD
     description:
       'Reviews AI-generated code against 14 AI failure modes, 23 clean-code rules, 9 testing rules, and 10 documentation accuracy rules. Adapted from guard-skills (github.com/amElnagdy/guard-skills).',
     capabilities: [
@@ -118,6 +134,10 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
       'docs_accuracy',
       'clean_code',
     ],
+=======
+    description: 'Reviews AI-generated code against 14 AI failure modes, 23 clean-code rules, 9 testing rules, and 10 documentation accuracy rules. Adapted from guard-skills (github.com/amElnagdy/guard-skills).',
+    capabilities: ['code_review', 'ai_failure_mode_detection', 'test_quality', 'docs_accuracy', 'clean_code'],
+>>>>>>> origin/fix/scenario-tests-properly
   },
 });
 

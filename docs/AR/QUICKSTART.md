@@ -198,7 +198,14 @@ curl -X POST http://localhost:8000/api/v1/studies/run \
 import requests
 
 BASE_URL = "http://localhost:8000/api/v1"
+<<<<<<< HEAD
 HEADERS = {"Authorization": "Bearer your-api-key", "Content-Type": "application/json"}
+=======
+HEADERS = {
+    "Authorization": "Bearer your-api-key",
+    "Content-Type": "application/json"
+}
+>>>>>>> origin/fix/scenario-tests-properly
 
 # تشغيل دراسة تدفق القدرة
 response = requests.post(
@@ -209,6 +216,7 @@ response = requests.post(
             "base_mva": 100.0,
             "buses": [
                 {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05},
+<<<<<<< HEAD
                 {"bus_id": 2, "bus_type": "pq", "load_power_real": 50.0},
             ],
             "lines": [{"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05}],
@@ -216,6 +224,17 @@ response = requests.post(
         "parameters": {"method": "newton_raphson"},
     },
     headers=HEADERS,
+=======
+                {"bus_id": 2, "bus_type": "pq", "load_power_real": 50.0}
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05}
+            ]
+        },
+        "parameters": {"method": "newton_raphson"}
+    },
+    headers=HEADERS
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 result = response.json()

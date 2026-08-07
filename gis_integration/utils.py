@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+<<<<<<< HEAD
 import logging
 from typing import Any
 
@@ -8,6 +9,12 @@ from gis_integration.exceptions import GISDataExtractionError
 
 logger = logging.getLogger(__name__)
 
+=======
+from typing import Any, Dict, Tuple
+
+from gis_integration.exceptions import GISDataExtractionError
+
+>>>>>>> origin/fix/scenario-tests-properly
 
 def is_json_serializable(value: Any) -> bool:
     try:
@@ -17,7 +24,11 @@ def is_json_serializable(value: Any) -> bool:
         return False
 
 
+<<<<<<< HEAD
 def validate_geometry_dict(geometry: dict[str, Any]) -> tuple[bool, str]:
+=======
+def validate_geometry_dict(geometry: Dict[str, Any]) -> Tuple[bool, str]:
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Minimal GeoJSON geometry validation:
     - must be a dict
@@ -48,6 +59,7 @@ def validate_geometry_dict(geometry: dict[str, Any]) -> tuple[bool, str]:
     return True, "ok"
 
 
+<<<<<<< HEAD
 def safe_parse_geojson(geojson: Any) -> dict[str, Any]:
     """
     Ensure external GIS data payload is parseable as JSON dict.
@@ -58,6 +70,11 @@ def safe_parse_geojson(geojson: Any) -> dict[str, Any]:
 
     This handles the common case where ArcGIS's SHAPE@JSON returns Esri
     JSON format, which is NOT compatible with GeoJSON validation.
+=======
+def safe_parse_geojson(geojson: Any) -> Dict[str, Any]:
+    """
+    Ensure external GIS data payload is parseable as JSON dict.
+>>>>>>> origin/fix/scenario-tests-properly
     """
     if isinstance(geojson, str):
         try:
@@ -68,6 +85,7 @@ def safe_parse_geojson(geojson: Any) -> dict[str, Any]:
     if not isinstance(geojson, dict):
         raise GISDataExtractionError("GeoJSON payload must be a dict")
 
+<<<<<<< HEAD
     # Auto-detect Esri JSON and convert to GeoJSON
     if _looks_like_esri_json(geojson):
         geojson = esri_json_to_geojson(geojson)
@@ -163,3 +181,6 @@ def esri_json_to_geojson(esri: dict[str, Any]) -> dict[str, Any]:
         f"Unknown Esri JSON shape: keys={sorted(esri.keys())}. "
         f"Expected one of: x/y, points, paths, rings, xmin/ymin/xmax/ymax."
     )
+=======
+    return geojson
+>>>>>>> origin/fix/scenario-tests-properly

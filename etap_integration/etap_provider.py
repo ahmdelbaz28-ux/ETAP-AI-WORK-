@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 ETAP Provider Interface
 =======================
@@ -13,6 +16,7 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any
 
 import requests
@@ -45,6 +49,15 @@ def _is_production() -> bool:
     )
 
 
+=======
+from typing import Any, Dict, List
+
+import requests
+
+logger = logging.getLogger(__name__)
+
+
+>>>>>>> origin/fix/scenario-tests-properly
 class ETAPStudyType(Enum):
     LOAD_FLOW = "LOAD_FLOW"
     SHORT_CIRCUIT = "SHORT_CIRCUIT"
@@ -59,27 +72,41 @@ class ETAPResult:
     def __init__(
         self,
         success: bool,
+<<<<<<< HEAD
         data: dict[str, Any],
         warnings: list[str],
         errors: list[str],
         execution_time: float = 0.0,
         is_simulated: bool = False,
+=======
+        data: Dict[str, Any],
+        warnings: List[str],
+        errors: List[str],
+        execution_time: float = 0.0,
+>>>>>>> origin/fix/scenario-tests-properly
     ):
         self.success = success
         self.data = data
         self.warnings = warnings
         self.errors = errors
         self.execution_time = execution_time
+<<<<<<< HEAD
         self.is_simulated = is_simulated
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class IEtapProvider(ABC):
     @abstractmethod
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+=======
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         """
         Execute a study on the configured ETAP backend.
@@ -103,7 +130,12 @@ class LocalEtapProvider(IEtapProvider):
     """Windows-only provider using direct COM automation."""
 
     def __init__(self):
+<<<<<<< HEAD
         self.use_etap = _is_etap_enabled()
+=======
+        # Check if ETAP functionality is enabled via environment variable
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+>>>>>>> origin/fix/scenario-tests-properly
 
         if not self.use_etap:
             self._available = False
@@ -121,6 +153,7 @@ class LocalEtapProvider(IEtapProvider):
         return self._available
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
@@ -133,6 +166,13 @@ class LocalEtapProvider(IEtapProvider):
                 [],
                 ["Local ETAP automation not available or disabled"],
                 0.0,
+=======
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+    ) -> ETAPResult:
+        if not self._available:
+            return ETAPResult(
+                False, {}, [], ["Local ETAP automation not available or disabled"], 0.0
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         import time
@@ -173,30 +213,82 @@ class RemoteEtapProvider(IEtapProvider):
 
     Features:
     - Retry with exponential backoff
+<<<<<<< HEAD
     - Circuit breaker pattern (shared via engine.resilience)
+=======
+    - Circuit breaker pattern
+>>>>>>> origin/fix/scenario-tests-properly
     - Configurable timeouts
     """
 
     MAX_RETRIES = 3
     RETRY_DELAYS = [1, 2, 4]  # seconds - exponential backoff
+<<<<<<< HEAD
 
     def __init__(self, worker_url: str, api_key: str):
         self.use_etap = _is_etap_enabled()
+=======
+    CIRCUIT_BREAKER_THRESHOLD = 5  # consecutive failures before opening
+    CIRCUIT_BREAKER_RESET_SECONDS = 60  # seconds before trying again
+
+    def __init__(self, worker_url: str, api_key: str):
+        # Check if ETAP functionality is enabled via environment variable
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+>>>>>>> origin/fix/scenario-tests-properly
 
         if not self.use_etap:
             logger.info("Remote ETAP provider disabled via USE_ETAP environment variable")
             self.worker_url = ""
             self.api_key = ""
+<<<<<<< HEAD
             self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker(
                 "etap_remote", failure_threshold=5, recovery_timeout=60.0
             )
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             return
 
         self.worker_url = worker_url.rstrip("/")
         self.api_key = api_key
+<<<<<<< HEAD
         self.circuit_breaker = get_circuit_breaker("etap_remote") or CircuitBreaker(
             "etap_remote", failure_threshold=5, recovery_timeout=60.0
         )
+=======
+        self._consecutive_failures = 0
+        self._circuit_open_until = 0.0
+
+    def _is_circuit_open(self) -> bool:
+        """Check if the circuit breaker is currently open."""
+        if not self.use_etap:
+            return True  # Consider circuit open if ETAP is disabled
+        if self._consecutive_failures < self.CIRCUIT_BREAKER_THRESHOLD:
+            return False
+        if time.time() < self._circuit_open_until:
+            return True
+        # Circuit has expired, allow a probe request (half-open)
+        logger.info("RemoteEtapProvider circuit breaker transitioning to HALF_OPEN")
+        return False
+
+    def _record_success(self) -> None:
+        """Reset circuit breaker on successful call."""
+        if self._consecutive_failures > 0:
+            logger.info("RemoteEtapProvider circuit breaker reset to CLOSED after success")
+        self._consecutive_failures = 0
+        self._circuit_open_until = 0.0
+
+    def _record_failure(self) -> None:
+        """Record a failure and open circuit if threshold exceeded."""
+        self._consecutive_failures += 1
+        if self._consecutive_failures >= self.CIRCUIT_BREAKER_THRESHOLD:
+            self._circuit_open_until = time.time() + self.CIRCUIT_BREAKER_RESET_SECONDS
+            logger.warning(
+                "RemoteEtapProvider circuit breaker OPEN after %d consecutive failures. "
+                "Will retry after %d seconds.",
+                self._consecutive_failures,
+                self.CIRCUIT_BREAKER_RESET_SECONDS,
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def is_available(self) -> bool:
         if not self.use_etap:
@@ -208,10 +300,14 @@ class RemoteEtapProvider(IEtapProvider):
             return False
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+=======
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -222,15 +318,25 @@ class RemoteEtapProvider(IEtapProvider):
                 0.0,
             )
 
+<<<<<<< HEAD
         # Circuit breaker check — use shared CircuitBreaker from engine.resilience
         if self.circuit_breaker.get_state() == "OPEN":
+=======
+        # Circuit breaker check
+        if self._is_circuit_open():
+>>>>>>> origin/fix/scenario-tests-properly
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
+<<<<<<< HEAD
                     f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._failure_count} consecutive failures. "
                     f"Retry after {int(self.circuit_breaker._last_failure_time + self.circuit_breaker.recovery_timeout - time.time())}s.",
+=======
+                    f"ETAP Worker circuit breaker is OPEN after {self._consecutive_failures} consecutive failures. "
+                    f"Retry after {int(self._circuit_open_until - time.time())}s."
+>>>>>>> origin/fix/scenario-tests-properly
                 ],
                 0.0,
             )
@@ -242,6 +348,7 @@ class RemoteEtapProvider(IEtapProvider):
         for attempt in range(self.MAX_RETRIES):
             try:
                 response = requests.post(
+<<<<<<< HEAD
                     f"{self.worker_url}/execute",
                     json=payload,
                     headers=headers,
@@ -250,6 +357,13 @@ class RemoteEtapProvider(IEtapProvider):
                 if response.status_code == 200:
                     data = response.json()
                     self.circuit_breaker.record_success()
+=======
+                    f"{self.worker_url}/execute", json=payload, headers=headers, timeout=300
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    self._record_success()
+>>>>>>> origin/fix/scenario-tests-properly
                     return ETAPResult(
                         data["success"],
                         data["data"],
@@ -279,7 +393,11 @@ class RemoteEtapProvider(IEtapProvider):
                 time.sleep(self.RETRY_DELAYS[attempt])
 
         # All retries exhausted
+<<<<<<< HEAD
         self.circuit_breaker.record_failure()
+=======
+        self._record_failure()
+>>>>>>> origin/fix/scenario-tests-properly
         return ETAPResult(False, {}, [], [last_error or "All retry attempts exhausted"], 0.0)
 
 
@@ -428,6 +546,7 @@ class MockEtapProvider(IEtapProvider):
     }
 
     def __init__(self):
+<<<<<<< HEAD
         self.use_etap = _is_etap_enabled()
         if not self.use_etap:
             logger.info("Mock ETAP provider disabled via USE_ETAP environment variable")
@@ -445,14 +564,25 @@ class MockEtapProvider(IEtapProvider):
                 os.getenv("ENV", os.getenv("APP_ENV", "development")),
             )
 
+=======
+        # Check if ETAP functionality is enabled via environment variable
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+        if not self.use_etap:
+            logger.info("Mock ETAP provider disabled via USE_ETAP environment variable")
+
+>>>>>>> origin/fix/scenario-tests-properly
     def is_available(self) -> bool:
         return self.use_etap
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+=======
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -461,6 +591,7 @@ class MockEtapProvider(IEtapProvider):
                 [],
                 ["Mock ETAP provider disabled via USE_ETAP environment variable"],
                 0.0,
+<<<<<<< HEAD
                 is_simulated=True,
             )
 
@@ -477,6 +608,8 @@ class MockEtapProvider(IEtapProvider):
                 ],
                 0.0,
                 is_simulated=True,
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         import time
@@ -484,21 +617,28 @@ class MockEtapProvider(IEtapProvider):
         start_time = time.time()
 
         mock_data = self.MOCK_RESULTS.get(study_type, {})
+<<<<<<< HEAD
         # Mark all mock results as simulated — warnings field alone may not be
         # surfaced in the UI. The is_simulated flag allows the frontend to show
         # a prominent red banner (see MockEtapProvider result handling).
         mock_data["is_simulated"] = True
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         return ETAPResult(
             success=True,
             data=mock_data,
             warnings=["Using MockEtapProvider - results are simulated"],
             errors=[],
             execution_time=time.time() - start_time,
+<<<<<<< HEAD
             is_simulated=True,
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
 
 class NullEtapProvider(IEtapProvider):
+<<<<<<< HEAD
     """Fallback provider when no ETAP is available.
 
     ARCHITECTURE AUDIT FIX (F-05): Results now include sentinel markers
@@ -511,6 +651,13 @@ class NullEtapProvider(IEtapProvider):
 
     def __init__(self):
         self.use_etap = _is_etap_enabled()
+=======
+    """Fallback provider when no ETAP is available."""
+
+    def __init__(self):
+        # Check if ETAP functionality is enabled via environment variable
+        self.use_etap = os.getenv("USE_ETAP", "false").lower() == "true"
+>>>>>>> origin/fix/scenario-tests-properly
         if self.use_etap:
             logger.info("Null ETAP provider - ETAP is enabled but no provider available")
 
@@ -518,6 +665,7 @@ class NullEtapProvider(IEtapProvider):
         return False
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
@@ -550,11 +698,20 @@ class NullEtapProvider(IEtapProvider):
             return ETAPResult(
                 False,
                 _null_sentinel,
+=======
+        self, project_path: str, study_type: ETAPStudyType, visible: bool = False
+    ) -> ETAPResult:
+        if not self.use_etap:
+            return ETAPResult(
+                False,
+                {},
+>>>>>>> origin/fix/scenario-tests-properly
                 [],
                 ["ETAP functionality is disabled via USE_ETAP environment variable"],
                 0.0,
             )
         else:
+<<<<<<< HEAD
             return ETAPResult(
                 False,
                 _null_sentinel,
@@ -562,6 +719,9 @@ class NullEtapProvider(IEtapProvider):
                 ["No ETAP provider configured or available — results are synthetic"],
                 0.0,
             )
+=======
+            return ETAPResult(False, {}, [], ["No ETAP provider configured or available"], 0.0)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def get_etap_provider() -> IEtapProvider:
@@ -575,7 +735,11 @@ def get_etap_provider() -> IEtapProvider:
     5. Fallback -> NullEtapProvider
     """
     # Check if ETAP is explicitly disabled
+<<<<<<< HEAD
     if os.getenv("USE_ETAP", "false").lower() == "false":
+=======
+    if os.getenv("USE_ETAP", "true").lower() == "false":
+>>>>>>> origin/fix/scenario-tests-properly
         logger.info("ETAP functionality disabled via USE_ETAP environment variable")
         return NullEtapProvider()
 

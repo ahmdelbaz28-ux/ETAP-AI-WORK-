@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import math  # added for S1244 float-equality fix
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """Validate __slots__ addition to core_model classes.
 
 Checks:
@@ -72,7 +75,11 @@ print("=" * 60)
 # Bus
 b = Bus(1, voltage_magnitude=1.05, bus_type='slack')
 assert b.bus_id == 1
+<<<<<<< HEAD
 assert math.isclose(b.voltage_magnitude, 1.05)
+=======
+assert b.voltage_magnitude == 1.05
+>>>>>>> origin/fix/scenario-tests-properly
 assert b.bus_type == 'slack'
 assert abs(b.voltage - 1.05) < 1e-10
 b.voltage = complex(0.95, 0.1)
@@ -101,7 +108,11 @@ print(f"  Load:          load_id={ld.load_id}, load_power={ld.load_power}")
 # Transformer
 t = Transformer(1, b, b, z1=complex(0.01, 0.05), tap_ratio=1.05)
 assert t.transformer_id == 1
+<<<<<<< HEAD
 assert math.isclose(t.tap_ratio, 1.05)
+=======
+assert t.tap_ratio == 1.05
+>>>>>>> origin/fix/scenario-tests-properly
 print(f"  Transformer:   transformer_id={t.transformer_id}, tap_ratio={t.tap_ratio}")
 
 # System
@@ -127,8 +138,14 @@ def measure_memory(n=10000):
 
     # Measure Bus
     gc.collect()
+<<<<<<< HEAD
     t0 = time.perf_counter()  # NOSONAR unused local kept for clarity/debugging
     buses = [Bus(i) for i in range(n)]
+=======
+    t0 = time.perf_counter()
+    buses = [Bus(i) for i in range(n)]
+    t_alloc = time.perf_counter() - t0
+>>>>>>> origin/fix/scenario-tests-properly
     gc.collect()
     # Use sys.getsizeof for one
     bus_size = sys.getsizeof(buses[0])

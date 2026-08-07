@@ -4,6 +4,7 @@ All notable changes to AhmedETAP will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+<<<<<<< HEAD
 ## [Unreleased]
 
 ### UI/Backend coverage — pass-2 (branch `fix/ui-backend-coverage-pass-2`)
@@ -158,6 +159,8 @@ and adds backend infrastructure for two of them.
 - AST scan confirms no remaining `.predict()` / `.run()` callsites on
   LLM/chain objects in `services/memory_service.py`.
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 ## [1.1.0] - 2026-06-17
 
 ### Added
@@ -191,7 +194,11 @@ and adds backend infrastructure for two of them.
 - Protection Coordination (IEC 60255)
 - Optimal Power Flow (AC/DC)
 - Motor Starting analysis
+<<<<<<< HEAD
 - 25 AI agents with task planning and RAG context
+=======
+- 23 AI agents with task planning and RAG context
+>>>>>>> origin/fix/scenario-tests-properly
 - ETAP COM automation integration
 - GIS integration (ArcGIS, QGIS)
 - SCADA data model (IEC 61850)

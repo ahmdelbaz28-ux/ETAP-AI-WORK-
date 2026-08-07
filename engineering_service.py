@@ -1,6 +1,7 @@
 """
 Main entry point for the Engineering Service.
 This file now serves as the main application runner, delegating to the modular components.
+<<<<<<< HEAD
 
 MEDIUM #17 (AhmedETAP_Error_Report_AR.pdf):
 `api/routes.py` is the CANONICAL FastAPI entry point for this service.
@@ -10,11 +11,14 @@ FastAPI app in `api/refactored_service.py` is kept ONLY as a fallback
 for the `engineering-service` Docker image (Dockerfile.engineering-service)
 which still references it directly. New code should never create another
 FastAPI() instance — extend `api/routes.py` or attach routers to it.
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 
 import logging
 import os
 
+<<<<<<< HEAD
 from dotenv import load_dotenv
 
 # Load .env file variables into environment
@@ -44,6 +48,13 @@ except ImportError:
     # (e.g. HF Space minimal requirements). Skip silently.
     pass
 
+=======
+from uvicorn import run
+
+from api.routes import app as api_app  # Import the configured API app
+from core.bootstrap import logger
+
+>>>>>>> origin/fix/scenario-tests-properly
 
 def main():
     """
@@ -65,11 +76,19 @@ def main():
     port = int(os.environ.get("ENGINEERING_SERVICE_PORT", os.environ.get("PORT", 8000)))
     host = os.environ.get("ENGINEERING_SERVICE_HOST", os.environ.get("HOST", "0.0.0.0"))
 
+<<<<<<< HEAD
     logger.info("Starting Engineering Service on %s:%s", host, port)
 
     # Run the application
     run(
         "api.routes:app",
+=======
+    logger.info(f"Starting Engineering Service on {host}:{port}")
+
+    # Run the application
+    run(
+        api_app,
+>>>>>>> origin/fix/scenario-tests-properly
         host=host,
         port=port,
         log_level="info",

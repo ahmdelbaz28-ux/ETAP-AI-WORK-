@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Response helpers: JSON responses, CORS, request size guard.
  *
@@ -111,6 +112,16 @@ export function extractClientIp(request: Request): string {
   return 'unknown';
 }
 
+=======
+/**
+ * Response helpers: JSON responses, CORS, request size guard.
+ */
+import { CONFIG } from '../core/config.js';
+import type { ApiKeyScope } from '../core/config.js';
+
+export type Json = Record<string, unknown>;
+
+>>>>>>> origin/fix/scenario-tests-properly
 export function jsonResponse(status: number, body: Json, extraHeaders?: Record<string, string>): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -121,13 +132,17 @@ export function jsonResponse(status: number, body: Json, extraHeaders?: Record<s
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
       'Content-Security-Policy': "default-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
       'X-Frame-Options': 'DENY',
+<<<<<<< HEAD
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Pragma': 'no-cache',
+=======
+>>>>>>> origin/fix/scenario-tests-properly
       ...extraHeaders,
     },
   });
 }
 
+<<<<<<< HEAD
 export function errorResponse(status: number, message: string, traceId: string, extraHeaders?: Record<string, string>): Response {
   const safeMessage = status === 500 ? 'Internal server error' : message;
   return jsonResponse(status, { error: true, status, message: safeMessage, traceId, timestamp: new Date().toISOString() }, extraHeaders);
@@ -138,6 +153,33 @@ export async function checkBodySize(request: Request): Promise<Response | null> 
   const cl = request.headers.get('content-length');
   if (cl) {
     const n = Number.parseInt(cl, 10);
+=======
+export function corsHeaders(origin: string): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': origin || '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Idempotency-Key',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+export function errorResponse(status: number, message: string, traceId: string, extraHeaders?: Record<string, string>): Response {
+  return jsonResponse(
+    status,
+    { error: true, status, message, traceId, timestamp: new Date().toISOString() },
+    extraHeaders
+  );
+}
+
+/**
+ * Hardening: reject oversized request bodies with HTTP 413.
+ * Returns null if the request is acceptable, or a 413 Response otherwise.
+ */
+export async function checkBodySize(request: Request): Promise<Response | null> {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength) {
+    const n = parseInt(contentLength, 10);
+>>>>>>> origin/fix/scenario-tests-properly
     if (!Number.isNaN(n) && n > CONFIG.MAX_BODY_SIZE) {
       return errorResponse(413, `Request body exceeds maximum size of ${CONFIG.MAX_BODY_SIZE} bytes`, crypto.randomUUID());
     }
@@ -145,6 +187,10 @@ export async function checkBodySize(request: Request): Promise<Response | null> 
   return null;
 }
 
+<<<<<<< HEAD
+=======
+/** Extract the Idempotency-Key header if present. */
+>>>>>>> origin/fix/scenario-tests-properly
 export function getIdempotencyKey(request: Request): string | null {
   return request.headers.get('Idempotency-Key') || request.headers.get('idempotency-key');
 }

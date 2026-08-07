@@ -24,7 +24,11 @@ Usage::
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import Any, Optional, Protocol
+=======
+from typing import Any, Dict, List, Protocol, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ============================================================================
 # Load Flow Solver
@@ -38,8 +42,13 @@ class LoadFlowSolverProtocol(Protocol):
     satisfies this protocol.
     """
 
+<<<<<<< HEAD
     bus_ids: list[Any]
     bus_index: dict[Any, int]
+=======
+    bus_ids: List[Any]
+    bus_index: Dict[Any, int]
+>>>>>>> origin/fix/scenario-tests-properly
     V: Any  # numpy.ndarray of complex bus voltages
     Ybus: Any  # numpy.ndarray — the bus admittance matrix
 
@@ -61,6 +70,7 @@ class FaultAnalyzerProtocol(Protocol):
     each fault type.
     """
 
+<<<<<<< HEAD
     def three_phase_fault(self, bus_index: int) -> dict[str, Any]: ...
 
     def line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
@@ -68,6 +78,15 @@ class FaultAnalyzerProtocol(Protocol):
     def line_to_line_fault(self, bus_index: int) -> dict[str, Any]: ...
 
     def double_line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
+=======
+    def three_phase_fault(self, bus_index: int) -> Dict[str, Any]: ...
+
+    def line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
+
+    def line_to_line_fault(self, bus_index: int) -> Dict[str, Any]: ...
+
+    def double_line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ============================================================================
@@ -115,22 +134,37 @@ class CoordinationEngineProtocol(Protocol):
         upstream_relay: Any,
         downstream_relay: Any,
         fault_current: float,
+<<<<<<< HEAD
     ) -> dict[str, Any]: ...
+=======
+    ) -> Dict[str, Any]: ...
+>>>>>>> origin/fix/scenario-tests-properly
 
     def check_coordination_range(
         self,
         upstream_relay: Any,
         downstream_relay: Any,
+<<<<<<< HEAD
         fault_currents: list[float],
     ) -> list[dict[str, Any]]: ...
+=======
+        fault_currents: List[float],
+    ) -> List[Dict[str, Any]]: ...
+>>>>>>> origin/fix/scenario-tests-properly
 
     def suggest_tms_adjustment(
         self,
         upstream_relay: Any,
         downstream_relay: Any,
+<<<<<<< HEAD
         fault_currents: list[float],
         target_margin: float = 0.2,
     ) -> Optional[float]: ...
+=======
+        fault_currents: List[float],
+        target_margin: float = 0.2,
+    ) -> float | None: ...
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ============================================================================
@@ -147,8 +181,13 @@ class VisualizerProtocol(Protocol):
 
     def plot_multiple_tcc(
         self,
+<<<<<<< HEAD
         relays: list[Any],
         current_range: tuple[float, float] = (0.5, 20),
+=======
+        relays: List[Any],
+        current_range: Tuple[float, float] = (0.5, 20),
+>>>>>>> origin/fix/scenario-tests-properly
         points: int = 100,
         ax: Any = None,
     ) -> None: ...
@@ -157,6 +196,10 @@ class VisualizerProtocol(Protocol):
         self,
         upstream_relay: Any,
         downstream_relay: Any,
+<<<<<<< HEAD
         fault_currents: list[float],
+=======
+        fault_currents: List[float],
+>>>>>>> origin/fix/scenario-tests-properly
         ax: Any = None,
     ) -> None: ...

@@ -14,6 +14,7 @@ Standards:
 - IEEE 81: Guide for Measuring Earth Resistivity
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -25,6 +26,17 @@ from typing import Any
 import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+=======
+import logging
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List
+
+import numpy as np
+
+from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +98,13 @@ class EarthGridAgent(BaseAgent):
         """
         K = (rho_s - rho_b) / (rho_s + rho_b)
         # IEEE 80 Eq. 27:
+<<<<<<< HEAD
         cs = 1.0 - ((1.0 - 0.09) / (2.0 * hs + 0.09)) * (1.0 - K)  # NOSONAR
         return float(np.clip(cs, 0.01, 1.0))
+=======
+        Cs = 1.0 - ((1.0 - 0.09) / (2.0 * hs + 0.09)) * (1.0 - K)
+        return float(np.clip(Cs, 0.01, 1.0))
+>>>>>>> origin/fix/scenario-tests-properly
 
     # ------------------------------------------------------------------
     # Allowable voltage limits
@@ -100,7 +117,11 @@ class EarthGridAgent(BaseAgent):
         hs: float,
         fault_duration_s: float,
         body_weight_kg: float = 70.0,
+<<<<<<< HEAD
     ) -> dict[str, float]:
+=======
+    ) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate allowable touch and step voltages per IEEE 80.
 
@@ -126,6 +147,7 @@ class EarthGridAgent(BaseAgent):
         Dict[str, float]
             Allowable touch and step voltages in volts.
         """
+<<<<<<< HEAD
         cs = self._surface_derating_factor(rho_s, rho_b, hs)  # NOSONAR
 
         # Current factor based on body weight
@@ -150,6 +172,30 @@ class EarthGridAgent(BaseAgent):
             "E_step_allowable_V": float(e_step),
             "Cs_surface_derating": cs,
             "body_current_A": float(i_body),
+=======
+        Cs = self._surface_derating_factor(rho_s, rho_b, hs)
+
+        # Current factor based on body weight
+        if body_weight_kg <= 50:
+            I_body = 0.116 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
+        else:
+            I_body = 0.157 / np.sqrt(fault_duration_s) if fault_duration_s > 0 else float("inf")
+
+        # Body resistance = 1000 Ω (hand-to-feet, IEEE 80)
+        R_body = 1000.0
+
+        # Allowable touch voltage: E_touch = (R_body + 1.5 ρ_s C_s) × I_body
+        E_touch = (R_body + 1.5 * rho_s * Cs) * I_body
+
+        # Allowable step voltage: E_step = (R_body + 6.0 ρ_s C_s) × I_body
+        E_step = (R_body + 6.0 * rho_s * Cs) * I_body
+
+        return {
+            "E_touch_allowable_V": float(E_touch),
+            "E_step_allowable_V": float(E_step),
+            "Cs_surface_derating": float(Cs),
+            "body_current_A": float(I_body),
+>>>>>>> origin/fix/scenario-tests-properly
             "body_weight_kg": body_weight_kg,
         }
 
@@ -160,7 +206,11 @@ class EarthGridAgent(BaseAgent):
     def calculate_mesh_voltage(
         self,
         rho: float,
+<<<<<<< HEAD
         Ig: float,  # NOSONAR
+=======
+        Ig: float,
+>>>>>>> origin/fix/scenario-tests-properly
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
@@ -168,7 +218,11 @@ class EarthGridAgent(BaseAgent):
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
         n_parallel: int = 0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate mesh voltage per IEEE 80 Section 16.5.
 
@@ -214,19 +268,30 @@ class EarthGridAgent(BaseAgent):
 
         # Spacing
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
+<<<<<<< HEAD
         l_total = n_parallel * grid_length_m + n_cross * grid_width_m  # NOSONAR
         l_rods = n_rods * rod_length_m  # NOSONAR
         L_M = l_total + l_rods  # Effective buried length
+=======
+        L_total = n_parallel * grid_length_m + n_cross * grid_width_m
+        L_rods = n_rods * rod_length_m
+        L_M = L_total + L_rods  # Effective buried length
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Mesh spacing factor K_m (IEEE 80 Eq. 67)
         d = conductor_diameter_m
         h = depth_m
 
+<<<<<<< HEAD
         k_m = (1.0 / (2.0 * np.pi)) * (  # NOSONAR
+=======
+        K_m = (1.0 / (2.0 * np.pi)) * (
+>>>>>>> origin/fix/scenario-tests-properly
             np.log(D**2 / (16.0 * h * d)) + np.log((3.0 * h + 0.4 * D) / ((2.0 * h) ** 0.5 * d))
         )
 
         # Irregularity factor K_i (IEEE 80 Eq. 68)
+<<<<<<< HEAD
         k_i = 0.656 + 0.172 * n_parallel  # NOSONAR
 
         # Mesh voltage
@@ -242,6 +307,23 @@ class EarthGridAgent(BaseAgent):
             "n_parallel_conductors": n_parallel,
             "n_cross_conductors": n_cross,
             "mesh_spacing_D_m": D,
+=======
+        K_i = 0.656 + 0.172 * n_parallel
+
+        # Mesh voltage
+        E_mesh = rho * K_m * K_i * Ig / L_M if L_M > 0 else 0.0
+
+        return {
+            "E_mesh_V": float(E_mesh),
+            "K_m": float(K_m),
+            "K_i": float(K_i),
+            "L_total_conductor_m": float(L_total),
+            "L_rods_m": float(L_rods),
+            "L_effective_m": float(L_M),
+            "n_parallel_conductors": n_parallel,
+            "n_cross_conductors": n_cross,
+            "mesh_spacing_D_m": float(D),
+>>>>>>> origin/fix/scenario-tests-properly
             "grid_length_m": grid_length_m,
             "grid_width_m": grid_width_m,
         }
@@ -253,14 +335,22 @@ class EarthGridAgent(BaseAgent):
     def calculate_step_voltage(
         self,
         rho: float,
+<<<<<<< HEAD
         Ig: float,  # NOSONAR
+=======
+        Ig: float,
+>>>>>>> origin/fix/scenario-tests-properly
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
         rod_length_m: float,
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate step voltage per IEEE 80 Section 16.6.
 
@@ -296,14 +386,21 @@ class EarthGridAgent(BaseAgent):
         D = grid_width_m / (n_parallel - 1) if n_parallel > 1 else grid_width_m
         h = depth_m
 
+<<<<<<< HEAD
         l_total = n_parallel * grid_length_m + n_cross * grid_width_m  # NOSONAR
         l_rods = n_rods * rod_length_m  # NOSONAR
         L_S = 0.75 * l_total + l_rods  # Effective length for step voltage
+=======
+        L_total = n_parallel * grid_length_m + n_cross * grid_width_m
+        L_rods = n_rods * rod_length_m
+        L_S = 0.75 * L_total + L_rods  # Effective length for step voltage
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Step voltage geometric factor K_s (IEEE 80-2013 Eq. 71)
         # K_s = (1/π) * [0.5*ln(1 + (D/(2h))^2) + h/D - sqrt(1 + (2h/D)^2) + 1]
         # Guard against division by zero when h=0 or D=0
         if h <= 0 or D <= 0:
+<<<<<<< HEAD
             K_s = 0.0  # NOSONAR
         else:
             two_h_over_d = 2.0 * h / D  # NOSONAR
@@ -311,10 +408,20 @@ class EarthGridAgent(BaseAgent):
                 0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
                 + h / D
                 - np.sqrt(1.0 + two_h_over_d**2)
+=======
+            K_s = 0.0
+        else:
+            two_h_over_D = 2.0 * h / D
+            K_s = (1.0 / np.pi) * (
+                0.5 * np.log(1.0 + (D / (2.0 * h)) ** 2)
+                + h / D
+                - np.sqrt(1.0 + two_h_over_D**2)
+>>>>>>> origin/fix/scenario-tests-properly
                 + 1.0
             )
 
         # Irregularity factor (same as mesh voltage)
+<<<<<<< HEAD
         k_i = 0.656 + 0.172 * n_parallel  # NOSONAR
 
         e_step = rho * K_s * k_i * Ig / L_S if L_S > 0 else 0.0  # NOSONAR
@@ -324,6 +431,17 @@ class EarthGridAgent(BaseAgent):
             "K_s": float(K_s),
             "K_i": k_i,
             "L_S_effective_m": L_S,
+=======
+        K_i = 0.656 + 0.172 * n_parallel
+
+        E_step = rho * K_s * K_i * Ig / L_S if L_S > 0 else 0.0
+
+        return {
+            "E_step_V": float(E_step),
+            "K_s": float(K_s),
+            "K_i": float(K_i),
+            "L_S_effective_m": float(L_S),
+>>>>>>> origin/fix/scenario-tests-properly
             "n_parallel_conductors": n_parallel,
         }
 
@@ -334,14 +452,22 @@ class EarthGridAgent(BaseAgent):
     def calculate_touch_voltage(
         self,
         rho: float,
+<<<<<<< HEAD
         Ig: float,  # NOSONAR
+=======
+        Ig: float,
+>>>>>>> origin/fix/scenario-tests-properly
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int,
         rod_length_m: float,
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate touch voltage at grid perimeter per IEEE 80.
 
@@ -362,6 +488,7 @@ class EarthGridAgent(BaseAgent):
             Touch voltage at perimeter and GPR.
         """
         # Grid resistance (Schwarz formula, simplified)
+<<<<<<< HEAD
         a_grid = grid_length_m * grid_width_m  # NOSONAR
         _perimeter = 2.0 * (grid_length_m + grid_width_m)
         l_total_buried = (
@@ -372,6 +499,16 @@ class EarthGridAgent(BaseAgent):
         R_grid = (  # NOSONAR
             rho * (1.0 / (2.0 * np.sqrt(np.pi * a_grid)) + 1.0 / l_total_buried)
             if l_total_buried > 0 and a_grid > 0
+=======
+        A_grid = grid_length_m * grid_width_m
+        _perimeter = 2.0 * (grid_length_m + grid_width_m)
+        L_total_buried = (2.0 * grid_length_m + 2.0 * grid_width_m) + n_rods * rod_length_m
+
+        # Simplified grid resistance (Laurent formula)
+        R_grid = (
+            rho * (1.0 / (2.0 * np.sqrt(np.pi * A_grid)) + 1.0 / L_total_buried)
+            if L_total_buried > 0 and A_grid > 0
+>>>>>>> origin/fix/scenario-tests-properly
             else 0.0
         )
 
@@ -389,6 +526,7 @@ class EarthGridAgent(BaseAgent):
             depth_m=depth_m,
         )
 
+<<<<<<< HEAD
         e_mesh = mesh_result["E_mesh_V"]  # NOSONAR
 
         # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
@@ -401,6 +539,20 @@ class EarthGridAgent(BaseAgent):
             "grid_area_m2": a_grid,
             "L_total_buried_m": l_total_buried,
             "E_mesh_V": float(e_mesh),
+=======
+        E_mesh = mesh_result["E_mesh_V"]
+
+        # Touch voltage at perimeter ≈ GPR - E_mesh (conservative)
+        E_touch_perimeter = GPR - E_mesh if GPR > E_mesh else E_mesh
+
+        return {
+            "E_touch_perimeter_V": float(E_touch_perimeter),
+            "GPR_V": float(GPR),
+            "R_grid_ohm": float(R_grid),
+            "grid_area_m2": float(A_grid),
+            "L_total_buried_m": float(L_total_buried),
+            "E_mesh_V": float(E_mesh),
+>>>>>>> origin/fix/scenario-tests-properly
         }
 
     # ------------------------------------------------------------------
@@ -410,7 +562,11 @@ class EarthGridAgent(BaseAgent):
     def design_ground_grid(
         self,
         rho: float,
+<<<<<<< HEAD
         Ig: float,  # NOSONAR
+=======
+        Ig: float,
+>>>>>>> origin/fix/scenario-tests-properly
         grid_length_m: float,
         grid_width_m: float,
         n_rods: int = 4,
@@ -421,7 +577,11 @@ class EarthGridAgent(BaseAgent):
         conductor_diameter_m: float = 0.01,
         depth_m: float = 0.5,
         body_weight_kg: float = 70.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Perform complete ground grid design and safety verification.
 
@@ -504,10 +664,17 @@ class EarthGridAgent(BaseAgent):
         )
 
         # Safety checks
+<<<<<<< HEAD
         e_mesh_safe = mesh["E_mesh_V"] <= allowable["E_touch_allowable_V"]  # NOSONAR
         e_step_safe = step["E_step_V"] <= allowable["E_step_allowable_V"]  # NOSONAR
         e_touch_safe = touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]  # NOSONAR
         all_safe = e_mesh_safe and e_step_safe and e_touch_safe
+=======
+        E_mesh_safe = mesh["E_mesh_V"] <= allowable["E_touch_allowable_V"]
+        E_step_safe = step["E_step_V"] <= allowable["E_step_allowable_V"]
+        E_touch_safe = touch["E_touch_perimeter_V"] <= allowable["E_touch_allowable_V"]
+        all_safe = E_mesh_safe and E_step_safe and E_touch_safe
+>>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "mesh_voltage": mesh,
@@ -515,9 +682,15 @@ class EarthGridAgent(BaseAgent):
             "touch_voltage": touch,
             "allowable_limits": allowable,
             "safety": {
+<<<<<<< HEAD
                 "E_mesh_safe": bool(e_mesh_safe),
                 "E_step_safe": bool(e_step_safe),
                 "E_touch_safe": bool(e_touch_safe),
+=======
+                "E_mesh_safe": bool(E_mesh_safe),
+                "E_step_safe": bool(E_step_safe),
+                "E_touch_safe": bool(E_touch_safe),
+>>>>>>> origin/fix/scenario-tests-properly
                 "all_safe": bool(all_safe),
                 "mesh_utilization": float(mesh["E_mesh_V"] / allowable["E_touch_allowable_V"])
                 if allowable["E_touch_allowable_V"] > 0
@@ -548,7 +721,11 @@ class EarthGridAgent(BaseAgent):
         self,
         probe_spacings_m: np.ndarray,
         measured_resistances_ohm: np.ndarray,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Analyze soil resistivity from Wenner 4-pin test data.
 
@@ -587,7 +764,11 @@ class EarthGridAgent(BaseAgent):
 
         # Linear regression in log-log space
         A = np.vstack([np.ones_like(log_a), log_a]).T
+<<<<<<< HEAD
         coeffs, _, _, _ = np.linalg.lstsq(A, log_rho, rcond=None)
+=======
+        coeffs, residuals, _, _ = np.linalg.lstsq(A, log_rho, rcond=None)
+>>>>>>> origin/fix/scenario-tests-properly
 
         rho_1_est = float(np.exp(coeffs[0]))  # Estimated top layer resistivity
 
@@ -599,9 +780,15 @@ class EarthGridAgent(BaseAgent):
         if len(rho_apparent) > 2:
             gradients = np.diff(log_rho) / np.diff(log_a)
             max_grad_idx = int(np.argmax(np.abs(gradients)))
+<<<<<<< HEAD
             h_est = float(probe_spacings_m[max_grad_idx])  # NOSONAR
         else:
             h_est = float(probe_spacings_m[-1]) if len(probe_spacings_m) > 0 else 1.0
+=======
+            H_est = float(probe_spacings_m[max_grad_idx])
+        else:
+            H_est = float(probe_spacings_m[-1]) if len(probe_spacings_m) > 0 else 1.0
+>>>>>>> origin/fix/scenario-tests-properly
 
         return {
             "probe_spacings_m": probe_spacings_m.tolist(),
@@ -610,8 +797,15 @@ class EarthGridAgent(BaseAgent):
             "two_layer_model": {
                 "rho_top_ohm_m": rho_1_est,
                 "rho_bottom_ohm_m": rho_2_est,
+<<<<<<< HEAD
                 "layer_depth_H_m": h_est,
                 "reflection_coefficient_K": (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est),
+=======
+                "layer_depth_H_m": H_est,
+                "reflection_coefficient_K": float(
+                    (rho_2_est - rho_1_est) / (rho_2_est + rho_1_est)
+                ),
+>>>>>>> origin/fix/scenario-tests-properly
             },
             "average_resistivity_ohm_m": float(np.mean(rho_apparent)),
             "min_resistivity_ohm_m": float(np.min(rho_apparent)),
@@ -624,15 +818,25 @@ class EarthGridAgent(BaseAgent):
 
     def verify_safety(
         self,
+<<<<<<< HEAD
         E_mesh_V: float,  # NOSONAR
         E_step_V: float,  # NOSONAR
         E_touch_V: float,  # NOSONAR
+=======
+        E_mesh_V: float,
+        E_step_V: float,
+        E_touch_V: float,
+>>>>>>> origin/fix/scenario-tests-properly
         rho_s: float,
         rho_b: float,
         hs: float,
         fault_duration_s: float,
         body_weight_kg: float = 70.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Verify ground grid safety against IEEE 80 allowable limits.
 
@@ -668,6 +872,7 @@ class EarthGridAgent(BaseAgent):
             body_weight_kg=body_weight_kg,
         )
 
+<<<<<<< HEAD
         e_touch_limit = allowable["E_touch_allowable_V"]  # NOSONAR
         e_step_limit = allowable["E_step_allowable_V"]  # NOSONAR
 
@@ -688,6 +893,34 @@ class EarthGridAgent(BaseAgent):
             "E_touch_safe": touch_ok,
             "touch_utilization": (E_touch_V / e_touch_limit) if e_touch_limit > 0 else float("inf"),
             "all_safe": (mesh_ok and step_ok and touch_ok),
+=======
+        E_touch_limit = allowable["E_touch_allowable_V"]
+        E_step_limit = allowable["E_step_allowable_V"]
+
+        mesh_ok = E_mesh_V <= E_touch_limit
+        step_ok = E_step_V <= E_step_limit
+        touch_ok = E_touch_V <= E_touch_limit
+
+        return {
+            "E_mesh_V": float(E_mesh_V),
+            "E_touch_allowable_V": float(E_touch_limit),
+            "E_mesh_safe": bool(mesh_ok),
+            "mesh_utilization": float(E_mesh_V / E_touch_limit)
+            if E_touch_limit > 0
+            else float("inf"),
+            "E_step_V": float(E_step_V),
+            "E_step_allowable_V": float(E_step_limit),
+            "E_step_safe": bool(step_ok),
+            "step_utilization": float(E_step_V / E_step_limit)
+            if E_step_limit > 0
+            else float("inf"),
+            "E_touch_V": float(E_touch_V),
+            "E_touch_safe": bool(touch_ok),
+            "touch_utilization": float(E_touch_V / E_touch_limit)
+            if E_touch_limit > 0
+            else float("inf"),
+            "all_safe": bool(mesh_ok and step_ok and touch_ok),
+>>>>>>> origin/fix/scenario-tests-properly
             "allowable_limits": allowable,
         }
 
@@ -715,7 +948,11 @@ class EarthGridAgent(BaseAgent):
             self.log_execution(f"Starting earth grid analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
+<<<<<<< HEAD
             results: dict[str, Any] = {}
+=======
+            results: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
             p = task.parameters
 
             if analysis_type in ("design", "full"):
@@ -767,7 +1004,11 @@ class EarthGridAgent(BaseAgent):
             if analysis_type in ("soil_resistivity",):
                 spacings = np.array(p.get("probe_spacings_m", [1, 2, 5, 10, 20, 40]))
                 resistances = np.array(
+<<<<<<< HEAD
                     p.get("measured_resistances_ohm", [5.0, 3.0, 1.5, 0.8, 0.4, 0.25]),
+=======
+                    p.get("measured_resistances_ohm", [5.0, 3.0, 1.5, 0.8, 0.4, 0.25])
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 results["soil_resistivity"] = self.analyze_soil_resistivity(spacings, resistances)
 
@@ -829,7 +1070,11 @@ class EarthGridAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate earth grid analysis results per IEEE 80 criteria."""
+<<<<<<< HEAD
         errors: list[str] = []
+=======
+        errors: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         gd = result.data.get("grid_design")
         if gd is not None:
@@ -838,12 +1083,20 @@ class EarthGridAgent(BaseAgent):
                 if not safety.get("E_mesh_safe", True):
                     errors.append(
                         f"Mesh voltage exceeds allowable: "
+<<<<<<< HEAD
                         f"utilization={safety.get('mesh_utilization', 0):.2f}",
+=======
+                        f"utilization={safety.get('mesh_utilization', 0):.2f}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 if not safety.get("E_step_safe", True):
                     errors.append(
                         f"Step voltage exceeds allowable: "
+<<<<<<< HEAD
                         f"utilization={safety.get('step_utilization', 0):.2f}",
+=======
+                        f"utilization={safety.get('step_utilization', 0):.2f}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 if not safety.get("E_touch_safe", True):
                     errors.append("Touch voltage at perimeter exceeds allowable limit")
@@ -851,7 +1104,11 @@ class EarthGridAgent(BaseAgent):
         sv = result.data.get("safety_verification")
         if sv is not None and not sv.get("all_safe", True):
             errors.append(
+<<<<<<< HEAD
                 "Safety verification failed: one or more voltages exceed allowable limits",
+=======
+                "Safety verification failed: one or more voltages exceed allowable limits"
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         result.validation_errors.extend(errors)

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from typing import Any
 
 from core.bootstrap import logger
@@ -16,6 +17,42 @@ from core.bootstrap import logger
 # to eliminate the 3-way duplication.
 # See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
 from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
+=======
+from enum import Enum
+from typing import Any, Dict
+
+from core.bootstrap import logger
+
+
+class ETAPStudyType(Enum):
+    """Enumeration of supported ETAP study types."""
+
+    LOAD_FLOW = "load_flow"
+    SHORT_CIRCUIT = "short_circuit"
+    ARC_FLASH = "arc_flash"
+    HARMONIC_ANALYSIS = "harmonic_analysis"
+    OPTIMAL_POWER_FLOW = "optimal_power_flow"
+    MOTOR_STARTING = "motor_starting"
+    PROTECTION_COORDINATION = "protection_coordination"
+
+
+class ETAPResult:
+    """Result wrapper for ETAP operations."""
+
+    def __init__(
+        self,
+        success: bool,
+        data: Dict[str, Any],
+        warnings: list = None,
+        errors: list = None,
+        execution_time: float = 0.0,
+    ):
+        self.success = success
+        self.data = data
+        self.warnings = warnings or []
+        self.errors = errors or []
+        self.execution_time = execution_time
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class ETAPAdapter(ABC):
@@ -28,10 +65,14 @@ class ETAPAdapter(ABC):
 
     @abstractmethod
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         parameters: dict[str, Any] | None = None,
+=======
+        self, project_path: str, study_type: ETAPStudyType, parameters: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         """Execute a study via ETAP."""
         pass
@@ -52,18 +93,26 @@ class ETAPProviderAdapter(ETAPAdapter):
                 # Try to import ETAP COM provider
                 from .etap_provider import get_etap_provider
 
+<<<<<<< HEAD
                 # SonarCloud python:S5864: get_etap_provider() already returns
                 # a fully-initialised IEtapProvider INSTANCE — do NOT call it
                 # again. The previous `get_etap_provider()()` raised TypeError
                 # at runtime, which was silently swallowed by the except below,
                 # disabling ETAP integration whenever USE_ETAP=true.
                 self._provider = get_etap_provider()
+=======
+                self._provider = get_etap_provider()()
+>>>>>>> origin/fix/scenario-tests-properly
                 self._available = self._provider.is_available() if self._provider else False
             except ImportError as e:
                 logger.warning(f"ETAP provider not available: {e}")
                 self._available = False
             except Exception as e:
+<<<<<<< HEAD
                 logger.exception(f"Error initializing ETAP provider: {e}")
+=======
+                logger.error(f"Error initializing ETAP provider: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
                 self._available = False
         else:
             logger.info("ETAP functionality disabled via USE_ETAP environment variable")
@@ -73,10 +122,14 @@ class ETAPProviderAdapter(ETAPAdapter):
         return self._available
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         parameters: dict[str, Any] | None = None,
+=======
+        self, project_path: str, study_type: ETAPStudyType, parameters: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         """Execute a study via ETAP provider."""
         if not self.use_etap:
@@ -100,7 +153,11 @@ class ETAPProviderAdapter(ETAPAdapter):
             result = self._provider.execute_study(project_path, study_type)
             return result
         except Exception as e:
+<<<<<<< HEAD
             logger.exception(f"Error executing ETAP study: {e}")
+=======
+            logger.error(f"Error executing ETAP study: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             return ETAPResult(success=False, data={}, errors=[str(e)], execution_time=0.0)
 
 
@@ -116,10 +173,14 @@ class MockETAPAdapter(ETAPAdapter):
         return self._available
 
     def execute_study(
+<<<<<<< HEAD
         self,
         project_path: str,
         study_type: ETAPStudyType,
         parameters: dict[str, Any] | None = None,
+=======
+        self, project_path: str, study_type: ETAPStudyType, parameters: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> ETAPResult:
         """Mock execution of a study."""
         if not self.use_etap:
@@ -165,4 +226,8 @@ def get_etap_adapter() -> ETAPAdapter:
 # Backward compatibility with existing code
 def get_etap_provider():
     """Legacy function for backward compatibility."""
+<<<<<<< HEAD
     return get_etap_adapter()  # FIX: return instance, not function reference
+=======
+    return get_etap_adapter
+>>>>>>> origin/fix/scenario-tests-properly

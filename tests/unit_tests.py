@@ -15,10 +15,16 @@ Coverage targets:
 import os
 import sys
 import time
+<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
+=======
+from datetime import UTC, datetime, timezone
+
+UTC = UTC
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 import pytest
@@ -161,9 +167,13 @@ class TestETAPSchemaValidation:
     def test_non_dict_params_rejected(self):
         """Test that non-dict params are rejected."""
         with pytest.raises(ValueError, match="must be a dict"):
+<<<<<<< HEAD
             ETAPAutomation._validate_study_parameters(
                 ETAPStudyType.LOAD_FLOW, "not_a_dict"
             )  # NOSONAR intentional wrong-type arg to verify validation rejects it
+=======
+            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, "not_a_dict")
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_invalid_study_type_rejected(self):
         """Test that non-ETAPStudyType is rejected."""
@@ -188,6 +198,7 @@ class TestETAPSchemaValidation:
             schema = STUDY_TYPE_PARAMETER_SCHEMAS.get(study_type, {})
             for key, rule in schema.items():
                 assert "type" in rule, f"{study_type}.{key} missing 'type'"
+<<<<<<< HEAD
                 assert rule["type"] in (
                     "numeric",
                     "integer",
@@ -195,6 +206,11 @@ class TestETAPSchemaValidation:
                     "boolean",
                     "list",
                 ), f"{study_type}.{key} has unknown type: {rule['type']}"
+=======
+                assert rule["type"] in ("numeric", "integer", "string", "boolean", "list"), (
+                    f"{study_type}.{key} has unknown type: {rule['type']}"
+                )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ============================================================================
@@ -221,12 +237,21 @@ class TestWorkerRBAC:
         ]
 
         for study_type in implemented_studies:
+<<<<<<< HEAD
             assert (
                 study_type in STUDY_TYPE_TO_PERMISSION
             ), f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
             assert isinstance(
                 STUDY_TYPE_TO_PERMISSION[study_type], Permission
             ), f"{study_type} maps to non-Permission value"
+=======
+            assert study_type in STUDY_TYPE_TO_PERMISSION, (
+                f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
+            )
+            assert isinstance(STUDY_TYPE_TO_PERMISSION[study_type], Permission), (
+                f"{study_type} maps to non-Permission value"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
@@ -237,9 +262,13 @@ class TestWorkerRBAC:
             UserRole,
         )
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test-rbac-secret_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         )  # 49 bytes — RFC 7518 §3.2 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test-rbac-secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@test.com", "password123", UserRole.ENGINEER)
@@ -247,9 +276,15 @@ class TestWorkerRBAC:
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
+<<<<<<< HEAD
             assert authz.check_permission(
                 token, permission
             ), f"Engineer should have {permission.value} for {study_type.value}"
+=======
+            assert authz.check_permission(token, permission), (
+                f"Engineer should have {permission.value} for {study_type.value}"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
@@ -260,9 +295,13 @@ class TestWorkerRBAC:
             UserRole,
         )
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test-viewer-secret_cccccccccccccccccccccccccccccccc"
         )  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test-viewer-secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         auth.create_user("viewer", "viewer@test.com", "password123", UserRole.VIEWER)
@@ -270,9 +309,15 @@ class TestWorkerRBAC:
         assert token is not None
 
         for study_type, permission in STUDY_TYPE_TO_PERMISSION.items():
+<<<<<<< HEAD
             assert not authz.check_permission(
                 token, permission
             ), f"Viewer should NOT have {permission.value} for {study_type.value}"
+=======
+            assert not authz.check_permission(token, permission), (
+                f"Viewer should NOT have {permission.value} for {study_type.value}"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
@@ -283,9 +328,13 @@ class TestWorkerRBAC:
             UserRole,
         )
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test-guest-secret_dddddddddddddddddddddddddddddddd"
         )  # 50 bytes — RFC 7518 §3.2 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test-guest-secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         auth.create_user("guest", "guest@test.com", "password123", UserRole.GUEST)
@@ -300,16 +349,26 @@ class TestWorkerRBAC:
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
         from security.security_framework import AuthenticationManager, AuthorizationManager
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test-invalid-secret_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
         )  # 52 bytes — RFC 7518 §3.2 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test-invalid-secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         fake_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake"
         for permission in STUDY_TYPE_TO_PERMISSION.values():
+<<<<<<< HEAD
             assert not authz.check_permission(
                 fake_token, permission
             ), f"Fake token should not have {permission.value}"
+=======
+            assert not authz.check_permission(fake_token, permission), (
+                f"Fake token should not have {permission.value}"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
@@ -320,18 +379,26 @@ class TestWorkerRBAC:
             UserRole,
         )
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test-logout-secret_ffffffffffffffffffffffffffffffff"
         )  # 51 bytes — RFC 7518 §3.2 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test-logout-secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         auth.create_user("temp_user", "temp@test.com", "password123", UserRole.ENGINEER)
         token = auth.authenticate("temp_user", "password123")
 
         # Before logout, permissions should work
+<<<<<<< HEAD
         first_perm = next(
             iter(STUDY_TYPE_TO_PERMISSION.values())
         )  # NOSONAR replaced list(...)[0] with next(iter(...))
+=======
+        first_perm = list(STUDY_TYPE_TO_PERMISSION.values())[0]
+>>>>>>> origin/fix/scenario-tests-properly
         assert authz.check_permission(token, first_perm)
 
         # After logout, permissions should be denied
@@ -418,9 +485,13 @@ class TestLoadFlow:
 
     def test_ybus_symmetry(self, simple_2bus_system):
         """Test that Ybus matrix is symmetric."""
+<<<<<<< HEAD
         Ybus = simple_2bus_system.build_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = simple_2bus_system.build_ybus(seq="1")
+>>>>>>> origin/fix/scenario-tests-properly
         # Ybus for passive networks is symmetric (Y == Y^T), not Hermitian
         assert np.allclose(Ybus, Ybus.T), "Ybus should be symmetric"
 
@@ -463,6 +534,7 @@ class TestShortCircuit:
 
         system.build_sequence_networks()
 
+<<<<<<< HEAD
         Ybus_pos = system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -472,6 +544,11 @@ class TestShortCircuit:
         Ybus_zero = system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
+>>>>>>> origin/fix/scenario-tests-properly
 
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
@@ -502,7 +579,11 @@ class TestShortCircuit:
         """Test IEC 60909 three-phase fault calculation."""
         # Simple system
         _n = 2
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -526,6 +607,7 @@ class TestArcFlash:
         """Test arc current calculation per IEEE 1584."""
         engine = ArcFlashEngine()
 
+<<<<<<< HEAD
         Iarc, Iarc_reduced = (
             engine.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
@@ -536,6 +618,14 @@ class TestArcFlash:
         assert Iarc_reduced == pytest.approx(
             0.85 * Iarc
         ), "Reduced arc current should be 85% of full"
+=======
+        Iarc, Iarc_reduced = engine.calculate_arc_current(
+            voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
+        )
+
+        assert Iarc > 0, "Arc current should be positive"
+        assert Iarc_reduced == 0.85 * Iarc, "Reduced arc current should be 85% of full"
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_incident_energy_positive(self):
         """Test that incident energy is always positive."""
@@ -595,9 +685,15 @@ class TestArcFlash:
             working_distance_mm=610.0,
         )
 
+<<<<<<< HEAD
         assert (
             result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2
         ), "Different voltages should produce different incident energies"
+=======
+        assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, (
+            "Different voltages should produce different incident energies"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_input_validation(self):
         """Test that invalid inputs raise errors."""
@@ -667,9 +763,15 @@ class TestProtectionCoordination:
 
         result = coord_engine.check_coordination(upstream, downstream, 5.0)
 
+<<<<<<< HEAD
         assert (
             result["downstream_time"] < result["upstream_time"]
         ), "Downstream relay should trip faster"
+=======
+        assert result["downstream_time"] < result["upstream_time"], (
+            "Downstream relay should trip faster"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_coordination_margin(self):
         """Test coordination margin requirement."""
@@ -698,16 +800,24 @@ class TestHarmonicAnalysis:
 
         # Create non-singular Ybus (add shunt admittance to make invertible)
         # A pure 2-bus line matrix is singular; adding shunt makes it invertible
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10.1, -50.5), complex(-10, 50)], [complex(-10, 50), complex(10.1, -50.5)]]
         )
 
         engine.set_system_data(Ybus, ["bus1", "bus2"])
 
         # Calculate harmonic impedance at 5th harmonic
+<<<<<<< HEAD
         Ybus_5th = engine.calculate_harmonic_impedance(
             5
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus_5th = engine.calculate_harmonic_impedance(5)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Impedance should scale with harmonic order
         assert Ybus_5th.shape == Ybus.shape, "Ybus shape should be preserved"
@@ -788,7 +898,11 @@ class TestOptimalPowerFlow:
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
         # Simple 2-bus system
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -814,7 +928,11 @@ class TestOptimalPowerFlow:
         """Test that OPF minimizes cost."""
         from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
 
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
 
@@ -864,12 +982,17 @@ class TestSecurityFramework:
         """Test user account creation."""
         from security.security_framework import AuthenticationManager, UserRole
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
         user = auth.create_user(
             "testuser", "test@example.com", "password123", UserRole.ENGINEER
         )  # NOSONAR intentional repetition (audit constant)
+=======
+        auth = AuthenticationManager(secret_key="test_secret")
+        user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)
+>>>>>>> origin/fix/scenario-tests-properly
 
         assert user is not None, "User should be created"
         assert user.username == "testuser"
@@ -879,9 +1002,13 @@ class TestSecurityFramework:
         """Test successful authentication."""
         from security.security_framework import AuthenticationManager, UserRole
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test_secret")
+>>>>>>> origin/fix/scenario-tests-properly
         auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)
 
         token = auth.authenticate("testuser", "password123")
@@ -892,9 +1019,13 @@ class TestSecurityFramework:
         """Test failed authentication."""
         from security.security_framework import AuthenticationManager
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test_secret")
+>>>>>>> origin/fix/scenario-tests-properly
         auth.create_user("testuser", "test@example.com", "password123")
 
         token = auth.authenticate("testuser", "wrong_password")
@@ -910,9 +1041,13 @@ class TestSecurityFramework:
             UserRole,
         )
 
+<<<<<<< HEAD
         auth = AuthenticationManager(
             secret_key="test_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )  # 44 bytes — RFC 7518 §3.2 requires ≥32 for HS256 (HIGH #6)
+=======
+        auth = AuthenticationManager(secret_key="test_secret")
+>>>>>>> origin/fix/scenario-tests-properly
         authz = AuthorizationManager(auth)
 
         auth.create_user("engineer", "eng@example.com", "password123", UserRole.ENGINEER)
@@ -938,9 +1073,15 @@ class TestSecurityFramework:
 
         # Dangerous code
         dangerous_code = "import os\nos.system('rm -rf /')"
+<<<<<<< HEAD
         assert not validator.validate_python_code(
             dangerous_code
         ), "Dangerous code should fail validation"
+=======
+        assert not validator.validate_python_code(dangerous_code), (
+            "Dangerous code should fail validation"
+        )
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_rate_limiting(self):
         """Test rate limiting."""
@@ -1036,6 +1177,7 @@ class TestIntegration:
 
         system.build_sequence_networks()
 
+<<<<<<< HEAD
         Ybus_pos = system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -1045,6 +1187,11 @@ class TestIntegration:
         Ybus_zero = system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
+>>>>>>> origin/fix/scenario-tests-properly
 
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
@@ -1057,9 +1204,15 @@ class TestIntegration:
         ]
 
         for fault in faults:
+<<<<<<< HEAD
             assert (
                 "fault_current" in fault or "fault_current_b" in fault
             ), "Fault result should contain current"
+=======
+            assert "fault_current" in fault or "fault_current_b" in fault, (
+                "Fault result should contain current"
+            )
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ============================================================================
@@ -1074,9 +1227,13 @@ class TestSecretsManager:
         mgr = VaultSecretsManager(use_mock_if_unavailable=True)
         # When Vault is unavailable, falls back to LocalSecretsManager
         assert mgr._fallback_store._cipher is not None
+<<<<<<< HEAD
         ok = mgr.set_secret(
             "test/path", "test_key", "secret_value"
         )  # NOSONAR intentional repetition (audit constant)
+=======
+        ok = mgr.set_secret("test/path", "test_key", "secret_value")
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok
         val = mgr.get_secret("test/path", "test_key")
         assert val == "secret_value"
@@ -1116,6 +1273,10 @@ class TestSecretsManager:
         assert val == "key-to-rotate"
 
     def test_key_access_audit_logging(self, tmp_path, monkeypatch):
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/fix/scenario-tests-properly
         monkeypatch.setattr("security.secrets_manager.AUDIT_DIR", tmp_path / "audit")
         auditor = KeyAccessAuditor()
         auditor.log_access("user_a", "api-key-1", KeyAccessAuditor.ACTION_GET, True)
@@ -1135,7 +1296,11 @@ class TestSecretsManager:
         template = validator.generate_env_template(tmp_path / ".env.test")
         assert "JWT_SECRET_KEY" in template
         assert "ENVIRONMENT" in template
+<<<<<<< HEAD
         findings = validator.check_for_hardcoded_secrets(file_patterns=["security/*.py"])
+=======
+        findings = validator.check_for_hardcoded_secrets(file_patterns=["*.md"])
+>>>>>>> origin/fix/scenario-tests-properly
         assert isinstance(findings, list)
 
 
@@ -1321,21 +1486,37 @@ class TestNumericalSafety:
     def test_safe_division(self):
         guard = NumericalGuard(warn_on_clamp=False)
         result = guard.safe_division(10.0, 0.0, default=0.0)
+<<<<<<< HEAD
         assert result == pytest.approx(0.0)
         result = guard.safe_division(10.0, 2.0)
         assert result == pytest.approx(5.0)
         arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
         assert arr[0] == pytest.approx(5.0)
+=======
+        assert result == 0.0
+        result = guard.safe_division(10.0, 2.0)
+        assert result == 5.0
+        arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
+        assert arr[0] == 5.0
+>>>>>>> origin/fix/scenario-tests-properly
         assert arr[1] == -1.0
 
     def test_clamp_to_bounds(self):
         guard = NumericalGuard(warn_on_clamp=False)
         clamped = guard.clamp_to_bounds(15.0, 0.0, 10.0, name="test")
+<<<<<<< HEAD
         assert clamped == pytest.approx(10.0)
         clamped = guard.clamp_to_bounds(-5.0, 0.0, 10.0)
         assert clamped == pytest.approx(0.0)
         clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
         assert clamped == pytest.approx(5.0)
+=======
+        assert clamped == 10.0
+        clamped = guard.clamp_to_bounds(-5.0, 0.0, 10.0)
+        assert clamped == 0.0
+        clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
+        assert clamped == 5.0
+>>>>>>> origin/fix/scenario-tests-properly
         inside = guard.is_within_bounds(5.0, 0.0, 10.0)
         assert inside
         outside = guard.is_within_bounds(15.0, 0.0, 10.0)
@@ -1347,9 +1528,13 @@ class TestNumericalSafety:
         cleaned = guard.validate_matrix(mat, expected_shape=(2, 2))
         assert not np.any(np.isnan(cleaned))
         assert not np.any(np.isinf(cleaned))
+<<<<<<< HEAD
         with pytest.raises(  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
             ValueError
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+=======
+        with pytest.raises(ValueError):
+>>>>>>> origin/fix/scenario-tests-properly
             guard.validate_matrix(np.eye(3), expected_shape=(2, 2))
         cn = guard.condition_number(np.eye(3))
         assert np.isfinite(cn)
@@ -1588,9 +1773,13 @@ class TestLoadFlowExpansion:
         system.add_generator(gen)
         load = Load(load_id=1, bus=bus2, load_power=complex(0.4, 0.15))
         system.add_load(load)
+<<<<<<< HEAD
         Ybus = system.build_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = system.build_ybus(seq="1")
+>>>>>>> origin/fix/scenario-tests-properly
         # Off-diagonal should reflect tap ratio and phase shift
         assert Ybus[0, 1] != Ybus[1, 0], "Tap-changing transformer should break Ybus symmetry"
         solver = LoadFlowSolver(system)
@@ -1663,6 +1852,7 @@ class TestShortCircuitExpansion:
             )
             system.add_line(line)
         system.build_sequence_networks(for_fault=True)
+<<<<<<< HEAD
         Ybus_pos = system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -1672,6 +1862,11 @@ class TestShortCircuitExpansion:
         Ybus_zero = system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
+>>>>>>> origin/fix/scenario-tests-properly
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_fault_at_different_buses(self, multi_bus_fault_system):
@@ -1681,7 +1876,11 @@ class TestShortCircuitExpansion:
 
     def test_iec60909_fault_types_all(self):
         _n = 2
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
@@ -1699,7 +1898,11 @@ class TestShortCircuitExpansion:
 
     def test_fault_current_symmetry(self):
         _n = 2
+<<<<<<< HEAD
         Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus = np.array(
+>>>>>>> origin/fix/scenario-tests-properly
             [[complex(10, -50), complex(-10, 50)], [complex(-10, 50), complex(10, -50)]]
         )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
@@ -1741,6 +1944,7 @@ class TestETAPAutomation:
         assert "<script>" not in sanitized
         assert sanitized == "alert('xss')nullbyte"
         with pytest.raises(ValueError):
+<<<<<<< HEAD
             ETAPAutomation._sanitize_string_input(
                 123, max_length=100
             )  # NOSONAR intentional wrong-type arg to verify validation rejects it
@@ -1748,6 +1952,13 @@ class TestETAPAutomation:
     def test_input_validation_engineering_ranges(self):
         validated = ETAPAutomation._validate_input(13.8, "numeric", min_val=0.1, max_val=1200.0)
         assert validated == pytest.approx(13.8)
+=======
+            ETAPAutomation._sanitize_string_input(123, max_length=100)
+
+    def test_input_validation_engineering_ranges(self):
+        validated = ETAPAutomation._validate_input(13.8, "numeric", min_val=0.1, max_val=1200.0)
+        assert validated == 13.8
+>>>>>>> origin/fix/scenario-tests-properly
         validated = ETAPAutomation._validate_input(5, "integer", min_val=0, max_val=100)
         assert validated == 5
         validated = ETAPAutomation._validate_input("hello", "string", max_length=10)
@@ -1769,9 +1980,13 @@ class TestETAPAutomation:
                 max_entries=2,
             )
         with pytest.raises(TypeError):
+<<<<<<< HEAD
             ETAPAutomation._check_result_size(
                 "not_a_dict"
             )  # NOSONAR intentional wrong-type arg to verify validation rejects it
+=======
+            ETAPAutomation._check_result_size("not_a_dict")
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ============================================================================
@@ -1805,12 +2020,16 @@ class TestMultiAgentCoordination:
         assert StudyType.MOTOR_STARTING.value == "motor_starting"
         assert StudyType.TRANSIENT_STABILITY.value == "transient_stability"
         assert StudyType.ARC_FLASH.value == "arc_flash"
+<<<<<<< HEAD
         # 8 core study types above remain stable; 8 newer study types
         # (cable_sizing, earth_grid, renewable_integration,
         #  battery_storage, scada, digital_twin, etap_expert, etap_gui)
         # were added by subsequent PRs. Assert exact count to detect
         # accidental removals/additions.
         assert len(StudyType) == 16
+=======
+        assert len(StudyType) == 8
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_engineering_task_creation(self):
         task = EngineeringTask(

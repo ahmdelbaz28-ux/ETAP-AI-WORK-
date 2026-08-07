@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
@@ -36,6 +37,28 @@ interface NavItem {
   icon: React.ElementType;
   labelKey: string;
   section?: string;
+=======
+import { NavLink, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTheme } from '../../context/ThemeContext'
+import { useAppStore } from '../../store'
+import { fetchHealth, type HealthResponse } from '../../lib/api'
+import { useEffect, useState } from 'react'
+import {
+  LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
+  ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
+  ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
+  Cpu, Wrench, Shield, Radio,
+} from 'lucide-react'
+import { cn } from '../../utils/helpers'
+import { StatusIndicator } from '../ui/Visual'
+
+interface NavItem {
+  to: string
+  icon: React.ElementType
+  labelKey: string
+  section?: string
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 const navItems: NavItem[] = [
@@ -43,12 +66,16 @@ const navItems: NavItem[] = [
   { to: '/projects', icon: FolderKanban, labelKey: 'sidebar.projects', section: 'engineering' },
   { to: '/studies', icon: FlaskConical, labelKey: 'sidebar.studies' },
   { to: '/assistant', icon: Bot, labelKey: 'sidebar.assistant' },
+<<<<<<< HEAD
   {
     to: '/asset-management',
     icon: Network,
     labelKey: 'sidebar.assetManagement',
     section: 'engineering',
   },
+=======
+  { to: '/asset-management', icon: Network, labelKey: 'sidebar.assetManagement', section: 'engineering' },
+>>>>>>> origin/fix/scenario-tests-properly
   { to: '/etap', icon: Plug, labelKey: 'sidebar.etapIntegration', section: 'integration' },
   { to: '/gis', icon: Map, labelKey: 'sidebar.gisIntegration', section: 'integration' },
   { to: '/digital-twin', icon: Layers, labelKey: 'sidebar.digitalTwin', section: 'integration' },
@@ -60,19 +87,30 @@ const navItems: NavItem[] = [
   { to: '/diagnostics', icon: Bug, labelKey: 'sidebar.diagnostics', section: 'system' },
   { to: '/code-guard', icon: Shield, labelKey: 'sidebar.codeGuard', section: 'system' },
   { to: '/logs', icon: ScrollText, labelKey: 'sidebar.logs', section: 'system' },
+<<<<<<< HEAD
 ];
 
 const sectionOrder = ['engineering', 'integration', 'system'] as const;
+=======
+]
+
+const sectionOrder = ['engineering', 'integration', 'system'] as const
+>>>>>>> origin/fix/scenario-tests-properly
 const sectionLabels: Record<string, string> = {
   engineering: 'sidebar.engineering',
   integration: 'sidebar.integration',
   system: 'sidebar.system',
+<<<<<<< HEAD
 };
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly
 
 const sectionIcons: Record<string, React.ElementType> = {
   engineering: Cpu,
   integration: Plug,
   system: Wrench,
+<<<<<<< HEAD
 };
 
 export function Sidebar() {
@@ -83,10 +121,23 @@ export function Sidebar() {
   const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking');
 
   const isRtl = i18n.language === 'ar';
+=======
+}
+
+export function Sidebar() {
+  const { t, i18n } = useTranslation()
+  const { theme, toggleTheme } = useTheme()
+  const location = useLocation()
+  const { sidebarCollapsed, toggleSidebar } = useAppStore()
+  const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking')
+
+  const isRtl = i18n.language === 'ar'
+>>>>>>> origin/fix/scenario-tests-properly
 
   useEffect(() => {
     fetchHealth()
       .then((h: HealthResponse) => setHealthStatus(h.ok ? 'online' : 'offline'))
+<<<<<<< HEAD
       .catch(() => setHealthStatus('offline'));
     const interval = setInterval(() => {
       fetchHealth()
@@ -106,17 +157,46 @@ export function Sidebar() {
       topLevel.push(item);
     }
   });
+=======
+      .catch(() => setHealthStatus('offline'))
+    const interval = setInterval(() => {
+      fetchHealth()
+        .then((h: HealthResponse) => setHealthStatus(h.ok ? 'online' : 'offline'))
+        .catch(() => setHealthStatus('offline'))
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const groupedItems: Record<string, NavItem[]> = {}
+  const topLevel: NavItem[] = []
+  navItems.forEach(item => {
+    if (!item.section) {
+      topLevel.push(item)
+    } else {
+      if (!groupedItems[item.section]) groupedItems[item.section] = []
+      groupedItems[item.section].push(item)
+    }
+  })
+>>>>>>> origin/fix/scenario-tests-properly
 
   return (
     <aside
       className={cn(
         'h-full flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] shrink-0 transition-all duration-300 overflow-hidden',
+<<<<<<< HEAD
         sidebarCollapsed ? 'w-[68px]' : 'w-64',
+=======
+        sidebarCollapsed ? 'w-[68px]' : 'w-64'
+>>>>>>> origin/fix/scenario-tests-properly
       )}
     >
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+<<<<<<< HEAD
         {topLevel.map((item) => (
+=======
+        {topLevel.map(item => (
+>>>>>>> origin/fix/scenario-tests-properly
           <NavLink
             key={item.to}
             to={item.to}
@@ -126,7 +206,11 @@ export function Sidebar() {
                 sidebarCollapsed && 'justify-center px-0',
                 isActive
                   ? 'bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30'
+<<<<<<< HEAD
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
+=======
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+>>>>>>> origin/fix/scenario-tests-properly
               )
             }
           >
@@ -140,10 +224,17 @@ export function Sidebar() {
           </NavLink>
         ))}
 
+<<<<<<< HEAD
         {sectionOrder.map((section) => {
           const items = groupedItems[section];
           if (!items?.length) return null;
           const SectionIcon = sectionIcons[section];
+=======
+        {sectionOrder.map(section => {
+          const items = groupedItems[section]
+          if (!items?.length) return null
+          const SectionIcon = sectionIcons[section]
+>>>>>>> origin/fix/scenario-tests-properly
           return (
             <div key={section} className="pt-4">
               {!sidebarCollapsed && (
@@ -153,8 +244,13 @@ export function Sidebar() {
                 </div>
               )}
               {sidebarCollapsed && <hr className="border-[var(--border-primary)] mx-2" />}
+<<<<<<< HEAD
               {items.map((item) => {
                 const isActive = location.pathname === item.to;
+=======
+              {items.map(item => {
+                const isActive = location.pathname === item.to
+>>>>>>> origin/fix/scenario-tests-properly
                 return (
                   <NavLink
                     key={item.to}
@@ -165,7 +261,11 @@ export function Sidebar() {
                         sidebarCollapsed && 'justify-center px-0',
                         isActive
                           ? 'bg-brand-600 text-white font-medium shadow-sm shadow-brand-600/30'
+<<<<<<< HEAD
                           : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
+=======
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
+>>>>>>> origin/fix/scenario-tests-properly
                       )
                     }
                   >
@@ -177,15 +277,23 @@ export function Sidebar() {
                       </div>
                     )}
                   </NavLink>
+<<<<<<< HEAD
                 );
               })}
             </div>
           );
+=======
+                )
+              })}
+            </div>
+          )
+>>>>>>> origin/fix/scenario-tests-properly
         })}
       </nav>
 
       {/* Bottom Section */}
       <div className="p-2 border-t border-[var(--border-primary)] space-y-1">
+<<<<<<< HEAD
         <div
           className={cn(
             'flex items-center gap-3 px-3 py-1.5',
@@ -203,12 +311,17 @@ export function Sidebar() {
             size="sm"
             showLabel={!sidebarCollapsed}
           />
+=======
+        <div className={cn('flex items-center gap-3 px-3 py-1.5', sidebarCollapsed && 'justify-center px-0')}>
+          <StatusIndicator status={healthStatus === 'checking' ? 'loading' : healthStatus === 'online' ? 'online' : 'offline'} size="sm" showLabel={!sidebarCollapsed} />
+>>>>>>> origin/fix/scenario-tests-properly
         </div>
 
         <button
           onClick={toggleTheme}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
+<<<<<<< HEAD
             sidebarCollapsed && 'justify-center px-0',
           )}
         >
@@ -220,12 +333,20 @@ export function Sidebar() {
           {!sidebarCollapsed && (
             <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>
           )}
+=======
+            sidebarCollapsed && 'justify-center px-0'
+          )}
+        >
+          {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
+          {!sidebarCollapsed && <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>}
+>>>>>>> origin/fix/scenario-tests-properly
         </button>
 
         <button
           onClick={toggleSidebar}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors',
+<<<<<<< HEAD
             sidebarCollapsed && 'justify-center px-0',
           )}
           title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
@@ -242,6 +363,16 @@ export function Sidebar() {
               <span>{t('sidebar.collapse')}</span>
             </>
           )}
+=======
+            sidebarCollapsed && 'justify-center px-0'
+          )}
+          title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        >
+          {sidebarCollapsed
+            ? <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? 'rotate-180' : ''}`} />
+            : <>{isRtl ? <ChevronRight className="w-[18px] h-[18px] shrink-0" /> : <ChevronLeft className="w-[18px] h-[18px] shrink-0" />}<span>{t('sidebar.collapse')}</span></>
+          }
+>>>>>>> origin/fix/scenario-tests-properly
         </button>
 
         {!sidebarCollapsed && (
@@ -251,5 +382,9 @@ export function Sidebar() {
         )}
       </div>
     </aside>
+<<<<<<< HEAD
   );
+=======
+  )
+>>>>>>> origin/fix/scenario-tests-properly
 }

@@ -9,7 +9,11 @@
 - **Version:** 1.0.0
 - **Author:** Eng Ahmed Elbaz (ahmdelbaz28@gmail.com)
 - **Repository:** https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+<<<<<<< HEAD
 - **Live Platform:** https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
+=======
+- **Live Demo:** https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform
+>>>>>>> origin/fix/scenario-tests-properly
 
 ## Architecture Overview
 
@@ -24,7 +28,11 @@ Engineering Engine (Python solvers) → Integration Layer (ETAP COM, GIS, SCADA)
 |-------|-----------|----------------|
 | **Backend API** | Python 3.13+, FastAPI | `engineering_service.py` |
 | **Frontend** | React 19, TypeScript 5.7, Tailwind CSS 4 | `ui/src/pages/*.tsx` |
+<<<<<<< HEAD
 | **AI Agents** | Mastra framework, 25 specialized agents | `src/mastra/agents/*.ts`, `agents/*.py` |
+=======
+| **AI Agents** | Mastra framework, 9 specialized agents | `src/mastra/agents/*.ts`, `agents/*.py` |
+>>>>>>> origin/fix/scenario-tests-properly
 | **Engineering** | NumPy, SciPy, custom solvers | `engine/`, `load_flow/`, `fault_analysis/` |
 | **Database** | DuckDB, PostgreSQL (optional) | `mastra.duckdb` |
 | **Deployment** | Docker, Docker Compose, Hugging Face Spaces | `Dockerfile`, `Dockerfile.hf` |

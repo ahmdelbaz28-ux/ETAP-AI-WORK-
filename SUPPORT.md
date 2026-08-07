@@ -12,7 +12,11 @@
 ### Community
 - [GitHub Discussions](https://github.com/ahmdelbaz28-ux/AhmedETAP/discussions) — Ask questions
 - [GitHub Issues](https://github.com/ahmdelbaz28-ux/AhmedETAP/issues) — Report bugs
+<<<<<<< HEAD
 - [Live Platform](https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform) — Try it online
+=======
+- [Live Demo](https://huggingface.co/spaces/ahmdelbaz28/etap-ai-platform) — Try it online
+>>>>>>> origin/fix/scenario-tests-properly
 
 ### Direct Support
 - **Email:** ahmdelbaz28@gmail.com

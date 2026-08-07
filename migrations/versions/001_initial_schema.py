@@ -20,9 +20,12 @@ async SQLite (aiosqlite) compatibility.
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 # Module-level string constants (extracted to satisfy S1192).
 _USERS_ID_FK = "users.id"  # NOSONAR
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import Text
@@ -79,13 +82,21 @@ def upgrade() -> None:
             "mfa_enabled",
             sa.Boolean(),
             nullable=False,
+<<<<<<< HEAD
             server_default=sa.text("false"),
+=======
+            server_default=sa.text("0"),
+>>>>>>> origin/fix/scenario-tests-properly
         ),
         sa.Column(
             "is_active",
             sa.Boolean(),
             nullable=False,
+<<<<<<< HEAD
             server_default=sa.text("true"),
+=======
+            server_default=sa.text("1"),
+>>>>>>> origin/fix/scenario-tests-properly
         ),
         sa.Column(
             "reset_token",
@@ -151,10 +162,14 @@ def upgrade() -> None:
         sa.Column(
             "created_by",
             sa.String(36),
+<<<<<<< HEAD
             sa.ForeignKey(
                 _USERS_ID_FK,
                 ondelete="CASCADE",  # NOSONAR
             ),  # NOSONAR intentional repetition (audit constant)
+=======
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+>>>>>>> origin/fix/scenario-tests-properly
             nullable=False,
         ),
         sa.Column(
@@ -236,7 +251,11 @@ def upgrade() -> None:
         sa.Column(
             "created_by",
             sa.String(36),
+<<<<<<< HEAD
             sa.ForeignKey(_USERS_ID_FK, ondelete="CASCADE"),
+=======
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+>>>>>>> origin/fix/scenario-tests-properly
             nullable=False,
         ),
         sa.Column(
@@ -260,7 +279,11 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.String(36),
+<<<<<<< HEAD
             sa.ForeignKey(_USERS_ID_FK, ondelete="CASCADE"),
+=======
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+>>>>>>> origin/fix/scenario-tests-properly
             nullable=False,
             index=True,
         ),
@@ -292,7 +315,11 @@ def upgrade() -> None:
             "is_revoked",
             sa.Boolean(),
             nullable=False,
+<<<<<<< HEAD
             server_default=sa.text("false"),
+=======
+            server_default=sa.text("0"),
+>>>>>>> origin/fix/scenario-tests-properly
         ),
     )
 
@@ -390,7 +417,11 @@ def upgrade() -> None:
             "acknowledged",
             sa.Boolean(),
             nullable=False,
+<<<<<<< HEAD
             server_default=sa.text("false"),
+=======
+            server_default=sa.text("0"),
+>>>>>>> origin/fix/scenario-tests-properly
         ),
     )
 

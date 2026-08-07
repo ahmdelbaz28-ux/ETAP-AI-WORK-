@@ -25,7 +25,11 @@ class GISFeature:
 
     id: str
     geometry: GeoJSONGeometry
+<<<<<<< HEAD
     properties: dict[str, Any] = field(default_factory=dict)
+=======
+    properties: Dict[str, Any] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
     layer_name: str = ""
     crs: str = "EPSG:4326"
 
@@ -52,7 +56,11 @@ class ADMSAsset:
     asset_id: str
     asset_type: ADMSAssetType
     geometry: GeoJSONGeometry
+<<<<<<< HEAD
     metadata: dict[str, Any] = field(default_factory=dict)
+=======
+    metadata: Dict[str, Any] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # -----------------------------

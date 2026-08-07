@@ -9,7 +9,11 @@
  */
 
 import pino from 'pino';
+<<<<<<< HEAD
 import { createHash } from 'node:crypto';
+=======
+import { createHash } from 'crypto';
+>>>>>>> origin/fix/scenario-tests-properly
 
 // Define log levels (pino uses numeric levels)
 export const LOG_LEVELS = {
@@ -32,6 +36,7 @@ export const LOG_TYPES = {
 /**
  * Sanitize log metadata to remove sensitive information.
  */
+<<<<<<< HEAD
 
 /**
  * Stringify a value for hashing. Objects use JSON.stringify (so we never get
@@ -48,6 +53,8 @@ function stringifyForHash(raw: unknown): string {
   return JSON.stringify(raw);
 }
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown> {
   const sanitized: Record<string, unknown> = { ...meta };
 
@@ -65,9 +72,13 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const key of sensitiveKeys) {
     if (sanitized[key]) {
+<<<<<<< HEAD
       const raw = sanitized[key];
       const valueStr = stringifyForHash(raw);
       const hash = createHash('sha256').update(valueStr).digest('hex');
+=======
+      const hash = createHash('sha256').update(String(sanitized[key])).digest('hex');
+>>>>>>> origin/fix/scenario-tests-properly
       sanitized[key] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
   }
@@ -83,7 +94,11 @@ function sanitizeLogMeta(meta: Record<string, unknown>): Record<string, unknown>
 
   for (const prop in sanitized) {
     if (sensitivePatterns.some(pattern => pattern.test(prop))) {
+<<<<<<< HEAD
       const hash = createHash('sha256').update(stringifyForHash(sanitized[prop])).digest('hex');
+=======
+      const hash = createHash('sha256').update(String(sanitized[prop])).digest('hex');
+>>>>>>> origin/fix/scenario-tests-properly
       sanitized[prop] = `***REDACTED*** (hash: ${hash.substring(0, 8)}...)`;
     }
   }

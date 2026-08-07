@@ -17,7 +17,11 @@
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+<<<<<<< HEAD
 
+=======
+    "erasableSyntaxOnly": true,
+>>>>>>> origin/fix/scenario-tests-properly
     "noFallthroughCasesInSwitch": true
   },
   "include": ["vite.config.ts"]

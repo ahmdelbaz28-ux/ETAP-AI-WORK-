@@ -132,6 +132,7 @@ This document explains the four quality gates enforced in the AhmedETAP pipeline
 
 ---
 
+<<<<<<< HEAD
 ## Repository Configuration (Required Settings)
 
 These GitHub repository settings MUST be configured before the CI/CD pipeline runs correctly. They are NOT code-level settings — they are configured in the GitHub repo settings UI or via the GitHub API.
@@ -194,6 +195,8 @@ Configure in **Repo Settings → Environments**:
 
 ---
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 ## Artifact retention
 
 | Artifact | Retention | Uploaded by |

@@ -13,6 +13,7 @@ from starlette.testclient import TestClient
 from backend.request_context import CorrelationIdMiddleware
 
 
+<<<<<<< HEAD
 async def dummy_endpoint(
     request: Request,
 ):  # NOSONAR async function uses sync I/O for compatibility reasons
@@ -22,6 +23,13 @@ async def dummy_endpoint(
 async def headers_endpoint(
     request: Request,
 ):  # NOSONAR async function uses sync I/O for compatibility reasons
+=======
+async def dummy_endpoint(request: Request):
+    return JSONResponse({"correlation_id": request.state.correlation_id})
+
+
+async def headers_endpoint(request: Request):
+>>>>>>> origin/fix/scenario-tests-properly
     return JSONResponse(
         {
             "correlation_id": request.state.correlation_id,

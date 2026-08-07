@@ -24,9 +24,13 @@ class LoadFlowSolver:
 
     def __init__(self, system):
         self.system = system
+<<<<<<< HEAD
         self.Ybus = self.system.get_ybus(
             seq="1"
         )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+=======
+        self.Ybus = self.system.get_ybus(seq="1")
+>>>>>>> origin/fix/scenario-tests-properly
         self.n_buses = self.Ybus.shape[0]
 
         self.bus_ids = sorted(self.system.buses.keys())
@@ -67,6 +71,7 @@ class LoadFlowSolver:
         self.pq_indices = [i for i, bt in enumerate(self.bus_types) if bt == "pq"]
         self.n_unknowns = len(self.pv_indices) + 2 * len(self.pq_indices)
 
+<<<<<<< HEAD
     def _calculate_power(
         self,
         v,
@@ -103,6 +108,27 @@ class LoadFlowSolver:
         p_sch=None,
         q_sch=None,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+    def _calculate_power(self, V):
+        I = np.dot(self.Ybus, V)
+        S = V * np.conj(I)
+        return np.real(S), np.imag(S)
+
+    def _scheduled_power(self):
+        P_sch = np.zeros(self.n_buses)
+        Q_sch = np.zeros(self.n_buses)
+        for i, bid in enumerate(self.bus_ids):
+            bus = self.system.buses[bid]
+            P_sch[i] = bus.generation_power.real - bus.load_power.real
+            Q_sch[i] = bus.generation_power.imag - bus.load_power.imag
+        return P_sch, Q_sch
+
+    def _power_mismatch(self, V, P_sch, Q_sch):
+        P, Q = self._calculate_power(V)
+        return P_sch - P, Q_sch - Q
+
+    def _build_jacobian(self, V, P_sch=None, Q_sch=None):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Analytical Newton-Raphson Jacobian from Ybus elements.
 
@@ -118,7 +144,11 @@ class LoadFlowSolver:
         Jacobian structure:
 
             Rows:  [ΔP_pv, ΔP_pq, ΔQ_pq]
+<<<<<<< HEAD
             Cols:  [Δθ_pv, Δθ_pq, Union[Δ|V, _pq]]
+=======
+            Cols:  [Δθ_pv, Δθ_pq, Δ|V|_pq]
+>>>>>>> origin/fix/scenario-tests-properly
 
         All formulas below are for ΔP/ΔQ (the mismatch), not for
         P_calc/Q_calc directly.
@@ -150,6 +180,7 @@ class LoadFlowSolver:
         G = self.Ybus.real
         B = self.Ybus.imag
 
+<<<<<<< HEAD
         vmag = np.abs(
             v
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -181,6 +212,23 @@ class LoadFlowSolver:
 
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(v)
+=======
+        Vmag = np.abs(V)
+        Vang = np.angle(V)
+
+        # Angle differences
+        θ = Vang[:, np.newaxis] - Vang[np.newaxis, :]
+        cos_θ = np.cos(θ)
+        sin_θ = np.sin(θ)
+
+        # Voltage magnitude products
+        V_i = Vmag[:, np.newaxis]  # (n, 1)
+        V_j = Vmag[np.newaxis, :]  # (1, n)
+        V_i_V_j = V_i * V_j  # (n, n)
+
+        # Current power injections (P_calc, Q_calc)
+        P, Q = self._calculate_power(V)
+>>>>>>> origin/fix/scenario-tests-properly
 
         pv = self.pv_indices
         pq = self.pq_indices
@@ -204,26 +252,39 @@ class LoadFlowSolver:
         # dP_i/dθ_k  (P-calc derivative)  —  see formula docstring above
         #   off-diag: V_i*V_j*(G_ij*sin - B_ij*cos)      ← d(P_calc)/dθ
         #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ
+<<<<<<< HEAD
         j1_off = (
             -v_i_v_j * (GS - BC)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        J1_off = -V_i_V_j * (GS - BC)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # dP_i/d|V|_k (P-calc derivative)
         #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
         #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
+<<<<<<< HEAD
         V_i_col = vmag[:, None]  # NOSONAR physics/engineering notation
         j2_off = -V_i_col * (
             GC + BS
         )  # NOSONAR
+=======
+        J2_off = -V_i * (GC + BS)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
         #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ
+<<<<<<< HEAD
         J3_off = v_i_v_j * (GC + BS)
+=======
+        J3_off = V_i_V_j * (GC + BS)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # dQ_i/d|V|_k (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
         #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
+<<<<<<< HEAD
         j4_off = (
             -V_i_col * (GS - BC)
         )  # NOSONAR
@@ -232,24 +293,46 @@ class LoadFlowSolver:
         B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         G_diag = G.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V2 = vmag**2
+=======
+        J4_off = -V_i * (GS - BC)
+
+        # ── Diagonal helpers ────────────────────────────────────────────
+        B_diag = B.diagonal()
+        G_diag = G.diagonal()
+        V2 = Vmag**2
+>>>>>>> origin/fix/scenario-tests-properly
 
         # ── J1: dΔP/dθ ──
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
+<<<<<<< HEAD
                     J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
                 else:
                     J[ri, ci] = j1_off[bus_i, bus_k]
+=======
+                    # d(ΔP_i)/dθ_i = Q_i + B_ii * |V_i|²
+                    J[ri, ci] = Q[bus_i] + B_diag[bus_i] * V2[bus_i]
+                else:
+                    J[ri, ci] = J1_off[bus_i, bus_k]
+>>>>>>> origin/fix/scenario-tests-properly
 
         # ── J2: dΔP/d|V| ──
         for ri, bus_i in enumerate(row_buses):
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
+<<<<<<< HEAD
                     # d(ΔP_i)/d|V|_i = -P_i/|V_i| - G_diag[bus_i] * Vmag[bus_i]
                     J[ri, col] = -P[bus_i] / vmag[bus_i] - G_diag[bus_i] * vmag[bus_i]
                 else:
                     J[ri, col] = j2_off[bus_i, bus_k]
+=======
+                    # d(ΔP_i)/d|V|_i = -P_i/|V_i| - G_ii * |V_i|
+                    J[ri, col] = -P[bus_i] / Vmag[bus_i] - G_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[ri, col] = J2_off[bus_i, bus_k]
+>>>>>>> origin/fix/scenario-tests-properly
 
         # ── J3: dΔQ/dθ ──
         # Rows start at n_pv + n_pq (after ΔP_pv and ΔP_pq)
@@ -258,6 +341,10 @@ class LoadFlowSolver:
             row = q_row_offset + ri
             for ci, bus_k in enumerate(th_col_buses):
                 if bus_i == bus_k:
+<<<<<<< HEAD
+=======
+                    # d(ΔQ_i)/dθ_i = -P_i + G_ii * |V_i|²
+>>>>>>> origin/fix/scenario-tests-properly
                     J[row, ci] = -P[bus_i] + G_diag[bus_i] * V2[bus_i]
                 else:
                     J[row, ci] = J3_off[bus_i, bus_k]
@@ -268,6 +355,7 @@ class LoadFlowSolver:
             for ci, bus_k in enumerate(vm_col_buses):
                 col = n_th_cols + ci
                 if bus_i == bus_k:
+<<<<<<< HEAD
                     # d(ΔQ_i)/d|V|_i = -Q_i/|V|_i + B_diag[bus_i] * Vmag[bus_i]
                     J[row, col] = -Q[bus_i] / vmag[bus_i] + B_diag[bus_i] * vmag[bus_i]
                 else:
@@ -280,15 +368,31 @@ class LoadFlowSolver:
         deltap,
         deltaq,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+                    # d(ΔQ_i)/d|V|_i = -Q_i/|V|_i + B_ii * |V_i|
+                    J[row, col] = -Q[bus_i] / Vmag[bus_i] + B_diag[bus_i] * Vmag[bus_i]
+                else:
+                    J[row, col] = J4_off[bus_i, bus_k]
+
+        return J
+
+    def _build_mismatch_vector(self, deltaP, deltaQ):
+>>>>>>> origin/fix/scenario-tests-properly
         pv = self.pv_indices
         pq = self.pq_indices
         n_pv = len(pv)
         n_pq = len(pq)
 
         mismatch = np.zeros(self.n_unknowns)
+<<<<<<< HEAD
         mismatch[:n_pv] = deltap[pv]
         mismatch[n_pv : n_pv + n_pq] = deltap[pq]
         mismatch[n_pv + n_pq :] = deltaq[pq]
+=======
+        mismatch[:n_pv] = deltaP[pv]
+        mismatch[n_pv : n_pv + n_pq] = deltaP[pq]
+        mismatch[n_pv + n_pq :] = deltaQ[pq]
+>>>>>>> origin/fix/scenario-tests-properly
         return mismatch
 
     def _apply_step_limiting(self, correction):
@@ -336,14 +440,20 @@ class LoadFlowSolver:
         for idx, bus_i in enumerate(pv):
             theta_i = np.angle(self.V[bus_i])
             theta_i += alpha * correction[idx]
+<<<<<<< HEAD
             vmag_i = np.abs(
                 self.V[bus_i]
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             self.V[bus_i] = vmag_i * np.exp(1j * theta_i)
+=======
+            Vmag_i = np.abs(self.V[bus_i])
+            self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
+>>>>>>> origin/fix/scenario-tests-properly
 
         for idx, bus_i in enumerate(pq):
             theta_i = np.angle(self.V[bus_i])
             theta_i += alpha * correction[n_pv + idx]
+<<<<<<< HEAD
             vmag_i = np.abs(self.V[bus_i])
             self.V[bus_i] = vmag_i * np.exp(1j * theta_i)
 
@@ -359,6 +469,20 @@ class LoadFlowSolver:
         v,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         _, Q = self._calculate_power(v)
+=======
+            Vmag_i = np.abs(self.V[bus_i])
+            self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
+
+        # Update magnitudes (PQ only)
+        for idx, bus_i in enumerate(pq):
+            Vmag_i = np.abs(self.V[bus_i])
+            Vmag_i += alpha * correction[n_pv + n_pq + idx]
+            theta_i = np.angle(self.V[bus_i])
+            self.V[bus_i] = Vmag_i * np.exp(1j * theta_i)
+
+    def _check_q_limits(self, V):
+        P, Q = self._calculate_power(V)
+>>>>>>> origin/fix/scenario-tests-properly
         switched = False
 
         for bus_i in self.original_pv_indices:
@@ -369,6 +493,7 @@ class LoadFlowSolver:
                 continue
 
             qmin, qmax = self.q_limits[bus_i]
+<<<<<<< HEAD
             q_gen = (
                 Q[bus_i] + bus.load_power.imag
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -377,14 +502,29 @@ class LoadFlowSolver:
                 bus.bus_type = "pq"
                 bus.generation_power = complex(bus.generation_power.real, qmax)
                 event = f"PV->PQ (Q>Qmax): Bus {bid} Q={q_gen:.4f} > Qmax={qmax:.4f}"
+=======
+            Q_gen = Q[bus_i] + bus.load_power.imag
+
+            if bus.bus_type == "pv" and Q_gen > qmax:
+                bus.bus_type = "pq"
+                bus.generation_power = complex(bus.generation_power.real, qmax)
+                event = f"PV->PQ (Q>Qmax): Bus {bid} Q={Q_gen:.4f} > Qmax={qmax:.4f}"
+>>>>>>> origin/fix/scenario-tests-properly
                 self.switching_log.append(event)
                 logger.info(event)
                 switched = True
 
+<<<<<<< HEAD
             elif bus.bus_type == "pv" and q_gen < qmin:
                 bus.bus_type = "pq"
                 bus.generation_power = complex(bus.generation_power.real, qmin)
                 event = f"PV->PQ (Q<Qmin): Bus {bid} Q={q_gen:.4f} < Qmin={qmin:.4f}"
+=======
+            elif bus.bus_type == "pv" and Q_gen < qmin:
+                bus.bus_type = "pq"
+                bus.generation_power = complex(bus.generation_power.real, qmin)
+                event = f"PV->PQ (Q<Qmin): Bus {bid} Q={Q_gen:.4f} < Qmin={qmin:.4f}"
+>>>>>>> origin/fix/scenario-tests-properly
                 self.switching_log.append(event)
                 logger.info(event)
                 switched = True
@@ -398,6 +538,7 @@ class LoadFlowSolver:
             return False
         recent = mismatch_history[-self.oscillation_window :]
         prev = mismatch_history[-2 * self.oscillation_window : -self.oscillation_window]
+<<<<<<< HEAD
         return np.mean(recent) > self.oscillation_threshold * np.mean(prev)
 
     def solve(  # NOSONAR
@@ -410,15 +551,31 @@ class LoadFlowSolver:
             p_sch,
             q_sch,
         ) = self._scheduled_power()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        if np.mean(recent) > self.oscillation_threshold * np.mean(prev):
+            return True
+        return False
+
+    def solve(self, max_iter=100, tol=1e-6, mode="engineering"):
+        if mode == "high_accuracy":
+            tol = min(tol, 1e-8)
+
+        P_sch, Q_sch = self._scheduled_power()
+>>>>>>> origin/fix/scenario-tests-properly
         mismatch_history = []
         self.iteration_log = []
         self.switching_log = []
 
         for iteration in range(max_iter):
+<<<<<<< HEAD
             deltap, deltaq = self._power_mismatch(
                 self.V, p_sch, q_sch
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             mismatch = self._build_mismatch_vector(deltap, deltaq)
+=======
+            deltaP, deltaQ = self._power_mismatch(self.V, P_sch, Q_sch)
+            mismatch = self._build_mismatch_vector(deltaP, deltaQ)
+>>>>>>> origin/fix/scenario-tests-properly
 
             max_mismatch = np.max(np.abs(mismatch))
             mismatch_history.append(max_mismatch)
@@ -426,6 +583,7 @@ class LoadFlowSolver:
             # Lightweight debug: first few iterations and when oscillation triggers later.
             if iteration < 5:
                 logger.info(
+<<<<<<< HEAD
                     "[LoadFlow] iter=%d max_mismatch=%.6e n_pv=%d n_pq=%d damping=%.3f",
                     iteration,
                     max_mismatch,
@@ -453,6 +611,24 @@ class LoadFlowSolver:
                         "[LoadFlow] iter=%d Jacobian build debug failed: %s",
                         iteration,
                         e,
+=======
+                    f"[LoadFlow] iter={iteration} max_mismatch={max_mismatch:.6e} "
+                    f"n_pv={len(self.pv_indices)} n_pq={len(self.pq_indices)} "
+                    f"damping={self.damping_factor:.3f}"
+                )
+                try:
+                    J_dbg = self._build_jacobian(self.V)
+                    nan_count = int(np.isnan(J_dbg).sum())
+                    inf_count = int(np.isinf(J_dbg).sum())
+                    finite_all = bool(np.isfinite(J_dbg).all())
+                    logger.info(
+                        f"[LoadFlow] iter={iteration} Jacobian finite_all={finite_all} "
+                        f"nan_count={nan_count} inf_count={inf_count} shape={J_dbg.shape}"
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"[LoadFlow] iter={iteration} Jacobian build debug failed: {e}"
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
             self.iteration_log.append(
@@ -461,7 +637,11 @@ class LoadFlowSolver:
                     "max_mismatch": max_mismatch,
                     "n_pv": len(self.pv_indices),
                     "n_pq": len(self.pq_indices),
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             if max_mismatch < tol:
@@ -478,8 +658,12 @@ class LoadFlowSolver:
                     bus.voltage = self.V[i]
                     # generation_power = injected power + load (since P_inj = P_gen - P_load)
                     bus.generation_power = complex(
+<<<<<<< HEAD
                         P[i] + bus.load_power.real,
                         Q[i] + bus.load_power.imag,
+=======
+                        P[i] + bus.load_power.real, Q[i] + bus.load_power.imag
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 return True
 
@@ -494,7 +678,11 @@ class LoadFlowSolver:
 
             # Line-search style damping: reduce applied correction if mismatch increases.
             # This prevents oscillation loops when Newton step overshoots.
+<<<<<<< HEAD
             V_prev = self.V.copy()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+            V_prev = self.V.copy()
+>>>>>>> origin/fix/scenario-tests-properly
             mismatch_prev = max_mismatch
 
             alphas = [self.damping_factor, 0.7 * self.damping_factor, 0.3 * self.damping_factor]
@@ -508,10 +696,15 @@ class LoadFlowSolver:
                 self.damping_factor = alpha
                 self._update_voltages(correction)
                 # evaluate mismatch at trial point
+<<<<<<< HEAD
                 dp_trial, dq_trial = self._power_mismatch(
                     self.V, p_sch, q_sch
                 )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 mismatch_trial = self._build_mismatch_vector(dp_trial, dq_trial)
+=======
+                dP_trial, dQ_trial = self._power_mismatch(self.V, P_sch, Q_sch)
+                mismatch_trial = self._build_mismatch_vector(dP_trial, dQ_trial)
+>>>>>>> origin/fix/scenario-tests-properly
                 max_trial = float(np.max(np.abs(mismatch_trial)))
 
                 self.damping_factor = alpha_backup
@@ -527,6 +720,7 @@ class LoadFlowSolver:
                 if self._detect_oscillation(mismatch_history):
                     saved_damping = self.damping_factor
                     for lm_lambda in [0.01, 0.1, 1.0, 10.0]:
+<<<<<<< HEAD
                         j_lm = (
                             J + lm_lambda * np.eye(J.shape[0])
                         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -534,13 +728,25 @@ class LoadFlowSolver:
                             corr_lm = np.linalg.solve(j_lm, -mismatch)
                         except np.linalg.LinAlgError:
                             corr_lm = np.linalg.lstsq(j_lm, -mismatch, rcond=None)[0]
+=======
+                        J_lm = J + lm_lambda * np.eye(J.shape[0])
+                        try:
+                            corr_lm = np.linalg.solve(J_lm, -mismatch)
+                        except np.linalg.LinAlgError:
+                            corr_lm = np.linalg.lstsq(J_lm, -mismatch, rcond=None)[0]
+>>>>>>> origin/fix/scenario-tests-properly
                         corr_lm = self._apply_step_limiting(corr_lm)
                         for alpha in [1.0, 0.5, 0.25, 0.1]:
                             self.V = V_prev.copy()
                             self.damping_factor = alpha
                             self._update_voltages(corr_lm)
+<<<<<<< HEAD
                             dp_trial, dq_trial = self._power_mismatch(self.V, p_sch, q_sch)
                             mismatch_trial = self._build_mismatch_vector(dp_trial, dq_trial)
+=======
+                            dP_trial, dQ_trial = self._power_mismatch(self.V, P_sch, Q_sch)
+                            mismatch_trial = self._build_mismatch_vector(dP_trial, dQ_trial)
+>>>>>>> origin/fix/scenario-tests-properly
                             max_trial = float(np.max(np.abs(mismatch_trial)))
                             if max_trial < mismatch_prev:
                                 self.damping_factor = max(alpha, 0.3)
@@ -570,18 +776,27 @@ class LoadFlowSolver:
                     self._update_voltages(correction)
 
             if self._check_q_limits(self.V):
+<<<<<<< HEAD
                 p_sch, q_sch = self._scheduled_power()
+=======
+                P_sch, Q_sch = self._scheduled_power()
+>>>>>>> origin/fix/scenario-tests-properly
 
             if self._detect_oscillation(mismatch_history):
                 self.damping_factor = max(0.3, self.damping_factor * 0.7)
                 logger.warning(
+<<<<<<< HEAD
                     "Oscillation detected at iteration %d, reducing damping to %.3f",
                     iteration,
                     self.damping_factor,
+=======
+                    f"Oscillation detected at iteration {iteration}, reducing damping to {self.damping_factor:.3f}"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
             if max_mismatch > 1e4:
                 logger.error(
+<<<<<<< HEAD
                     "Divergence detected at iteration %d (mismatch=%.2e)",
                     iteration,
                     max_mismatch,
@@ -599,4 +814,16 @@ class LoadFlowSolver:
             iteration,
             max_mismatch,
         )
+=======
+                    f"Divergence detected at iteration {iteration} (mismatch={max_mismatch:.2e})"
+                )
+                break
+
+        # Best-effort writeback even on non-convergence
+        P, Q = self._calculate_power(self.V)
+        for i, bid in enumerate(self.bus_ids):
+            bus = self.system.buses[bid]
+            bus.voltage = self.V[i]
+            bus.generation_power = complex(P[i] + bus.load_power.real, Q[i] + bus.load_power.imag)
+>>>>>>> origin/fix/scenario-tests-properly
         return False

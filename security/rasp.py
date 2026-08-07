@@ -27,7 +27,11 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +62,11 @@ class RASPRule:
     action: RASPAction = RASPAction.BLOCK
     severity: RASPSeverity = RASPSeverity.HIGH
     description: str = ""
+<<<<<<< HEAD
     check_fields: list[str] = field(default_factory=lambda: ["query", "body", "path", "headers"])
+=======
+    check_fields: List[str] = field(default_factory=lambda: ["query", "body", "path", "headers"])
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
@@ -77,24 +85,54 @@ class RASPResult:
 # Default RASP rules
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
         pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--|#|/\*)"),
+=======
+_DEFAULT_RULES: List[RASPRule] = [
+    RASPRule(
+        name="sqli_basic",
+        pattern=re.compile(
+            r"(?i)(\b(union\s+select|select\s+.+\s+from|insert\s+into|delete\s+from|"
+            r"drop\s+table|alter\s+table|exec\s*\(|execute\s*\(|"
+            r"'\s*(or|and)\s+.*[=<>]|;\s*(drop|delete|update|insert)|"
+            r"waitfor\s+delay|benchmark\s*\(|sleep\s*\()\b)",
+            re.IGNORECASE,
+        ),
+>>>>>>> origin/fix/scenario-tests-properly
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SQL Injection attempt detected",
     ),
     RASPRule(
         name="xss_basic",
+<<<<<<< HEAD
         pattern=re.compile(r"(?i)<script[^>]*>"),
+=======
+        pattern=re.compile(
+            r"(?i)(<script[^>]*>|javascript\s*:|on(error|load|click|mouseover)\s*=|"
+            r"alert\s*\(|document\.\s*(cookie|location)|eval\s*\()",
+            re.IGNORECASE,
+        ),
+>>>>>>> origin/fix/scenario-tests-properly
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="Cross-Site Scripting (XSS) attempt detected",
     ),
     RASPRule(
         name="command_injection",
+<<<<<<< HEAD
         pattern=re.compile(r"(?i);\s*(rm|del|format|shutdown|reboot|cat|type|ls|pwd|id|whoami)\b"),
+=======
+        pattern=re.compile(
+            r"(?i)(;\s*(rm|del|format|shutdown|reboot|cat|type|dir|ls|pwd|id|whoami|uname)\b|"
+            r"\|\s*(bash|sh|cmd|powershell|python|perl|ruby|php)\b|"
+            r"`[^`]+`|\$\([^)]+\))",
+            re.IGNORECASE,
+        ),
+>>>>>>> origin/fix/scenario-tests-properly
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="Command Injection attempt detected",
@@ -102,7 +140,12 @@ _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="path_traversal",
         pattern=re.compile(
+<<<<<<< HEAD
             r"(\./|\.\.\\|\.\./|%2e%2e%2f|%2e%2e/|\.\.%2f|/etc/passwd|c:\\|\\windows)",
+=======
+            r"(\.\./|\.\.\\|%2e%2e%2f|%2e%2e/|\.\.%2f|%252e|/etc/passwd|/etc/shadow|"
+            r"c:\\|\\windows\\)",
+>>>>>>> origin/fix/scenario-tests-properly
             re.IGNORECASE,
         ),
         action=RASPAction.BLOCK,
@@ -111,14 +154,27 @@ _DEFAULT_RULES: list[RASPRule] = [
     ),
     RASPRule(
         name="ldap_injection",
+<<<<<<< HEAD
         pattern=re.compile(r"[\*\(\)]"),
+=======
+        pattern=re.compile(
+            r"(?i)(\*\)|\(\|\(|\(\&\(|\)omiconj|\)(\||&)\()",
+            re.IGNORECASE,
+        ),
+>>>>>>> origin/fix/scenario-tests-properly
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="LDAP Injection attempt detected",
     ),
     RASPRule(
         name="nosql_injection",
+<<<<<<< HEAD
         pattern=re.compile(r"(?i)\$(where|regex|expr)"),
+=======
+        pattern=re.compile(
+            r"(?i)(\$where|\$regex|\$expr)",
+        ),
+>>>>>>> origin/fix/scenario-tests-properly
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="NoSQL Injection attempt detected — blocked",
@@ -126,7 +182,14 @@ _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="ssrf_basic",
         pattern=re.compile(
+<<<<<<< HEAD
             r"(?i)(http://(?:169\.254\.|10\.|192\.168\.|127\.0\.0\.1|localhost)|file://|gopher://|dict://)"
+=======
+            r"(?i)(http://(169\.254\.|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|"
+            r"192\.168\.\d+\.\d+|127\.0\.0\.1|0\.0\.0\.0|localhost|metadata\.google\.internal|"
+            r"100\.100\.100\.200)|file://|gopher://|dict://)",
+            re.IGNORECASE,
+>>>>>>> origin/fix/scenario-tests-properly
         ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
@@ -151,12 +214,20 @@ class RASPEngine:
 
     def __init__(
         self,
+<<<<<<< HEAD
         rules: list[RASPRule] | None = None,
+=======
+        rules: List[RASPRule] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
         enabled: bool = True,
     ) -> None:
         self._rules = rules or _DEFAULT_RULES
         self._enabled = enabled
+<<<<<<< HEAD
         self._stats: dict[str, int] = {
+=======
+        self._stats: Dict[str, int] = {
+>>>>>>> origin/fix/scenario-tests-properly
             "total_inspections": 0,
             "attacks_detected": 0,
             "attacks_blocked": 0,
@@ -172,11 +243,15 @@ class RASPEngine:
     def enabled(self, value: bool) -> None:
         self._enabled = value
 
+<<<<<<< HEAD
     def inspect(  # NOSONAR
         self, data: dict[str, Any]
     ) -> list[
         RASPResult
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def inspect(self, data: Dict[str, Any]) -> List[RASPResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Inspect request data against all RASP rules.
 
         Parameters
@@ -193,7 +268,11 @@ class RASPEngine:
             return []
 
         self._stats["total_inspections"] += 1
+<<<<<<< HEAD
         results: list[RASPResult] = []
+=======
+        results: List[RASPResult] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         for rule in self._rules:
             for field_name in rule.check_fields:
@@ -240,7 +319,11 @@ class RASPEngine:
 
         return results
 
+<<<<<<< HEAD
     def get_stats(self) -> dict[str, int]:
+=======
+    def get_stats(self) -> Dict[str, int]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return RASP inspection statistics."""
         return dict(self._stats)
 

@@ -106,7 +106,14 @@ rag = ETAPGuideRAG()
 procedure = rag.get_etap_procedure("load flow analysis")
 
 # التحقق من الخطوات
+<<<<<<< HEAD
 validation = rag.validate_etap_operation("load flow analysis", ["Step 1", "Step 2", "Step 3"])
+=======
+validation = rag.validate_etap_operation(
+    "load flow analysis",
+    ["Step 1", "Step 2", "Step 3"]
+)
+>>>>>>> origin/fix/scenario-tests-properly
 
 # الاستعلام
 answer = rag.query("How to add a transformer?")
@@ -238,7 +245,16 @@ else:
 ```python
 validation = rag.validate_etap_operation(
     operation="load flow analysis",
+<<<<<<< HEAD
     proposed_steps=["Open ETAP", "Create project", "Add components", "Run study"],
+=======
+    proposed_steps=[
+        "Open ETAP",
+        "Create project",
+        "Add components",
+        "Run study"
+    ]
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 if validation["valid"]:
@@ -336,7 +352,11 @@ if answer["answered"]:
 ```python
 import json
 
+<<<<<<< HEAD
 with open("etap_user_guide/integration_summary.json", "r") as f:
+=======
+with open('etap_user_guide/integration_summary.json', 'r') as f:
+>>>>>>> origin/fix/scenario-tests-properly
     summary = json.load(f)
 
 print(f"Total PDFs: {summary['statistics']['total_pdfs']}")
@@ -407,8 +427,16 @@ procedure = rag.get_etap_procedure(operation_name)
 
 if procedure["found"]:
     # التحقق من الخطوات
+<<<<<<< HEAD
     validation = rag.validate_etap_operation(operation_name, proposed_steps)
 
+=======
+    validation = rag.validate_etap_operation(
+        operation_name,
+        proposed_steps
+    )
+    
+>>>>>>> origin/fix/scenario-tests-properly
     if validation["valid"]:
         # تنفيذ العملية
         execute_operation()
@@ -454,7 +482,11 @@ proposed_steps = [
     "Configure load flow settings",
     "Run study",
     "Check convergence",
+<<<<<<< HEAD
     "Extract results",
+=======
+    "Extract results"
+>>>>>>> origin/fix/scenario-tests-properly
 ]
 
 validation = rag.validate_etap_operation("load flow analysis", proposed_steps)
@@ -464,7 +496,11 @@ if validation["valid"]:
     with ETAPAutomation(visible=True) as etap:
         project = etap.open_project("C:\\Projects\\MyProject.edb")
         result = project.run_study("load_flow")
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/fix/scenario-tests-properly
         if result.success:
             print(f"✓ Study completed successfully")
             print(f"Results: {result.data}")

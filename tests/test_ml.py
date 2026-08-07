@@ -1,7 +1,10 @@
 """
 Tests for ML predictive analytics — LoadForecaster, FaultPredictor, AnomalyDetector.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import numpy as np
 import pytest
 
@@ -18,7 +21,10 @@ _skip_no_sklearn = pytest.mark.skipif(
 # LoadForecaster
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestLoadForecaster:
     def test_train_linear_fallback(self):
         """Train with linear fallback (no LSTM/Prophet installed)."""
@@ -85,17 +91,25 @@ class TestLoadForecaster:
 # FaultPredictor
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 @_skip_no_sklearn
 class TestFaultPredictor:
     def test_predict_after_train(self):
         predictor = FaultPredictor()
+<<<<<<< HEAD
         features = np.random.randn(
             50, 4
         )  # NOSONAR numpy.random.Generator migration; API change required
         labels = np.random.randint(
             0, 4, size=50
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        features = np.random.randn(50, 4)
+        labels = np.random.randint(0, 4, size=50)
+>>>>>>> origin/fix/scenario-tests-properly
         predictor.train(features, labels)
         result = predictor.predict(np.array([[0.5, 0.1, 1.0, 0.2]]))
         assert "fault_type" in result
@@ -106,13 +120,18 @@ class TestFaultPredictor:
 
     def test_train_raises_bad_shape(self):
         predictor = FaultPredictor()
+<<<<<<< HEAD
         with pytest.raises(
             ValueError
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+=======
+        with pytest.raises(ValueError):
+>>>>>>> origin/fix/scenario-tests-properly
             predictor.train(np.array([1, 2, 3]), np.array([0, 1, 0]))
 
     def test_predict_raises_before_train(self):
         predictor = FaultPredictor()
+<<<<<<< HEAD
         with pytest.raises(
             RuntimeError, match="trained"
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
@@ -127,6 +146,15 @@ class TestFaultPredictor:
         labels = np.random.randint(
             0, 4, size=50
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        with pytest.raises(RuntimeError, match="trained"):
+            predictor.predict(np.array([[0.5, 0.1]]))
+
+    def test_feature_importance_after_train(self):
+        predictor = FaultPredictor()
+        features = np.random.randn(50, 4)
+        labels = np.random.randint(0, 4, size=50)
+>>>>>>> origin/fix/scenario-tests-properly
         predictor.train(features, labels)
         importance = predictor.feature_importance()
         assert len(importance) > 0
@@ -136,12 +164,17 @@ class TestFaultPredictor:
     def test_explain_no_shap(self):
         """SHAP may not be installed, so explain should handle gracefully."""
         predictor = FaultPredictor()
+<<<<<<< HEAD
         features = np.random.randn(
             50, 4
         )  # NOSONAR numpy.random.Generator migration; API change required
         labels = np.random.randint(
             0, 4, size=50
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        features = np.random.randn(50, 4)
+        labels = np.random.randint(0, 4, size=50)
+>>>>>>> origin/fix/scenario-tests-properly
         predictor.train(features, labels)
         explanation = predictor.explain(np.array([[0.5, 0.1, 1.0, 0.2]]))
         # Should either have shap_values or error message
@@ -152,11 +185,15 @@ class TestFaultPredictor:
 # AnomalyDetector
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 @_skip_no_sklearn
 class TestAnomalyDetector:
     def test_train_and_detect(self):
         detector = AnomalyDetector(contamination=0.1)
+<<<<<<< HEAD
         normal_data = np.random.randn(
             100, 3
         )  # NOSONAR numpy.random.Generator migration; API change required
@@ -164,6 +201,11 @@ class TestAnomalyDetector:
         result = detector.detect(
             np.random.randn(10, 3)
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        normal_data = np.random.randn(100, 3)
+        detector.train(normal_data)
+        result = detector.detect(np.random.randn(10, 3))
+>>>>>>> origin/fix/scenario-tests-properly
         assert "anomalies" in result
         assert "scores" in result
         assert "threshold" in result
@@ -174,6 +216,7 @@ class TestAnomalyDetector:
 
     def test_detect_obvious_anomaly(self):
         detector = AnomalyDetector(contamination=0.3)
+<<<<<<< HEAD
         normal = np.array(
             [
                 [1.0, 1.0],
@@ -198,6 +241,13 @@ class TestAnomalyDetector:
                 [1.0, 1.0],
             ]
         )
+=======
+        normal = np.array([[1.0, 1.0], [1.1, 1.0], [0.9, 1.0], [1.0, 1.1],
+                           [1.05, 0.95], [0.95, 1.05], [1.02, 0.98], [0.98, 1.02],
+                           [1.1, 1.1], [0.9, 0.9], [1.0, 0.9], [1.0, 1.0],
+                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0],
+                           [1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0]])
+>>>>>>> origin/fix/scenario-tests-properly
         detector.train(normal)
         test_data = np.array([[1.0, 1.0], [100.0, 100.0]])
         result = detector.detect(test_data)
@@ -206,18 +256,26 @@ class TestAnomalyDetector:
 
     def test_detect_single_sample(self):
         detector = AnomalyDetector(contamination=0.1)
+<<<<<<< HEAD
         normal_data = np.random.randn(
             50, 3
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        normal_data = np.random.randn(50, 3)
+>>>>>>> origin/fix/scenario-tests-properly
         detector.train(normal_data)
         result = detector.detect(np.array([[0.5, 0.1, 0.2]]))
         assert len(result["anomalies"]) == 1
 
     def test_detect_1d_input(self):
         detector = AnomalyDetector(contamination=0.1)
+<<<<<<< HEAD
         normal_data = np.random.randn(
             50, 3
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        normal_data = np.random.randn(50, 3)
+>>>>>>> origin/fix/scenario-tests-properly
         detector.train(normal_data)
         # 1-D input should be reshaped
         result = detector.detect(np.array([0.5, 0.1, 0.2]))
@@ -225,9 +283,13 @@ class TestAnomalyDetector:
 
     def test_get_threshold(self):
         detector = AnomalyDetector(contamination=0.1)
+<<<<<<< HEAD
         normal_data = np.random.randn(
             50, 3
         )  # NOSONAR numpy.random.Generator migration; API change required
+=======
+        normal_data = np.random.randn(50, 3)
+>>>>>>> origin/fix/scenario-tests-properly
         detector.train(normal_data)
         thresh = detector.get_threshold()
         assert isinstance(thresh, float)
@@ -239,6 +301,7 @@ class TestAnomalyDetector:
 
     def test_detect_raises_before_train(self):
         detector = AnomalyDetector()
+<<<<<<< HEAD
         with pytest.raises(
             RuntimeError, match="trained"
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
@@ -249,12 +312,24 @@ class TestAnomalyDetector:
         with pytest.raises(
             ValueError, match="2-D"
         ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+=======
+        with pytest.raises(RuntimeError, match="trained"):
+            detector.detect(np.array([[1.0, 2.0]]))
+
+    def test_train_raises_non_2d(self):
+        detector = AnomalyDetector()
+        with pytest.raises(ValueError, match="2-D"):
+>>>>>>> origin/fix/scenario-tests-properly
             detector.train(np.array([1.0, 2.0, 3.0]))
 
     def test_invalid_contamination(self):
         with pytest.raises(ValueError):
             AnomalyDetector(contamination=0)
+<<<<<<< HEAD
         with pytest.raises(
             ValueError
         ):  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+=======
+        with pytest.raises(ValueError):
+>>>>>>> origin/fix/scenario-tests-properly
             AnomalyDetector(contamination=1.0)

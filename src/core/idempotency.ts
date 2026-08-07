@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Idempotency-Key support.
  * Storage: RATE_LIMIT_KV (scoped by 'idem:' prefix), in-memory fallback.
@@ -9,6 +10,16 @@
  *     (c) creating a dedicated KV for this would add cost without security benefit.
  *   - Key length is bounded to prevent KV key-length abuse.
  *   - TTL is enforced both in-memory and in KV.
+=======
+/**
+ * Idempotency-Key support.
+ *
+ * If a request includes an `Idempotency-Key: <uuid>` header, the
+ * server caches the response (status + body) for CONFIG.IDEMPOTENCY_TTL_MS
+ * and replays it on duplicate calls with the same key, route, and API key.
+ *
+ * Storage: RATE_LIMIT_KV (re-used for simplicity, scoped by key prefix).
+>>>>>>> origin/fix/scenario-tests-properly
  */
 import type { Env } from './types.js';
 import { CONFIG } from './config.js';
@@ -20,14 +31,19 @@ interface CachedResponse {
   storedAt: number;
 }
 
+<<<<<<< HEAD
 const _mem: Map<string, CachedResponse> = new Map();
 const _IDEMPOTENCY_KEY_MAX_LENGTH = 256;
 const _MEM_MAP_MAX = 5000;
+=======
+const _idempotencyInMemory: Map<string, CachedResponse> = new Map();
+>>>>>>> origin/fix/scenario-tests-properly
 
 function makeKey(apiKeyId: string, route: string, idempotencyKey: string): string {
   return `idem:${apiKeyId}:${route}:${idempotencyKey}`;
 }
 
+<<<<<<< HEAD
 function validateIdempotencyKey(key: string): boolean {
   if (key.length === 0 || key.length > _IDEMPOTENCY_KEY_MAX_LENGTH) return false;
   // Only allow printable ASCII + common UUID format chars
@@ -73,4 +89,56 @@ export async function cacheResponse(
     for (const [k] of oldest.slice(0, Math.floor(_MEM_MAP_MAX * 0.25))) _mem.delete(k);
   }
   _mem.set(key, cached);
+=======
+/** Look up a cached response. Returns null if absent. */
+export async function getCachedResponse(
+  env: Env,
+  apiKeyId: string,
+  route: string,
+  idempotencyKey: string
+): Promise<CachedResponse | null> {
+  const key = makeKey(apiKeyId, route, idempotencyKey);
+  const ttlSeconds = Math.ceil(CONFIG.IDEMPOTENCY_TTL_MS / 1000);
+
+  if (env.RATE_LIMIT_KV) {
+    try {
+      const raw = (await env.RATE_LIMIT_KV.get(key, { type: 'json' })) as CachedResponse | null;
+      if (raw) return raw;
+    } catch {
+      // Fall through to in-memory
+    }
+  }
+
+  const mem = _idempotencyInMemory.get(key);
+  if (mem && Date.now() - mem.storedAt < CONFIG.IDEMPOTENCY_TTL_MS) {
+    return mem;
+  }
+  _idempotencyInMemory.delete(key);
+  return null;
+}
+
+/** Persist a response under the idempotency key. */
+export async function cacheResponse(
+  env: Env,
+  apiKeyId: string,
+  route: string,
+  idempotencyKey: string,
+  status: number,
+  body: string,
+  contentType: string
+): Promise<void> {
+  const key = makeKey(apiKeyId, route, idempotencyKey);
+  const ttlSeconds = Math.ceil(CONFIG.IDEMPOTENCY_TTL_MS / 1000);
+  const cached: CachedResponse = { status, body, contentType, storedAt: Date.now() };
+
+  if (env.RATE_LIMIT_KV) {
+    try {
+      await env.RATE_LIMIT_KV.put(key, JSON.stringify(cached), { expirationTtl: ttlSeconds });
+      return;
+    } catch {
+      // Fall through to in-memory
+    }
+  }
+  _idempotencyInMemory.set(key, cached);
+>>>>>>> origin/fix/scenario-tests-properly
 }

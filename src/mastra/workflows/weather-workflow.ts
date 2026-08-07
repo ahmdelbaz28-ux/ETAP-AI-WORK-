@@ -10,7 +10,11 @@ const forecastSchema = z.object({
   precipitationChance: z.number(),
   condition: z.string(),
   location: z.string(),
+<<<<<<< HEAD
 });
+=======
+})
+>>>>>>> origin/fix/scenario-tests-properly
 
 // Remove duplicate function definition
 // function getWeatherCondition(code: number): string {
@@ -63,6 +67,7 @@ const fetchWeather = createStep({
     const response = await fetch(weatherUrl);
     const data = (await response.json()) as {
       current: {
+<<<<<<< HEAD
         time: string;
         precipitation: number;
         weathercode: number;
@@ -72,6 +77,17 @@ const fetchWeather = createStep({
         temperature_2m: number[];
       };
     };
+=======
+        time: string
+        precipitation: number
+        weathercode: number
+      }
+      hourly: {
+        precipitation_probability: number[]
+        temperature_2m: number[]
+      }
+    }
+>>>>>>> origin/fix/scenario-tests-properly
 
     const forecast = {
       date: new Date().toISOString(),
@@ -80,15 +96,26 @@ const fetchWeather = createStep({
       condition: getWeatherCondition(data.current.weathercode),
       precipitationChance: data.hourly.precipitation_probability.reduce(
         (acc, curr) => Math.max(acc, curr),
+<<<<<<< HEAD
         0,
       ),
       location: name,
     };
+=======
+        0
+      ),
+      location: name
+    }
+>>>>>>> origin/fix/scenario-tests-properly
 
     return forecast;
   },
 });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/fix/scenario-tests-properly
 const planActivities = createStep({
   id: 'plan-activities',
   description: 'Suggests activities based on weather conditions',
@@ -97,10 +124,17 @@ const planActivities = createStep({
     activities: z.string(),
   }),
   execute: async ({ inputData, mastra }) => {
+<<<<<<< HEAD
     const forecast = inputData;
 
     if (!forecast) {
       throw new Error('Forecast data not found');
+=======
+    const forecast = inputData
+
+    if (!forecast) {
+      throw new Error('Forecast data not found')
+>>>>>>> origin/fix/scenario-tests-properly
     }
 
     const agent = mastra?.getAgent('weatherAgent');
@@ -139,11 +173,19 @@ const weatherWorkflow = createWorkflow({
   }),
   outputSchema: z.object({
     activities: z.string(),
+<<<<<<< HEAD
   }),
+=======
+  })
+>>>>>>> origin/fix/scenario-tests-properly
 })
   .then(fetchWeather)
   .then(planActivities);
 
 weatherWorkflow.commit();
 
+<<<<<<< HEAD
 export { weatherWorkflow };
+=======
+export { weatherWorkflow };
+>>>>>>> origin/fix/scenario-tests-properly

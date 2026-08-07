@@ -33,7 +33,11 @@
 - متوافق مع OWASP Top 10
 
 🧠 **وكلاء AI متعددين**
+<<<<<<< HEAD
 - 25 وكلاء هندسيون متخصصون
+=======
+- 9 وكلاء هندسيون متخصصون
+>>>>>>> origin/fix/scenario-tests-properly
 - تنسيق المهام وتنفيذها
 - استدعاء الأدوات (Python, PowerShell)
 - إدارة الذاكرة والتعافي من الأخطاء
@@ -189,13 +193,23 @@ from load_flow.load_flow import LoadFlowSolver
 system = System(base_mva=100.0)
 
 # إضافة buses
+<<<<<<< HEAD
 bus1 = Bus(bus_id=1, voltage_magnitude=1.05, bus_type="slack")
 bus2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq")
+=======
+bus1 = Bus(bus_id=1, voltage_magnitude=1.05, bus_type='slack')
+bus2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type='pq')
+>>>>>>> origin/fix/scenario-tests-properly
 system.add_bus(bus1)
 system.add_bus(bus2)
 
 # إضافة generator
+<<<<<<< HEAD
 gen = Generator(generator_id=1, bus=bus1, impedance={"1": complex(0, 0.2)})
+=======
+gen = Generator(generator_id=1, bus=bus1,
+               impedance={'1': complex(0, 0.2)})
+>>>>>>> origin/fix/scenario-tests-properly
 system.add_generator(gen)
 
 # إضافة load
@@ -203,7 +217,12 @@ load = Load(load_id=1, bus=bus2, load_power=complex(50, 20))
 system.add_load(load)
 
 # إضافة line
+<<<<<<< HEAD
 line = Line(line_id=1, from_bus=bus1, to_bus=bus2, z1=complex(0.01, 0.05))
+=======
+line = Line(line_id=1, from_bus=bus1, to_bus=bus2,
+           z1=complex(0.01, 0.05))
+>>>>>>> origin/fix/scenario-tests-properly
 system.add_line(line)
 
 # تشغيل Load Flow
@@ -221,9 +240,15 @@ from fault_analysis.fault import FaultAnalyzer
 
 # بناء شبكات التسلسل
 system.build_sequence_networks()
+<<<<<<< HEAD
 Ybus_pos = system.get_ybus(seq="1")
 Ybus_neg = system.get_ybus(seq="2")
 Ybus_zero = system.get_ybus(seq="0")
+=======
+Ybus_pos = system.get_ybus(seq='1')
+Ybus_neg = system.get_ybus(seq='2')
+Ybus_zero = system.get_ybus(seq='0')
+>>>>>>> origin/fix/scenario-tests-properly
 
 # إنشاء محلل الأعطال
 analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
@@ -241,7 +266,14 @@ from fault_analysis.arc_flash_engine import ArcFlashEngine
 engine = ArcFlashEngine()
 
 result = engine.calculate(
+<<<<<<< HEAD
     voltage_kv=4.16, bolted_fault_current_ka=20.0, arc_duration_sec=0.5, working_distance_mm=610.0
+=======
+    voltage_kv=4.16,
+    bolted_fault_current_ka=20.0,
+    arc_duration_sec=0.5,
+    working_distance_mm=610.0
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 print(f"Incident Energy: {result.incident_energy_cal_cm2:.2f} cal/cm²")
@@ -257,11 +289,23 @@ from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine, HarmonicSou
 engine = HarmonicAnalysisEngine(fundamental_freq=60.0, max_harmonic=50)
 
 # تعيين بيانات النظام
+<<<<<<< HEAD
 engine.set_system_data(Ybus, ["bus1", "bus2"])
 
 # إضافة مصدر توافقيات (VFD عند bus 2)
 source = HarmonicSource(
     source_id="vfd1", bus_id="bus2", harmonic_order=5, magnitude_pu=0.15, angle_deg=0.0
+=======
+engine.set_system_data(Ybus, ['bus1', 'bus2'])
+
+# إضافة مصدر توافقيات (VFD عند bus 2)
+source = HarmonicSource(
+    source_id='vfd1',
+    bus_id='bus2',
+    harmonic_order=5,
+    magnitude_pu=0.15,
+    angle_deg=0.0
+>>>>>>> origin/fix/scenario-tests-properly
 )
 engine.add_harmonic_source(source)
 
@@ -303,7 +347,11 @@ orchestrator = get_orchestrator()
 # تنفيذ سير عمل مستقل
 results = await orchestrator.execute_autonomous_workflow(
     user_goal="Optimize this industrial power network to reduce losses",
+<<<<<<< HEAD
     system_data=power_system_model,
+=======
+    system_data=power_system_model
+>>>>>>> origin/fix/scenario-tests-properly
 )
 
 print(f"Task ID: {results['task_id']}")

@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 backend/request_context.py — Request-scoped context for multi-tenancy.
 
 Security Fix V-07 (Phase 2): Uses Python's `contextvars.ContextVar` to isolate
@@ -22,18 +23,26 @@ adds ContextVar-based isolation for:
   - Tenant ID (which organization/account the request belongs to)
   - Project ID (which project the request is operating on)
   - User ID (the authenticated user making the request)
+=======
+backend/request_context.py — Correlation ID middleware for request tracing.
+>>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import logging
 import uuid
 from contextvars import ContextVar
 from typing import Optional
+=======
+import uuid
+>>>>>>> origin/fix/scenario-tests-properly
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+<<<<<<< HEAD
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -323,3 +332,15 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 "Could not register SQLAlchemy event for RLS. "
                 "Tenant isolation will rely on application-layer filters only."
             )
+=======
+
+class CorrelationIdMiddleware(BaseHTTPMiddleware):
+    """Add X-Correlation-ID header to every request/response."""
+
+    async def dispatch(self, request: Request, call_next):
+        correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
+        request.state.correlation_id = correlation_id
+        response = await call_next(request)
+        response.headers["X-Correlation-ID"] = correlation_id
+        return response
+>>>>>>> origin/fix/scenario-tests-properly

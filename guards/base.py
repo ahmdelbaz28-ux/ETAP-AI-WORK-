@@ -16,7 +16,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +98,13 @@ class GuardResult:
 
     guard_name: str
     mode: GuardMode
+<<<<<<< HEAD
     violations: list[GuardViolation] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+=======
+    violations: List[GuardViolation] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
 
     @property
     def passed(self) -> bool:
@@ -114,7 +123,11 @@ class GuardResult:
     def worth_noting_count(self) -> int:
         return sum(1 for v in self.violations if v.severity == GuardSeverity.WORTH_NOTING)
 
+<<<<<<< HEAD
     def to_dict(self) -> dict[str, Any]:
+=======
+    def to_dict(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Serialize for API responses and audit logs."""
         return {
             "guard_name": self.guard_name,
@@ -152,10 +165,14 @@ class BaseGuard:
         self.mode = mode
 
     def scan(
+<<<<<<< HEAD
         self,
         source: str,
         language: str = "python",
         context: dict[str, Any] | None = None,
+=======
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> GuardResult:
         """Run the guard against *source* text.
 
@@ -175,9 +192,13 @@ class BaseGuard:
         raise NotImplementedError("Subclasses must implement scan()")
 
     def _make_result(
+<<<<<<< HEAD
         self,
         violations: list[GuardViolation] | None = None,
         **meta: Any,
+=======
+        self, violations: List[GuardViolation] | None = None, **meta: Any
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> GuardResult:
         """Convenience to build a GuardResult with the current guard name/mode."""
         return GuardResult(

@@ -30,7 +30,14 @@ const MAX_RETRIES = 3;
 /**
  * Submit a study job to the queue for async processing.
  */
+<<<<<<< HEAD
 export async function submitStudyJob(env: Env, message: StudyJobMessage): Promise<void> {
+=======
+export async function submitStudyJob(
+  env: Env,
+  message: StudyJobMessage
+): Promise<void> {
+>>>>>>> origin/fix/scenario-tests-properly
   if (!env.STUDY_QUEUE) {
     throw new Error('STUDY_QUEUE is not configured');
   }
@@ -40,7 +47,14 @@ export async function submitStudyJob(env: Env, message: StudyJobMessage): Promis
 /**
  * Queue consumer handler for async study execution.
  */
+<<<<<<< HEAD
 export async function handleStudyQueueMessage(message: StudyJobMessage, env: Env): Promise<void> {
+=======
+export async function handleStudyQueueMessage(
+  message: StudyJobMessage,
+  env: Env
+): Promise<void> {
+>>>>>>> origin/fix/scenario-tests-properly
   const { taskId, studyType, parameters, traceId, retryCount } = message;
 
   // Update task status to running
@@ -51,7 +65,11 @@ export async function handleStudyQueueMessage(message: StudyJobMessage, env: Env
     createdAt: Date.now(),
     startedAt: Date.now(),
     completedAt: undefined as number | undefined,
+<<<<<<< HEAD
     result: undefined as unknown,
+=======
+    result: undefined as unknown | undefined,
+>>>>>>> origin/fix/scenario-tests-properly
   };
   await setTask(env, taskId, task);
 

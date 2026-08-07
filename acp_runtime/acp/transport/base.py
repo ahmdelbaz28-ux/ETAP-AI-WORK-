@@ -14,7 +14,10 @@ router's job.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from typing import Optional
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 __all__ = ["Transport"]
 
@@ -27,7 +30,11 @@ class Transport(ABC):
     """
 
     @abstractmethod
+<<<<<<< HEAD
     async def read_message(self) -> Optional[str]:
+=======
+    async def read_message(self) -> str | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Read a complete raw JSON-RPC message.
 
         Returns:

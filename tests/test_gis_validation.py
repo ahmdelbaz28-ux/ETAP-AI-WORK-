@@ -4,10 +4,16 @@ Tests for GIS validation modules — TopologyValidator, CRSValidator, ADMSGraphM
 Note: gis_integration has Python 3.8 type hint compatibility issues in some
 providers. Tests are skipped if the required imports are not available.
 """
+<<<<<<< HEAD
 
 import pytest
 
 # Attempt import — gis_integration may fail on Python 3.8 due to Optional[X] syntax
+=======
+import pytest
+
+# Attempt import — gis_integration may fail on Python 3.8 due to X | None syntax
+>>>>>>> origin/fix/scenario-tests-properly
 try:
     from gis_integration.models import ADMSAsset, ADMSAssetType
     from gis_validation.crs_validator import (
@@ -57,7 +63,10 @@ pytestmark = pytest.mark.skipif(
 # ADMSGraphModel
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestADMSGraphModel:
     def test_empty_assets(self):
         model = ADMSGraphModel([])
@@ -74,8 +83,12 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -90,8 +103,12 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[32.0, 31.0], [33.0, 32.0]],
@@ -106,16 +123,24 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
                 },
             ),
             _make_asset(
+<<<<<<< HEAD
                 "L2",
                 ADMSAssetType.LINE,
+=======
+                "L2", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.2, 29.9]],
@@ -129,8 +154,12 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -145,8 +174,12 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -185,8 +218,12 @@ class TestADMSGraphModel:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "F1",
                 ADMSAssetType.FEEDER,
+=======
+                "F1", ADMSAssetType.FEEDER,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
@@ -201,7 +238,10 @@ class TestADMSGraphModel:
 # validate_adms_topology
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestValidateADMSTopology:
     def test_empty_assets(self):
         ok, issues = validate_adms_topology([])
@@ -219,15 +259,23 @@ class TestValidateADMSTopology:
         assets = [
             _make_asset("S1", geometry={"type": "Point", "coordinates": [31.0, 30.0]}),
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[31.0, 30.0], [31.1, 30.1]],
                 },
             ),
         ]
+<<<<<<< HEAD
         ok, _ = validate_adms_topology(assets)
+=======
+        ok, issues = validate_adms_topology(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is True
 
     def test_disconnected_components_detected(self):
@@ -243,8 +291,12 @@ class TestValidateADMSTopology:
     def test_dangling_line_detected(self):
         assets = [
             _make_asset(
+<<<<<<< HEAD
                 "L1",
                 ADMSAssetType.LINE,
+=======
+                "L1", ADMSAssetType.LINE,
+>>>>>>> origin/fix/scenario-tests-properly
                 geometry={
                     "type": "LineString",
                     "coordinates": [[32.0, 31.0], [33.0, 32.0]],
@@ -261,7 +313,10 @@ class TestValidateADMSTopology:
 # CRS Validator
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestCRSValidator:
     def test_empty_assets(self):
         ok, issues = validate_crs_consistency([])
@@ -270,7 +325,11 @@ class TestCRSValidator:
 
     def test_single_asset_with_crs(self):
         assets = [_make_asset("S1", metadata={"source_crs": "EPSG:4326"})]
+<<<<<<< HEAD
         ok, _ = validate_crs_consistency(assets)
+=======
+        ok, issues = validate_crs_consistency(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is True
 
     def test_missing_crs(self):
@@ -295,14 +354,22 @@ class TestCRSValidator:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:4326"}),
         ]
+<<<<<<< HEAD
         ok, _ = validate_crs_consistency(assets)
+=======
+        ok, issues = validate_crs_consistency(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is True
 
     def test_crs_case_insensitive(self):
         assets = [
             _make_asset("S1", metadata={"source_crs": "epsg:4326"}),
         ]
+<<<<<<< HEAD
         ok, _ = validate_crs_consistency(assets)
+=======
+        ok, issues = validate_crs_consistency(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is True
 
     def test_missing_and_present_crs(self):
@@ -322,7 +389,11 @@ class TestNormalizationApplied:
             _make_asset("S1", metadata={"source_crs": "EPSG:4326"}),
             _make_asset("S2", metadata={"source_crs": "EPSG:3857"}),
         ]
+<<<<<<< HEAD
         ok, _ = validate_normalization_applied(assets)
+=======
+        ok, issues = validate_normalization_applied(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is True
 
     def test_some_not_normalized(self):
@@ -344,7 +415,11 @@ class TestNormalizationApplied:
         assets = [
             _make_asset("S1", metadata={"other_field": "value"}),
         ]
+<<<<<<< HEAD
         ok, _ = validate_normalization_applied(assets)
+=======
+        ok, issues = validate_normalization_applied(assets)
+>>>>>>> origin/fix/scenario-tests-properly
         assert ok is False
 
 
@@ -352,7 +427,10 @@ class TestNormalizationApplied:
 # Dataclass tests (no import guard needed)
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestTopologyIssueDataclass:
     def test_create(self):
         issue = TopologyIssue(

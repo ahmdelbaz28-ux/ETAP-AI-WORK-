@@ -6,6 +6,7 @@ Patterns drawn from open-telemetry/opentelemetry-python:
 - Span creation via decorators and context managers
 - Trace-context propagation (inject/extract)
 - Graceful degradation when exporters are unavailable
+<<<<<<< HEAD
 
 Supported exporter types (``OTEL_EXPORTER_TYPE`` env var):
 - ``console``       — print spans to stdout (default)
@@ -18,17 +19,26 @@ Supported exporter types (``OTEL_EXPORTER_TYPE`` env var):
                         LANGFUSE_SECRET_KEY
                       Optional env var:
                         LANGFUSE_BASE_URL (default: https://cloud.langfuse.com)
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import inspect
 import logging
 import os as _os
 from collections.abc import Callable
 from functools import wraps
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any
+>>>>>>> origin/fix/scenario-tests-properly
 
 from opentelemetry import trace
 from opentelemetry.context import Context
@@ -52,7 +62,11 @@ logger = logging.getLogger(__name__)
 # Module-level state
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 _tracer: Optional[trace.Tracer] = None
+=======
+_tracer: trace.Tracer | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 _propagator: TextMapPropagator = TraceContextTextMapPropagator()
 
 # ---------------------------------------------------------------------------
@@ -60,11 +74,19 @@ _propagator: TextMapPropagator = TraceContextTextMapPropagator()
 # ---------------------------------------------------------------------------
 
 
+<<<<<<< HEAD
 def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     service_name: str = "ahmedetap",
     service_version: str = "1.0.0",
     exporter_type: str = "console",
     otlp_endpoint: Optional[str] = None,
+=======
+def setup_tracing(
+    service_name: str = "ahmedetap",
+    service_version: str = "1.0.0",
+    exporter_type: str = "console",
+    otlp_endpoint: str | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     environment: str = "development",
 ) -> trace.Tracer:
     """Initialise the global TracerProvider and return a named tracer.
@@ -76,6 +98,7 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
     service_version : str
         Version label for the ``service.version`` resource attribute.
     exporter_type : str
+<<<<<<< HEAD
         One of:
         - ``"console"`` (default) — print spans to stdout
         - ``"otlp"``              — OTLP/gRPC to any collector (Jaeger, …)
@@ -86,6 +109,12 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
     otlp_endpoint : str, optional
         gRPC endpoint for the OTLP exporter (required if *exporter_type*
         is ``"otlp"``).
+=======
+        ``"console"`` (default) or ``"otlp"``.
+    otlp_endpoint : str, optional
+        gRPC endpoint for the OTLP exporter (required if *exporter_type* is
+        ``"otlp"``).
+>>>>>>> origin/fix/scenario-tests-properly
     environment : str
         Deployment environment label (e.g. ``"production"``).
 
@@ -100,7 +129,11 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
             SERVICE_NAME: service_name,
             SERVICE_VERSION: service_version,
             "deployment.environment": environment,
+<<<<<<< HEAD
         },
+=======
+        }
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     provider = TracerProvider(resource=resource)
@@ -108,7 +141,10 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
     if exporter_type == "console":
         exporter = ConsoleSpanExporter()
         processor: Any = SimpleSpanProcessor(exporter)
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     elif exporter_type == "otlp" and otlp_endpoint:
         try:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
@@ -121,6 +157,7 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
             logger.warning("OTLP exporter unavailable — falling back to console")
             exporter = ConsoleSpanExporter()
             processor = SimpleSpanProcessor(exporter)
+<<<<<<< HEAD
 
     elif exporter_type == "langfuse":
         # Langfuse exposes an OTLP/HTTP endpoint at /api/public/otel/v1/traces
@@ -166,11 +203,14 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
             exporter = ConsoleSpanExporter()
             processor = SimpleSpanProcessor(exporter)
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     else:
         exporter = ConsoleSpanExporter()
         processor = SimpleSpanProcessor(exporter)
 
     provider.add_span_processor(processor)
+<<<<<<< HEAD
 
     # SAFETY: set_tracer_provider raises if a provider is already set.
     # In production, ``core.tracing`` may be imported multiple times
@@ -194,6 +234,9 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
             existing_provider = trace.get_tracer_provider()
             if hasattr(existing_provider, "add_span_processor"):
                 existing_provider.add_span_processor(processor)
+=======
+    trace.set_tracer_provider(provider)
+>>>>>>> origin/fix/scenario-tests-properly
 
     _tracer = trace.get_tracer(service_name, service_version)
     set_global_textmap(_propagator)
@@ -261,7 +304,11 @@ def create_span(
     return tracer.start_span(name, kind=kind, attributes=attributes or {})
 
 
+<<<<<<< HEAD
 def trace_operation(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+def trace_operation(
+>>>>>>> origin/fix/scenario-tests-properly
     operation_name: str,
     attributes: dict[str, Any] | None = None,
     record_exception: bool = True,

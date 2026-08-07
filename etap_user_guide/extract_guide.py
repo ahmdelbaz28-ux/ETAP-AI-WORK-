@@ -16,6 +16,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Optional
 
 # PDF processing libraries
@@ -24,11 +25,23 @@ from typing import Optional
 try:
     import pypdf  # noqa: F401
     from pypdf import PdfReader
+=======
+from typing import Dict, List, Tuple
+
+# PDF processing libraries
+try:
+    import PyPDF2  # noqa: F401
+    from PyPDF2 import PdfReader
+>>>>>>> origin/fix/scenario-tests-properly
 
     PDF_AVAILABLE = True
 except ImportError:
     PDF_AVAILABLE = False
+<<<<<<< HEAD
     print("Warning: pypdf not installed. Install with: pip install pypdf")
+=======
+    print("Warning: PyPDF2 not installed. Install with: pip install PyPDF2")
+>>>>>>> origin/fix/scenario-tests-properly
 
 try:
     import pdfplumber
@@ -68,7 +81,11 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
+<<<<<<< HEAD
     def extract_text_from_pdf(self, pdf_path: Path) -> tuple[Optional[str], int]:
+=======
+    def extract_text_from_pdf(self, pdf_path: Path) -> Tuple[str | None, int]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Extract text from a single PDF file.
 
@@ -96,7 +113,11 @@ class ETAPGuideExtractor:
                     full_text = "\n\n".join(text_parts)
                     return full_text, page_count
 
+<<<<<<< HEAD
             # Fallback to pypdf
+=======
+            # Fallback to PyPDF2
+>>>>>>> origin/fix/scenario-tests-properly
             with open(pdf_path, "rb") as file:
                 reader = PdfReader(file)
                 page_count = len(reader.pages)
@@ -160,11 +181,16 @@ class ETAPGuideExtractor:
         return text.strip()
 
     def create_text_chunks(
+<<<<<<< HEAD
         self,
         text: str,
         chunk_size: int = 1000,
         overlap: int = 100,
     ) -> list[str]:
+=======
+        self, text: str, chunk_size: int = 1000, overlap: int = 100
+    ) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Split text into overlapping chunks for RAG.
 
@@ -207,7 +233,11 @@ class ETAPGuideExtractor:
 
         return chunks
 
+<<<<<<< HEAD
     def extract_all_pdfs(self) -> dict:
+=======
+    def extract_all_pdfs(self) -> Dict:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Extract text from all PDF files in the guide directory.
 
@@ -276,11 +306,19 @@ class ETAPGuideExtractor:
                         "characters": len(cleaned_text),
                         "chunks": len(chunks),
                         "status": "success",
+<<<<<<< HEAD
                     },
                 )
 
                 print(
                     f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks",
+=======
+                    }
+                )
+
+                print(
+                    f"  ✓ Extracted {page_count} pages, {len(cleaned_text)} chars, {len(chunks)} chunks"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             else:
                 self.extraction_results["failed"] += 1
@@ -289,7 +327,11 @@ class ETAPGuideExtractor:
                         "filename": pdf_path.name,
                         "status": "failed",
                         "error": "No text extracted or too short",
+<<<<<<< HEAD
                     },
+=======
+                    }
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 print("  ✗ Failed to extract meaningful text")
 
@@ -311,7 +353,11 @@ class ETAPGuideExtractor:
 
         return self.extraction_results
 
+<<<<<<< HEAD
     def create_master_index(self) -> dict:
+=======
+    def create_master_index(self) -> Dict:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Create a master index of all extracted content.
 
@@ -355,7 +401,11 @@ class ETAPGuideExtractor:
             json.dump(master_index, f, indent=2, ensure_ascii=False)
 
         print(
+<<<<<<< HEAD
             f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks",
+=======
+            f"Master index created: {master_index['total_documents']} documents, {master_index['total_chunks']} chunks"
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return master_index

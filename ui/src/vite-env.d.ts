@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+<<<<<<< HEAD
 declare module "*.json" {
   const value: Record<string, unknown>;
   export default value;
@@ -315,4 +316,9 @@ declare module "lucide-react" {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const createElement: any;
+=======
+declare module '*.json' {
+  const value: Record<string, unknown>
+  export default value
+>>>>>>> origin/fix/scenario-tests-properly
 }

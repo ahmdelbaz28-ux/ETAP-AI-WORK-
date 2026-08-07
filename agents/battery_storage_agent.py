@@ -18,10 +18,17 @@ Standards:
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
+=======
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -70,14 +77,24 @@ class BatteryStorageAgent(BaseAgent):
     def size_bess(
         self,
         load_profile_kw: np.ndarray,
+<<<<<<< HEAD
         target_peak_kw: Optional[float] = None,
         max_power_kw: float = 1000.0,
         usable_soc_range: tuple[float, float] = (0.10, 0.90),
+=======
+        target_peak_kw: float | None = None,
+        max_power_kw: float = 1000.0,
+        usable_soc_range: Tuple[float, float] = (0.10, 0.90),
+>>>>>>> origin/fix/scenario-tests-properly
         round_trip_efficiency: float = 0.87,
         dod_max: float = 0.90,
         discharge_duration_hours: float = 4.0,
         reserve_margin_pct: float = 10.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Size BESS power and energy capacity for peak shaving.
 
@@ -116,8 +133,13 @@ class BatteryStorageAgent(BaseAgent):
 
         # Power capacity: maximum load above target
         load_above_target = np.maximum(load_profile_kw - target_peak_kw, 0.0)
+<<<<<<< HEAD
         p_required = float(np.max(load_above_target))  # NOSONAR
         p_bess = min(p_required, max_power_kw)  # NOSONAR
+=======
+        P_required = float(np.max(load_above_target))
+        P_bess = min(P_required, max_power_kw)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Energy capacity: total energy above target per day
         # Average daily energy to shift
@@ -125,13 +147,18 @@ class BatteryStorageAgent(BaseAgent):
         energy_above_target = float(np.sum(load_above_target)) / n_days if n_days > 0 else 0.0
 
         # Account for efficiency: need more stored energy to deliver required energy
+<<<<<<< HEAD
         E_deliverable = (  # NOSONAR
+=======
+        E_deliverable = (
+>>>>>>> origin/fix/scenario-tests-properly
             energy_above_target / round_trip_efficiency
             if round_trip_efficiency > 0
             else energy_above_target
         )
 
         # Also consider duration-based sizing
+<<<<<<< HEAD
         e_duration = p_bess * discharge_duration_hours  # NOSONAR
 
         # Take the larger of the two energy requirements
@@ -150,6 +177,26 @@ class BatteryStorageAgent(BaseAgent):
 
         # Peak shaving result simulation
         shaved_profile = np.maximum(load_profile_kw - p_bess, target_peak_kw)
+=======
+        E_duration = P_bess * discharge_duration_hours
+
+        # Take the larger of the two energy requirements
+        E_required = max(E_deliverable, E_duration)
+
+        # Apply SOC limits and reserve
+        soc_range = usable_soc_range[1] - usable_soc_range[0]
+        E_total = (
+            E_required / (soc_range * (1.0 - reserve_margin_pct / 100.0))
+            if soc_range > 0
+            else E_required
+        )
+
+        # Energy rating at nominal conditions (accounting for DoD)
+        E_nominal = E_total / dod_max if dod_max > 0 else E_total
+
+        # Peak shaving result simulation
+        shaved_profile = np.maximum(load_profile_kw - P_bess, target_peak_kw)
+>>>>>>> origin/fix/scenario-tests-properly
         # Where load is below target, BESS may charge
         _charge_available = np.maximum(target_peak_kw - load_profile_kw, 0.0)
         original_peak = float(np.max(load_profile_kw))
@@ -162,14 +209,22 @@ class BatteryStorageAgent(BaseAgent):
         daily_cycles = daily_energy_shifted / E_total if E_total > 0 else 0.0
 
         return {
+<<<<<<< HEAD
             "power_capacity_kw": p_bess,
             "energy_capacity_kwh": E_total,
             "energy_nominal_kwh": e_nominal,
             "discharge_duration_h": (E_total / p_bess) if p_bess > 0 else 0.0,
+=======
+            "power_capacity_kw": float(P_bess),
+            "energy_capacity_kwh": float(E_total),
+            "energy_nominal_kwh": float(E_nominal),
+            "discharge_duration_h": float(E_total / P_bess) if P_bess > 0 else 0.0,
+>>>>>>> origin/fix/scenario-tests-properly
             "round_trip_efficiency": round_trip_efficiency,
             "usable_soc_range": list(usable_soc_range),
             "max_dod": dod_max,
             "reserve_margin_pct": reserve_margin_pct,
+<<<<<<< HEAD
             "target_peak_kw": target_peak_kw,
             "original_peak_kw": original_peak,
             "new_peak_kw": new_peak,
@@ -177,6 +232,15 @@ class BatteryStorageAgent(BaseAgent):
             "peak_reduction_pct": peak_reduction_pct,
             "daily_energy_shifted_kwh": daily_energy_shifted,
             "estimated_daily_cycles": daily_cycles,
+=======
+            "target_peak_kw": float(target_peak_kw),
+            "original_peak_kw": float(original_peak),
+            "new_peak_kw": float(new_peak),
+            "peak_reduction_kw": float(peak_reduction),
+            "peak_reduction_pct": float(peak_reduction_pct),
+            "daily_energy_shifted_kwh": float(daily_energy_shifted),
+            "estimated_daily_cycles": float(daily_cycles),
+>>>>>>> origin/fix/scenario-tests-properly
             "sizing_basis": "peak_shaving",
         }
 
@@ -184,7 +248,11 @@ class BatteryStorageAgent(BaseAgent):
     # Dispatch optimization
     # ------------------------------------------------------------------
 
+<<<<<<< HEAD
     def optimize_dispatch(  # NOSONAR
+=======
+    def optimize_dispatch(
+>>>>>>> origin/fix/scenario-tests-properly
         self,
         load_profile_kw: np.ndarray,
         energy_prices: np.ndarray,
@@ -196,7 +264,11 @@ class BatteryStorageAgent(BaseAgent):
         max_soc: float = 0.90,
         max_daily_cycles: float = 1.5,
         strategy: str = "arbitrage",
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Optimize BESS dispatch schedule.
 
@@ -242,8 +314,13 @@ class BatteryStorageAgent(BaseAgent):
         # Initialize
         soc = np.zeros(n_periods + 1)
         soc[0] = initial_soc
+<<<<<<< HEAD
         p_charge = np.zeros(n_periods)  # NOSONAR
         p_discharge = np.zeros(n_periods)  # NOSONAR
+=======
+        P_charge = np.zeros(n_periods)
+        P_discharge = np.zeros(n_periods)
+>>>>>>> origin/fix/scenario-tests-properly
         soc_history = np.zeros(n_periods)
 
         sqrt_efficiency = np.sqrt(round_trip_efficiency)
@@ -267,14 +344,22 @@ class BatteryStorageAgent(BaseAgent):
                 if t in discharge_periods and available_energy > 0:
                     # Discharge
                     P = min(bess_power_kw, available_energy / dt)
+<<<<<<< HEAD
                     p_discharge[t] = P
+=======
+                    P_discharge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
 
                 elif t in charge_periods and available_capacity > 0:
                     # Charge
                     P = min(bess_power_kw, available_capacity / dt)
+<<<<<<< HEAD
                     p_charge[t] = P
+=======
+                    P_charge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -294,17 +379,27 @@ class BatteryStorageAgent(BaseAgent):
                 if load_profile_kw[t] > peak_threshold and available_energy > 0:
                     # Discharge to reduce peak
                     P = min(
+<<<<<<< HEAD
                         bess_power_kw,
                         load_profile_kw[t] - peak_threshold,
                         available_energy / dt,
                     )
                     p_discharge[t] = P
+=======
+                        bess_power_kw, load_profile_kw[t] - peak_threshold, available_energy / dt
+                    )
+                    P_discharge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
                 elif load_profile_kw[t] < peak_threshold * 0.6 and available_capacity > 0:
                     # Charge during low-load periods
                     P = min(bess_power_kw, available_capacity / dt)
+<<<<<<< HEAD
                     p_charge[t] = P
+=======
+                    P_charge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -322,8 +417,13 @@ class BatteryStorageAgent(BaseAgent):
 
         elif strategy == "frequency_regulation":
             # Simulate AGC-like signal using random walk
+<<<<<<< HEAD
             rng = np.random.default_rng(42)
             agc_signal = np.cumsum(rng.standard_normal(n_periods) * 0.1)  # NOSONAR
+=======
+            np.random.seed(42)
+            agc_signal = np.cumsum(np.random.randn(n_periods) * 0.1)
+>>>>>>> origin/fix/scenario-tests-properly
             agc_signal = np.clip(agc_signal, -1.0, 1.0)  # Normalized
 
             for t in range(n_periods):
@@ -335,13 +435,21 @@ class BatteryStorageAgent(BaseAgent):
                 if signal > 0 and available_energy > 0:
                     # Regulation up (discharge)
                     P = min(bess_power_kw * signal, available_energy / dt)
+<<<<<<< HEAD
                     p_discharge[t] = P
+=======
+                    P_discharge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc - (P * dt) / (bess_energy_kwh * sqrt_efficiency)
                     cumulative_throughput += P * dt
                 elif signal < 0 and available_capacity > 0:
                     # Regulation down (charge)
                     P = min(bess_power_kw * abs(signal), available_capacity / dt)
+<<<<<<< HEAD
                     p_charge[t] = P
+=======
+                    P_charge[t] = P
+>>>>>>> origin/fix/scenario-tests-properly
                     soc[t + 1] = current_soc + (P * dt * sqrt_efficiency) / bess_energy_kwh
                     cumulative_throughput += P * dt
                 else:
@@ -351,17 +459,27 @@ class BatteryStorageAgent(BaseAgent):
                 soc_history[t] = soc[t]
 
         # Financial analysis
+<<<<<<< HEAD
         revenue_discharge = np.sum(p_discharge * dt * energy_prices)
         cost_charge = np.sum(p_charge * dt * energy_prices)
         net_revenue = revenue_discharge - cost_charge
 
         total_charged = float(np.sum(p_charge * dt))
         total_discharged = float(np.sum(p_discharge * dt))
+=======
+        revenue_discharge = np.sum(P_discharge * dt * energy_prices)
+        cost_charge = np.sum(P_charge * dt * energy_prices)
+        net_revenue = revenue_discharge - cost_charge
+
+        total_charged = float(np.sum(P_charge * dt))
+        total_discharged = float(np.sum(P_discharge * dt))
+>>>>>>> origin/fix/scenario-tests-properly
         equivalent_cycles = total_discharged / bess_energy_kwh if bess_energy_kwh > 0 else 0.0
 
         return {
             "strategy": strategy,
             "schedule": {
+<<<<<<< HEAD
                 "P_charge_kw": p_charge.tolist(),
                 "P_discharge_kw": p_discharge.tolist(),
                 "soc": soc_history.tolist(),
@@ -371,16 +489,37 @@ class BatteryStorageAgent(BaseAgent):
                 "cost_charge_$": cost_charge,
                 "net_revenue_$": net_revenue,
                 "daily_net_revenue_$": (net_revenue / (n_periods / 24.0)) if n_periods > 0 else 0.0,
+=======
+                "P_charge_kw": P_charge.tolist(),
+                "P_discharge_kw": P_discharge.tolist(),
+                "soc": soc_history.tolist(),
+            },
+            "financial": {
+                "revenue_discharge_$": float(revenue_discharge),
+                "cost_charge_$": float(cost_charge),
+                "net_revenue_$": float(net_revenue),
+                "daily_net_revenue_$": float(net_revenue / (n_periods / 24.0))
+                if n_periods > 0
+                else 0.0,
+>>>>>>> origin/fix/scenario-tests-properly
             },
             "performance": {
                 "total_charged_kwh": total_charged,
                 "total_discharged_kwh": total_discharged,
+<<<<<<< HEAD
                 "equivalent_cycles": equivalent_cycles,
+=======
+                "equivalent_cycles": float(equivalent_cycles),
+>>>>>>> origin/fix/scenario-tests-properly
                 "average_soc": float(np.mean(soc_history)),
                 "min_soc": float(np.min(soc_history)),
                 "max_soc": float(np.max(soc_history)),
                 "round_trip_efficiency": round_trip_efficiency,
+<<<<<<< HEAD
                 "actual_efficiency": (total_discharged / total_charged)
+=======
+                "actual_efficiency": float(total_discharged / total_charged)
+>>>>>>> origin/fix/scenario-tests-properly
                 if total_charged > 0
                 else 0.0,
             },
@@ -404,7 +543,11 @@ class BatteryStorageAgent(BaseAgent):
         tax_rate: float = 0.21,
         itc_pct: float = 30.0,
         salvage_pct: float = 10.0,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate BESS return on investment.
 
@@ -481,7 +624,11 @@ class BatteryStorageAgent(BaseAgent):
 
         # NPV
         discount_factors = np.array(
+<<<<<<< HEAD
             [(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)],
+=======
+            [(1.0 / (1.0 + discount_rate) ** t) for t in range(project_life_years + 1)]
+>>>>>>> origin/fix/scenario-tests-properly
         )
         npv = float(np.sum(cash_flows * discount_factors))
 
@@ -515,6 +662,7 @@ class BatteryStorageAgent(BaseAgent):
         lcos = abs(npv) / total_discounted_energy if total_discounted_energy > 0 else float("inf")
 
         return {
+<<<<<<< HEAD
             "total_capex_$": total_capex,
             "capex_energy_$": capex_energy,
             "capex_power_$": capex_power,
@@ -531,14 +679,37 @@ class BatteryStorageAgent(BaseAgent):
             "project_life_years": project_life_years,
             "degradation_pct_year": degradation_pct_year,
             "salvage_value_$": salvage_value,
+=======
+            "total_capex_$": float(total_capex),
+            "capex_energy_$": float(capex_energy),
+            "capex_power_$": float(capex_power),
+            "itc_value_$": float(itc_value),
+            "net_capex_$": float(net_capex),
+            "annual_opex_$": float(annual_opex),
+            "annual_revenue_usd": float(annual_revenue_usd),
+            "npv_$": float(npv),
+            "irr_pct": float(irr * 100.0) if irr is not None else None,
+            "simple_payback_years": payback_year if payback_year > 0 else None,
+            "discounted_payback_years": disc_payback_year if disc_payback_year > 0 else None,
+            "lcos_$_kwh": float(lcos),
+            "discount_rate_pct": float(discount_rate * 100.0),
+            "project_life_years": project_life_years,
+            "degradation_pct_year": degradation_pct_year,
+            "salvage_value_$": float(salvage_value),
+>>>>>>> origin/fix/scenario-tests-properly
         }
 
     @staticmethod
     def _compute_irr(
+<<<<<<< HEAD
         cash_flows: np.ndarray,
         max_iter: int = 100,
         tol: float = 1e-8,
     ) -> Optional[float]:
+=======
+        cash_flows: np.ndarray, max_iter: int = 100, tol: float = 1e-8
+    ) -> float | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Compute IRR using Newton-Raphson method."""
         x = 0.10  # Initial guess: 10%
         for _ in range(max_iter):
@@ -567,10 +738,17 @@ class BatteryStorageAgent(BaseAgent):
         battery_chemistry: str = "LFP",
         nominal_cycles: float = 6000.0,
         nominal_dod: float = 0.80,
+<<<<<<< HEAD
         temperature_C: float = 25.0,  # NOSONAR
         c_rate: float = 0.25,
         calendar_life_years: float = 15.0,
     ) -> dict[str, Any]:
+=======
+        temperature_C: float = 25.0,
+        c_rate: float = 0.25,
+        calendar_life_years: float = 15.0,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Analyze battery cycle life using rainflow counting and
         degradation modeling.
@@ -620,12 +798,20 @@ class BatteryStorageAgent(BaseAgent):
 
         params = chemistry_params.get(battery_chemistry, chemistry_params["LFP"])
         if nominal_cycles != params["nominal_cycles"]:
+<<<<<<< HEAD
             params["nominal_cycles"] = int(nominal_cycles)
+=======
+            params["nominal_cycles"] = nominal_cycles
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Convert cycles to equivalent full cycles using Whittaker-DOD factor
         # N_equiv = N_actual × (DoD / DoD_nominal)^1.8
         total_equivalent_cycles = 0.0
+<<<<<<< HEAD
         cycle_histogram: dict[str, int] = {}
+=======
+        cycle_histogram: Dict[str, int] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
         for dod, count in cycles.items():
             _dod_ratio = dod / nominal_dod if nominal_dod > 0 else 1.0
@@ -635,12 +821,21 @@ class BatteryStorageAgent(BaseAgent):
             cycle_histogram[dod_range] = int(count)
 
         # Temperature derating (Arrhenius)
+<<<<<<< HEAD
         R_gas = 8.314e-3  # NOSONAR
         t_ref = 25.0 + 273.15  # NOSONAR
         t_op = temperature_C + 273.15  # NOSONAR
         ea = params["Ea_kJmol"]  # NOSONAR
 
         temp_factor = np.exp(ea / R_gas * (1.0 / t_ref - 1.0 / t_op))
+=======
+        R_gas = 8.314e-3  # kJ/(mol·K)
+        T_ref = 25.0 + 273.15  # K
+        T_op = temperature_C + 273.15  # K
+        Ea = params["Ea_kJmol"]
+
+        temp_factor = np.exp(Ea / R_gas * (1.0 / T_ref - 1.0 / T_op))
+>>>>>>> origin/fix/scenario-tests-properly
         # Higher temperature → faster degradation → temp_factor < 1 means reduced life
         temp_factor_life = 1.0 / temp_factor if temp_factor > 0 else 1.0
 
@@ -684,6 +879,7 @@ class BatteryStorageAgent(BaseAgent):
             "operating_temperature_C": temperature_C,
             "operating_c_rate": c_rate,
             "calendar_life_years": calendar_life_years,
+<<<<<<< HEAD
             "remaining_calendar_years": remaining_calendar_years,
             "estimated_remaining_life_years": estimated_total_life_years,
             "limiting_factor": "cycles"
@@ -694,6 +890,18 @@ class BatteryStorageAgent(BaseAgent):
 
     @staticmethod
     def _rainflow_count(signal: np.ndarray) -> dict[float, float]:
+=======
+            "remaining_calendar_years": float(remaining_calendar_years),
+            "estimated_remaining_life_years": float(estimated_total_life_years),
+            "limiting_factor": "cycles"
+            if cycle_life_years < remaining_calendar_years
+            else "calendar",
+            "eol_capacity_pct": float(eol_capacity_pct),
+        }
+
+    @staticmethod
+    def _rainflow_count(signal: np.ndarray) -> Dict[float, int]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Simplified rainflow cycle counting.
 
@@ -707,12 +915,20 @@ class BatteryStorageAgent(BaseAgent):
 
         Returns
         -------
+<<<<<<< HEAD
         Dict[float, float]
+=======
+        Dict[float, int]
+>>>>>>> origin/fix/scenario-tests-properly
             Mapping of DoD level to number of cycles.
         """
         # Bin DoD ranges
         dod_bins = np.arange(0.05, 1.05, 0.10)
+<<<<<<< HEAD
         cycles: dict[float, float] = {}
+=======
+        cycles: Dict[float, int] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Find local extrema
         diff = np.diff(signal)
@@ -761,7 +977,11 @@ class BatteryStorageAgent(BaseAgent):
             self.log_execution(f"Starting battery storage analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
+<<<<<<< HEAD
             results: dict[str, Any] = {}
+=======
+            results: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
             p = task.parameters
 
             # Default load profile: synthetic commercial building
@@ -791,13 +1011,21 @@ class BatteryStorageAgent(BaseAgent):
 
                 strategy = p.get("dispatch_strategy", "arbitrage")
                 bess_power = float(
+<<<<<<< HEAD
                     p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500)),
+=======
+                    p.get("bess_power_kw", results.get("sizing", {}).get("power_capacity_kw", 500))
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 bess_energy = float(
                     p.get(
                         "bess_energy_kwh",
                         results.get("sizing", {}).get("energy_capacity_kwh", 2000),
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
                 results["dispatch"] = self.optimize_dispatch(
@@ -817,7 +1045,11 @@ class BatteryStorageAgent(BaseAgent):
                         .get("financial", {})
                         .get("daily_net_revenue_$", 200)
                         * 365,
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 bess_power = float(p.get("bess_power_kw", 500))
                 bess_energy = float(p.get("bess_energy_kwh", 2000))
@@ -904,8 +1136,13 @@ class BatteryStorageAgent(BaseAgent):
         load = load * seasonal
 
         # Add noise
+<<<<<<< HEAD
         rng = np.random.default_rng(42)
         load += rng.normal(0, 20, hours)  # NOSONAR
+=======
+        np.random.seed(42)
+        load += np.random.normal(0, 20, hours)
+>>>>>>> origin/fix/scenario-tests-properly
         return np.maximum(load, 50.0)
 
     @staticmethod
@@ -928,7 +1165,11 @@ class BatteryStorageAgent(BaseAgent):
 
     def validate_result(self, result: AgentResult) -> bool:
         """Validate battery storage analysis results."""
+<<<<<<< HEAD
         errors: list[str] = []
+=======
+        errors: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         sizing = result.data.get("sizing")
         if sizing is not None:
@@ -940,12 +1181,23 @@ class BatteryStorageAgent(BaseAgent):
                 errors.append("Round-trip efficiency exceeds 1.0")
 
         roi = result.data.get("roi")
+<<<<<<< HEAD
         if roi is not None and roi.get("npv_$", 0) < -1e9:
             errors.append("NPV is extremely negative — check financial inputs")
 
         cycle = result.data.get("cycle_life")
         if cycle is not None and cycle.get("cycle_utilization_pct", 0) > 100:
             errors.append("Cycle utilization exceeds 100% — battery end of life")
+=======
+        if roi is not None:
+            if roi.get("npv_$", 0) < -1e9:
+                errors.append("NPV is extremely negative — check financial inputs")
+
+        cycle = result.data.get("cycle_life")
+        if cycle is not None:
+            if cycle.get("cycle_utilization_pct", 0) > 100:
+                errors.append("Cycle utilization exceeds 100% — battery end of life")
+>>>>>>> origin/fix/scenario-tests-properly
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

@@ -1,6 +1,7 @@
 """
 Health and Metrics API Router
 =============================
+<<<<<<< HEAD
 Handles all health check endpoints with REAL dependency checks.
 Separated from main engineering service for better modularity.
 """
@@ -15,6 +16,17 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from api._messages import ISO_8601_UTC_FMT
+=======
+Handles all health check and metrics endpoints.
+Separated from main engineering service for better modularity.
+"""
+
+import time
+
+from fastapi import APIRouter, Request
+from fastapi.responses import Response
+
+>>>>>>> origin/fix/scenario-tests-properly
 from core.bootstrap import (
     _failed_count,
     _metrics_lock,
@@ -27,6 +39,7 @@ from core.metrics import generate_metrics, get_metrics_content_type
 router = APIRouter(prefix="", tags=["health"])
 
 
+<<<<<<< HEAD
 # Lazy imports for optional dependencies (DB + Redis). These are imported
 # lazily inside the readiness check so that a missing or unreachable DB/Redis
 # does not crash the /healthz liveness probe or import-time of this module.
@@ -68,24 +81,75 @@ class MetricsResponse(BaseModel):
     requests_failed: int
     avg_execution_time_ms: float
     trace_id: str
+=======
+class HealthResponse:
+    def __init__(self, status: str, version: str, timestamp: str, trace_id: str):
+        self.status = status
+        self.version = version
+        self.timestamp = timestamp
+        self.trace_id = trace_id
+
+
+class ReadyResponse:
+    def __init__(
+        self,
+        ready: bool,
+        native_engine_available: bool,
+        etap_available: bool,
+        timestamp: str,
+        trace_id: str,
+    ):
+        self.ready = ready
+        self.native_engine_available = native_engine_available
+        self.etap_available = etap_available
+        self.timestamp = timestamp
+        self.trace_id = trace_id
+
+
+class MetricsResponse:
+    def __init__(
+        self,
+        requests_total: int,
+        requests_success: int,
+        requests_failed: int,
+        avg_execution_time_ms: float,
+        trace_id: str,
+    ):
+        self.requests_total = requests_total
+        self.requests_success = requests_success
+        self.requests_failed = requests_failed
+        self.avg_execution_time_ms = avg_execution_time_ms
+        self.trace_id = trace_id
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.head("/")
 @router.get("/")
+<<<<<<< HEAD
 async def root() -> Dict[str, str]:
+=======
+async def root():
+>>>>>>> origin/fix/scenario-tests-properly
     """Root endpoint — also handles HEAD / for HF Spaces health checks."""
     return {"message": "Ahmed etap Engineering Platform", "version": "1.0.0"}
 
 
 @router.head("/healthz")
 @router.get("/healthz")
+<<<<<<< HEAD
 async def healthz() -> Dict[str, str]:
     """Lightweight liveness probe (no heavy initialization)."""
     return {"status": "ok"}
+=======
+async def healthz():
+    """Lightweight liveness probe (no heavy initialization)."""
+    return {"status": "alive"}
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.head("/readyz")
 @router.get("/readyz")
+<<<<<<< HEAD
 async def readyz() -> Dict[str, object]:
     """Readiness probe — checks critical dependencies.
 
@@ -140,19 +204,35 @@ async def readyz() -> Dict[str, object]:
         status_code=status_code,
         content={"ready": all_ready, "checks": checks},
     )
+=======
+async def readyz():
+    """Readiness probe — checks critical dependencies."""
+    checks = {"python": True, "imports": True}
+    all_ready = all(checks.values())
+    return {"ready": all_ready, "checks": checks}
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @router.head("/health")
 @router.get("/health")
+<<<<<<< HEAD
 async def health_check(request: Request) -> HealthResponse:
     return HealthResponse(
         status="healthy",
         version="1.0.0",
         timestamp=time.strftime(ISO_8601_UTC_FMT, time.gmtime()),
+=======
+async def health_check(request: Request):
+    return HealthResponse(
+        status="healthy",
+        version="1.0.0",
+        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+>>>>>>> origin/fix/scenario-tests-properly
         trace_id=request.state.trace_id,
     )
 
 
+<<<<<<< HEAD
 @router.get("/api/v1/info")
 async def platform_info(request: Request) -> Dict[str, object]:
     """Platform information endpoint — returns version, agent count, and module list.
@@ -203,6 +283,11 @@ async def knowledge_info():
 @router.head("/ready")
 @router.get("/ready")
 async def readiness_check(request: Request) -> ReadyResponse:
+=======
+@router.head("/ready")
+@router.get("/ready")
+async def readiness_check(request: Request):
+>>>>>>> origin/fix/scenario-tests-properly
     native_ok = False
     etap_ok = False
     try:
@@ -226,13 +311,21 @@ async def readiness_check(request: Request) -> ReadyResponse:
         ready=native_ok,
         native_engine_available=native_ok,
         etap_available=etap_ok,
+<<<<<<< HEAD
         timestamp=time.strftime(ISO_8601_UTC_FMT, time.gmtime()),
+=======
+        timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+>>>>>>> origin/fix/scenario-tests-properly
         trace_id=request.state.trace_id,
     )
 
 
 @router.get("/metrics")
+<<<<<<< HEAD
 async def metrics(request: Request) -> MetricsResponse:
+=======
+async def metrics(request: Request):
+>>>>>>> origin/fix/scenario-tests-properly
     with _metrics_lock:
         req_count = _request_count
         suc_count = _success_count
@@ -249,7 +342,11 @@ async def metrics(request: Request) -> MetricsResponse:
 
 
 @router.get("/prometheus/metrics")
+<<<<<<< HEAD
 async def prometheus_metrics() -> Response:
+=======
+async def prometheus_metrics():
+>>>>>>> origin/fix/scenario-tests-properly
     """Prometheus metrics endpoint exposing counters, histograms, and gauges
     from ``core.metrics`` in the standard Prometheus exposition format.
 

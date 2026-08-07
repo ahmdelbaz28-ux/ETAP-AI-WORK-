@@ -10,6 +10,7 @@ Design:
 
 Context fields are merged at log time so every entry carries the full
 context (e.g. capability name, caller_id, request_id).
+<<<<<<< HEAD
 
 CRITICAL FIX — Unmasked Audit Log Leak:
     Added sanitize_log_payload() to redact sensitive fields (passwords,
@@ -17,16 +18,25 @@ CRITICAL FIX — Unmasked Audit Log Leak:
     output. Without this fix, any 500 Internal Server Error that logs
     the full request object would leak credentials into Grafana/Loki logs,
     allowing anyone with log read access to compromise the system.
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 
 from __future__ import annotations
 
 import json
+<<<<<<< HEAD
 import re
 import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any, Optional
+=======
+import sys
+import time
+from dataclasses import dataclass, field
+from typing import Any
+>>>>>>> origin/fix/scenario-tests-properly
 
 import anyio
 
@@ -39,6 +49,7 @@ __all__ = [
     "ConsoleStructuredLogger",
     "InMemoryStructuredLogger",
     "NullStructuredLogger",
+<<<<<<< HEAD
     "sanitize_log_payload",
 ]
 
@@ -185,6 +196,11 @@ def _looks_sensitive(key: str, value: str) -> bool:
     return False
 
 
+=======
+]
+
+
+>>>>>>> origin/fix/scenario-tests-properly
 # ------------------------------------------------------------------ LogLevel
 
 
@@ -199,7 +215,11 @@ class LogLevel(StrEnum):
 # ------------------------------------------------------------------ LogEntry
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True)
+=======
+@dataclass(frozen=True, slots=True)
+>>>>>>> origin/fix/scenario-tests-properly
 class LogEntry:
     """Immutable structured log entry.
 
@@ -220,12 +240,15 @@ class LogEntry:
     context: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> str:
+<<<<<<< HEAD
         """Serialize as a single-line JSON string with sensitive data redacted.
 
         CRITICAL FIX: The context dict is sanitized before serialization
         to prevent credential leakage into log output.
         """
         safe_context = sanitize_log_payload(self.context) if self.context else {}
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         return json.dumps(
             {
                 "timestamp": self.timestamp,
@@ -233,7 +256,11 @@ class LogEntry:
                 "message": self.message,
                 "logger": self.logger,
                 "trace_id": self.trace_id,
+<<<<<<< HEAD
                 **safe_context,
+=======
+                **self.context,
+>>>>>>> origin/fix/scenario-tests-properly
             },
             default=str,
             separators=(",", ":"),
@@ -313,7 +340,11 @@ class NullStructuredLogger(StructuredLogger):
     """No-op structured logger."""
 
     def write(self, entry: LogEntry) -> None:
+<<<<<<< HEAD
         pass  # NOSONAR
+=======
+        pass
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ------------------------------------------------------------------ InMemoryStructuredLogger
@@ -340,11 +371,15 @@ class InMemoryStructuredLogger(StructuredLogger):
     def clear(self) -> None:
         self._entries.clear()
 
+<<<<<<< HEAD
     def filter(
         self,
         level: Optional[LogLevel] = None,
         logger: Optional[str] = None,
     ) -> list[LogEntry]:
+=======
+    def filter(self, level: LogLevel | None = None, logger: str | None = None) -> list[LogEntry]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Filter entries by level and/or logger name."""
         out = self._entries
         if level is not None:
@@ -370,7 +405,11 @@ class ConsoleStructuredLogger(StructuredLogger):
         self,
         name: str = "acp",
         *,
+<<<<<<< HEAD
         stream: Optional[Any] = None,
+=======
+        stream: Any | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
         min_level: LogLevel = LogLevel.INFO,
     ) -> None:
         super().__init__(name)

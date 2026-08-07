@@ -64,7 +64,17 @@
       "maxLatencyMs": 16581,
       "throughputRps": 23,
       "totalDurationMs": 22027,
+<<<<<<< HEAD
       "errors": ["fetch failed", "fetch failed", "fetch failed", "fetch failed", "fetch failed"]
+=======
+      "errors": [
+        "fetch failed",
+        "fetch failed",
+        "fetch failed",
+        "fetch failed",
+        "fetch failed"
+      ]
+>>>>>>> origin/fix/scenario-tests-properly
     },
     {
       "concurrency": 10,
@@ -131,4 +141,8 @@
       "errors": []
     }
   ]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly

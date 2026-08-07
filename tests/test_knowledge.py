@@ -5,8 +5,11 @@ Note: EngineeringKnowledgeBase.__init__ calls self._load_default_standards()
 which needs an embedding provider. Without sentence-transformers installed,
 set RAG_ALLOW_HASH_FALLBACK=1 to use deterministic SHA-256 fallback.
 """
+<<<<<<< HEAD
 
 import contextlib
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import os
 
 import numpy as np
@@ -19,19 +22,27 @@ os.environ["RAG_ALLOW_HASH_FALLBACK"] = "1"
 _HAS_KNOWLEDGE_DEPS = False
 try:
     import sqlite3
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     if sqlite3.sqlite_version_info >= (3, 35, 0):
         from knowledge.rag_engine import (
             EngineeringDocument,
             EngineeringKnowledgeBase,
             get_knowledge_base,
         )
+<<<<<<< HEAD
 
         _HAS_KNOWLEDGE_DEPS = True
 except (
     ImportError,
     RuntimeError,
 ):  # NOSONAR ModuleNotFoundError is a subclass of ImportError; kept for clarity
+=======
+        _HAS_KNOWLEDGE_DEPS = True
+except (ImportError, ModuleNotFoundError, RuntimeError, Exception):
+>>>>>>> origin/fix/scenario-tests-properly
     _HAS_KNOWLEDGE_DEPS = False
 
 pytestmark = pytest.mark.skipif(
@@ -40,6 +51,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+<<<<<<< HEAD
 @pytest.fixture(autouse=True)
 def _reset_knowledge_base_singleton(tmp_path, monkeypatch):
     """Reset the knowledge base singleton + isolate chroma state per test.
@@ -83,6 +95,12 @@ class TestEngineeringKnowledgeBase:
         # Removed redundant `assert kb is not None` (SonarCloud S5727:
         # constructor always returns an instance). The two checks below
         # verify the instance is internally consistent.
+=======
+class TestEngineeringKnowledgeBase:
+    def test_initialization(self):
+        kb = EngineeringKnowledgeBase()
+        assert kb is not None
+>>>>>>> origin/fix/scenario-tests-properly
         assert kb.embedding_model is not None
         assert kb.vector_db is not None
 
@@ -101,11 +119,15 @@ class TestEngineeringKnowledgeBase:
     def test_retrieve_no_match(self):
         kb = EngineeringKnowledgeBase()
         results = kb.retrieve_knowledge("xyznonexistent")
+<<<<<<< HEAD
         # Smoke test: verify retrieval doesn't crash with a non-matching query.
         # The KB may use fuzzy matching, so we don't assert == 0; we only
         # assert the return type is a list (SonarCloud S3981: don't use
         # `len(x) >= 0` which is trivially true).
         assert isinstance(results, list)
+=======
+        assert len(results) >= 0
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_ingest_new_document(self):
         kb = EngineeringKnowledgeBase()

@@ -19,7 +19,11 @@ from __future__ import annotations
 import ast
 import logging
 import re
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -44,12 +48,18 @@ class CodeGuard(BaseGuard):
         self._ai_detector = AIFailureModeDetector(mode)
 
     def scan(
+<<<<<<< HEAD
         self,
         source: str,
         language: str = "python",
         context: dict[str, Any] | None = None,
     ) -> GuardResult:
         violations: list[GuardViolation] = []
+=======
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         context = context or {}
 
         # --- AI failure modes (FM-01 through FM-14) ---
@@ -57,7 +67,11 @@ class CodeGuard(BaseGuard):
         violations.extend(ai_result.violations)
 
         # Parse AST for structural checks
+<<<<<<< HEAD
         tree: Optional[ast.AST] = None
+=======
+        tree: ast.AST | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -96,8 +110,13 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-01: Functions should be ≤ 20 lines
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_function_length(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
+=======
+    def _check_function_length(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 length = (node.end_lineno or node.lineno) - node.lineno
@@ -113,15 +132,24 @@ class CodeGuard(BaseGuard):
                             location=f"function '{node.name}' (line {node.lineno})",
                             suggestion="Extract helper functions so each does one thing.",
                             evidence=f"{length} lines",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # CC-02: Parameter count ≤ 4
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_parameter_count(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
+=======
+    def _check_parameter_count(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 params = [a for a in node.args.args if a.arg not in ("self", "cls")]
@@ -141,19 +169,28 @@ class CodeGuard(BaseGuard):
                             suggestion="Group related parameters into a dataclass or typed dict, "
                             "or split the function.",
                             evidence=f"{param_count} parameters",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # CC-03: Intent-revealing names (heuristic: single-letter vars outside loops)
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_intent_revealing_names(  # NOSONAR
         self, tree: ast.AST, _source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         violations: list[GuardViolation] = []
+=======
+    def _check_intent_revealing_names(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         loop_vars: set = set()
         # Collect loop variables (exempt)
         for node in ast.walk(tree):
@@ -166,7 +203,11 @@ class CodeGuard(BaseGuard):
                             loop_vars.add(elt.id)
 
         # Check assignments with single-letter names
+<<<<<<< HEAD
         exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", "_"}.union(loop_vars)
+=======
+        exempt = {"i", "j", "k", "x", "y", "z", "e", "f", "n", "m", "r", "c", "_"} | loop_vars
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
                 for target in node.targets:
@@ -185,18 +226,30 @@ class CodeGuard(BaseGuard):
                                 location=f"line {target.lineno}",
                                 suggestion="Use a descriptive name that explains the variable's purpose.",
                                 evidence=f"var '{target.id}'",
+<<<<<<< HEAD
                             ),
+=======
+                            )
+>>>>>>> origin/fix/scenario-tests-properly
                         )
         return violations
 
     # ------------------------------------------------------------------
     # CC-05: Comments should explain 'why', not 'what'
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_why_not_what_comments(self, source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
         what_patterns = [
             r"#\s*(Union[increment|decrement|add|remove|set|get|update|delete|check, return])\s",
             r"#\s*(Union[if|else|for|while|try, except])\s",
+=======
+    def _check_why_not_what_comments(self, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+        what_patterns = [
+            r"#\s*(increment|decrement|add|remove|set|get|update|delete|check|return)\s",
+            r"#\s*(if|else|for|while|try|except)\s",
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
@@ -215,7 +268,11 @@ class CodeGuard(BaseGuard):
                             suggestion="Remove the comment if the code is self-explanatory, "
                             "or rewrite it to explain the reasoning behind the code.",
                             evidence=stripped[:80],
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                     break
         return violations
@@ -223,8 +280,13 @@ class CodeGuard(BaseGuard):
     # ------------------------------------------------------------------
     # CC-09: SRP — too many responsibilities in one class
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_srp_violations(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
+=======
+    def _check_srp_violations(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 methods = [
@@ -244,15 +306,24 @@ class CodeGuard(BaseGuard):
                             suggestion="Consider splitting into smaller classes, each with a single "
                             "responsibility. Look for method clusters that access the same state.",
                             evidence=f"{len(methods)} methods",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # CC-17: Cyclomatic complexity (simplified McCabe)
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_complexity(self, tree: ast.AST, _source: str) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
+=======
+    def _check_complexity(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -278,13 +349,18 @@ class CodeGuard(BaseGuard):
                         suggestion="Reduce branching by extracting helper functions, using early returns, "
                         "or replacing conditionals with polymorphism.",
                         evidence=f"complexity = {complexity}",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # CC-04: Boolean flag arguments
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_boolean_flags(  # NOSONAR
         self, tree: ast.AST, _source: str
     ) -> list[
@@ -293,6 +369,12 @@ class CodeGuard(BaseGuard):
         """Flag boolean positional parameters — they usually indicate the
         function does two different things and should be split."""
         violations: list[GuardViolation] = []
+=======
+    def _check_boolean_flags(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Flag boolean positional parameters — they usually indicate the
+        function does two different things and should be split."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -326,13 +408,18 @@ class CodeGuard(BaseGuard):
                             suggestion=f"Split '{node.name}' into two functions, one for each "
                             f"boolean state of '{arg.arg}'.",
                             evidence=f"param '{arg.arg}: bool'",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # CC-06: CQS violation — function returns value AND mutates state
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     MUTATING_METHODS = {
         "append",
         "extend",
@@ -373,6 +460,26 @@ class CodeGuard(BaseGuard):
         methods (append, extend, update, remove, pop, clear, sort) on
         non-local objects."""
         violations: list[GuardViolation] = []
+=======
+    def _check_cqs_violations(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: functions that both return a value and call mutating
+        methods (append, extend, update, remove, pop, clear, sort) on
+        non-local objects."""
+        violations: List[GuardViolation] = []
+        MUTATING_METHODS = {
+            "append",
+            "extend",
+            "insert",
+            "remove",
+            "pop",
+            "clear",
+            "sort",
+            "reverse",
+            "update",
+            "add",
+            "discard",
+        }
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -385,12 +492,36 @@ class CodeGuard(BaseGuard):
                 if (
                     isinstance(child, ast.Call)
                     and isinstance(child.func, ast.Attribute)
+<<<<<<< HEAD
                     and child.func.attr in CodeGuard.MUTATING_METHODS
                 ):
                     obj = child.func.value
                     if self._is_nonlocal_mutation(obj, node):
                         has_mutation = True
                         mutation_evidence = self._describe_mutation(obj, child.func.attr)
+=======
+                    and child.func.attr in MUTATING_METHODS
+                ):
+                    # Check if this is a mutation on a non-local object
+                    # self.x.method() or param.method() or external.method()
+                    obj = child.func.value
+                    is_nonlocal = False
+                    if isinstance(obj, ast.Name):
+                        param_names = {
+                            a.arg for a in node.args.args if a.arg not in ("self", "cls")
+                        }
+                        if obj.id in param_names or obj.id == "self":
+                            is_nonlocal = True
+                    elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):
+                        if obj.value.id == "self":
+                            is_nonlocal = True
+                    if is_nonlocal:
+                        has_mutation = True
+                        if isinstance(obj, ast.Attribute):
+                            mutation_evidence = f"self.{obj.attr}.{child.func.attr}()"
+                        else:
+                            mutation_evidence = f"{obj.id}.{child.func.attr}()"
+>>>>>>> origin/fix/scenario-tests-properly
 
             if has_return_value and has_mutation:
                 violations.append(
@@ -406,13 +537,18 @@ class CodeGuard(BaseGuard):
                         suggestion="Split into a command that mutates and a query that returns. "
                         "Or make the mutation explicit by returning the new state.",
                         evidence=f"mutation: {mutation_evidence}",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # CC-15: Commented-out code blocks
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_commented_out_code(self, source: str) -> list[GuardViolation]:
         """Detect commented-out code — a sign of speculative or abandoned
         code that should be removed or properly versioned."""
@@ -423,6 +559,18 @@ class CodeGuard(BaseGuard):
             r"#\s*\w+\s*=\s*",  # assignment
             r"#\s*\w+\.\w+\(",  # method call
             r"#\s*print\s*\(",  # NOSONAR
+=======
+    def _check_commented_out_code(self, source: str) -> List[GuardViolation]:
+        """Detect commented-out code — a sign of speculative or abandoned
+        code that should be removed or properly versioned."""
+        violations: List[GuardViolation] = []
+        # Patterns that suggest commented-out code rather than comments
+        code_patterns = [
+            r"#\s*(if|for|while|try|def|class|return|import|from|with|assert|raise)\s",
+            r"#\s*\w+\s*=\s*",  # assignment
+            r"#\s*\w+\.\w+\(",  # method call
+            r"#\s*print\s*\(",  # print statement
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         for i, line in enumerate(source.split("\n"), 1):
             stripped = line.strip()
@@ -441,7 +589,11 @@ class CodeGuard(BaseGuard):
                             suggestion="Remove the commented-out code. Use version control (git) "
                             "to recover it if needed.",
                             evidence=stripped[:80],
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                     break
         return violations

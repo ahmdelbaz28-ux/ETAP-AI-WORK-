@@ -55,12 +55,19 @@ class Visualizer:
 
         plt = self._plt()
         if ax is None:
+<<<<<<< HEAD
             _, ax = plt.subplots()
         Ip = relay.Ip  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         i_multiples = np.linspace(
             current_range[0], current_range[1], points
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         currents = i_multiples * Ip
+=======
+            fig, ax = plt.subplots()
+        Ip = relay.Ip
+        I_multiples = np.linspace(current_range[0], current_range[1], points)
+        currents = I_multiples * Ip
+>>>>>>> origin/fix/scenario-tests-properly
         times = []
         for I in currents:
             t = relay.trip_time(I)
@@ -121,7 +128,11 @@ class Visualizer:
         else:
             fig = ax.get_figure()
         margins = []
+<<<<<<< HEAD
         for If in fault_currents:  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        for If in fault_currents:
+>>>>>>> origin/fix/scenario-tests-properly
             t_up = upstream_relay.trip_time(If)
             t_down = downstream_relay.trip_time(If)
             margin = t_up - t_down
@@ -151,7 +162,11 @@ class Visualizer:
         """
         plt = self._plt()
         if ax is None:
+<<<<<<< HEAD
             _, ax = plt.subplots()
+=======
+            fig, ax = plt.subplots()
+>>>>>>> origin/fix/scenario-tests-properly
         for relay in relays:
             times = [relay.trip_time(If) for If in fault_currents]
             ax.semilogx(fault_currents, times, label=relay.name)

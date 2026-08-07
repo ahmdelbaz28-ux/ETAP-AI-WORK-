@@ -50,12 +50,21 @@ die()   { echo "${RED}[ ✗ ]${RST} $*" >&2; exit 1; }
 # Resolve GHCR_REPOSITORY (owner/repo) the same way docker_build.sh does
 # ---------------------------------------------------------------------------
 resolve_repo() {
+<<<<<<< HEAD
   if [[ -n "${REPO}" ]]; then echo "${REPO}"; return 0; fi
   if [[ -n "${GHCR_REPOSITORY:-}" ]]; then echo "${GHCR_REPOSITORY}"; return 0; fi
   if [[ -n "${GITHUB_REPOSITORY:-}" ]]; then echo "${GITHUB_REPOSITORY}"; return 0; fi
   local remote
   remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
   if [[ -n "${remote}" ]]; then
+=======
+  if [ -n "${REPO}" ]; then echo "${REPO}"; return 0; fi
+  if [ -n "${GHCR_REPOSITORY:-}" ]; then echo "${GHCR_REPOSITORY}"; return 0; fi
+  if [ -n "${GITHUB_REPOSITORY:-}" ]; then echo "${GITHUB_REPOSITORY}"; return 0; fi
+  local remote
+  remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
+  if [ -n "${remote}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     echo "${remote}" | sed -E 's#^.*github\.com[:/]([^/]+/[^/]+?)(\.git)?$#\1#'
     return 0
   fi
@@ -78,7 +87,11 @@ usage() {
 # ---------------------------------------------------------------------------
 # Parse args
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 if [[ $# -lt 1 ]]; then usage 1; fi
+=======
+if [ $# -lt 1 ]; then usage 1; fi
+>>>>>>> origin/fix/scenario-tests-properly
 PLATFORM="$1"; shift
 
 while [[ $# -gt 0 ]]; do
@@ -93,7 +106,11 @@ while [[ $# -gt 0 ]]; do
     -h|--help) usage 0 ;;
     *)
       # First positional after the platform = app name (Fly only)
+<<<<<<< HEAD
       if [[ "${PLATFORM}" = "fly" ]] && [[ -z "${APP_NAME_SET:-}" ]]; then
+=======
+      if [ "${PLATFORM}" = "fly" ] && [ -z "${APP_NAME_SET:-}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
         APP_NAME="$1"; APP_NAME_SET="true"; shift
       else
         die "Unknown argument: $1"
@@ -109,7 +126,11 @@ REPO_RESOLVED="$(resolve_repo)" || die "Could not determine GitHub owner/repo. S
 IMAGE="$(image_for "${REPO_RESOLVED}")"
 say "Image:    ${IMAGE}"
 say "Platform: ${PLATFORM}"
+<<<<<<< HEAD
 [[ -n "${API_KEY}" ]] && say "API key:  (set, ${#API_KEY} chars)" || say "API key:  (not set — service will be open)"
+=======
+[ -n "${API_KEY}" ] && say "API key:  (set, ${#API_KEY} chars)" || say "API key:  (not set — service will be open)"
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Fly.io
@@ -133,7 +154,11 @@ deploy_fly() {
   fi
 
   # Set API key secret if provided
+<<<<<<< HEAD
   if [[ -n "${API_KEY}" ]]; then
+=======
+  if [ -n "${API_KEY}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     say "Setting ENGINEERING_SERVICE_API_KEY secret…"
     fly secrets set ENGINEERING_SERVICE_API_KEY="${API_KEY}" --app "${APP_NAME}" >/dev/null
   fi
@@ -161,9 +186,15 @@ deploy_render() {
   local url="https://render.com/deploy?repo=https://github.com/${REPO_RESOLVED}"
   say "Render is best deployed via the one-click button:"
   echo "    ${url}"
+<<<<<<< HEAD
   if [[ "${NO_BROWSER}" != "true" ]] && command -v xdg-open >/dev/null 2>&1; then
     xdg-open "${url}" >/dev/null 2>&1 || true
   elif [[ "${NO_BROWSER}" != "true" ]] && command -v open >/dev/null 2>&1; then
+=======
+  if [ "${NO_BROWSER}" != "true" ] && command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "${url}" >/dev/null 2>&1 || true
+  elif [ "${NO_BROWSER}" != "true" ] && command -v open >/dev/null 2>&1; then
+>>>>>>> origin/fix/scenario-tests-properly
     open "${url}" >/dev/null 2>&1 || true
   fi
 
@@ -199,7 +230,11 @@ deploy_railway() {
   local whoami; whoami="$(railway whoami 2>&1 | head -1)"
   ok "Logged in: ${whoami}"
 
+<<<<<<< HEAD
   if [[ ! -f "${PROJECT_DIR}/railway.toml" ]]; then
+=======
+  if [ ! -f "${PROJECT_DIR}/railway.toml" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     die "railway.toml not found at ${PROJECT_DIR}/railway.toml"
   fi
 
@@ -210,7 +245,11 @@ deploy_railway() {
     ok "Railway project already linked."
   fi
 
+<<<<<<< HEAD
   if [[ -n "${API_KEY}" ]]; then
+=======
+  if [ -n "${API_KEY}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     say "Setting ENGINEERING_SERVICE_API_KEY variable…"
     railway variables --set "ENGINEERING_SERVICE_API_KEY=${API_KEY}" >/dev/null \
       || warn "railway variables --set returned non-zero."

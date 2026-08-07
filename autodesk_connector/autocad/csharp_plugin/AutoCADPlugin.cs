@@ -42,10 +42,13 @@ namespace AhmedETAP.AutoCADPlugin
         private bool _running = false;
         private string _authToken;
 
+<<<<<<< HEAD
         // Security Fix V-02: Strict hard timeout for all command execution
         private static readonly TimeSpan COMMAND_TIMEOUT = TimeSpan.FromSeconds(120);
         private static readonly TimeSpan READ_BODY_TIMEOUT = TimeSpan.FromSeconds(30);
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         public PluginHttpServer(string authToken = "")
         {
             _authToken = authToken;
@@ -127,6 +130,7 @@ namespace AhmedETAP.AutoCADPlugin
                 }
                 else if (path == "/api/command" && method == "POST")
                 {
+<<<<<<< HEAD
                     // Security Fix V-02: Async read with timeout
                     using var cts = new CancellationTokenSource(READ_BODY_TIMEOUT);
                     var body = await ReadRequestBodyAsync(request.InputStream, cts.Token);
@@ -136,6 +140,11 @@ namespace AhmedETAP.AutoCADPlugin
                     using var cmdCts = new CancellationTokenSource(COMMAND_TIMEOUT);
                     var result = await Task.Run(() => CommandHandler.Execute(cmdRequest), cmdCts.Token)
                         .ConfigureAwait(false);
+=======
+                    string body = new StreamReader(request.InputStream).ReadToEnd();
+                    var cmdRequest = JsonSerializer.Deserialize<CommandRequest>(body);
+                    var result = CommandHandler.Execute(cmdRequest);
+>>>>>>> origin/fix/scenario-tests-properly
                     await SendJson(response, 200, result);
                 }
                 else
@@ -143,17 +152,21 @@ namespace AhmedETAP.AutoCADPlugin
                     await SendJson(response, 404, new { success = false, error = "Not found" });
                 }
             }
+<<<<<<< HEAD
             catch (OperationCanceledException)
             {
                 // Security Fix V-02: Return safe timeout error instead of deadlock
                 await SendJson(response, 504, new { success = false, error = "Command execution timed out — the operation took too long and was cancelled for safety" });
             }
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             catch (Exception ex)
             {
                 await SendJson(response, 500, new { success = false, error = ex.Message });
             }
         }
 
+<<<<<<< HEAD
         /// <summary>
         /// Security Fix V-02: Async body read with timeout and cancellation.
         /// Replaces the blocking ReadToEnd() call.
@@ -172,6 +185,8 @@ namespace AhmedETAP.AutoCADPlugin
             return sb.ToString();
         }
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         private async Task SendJson(HttpListenerResponse response, int statusCode, object data)
         {
             response.StatusCode = statusCode;

@@ -14,6 +14,7 @@ variable "acr_name" {
   type = string
 }
 
+<<<<<<< HEAD
 variable "acr_public_network_access_enabled" {
   description = "Whether public network access is allowed for the ACR. Defaults to false (private-endpoint only) to satisfy SonarCloud S6329. Set to true only for break-glass maintenance in non-prod."
   type        = bool
@@ -26,6 +27,8 @@ variable "kv_public_network_access_enabled" {
   default     = false
 }
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 variable "tenant_id" {
   type = string
 }

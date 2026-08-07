@@ -1,6 +1,11 @@
 import { createTool } from '@mastra/core/tools';
+<<<<<<< HEAD
 import { z } from 'zod';
 import { spawnSecure } from './_spawn-helpers';
+=======
+import { spawn } from 'child_process';
+import { z } from 'zod';
+>>>>>>> origin/fix/scenario-tests-properly
 
 const PYTHON_TIMEOUT_MS = 30000; // 30 second timeout
 const MAX_OUTPUT_LENGTH = 10000; // Maximum output length in characters
@@ -15,6 +20,7 @@ export const run_python = createTool({
     return new Promise<string>((resolve, reject) => {
       const secureExecutorPath = 'security/secure_executor.py';
 
+<<<<<<< HEAD
       // Spawn a Python helper that runs the user code under a security
       // policy (sandboxed subprocess with no network access). All hardening
       // (PATH override, no .pyc, stdin-only input, hard timeout) lives in
@@ -39,6 +45,23 @@ export const run_python = createTool({
       });
 
       stderrStream.on('data', (data: Buffer) => {
+=======
+      // Use spawn instead of execFile to pass code via stdin (prevents shell injection)
+      const child = spawn('python', [secureExecutorPath], {
+        env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONUNBUFFERED: '1' },
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: PYTHON_TIMEOUT_MS,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
+
+      child.stderr.on('data', (data: Buffer) => {
+>>>>>>> origin/fix/scenario-tests-properly
         stderr += data.toString();
       });
 
@@ -58,7 +81,11 @@ export const run_python = createTool({
           if (response.success) {
             const output = response.output || '';
             if (output.length > MAX_OUTPUT_LENGTH) {
+<<<<<<< HEAD
               resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');  // NOSONAR — typescript:S4624: false positive — string concatenation, not nested template literal
+=======
+              resolve(output.substring(0, MAX_OUTPUT_LENGTH) + '\n... [output truncated]');
+>>>>>>> origin/fix/scenario-tests-properly
             } else {
               resolve(output);
             }
@@ -66,14 +93,19 @@ export const run_python = createTool({
             reject(new Error(response.error || 'Execution failed without specific error message'));
           }
         } catch (parseError) {
+<<<<<<< HEAD
           // SonarCloud typescript:S4624: extracted nested template literal
           // into a separate variable for readability.
           const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
           reject(new Error(`Failed to parse executor response: ${stdout}${parseErrMsg}`));
+=======
+          reject(new Error(`Failed to parse executor response: ${stdout}`));
+>>>>>>> origin/fix/scenario-tests-properly
         }
       });
 
       // Pass code via stdin instead of CLI arguments (prevents shell injection)
+<<<<<<< HEAD
       const stdinStream = child.stdin;
       if (stdinStream) {
         stdinStream.write(code);
@@ -81,6 +113,10 @@ export const run_python = createTool({
       } else {
         reject(new Error('Failed to get stdin stream from secure executor'));
       }
+=======
+      child.stdin.write(code);
+      child.stdin.end();
+>>>>>>> origin/fix/scenario-tests-properly
     });
   }
 });

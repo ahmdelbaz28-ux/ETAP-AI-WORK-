@@ -234,26 +234,42 @@ class IEEE1584Database:
         if enclosure_type == EnclosureType.OPEN:
             return 1.0
 
+<<<<<<< HEAD
         v_enc = (
             width_mm * height_mm * depth_mm
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         V_ref = (  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        V_enc = width_mm * height_mm * depth_mm
+        V_ref = (
+>>>>>>> origin/fix/scenario-tests-properly
             ENCLOSURE_REFERENCE["width"]
             * ENCLOSURE_REFERENCE["height"]
             * ENCLOSURE_REFERENCE["depth"]
         )
 
+<<<<<<< HEAD
         if v_enc <= 0:
+=======
+        if V_enc <= 0:
+>>>>>>> origin/fix/scenario-tests-properly
             return 1.0
 
         # IEEE 1584-2018 enclosure correction
         # CF = 1.0 for standard enclosure
         # For larger enclosures, CF < 1.0 (energy spreads more)
         # For smaller enclosures, CF > 1.0 (energy concentrates)
+<<<<<<< HEAD
         if v_enc > V_ref:
             ratio = V_ref / v_enc
             CF = ratio**0.1
         elif v_enc < V_ref * 0.5:
+=======
+        if V_enc > V_ref:
+            ratio = V_ref / V_enc
+            CF = ratio**0.1
+        elif V_enc < V_ref * 0.5:
+>>>>>>> origin/fix/scenario-tests-properly
             CF = 1.1  # cap at 10% increase for very small enclosures
         else:
             CF = 1.0
@@ -262,9 +278,13 @@ class IEEE1584Database:
 
     @staticmethod
     def calculate_working_distance_correction(
+<<<<<<< HEAD
         working_distance_mm,
         electrode_config,
         enclosure_type,
+=======
+        working_distance_mm, electrode_config, enclosure_type
+>>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Calculate working distance correction based on electrode configuration.
@@ -280,6 +300,7 @@ class IEEE1584Database:
 
         Iarc = 10^(k1 + k2*log10(Ibf) + k3*Ibf)
         """
+<<<<<<< HEAD
         Ibf = bolted_fault_current_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         k1, k2, k3 = IEEE1584Database.get_arc_current_coefficients(voltage_kv, electrode_config)
 
@@ -291,6 +312,15 @@ class IEEE1584Database:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return iarc
+=======
+        Ibf = bolted_fault_current_ka
+        k1, k2, k3 = IEEE1584Database.get_arc_current_coefficients(voltage_kv, electrode_config)
+
+        log_Iarc = k1 + k2 * np.log10(Ibf) + k3 * Ibf
+        Iarc = 10**log_Iarc
+
+        return Iarc
+>>>>>>> origin/fix/scenario-tests-properly
 
     @staticmethod
     def calculate_reduced_arc_current(arc_current_ka):
@@ -320,6 +350,7 @@ class IEEE1584Database:
         E = 10^(k1 + k2*log10(Iarc) + k3*Iarc) * t * CF / D^x
         """
         # Calculate arc current
+<<<<<<< HEAD
         iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
@@ -334,10 +365,21 @@ class IEEE1584Database:
             voltage_kv,
             electrode_config,
             enclosure_type,
+=======
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
+
+        # Get coefficients
+        k1, k2, k3, x_factor = IEEE1584Database.get_incident_energy_coefficients(
+            voltage_kv, electrode_config, enclosure_type
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Enclosure correction
         CF = IEEE1584Database.calculate_enclosure_correction(
+<<<<<<< HEAD
             enclosure_type,
             enclosure_width_mm,
             enclosure_height_mm,
@@ -366,6 +408,23 @@ class IEEE1584Database:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         return e_final, e_full, e_reduced, CF
+=======
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+        )
+
+        # Calculate at full arc current
+        log_E = k1 + k2 * np.log10(Iarc) + k3 * Iarc
+        E_full = (10**log_E) * arc_duration_sec * CF / (working_distance_mm**x_factor)
+
+        # Calculate at reduced arc current
+        log_E_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
+        E_reduced = (10**log_E_red) * arc_duration_sec * CF / (working_distance_mm**x_factor)
+
+        # Use the higher value
+        E_final = max(E_full, E_reduced)
+
+        return E_final, E_full, E_reduced, CF
+>>>>>>> origin/fix/scenario-tests-properly
 
     @staticmethod
     def calculate_arc_flash_boundary(
@@ -381,6 +440,7 @@ class IEEE1584Database:
         """
         Calculate arc flash boundary (distance where E = 1.2 cal/cm^2).
         """
+<<<<<<< HEAD
         iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
@@ -426,6 +486,36 @@ class IEEE1584Database:
             db_reduced = float("inf")
 
         return max(db_full, db_reduced)
+=======
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
+
+        k1, k2, k3, x_factor = IEEE1584Database.get_boundary_coefficients(
+            voltage_kv, electrode_config, enclosure_type
+        )
+
+        CF = IEEE1584Database.calculate_enclosure_correction(
+            enclosure_type, enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm
+        )
+
+        # Boundary at full arc current
+        log_Db = k1 + k2 * np.log10(Iarc) + k3 * Iarc
+        if x_factor != 0:
+            Db_full = ((10**log_Db) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
+        else:
+            Db_full = float("inf")
+
+        # Boundary at reduced arc current
+        log_Db_red = k1 + k2 * np.log10(Iarc_reduced) + k3 * Iarc_reduced
+        if x_factor != 0:
+            Db_reduced = ((10**log_Db_red) * arc_duration_sec * CF / 1.2) ** (1.0 / x_factor)
+        else:
+            Db_reduced = float("inf")
+
+        return max(Db_full, Db_reduced)
+>>>>>>> origin/fix/scenario-tests-properly
 
     @staticmethod
     def determine_ppe_level(incident_energy):
@@ -472,6 +562,7 @@ class IEEE1584Database:
             raise ValueError("Bolted fault current above IEEE 1584 range (106 kA)")
 
         # Arc current
+<<<<<<< HEAD
         iarc = IEEE1584Database.calculate_arc_current(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             voltage_kv,
             bolted_fault_current_ka,
@@ -488,6 +579,15 @@ class IEEE1584Database:
             e_reduced,
             CF,
         ) = IEEE1584Database.calculate_incident_energy(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Iarc = IEEE1584Database.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, electrode_config
+        )
+        Iarc_reduced = IEEE1584Database.calculate_reduced_arc_current(Iarc)
+
+        # Incident energy
+        E_final, E_full, E_reduced, CF = IEEE1584Database.calculate_incident_energy(
+>>>>>>> origin/fix/scenario-tests-properly
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -500,7 +600,11 @@ class IEEE1584Database:
         )
 
         # Boundary
+<<<<<<< HEAD
         D_boundary = IEEE1584Database.calculate_arc_flash_boundary(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        D_boundary = IEEE1584Database.calculate_arc_flash_boundary(
+>>>>>>> origin/fix/scenario-tests-properly
             voltage_kv,
             bolted_fault_current_ka,
             arc_duration_sec,
@@ -512,12 +616,17 @@ class IEEE1584Database:
         )
 
         # PPE
+<<<<<<< HEAD
         ppe_level, ppe_desc = IEEE1584Database.determine_ppe_level(e_final)
+=======
+        ppe_level, ppe_desc = IEEE1584Database.determine_ppe_level(E_final)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Voltage range
         v_range = "LV (0.208-1 kV)" if voltage_kv < 1.0 else "HV (1-15 kV)"
 
         return IEEE1584Result(
+<<<<<<< HEAD
             incident_energy_cal_cm2=round(e_final, 4),
             incident_energy_full_arc=round(e_full, 4),
             incident_energy_reduced_arc=round(e_reduced, 4),
@@ -525,6 +634,15 @@ class IEEE1584Database:
             arc_flash_boundary_in=round(D_boundary / 25.4, 1),
             arc_current_ka=round(iarc, 4),
             reduced_arc_current_ka=round(iarc_reduced, 4),
+=======
+            incident_energy_cal_cm2=round(E_final, 4),
+            incident_energy_full_arc=round(E_full, 4),
+            incident_energy_reduced_arc=round(E_reduced, 4),
+            arc_flash_boundary_mm=round(D_boundary, 1),
+            arc_flash_boundary_in=round(D_boundary / 25.4, 1),
+            arc_current_ka=round(Iarc, 4),
+            reduced_arc_current_ka=round(Iarc_reduced, 4),
+>>>>>>> origin/fix/scenario-tests-properly
             method="IEEE 1584-2018",
             electrode_configuration=electrode_config.value,
             enclosure_type=enclosure_type.value,

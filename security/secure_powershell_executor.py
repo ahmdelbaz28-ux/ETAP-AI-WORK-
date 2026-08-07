@@ -3,6 +3,7 @@ Secure PowerShell Executor
 ==========================
 P0 Security Control: Validates and executes PowerShell commands in a restricted environment.
 Integrates with security_framework.py for input validation.
+<<<<<<< HEAD
 
 Security hardening (2026-08-02 — V-34, V-36, V-37, V-38 fixes):
   - V-34: Removed dangerous cmdlets from whitelist (start-process, remove-item,
@@ -16,15 +17,21 @@ Security hardening (2026-08-02 — V-34, V-36, V-37, V-38 fixes):
   - Added cmdlet whitelist for defense-in-depth
   - Added character-set whitelist validation
   - Uses constrained runspace via execution policy
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 
 import json
 import logging
 import os
+<<<<<<< HEAD
 import re
 import subprocess
 import sys
 import tempfile
+=======
+import sys
+>>>>>>> origin/fix/scenario-tests-properly
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -38,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 POWERSHELL_TIMEOUT_MS = 30000
 MAX_OUTPUT_LENGTH = 10000
+<<<<<<< HEAD
 MAX_COMMAND_LENGTH = 10000
 
 # ---------------------------------------------------------------------------
@@ -278,6 +286,8 @@ def _write_script_to_temp(command: str) -> str | None:
     except Exception as e:
         logger.exception("Failed to write temp script: %s", e)
         return None
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def _read_command_from_stdin():
@@ -288,6 +298,7 @@ def _read_command_from_stdin():
             return None
         return command.strip()
     except Exception as e:
+<<<<<<< HEAD
         logger.exception("Failed to read command from stdin: %s", e)
         return None
 
@@ -346,6 +357,70 @@ def _execute_powershell(script_path: str) -> None:
                 "Bypass",
                 "-File",
                 script_path,
+=======
+        logger.error(f"Failed to read command from stdin: {e}")
+        return None
+
+
+def main():
+    command = _read_command_from_stdin()
+    if command is None:
+        print(json.dumps({"error": "No command provided via stdin", "success": False}))
+        sys.exit(1)
+
+    # Limit command length to prevent resource exhaustion
+    MAX_COMMAND_LENGTH = 10000
+    if len(command) > MAX_COMMAND_LENGTH:
+        print(
+            json.dumps(
+                {
+                    "error": f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
+                    "success": False,
+                }
+            )
+        )
+        sys.exit(1)
+
+    audit = get_audit_logger()
+    validator = get_validator()
+
+    # P0 Validation - must pass before any execution
+    if not validator.validate_powershell_command(command):
+        audit.log_security_violation(
+            "agent_tool", "Forbidden PowerShell pattern detected", {"command_length": len(command)}
+        )
+        print(
+            json.dumps(
+                {
+                    "error": "Security Violation: Forbidden PowerShell pattern or unauthorized command detected.",
+                    "success": False,
+                }
+            )
+        )
+        sys.exit(1)
+
+    audit.log_action("agent_tool", "execute_powershell", "restricted_sandbox", True)
+
+    # Execute validated command
+    # Security: Use -ExecutionPolicy AllSigned instead of Restricted for defense-in-depth.
+    # -NoProfile prevents profile scripts from running (potential attack vector).
+    # -NonInteractive prevents interactive prompts.
+    # WARNING: -Command mode still allows obfuscated commands. The AST validator
+    # above is the primary defense. For maximum security, consider using a
+    # constrained runspace or whitelisted cmdlet approach instead.
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "AllSigned",
+                "-Command",
+                command,
+>>>>>>> origin/fix/scenario-tests-properly
             ],
             capture_output=True,
             text=True,
@@ -358,9 +433,16 @@ def _execute_powershell(script_path: str) -> None:
 
         if result.returncode != 0:
             err_message = result.stderr or f"Process exited with code {result.returncode}"
+<<<<<<< HEAD
             # Sanitize Windows file paths (e.g. C:\Users\...) from error
             # messages to avoid leaking internal directory structure.
             err_message = re.sub(r"[A-Z]:\\[^\s]+", "[path]", err_message)
+=======
+            # Sanitize paths from error messages
+            import re
+
+            err_message = re.sub(r"[A-Z]:\[^\s]+", "[path]", err_message)
+>>>>>>> origin/fix/scenario-tests-properly
             print(json.dumps({"success": False, "output": None, "error": err_message}))
         else:
             print(json.dumps({"success": True, "output": output, "error": None}))
@@ -368,13 +450,19 @@ def _execute_powershell(script_path: str) -> None:
     except subprocess.TimeoutExpired:
         print(
             json.dumps(
+<<<<<<< HEAD
                 {"success": False, "output": None, "error": "PowerShell execution timed out"},
             ),
+=======
+                {"success": False, "output": None, "error": "PowerShell execution timed out"}
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     except Exception as e:
         print(json.dumps({"success": False, "output": None, "error": str(e)}))
 
+<<<<<<< HEAD
     finally:
         # Clean up temp script file
         try:
@@ -423,6 +511,8 @@ def main():
 
     _execute_powershell(script_path)
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
+=======
+from coordination.coordination import CoordinationEngine
+>>>>>>> origin/fix/scenario-tests-properly
 from engine.interfaces import (
     ArcFlashEngineProtocol,
     CoordinationEngineProtocol,
@@ -17,6 +21,7 @@ from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
 
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Internal study registry
 # ---------------------------------------------------------------------------
@@ -86,6 +91,8 @@ def _validate_study_kwargs(
             )
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class PowerSystemEngine:
     """
     Power system simulation engine with dependency injection.
@@ -111,6 +118,7 @@ class PowerSystemEngine:
 
     def __init__(
         self,
+<<<<<<< HEAD
         system: Optional[System] = None,
         *,
         load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
@@ -127,6 +135,23 @@ class PowerSystemEngine:
             self.load_flow_solver = LoadFlowSolver(system)
         else:
             self.load_flow_solver = None
+=======
+        system=None,
+        *,
+        load_flow_solver: LoadFlowSolverProtocol | None = None,
+        arc_flash_engine: ArcFlashEngineProtocol | None = None,
+        coordination_engine: CoordinationEngineProtocol | None = None,
+        visualizer: VisualizerProtocol | None = None,
+    ):
+        self.system = system
+
+        # Injected or default solvers
+        self.load_flow_solver = (
+            load_flow_solver
+            if load_flow_solver is not None
+            else (LoadFlowSolver(system) if system is not None else None)
+        )
+>>>>>>> origin/fix/scenario-tests-properly
         self.arc_flash_engine = (
             arc_flash_engine if arc_flash_engine is not None else ArcFlashEngine()
         )
@@ -136,7 +161,11 @@ class PowerSystemEngine:
         self.visualizer = visualizer if visualizer is not None else Visualizer()
         # Fault analyzer is created lazily in run_fault_analysis with sequence networks
 
+<<<<<<< HEAD
     def run_load_flow(self) -> dict[str, Any]:
+=======
+    def run_load_flow(self):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run load flow analysis.
 
@@ -156,7 +185,11 @@ class PowerSystemEngine:
             "Ybus": self.load_flow_solver.Ybus,
         }
 
+<<<<<<< HEAD
     def run_fault_analysis(self, fault_type: str, bus_id: int) -> dict[str, Any]:
+=======
+    def run_fault_analysis(self, fault_type, bus_id):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run fault analysis for a given fault type and bus.
 
@@ -171,6 +204,7 @@ class PowerSystemEngine:
             raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
+<<<<<<< HEAD
         ybus_pos = self.system.get_ybus(
             seq="1"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -182,6 +216,13 @@ class PowerSystemEngine:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
+=======
+        Ybus_pos = self.system.get_ybus(seq="1")
+        Ybus_neg = self.system.get_ybus(seq="2")
+        Ybus_zero = self.system.get_ybus(seq="0")
+        # Create fault analyzer
+        fault_analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
+>>>>>>> origin/fix/scenario-tests-properly
         # Get bus index
         bus_index = self.load_flow_solver.bus_index[bus_id]
         # Calculate fault
@@ -199,6 +240,7 @@ class PowerSystemEngine:
 
     def run_arc_flash(
         self,
+<<<<<<< HEAD
         voltage_kv: float,
         bolted_fault_current_ka: float,
         arc_duration_sec: float,
@@ -209,6 +251,18 @@ class PowerSystemEngine:
         enclosure_height_mm: float = 508.0,
         enclosure_depth_mm: float = 508.0,
     ) -> dict[str, Any]:
+=======
+        voltage_kv,
+        bolted_fault_current_ka,
+        arc_duration_sec,
+        working_distance_mm,
+        electrode_config="VCB",
+        enclosure_type="box",
+        enclosure_width_mm=508.0,
+        enclosure_height_mm=508.0,
+        enclosure_depth_mm=508.0,
+    ):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run arc flash analysis per IEEE 1584-2018.
 
@@ -277,6 +331,7 @@ class PowerSystemEngine:
             "working_distance_mm": result.working_distance_mm,
         }
 
+<<<<<<< HEAD
     def run_protection_coordination(
         self,
         upstream_relay_id: int,
@@ -370,10 +425,42 @@ class PowerSystemEngine:
             fault_currents,
         )
 
+=======
+    def run_protection_coordination(self, upstream_relay_id, downstream_relay_id, fault_currents):
+        """
+        Run protection coordination check between two relays.
+
+        Note: This method assumes that the relays are already defined and accessible.
+        In a full implementation, we would retrieve relays from a protection system database.
+
+        For demonstration, we will create dummy relays.
+
+        Parameters:
+        upstream_relay_id (int): ID of upstream relay.
+        downstream_relay_id (int): ID of downstream relay.
+        fault_currents (list): List of fault currents in per-unit.
+
+        Returns:
+        dict: Coordination results.
+        """
+        # In a real system, we would fetch the relay objects from a protection database.
+        # For now, we create example relays.
+        upstream_relay = OvercurrentRelay(
+            relay_id=upstream_relay_id, name=f"Upstream_{upstream_relay_id}", TMS=0.5, Ip=1.0
+        )
+        downstream_relay = OvercurrentRelay(
+            relay_id=downstream_relay_id, name=f"Downstream_{downstream_relay_id}", TMS=0.2, Ip=1.0
+        )
+        # Check coordination
+        results = self.coordination_engine.check_coordination_range(
+            upstream_relay, downstream_relay, fault_currents
+        )
+>>>>>>> origin/fix/scenario-tests-properly
         # Determine if coordinated for all faults
         all_coordinated = all(r["coordinated"] for r in results)
         return {
             "all_coordinated": all_coordinated,
+<<<<<<< HEAD
             "is_simulated": False,
             "results": results,
             "upstream_relay": {
@@ -404,11 +491,25 @@ class PowerSystemEngine:
 
         Parameters:
         study_type (str): Type of study: 'load_flow', 'short_circuit', 'protection_coordination'.
+=======
+            "results": results,
+            "upstream_relay": upstream_relay,
+            "downstream_relay": downstream_relay,
+        }
+
+    def run_study(self, study_type, **kwargs):
+        """
+        Run a study based on study type.
+
+        Parameters:
+        study_type (str): Type of study: 'load_flow', 'fault', 'coordination'.
+>>>>>>> origin/fix/scenario-tests-properly
         **kwargs: Additional arguments specific to the study type.
 
         Returns:
         dict: Study results.
         """
+<<<<<<< HEAD
         spec = _STUDY_REGISTRY.get(study_type)
         if spec is None:
             raise ValueError(f"Unsupported study type: {study_type}")
@@ -431,6 +532,40 @@ class PowerSystemEngine:
             )
         else:  # arc_flash
             return handler(
+=======
+        if study_type == "load_flow":
+            return self.run_load_flow()
+        elif study_type == "fault":
+            fault_type = kwargs.get("fault_type", "three_phase")
+            bus_id = kwargs.get("bus_id")
+            if bus_id is None:
+                raise ValueError("bus_id must be provided for fault study")
+            return self.run_fault_analysis(fault_type, bus_id)
+        elif study_type == "coordination":
+            upstream_relay_id = kwargs.get("upstream_relay_id")
+            downstream_relay_id = kwargs.get("downstream_relay_id")
+            fault_currents = kwargs.get("fault_currents")
+            if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
+                raise ValueError(
+                    "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
+                )
+            return self.run_protection_coordination(
+                upstream_relay_id, downstream_relay_id, fault_currents
+            )
+        elif study_type == "arc_flash":
+            required = (
+                "voltage_kv",
+                "bolted_fault_current_ka",
+                "arc_duration_sec",
+                "working_distance_mm",
+            )
+            missing = [k for k in required if k not in kwargs]
+            if missing:
+                raise ValueError(
+                    f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})"
+                )
+            return self.run_arc_flash(
+>>>>>>> origin/fix/scenario-tests-properly
                 voltage_kv=kwargs["voltage_kv"],
                 bolted_fault_current_ka=kwargs["bolted_fault_current_ka"],
                 arc_duration_sec=kwargs["arc_duration_sec"],
@@ -441,6 +576,7 @@ class PowerSystemEngine:
                 enclosure_height_mm=kwargs.get("enclosure_height_mm", 508.0),
                 enclosure_depth_mm=kwargs.get("enclosure_depth_mm", 508.0),
             )
+<<<<<<< HEAD
 
     def visualize_tcc(
         self,
@@ -448,6 +584,12 @@ class PowerSystemEngine:
         current_range: tuple[float, float] = (0.5, 20),
         points: int = 100,
     ) -> Any:
+=======
+        else:
+            raise ValueError(f"Unsupported study type: {study_type}")
+
+    def visualize_tcc(self, relays, current_range=(0.5, 20), points=100):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Visualize TCC curves for a list of relays.
 
@@ -465,12 +607,16 @@ class PowerSystemEngine:
         self.visualizer.plot_multiple_tcc(relays, current_range=current_range, points=points, ax=ax)
         return fig
 
+<<<<<<< HEAD
     def visualize_coordination(
         self,
         upstream_relay: OvercurrentRelay,
         downstream_relay: OvercurrentRelay,
         fault_currents: list[float],
     ) -> Any:
+=======
+    def visualize_coordination(self, upstream_relay, downstream_relay, fault_currents):
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Visualize coordination margin.
 
@@ -486,9 +632,13 @@ class PowerSystemEngine:
 
         fig, ax = plt.subplots()
         self.visualizer.plot_coordination_margin(
+<<<<<<< HEAD
             upstream_relay,
             downstream_relay,
             fault_currents,
             ax=ax,
+=======
+            upstream_relay, downstream_relay, fault_currents, ax=ax
+>>>>>>> origin/fix/scenario-tests-properly
         )
         return fig

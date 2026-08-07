@@ -28,17 +28,23 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "etap-ai.serviceAccountName" . }}
+<<<<<<< HEAD
       automountServiceAccountToken: false
+=======
+>>>>>>> origin/fix/scenario-tests-properly
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
+<<<<<<< HEAD
         # SonarCloud kubernetes:S6870/S6897: storage limits+requests are
         # ALWAYS present in the rendered YAML because the resources block
         # below uses `default` (not `if/else`). The values.yaml override
         # REPLACES the defaults entirely; if the operator provides a partial
         # resources block, Helm will use their values as-is.
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         - name: {{ .Chart.Name }}-api
           securityContext:
             {{- with .Values.securityContext }}
@@ -55,6 +61,7 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
+<<<<<<< HEAD
               path: /healthz
               port: http
             periodSeconds: 30
@@ -80,6 +87,14 @@ spec:
             periodSeconds: 10
             failureThreshold: 30
             timeoutSeconds: 5
+=======
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+>>>>>>> origin/fix/scenario-tests-properly
           env:
             - name: PORT
               value: "{{ .Values.api.service.port }}"
@@ -92,17 +107,22 @@ spec:
             - name: ENGINEERING_SERVICE_API_KEY
               valueFrom:
                 secretKeyRef:
+<<<<<<< HEAD
                   # SECURITY: References the pre-created "etap-api-key" Secret
                   # (see k8s/etap-api-key-secret.yaml). This Secret must be
                   # provisioned BEFORE deploying the Helm chart.
                   # Per CI/CD skill: secrets should be managed separately from
                   # application deployment.
                   name: etap-api-key
+=======
+                  name: {{ include "etap-ai.fullname" . }}-secrets
+>>>>>>> origin/fix/scenario-tests-properly
                   key: api-key
             - name: ENVIRONMENT
               value: "{{ .Values.env.ENVIRONMENT }}"
             - name: LOG_LEVEL
               value: "{{ .Values.env.LOG_LEVEL }}"
+<<<<<<< HEAD
           volumeMounts:
             - name: app-logs
               mountPath: /app/logs
@@ -131,6 +151,10 @@ spec:
         - name: tmp-data
           emptyDir:
             sizeLimit: 1Gi
+=======
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+>>>>>>> origin/fix/scenario-tests-properly
       {{- with .Values.api.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -174,15 +198,21 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "etap-ai.serviceAccountName" . }}
+<<<<<<< HEAD
       automountServiceAccountToken: false
+=======
+>>>>>>> origin/fix/scenario-tests-properly
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
+<<<<<<< HEAD
         # SonarCloud kubernetes:S6870/S6897: storage limits+requests are
         # ALWAYS present in the rendered YAML (see the `default` function in
         # the resources block below).
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         - name: {{ .Chart.Name }}-worker
           securityContext:
             {{- with .Values.securityContext }}
@@ -204,13 +234,18 @@ spec:
             - name: ENGINEERING_SERVICE_API_KEY
               valueFrom:
                 secretKeyRef:
+<<<<<<< HEAD
                   # SECURITY: References the pre-created "etap-api-key" Secret
                   name: etap-api-key
+=======
+                  name: {{ include "etap-ai.fullname" . }}-secrets
+>>>>>>> origin/fix/scenario-tests-properly
                   key: api-key
             - name: ENVIRONMENT
               value: "{{ .Values.env.ENVIRONMENT }}"
             - name: LOG_LEVEL
               value: "{{ .Values.env.LOG_LEVEL }}"
+<<<<<<< HEAD
           volumeMounts:
             - name: app-logs
               mountPath: /app/logs
@@ -231,6 +266,10 @@ spec:
         - name: tmp-data
           emptyDir:
             sizeLimit: 1Gi
+=======
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+>>>>>>> origin/fix/scenario-tests-properly
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

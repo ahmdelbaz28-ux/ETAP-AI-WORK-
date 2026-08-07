@@ -13,9 +13,13 @@ Patterns drawn from pydantic/pydantic (v2):
 from __future__ import annotations
 
 import re
+<<<<<<< HEAD
 
 
 from typing import Any, Generic, TypeVar
+=======
+from typing import Any, Dict, List, TypeVar
+>>>>>>> origin/fix/scenario-tests-properly
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -26,7 +30,11 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 T = TypeVar("T")
 
 
+<<<<<<< HEAD
 class SkillResponse(BaseModel, Generic[T]):  # noqa: UP046
+=======
+class SkillResponse[T](BaseModel):
+>>>>>>> origin/fix/scenario-tests-properly
     """Generic envelope for every skill-related API response.
 
     Usage::
@@ -40,9 +48,15 @@ class SkillResponse(BaseModel, Generic[T]):  # noqa: UP046
 
     data: T
     status: str = "ok"
+<<<<<<< HEAD
     message: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
+=======
+    message: str | None = None
+
+    def to_dict(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         return self.model_dump(mode="json")
 
 
@@ -71,7 +85,11 @@ class SkillMetadata(BaseModel):
         max_length=30,
         description="Semantic version string (MAJOR.MINOR.PATCH)",
     )
+<<<<<<< HEAD
     requires: dict[str, str] = Field(
+=======
+    requires: Dict[str, str] = Field(
+>>>>>>> origin/fix/scenario-tests-properly
         default_factory=dict,
         description="Map of dependency names to version specifiers",
     )
@@ -124,7 +142,11 @@ class SkillDescription(BaseModel):
         max_length=2000,
         description="Long-form explanation of what the skill does",
     )
+<<<<<<< HEAD
     trigger_words: list[str] = Field(
+=======
+    trigger_words: List[str] = Field(
+>>>>>>> origin/fix/scenario-tests-properly
         min_length=1,
         max_length=50,
         description="Phrases that cause the agent to activate this skill",
@@ -173,8 +195,13 @@ class ExecutionResult(BaseModel):
     """
 
     success: bool
+<<<<<<< HEAD
     data: dict[str, Any] | None = None
     error: dict[str, str] | None = None
+=======
+    data: Dict[str, Any] | None = None
+    error: Dict[str, str] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
     @model_validator(mode="after")
     def mutually_exclusive_data_and_error(self) -> ExecutionResult:

@@ -55,7 +55,10 @@ SERVICE=""              # empty = all services
 GIT_SHA="$(git -C "${PROJECT_DIR}" rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 GHCR_REPOSITORY=""
+<<<<<<< HEAD
 DIVIDER='=========================================='
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Parse arguments
@@ -116,6 +119,7 @@ docker buildx version >/dev/null 2>&1 || { echo "Error: docker buildx is require
 # ---------------------------------------------------------------------------
 # Resolve GHCR_REPOSITORY (used for image naming + labels)
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 if [[ -n "${GHCR_REPOSITORY:-}" ]]; then
   : # already set
 elif [[ -n "${GITHUB_REPOSITORY:-}" ]]; then
@@ -123,13 +127,26 @@ elif [[ -n "${GITHUB_REPOSITORY:-}" ]]; then
 else
   remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
   if [[ -n "${remote}" ]]; then
+=======
+if [ -n "${GHCR_REPOSITORY:-}" ]; then
+  : # already set
+elif [ -n "${GITHUB_REPOSITORY:-}" ]; then
+  GHCR_REPOSITORY="${GITHUB_REPOSITORY}"
+else
+  remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
+  if [ -n "${remote}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     # SSH: git@github.com:owner/repo(.git) ; HTTPS: https://github.com/owner/repo(.git)
     GHCR_REPOSITORY="$(echo "${remote}" | sed -E 's#^.*github\.com[:/]([^/]+/[^/]+?)(\.git)?$#\1#')"
   fi
 fi
 
 # If --registry wasn't passed but --push is set, try to default to GHCR
+<<<<<<< HEAD
 if [[ -z "${REGISTRY}" ]] && [[ "${PUSH}" = "true" ]] && [[ -n "${GHCR_REPOSITORY}" ]]; then
+=======
+if [ -z "${REGISTRY}" ] && [ "${PUSH}" = "true" ] && [ -n "${GHCR_REPOSITORY}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
   REGISTRY="ghcr.io/${GHCR_REPOSITORY}/"
   echo "  → Auto-derived registry: ${REGISTRY}"
 fi
@@ -137,7 +154,11 @@ fi
 # Normalize trailing slash on registry
 REGISTRY="${REGISTRY%/}/"
 # Re-render "registry/  " as "registry" when registry is empty
+<<<<<<< HEAD
 if [[ "${REGISTRY}" = "/" ]]; then REGISTRY=""; fi
+=======
+if [ "${REGISTRY}" = "/" ]; then REGISTRY=""; fi
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # GHCR login
@@ -147,7 +168,11 @@ login_ghcr() {
     *ghcr.io*) ;;
     *) return 0 ;;
   esac
+<<<<<<< HEAD
   if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+=======
+  if [ -z "${GITHUB_TOKEN:-}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     echo "Error: GITHUB_TOKEN env var required to push to GHCR" >&2
     echo "  Create a PAT with 'write:packages' scope:" >&2
     echo "    https://github.com/settings/tokens/new?scopes=write:packages" >&2
@@ -159,10 +184,17 @@ login_ghcr() {
 }
 
 warn_qemu() {
+<<<<<<< HEAD
   if [[ "${MULTIARCH}" != "true" ]]; then return 0; fi
   local driver
   driver="$(docker buildx inspect 2>/dev/null | awk -F': ' '/Driver:/ {print $2; exit}' || true)"
   if [[ -z "${driver}" ]] || { [[ "${driver}" != "docker-container" ]] && [[ "${driver}" != "remote" ]] && [[ "${driver}" != "kubernetes" ]]; }; then
+=======
+  if [ "${MULTIARCH}" != "true" ]; then return 0; fi
+  local driver
+  driver="$(docker buildx inspect 2>/dev/null | awk -F': ' '/Driver:/ {print $2; exit}' || true)"
+  if [ -z "${driver}" ] || { [ "${driver}" != "docker-container" ] && [ "${driver}" != "remote" ] && [ "${driver}" != "kubernetes" ]; }; then
+>>>>>>> origin/fix/scenario-tests-properly
     cat <<EOF >&2
 ⚠️  Multi-arch build requested, but current buildx driver is '${driver:-default}'.
    For best results, run once:
@@ -183,9 +215,14 @@ SERVICES=(
 )
 
 should_build() {
+<<<<<<< HEAD
   if [[ -z "${SERVICE}" ]]; then return 0; fi
   local service_name="$1"
   [[ "${SERVICE}" = "${service_name}" ]] && return 0 || return 1
+=======
+  if [ -z "${SERVICE}" ]; then return 0; fi
+  [ "${SERVICE}" = "$1" ] && return 0 || return 1
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 # ---------------------------------------------------------------------------
@@ -202,7 +239,11 @@ build_service() {
   local output_flag
   local target_args=()
 
+<<<<<<< HEAD
   if [[ "${MULTIARCH}" = "true" ]]; then
+=======
+  if [ "${MULTIARCH}" = "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     platforms="${PLATFORM}"
     platform_label="${PLATFORM}"
   else
@@ -211,14 +252,23 @@ build_service() {
   fi
 
   # Decide --load vs --push
+<<<<<<< HEAD
   if [[ "${MULTIARCH}" = "true" ]]; then
     if [[ "${PUSH}" != "true" ]]; then
+=======
+  if [ "${MULTIARCH}" = "true" ]; then
+    if [ "${PUSH}" != "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
       echo "  ! Multi-arch build requires --push. Auto-enabling --push." >&2
       PUSH="true"
     fi
     output_flag="--push"
   else
+<<<<<<< HEAD
     if [[ "${PUSH}" = "true" ]]; then
+=======
+    if [ "${PUSH}" = "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
       output_flag="--push"
     else
       output_flag="--load"
@@ -226,7 +276,11 @@ build_service() {
   fi
 
   # Also tag with the short SHA when pushing (traceability)
+<<<<<<< HEAD
   if [[ "${PUSH}" = "true" ]] && [[ "${TAG}" = "latest" ]] && [[ "${GIT_SHA}" != "unknown" ]]; then
+=======
+  if [ "${PUSH}" = "true" ] && [ "${TAG}" = "latest" ] && [ "${GIT_SHA}" != "unknown" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     extra_tag="${REGISTRY}${name}:sha-${GIT_SHA}"
   fi
 
@@ -235,10 +289,13 @@ build_service() {
     etap-ai-platform)
       target_args=(--target runtime)
       ;;
+<<<<<<< HEAD
     *)
       # Default: no special target args
       target_args=()
       ;;
+=======
+>>>>>>> origin/fix/scenario-tests-properly
   esac
 
   echo ""
@@ -246,7 +303,11 @@ build_service() {
   echo "    Dockerfile:   ${dockerfile}"
   echo "    Platforms:    ${platform_label}"
   echo "    Image:        ${image}"
+<<<<<<< HEAD
   [[ -n "${extra_tag}" ]] && echo "    Extra tag:    ${extra_tag}"
+=======
+  [ -n "${extra_tag}" ] && echo "    Extra tag:    ${extra_tag}"
+>>>>>>> origin/fix/scenario-tests-properly
   echo "    Output:       ${output_flag}"
 
   local cmd=(
@@ -260,7 +321,11 @@ build_service() {
     --label "org.opencontainers.image.created=${BUILD_DATE}"
   )
   cmd+=("${target_args[@]}" "${output_flag}" -t "${image}")
+<<<<<<< HEAD
   if [[ -n "${extra_tag}" ]]; then
+=======
+  if [ -n "${extra_tag}" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
     cmd+=(-t "${extra_tag}")
   fi
   cmd+=("${PROJECT_DIR}")
@@ -272,9 +337,15 @@ build_service() {
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " ETAP AI Platform - Docker Build"
 echo "${DIVIDER}"
+=======
+echo "=========================================="
+echo " ETAP AI Platform - Docker Build"
+echo "=========================================="
+>>>>>>> origin/fix/scenario-tests-properly
 echo "Registry:    ${REGISTRY:-<none — local>}"
 echo "Tag:         ${TAG}"
 echo "Platform:    ${PLATFORM}"
@@ -282,7 +353,11 @@ echo "Multi-arch:  ${MULTIARCH}"
 echo "Service:     ${SERVICE:-<all>}"
 echo "No cache:    ${NO_CACHE:-false}"
 echo "Push:        ${PUSH}"
+<<<<<<< HEAD
 echo "${DIVIDER}"
+=======
+echo "=========================================="
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Login if pushing to GHCR
@@ -304,13 +379,23 @@ done
 # Summary
 # ---------------------------------------------------------------------------
 echo ""
+<<<<<<< HEAD
 echo "${DIVIDER}"
 echo " Build Complete"
 echo "${DIVIDER}"
+=======
+echo "=========================================="
+echo " Build Complete"
+echo "=========================================="
+>>>>>>> origin/fix/scenario-tests-properly
 for entry in "${SERVICES[@]}"; do
   IFS='|' read -r name dockerfile default_platform <<< "${entry}"
   if should_build "${name}"; then
     echo "  ${REGISTRY}${name}:${TAG}"
   fi
 done
+<<<<<<< HEAD
 echo "${DIVIDER}"
+=======
+echo "=========================================="
+>>>>>>> origin/fix/scenario-tests-properly

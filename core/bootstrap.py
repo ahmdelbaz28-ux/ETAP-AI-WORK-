@@ -8,15 +8,24 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+<<<<<<< HEAD
 import math
 import os
 import threading
+=======
+import os
+import threading
+from contextlib import asynccontextmanager
+>>>>>>> origin/fix/scenario-tests-properly
 
 # Prometheus metrics are optional for dev tooling / local environments.
 # If prometheus_client isn't installed (or the interpreter isn't wired),
 # fall back to no-op metric objects to prevent import-time failures.
+<<<<<<< HEAD
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 from importlib import import_module
 from typing import Any
 
@@ -32,7 +41,11 @@ except Exception:  # pragma: no cover
 
     class _PromStub:
         def __init__(self, *args, **kwargs):
+<<<<<<< HEAD
             pass  # NOSONAR intentional no-op (protocol stub / test fixture)
+=======
+            pass
+>>>>>>> origin/fix/scenario-tests-properly
 
         def labels(self, *args, **kwargs):
             return self
@@ -76,17 +89,26 @@ except Exception:  # numpy is normally present, but be defensive
     np: _Any = None  # type: ignore
 
 
+<<<<<<< HEAD
 def _to_jsonable(  # NOSONAR
     obj: Any,
 ) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+def _to_jsonable(obj: Any) -> Any:
+>>>>>>> origin/fix/scenario-tests-properly
     """Recursively convert numpy types (and other engine outputs) to native
     Python primitives that FastAPI / Pydantic can serialize as JSON."""
     if obj is None or isinstance(obj, (str, bool)):
         return obj
     if isinstance(obj, (int, float)):
+<<<<<<< HEAD
         # Reject NaN/inf which are not valid JSON. math.isnan/isinf is
         # clearer than the `obj != obj` trick (SonarCloud S1764).
         if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+=======
+        # Reject nan/inf which are not valid JSON
+        if isinstance(obj, float) and (obj != obj or obj in (float("inf"), float("-inf"))):
+>>>>>>> origin/fix/scenario-tests-properly
             return None
         return obj
     if isinstance(obj, complex):
@@ -106,7 +128,11 @@ def _to_jsonable(  # NOSONAR
             return int(obj.item())
         if isinstance(obj, (np.floating,)):
             v = float(obj.item())
+<<<<<<< HEAD
             if math.isnan(v) or math.isinf(v):
+=======
+            if v != v or v in (float("inf"), float("-inf")):
+>>>>>>> origin/fix/scenario-tests-properly
                 return None
             return v
         if isinstance(obj, (np.bool_,)):
@@ -135,7 +161,11 @@ class _TraceFilter:
     def __init__(self):
         self.local = threading.local()
 
+<<<<<<< HEAD
     def filter(self, record: logging.LogRecord) -> bool:
+=======
+    def filter(self, record):
+>>>>>>> origin/fix/scenario-tests-properly
         trace_id = getattr(self.local, "current_trace_id", "unknown")
         record.trace_id = trace_id
         return True
@@ -144,9 +174,13 @@ class _TraceFilter:
 _trace_filter = _TraceFilter()
 
 
+<<<<<<< HEAD
 def _structlog_processor_wrapper(
     logger: Any, method_name: str, event_dict: dict[str, Any]
 ) -> dict[str, Any]:
+=======
+def _structlog_processor_wrapper(logger, method_name, event_dict):
+>>>>>>> origin/fix/scenario-tests-properly
     """Wrapper to add trace_id from thread-local storage to structlog events."""
     trace_id = getattr(_trace_filter.local, "current_trace_id", "unknown")
     event_dict["trace_id"] = trace_id
@@ -224,10 +258,17 @@ def _get_etap_provider():
             # When privacy mode is enabled, ensure ETAP is disabled
             os.environ["USE_ETAP"] = "false"
 
+<<<<<<< HEAD
         # Import and CALL the ETAP provider — return instance, not function
         from etap_integration.etap_provider import get_etap_provider
 
         return get_etap_provider()  # FIX: call the function, return an IEtapProvider instance
+=======
+        # Import and return the ETAP provider
+        from etap_integration.etap_provider import get_etap_provider
+
+        return get_etap_provider
+>>>>>>> origin/fix/scenario-tests-properly
 
     return factory
 
@@ -287,9 +328,13 @@ try:  # pragma: no cover
         ),
     )
     _active_requests = Gauge(
+<<<<<<< HEAD
         "active_requests",
         "Number of active requests",
         labelnames=["endpoint", "method"],
+=======
+        "active_requests", "Number of active requests", labelnames=["endpoint", "method"]
+>>>>>>> origin/fix/scenario-tests-properly
     )
     _service_info = Info("service", "Service information")
 except Exception:  # pragma: no cover
@@ -354,7 +399,11 @@ def _validate_environment() -> None:
 
 
 @asynccontextmanager
+<<<<<<< HEAD
 async def lifespan(_app: Any) -> AsyncIterator[None]:
+=======
+async def lifespan(app):
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Lifespan context manager for application startup and shutdown events.
     """
@@ -385,6 +434,7 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
             try:
                 await _study_cache.clear()
             except Exception as e:
+<<<<<<< HEAD
                 logger.warning("Cache cleanup failed: %s", e, exc_info=True)
 
 
@@ -406,6 +456,15 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
         )
         return StudyCache(redis_url="memory://fallback", ttl=3600)
 
+=======
+                logger.warning(f"Cache cleanup failed: {e}")
+
+
+async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
+    """Initialize cache with retry mechanism."""
+    from services.cache_service import StudyCache
+
+>>>>>>> origin/fix/scenario-tests-properly
     for attempt in range(max_retries):
         try:
             cache = StudyCache()
@@ -413,6 +472,7 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
             if hasattr(cache, "ping"):
                 ping_result = await cache.ping()
                 if ping_result:
+<<<<<<< HEAD
                     logger.info("Cache connection established (attempt %s)", attempt + 1)
                     return cache
                 else:
@@ -427,6 +487,17 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
                 e,
                 exc_info=True,
             )
+=======
+                    logger.info(f"Cache connection established (attempt {attempt + 1})")
+                    return cache
+                else:
+                    logger.warning(f"Cache connection failed (attempt {attempt + 1})")
+            else:
+                logger.info(f"Cache initialized without ping (attempt {attempt + 1})")
+                return cache
+        except Exception as e:
+            logger.warning(f"Cache initialization failed (attempt {attempt + 1}): {e}")
+>>>>>>> origin/fix/scenario-tests-properly
             if attempt == max_retries - 1:
                 logger.error("Failed to initialize cache after all retries, using fallback")
                 # Return a basic in-memory cache as fallback
@@ -437,6 +508,7 @@ async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:
 
 # Initialize cache placeholder (actual init happens in lifespan)
 _study_cache: Any = None
+<<<<<<< HEAD
 # NOTE: get_study_cache() accessor removed — had 0 external callers.
 # The cache is initialized in lifespan() and used only internally
 # for cleanup. External modules should import the canonical factory:
@@ -445,5 +517,15 @@ _study_cache: Any = None
 
 
 def get_logger() -> Any:
+=======
+
+
+def get_study_cache():
+    """Get the global study cache instance."""
+    return _study_cache
+
+
+def get_logger():
+>>>>>>> origin/fix/scenario-tests-properly
     """Get the configured logger instance."""
     return logger

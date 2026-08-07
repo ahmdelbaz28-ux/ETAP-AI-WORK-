@@ -13,6 +13,7 @@ Enhanced with:
 - ML capabilities discovery
 """
 
+<<<<<<< HEAD
 import hmac
 import logging
 import math
@@ -108,12 +109,24 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
 
 @router.get("/ml/capabilities", dependencies=[Depends(_get_api_key_or_user)])
 def ml_capabilities(request: Request):
+=======
+import numpy as np
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
+
+router = APIRouter(prefix="/api/v1", tags=["ai_ml"])
+
+
+@router.get("/ml/capabilities")
+async def ml_capabilities():
+>>>>>>> origin/fix/scenario-tests-properly
     """Discover available ML/AI capabilities and their status."""
     try:
         from ml.predictive import get_ml_capabilities
 
         caps = get_ml_capabilities()
         return JSONResponse(content={"success": True, "data": caps})
+<<<<<<< HEAD
     except Exception:
         # SECURITY AUDIT 2026-07-26 — S-23: Do not leak internal error details to clients.
         logger.exception("ml_capabilities_failed")
@@ -138,16 +151,28 @@ def _clean_nan(obj: Any) -> Any:
 
 
 @router.post("/predict/load", dependencies=[Depends(_get_api_key_or_user)])
+=======
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "errors": [str(e)]})
+
+
+@router.post("/predict/load")
+>>>>>>> origin/fix/scenario-tests-properly
 async def predict_load(request: Request):
     """Predict future load using Prophet/LSTM/Linear LoadForecaster."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
+<<<<<<< HEAD
         historical = body.get("historical_data") or body.get("data", [])
+=======
+        historical = body.get("historical_data", [])
+>>>>>>> origin/fix/scenario-tests-properly
         horizon = body.get("horizon_hours", 24)
         method = body.get("method", "auto")  # auto, prophet, lstm, linear
 
         if not historical:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="historical_data is required"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
@@ -164,6 +189,17 @@ async def predict_load(request: Request):
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="horizon_hours must be between 1 and 168"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(status_code=400, detail="historical_data is required")
+        if not isinstance(historical, list):
+            raise HTTPException(status_code=400, detail="historical_data must be an array")
+        if len(historical) > 10000:
+            raise HTTPException(
+                status_code=400, detail="historical_data array too large (max 10000 points)"
+            )
+        if not isinstance(horizon, int) or horizon < 1 or horizon > 168:
+            raise HTTPException(status_code=400, detail="horizon_hours must be between 1 and 168")
+>>>>>>> origin/fix/scenario-tests-properly
 
         from ml.predictive import LoadForecaster
 
@@ -174,6 +210,7 @@ async def predict_load(request: Request):
         metrics = lf.evaluate(data) if hasattr(lf, "evaluate") else {}
 
         return JSONResponse(
+<<<<<<< HEAD
             content=_clean_nan(
                 {
                     "success": True,
@@ -191,12 +228,29 @@ async def predict_load(request: Request):
             ),
         )
 
+=======
+            content={
+                "success": True,
+                "data": {
+                    "predictions": predictions.tolist()
+                    if hasattr(predictions, "tolist")
+                    else list(predictions),
+                    "horizon_hours": horizon,
+                    "input_points": len(historical),
+                    "method": train_result.get("method", "unknown"),
+                    "metrics": metrics,
+                },
+                "trace_id": trace_id,
+            }
+        )
+>>>>>>> origin/fix/scenario-tests-properly
     except HTTPException:
         raise
     except Exception as e:
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -205,6 +259,15 @@ async def predict_load(request: Request):
 
 
 @router.post("/predict/fault", dependencies=[Depends(_get_api_key_or_user)])
+=======
+        logger.error("predict_load_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
+
+@router.post("/predict/fault")
+>>>>>>> origin/fix/scenario-tests-properly
 async def predict_fault(request: Request):
     """Predict fault type using XGBoost/RandomForest with optional SHAP explanation."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -215,6 +278,7 @@ async def predict_fault(request: Request):
         explain = body.get("explain", False)
 
         if not features:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="features array is required"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
@@ -222,6 +286,11 @@ async def predict_fault(request: Request):
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="features must be an array"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(status_code=400, detail="features array is required")
+        if not isinstance(features, list):
+            raise HTTPException(status_code=400, detail="features must be an array")
+>>>>>>> origin/fix/scenario-tests-properly
 
         from ml.predictive import FaultPredictor
 
@@ -247,7 +316,11 @@ async def predict_fault(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -255,6 +328,7 @@ async def predict_fault(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -263,6 +337,15 @@ async def predict_fault(request: Request):
 
 
 @router.post("/predict/fault/train", dependencies=[Depends(_get_api_key_or_user)])
+=======
+        logger.error("predict_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
+
+@router.post("/predict/fault/train")
+>>>>>>> origin/fix/scenario-tests-properly
 async def train_fault_predictor(request: Request):
     """Train fault prediction model with XGBoost/RandomForest + Optuna + SHAP."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -274,9 +357,13 @@ async def train_fault_predictor(request: Request):
         optimize = body.get("optimize", False)
 
         if not features or not labels:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="features and labels are required"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(status_code=400, detail="features and labels are required")
+>>>>>>> origin/fix/scenario-tests-properly
 
         from ml.predictive import FaultPredictor
 
@@ -296,7 +383,11 @@ async def train_fault_predictor(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -304,6 +395,7 @@ async def train_fault_predictor(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -312,16 +404,30 @@ async def train_fault_predictor(request: Request):
 
 
 @router.post("/predict/anomaly", dependencies=[Depends(_get_api_key_or_user)])
+=======
+        logger.error("train_fault_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
+
+@router.post("/predict/anomaly")
+>>>>>>> origin/fix/scenario-tests-properly
 async def detect_anomalies(request: Request):
     """Detect anomalies using Isolation Forest / PyOD multi-method detection."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         body = await request.json()
+<<<<<<< HEAD
         data = body.get("data") or body.get("values") or body.get("historical_data", [])
+=======
+        data = body.get("data", [])
+>>>>>>> origin/fix/scenario-tests-properly
         method = body.get("method", "iforest")  # iforest, pyod_iforest, pyod_knn, pyod_autoencoder
         contamination = body.get("contamination", 0.05)
 
         if not data:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="data array is required"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
@@ -333,6 +439,13 @@ async def detect_anomalies(request: Request):
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="data array too large (max 10000 points)"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(status_code=400, detail="data array is required")
+        if not isinstance(data, list):
+            raise HTTPException(status_code=400, detail="data must be an array")
+        if len(data) > 10000:
+            raise HTTPException(status_code=400, detail="data array too large (max 10000 points)")
+>>>>>>> origin/fix/scenario-tests-properly
 
         from ml.predictive import AnomalyDetector
 
@@ -350,7 +463,11 @@ async def detect_anomalies(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -358,6 +475,7 @@ async def detect_anomalies(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -366,6 +484,15 @@ async def detect_anomalies(request: Request):
 
 
 @router.post("/gnn/predict", dependencies=[Depends(_get_api_key_or_user)])
+=======
+        logger.error("anomaly_detection_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
+
+@router.post("/gnn/predict")
+>>>>>>> origin/fix/scenario-tests-properly
 async def gnn_predict(request: Request):
     """Predict using Graph Neural Network on power grid data."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -378,7 +505,11 @@ async def gnn_predict(request: Request):
                     "success": False,
                     "error": "GNN requires PyTorch and PyTorch Geometric",
                     "trace_id": trace_id,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         body = await request.json()
@@ -389,9 +520,14 @@ async def gnn_predict(request: Request):
         epochs = body.get("epochs", 100)
 
         if not node_features or not edge_index or not targets:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                 status_code=400,
                 detail="node_features, edge_index, and targets are required",
+=======
+            raise HTTPException(
+                status_code=400, detail="node_features, edge_index, and targets are required"
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         from ml.predictive import PowerGridGNN
@@ -409,7 +545,11 @@ async def gnn_predict(request: Request):
                 "success": True,
                 "data": result,
                 "trace_id": trace_id,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -417,6 +557,7 @@ async def gnn_predict(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
@@ -425,6 +566,15 @@ async def gnn_predict(request: Request):
 
 
 @router.post("/rag/query", dependencies=[Depends(_get_api_key_or_user)])
+=======
+        logger.error("gnn_predict_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+        )
+
+
+@router.post("/rag/query")
+>>>>>>> origin/fix/scenario-tests-properly
 async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -438,9 +588,13 @@ async def rag_query(request: Request):
         top_k = body.get("top_k", 5)
 
         if not query:
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR
                 status_code=400, detail="query is required"
             )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(status_code=400, detail="query is required")
+>>>>>>> origin/fix/scenario-tests-properly
 
         from knowledge.rag_engine import EngineeringKnowledgeBase
 
@@ -465,7 +619,11 @@ async def rag_query(request: Request):
                     ],
                 },
                 "trace_id": trace_id,
+<<<<<<< HEAD
             },
+=======
+            }
+>>>>>>> origin/fix/scenario-tests-properly
         )
     except HTTPException:
         raise
@@ -473,8 +631,14 @@ async def rag_query(request: Request):
         from logging import getLogger
 
         logger = getLogger("engineering_service")
+<<<<<<< HEAD
         logger.exception("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+=======
+        logger.error("rag_query_failed error=%s", str(e), extra={"trace_id": trace_id})
+        return JSONResponse(
+            status_code=500, content={"success": False, "errors": [str(e)], "trace_id": trace_id}
+>>>>>>> origin/fix/scenario-tests-properly
         )

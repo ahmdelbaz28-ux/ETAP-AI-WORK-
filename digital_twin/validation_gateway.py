@@ -16,7 +16,11 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List, Optional
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class ValidationSeverity(Enum):
@@ -68,7 +72,11 @@ class ValidationResult:
     passed: bool
     severity: ValidationSeverity = ValidationSeverity.ERROR
     message: str = ""
+<<<<<<< HEAD
     details: dict[str, Any] = field(default_factory=dict)
+=======
+    details: Dict[str, Any] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
     timestamp: float = field(default_factory=time.time)
 
     def to_dict(self) -> dict:
@@ -85,7 +93,11 @@ class ValidationResult:
 class DigitalTwinValidationError(Exception):
     """Raised when digital twin validation fails."""
 
+<<<<<<< HEAD
     def __init__(self, results: list[ValidationResult], message: str = ""):
+=======
+    def __init__(self, results: List[ValidationResult], message: str = ""):
+>>>>>>> origin/fix/scenario-tests-properly
         self.results = results
         self.failed_rules = [r for r in results if not r.passed]
         error_summary = "; ".join(
@@ -124,8 +136,13 @@ class ValidationGateway:
                      If False, failures are recorded but do not raise exceptions.
         """
         self.strict_mode = strict_mode
+<<<<<<< HEAD
         self._custom_rules: dict[ValidationRule, Callable] = {}
         self._validation_history: list[list[ValidationResult]] = []
+=======
+        self._custom_rules: Dict[ValidationRule, Callable] = {}
+        self._validation_history: List[List[ValidationResult]] = []
+>>>>>>> origin/fix/scenario-tests-properly
         self._max_history = 1000
 
     def register_custom_rule(self, rule: ValidationRule, validator: Callable) -> None:
@@ -133,6 +150,7 @@ class ValidationGateway:
         self._custom_rules[rule] = validator
 
     def validate_all(
+<<<<<<< HEAD
         self,
         gis_db=None,
         system=None,
@@ -140,6 +158,10 @@ class ValidationGateway:
         adms_engine=None,
         state_snapshot=None,
     ) -> list[ValidationResult]:
+=======
+        self, gis_db=None, system=None, scada_db=None, adms_engine=None, state_snapshot=None
+    ) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Run all validation rules across all layers.
 
@@ -186,7 +208,11 @@ class ValidationGateway:
                         passed=False,
                         severity=ValidationSeverity.ERROR,
                         message=f"Custom rule exception: {str(e)}",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Record history
@@ -208,6 +234,7 @@ class ValidationGateway:
         return results
 
     def validate_pre_mutation(
+<<<<<<< HEAD
         self,
         event_type: str,
         _gis_db=None,  # NOSONAR
@@ -215,6 +242,10 @@ class ValidationGateway:
         _scada_db=None,  # NOSONAR
         adms_engine=None,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
+=======
+        self, event_type: str, gis_db=None, system=None, scada_db=None, adms_engine=None
+    ) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate pre-conditions before a state mutation.
 
@@ -230,6 +261,7 @@ class ValidationGateway:
                 passed=system is not None,
                 severity=ValidationSeverity.CRITICAL,
                 message="Electrical model must exist for any mutation" if system is None else "OK",
+<<<<<<< HEAD
             ),
         )
 
@@ -243,10 +275,27 @@ class ValidationGateway:
                     message="Switch existence will be verified during processing",
                 ),
             )
+=======
+            )
+        )
+
+        # Switch operations require the switch to exist
+        if event_type in ("switch_opened", "switch_closed"):
+            if adms_engine is not None:
+                results.append(
+                    ValidationResult(
+                        rule=ValidationRule.ADMS_SWITCH_EXISTS_IN_TOPOLOGY,
+                        passed=True,  # Will be checked during event processing
+                        severity=ValidationSeverity.ERROR,
+                        message="Switch existence will be verified during processing",
+                    )
+                )
+>>>>>>> origin/fix/scenario-tests-properly
 
         return results
 
     def validate_post_mutation(
+<<<<<<< HEAD
         self,
         gis_db=None,
         system=None,
@@ -254,6 +303,10 @@ class ValidationGateway:
         adms_engine=None,
         state_snapshot=None,
     ) -> list[ValidationResult]:
+=======
+        self, gis_db=None, system=None, scada_db=None, adms_engine=None, state_snapshot=None
+    ) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate post-conditions after a state mutation.
 
@@ -266,7 +319,11 @@ class ValidationGateway:
     # GIS LAYER VALIDATIONS (Spatial Truth)
     # ============================================================
 
+<<<<<<< HEAD
     def _validate_gis_layer(self, gis_db) -> list[ValidationResult]:
+=======
+    def _validate_gis_layer(self, gis_db) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Validate GIS spatial truth."""
         results = []
 
@@ -277,7 +334,11 @@ class ValidationGateway:
                     passed=False,
                     severity=ValidationSeverity.WARNING,
                     message="GIS database not provided - spatial truth cannot be validated",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return results
 
@@ -308,7 +369,11 @@ class ValidationGateway:
                 if missing_position > 0
                 else "All point assets have positions",
                 details={"missing_count": missing_position},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Check line assets have geometry
@@ -328,7 +393,11 @@ class ValidationGateway:
                 if missing_geometry > 0
                 else "All line assets have geometry",
                 details={"missing_count": missing_geometry},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Check electrical_id references resolve
@@ -342,7 +411,11 @@ class ValidationGateway:
                 if gis_errors
                 else "GIS spatial consistency OK",
                 details={"errors": gis_errors},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return results
@@ -351,7 +424,11 @@ class ValidationGateway:
     # ELECTRICAL LAYER VALIDATIONS (Mathematical Truth)
     # ============================================================
 
+<<<<<<< HEAD
     def _validate_electrical_layer(self, system) -> list[ValidationResult]:
+=======
+    def _validate_electrical_layer(self, system) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Validate electrical mathematical truth."""
         results = []
 
@@ -362,7 +439,11 @@ class ValidationGateway:
                     passed=False,
                     severity=ValidationSeverity.CRITICAL,
                     message="Electrical model (System) not provided",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return results
 
@@ -374,7 +455,11 @@ class ValidationGateway:
                 passed=n_buses > 0,
                 severity=ValidationSeverity.CRITICAL if n_buses == 0 else ValidationSeverity.INFO,
                 message=f"System has {n_buses} buses",
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Check Ybus is valid
@@ -392,7 +477,11 @@ class ValidationGateway:
                     if ybus_valid
                     else "Ybus matrix invalid",
                     details={"ybus_shape": list(ybus.shape) if ybus is not None else None},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
         except Exception as e:
             results.append(
@@ -401,7 +490,11 @@ class ValidationGateway:
                     passed=False,
                     severity=ValidationSeverity.ERROR,
                     message=f"Ybus construction failed: {str(e)}",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Check voltages in range (0.9 - 1.1 pu)
@@ -420,7 +513,11 @@ class ValidationGateway:
                 if out_of_range > 0
                 else "All voltages in range",
                 details={"out_of_range_count": out_of_range},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         # Check at least one slack bus exists
@@ -431,7 +528,11 @@ class ValidationGateway:
                 passed=has_slack,
                 severity=ValidationSeverity.CRITICAL if not has_slack else ValidationSeverity.INFO,
                 message="Slack bus exists" if has_slack else "No slack bus defined",
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return results
@@ -440,11 +541,15 @@ class ValidationGateway:
     # ADMS LAYER VALIDATIONS (Operational Truth)
     # ============================================================
 
+<<<<<<< HEAD
     def _validate_adms_layer(  # NOSONAR
         self, scada_db, adms_engine
     ) -> list[
         ValidationResult
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def _validate_adms_layer(self, scada_db, adms_engine) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Validate ADMS operational truth."""
         results = []
 
@@ -464,7 +569,11 @@ class ValidationGateway:
                     if expired > 0
                     else "All SCADA measurements fresh",
                     details={"expired_count": expired},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Check switch status consistency
@@ -475,7 +584,11 @@ class ValidationGateway:
                     passed=True,
                     severity=ValidationSeverity.INFO,
                     message=f"{len(switches)} switch devices tracked",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Check ADMS engine has source buses
@@ -493,7 +606,11 @@ class ValidationGateway:
                     message=f"{len(adms_engine.source_buses)} source buses defined"
                     if has_sources
                     else "No source buses defined",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         return results
@@ -502,6 +619,7 @@ class ValidationGateway:
     # CROSS-LAYER SYNCHRONIZATION VALIDATIONS
     # ============================================================
 
+<<<<<<< HEAD
     def _validate_cross_layer_sync(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         gis_db,
@@ -509,13 +627,22 @@ class ValidationGateway:
         _scada_db,  # NOSONAR
         adms_engine,  # NOSONAR unused param kept for API compatibility
     ) -> list[ValidationResult]:
+=======
+    def _validate_cross_layer_sync(
+        self, gis_db, system, scada_db, adms_engine
+    ) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Validate cross-layer synchronization (Three Truths Principle)."""
         results = []
 
         # GIS <-> Electrical alignment
         if gis_db is not None and system is not None:
             electrical_ids = set()
+<<<<<<< HEAD
             for bid in system.buses:
+=======
+            for bid in system.buses.keys():
+>>>>>>> origin/fix/scenario-tests-properly
                 electrical_ids.add(str(bid))
             for line in system.lines:
                 electrical_ids.add(f"line_{line.line_id}")
@@ -536,12 +663,20 @@ class ValidationGateway:
                     if gis_errors
                     else "GIS-Electrical alignment OK",
                     details={"errors": gis_errors},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Check all electrical buses have GIS positions
             missing_gis = 0
+<<<<<<< HEAD
             for bid in system.buses:
+=======
+            for bid in system.buses.keys():
+>>>>>>> origin/fix/scenario-tests-properly
                 asset = gis_db.find_asset_by_electrical_id(str(bid))
                 if asset is None or asset.position is None:
                     missing_gis += 1
@@ -556,7 +691,11 @@ class ValidationGateway:
                     if missing_gis > 0
                     else "All buses have GIS positions",
                     details={"missing_gis_count": missing_gis},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # ADMS <-> Electrical topology alignment
@@ -569,7 +708,11 @@ class ValidationGateway:
                     if hasattr(topology, "bus_connections")
                     else set()
                 )
+<<<<<<< HEAD
                 elec_buses = {str(bid) for bid in system.buses}
+=======
+                elec_buses = {str(bid) for bid in system.buses.keys()}
+>>>>>>> origin/fix/scenario-tests-properly
                 orphaned = topo_buses - elec_buses
                 results.append(
                     ValidationResult(
@@ -580,7 +723,11 @@ class ValidationGateway:
                         if orphaned
                         else "ADMS topology matches electrical model",
                         details={"orphaned_buses": list(orphaned)},
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         # Ybus <-> Topology alignment
@@ -591,7 +738,11 @@ class ValidationGateway:
                     passed=True,
                     severity=ValidationSeverity.INFO,
                     message="Ybus-topology alignment will be verified after rebuild",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         return results
@@ -600,7 +751,11 @@ class ValidationGateway:
     # STATE SNAPSHOT VALIDATIONS
     # ============================================================
 
+<<<<<<< HEAD
     def _validate_state_snapshot(self, snapshot) -> list[ValidationResult]:
+=======
+    def _validate_state_snapshot(self, snapshot) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Validate a state snapshot for internal consistency."""
         results = []
 
@@ -619,7 +774,11 @@ class ValidationGateway:
                 severity=ValidationSeverity.WARNING,
                 message=f"Layers present: GIS={has_gis}, Electrical={has_elec}, ADMS={has_adms}",
                 details={"gis": has_gis, "electrical": has_elec, "adms": has_adms},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return results
@@ -628,17 +787,29 @@ class ValidationGateway:
     # UTILITY METHODS
     # ============================================================
 
+<<<<<<< HEAD
     def get_validation_history(self, limit: int = 10) -> list[list[ValidationResult]]:
         """Get recent validation history."""
         return self._validation_history[-limit:]
 
     def get_last_validation(self) -> list[ValidationResult] | None:
+=======
+    def get_validation_history(self, limit: int = 10) -> List[List[ValidationResult]]:
+        """Get recent validation history."""
+        return self._validation_history[-limit:]
+
+    def get_last_validation(self) -> List[ValidationResult] | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get the most recent validation results."""
         if not self._validation_history:
             return None
         return self._validation_history[-1]
 
+<<<<<<< HEAD
     def get_failed_rules(self, results: list[ValidationResult] = None) -> list[ValidationResult]:
+=======
+    def get_failed_rules(self, results: List[ValidationResult] = None) -> List[ValidationResult]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get only failed validation results."""
         if results is None:
             results = self.get_last_validation() or []

@@ -48,7 +48,11 @@ async function runRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body
   }
 }
 
+<<<<<<< HEAD
 async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+async function runChaosTest() {
+>>>>>>> origin/fix/scenario-tests-properly
   console.log('╔══════════════════════════════════════════════════════════════════╗');
   console.log('║         AhmedETAP Platform — Chaos Testing Suite                  ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
@@ -65,9 +69,14 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let keyRotationRateLimited = 0;
   const keyRotationErrors: string[] = [];
   for (let i = 0; i < 50; i++) {
+<<<<<<< HEAD
     // 70% valid, 30% invalid key selection for chaos test
     const useValidKey = Math.random() > 0.3;  // NOSONAR — S2245: PRNG for chaos test, not crypto
     const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();  // NOSONAR — S2245: PRNG for chaos test, not crypto
+=======
+    const useValidKey = Math.random() > 0.3; // 70% valid, 30% invalid
+    const key = useValidKey ? API_KEY : 'invalid-key-' + Math.random();
+>>>>>>> origin/fix/scenario-tests-properly
     const r = await runRequest('/api/v1/agents', 'GET', undefined, key);
     if (r.ok) keyRotationOk++;
     else if (r.status === 429) keyRotationRateLimited++;
@@ -100,8 +109,13 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let jitterRateLimited = 0;
   const jitterErrors: string[] = [];
   for (let i = 0; i < 100; i++) {
+<<<<<<< HEAD
     const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     const method = methods[Math.floor(Math.random() * methods.length)];  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
+=======
+    const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
+    const method = methods[Math.floor(Math.random() * methods.length)];
+>>>>>>> origin/fix/scenario-tests-properly
     const body = method === 'POST' ? { studyType: 'load_flow', parameters: { base_mva: 100 } } : undefined;
     const r = await runRequest(endpoint, method, body);
     if (r.ok) jitterOk++;
@@ -197,10 +211,17 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   let payloadRateLimited = 0;
   const payloadErrors: string[] = [];
   for (let i = 0; i < 30; i++) {
+<<<<<<< HEAD
     const paramCount = Math.floor(Math.random() * 50) + 1;  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
     const params: Record<string, number> = {};
     for (let p = 0; p < paramCount; p++) {
       params[`param_${p}`] = Math.random() * 1000;  // NOSONAR — S2245: PRNG used for non-crypto purposes (UI)
+=======
+    const paramCount = Math.floor(Math.random() * 50) + 1;
+    const params: Record<string, number> = {};
+    for (let p = 0; p < paramCount; p++) {
+      params[`param_${p}`] = Math.random() * 1000;
+>>>>>>> origin/fix/scenario-tests-properly
     }
     const r = await runRequest('/api/v1/studies/run', 'POST', { studyType: 'load_flow', parameters: params });
     if (r.ok) payloadOk++;
@@ -237,13 +258,21 @@ async function runChaosTest() {  // NOSONAR — S3776: cognitive complexity; sch
   console.log('╚══════════════════════════════════════════════════════════════════╝');
 
   const report = { timestamp: new Date().toISOString(), target: DEPLOYED_URL, results, overallSurvived: totalSurvived, totalScenarios };
+<<<<<<< HEAD
   const fs = await import('node:fs/promises');
+=======
+  const fs = await import('fs/promises');
+>>>>>>> origin/fix/scenario-tests-properly
   await fs.writeFile('tests/chaos/chaos-test-report.json', JSON.stringify(report, null, 2));
   console.log('\n📄 Report saved to: tests/chaos/chaos-test-report.json');
 }
 
+<<<<<<< HEAD
 try {
   await runChaosTest()
 } catch (e) {
   console.error(e);
 }
+=======
+runChaosTest().catch(console.error);
+>>>>>>> origin/fix/scenario-tests-properly

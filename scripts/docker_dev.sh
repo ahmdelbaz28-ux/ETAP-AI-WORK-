@@ -68,7 +68,11 @@ done
 # ---------------------------------------------------------------------------
 # Ensure .env file exists
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 if [[ ! -f "${PROJECT_DIR}/.env" ]]; then
+=======
+if [ ! -f "${PROJECT_DIR}/.env" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
   echo "Creating .env from .env.example..."
   cp "${PROJECT_DIR}/.env.example" "${PROJECT_DIR}/.env"
   echo "  ✓ .env created. Edit it with your API keys before proceeding."
@@ -77,7 +81,11 @@ fi
 # ---------------------------------------------------------------------------
 # Validate
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed" >&2; exit 1; }
+=======
+command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ---------------------------------------------------------------------------
 # Actions
@@ -96,13 +104,21 @@ case "${ACTION}" in
     )
 
     # If not using worker, skip its profile
+<<<<<<< HEAD
     if [[ "${NO_WORKER}" = "true" ]]; then
+=======
+    if [ "${NO_WORKER}" = "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
       EXTRA_ARGS+=(--profile development)
     else
       EXTRA_ARGS+=(--profile "development,windows")
     fi
 
+<<<<<<< HEAD
     if [[ "${BUILD}" = "true" ]]; then
+=======
+    if [ "${BUILD}" = "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
       echo "[1/3] Building images..."
       docker compose "${COMPOSE_ARGS[@]}" build
     fi
@@ -119,7 +135,11 @@ case "${ACTION}" in
     echo "  Redis CLI:  docker exec -it etap-redis redis-cli"
     echo ""
 
+<<<<<<< HEAD
     if [[ "${FOLLOW_LOGS}" = "true" ]]; then
+=======
+    if [ "${FOLLOW_LOGS}" = "true" ]; then
+>>>>>>> origin/fix/scenario-tests-properly
       echo "Tailing logs (Ctrl+C to stop)..."
       docker compose "${COMPOSE_ARGS[@]}" logs -f
     fi

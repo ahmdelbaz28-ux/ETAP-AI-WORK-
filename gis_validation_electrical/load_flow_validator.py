@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+<<<<<<< HEAD
+=======
+from typing import Dict, List, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -8,6 +12,7 @@ from gis_validation_electrical.electrical_model import ElectricalModel
 @dataclass(frozen=True)
 class LoadFlowIssue:
     issue_type: str  # e.g. "voltage_propagation_inconsistent"
+<<<<<<< HEAD
     affected_assets: list[str]
     details: dict[str, object]
 
@@ -17,6 +22,13 @@ def _compute_deterministic_voltages(  # NOSONAR
 ) -> dict[
     str, float
 ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    affected_assets: List[str]
+    details: Dict[str, object]
+
+
+def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Simplified deterministic "voltage propagation" model:
     - Substation node voltage initialized deterministically (based on node_id)
@@ -35,13 +47,22 @@ def _compute_deterministic_voltages(  # NOSONAR
         return pu
 
     # BFS from each node (graph may be disconnected). For each node, compute best-effort.
+<<<<<<< HEAD
     volt: dict[str, float] = {}
     for nid in model.nodes:
+=======
+    volt: Dict[str, float] = {}
+    for nid in model.nodes.keys():
+>>>>>>> origin/fix/scenario-tests-properly
         if nid in volt:
             continue
         volt[nid] = init_voltage(nid)
 
+<<<<<<< HEAD
         frontier: list[str] = [nid]
+=======
+        frontier: List[str] = [nid]
+>>>>>>> origin/fix/scenario-tests-properly
         while frontier:
             cur = frontier.pop(0)
             cur_v = volt[cur]
@@ -59,7 +80,11 @@ def _compute_deterministic_voltages(  # NOSONAR
     return volt
 
 
+<<<<<<< HEAD
 def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue]]:
+=======
+def validate_load_flow(model: ElectricalModel) -> Tuple[bool, List[LoadFlowIssue]]:
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Deterministic simplified load-flow validation:
     - Voltage propagation consistency: edge endpoints must not violate bounded drop constraints.
@@ -71,7 +96,11 @@ def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue
 
     volt = _compute_deterministic_voltages(model)
 
+<<<<<<< HEAD
     issues: list[LoadFlowIssue] = []
+=======
+    issues: List[LoadFlowIssue] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
     for e in model.edges.values():
         v_from = volt.get(e.from_node)
@@ -88,7 +117,11 @@ def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue
                     issue_type="voltage_propagation_direction_inconsistent",
                     affected_assets=list(e.asset_ids),
                     details={"edge_id": e.edge_id, "v_from": v_from, "v_to": v_to},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
             continue
 
@@ -102,7 +135,11 @@ def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue
                         "impedance_ohm": e.impedance_ohm,
                         "drop_pu": drop,
                     },
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         # Voltage plausibility bounds
@@ -112,7 +149,11 @@ def validate_load_flow(model: ElectricalModel) -> tuple[bool, list[LoadFlowIssue
                     issue_type="voltage_out_of_bounds",
                     affected_assets=list(e.asset_ids),
                     details={"node_id": e.to_node, "v_pu": v_to},
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     ok = len(issues) == 0

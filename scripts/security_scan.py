@@ -24,6 +24,7 @@ SECRET_PATTERNS = [
     (r'secret\s*=\s*["\'][^"\']+["\']', "Hardcoded secret"),
     (r'api[_-]?key\s*=\s*["\'][^"\']{16,}["\']', "Hardcoded API key"),
     (r"sk-[a-zA-Z0-9]{20,}", "OpenAI-style key"),
+<<<<<<< HEAD
     (r"ghp_[a-zA-Z0-9]{30,}", "GitHub PAT (classic)"),
     (r"github_pat_[A-Za-z0-9_]{50,}", "GitHub PAT (fine-grained v2)"),
     (r"hf_[A-Za-z0-9]{30,}", "HuggingFace token"),
@@ -45,6 +46,14 @@ EXCLUDED_FILES = {
     "worklog.md",
     ".gitleaks.toml",
 }
+=======
+    (r"ghp_[a-zA-Z0-9]{30,}", "GitHub PAT"),
+    (r"admin123|password123|123456", "Weak default password"),
+]
+
+EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist"}
+EXCLUDED_FILES = {".env.example", "security_scan.py", "README.md", "SECURITY.md"}
+>>>>>>> origin/fix/scenario-tests-properly
 
 # Files where weak passwords / test secrets are intentional and audited.
 # Each entry is a path relative to repo root.
@@ -52,6 +61,7 @@ EXCLUDED_PATHS = {
     # Test fixtures — must use weak passwords to verify blocklist logic
     "tests/unit_tests.py",
     "tests/test_auth_api.py",
+<<<<<<< HEAD
     "tests/test_scada_websocket.py",
     "tests/test_security_fixes.py",
     "tests/test_security_e2e.py",
@@ -65,10 +75,17 @@ EXCLUDED_PATHS = {
     "security/security_framework.py",
     "security/mfa.py",
     "security/log_redaction.py",  # defines redaction patterns + docstring examples
+=======
+    "acp_runtime/tests/test_integration.py",
+    # Security fixtures — these files DEFINE the blocklist
+    "security/security_framework.py",
+    "security/mfa.py",
+>>>>>>> origin/fix/scenario-tests-properly
     "api/auth.py",
     "api/security_audit.py",
     # Setup scripts — uses a clearly-marked test password for smoke tests
     "run_complete_setup.py",
+<<<<<<< HEAD
     "scripts/maintenance/run_complete_setup.py",  # full relative path (fixes basename-only match)
     # Load test suite — uses a deterministic test password to authenticate
     # against the test server. Not a real secret.
@@ -83,15 +100,23 @@ EXCLUDED_PATHS = {
     "scripts/e2e_test.py",
     # New feature tests — use test secrets for webhook registration testing
     "tests/test_new_features.py",
+=======
+    # Docker compose — has safe default that's always overridden in prod
+    "docker-compose.yml",
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 # Inline annotations that mark a line as intentionally containing a test secret
 ALLOWLIST_MARKERS = ("# pragma: allowlist secret", "# security: intentional", "# nosec")
 
 
+<<<<<<< HEAD
 def scan_file(  # NOSONAR
     filepath,
 ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+def scan_file(filepath):
+>>>>>>> origin/fix/scenario-tests-properly
     issues = []
     try:
         with open(filepath, encoding="utf-8", errors="ignore") as f:
@@ -106,13 +131,21 @@ def scan_file(  # NOSONAR
                             continue
                         if "example" in line.lower() or "placeholder" in line.lower():
                             continue
+<<<<<<< HEAD
                         issues.append(f"{filepath}:{i}, {desc}: {line.strip()[:60]}")
+=======
+                        issues.append(f"{filepath}:{i} | {desc}: {line.strip()[:60]}")
+>>>>>>> origin/fix/scenario-tests-properly
     except Exception:
         pass
     return issues
 
 
+<<<<<<< HEAD
 def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+def main():
+>>>>>>> origin/fix/scenario-tests-properly
     all_issues = []
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
@@ -123,6 +156,7 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
                 full_path = os.path.join(root, f)
                 # Normalize to forward slashes for matching
                 rel_path = os.path.relpath(full_path).replace(os.sep, "/")
+<<<<<<< HEAD
                 # Check if the path matches any excluded path
                 excluded = False
                 for excluded_path in EXCLUDED_PATHS:
@@ -135,6 +169,9 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
                         excluded = True
                         break
                 if excluded:
+=======
+                if rel_path in EXCLUDED_PATHS:
+>>>>>>> origin/fix/scenario-tests-properly
                     continue
                 issues = scan_file(full_path)
                 all_issues.extend(issues)

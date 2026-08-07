@@ -20,7 +20,11 @@ The project includes a configuration file [`.mcp.json`](file:///c:/Users/Repair%
         "@testsprite/testsprite-mcp@latest"
       ],
       "env": {
+<<<<<<< HEAD
         "API_KEY": "REDACTED_TESTSPRITE_KEY"
+=======
+        "API_KEY": "sk-user-yzgoyjQR2p9whikAhJVlSil2Vn94qdE7ISwCxt3-TpXfkPKAC-eB6M3ZQzeY37CZYxBdlZj-N65d-R5XmOt1asGJX-GHDBiOxrA6JhIAgufaFE0vVPLhmxV4A4V6lFu5HtY"
+>>>>>>> origin/fix/scenario-tests-properly
       }
     }
   }
@@ -63,7 +67,11 @@ Add the MCP configuration to your VS Code `settings.json`:
         "@testsprite/testsprite-mcp@latest"
       ],
       "env": {
+<<<<<<< HEAD
         "API_KEY": "REDACTED_TESTSPRITE_KEY"
+=======
+        "API_KEY": "sk-user-yzgoyjQR2p9whikAhJVlSil2Vn94qdE7ISwCxt3-TpXfkPKAC-eB6M3ZQzeY37CZYxBdlZj-N65d-R5XmOt1asGJX-GHDBiOxrA6JhIAgufaFE0vVPLhmxV4A4V6lFu5HtY"
+>>>>>>> origin/fix/scenario-tests-properly
       }
     }
   }

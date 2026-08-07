@@ -583,7 +583,14 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "thresholds": {
+<<<<<<< HEAD
             "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+=======
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+>>>>>>> origin/fix/scenario-tests-properly
           }
         }
       },
@@ -613,12 +620,16 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
+<<<<<<< HEAD
             "renameByName": {
               "name": "Service",
               "version": "Version",
               "environment": "Environment",
               "Value": "Status"
             }
+=======
+            "renameByName": { "name": "Service", "version": "Version", "environment": "Environment", "Value": "Status" }
+>>>>>>> origin/fix/scenario-tests-properly
           }
         }
       ]
@@ -706,11 +717,15 @@
   "templating": {
     "list": [
       {
+<<<<<<< HEAD
         "current": {
           "selected": false,
           "text": "engineering-service",
           "value": "engineering-service"
         },
+=======
+        "current": { "selected": false, "text": "engineering-service", "value": "engineering-service" },
+>>>>>>> origin/fix/scenario-tests-properly
         "datasource": { "type": "jaeger", "uid": "${DS_JAEGER}" },
         "definition": "",
         "hide": 0,
@@ -734,4 +749,8 @@
   "title": "AhmedETAP — Traces & Metrics Correlation",
   "uid": "ahmedetap-jaeger-traces",
   "version": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly

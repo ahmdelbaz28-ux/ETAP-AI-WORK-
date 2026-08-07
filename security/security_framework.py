@@ -13,9 +13,15 @@ Features:
 - Secrets management
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 # bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
+=======
+# bcrypt is a hard dependency — add to requirements.txt: bcrypt>=4.0.0
+from __future__ import annotations
+
+>>>>>>> origin/fix/scenario-tests-properly
 import ast
 import json
 import logging
@@ -24,12 +30,21 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
 from pathlib import Path
+=======
+from datetime import UTC, datetime, timedelta
+
+UTC = UTC
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Set
+>>>>>>> origin/fix/scenario-tests-properly
 
 import bcrypt
 import jwt
@@ -140,10 +155,17 @@ class User:
     role: UserRole
     password_hash: str
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+<<<<<<< HEAD
     last_login: Optional[datetime] = None
     is_active: bool = True
     failed_login_attempts: int = 0
     locked_until: Optional[datetime] = None
+=======
+    last_login: datetime | None = None
+    is_active: bool = True
+    failed_login_attempts: int = 0
+    locked_until: datetime | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
@@ -171,7 +193,11 @@ class AuthenticationManager:
 
     def __init__(
         self,
+<<<<<<< HEAD
         secret_key: Optional[str] = None,
+=======
+        secret_key: str | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
         token_expiry_hours: int = 8,
         max_failed_attempts: int = 5,
         lockout_duration_minutes: int = 30,
@@ -184,13 +210,21 @@ class AuthenticationManager:
                 raise ValueError(
                     "JWT_SECRET_KEY must be set in production/staging environments. "
                     "Set the JWT_SECRET_KEY environment variable or explicitly set "
+<<<<<<< HEAD
                     "ENV=development for local use.",
+=======
+                    "ENV=development for local use."
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             secret_key = secrets.token_hex(32)
             logger.warning(
                 "JWT_SECRET_KEY not set; generated a random key. "
                 "Tokens will NOT survive restarts. Set JWT_SECRET_KEY "
+<<<<<<< HEAD
                 "in production for stable sessions.",
+=======
+                "in production for stable sessions."
+>>>>>>> origin/fix/scenario-tests-properly
             )
         self.secret_key = secret_key
         self.token_expiry_hours = token_expiry_hours
@@ -199,6 +233,7 @@ class AuthenticationManager:
 
         # In-memory stores — suitable for single-process deployment.
         # For multi-process / multi-node, replace with Redis or a database.
+<<<<<<< HEAD
         self.users: dict[str, User] = {}
         self.sessions: dict[str, Session] = {}
         self.username_to_id: dict[str, str] = {}
@@ -206,6 +241,12 @@ class AuthenticationManager:
 
         # V-50: Thread safety lock for shared state
         self._lock = threading.Lock()
+=======
+        self.users: Dict[str, User] = {}
+        self.sessions: Dict[str, Session] = {}
+        self.username_to_id: Dict[str, str] = {}
+        self.token_to_session: Dict[str, Session] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Fernet key: prefer dedicated FERNET_ENCRYPTION_KEY env var
         # Derive from JWT secret only as a fallback (not recommended for production)
@@ -217,7 +258,11 @@ class AuthenticationManager:
             if _env in ("production", "prod", "staging"):
                 logger.warning(
                     "FERNET_ENCRYPTION_KEY not set in production. Deriving from JWT secret "
+<<<<<<< HEAD
                     "(less secure). Set FERNET_ENCRYPTION_KEY for independent key management.",
+=======
+                    "(less secure). Set FERNET_ENCRYPTION_KEY for independent key management."
+>>>>>>> origin/fix/scenario-tests-properly
                 )
             # Derive a stable key from the JWT secret (same secret = same Fernet key)
             import base64
@@ -243,6 +288,7 @@ class AuthenticationManager:
             return False
 
     def create_user(
+<<<<<<< HEAD
         self,
         username: str,
         email: str,
@@ -345,6 +391,80 @@ class AuthenticationManager:
             "role": user.role.value,
             "jti": str(_uuid.uuid4()),  # JWT ID for revocation/blacklisting (was missing)
             "type": "access",  # Token type claim (was missing)
+=======
+        self, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
+    ) -> User | None:
+        if username in self.username_to_id:
+            logger.warning(f"Username '{username}' already exists")
+            return None
+
+        # Password strength validation
+        if len(password) < 8:
+            logger.warning("Password too short (minimum 8 characters)")
+            return None
+        _common_passwords = ("password", "12345678", "qwerty123")
+        if password.lower() in _common_passwords or password.lower() == username.lower():
+            logger.warning("Password is too common or matches username")
+            return None
+
+        user_id = secrets.token_hex(16)
+        password_hash = self._hash_password(password)
+
+        user = User(
+            user_id=user_id, username=username, email=email, role=role, password_hash=password_hash
+        )
+
+        self.users[user_id] = user
+        self.username_to_id[username] = user_id
+
+        logger.info(f"User created: {username} (role={role.value})")
+        return user
+
+    def authenticate(self, username: str, password: str) -> str | None:
+        user_id = self.username_to_id.get(username)
+        if not user_id:
+            logger.warning("Authentication failed: invalid credentials")
+            return None
+
+        user = self.users[user_id]
+
+        if user.locked_until and datetime.now(UTC) < user.locked_until:
+            logger.warning("Authentication failed: account locked")
+            return None
+
+        if not self._verify_password(password, user.password_hash):
+            user.failed_login_attempts += 1
+
+            if user.failed_login_attempts >= self.max_failed_attempts:
+                user.locked_until = datetime.now(UTC) + timedelta(
+                    minutes=self.lockout_duration_minutes
+                )
+                logger.warning("Account locked: too many failed attempts")
+
+            return None
+
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        user.last_login = datetime.now(UTC)
+
+        token = self._generate_token(user)
+
+        session_id = secrets.token_hex(16)
+        session = Session(session_id=session_id, user_id=user_id, token=token)
+        self.sessions[session_id] = session
+        self.token_to_session[token] = session
+
+        logger.info(f"User authenticated: {username}")
+        return token
+
+    def _generate_token(self, user: User) -> str:
+        """Generate JWT token for user."""
+        now = datetime.now(UTC)
+        payload = {
+            "user_id": user.user_id,
+            "username": user.username,
+            "role": user.role.value,
+>>>>>>> origin/fix/scenario-tests-properly
             "exp": now + timedelta(hours=self.token_expiry_hours),
             "iat": now,
         }
@@ -355,6 +475,7 @@ class AuthenticationManager:
             token = token.decode("utf-8")
         return token
 
+<<<<<<< HEAD
     def validate_token(self, token: str) -> Optional[User]:
         """Validate a session token and return the User (or None if invalid)."""
         with self._lock:  # V-50: thread safety
@@ -392,6 +513,41 @@ class AuthenticationManager:
                 logger.info("User logged out: %s", session.user_id)
                 return True
             return False
+=======
+    def validate_token(self, token: str) -> User | None:
+        if isinstance(token, bytes):
+            token = token.decode("utf-8")
+        session = self.token_to_session.get(token)
+        if not session or not session.is_valid or datetime.now(UTC) >= session.expires_at:
+            return None
+
+        user = self.users.get(session.user_id)
+        if not user or not user.is_active:
+            return None
+
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            if payload["user_id"] != user.user_id:
+                return None
+        except jwt.ExpiredSignatureError:
+            session.is_valid = False
+            return None
+        except jwt.InvalidTokenError:
+            return None
+
+        return user
+
+    def logout(self, token: str) -> bool:
+        if isinstance(token, bytes):
+            token = token.decode("utf-8")
+        session = self.token_to_session.pop(token, None)
+        if session:
+            session.is_valid = False
+            self.sessions.pop(session.session_id, None)
+            logger.info(f"User logged out: {session.user_id}")
+            return True
+        return False
+>>>>>>> origin/fix/scenario-tests-properly
 
     def encrypt_secret(self, secret: str) -> str:
         """Encrypt a secret value using Fernet."""
@@ -407,6 +563,7 @@ class AuthenticationManager:
         Returns the number of sessions removed.
         Should be called periodically (e.g., via background task).
         """
+<<<<<<< HEAD
         with self._lock:  # V-50: thread safety
             now = datetime.now(UTC)
             expired_tokens = [
@@ -421,6 +578,21 @@ class AuthenticationManager:
             if expired_tokens:
                 logger.info("Cleaned up %d expired sessions", len(expired_tokens))
             return len(expired_tokens)
+=======
+        now = datetime.now(UTC)
+        expired_tokens = [
+            token
+            for token, session in self.token_to_session.items()
+            if not session.is_valid or now >= session.expires_at
+        ]
+        for token in expired_tokens:
+            session = self.token_to_session.pop(token, None)
+            if session:
+                self.sessions.pop(session.session_id, None)
+        if expired_tokens:
+            logger.info("Cleaned up %d expired sessions", len(expired_tokens))
+        return len(expired_tokens)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class AuthorizationManager:
@@ -434,7 +606,10 @@ class AuthorizationManager:
         self.auth_manager = auth_manager
 
     def check_permission(self, token: str, permission: Permission) -> bool:
+<<<<<<< HEAD
         """Check whether the user behind *token* has *permission*."""
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         user = self.auth_manager.validate_token(token)
         if not user:
             return False
@@ -442,11 +617,19 @@ class AuthorizationManager:
         allowed_permissions = ROLE_PERMISSIONS.get(user.role, set())
         return permission in allowed_permissions
 
+<<<<<<< HEAD
     def check_permissions(self, token: str, permissions: list[Permission]) -> bool:
         """Check if user has all required permissions."""
         return all(self.check_permission(token, perm) for perm in permissions)
 
     def get_user_permissions(self, token: str) -> set[Permission]:
+=======
+    def check_permissions(self, token: str, permissions: List[Permission]) -> bool:
+        """Check if user has all required permissions."""
+        return all(self.check_permission(token, perm) for perm in permissions)
+
+    def get_user_permissions(self, token: str) -> Set[Permission]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get all permissions for a user."""
         user = self.auth_manager.validate_token(token)
         if not user:
@@ -484,6 +667,7 @@ class InputValidator:
     FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
 
     @staticmethod
+<<<<<<< HEAD
     def _check_forbidden_ast_node(node: ast.AST) -> bool:
         """Return True if node is a forbidden AST type."""
         if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
@@ -532,6 +716,9 @@ class InputValidator:
     def validate_python_code(
         code: str, allowed_imports: set[str] = None
     ) -> bool:
+=======
+    def validate_python_code(code: str, allowed_imports: Set[str] = None) -> bool:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate Python code for safety using AST parsing.
 
@@ -564,17 +751,59 @@ class InputValidator:
             return False
 
         for node in ast.walk(tree):
+<<<<<<< HEAD
             if InputValidator._check_forbidden_ast_node(node):
                 return False
             if InputValidator._check_imports(node, allowed_imports):
                 return False
             if InputValidator._check_forbidden_calls_and_attrs(node):
+=======
+            if isinstance(node, InputValidator.FORBIDDEN_AST_NODES):
+                logger.warning(f"Forbidden AST node type: {type(node).__name__}")
+                return False
+
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        module = alias.name.split(".")[0]
+                        if module not in allowed_imports:
+                            logger.warning(f"Unauthorized import: {module}")
+                            return False
+                elif isinstance(node, ast.ImportFrom):
+                    if node.module:
+                        module = node.module.split(".")[0]
+                        if module not in allowed_imports:
+                            logger.warning(f"Unauthorized import: {module}")
+                            return False
+
+            if isinstance(node, ast.Call):
+                func = node.func
+                if isinstance(func, ast.Name) and func.id in InputValidator.FORBIDDEN_CALLS:
+                    logger.warning(f"Forbidden function call: {func.id}")
+                    return False
+                if isinstance(func, ast.Attribute):
+                    if func.attr in InputValidator.FORBIDDEN_ATTRS:
+                        logger.warning(f"Forbidden attribute access: {func.attr}")
+                        return False
+
+            if isinstance(node, ast.Attribute):
+                if node.attr in InputValidator.FORBIDDEN_ATTRS:
+                    logger.warning(f"Forbidden attribute access: {node.attr}")
+                    return False
+
+            if isinstance(node, ast.Name) and node.id in InputValidator.FORBIDDEN_CALLS:
+                logger.warning(f"Forbidden name reference: {node.id}")
+>>>>>>> origin/fix/scenario-tests-properly
                 return False
 
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def validate_powershell_command(command: str, allowed_commands: set[str] = None) -> bool:
+=======
+    def validate_powershell_command(command: str, allowed_commands: Set[str] = None) -> bool:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate PowerShell command for safety.
 
@@ -606,24 +835,36 @@ class InputValidator:
             "WebClient",
             "DownloadString",
             "IEX",
+<<<<<<< HEAD
             "Union",
             ";",
             "|",  # V-71 FIX: Block pipe chains — prevents multi-command pipelines
                   # where the first cmdlet is whitelisted but the second is dangerous.
                   # E.g., Get-Process | Where-Object { $_.Name -eq "explorer" }
                   # The cmdlet whitelist only checks the first token.
+=======
+            "|",
+            ";",
+>>>>>>> origin/fix/scenario-tests-properly
             "-Enc",
             "-EncodedCommand",
             "System.Diagnostics",
             "System.Reflection",
+<<<<<<< HEAD
             "Add-Type",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
             "Import-Module",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
             "Remove-Item",  # V-37: aligned with secure_powershell_executor.py BLOCKED_CMDLETS
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         ]
 
         for pattern in dangerous_patterns:
             if pattern.lower() in normalized.lower():
+<<<<<<< HEAD
                 logger.warning("Dangerous pattern in PowerShell command: %s", pattern)
+=======
+                logger.warning(f"Dangerous pattern in PowerShell command: {pattern}")
+>>>>>>> origin/fix/scenario-tests-properly
                 return False
 
         if "[" in normalized:
@@ -637,13 +878,21 @@ class InputValidator:
         cmd_name = normalized.strip().split()[0] if normalized.strip() else ""
 
         if cmd_name not in allowed_commands:
+<<<<<<< HEAD
             logger.warning("Unauthorized PowerShell command: %s", cmd_name)
+=======
+            logger.warning(f"Unauthorized PowerShell command: {cmd_name}")
+>>>>>>> origin/fix/scenario-tests-properly
             return False
 
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def validate_file_path(path: str, allowed_directories: list[str] = None) -> bool:
+=======
+    def validate_file_path(path: str, allowed_directories: List[str] = None) -> bool:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Validate file path to prevent path traversal.
 
@@ -660,7 +909,11 @@ class InputValidator:
         try:
             resolved_path = Path(path).resolve()
         except (OSError, ValueError):
+<<<<<<< HEAD
             logger.warning("Invalid path: %s", path)
+=======
+            logger.warning(f"Invalid path: {path}")
+>>>>>>> origin/fix/scenario-tests-properly
             return False
 
         for allowed_dir in allowed_directories:
@@ -674,7 +927,11 @@ class InputValidator:
             except ValueError:
                 continue
 
+<<<<<<< HEAD
         logger.warning("Path outside allowed directories: %s", path)
+=======
+        logger.warning(f"Path outside allowed directories: {path}")
+>>>>>>> origin/fix/scenario-tests-properly
         return False
 
     @staticmethod
@@ -684,12 +941,19 @@ class InputValidator:
             num = float(value)
             if min_val is not None and num < min_val:
                 return False
+<<<<<<< HEAD
             return not (max_val is not None and num > max_val)
+=======
+            if max_val is not None and num > max_val:
+                return False
+            return True
+>>>>>>> origin/fix/scenario-tests-properly
         except (ValueError, TypeError):
             return False
 
     @staticmethod
     def sanitize_string(input_str: str, max_length: int = 1000) -> str:
+<<<<<<< HEAD
         """Sanitize string input.
 
         V-51 FIX: Enhanced sanitization — strips null bytes, control characters,
@@ -711,6 +975,14 @@ class InputValidator:
         sanitized = _re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", sanitized)
         if len(sanitized) > max_length:
             sanitized = sanitized[:max_length]
+=======
+        """Sanitize string input."""
+        sanitized = input_str.replace("\x00", "")
+
+        if len(sanitized) > max_length:
+            sanitized = sanitized[:max_length]
+
+>>>>>>> origin/fix/scenario-tests-properly
         return sanitized
 
 
@@ -726,7 +998,11 @@ class RateLimiter:
     def __init__(self, max_requests: int = 100, window_seconds: int = 60):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
+<<<<<<< HEAD
         self.requests: dict[str, list[float]] = {}
+=======
+        self.requests: Dict[str, List[float]] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
     def _cleanup_expired(self, client_id: str, now: float):
         self.requests[client_id] = [
@@ -746,15 +1022,22 @@ class RateLimiter:
         max_clients = self.MAX_CLIENT_MULTIPLIER * self.max_requests
         if len(self.requests) > max_clients:
             sorted_clients = sorted(
+<<<<<<< HEAD
                 self.requests.items(),
                 key=lambda item: item[1][-1] if item[1] else 0,
+=======
+                self.requests.items(), key=lambda item: item[1][-1] if item[1] else 0
+>>>>>>> origin/fix/scenario-tests-properly
             )
             to_remove = len(self.requests) - max_clients
             for cid, _ in sorted_clients[:to_remove]:
                 del self.requests[cid]
 
     def is_allowed(self, client_id: str) -> bool:
+<<<<<<< HEAD
         """Check whether *client_id* is currently within rate limits."""
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         now = time.time()
 
         if client_id not in self.requests:
@@ -769,7 +1052,11 @@ class RateLimiter:
 
         self._evict_stale_clients(now)
 
+<<<<<<< HEAD
         logger.warning("Rate limit exceeded for client: %s", client_id)
+=======
+        logger.warning(f"Rate limit exceeded for client: {client_id}")
+>>>>>>> origin/fix/scenario-tests-properly
         return False
 
 
@@ -798,6 +1085,7 @@ class AuditLogger:
         self.logger.setLevel(logging.INFO)
 
     def log_event(
+<<<<<<< HEAD
         self,
         event_type: str,
         user_id: str,
@@ -806,6 +1094,10 @@ class AuditLogger:
         success: bool = True,
     ) -> None:
         """Append a structured security audit event to the audit log."""
+=======
+        self, event_type: str, user_id: str, action: str, details: Dict = None, success: bool = True
+    ):
+>>>>>>> origin/fix/scenario-tests-properly
         log_entry = {
             "timestamp": datetime.now(UTC).isoformat(),
             "event_type": event_type,
@@ -831,6 +1123,7 @@ class AuditLogger:
     def log_action(self, user_id: str, action: str, resource: str, success: bool = True):
         """Log user action."""
         self.log_event(
+<<<<<<< HEAD
             "action",
             user_id,
             f"{action} on {resource}",
@@ -839,6 +1132,12 @@ class AuditLogger:
         )
 
     def log_security_violation(self, user_id: str, violation: str, details: dict = None):
+=======
+            "action", user_id, f"{action} on {resource}", {"resource": resource}, success
+        )
+
+    def log_security_violation(self, user_id: str, violation: str, details: Dict = None):
+>>>>>>> origin/fix/scenario-tests-properly
         """Log security violation."""
         self.log_event("violation", user_id, f"Security violation: {violation}", details, False)
 

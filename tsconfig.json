@@ -2,12 +2,19 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
+<<<<<<< HEAD
     "moduleResolution": "bundler",
     "lib": ["ES2022"],
     "strict": true,
     "noImplicitAny": false,
     "esModuleInterop": true,
 
+=======
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+>>>>>>> origin/fix/scenario-tests-properly
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -17,8 +24,16 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
+<<<<<<< HEAD
+=======
+    "ignoreDeprecations": "5.0",
+>>>>>>> origin/fix/scenario-tests-properly
     "types": ["node"]
   },
   "include": ["src/**/*", "tests/**/*", "test-model-config.ts"],
   "exclude": ["node_modules", "tests/load", "tests/stress", "tests/chaos"]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix/scenario-tests-properly

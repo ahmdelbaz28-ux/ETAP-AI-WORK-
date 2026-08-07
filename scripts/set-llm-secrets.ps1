@@ -35,6 +35,7 @@ $ProjectDir = Resolve-Path (Join-Path $ScriptDir "..")
 Set-Location $ProjectDir
 
 function Write-Header {
+<<<<<<< HEAD
     Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
     Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan  # NOSONAR — S8677: Write-Host in Show verb function; intentional
     Write-Host "║           ETAP AI Platform — API Secret Setup                               ║" -ForegroundColor Cyan  # NOSONAR — S8677: Write-Host in Show verb function; intentional
@@ -46,6 +47,19 @@ function Write-Success { param([string]$Message) Write-Host "✅ $Message" -Fore
 function Write-ErrorMsg { param([string]$Message) Write-Host "❌ $Message" -ForegroundColor Red }  # NOSONAR — S8677: Write-Host in Show verb function; intentional
 function Write-Warn { param([string]$Message) Write-Host "⚠️ $Message" -ForegroundColor Yellow }  # NOSONAR — S8677: Write-Host in Show verb function; intentional
 function Write-Info { param([string]$Message) Write-Host "ℹ️ $Message" -ForegroundColor Blue }  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+    Write-Host ""
+    Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║           ETAP AI Platform — API Secret Setup                               ║" -ForegroundColor Cyan
+    Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Write-Success { param([string]$Message) Write-Host "✅ $Message" -ForegroundColor Green }
+function Write-ErrorMsg { param([string]$Message) Write-Host "❌ $Message" -ForegroundColor Red }
+function Write-Warn { param([string]$Message) Write-Host "⚠️ $Message" -ForegroundColor Yellow }
+function Write-Info { param([string]$Message) Write-Host "ℹ️ $Message" -ForegroundColor Blue }
+>>>>>>> origin/fix/scenario-tests-properly
 
 # Detect Worker name: env var > wrangler.jsonc > fallback
 function Get-WorkerName {
@@ -88,9 +102,15 @@ function Test-CloudflareLogin {
         if ($LASTEXITCODE -ne 0 -or -not $whoami) { throw "Not authenticated" }
     } catch {
         Write-ErrorMsg "You are not logged in to Cloudflare."
+<<<<<<< HEAD
         Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
         Write-Info "Run: npx wrangler login"
         Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+        Write-Host ""
+        Write-Info "Run: npx wrangler login"
+        Write-Host ""
+>>>>>>> origin/fix/scenario-tests-properly
         Write-Info "This will open a browser window to authenticate with Cloudflare."
         Write-Info "After logging in, run this script again."
         exit 1
@@ -102,10 +122,17 @@ function Test-CloudflareLogin {
 # Prompt for a secret (hidden input)
 function Prompt-Secret {
     param([string]$Name, [string]$Description)
+<<<<<<< HEAD
     Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
     Write-Info "$Name"
     Write-Host "   $Description"  # NOSONAR — S8677: Write-Host in Show verb function; intentional
     Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+    Write-Host ""
+    Write-Info "$Name"
+    Write-Host "   $Description"
+    Write-Host ""
+>>>>>>> origin/fix/scenario-tests-properly
     $secure = Read-Host "   Enter $Name (or press Enter to skip)" -AsSecureString
     $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
     return $plain

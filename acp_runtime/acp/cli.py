@@ -20,7 +20,11 @@ Environment variables (all optional)::
     ACP_AUDIT_LOG         -- Path to NDJSON audit log file
     ACP_TRACE_FILE        -- Path to JSON trace output file
     ACP_DEADLINE_MS       -- Default deadline in ms (default 30000)
+<<<<<<< HEAD
     ACP_UDS_PATH          -- UDS socket path (default ~/.etap/acp.sock)
+=======
+    ACP_UDS_PATH          -- UDS socket path (default /tmp/acp.sock)
+>>>>>>> origin/fix/scenario-tests-properly
     ACP_WS_HOST           -- WebSocket bind host (default localhost)
     ACP_WS_PORT           -- WebSocket bind port (default 8765)
 """
@@ -31,8 +35,12 @@ import argparse
 import importlib
 import os
 import sys
+<<<<<<< HEAD
 from pathlib import Path
 from typing import Any, Optional
+=======
+from typing import Any
+>>>>>>> origin/fix/scenario-tests-properly
 
 import anyio
 
@@ -46,8 +54,11 @@ from acp.observability import (
     JsonTracer,
     LogLevel,
 )
+<<<<<<< HEAD
 
 _DEFAULT_METRICS_PATH = "/metrics"
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 from acp.router import Router, RouterConfig
 from acp.runtime import AcpRuntime
 from acp.runtime.handler import discover_capabilities
@@ -66,13 +77,21 @@ from acp.transport import (
 __all__ = ["main"]
 
 
+<<<<<<< HEAD
 def _split_scopes(text: Optional[str]) -> set[str]:
+=======
+def _split_scopes(text: str | None) -> set[str]:
+>>>>>>> origin/fix/scenario-tests-properly
     if not text:
         return set()
     return {s.strip() for s in text.split(",") if s.strip()}
 
 
+<<<<<<< HEAD
 def _parse_labels(text: Optional[str]) -> dict[str, str]:
+=======
+def _parse_labels(text: str | None) -> dict[str, str]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Parse a comma-separated ``key=value`` string into a dict.
 
     Example: ``"transport=stdio,env=prod"`` → ``{"transport": "stdio", "env": "prod"}``
@@ -109,7 +128,11 @@ def _load_handlers(module_path: str) -> list[Any]:
                     instances.append(obj())
                 except TypeError as e:
                     raise SystemExit(
+<<<<<<< HEAD
                         f"Handler class {obj.__name__!r} requires constructor arguments: {e}",
+=======
+                        f"Handler class {obj.__name__!r} requires constructor arguments: {e}"
+>>>>>>> origin/fix/scenario-tests-properly
                     ) from e
     return instances
 
@@ -134,6 +157,7 @@ def _build_observability(
             default_labels["transport"] = transport_name
         metrics = InMemoryMetricsRegistry(default_labels=default_labels)
 
+<<<<<<< HEAD
     _ACP_CLI_LOGGER = "acp.cli"
     if args.verbose:
         logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.DEBUG)  # NOSONAR
@@ -141,6 +165,14 @@ def _build_observability(
         logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.ERROR)
     else:
         logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.INFO)
+=======
+    if args.verbose:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.DEBUG)
+    elif args.quiet:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.ERROR)
+    else:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.INFO)
+>>>>>>> origin/fix/scenario-tests-properly
 
     return tracer, metrics, logger
 
@@ -151,7 +183,11 @@ def _build_runtime(
     metrics: Any,
     logger: Any,
     transport_name: str = "unknown",
+<<<<<<< HEAD
 ) -> tuple[AcpRuntime, Optional[HealthHandler]]:
+=======
+) -> tuple[AcpRuntime, HealthHandler | None]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Build an AcpRuntime from CLI args / env.
 
     Returns the runtime and the optional ``HealthHandler`` so callers
@@ -166,7 +202,11 @@ def _build_runtime(
         raise SystemExit(f"Module {handler_module!r} contains no @capability classes.")
 
     # Auto-register built-in health handler unless opted out
+<<<<<<< HEAD
     health_handler: Optional[HealthHandler] = None
+=======
+    health_handler: HealthHandler | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     if not getattr(args, "no_health", False):
         health_handler = HealthHandler(
             transport_name=transport_name,
@@ -191,11 +231,15 @@ def _build_runtime(
 
 
 def _build_router(
+<<<<<<< HEAD
     args: argparse.Namespace,
     runtime: AcpRuntime,
     tracer: Any,
     metrics: Any,
     logger: Any,
+=======
+    args: argparse.Namespace, runtime: AcpRuntime, tracer: Any, metrics: Any, logger: Any
+>>>>>>> origin/fix/scenario-tests-properly
 ) -> Router:
     """Build a Router from CLI args / env."""
     scopes = _split_scopes(args.scopes) or _split_scopes(os.environ.get("ACP_SCOPES"))
@@ -243,7 +287,11 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
     if logger is not None:
         logger.info("ACP stdio server started")
     http_port = getattr(args, "http_port", None)
+<<<<<<< HEAD
     metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)  # NOSONAR
+=======
+    metrics_path = getattr(args, "metrics_path", "/metrics")
+>>>>>>> origin/fix/scenario-tests-properly
     if http_port is not None and health_handler is not None:
         async with anyio.create_task_group() as tg:
             tg.start_soon(start_http_server, health_handler, http_port, metrics_path)
@@ -258,6 +306,7 @@ async def _run_stdio(args: argparse.Namespace, tracer: Any, metrics: Any, logger
 async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(args, tracer, metrics, logger, transport_name="uds")
     router = _build_router(args, runtime, tracer, metrics, logger)
+<<<<<<< HEAD
     _default_uds_path = str(Path.home() / ".etap" / "acp.sock")
     path = args.path or os.environ.get("ACP_UDS_PATH", _default_uds_path)
     # Ensure parent directory exists with restrictive permissions
@@ -267,11 +316,18 @@ async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: 
         os.chmod(uds_dir, 0o700)
     except OSError:
         pass  # Best-effort: chmod can fail on some filesystems
+=======
+    path = args.path or os.environ.get("ACP_UDS_PATH", "/tmp/acp.sock")
+>>>>>>> origin/fix/scenario-tests-properly
     listener = UDSListener(path)
     if logger is not None:
         logger.info("ACP UDS server started", path=path)
     http_port = getattr(args, "http_port", None)
+<<<<<<< HEAD
     metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)
+=======
+    metrics_path = getattr(args, "metrics_path", "/metrics")
+>>>>>>> origin/fix/scenario-tests-properly
     try:
         if http_port is not None and health_handler is not None:
             async with anyio.create_task_group() as tg:
@@ -288,11 +344,15 @@ async def _run_uds(args: argparse.Namespace, tracer: Any, metrics: Any, logger: 
 
 async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, logger: Any) -> None:
     runtime, health_handler = _build_runtime(
+<<<<<<< HEAD
         args,
         tracer,
         metrics,
         logger,
         transport_name="websocket",
+=======
+        args, tracer, metrics, logger, transport_name="websocket"
+>>>>>>> origin/fix/scenario-tests-properly
     )
     router = _build_router(args, runtime, tracer, metrics, logger)
     host = args.host or os.environ.get("ACP_WS_HOST", "localhost")
@@ -301,7 +361,11 @@ async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, lo
     if logger is not None:
         logger.info("ACP WebSocket server started", host=host, port=port)
     http_port = getattr(args, "http_port", None)
+<<<<<<< HEAD
     metrics_path = getattr(args, "metrics_path", _DEFAULT_METRICS_PATH)
+=======
+    metrics_path = getattr(args, "metrics_path", "/metrics")
+>>>>>>> origin/fix/scenario-tests-properly
     try:
         if http_port is not None and health_handler is not None:
             async with anyio.create_task_group() as tg:
@@ -311,7 +375,11 @@ async def _run_websocket(args: argparse.Namespace, tracer: Any, metrics: Any, lo
             await listener.serve(router)
     except ImportError as e:
         raise SystemExit(
+<<<<<<< HEAD
             f"Cannot start WebSocket listener: {e}. Install the optional dependency: pip install acp-runtime[websocket]",
+=======
+            f"Cannot start WebSocket listener: {e}. Install the optional dependency: pip install acp-runtime[websocket]"
+>>>>>>> origin/fix/scenario-tests-properly
         ) from e
 
 
@@ -387,7 +455,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     common.add_argument(
         "--metrics-path",
+<<<<<<< HEAD
         default=_DEFAULT_METRICS_PATH,
+=======
+        default="/metrics",
+>>>>>>> origin/fix/scenario-tests-properly
         help="HTTP path for the metrics endpoint (default /metrics)",
     )
     common.add_argument(
@@ -407,6 +479,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # uds
     uds_parser = sub.add_parser(
+<<<<<<< HEAD
         "uds",
         help="Run the Unix Domain Socket transport",
         parents=[common],
@@ -414,6 +487,13 @@ def _build_parser() -> argparse.ArgumentParser:
     uds_parser.add_argument(
         "--path",
         help="UDS socket path (default ~/.etap/acp.sock, or ACP_UDS_PATH env)",
+=======
+        "uds", help="Run the Unix Domain Socket transport", parents=[common]
+    )
+    uds_parser.add_argument(
+        "--path",
+        help="UDS socket path (default /tmp/acp.sock, or ACP_UDS_PATH env)",
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # websocket

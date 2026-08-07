@@ -14,6 +14,7 @@ import pytest
 
 
 def test_all_old_agents_still_registered():
+<<<<<<< HEAD
     """All 8 core agents that existed before etap_expert must still be there.
 
     Note: the orchestrator registers agents under canonical snake_case keys
@@ -22,15 +23,24 @@ def test_all_old_agents_still_registered():
     are accepted by ``get_study_type_mapping()`` but NOT as registry keys.
     This test asserts the canonical keys.
     """
+=======
+    """All 8 core agents that existed before etap_expert must still be there."""
+>>>>>>> origin/fix/scenario-tests-properly
     from agents.orchestrator import ChiefEngineeringOrchestrator
 
     orch = ChiefEngineeringOrchestrator()
     expected_old_agents = {
         "load_flow",
         "short_circuit",
+<<<<<<< HEAD
         "harmonic_analysis",
         "optimal_power_flow",
         "protection_coordination",
+=======
+        "harmonic",
+        "opf",
+        "protection",
+>>>>>>> origin/fix/scenario-tests-properly
         "etap_execution",
         "validation",
         "report",
@@ -57,9 +67,15 @@ def test_old_agents_keep_correct_class_names():
     orch = ChiefEngineeringOrchestrator()
     assert isinstance(orch.agents["load_flow"], LoadFlowAgent)
     assert isinstance(orch.agents["short_circuit"], ShortCircuitAgent)
+<<<<<<< HEAD
     assert isinstance(orch.agents["harmonic_analysis"], HarmonicAnalysisAgent)
     assert isinstance(orch.agents["optimal_power_flow"], OptimalPowerFlowAgent)
     assert isinstance(orch.agents["protection_coordination"], ProtectionCoordinationAgent)
+=======
+    assert isinstance(orch.agents["harmonic"], HarmonicAnalysisAgent)
+    assert isinstance(orch.agents["opf"], OptimalPowerFlowAgent)
+    assert isinstance(orch.agents["protection"], ProtectionCoordinationAgent)
+>>>>>>> origin/fix/scenario-tests-properly
     assert isinstance(orch.agents["etap_execution"], ETAPExecutionAgent)
     assert isinstance(orch.agents["validation"], ValidationAgent)
     assert isinstance(orch.agents["report"], ReportGenerationAgent)
@@ -135,6 +151,7 @@ def test_etap_expert_does_not_interfere_with_orchestrator_get_agents_info():
     orch = ChiefEngineeringOrchestrator()
     info = orch.get_agents_info()
     assert "agents" in info
+<<<<<<< HEAD
     # All old agents must still appear (canonical snake_case keys)
     for old_agent in [
         "load_flow",
@@ -146,6 +163,11 @@ def test_etap_expert_does_not_interfere_with_orchestrator_get_agents_info():
         "validation",
         "report",
     ]:
+=======
+    # All old agents must still appear
+    for old_agent in ["load_flow", "short_circuit", "harmonic", "opf", "protection",
+                      "etap_execution", "validation", "report"]:
+>>>>>>> origin/fix/scenario-tests-properly
         assert old_agent in info["agents"], f"Agent '{old_agent}' missing from get_agents_info()"
 
 
@@ -165,5 +187,9 @@ def test_old_prompts_still_loaded():
     ]
     for handle in old_handles:
         prompt = get_system_prompt(handle)
+<<<<<<< HEAD
         assert prompt, f"Prompt '{handle}' no longer loads (None/empty)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
     assert len(prompt) > 20, f"Prompt '{handle}' no longer loads (too short: {len(prompt)} chars)"
+=======
+        assert prompt and len(prompt) > 20, f"Prompt '{handle}' no longer loads"
+>>>>>>> origin/fix/scenario-tests-properly

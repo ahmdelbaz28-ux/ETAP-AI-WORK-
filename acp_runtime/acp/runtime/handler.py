@@ -33,7 +33,11 @@ __all__ = [
 _CAPABILITY_ATTR = "_acp_capability"
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True)
+=======
+@dataclass(frozen=True, slots=True)
+>>>>>>> origin/fix/scenario-tests-properly
 class CapabilityMeta:
     """Internal metadata stored on a @capability-decorated function."""
 
@@ -70,7 +74,11 @@ def capability(
     """
     if not is_valid_capability_name(name):
         raise ValueError(
+<<<<<<< HEAD
             f"Invalid capability name: {name!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)",
+=======
+            f"Invalid capability name: {name!r} (must match ^[a-z][a-z0-9_.-]{{0,127}}$)"
+>>>>>>> origin/fix/scenario-tests-properly
         )
     scopes_t = tuple(scopes)
     for s in scopes_t:

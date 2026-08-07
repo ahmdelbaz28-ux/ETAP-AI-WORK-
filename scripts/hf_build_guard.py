@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+<<<<<<< HEAD
 
 # Module-level string constants (extracted to satisfy S1192).
 _HF_GUARD_TEST_IMAGE = "hf-guard-test:latest"  # NOSONAR
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 """
 HF Space Build Guard
 ====================
@@ -123,6 +126,7 @@ def check_requirements():
             line = line.strip().lower()
             if line.startswith("#") or not line:
                 continue
+<<<<<<< HEAD
             pkg_name = (
                 line.split("==")[0]
                 .split(">=")[0]
@@ -133,11 +137,17 @@ def check_requirements():
             )
             if pkg_name in forbidden_pkgs:
                 raise ValueError(f"Windows/forbidden package found: {pkg_name}")
+=======
+            for pkg in forbidden_pkgs:
+                if pkg in line:
+                    raise ValueError(f"Windows/forbidden package found: {pkg}")
+>>>>>>> origin/fix/scenario-tests-properly
     return True
 
 
 def check_docker_available():
     """Check if Docker is available on this machine."""
+<<<<<<< HEAD
     if not shutil.which("docker"):
         return False
     try:
@@ -145,6 +155,10 @@ def check_docker_available():
         return result.returncode == 0
     except (FileNotFoundError, subprocess.SubprocessError):
         return False
+=======
+    result = subprocess.run(["docker", "info"], capture_output=True, timeout=10)
+    return result.returncode == 0
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def check_docker_build():
@@ -153,9 +167,15 @@ def check_docker_build():
 
     if not check_docker_available():
         warnings.append(
+<<<<<<< HEAD
             "Docker not available locally - skipping build check (will be validated on GitHub Actions)",
         )
         return None  # NOSONAR
+=======
+            "Docker not available locally - skipping build check (will be validated on GitHub Actions)"
+        )
+        return None  # None = warning, not failure
+>>>>>>> origin/fix/scenario-tests-properly
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Copy hf-space to temp dir for isolated build
@@ -170,6 +190,7 @@ def check_docker_build():
                 shutil.copy2(src, dst)
 
         result = subprocess.run(
+<<<<<<< HEAD
             [
                 "docker",
                 "build",
@@ -177,6 +198,9 @@ def check_docker_build():
                 _HF_GUARD_TEST_IMAGE,  # NOSONAR
                 tmpdir,
             ],  # NOSONAR intentional repetition (audit constant)
+=======
+            ["docker", "build", "-t", "hf-guard-test:latest", tmpdir],
+>>>>>>> origin/fix/scenario-tests-properly
             capture_output=True,
             text=True,
             timeout=300,
@@ -196,9 +220,15 @@ def check_health_endpoint():
 
     if not check_docker_available():
         warnings.append(
+<<<<<<< HEAD
             "Docker not available locally - skipping health check (will be validated on GitHub Actions)",
         )
         return None  # NOSONAR
+=======
+            "Docker not available locally - skipping health check (will be validated on GitHub Actions)"
+        )
+        return None  # None = warning, not failure
+>>>>>>> origin/fix/scenario-tests-properly
 
     try:
         # Stop any existing container
@@ -214,7 +244,11 @@ def check_health_endpoint():
                 container_name,
                 "-p",
                 "7861:7860",
+<<<<<<< HEAD
                 _HF_GUARD_TEST_IMAGE,
+=======
+                "hf-guard-test:latest",
+>>>>>>> origin/fix/scenario-tests-properly
             ],
             capture_output=True,
             text=True,
@@ -251,10 +285,14 @@ def check_health_endpoint():
 
         # Test root endpoint
         result = subprocess.run(
+<<<<<<< HEAD
             ["curl", "-s", "http://localhost:7861/"],
             capture_output=True,
             text=True,
             timeout=10,
+=======
+            ["curl", "-s", "http://localhost:7861/"], capture_output=True, text=True, timeout=10
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         if "AhmedETAP" not in result.stdout:
@@ -287,7 +325,11 @@ def check_no_secrets():
                 for pattern in secret_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
                         raise ValueError(
+<<<<<<< HEAD
                             f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}",
+=======
+                            f"Potential secret found in {os.path.relpath(filepath, HF_DIR)}"
+>>>>>>> origin/fix/scenario-tests-properly
                         )
             except (UnicodeDecodeError, PermissionError):
                 pass
@@ -297,6 +339,7 @@ def check_no_secrets():
 
 def cleanup():
     """Clean up Docker test artifacts."""
+<<<<<<< HEAD
     if not check_docker_available():
         return
     try:
@@ -308,6 +351,12 @@ def cleanup():
         subprocess.run(["docker", "rmi", _HF_GUARD_TEST_IMAGE], capture_output=True, timeout=10)
     except Exception:
         pass
+=======
+    subprocess.run(
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+    )
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def main():

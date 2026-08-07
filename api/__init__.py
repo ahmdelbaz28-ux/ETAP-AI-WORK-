@@ -1,5 +1,6 @@
 # API routers are imported explicitly by api/routes.py to avoid
 # eager loading of all modules on any import of api.*
+<<<<<<< HEAD
 
 import datetime
 import sys
@@ -18,3 +19,5 @@ if not hasattr(typing, "Annotated"):
 
     typing.Annotated = Annotated
     sys.modules["typing"].Annotated = Annotated
+=======
+>>>>>>> origin/fix/scenario-tests-properly

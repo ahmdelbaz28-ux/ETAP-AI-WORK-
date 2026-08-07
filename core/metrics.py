@@ -16,9 +16,12 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
+<<<<<<< HEAD
 from fastapi import (
     Request,  # noqa: F401 — required for decorator-wrapped endpoint annotation resolution
 )
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     REGISTRY,
@@ -32,6 +35,7 @@ from prometheus_client import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Metric factory — handles duplicate registration in test environments
 # where both api.routes and hf-space/app.py are imported in the same process.
 # ---------------------------------------------------------------------------
@@ -93,12 +97,22 @@ def _safe_gauge(name, description, labels=None):
 # ---------------------------------------------------------------------------
 
 REQUEST_ERRORS_TOTAL = _safe_counter(
+=======
+# HTTP request metrics
+# ---------------------------------------------------------------------------
+
+REQUEST_ERRORS_TOTAL = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "request_errors_total",
     "Total request errors",
     ["method", "route"],
 )
 
+<<<<<<< HEAD
 REQUEST_LATENCY_SECONDS = _safe_histogram(
+=======
+REQUEST_LATENCY_SECONDS = Histogram(
+>>>>>>> origin/fix/scenario-tests-properly
     "request_latency_seconds",
     "Request latency in seconds",
     ["method", "route"],
@@ -109,12 +123,20 @@ REQUEST_LATENCY_SECONDS = _safe_histogram(
 # Cache metrics
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 CACHE_HITS_TOTAL = _safe_counter(
+=======
+CACHE_HITS_TOTAL = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "cache_hits_total",
     "Total cache hits",
 )
 
+<<<<<<< HEAD
 CACHE_MISSES_TOTAL = _safe_counter(
+=======
+CACHE_MISSES_TOTAL = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "cache_misses_total",
     "Total cache misses",
 )
@@ -123,12 +145,20 @@ CACHE_MISSES_TOTAL = _safe_counter(
 # System availability metrics
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 SCADA_AVAILABLE = _safe_gauge(
+=======
+SCADA_AVAILABLE = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "scada_available",
     "SCADA service availability",
 )
 
+<<<<<<< HEAD
 DIGITAL_TWIN_AVAILABLE = _safe_gauge(
+=======
+DIGITAL_TWIN_AVAILABLE = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "digital_twin_available",
     "Digital Twin service availability",
 )
@@ -137,6 +167,7 @@ DIGITAL_TWIN_AVAILABLE = _safe_gauge(
 # Application info
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 APP_INFO = None
 _existing_info = REGISTRY._names_to_collectors.get("app_info")  # type: ignore[attr-defined]
 if _existing_info is not None:
@@ -146,6 +177,9 @@ else:
         APP_INFO = Info("app_info", "AhmedETAP platform metadata")
     except ValueError:
         APP_INFO = REGISTRY._names_to_collectors.get("app_info")  # type: ignore[attr-defined]
+=======
+APP_INFO = Info("app_info", "AhmedETAP platform metadata")
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def set_app_info(name: str, version: str, environment: str = "development") -> None:
@@ -157,37 +191,61 @@ def set_app_info(name: str, version: str, environment: str = "development") -> N
 # Skill-related metrics
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 SKILL_OPERATIONS = _safe_counter(
+=======
+SKILL_OPERATIONS = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_operations_total",
     "Total skill operations, partitioned by operation and status",
     ["operation", "status"],
 )
 
+<<<<<<< HEAD
 SKILL_LOAD_DURATION = _safe_histogram(
+=======
+SKILL_LOAD_DURATION = Histogram(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_load_duration_seconds",
     "Time spent loading individual skills",
     ["skill_name"],
     buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
 )
 
+<<<<<<< HEAD
 SKILL_OPERATIONS_IN_FLIGHT = _safe_gauge(
+=======
+SKILL_OPERATIONS_IN_FLIGHT = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_operations_in_progress",
     "Number of skill operations currently executing",
     ["operation_type"],
 )
 
+<<<<<<< HEAD
 SKILL_CACHE_ENTRIES = _safe_gauge(
+=======
+SKILL_CACHE_ENTRIES = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_cache_entries",
     "Number of entries in the skill cache",
 )
 
+<<<<<<< HEAD
 SKILL_ERRORS = _safe_counter(
+=======
+SKILL_ERRORS = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_errors_total",
     "Total skill errors by error type and skill name",
     ["error_type", "skill_name"],
 )
 
+<<<<<<< HEAD
 SKILL_VALIDATION_FAILURES = _safe_counter(
+=======
+SKILL_VALIDATION_FAILURES = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "skill_validation_failures_total",
     "Total validation failures by reason category",
     ["reason"],
@@ -197,14 +255,22 @@ SKILL_VALIDATION_FAILURES = _safe_counter(
 # Execution metrics
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 EXECUTION_DURATION = _safe_histogram(
+=======
+EXECUTION_DURATION = Histogram(
+>>>>>>> origin/fix/scenario-tests-properly
     "execution_duration_seconds",
     "End-to-end execution duration by skill and phase",
     ["skill_name", "phase"],
     buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0),
 )
 
+<<<<<<< HEAD
 EXECUTION_COUNT = _safe_counter(
+=======
+EXECUTION_COUNT = Counter(
+>>>>>>> origin/fix/scenario-tests-properly
     "executions_total",
     "Total executions by skill name and status",
     ["skill_name", "status"],
@@ -214,13 +280,21 @@ EXECUTION_COUNT = _safe_counter(
 # System / resource metrics
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 MEMORY_USAGE_BYTES = _safe_gauge(
+=======
+MEMORY_USAGE_BYTES = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "memory_usage_bytes",
     "RSS memory usage by subsystem",
     ["component"],
 )
 
+<<<<<<< HEAD
 ACTIVE_CONNECTIONS = _safe_gauge(
+=======
+ACTIVE_CONNECTIONS = Gauge(
+>>>>>>> origin/fix/scenario-tests-properly
     "active_connections",
     "Currently active database / API connections",
     ["target"],
@@ -231,6 +305,7 @@ ACTIVE_CONNECTIONS = _safe_gauge(
 # ---------------------------------------------------------------------------
 
 
+<<<<<<< HEAD
 def _wrap_with_original_globals(wrapper: Callable, original: Callable) -> Callable:
     """Ensure *wrapper* can resolve annotations from *original*'s module.
 
@@ -250,6 +325,8 @@ def _wrap_with_original_globals(wrapper: Callable, original: Callable) -> Callab
     return wrapper
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 def track_skill_operation(operation: str) -> Callable:
     """Instrument a function with in-flight gauge + result counter.
 
@@ -281,7 +358,11 @@ def track_skill_operation(operation: str) -> Callable:
                 finally:
                     SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
 
+<<<<<<< HEAD
             return _wrap_with_original_globals(async_wrapper, func)
+=======
+            return async_wrapper
+>>>>>>> origin/fix/scenario-tests-properly
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -297,7 +378,11 @@ def track_skill_operation(operation: str) -> Callable:
             finally:
                 SKILL_OPERATIONS_IN_FLIGHT.labels(operation_type=operation).dec()
 
+<<<<<<< HEAD
         return _wrap_with_original_globals(sync_wrapper, func)
+=======
+        return sync_wrapper
+>>>>>>> origin/fix/scenario-tests-properly
 
     return decorator
 
@@ -338,7 +423,11 @@ def count_executions(skill_name: str) -> Callable:
                     EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
                     raise
 
+<<<<<<< HEAD
             return _wrap_with_original_globals(async_wrapper, func)
+=======
+            return async_wrapper
+>>>>>>> origin/fix/scenario-tests-properly
 
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -350,7 +439,11 @@ def count_executions(skill_name: str) -> Callable:
                 EXECUTION_COUNT.labels(skill_name=skill_name, status="error").inc()
                 raise
 
+<<<<<<< HEAD
         return _wrap_with_original_globals(sync_wrapper, func)
+=======
+        return sync_wrapper
+>>>>>>> origin/fix/scenario-tests-properly
 
     return decorator
 

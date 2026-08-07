@@ -4,6 +4,7 @@ AhmedETAP - Protection Coordination Agent
 Protection system coordination analysis per IEEE 242 (Buff Book)
 and IEC 60255.
 
+<<<<<<< HEAD
 V-TCC-01 Self-Critique Fixes:
 - REMOVED duplicate _IEC60255_CURVES dict — all calculations now
   delegate to calculate_iec_operating_time() from curves.curves,
@@ -16,6 +17,10 @@ V-TCC-01 Self-Critique Fixes:
 
 Capabilities:
 - Relay operating time calculation (IEC 60255 / IEEE C37.112 curve equations)
+=======
+Capabilities:
+- Relay operating time calculation (IEC 60255 curve equations)
+>>>>>>> origin/fix/scenario-tests-properly
 - Time-current curve coordination analysis
 - Coordination margin verification (minimum 0.2s)
 - Pickup setting and time dial optimization
@@ -30,6 +35,7 @@ Standards:
 - NFPA 70: National Electrical Code (Article 240, 430)
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -37,19 +43,52 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
+=======
+import logging
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+<<<<<<< HEAD
 from curves.curves import (
     calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
 )
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
+=======
+# ---------------------------------------------------------------------------
+# IEC 60255 relay characteristic curve parameters
+# ---------------------------------------------------------------------------
+
+_IEC60255_CURVES: Dict[str, Dict[str, float]] = {
+    # Standard inverse-time characteristics: t = TMS × (k / ((I/Ips)ⁿ - 1))
+    # where TMS = time multiplier setting, I = fault current,
+    # Ips = pickup setting, k and n are curve constants
+    "standard_inverse": {"k": 0.140, "n": 0.020},
+    "very_inverse": {"k": 13.50, "n": 1.000},
+    "extremely_inverse": {"k": 80.00, "n": 2.000},
+    "long_time_inverse": {"k": 120.0, "n": 1.000},
+    # IEEE C37.112 curves: t = TD × (A / (M^p - 1) + B)
+    # where TD = time dial, M = I/Ips
+    "ieee_moderately_inverse": {"A": 0.0515, "B": 0.1140, "p": 0.0200},
+    "ieee_very_inverse": {"A": 19.61, "B": 0.4910, "p": 2.0000},
+    "ieee_extremely_inverse": {"A": 28.20, "B": 0.1217, "p": 2.0000},
+}
+
+
+>>>>>>> origin/fix/scenario-tests-properly
 class CoordinationAgent(BaseAgent):
     """
     Protection Coordination Agent (IEEE 242 / IEC 60255).
@@ -114,6 +153,7 @@ class CoordinationAgent(BaseAgent):
         pickup_current_a: float,
         curve_type: str = "standard_inverse",
         time_multiplier: float = 1.0,
+<<<<<<< HEAD
         *,
         instantaneous_override_a: float | None = None,
         min_operating_time_s: float = MIN_OPERATING_TIME_S,
@@ -126,6 +166,12 @@ class CoordinationAgent(BaseAgent):
         which is the single source of truth for curve parameters and
         safety guards.  No duplicate formula logic in this agent.
 
+=======
+    ) -> Dict[str, Any]:
+        """
+        Calculate relay operating time per IEC 60255 or IEEE C37.112.
+
+>>>>>>> origin/fix/scenario-tests-properly
         Parameters
         ----------
         fault_current_a : float
@@ -134,23 +180,31 @@ class CoordinationAgent(BaseAgent):
             Relay pickup (plug) setting in amperes.
         curve_type : str
             Characteristic curve type: 'standard_inverse',
+<<<<<<< HEAD
             'very_inverse', 'extremely_inverse', 'long_inverse',
+=======
+            'very_inverse', 'extremely_inverse', 'long_time_inverse',
+>>>>>>> origin/fix/scenario-tests-properly
             'ieee_moderately_inverse', 'ieee_very_inverse',
             'ieee_extremely_inverse'.
         time_multiplier : float
             Time multiplier setting (TMS) for IEC curves or time dial
             (TD) for IEEE curves.
+<<<<<<< HEAD
         instantaneous_override_a : float or None
             Instantaneous overcurrent element (element 50) threshold.
         min_operating_time_s : float
             Minimum operating time floor.
         max_multiplier : float
             Maximum M = I/Ip beyond which the formula is unreliable.
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
         Returns
         -------
         Dict[str, Any]
             Dictionary with 'operating_time_s', 'curve_type',
+<<<<<<< HEAD
             'pickup_current_a', 'fault_current_a', 'multiples_of_pickup',
             'status', 'warnings'.
         """
@@ -179,14 +233,69 @@ class CoordinationAgent(BaseAgent):
             "time_multiplier": time_multiplier,
             "status": result["status"],
             "warnings": result.get("warnings", []),
+=======
+            'pickup_current_a', 'fault_current_a', 'multiples_of_pickup'.
+        """
+        M = fault_current_a / pickup_current_a if pickup_current_a > 0 else 0.0
+
+        if M <= 1.0:
+            return {
+                "operating_time_s": float("inf"),
+                "curve_type": curve_type,
+                "pickup_current_a": pickup_current_a,
+                "fault_current_a": fault_current_a,
+                "multiples_of_pickup": round(M, 4),
+                "status": "below_pickup",
+            }
+
+        curve_params = _IEC60255_CURVES.get(curve_type)
+        if curve_params is None:
+            raise ValueError(f"Unknown curve type: {curve_type}")
+
+        if curve_type.startswith("ieee_"):
+            # IEEE C37.112: t = TD × (A / (M^p - 1) + B)
+            A = curve_params["A"]
+            B = curve_params["B"]
+            p = curve_params["p"]
+            denominator = M**p - 1.0
+            if denominator <= 0:
+                op_time = float("inf")
+            else:
+                op_time = time_multiplier * (A / denominator + B)
+        else:
+            # IEC 60255: t = TMS × k / (M^n - 1)
+            k = curve_params["k"]
+            n = curve_params["n"]
+            denominator = M**n - 1.0
+            if denominator <= 0:
+                op_time = float("inf")
+            else:
+                op_time = time_multiplier * k / denominator
+
+        return {
+            "operating_time_s": round(float(op_time), 4),
+            "curve_type": curve_type,
+            "pickup_current_a": pickup_current_a,
+            "fault_current_a": fault_current_a,
+            "multiples_of_pickup": round(M, 4),
+            "time_multiplier": time_multiplier,
+            "status": "operates",
+>>>>>>> origin/fix/scenario-tests-properly
         }
 
     def verify_coordination(
         self,
+<<<<<<< HEAD
         upstream_relay: dict[str, Any],
         downstream_relay: dict[str, Any],
         fault_current_a: float,
     ) -> dict[str, Any]:
+=======
+        upstream_relay: Dict[str, Any],
+        downstream_relay: Dict[str, Any],
+        fault_current_a: float,
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Verify coordination between upstream and downstream relays.
 
@@ -266,7 +375,11 @@ class CoordinationAgent(BaseAgent):
         min_multiplier: float = 1.5,
         max_multiplier: float = 40.0,
         num_points: int = 50,
+<<<<<<< HEAD
     ) -> dict[str, Any]:
+=======
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Generate time-current curve (TCC) data points for plotting.
 
@@ -299,7 +412,11 @@ class CoordinationAgent(BaseAgent):
         currents = multipliers * pickup_current_a
 
         times = []
+<<<<<<< HEAD
         for I in currents:  # NOSONAR physics/engineering notation
+=======
+        for I in currents:
+>>>>>>> origin/fix/scenario-tests-properly
             result = self.calculate_relay_operating_time(
                 fault_current_a=float(I),
                 pickup_current_a=pickup_current_a,
@@ -320,9 +437,15 @@ class CoordinationAgent(BaseAgent):
 
     def analyze_selectivity(
         self,
+<<<<<<< HEAD
         relay_chain: list[dict[str, Any]],
         fault_currents_a: list[float],
     ) -> dict[str, Any]:
+=======
+        relay_chain: List[Dict[str, Any]],
+        fault_currents_a: List[float],
+    ) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Analyze selectivity across a chain of coordinated relays.
 
@@ -374,7 +497,11 @@ class CoordinationAgent(BaseAgent):
                         "downstream": downstream.get("name", f"relay_{i}"),
                         "upstream": upstream.get("name", f"relay_{i + 1}"),
                         "interval_s": check["coordination_interval_s"],
+<<<<<<< HEAD
                     },
+=======
+                    }
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         return {
@@ -404,17 +531,29 @@ class CoordinationAgent(BaseAgent):
             self.log_execution(f"Starting coordination analysis for task {task.task_id}")
 
             analysis_type = task.parameters.get("analysis_type", "full")
+<<<<<<< HEAD
             results: dict[str, Any] = {}
 
             # --- Relay operating time ---
             if analysis_type in ("relay_time", "full"):
                 fault_i = float(task.parameters.get("fault_current_a", 5000.0))  # NOSONAR
+=======
+            results: Dict[str, Any] = {}
+
+            # --- Relay operating time ---
+            if analysis_type in ("relay_time", "full"):
+                fault_I = float(task.parameters.get("fault_current_a", 5000.0))
+>>>>>>> origin/fix/scenario-tests-properly
                 pickup = float(task.parameters.get("pickup_current_a", 800.0))
                 curve = task.parameters.get("curve_type", "standard_inverse")
                 tms = float(task.parameters.get("time_multiplier", 1.0))
 
                 results["relay_operating_time"] = self.calculate_relay_operating_time(
+<<<<<<< HEAD
                     fault_current_a=fault_i,
+=======
+                    fault_current_a=fault_I,
+>>>>>>> origin/fix/scenario-tests-properly
                     pickup_current_a=pickup,
                     curve_type=curve,
                     time_multiplier=tms,
@@ -438,12 +577,20 @@ class CoordinationAgent(BaseAgent):
                         "time_multiplier": 0.3,
                     },
                 )
+<<<<<<< HEAD
                 fault_i = float(task.parameters.get("fault_current_a", 10000.0))
+=======
+                fault_I = float(task.parameters.get("fault_current_a", 10000.0))
+>>>>>>> origin/fix/scenario-tests-properly
 
                 results["coordination_check"] = self.verify_coordination(
                     upstream_relay=upstream,
                     downstream_relay=downstream,
+<<<<<<< HEAD
                     fault_current_a=fault_i,
+=======
+                    fault_current_a=fault_I,
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
             # --- TCC data ---
@@ -484,8 +631,12 @@ class CoordinationAgent(BaseAgent):
                     ],
                 )
                 fault_currents = task.parameters.get(
+<<<<<<< HEAD
                     "fault_currents_a",
                     [10000.0, 15000.0, 20000.0],
+=======
+                    "fault_currents_a", [10000.0, 15000.0, 20000.0]
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
                 results["selectivity"] = self.analyze_selectivity(
@@ -534,10 +685,14 @@ class CoordinationAgent(BaseAgent):
         - Coordination intervals meet minimum (0.2s)
         - TCC data has consistent lengths
         """
+<<<<<<< HEAD
         if result is None:
             return False
 
         errors: list[str] = []
+=======
+        errors: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
 
         rt_data = result.data.get("relay_operating_time")
         if rt_data is not None:

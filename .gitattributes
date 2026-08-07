@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AhmedETAP .gitattributes
 # Consistent line endings across the project
 
@@ -73,3 +74,22 @@ yarn.lock -text
 *.exe binary
 *.dll binary
 *.dmg binary
+=======
+# Ensure consistent line endings
+* text=auto
+*.py text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.cfg text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+".env" -text linguist-generated=true
+>>>>>>> origin/fix/scenario-tests-properly

@@ -3,17 +3,21 @@ API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
 _INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import hmac
 import os
 import sys
 import threading as _threading
 import time
 import uuid
+<<<<<<< HEAD
 from typing import Any, Optional
 
 import aiofiles
@@ -24,10 +28,18 @@ from fastapi.responses import JSONResponse
 # Import both the `trace` module (for trace.get_current_span() etc.) and the
 # specific symbols used by the middleware below. This prevents NameError if a
 # future edit references `trace.X` directly inside trace_middleware.
+=======
+from typing import Dict, List
+
+from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+>>>>>>> origin/fix/scenario-tests-properly
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
+<<<<<<< HEAD
 from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
@@ -65,10 +77,17 @@ from api.validation import router as validation_router
 from api.zip_generator_config import router as zip_generator_config_router
 from api.websocket import scada_websocket_endpoint
 from backend.request_context import CorrelationIdMiddleware, TenantMiddleware
+=======
+from api.agents import router as agents_router
+from api.health import router as health_router
+from api.studies import router as studies_router
+from api.websocket import scada_websocket_endpoint
+>>>>>>> origin/fix/scenario-tests-properly
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
 from services.study_service import (
     StudyRequest,
+<<<<<<< HEAD
 )
 
 # ─── Shared format constants ────────────────────────────────────────────────
@@ -80,6 +99,11 @@ def _utc_now_iso() -> str:
     return time.strftime(ISO_8601_UTC_FMT, time.gmtime())
 
 
+=======
+    SystemSpec,
+)
+
+>>>>>>> origin/fix/scenario-tests-properly
 # Create FastAPI app instance
 _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
 app = FastAPI(
@@ -101,6 +125,7 @@ _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
 # ---------------------------------------------------------------------------
 # Smithery Integration — External API Key Management
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # SECURITY AUDIT 2026-07-29 (self-critique pass, RR-08):
 # Previous code logged `smithery_api_key_available` at startup. While this
 # did not leak the key VALUE itself, it leaked the EXISTENCE of a Smithery
@@ -112,6 +137,11 @@ _EXPECTED_API_KEY = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
 # its readiness the first time it's actually invoked, which is the
 # correct signal — presence of a key at startup does not equal readiness.
 _SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
+=======
+_SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
+if _SMITHERY_API_KEY:
+    logger.info("smithery_api_key_available", extra={"trace_id": "startup"})
+>>>>>>> origin/fix/scenario-tests-properly
 
 _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 
@@ -120,6 +150,7 @@ _AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower()
     "true",
     "yes",
 )
+<<<<<<< HEAD
 if _AUTH_DISABLED:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -134,13 +165,20 @@ if _AUTH_DISABLED:
         "Set ENGINEERING_SERVICE_API_KEY to enable authentication. "
         "This is NOT recommended outside of local development.",
     )
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
         logger.critical(
             "FATAL: ENGINEERING_SERVICE_API_KEY is not set in %s environment. "
+<<<<<<< HEAD
             "Set the API key, or set ENGINEERING_SERVICE_AUTH_DISABLED=true "
             "(NOT recommended for production).",
+=======
+            "Set the API key or explicitly set ENGINEERING_SERVICE_AUTH_DISABLED=true "
+            "to allow unauthenticated access (NOT recommended for production).",
+>>>>>>> origin/fix/scenario-tests-properly
             _ENV,
         )
         sys.exit(1)
@@ -153,12 +191,17 @@ def _require_api_key(request: Request) -> None:
             return
         _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
         if _ENV in ("production", "prod", "staging"):
+<<<<<<< HEAD
             raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+            raise HTTPException(
+>>>>>>> origin/fix/scenario-tests-properly
                 status_code=401,
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
         return
+<<<<<<< HEAD
     # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
     if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
@@ -166,12 +209,19 @@ def _require_api_key(request: Request) -> None:
             status_code=401,
             detail=_INVALID_API_KEY_MSG,  # NOSONAR
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+
+    provided = request.headers.get("x-api-key") or ""
+    if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
 # Body size limit middleware
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-02):
 # Previous default was 1MB (1_048_576 bytes). Real power-system study
 # requests regularly exceed this — IEEE 300-bus networks, full CIM/XML
@@ -197,6 +247,17 @@ class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
                     status_code=413,
                     content={"detail": "Request body too large"},
                 )
+=======
+_MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "1_048_576"))
+
+
+class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method in ("POST", "PUT", "PATCH"):
+            content_length = request.headers.get("content-length")
+            if content_length and int(content_length) > _MAX_BODY_SIZE:
+                raise HTTPException(status_code=413, detail="Request body too large")
+>>>>>>> origin/fix/scenario-tests-properly
         return await call_next(request)
 
 
@@ -210,6 +271,7 @@ _RATE_LIMIT_MAX_REQUESTS = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MA
 _REDIS_URL = os.environ.get("REDIS_URL", "").strip()
 _RATE_LIMIT_PREFIX = os.environ.get("RATE_LIMIT_PREFIX", "rate-limit:")
 
+<<<<<<< HEAD
 # SECURITY AUDIT 2026-07-29 (self-critique pass, PR-02):
 # Previous fallback store was a plain `dict[str, list[float]]`. When the
 # store exceeded _RATE_LIMIT_MAX_ENTRIES (10k), the prune step iterated
@@ -227,6 +289,13 @@ from collections import OrderedDict as _OrderedDict
 _rate_limit_fallback_store: _OrderedDict[str, list[float]] = _OrderedDict()
 _rate_limit_fallback_lock = _threading.Lock()
 _RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
+=======
+_rate_limit_fallback_store: Dict[str, List[float]] = {}
+_rate_limit_fallback_lock = _threading.Lock()
+_RATE_LIMIT_MAX_ENTRIES = int(
+    os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000")
+)
+>>>>>>> origin/fix/scenario-tests-properly
 
 try:
     import redis.asyncio as redis_async  # type: ignore
@@ -236,7 +305,11 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
+<<<<<<< HEAD
 def _get_rate_limit_redis() -> Optional[Any]:
+=======
+def _get_rate_limit_redis():
+>>>>>>> origin/fix/scenario-tests-properly
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -252,19 +325,33 @@ async def _check_rate_limit(client_id: str) -> bool:
 
     if r is None:
         with _rate_limit_fallback_lock:
+<<<<<<< HEAD
             # O(1) cap enforcement: evict oldest entries (FIFO) when over
             # the cap. The previous code did a full O(n) scan to find stale
             # entries on every request once the cap was crossed — see PR-02.
             while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
                 _rate_limit_fallback_store.popitem(last=False)
+=======
+            if len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
+                stale = [
+                    cid
+                    for cid, timestamps in _rate_limit_fallback_store.items()
+                    if not timestamps or now - timestamps[-1] > _RATE_LIMIT_WINDOW
+                ]
+                for cid in stale:
+                    del _rate_limit_fallback_store[cid]
+>>>>>>> origin/fix/scenario-tests-properly
 
             timestamps = _rate_limit_fallback_store.get(client_id)
             if not timestamps:
                 _rate_limit_fallback_store[client_id] = [now]
                 return True
 
+<<<<<<< HEAD
             # Opportunistic stale-entry cleanup for THIS client only (O(k)
             # where k = number of past attempts for this client, typically <100).
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
             if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
                 _rate_limit_fallback_store[client_id] = timestamps
@@ -290,6 +377,7 @@ async def _check_rate_limit(client_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT", "120"))
+<<<<<<< HEAD
 # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 
@@ -308,6 +396,15 @@ async def trace_middleware(  # NOSONAR
     request.state.active_url = request.headers.get("x-active-url")
     request.state.active_model = request.headers.get("x-active-model")
 
+=======
+
+
+@app.middleware("http")
+async def trace_middleware(request: Request, call_next):
+    trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
+    request.state.trace_id = trace_id
+
+>>>>>>> origin/fix/scenario-tests-properly
     tracer = get_tracer()
     with tracer.start_as_current_span(
         f"{request.method} {request.url.path}",
@@ -323,18 +420,32 @@ async def trace_middleware(  # NOSONAR
         span.set_attribute("ahmedetap.trace_id", trace_id)
 
         # Rate limiting — skip for health endpoints
+<<<<<<< HEAD
         if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
+=======
+        if not request.url.path.startswith(
+            ("/health", "/ready", "/healthz", "/readyz")
+        ):
+>>>>>>> origin/fix/scenario-tests-properly
             _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
             if _TRUSTED_PROXIES:
                 _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
                 xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
                 proxy_ip = request.client.host if request.client else ""
+<<<<<<< HEAD
                 if proxy_ip in _trusted_list and xff:
                     client_id = xff
                 elif request.client:
                     client_id = request.client.host
                 else:
                     client_id = "unknown"
+=======
+                client_id = (
+                    xff
+                    if proxy_ip in _trusted_list and xff
+                    else (request.client.host if request.client else "unknown")
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             else:
                 client_id = request.client.host if request.client else "unknown"
             if not await _check_rate_limit(client_id):
@@ -363,16 +474,62 @@ class ReadyResponse(BaseModel):
 
 # Health endpoints are now handled by health router
 # See api/health.py for implementation
+<<<<<<< HEAD
 
 # Main study execution endpoint is now handled by studies router
 # See api/studies.py for implementation
 
 
 # Study validation endpoint is now handled by the validation router in api/validation.py
+=======
+# @app.head("/health")
+# @app.get("/health", response_model=HealthResponse)
+# async def health():
+#     return HealthResponse(status="ok", timestamp=str(time.time()))
+#
+#
+# @app.head("/ready")
+# @app.get("/ready", response_model=ReadyResponse)
+# async def ready():
+#     return ReadyResponse(status="ok", timestamp=str(time.time()))
+#
+#
+# @app.get("/metrics")
+# async def metrics():
+#     return Response(content=generate_metrics(), media_type=get_metrics_content_type())
+#
+#
+# @app.get("/prometheus/metrics")
+# async def prometheus_metrics():
+#     return Response(content=generate_metrics(), media_type="text/plain")
+
+# Main study execution endpoint is now handled by studies router
+# See api/studies.py for implementation
+# @app.post("/api/v1/studies/run", response_model=StudyResult)
+# async def run_study(study_request: StudyRequest, request: Request):
+#     _require_api_key(request)
+#
+#     trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
+#     start_time = time.perf_counter()
+#
+#     # Execute the study with proper arguments
+#     result = execute_study_logic(study_request, trace_id=trace_id, start_time=start_time)
+#     return result
+
+
+# Study validation endpoint
+@app.post("/api/v1/system/validate")
+async def validate_system(system_spec: SystemSpec, request: Request):
+    _require_api_key(request)
+
+    # Validate the system specification
+    return {"status": "validated", "valid": True}
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # --- NEW ASYNC AND WEBSOCKET ENDPOINTS ADDED FOR PRODUCTION SCALABILITY ---
 
+<<<<<<< HEAD
 
 # Module-level cache for Celery components (lazy-loaded once, then reused)
 _celery_cache: tuple = ()  # empty tuple = not yet loaded
@@ -415,10 +572,44 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
         raise HTTPException(
             status_code=500, detail="Celery is not available for async processing"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+# Import celery components for async task support inside the functions to avoid startup errors
+def get_celery_components():
+    """Lazy loading of Celery components to avoid import errors during startup."""
+    try:
+        # Use importlib to dynamically import to avoid Pylance static analysis issues
+        import importlib
+
+        celery_result_module = importlib.import_module('celery.result')
+        AsyncResult = celery_result_module.AsyncResult
+
+        worker_tasks_module = importlib.import_module('worker.tasks')
+        execute_engineering_study_task = worker_tasks_module.execute_engineering_study_task
+
+        worker_celery_app_module = importlib.import_module('worker.celery_app')
+        celery_app = worker_celery_app_module.app
+
+        return AsyncResult, execute_engineering_study_task, celery_app
+    except ImportError as e:
+        logger.warning(f"Celery not available: {e}")
+        return None, None, None
+
+
+@app.post('/api/v1/studies/run_async')
+async def run_study_async(study_request: StudyRequest, request: Request):
+    """Execute an engineering study asynchronously using Celery."""
+    _require_api_key(request)  # Add authentication check
+
+    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
+
+    if not execute_engineering_study_task:
+        raise HTTPException(status_code=500, detail="Celery is not available for async processing")
+>>>>>>> origin/fix/scenario-tests-properly
 
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
 
+<<<<<<< HEAD
         task = execute_engineering_study_task.delay(
             {
                 "study_type": study_request.study_type,
@@ -488,13 +679,74 @@ async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
 
 @app.websocket("/ws/scada/live")
 async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
+=======
+        task = execute_engineering_study_task.delay({
+            'study_type': study_request.study_type,
+            'data': study_request.model_dump(),
+            'request_timestamp': str(time.time())
+        })
+
+        logger.info(f'Started async study execution with task_id: {task.id}')
+
+        return {
+            'task_id': task.id,
+            'status': 'accepted',
+            'study_type': study_request.study_type,
+            'submitted_at': str(time.time())
+        }
+    except Exception as e:
+        logger.error(f'Error submitting async study: {str(e)}')
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.get('/api/v1/studies/task_status/{task_id}')
+async def get_task_status(task_id: str, request: Request):
+    """Get the status of an async study task."""
+    _require_api_key(request)  # Add authentication check
+
+    CeleryAsyncResult, execute_engineering_study_task, celery_app = get_celery_components()
+
+    if not CeleryAsyncResult or not celery_app:
+        raise HTTPException(status_code=500, detail="Celery is not available")
+
+    try:
+        # Using the retrieved AsyncResult class to create an instance
+        task_result = CeleryAsyncResult(str(task_id), app=celery_app)
+
+        response = {
+            'task_id': task_id,
+            'status': task_result.status,
+            'result': None
+        }
+
+        if task_result.ready():
+            if task_result.successful():
+                response['result'] = task_result.result
+            elif task_result.failed():
+                response['error'] = str(task_result.info)
+
+        # If task is in progress, get progress info
+        if task_result.status == 'PROGRESS':
+            response['meta'] = task_result.info
+
+        return response
+    except Exception as e:
+        logger.error(f'Error getting task status: {str(e)}')
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.websocket('/ws/scada/live')
+async def websocket_scada_endpoint_handler(websocket: WebSocket):
+>>>>>>> origin/fix/scenario-tests-properly
     """WebSocket endpoint for real-time SCADA data streaming."""
     # Perform API key authentication for WebSocket connection
     try:
         # Extract API key from headers
         api_key = websocket.headers.get("x-api-key")
         if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
+<<<<<<< HEAD
             await websocket.close(code=1008, reason=_INVALID_API_KEY_MSG)
+=======
+            await websocket.close(code=1008, reason="Invalid or missing API key")
+>>>>>>> origin/fix/scenario-tests-properly
             return
     except Exception:
         await websocket.close(code=1008, reason="Authentication error")
@@ -503,6 +755,7 @@ async def websocket_scada_endpoint_handler(websocket: WebSocket) -> None:
     await scada_websocket_endpoint(websocket)
 
 
+<<<<<<< HEAD
 @app.websocket("/ws/cua/confirmation")
 async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time CUA dual-confirmation.
@@ -528,6 +781,8 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     await cua_confirmation_ws(websocket)
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 # Privacy mode check
 _PRIVACY_MODE = os.environ.get("PRIVACY_MODE", "false").lower() == "true"
 if not _PRIVACY_MODE:
@@ -535,7 +790,10 @@ if not _PRIVACY_MODE:
     if _LANGWATCH_API_KEY:
         try:
             import langwatch  # type: ignore
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
             langwatch.api_key = _LANGWATCH_API_KEY
             langwatch.setup(
                 endpoint=os.environ.get("LANGWATCH_ENDPOINT", "https://app.langwatch.ai"),
@@ -544,10 +802,14 @@ if not _PRIVACY_MODE:
         except ImportError:
             logger.warning("langwatch_not_installed", extra={"trace_id": "startup"})
         except Exception as lw_exc:
+<<<<<<< HEAD
             logger.warning(
                 "langwatch_init_failed",
                 extra={"trace_id": "startup", "error": str(lw_exc)},
             )
+=======
+            logger.warning("langwatch_init_failed", extra={"trace_id": "startup", "error": str(lw_exc)})
+>>>>>>> origin/fix/scenario-tests-properly
 else:
     logger.info("Privacy mode enabled - external telemetry disabled", extra={"trace_id": "startup"})
 
@@ -556,9 +818,13 @@ else:
 # Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.
 # Example: ENGINEERING_SERVICE_CORS_ORIGINS=https://yourapp.example.com,https://worker.example.com
 _CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
+<<<<<<< HEAD
 _cors_origin_list = (
     [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 )
+=======
+_cors_origin_list = [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
+>>>>>>> origin/fix/scenario-tests-properly
 if not _cors_origin_list:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -571,6 +837,7 @@ if not _cors_origin_list:
     else:
         logger.info(
             "CORS: No origins configured (development mode). "
+<<<<<<< HEAD
             "Set ENGINEERING_SERVICE_CORS_ORIGINS for production.",
         )
     _cors_origin_list = []  # No origins allowed = restrictive by default
@@ -607,15 +874,32 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
             "x-active-model",
             "x-csrf-token",
         ],
+=======
+            "Set ENGINEERING_SERVICE_CORS_ORIGINS for production."
+        )
+    _cors_origin_list = []  # No origins allowed = restrictive by default
+    # Don't allow credentials when no origins are configured
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origin_list,
+        allow_credentials=False,  # Don't allow credentials with empty origin list
+        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+>>>>>>> origin/fix/scenario-tests-properly
         expose_headers=["x-trace-id"],
     )
 else:
     # Allow credentials only when specific origins are configured
+<<<<<<< HEAD
     app.add_middleware(  # NOSONAR CORSMiddleware added last to make it outermost in the middleware chain
+=======
+    app.add_middleware(
+>>>>>>> origin/fix/scenario-tests-properly
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+<<<<<<< HEAD
         allow_headers=[
             "x-api-key",
             "x-trace-id",
@@ -675,6 +959,16 @@ except Exception as _sec_exc:
 # Global exception handler to prevent raw exception exposure
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+=======
+        allow_headers=["x-api-key", "x-trace-id", "content-type", "authorization"],
+        expose_headers=["x-trace-id"],
+    )
+app.add_middleware(_BodySizeLimitMiddleware)
+
+# Global exception handler to prevent raw exception exposure
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Global exception handler to prevent raw exception exposure in production.
     Logs the full exception server-side but returns a generic response to clients.
@@ -682,21 +976,31 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     import traceback
 
     # Log the full exception details server-side
+<<<<<<< HEAD
     logger.exception(
+=======
+    logger.error(
+>>>>>>> origin/fix/scenario-tests-properly
         f"Unhandled exception in {request.method} {request.url.path}: {str(exc)}",
         extra={
             "trace_id": getattr(request.state, "trace_id", "unknown"),
             "method": request.method,
             "path": request.url.path,
             "exception_type": type(exc).__name__,
+<<<<<<< HEAD
             "traceback": traceback.format_exc(),
         },
+=======
+            "traceback": traceback.format_exc()
+        }
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
     # Return a generic error response to prevent information disclosure
     return JSONResponse(
         status_code=500,
         content={
+<<<<<<< HEAD
             "error": MSG_INTERNAL_ERROR,
             "message": "An unexpected error occurred. Please contact support if the issue persists.",
             "trace_id": getattr(request.state, "trace_id", "unknown"),
@@ -1153,3 +1457,20 @@ async def benchmark(request: Request):
     if not numpy_ok:
         result["data"]["numpy_error"] = "numpy unavailable" if numpy_err is not None else None
     return result
+=======
+            "error": "Internal server error",
+            "message": "An unexpected error occurred. Please contact support if the issue persists.",
+            "trace_id": getattr(request.state, "trace_id", "unknown")
+        }
+    )
+
+# Module-level shared instances for digital twin endpoint
+_shared_state_store = None
+_shared_event_bus = None
+_shared_validation_gateway = None
+
+# Register only the routers that exist
+app.include_router(health_router)
+app.include_router(studies_router)
+app.include_router(agents_router)
+>>>>>>> origin/fix/scenario-tests-properly

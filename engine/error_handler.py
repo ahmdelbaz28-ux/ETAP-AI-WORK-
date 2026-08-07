@@ -18,11 +18,19 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from email.message import EmailMessage
 from typing import Any, Optional
+=======
+from datetime import UTC, datetime, timedelta
+
+UTC = UTC
+from email.message import EmailMessage
+from typing import Any, Dict, List, Set
+>>>>>>> origin/fix/scenario-tests-properly
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -70,9 +78,15 @@ class EngineSystemError:
     timestamp: datetime
     details: dict = field(default_factory=dict)
     stack_trace: str = ""
+<<<<<<< HEAD
     user_id: Optional[str] = None
     acknowledged: bool = False
     resolution: Optional[str] = None
+=======
+    user_id: str | None = None
+    acknowledged: bool = False
+    resolution: str | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # Backward-compatible alias — maps SystemError to EngineSystemError so
@@ -100,8 +114,13 @@ class AlertManager:
 
     def __init__(self) -> None:
         self._logger = logging.getLogger("alert")
+<<<<<<< HEAD
         self._email_config: Optional[dict] = None
         self._webhook_config: Optional[dict] = None
+=======
+        self._email_config: dict | None = None
+        self._webhook_config: dict | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         self._rules: list[dict] = []
         self._lock = threading.Lock()
 
@@ -120,7 +139,11 @@ class AlertManager:
         username: str,
         password: str,
         from_addr: str,
+<<<<<<< HEAD
         to_addrs: list[str],
+=======
+        to_addrs: List[str],
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Configure SMTP email delivery for alerts.
 
@@ -141,7 +164,11 @@ class AlertManager:
             "to_addrs": to_addrs,
         }
 
+<<<<<<< HEAD
     def configure_webhook(self, url: str, headers: Optional[dict] = None) -> None:
+=======
+    def configure_webhook(self, url: str, headers: dict | None = None) -> None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Configure a webhook URL for alert delivery.
 
         Args:
@@ -154,7 +181,11 @@ class AlertManager:
         self,
         component: str,
         min_severity: ErrorSeverity,
+<<<<<<< HEAD
         channels: list[str] | None = None,
+=======
+        channels: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Register an alert routing rule.
 
@@ -176,7 +207,11 @@ class AlertManager:
                     "component": component,
                     "min_severity": min_severity,
                     "channels": channels,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     # ------------------------------------------------------------------
@@ -186,7 +221,11 @@ class AlertManager:
     def trigger_alert(
         self,
         error: EngineSystemError,
+<<<<<<< HEAD
         channels: list[str] | None = None,
+=======
+        channels: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Dispatch an alert for *error* through matching channels.
 
@@ -209,7 +248,11 @@ class AlertManager:
                 elif ch == "webhook":
                     self._alert_webhook(error)
 
+<<<<<<< HEAD
     def get_active_alerts(self) -> list[EngineSystemError]:
+=======
+    def get_active_alerts(self) -> List[EngineSystemError]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return errors that are currently active (unacknowledged CRITICAL/ERROR).
 
         This method is a **read-only** query — it relies on the caller having
@@ -222,9 +265,15 @@ class AlertManager:
     # Internals
     # ------------------------------------------------------------------
 
+<<<<<<< HEAD
     def _resolve_channels(self, error: EngineSystemError) -> list[str]:
         """Collect channels whose rules match *error*."""
         matched: set[str] = set()
+=======
+    def _resolve_channels(self, error: EngineSystemError) -> List[str]:
+        """Collect channels whose rules match *error*."""
+        matched: Set[str] = set()
+>>>>>>> origin/fix/scenario-tests-properly
         severity_order = {
             ErrorSeverity.DEBUG: 0,
             ErrorSeverity.INFO: 1,
@@ -243,9 +292,13 @@ class AlertManager:
         return list(matched) if matched else ["console"]
 
     def _alert_console(self, error: EngineSystemError) -> None:
+<<<<<<< HEAD
         msg = (
             f"[{error.severity.value}] Union[{error.component}, {error.error_id}] | {error.message}"
         )
+=======
+        msg = f"[{error.severity.value}] {error.component} | {error.error_id} | {error.message}"
+>>>>>>> origin/fix/scenario-tests-properly
         level = getattr(logging, error.severity.value, logging.ERROR)
         self._logger.log(level, msg)
 
@@ -290,7 +343,11 @@ class AlertManager:
                     "details": error.details,
                     "stack_trace": error.stack_trace,
                     "user_id": error.user_id,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             ).encode("utf-8")
             req = Request(
                 cfg["url"],
@@ -324,9 +381,15 @@ class ErrorHandler:
     def __init__(self, max_history: int = 1000) -> None:
         self._max_history = max_history
         self._history: deque = deque(maxlen=max_history)
+<<<<<<< HEAD
         self._history_map: dict[str, EngineSystemError] = {}
         self._alert_manager: Optional[AlertManager] = None
         self._audit_logger: Optional[logging.Logger] = None
+=======
+        self._history_map: Dict[str, EngineSystemError] = {}
+        self._alert_manager: AlertManager | None = None
+        self._audit_logger: logging.Logger | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         self._lock = threading.Lock()
         self._logger: logging.Logger = logging.getLogger(__name__)
 
@@ -334,7 +397,11 @@ class ErrorHandler:
             self._audit_logger = logging.getLogger("audit.error")
         except Exception:
             self._logger.debug(
+<<<<<<< HEAD
                 "Audit logger initialization skipped (logger 'audit.error' unavailable)",
+=======
+                "Audit logger initialization skipped (logger 'audit.error' unavailable)"
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     # ------------------------------------------------------------------
@@ -350,9 +417,15 @@ class ErrorHandler:
         component: str,
         message: str,
         severity: ErrorSeverity = ErrorSeverity.ERROR,
+<<<<<<< HEAD
         details: Optional[dict] = None,
         exception: Optional[BaseException] = None,
         user_id: Optional[str] = None,
+=======
+        details: dict | None = None,
+        exception: BaseException | None = None,
+        user_id: str | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> EngineSystemError:
         """Record and process an error.
 
@@ -379,7 +452,11 @@ class ErrorHandler:
             timestamp=datetime.now(UTC),
             details=details or {},
             stack_trace="".join(
+<<<<<<< HEAD
                 traceback.format_exception(type(exception), exception, exception.__traceback__),
+=======
+                traceback.format_exception(type(exception), exception, exception.__traceback__)
+>>>>>>> origin/fix/scenario-tests-properly
             )
             if exception
             else "",
@@ -396,10 +473,17 @@ class ErrorHandler:
 
     def get_error_history(
         self,
+<<<<<<< HEAD
         component: Optional[str] = None,
         severity: Optional[ErrorSeverity] = None,
         limit: int = 100,
     ) -> list[EngineSystemError]:
+=======
+        component: str | None = None,
+        severity: ErrorSeverity | None = None,
+        limit: int = 100,
+    ) -> List[EngineSystemError]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Query error history with optional filters.
 
         Args:
@@ -419,7 +503,11 @@ class ErrorHandler:
         result.sort(key=lambda e: e.timestamp, reverse=True)
         return result[:limit]
 
+<<<<<<< HEAD
     def get_error_by_id(self, error_id: str) -> Optional[EngineSystemError]:
+=======
+    def get_error_by_id(self, error_id: str) -> EngineSystemError | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Retrieve a single error by its UUID.
 
         Args:
@@ -524,9 +612,15 @@ class ErrorHandler:
             return
         try:
             level = getattr(logging, error.severity.value, logging.ERROR)
+<<<<<<< HEAD
             self._audit_logger.log(
                 level,
                 "[%s] [%s] %s (error_id=%s)",
+=======
+            logger.log(
+                level,
+                "[%s] [%s] %s | error_id=%s",
+>>>>>>> origin/fix/scenario-tests-properly
                 error.severity.value,
                 error.component,
                 error.message,
@@ -534,8 +628,12 @@ class ErrorHandler:
             )
         except Exception:
             logging.getLogger(__name__).debug(
+<<<<<<< HEAD
                 "Audit log write skipped for error %s",
                 error.error_id,
+=======
+                "Audit log write skipped for error %s", error.error_id
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     def _dispatch_alert(self, error: EngineSystemError) -> None:
@@ -569,8 +667,13 @@ class AutoRecoveryManager:
     ) -> None:
         self._error_handler = error_handler
         self._resilience_module = resilience_module
+<<<<<<< HEAD
         self._actions: list[dict] = []
         self._status: dict[str, dict] = {}
+=======
+        self._actions: List[dict] = []
+        self._status: Dict[str, dict] = {}
+>>>>>>> origin/fix/scenario-tests-properly
         self._lock = threading.Lock()
 
     def register_recovery_action(
@@ -579,7 +682,11 @@ class AutoRecoveryManager:
         error_pattern: str,
         action_fn: Callable[[EngineSystemError], bool],
         cooldown_seconds: int = 300,
+<<<<<<< HEAD
         action_name: Optional[str] = None,
+=======
+        action_name: str | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         """Register an automatic recovery action.
 
@@ -603,7 +710,11 @@ class AutoRecoveryManager:
                     "action_fn": action_fn,
                     "cooldown_seconds": cooldown_seconds,
                     "action_name": name,
+<<<<<<< HEAD
                 },
+=======
+                }
+>>>>>>> origin/fix/scenario-tests-properly
             )
             self._status.setdefault(
                 name,
@@ -662,7 +773,11 @@ class AutoRecoveryManager:
                 return True
         return False
 
+<<<<<<< HEAD
     def get_recovery_status(self) -> list[dict]:
+=======
+    def get_recovery_status(self) -> List[dict]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return status for all registered recovery actions.
 
         Returns:
@@ -699,8 +814,13 @@ def component_guard(
     component_name: str,
     error_handler: ErrorHandler,
     severity: ErrorSeverity = ErrorSeverity.ERROR,
+<<<<<<< HEAD
     details: Optional[dict] = None,
     user_id: Optional[str] = None,
+=======
+    details: dict | None = None,
+    user_id: str | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
 ):
     """Context manager that catches exceptions and routes them to the handler.
 
@@ -743,9 +863,15 @@ def component_guard(
 # Singleton factory
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 _handler: Optional[ErrorHandler] = None
 _alert_manager: Optional[AlertManager] = None
 _auto_recovery: Optional[AutoRecoveryManager] = None
+=======
+_handler: ErrorHandler | None = None
+_alert_manager: AlertManager | None = None
+_auto_recovery: AutoRecoveryManager | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 _lock = threading.Lock()
 
 

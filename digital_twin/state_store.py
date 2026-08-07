@@ -15,11 +15,15 @@ from __future__ import annotations
 
 import copy
 import json
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Optional
 
 import numpy as np
@@ -31,6 +35,12 @@ logger = logging.getLogger(__name__)
 # threading locks as a fallback for single-process deployments.
 _ELEMENT_LOCK_TIMEOUT = 5.0  # seconds to wait for an element lock
 
+=======
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
+
+>>>>>>> origin/fix/scenario-tests-properly
 
 class StateLayer(Enum):
     """Layers of the digital twin state."""
@@ -93,10 +103,17 @@ class SwitchState:
 class TopologyState:
     """Current topology state derived from switching."""
 
+<<<<<<< HEAD
     connected_components: list[list[str]] = field(default_factory=list)
     energized_buses: list[str] = field(default_factory=list)
     de_energized_buses: list[str] = field(default_factory=list)
     section_buses: dict[str, list[str]] = field(default_factory=dict)
+=======
+    connected_components: List[List[str]] = field(default_factory=list)
+    energized_buses: List[str] = field(default_factory=list)
+    de_energized_buses: List[str] = field(default_factory=list)
+    section_buses: Dict[str, List[str]] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
 
     def to_dict(self) -> dict:
         return {
@@ -135,11 +152,19 @@ class SimulationResults:
 
     load_flow_converged: bool = False
     load_flow_iterations: int = 0
+<<<<<<< HEAD
     load_flow_bus_voltages: dict[str, complex] = field(default_factory=dict)
     state_estimation_converged: bool = False
     state_estimation_bad_data: int = 0
     fault_currents: dict[str, complex] = field(default_factory=dict)
     arc_flash_incident_energy: dict[str, float] = field(default_factory=dict)
+=======
+    load_flow_bus_voltages: Dict[str, complex] = field(default_factory=dict)
+    state_estimation_converged: bool = False
+    state_estimation_bad_data: int = 0
+    fault_currents: Dict[str, complex] = field(default_factory=dict)
+    arc_flash_incident_energy: Dict[str, float] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
     protection_coordination_ok: bool = False
 
     def to_dict(self) -> dict:
@@ -172,6 +197,7 @@ class StateSnapshot:
     simulation_time: float = 0.0
 
     # GIS Layer State
+<<<<<<< HEAD
     gis_assets: dict[str, GISAssetState] = field(default_factory=dict)
     gis_zones: dict[str, str] = field(default_factory=dict)
 
@@ -182,6 +208,18 @@ class StateSnapshot:
 
     # ADMS Layer State
     switch_states: dict[str, SwitchState] = field(default_factory=dict)
+=======
+    gis_assets: Dict[str, GISAssetState] = field(default_factory=dict)
+    gis_zones: Dict[str, str] = field(default_factory=dict)
+
+    # Electrical Layer State
+    bus_states: Dict[str, BusState] = field(default_factory=dict)
+    ybus_shape: Tuple[int, int] = (0, 0)
+    ybus_checksum: int = 0  # Hash of Ybus for change detection
+
+    # ADMS Layer State
+    switch_states: Dict[str, SwitchState] = field(default_factory=dict)
+>>>>>>> origin/fix/scenario-tests-properly
     topology: TopologyState = field(default_factory=TopologyState)
     scada_measurement_count: int = 0
 
@@ -190,7 +228,11 @@ class StateSnapshot:
 
     # Validation
     validation_passed: bool = True
+<<<<<<< HEAD
     validation_errors: list[str] = field(default_factory=list)
+=======
+    validation_errors: List[str] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
 
     # Metadata
     source_event: str = ""
@@ -246,6 +288,7 @@ class StateStore:
     - State diff computation between versions
     - Layer-specific state queries
     - Maximum history size with automatic pruning
+<<<<<<< HEAD
 
     Security Fix V-03: Per-element locking to prevent race conditions
     on Bus/Breaker state updates. Uses threading.Lock per element
@@ -254,10 +297,17 @@ class StateStore:
 
     def __init__(self, max_versions: int = 1000, redis_url: Optional[str] = None):
         self._snapshots: list[StateSnapshot] = []
+=======
+    """
+
+    def __init__(self, max_versions: int = 1000):
+        self._snapshots: List[StateSnapshot] = []
+>>>>>>> origin/fix/scenario-tests-properly
         self._max_versions = max_versions
         self._current_version = 0
         self._lock = threading.Lock()
 
+<<<<<<< HEAD
         # V-03: Per-element locks for granular concurrency control
         self._element_locks: dict[str, threading.Lock] = {}
         self._element_lock_lock = threading.Lock()  # Guards _element_locks dict
@@ -352,6 +402,8 @@ class StateStore:
         finally:
             element_lock.release()
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     def commit(self, snapshot: StateSnapshot) -> int:
         """
         Commit a new state snapshot.
@@ -370,7 +422,11 @@ class StateStore:
 
             return self._current_version
 
+<<<<<<< HEAD
     def get_current(self) -> Optional[StateSnapshot]:
+=======
+    def get_current(self) -> StateSnapshot | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get the current (latest) state snapshot."""
         with self._lock:
             if not self._snapshots:
@@ -378,7 +434,11 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
+<<<<<<< HEAD
     def get_version(self, version: int) -> Optional[StateSnapshot]:
+=======
+    def get_version(self, version: int) -> StateSnapshot | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get a specific version of the state."""
         with self._lock:
             for s in self._snapshots:
@@ -394,7 +454,11 @@ class StateStore:
         with self._lock:
             return self._current_version
 
+<<<<<<< HEAD
     def rollback(self, version: int) -> Optional[StateSnapshot]:
+=======
+    def rollback(self, version: int) -> StateSnapshot | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Rollback state to a specific version.
         Removes all snapshots after the target version.
@@ -419,11 +483,15 @@ class StateStore:
             ref = self._snapshots[-1]
         return copy.deepcopy(ref)
 
+<<<<<<< HEAD
     def diff(  # NOSONAR
         self, version_a: int, version_b: int
     ) -> (
         dict[str, Any] | None
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def diff(self, version_a: int, version_b: int) -> Dict[str, Any] | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Compute the diff between two state versions.
 
@@ -507,7 +575,11 @@ class StateStore:
 
         return changes
 
+<<<<<<< HEAD
     def get_history(self, limit: int = 100) -> list[dict[str, Any]]:
+=======
+    def get_history(self, limit: int = 100) -> List[Dict[str, Any]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get summary of recent state versions."""
         with self._lock:
             recent = self._snapshots[-limit:]
@@ -544,7 +616,11 @@ class StateStore:
             self._snapshots.clear()
             self._current_version = 0
 
+<<<<<<< HEAD
     def _get_version_unlocked(self, version: int) -> Optional[StateSnapshot]:
+=======
+    def _get_version_unlocked(self, version: int) -> StateSnapshot | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get a specific version without acquiring lock (caller must hold lock)."""
         for s in self._snapshots:
             if s.version == version:

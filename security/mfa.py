@@ -23,6 +23,7 @@ import secrets
 import struct
 import time
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from typing import Any, Optional, Protocol, runtime_checkable
 
 
@@ -45,6 +46,9 @@ class _HashLike(Protocol):
     def hexdigest(self) -> str: ...
     def copy(self) -> _HashLike: ...
 
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +92,7 @@ except ImportError:
 # ===========================================================================
 
 
+<<<<<<< HEAD
 def _sha1_for_otp(data: bytes = b"") -> _HashLike:
     """Return a SHA-1 hash object configured with ``usedforsecurity=False``.
 
@@ -128,6 +133,8 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
         )  # NOSONAR type: ignore[return-value]
 
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     """Generate an HOTP code (RFC 4226).
 
@@ -145,6 +152,7 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     str
         Zero-padded OTP string of length *digits*.
     """
+<<<<<<< HEAD
     # HMAC-SHA1 is the mandatory algorithm for TOTP (RFC 6238 §1.2) and
     # HOTP (RFC 4226 §5.3). All mainstream authenticator apps (Google
     # Authenticator, Microsoft Authenticator, Authy, FreeOTP) only support
@@ -161,6 +169,11 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
     h = hmac.new(
         secret_bytes, msg, _sha1_for_otp
     ).digest()  # NOSONAR SHA-1 is RFC-mandated for TOTP interoperability; usedforsecurity=False set via _sha1_for_otp
+=======
+    # HMAC-SHA1
+    msg = struct.pack(">Q", counter)
+    h = hmac.new(secret_bytes, msg, hashlib.sha1).digest()
+>>>>>>> origin/fix/scenario-tests-properly
     # Dynamic truncation
     offset = h[-1] & 0x0F
     code = struct.unpack(">I", h[offset : offset + 4])[0] & 0x7FFFFFFF
@@ -170,7 +183,11 @@ def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
 def _totp_code(
     secret_b32: str,
     time_step: int = 30,
+<<<<<<< HEAD
     t: Optional[float] = None,
+=======
+    t: float | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     digits: int = 6,
 ) -> str:
     """Compute a TOTP code from a Base32-encoded secret.
@@ -215,7 +232,11 @@ class TOTPSecret:
     secret: str  # Base32-encoded
     verified: bool = False
     created_at: float = field(default_factory=time.time)
+<<<<<<< HEAD
     backup_codes: list[str] = field(default_factory=list)
+=======
+    backup_codes: List[str] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class TOTPProvider:
@@ -243,7 +264,11 @@ class TOTPProvider:
         self.time_step = time_step
         self.digits = digits
         self.window = window  # ±1 window for clock drift
+<<<<<<< HEAD
         self._secrets: dict[str, TOTPSecret] = {}
+=======
+        self._secrets: Dict[str, TOTPSecret] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
     # -- secret generation ---------------------------------------------------
 
@@ -304,6 +329,7 @@ class TOTPProvider:
 
     # -- code verification ---------------------------------------------------
 
+<<<<<<< HEAD
     def verify_code(self, user_id_or_secret: str, code: str) -> bool:
         """Verify a TOTP code with a ±1 window for clock drift.
 
@@ -317,6 +343,15 @@ class TOTPProvider:
         user_id_or_secret : str
             User identifier (looked up in the credential store) OR
             a Base32-encoded TOTP secret string.
+=======
+    def verify_code(self, secret: str, code: str) -> bool:
+        """Verify a TOTP code with a ±1 window for clock drift.
+
+        Parameters
+        ----------
+        secret : str
+            Base32-encoded TOTP secret.
+>>>>>>> origin/fix/scenario-tests-properly
         code : str
             User-supplied TOTP code.
 
@@ -325,12 +360,15 @@ class TOTPProvider:
         bool
             ``True`` if the code is valid within the window.
         """
+<<<<<<< HEAD
         # V-50: Try to look up the secret by user_id first
         secret = user_id_or_secret
         entry = self._secrets.get(user_id_or_secret)
         if entry and entry.secret:
             secret = entry.secret
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         if HAS_PYOTP:
             totp = _pyotp.TOTP(secret)
             return totp.verify(code, valid_window=self.window)
@@ -350,6 +388,7 @@ class TOTPProvider:
 
     # -- backup codes --------------------------------------------------------
 
+<<<<<<< HEAD
     def generate_backup_codes(self, user_id: str, count: int = 10) -> list[str]:
         """Generate one-time backup codes for a user.
 
@@ -357,6 +396,11 @@ class TOTPProvider:
         The plaintext codes are only returned once so the user can
         save them. The stored hashes are compared during verification.
 
+=======
+    def generate_backup_codes(self, user_id: str, count: int = 10) -> List[str]:
+        """Generate one-time backup codes for a user.
+
+>>>>>>> origin/fix/scenario-tests-properly
         Parameters
         ----------
         user_id : str
@@ -367,6 +411,7 @@ class TOTPProvider:
         Returns
         -------
         list[str]
+<<<<<<< HEAD
             List of plaintext backup code strings (shown ONCE to the user).
         """
         codes = [secrets.token_hex(4).upper() for _ in range(count)]
@@ -379,22 +424,39 @@ class TOTPProvider:
             self._secrets[user_id] = TOTPSecret(
                 user_id=user_id, secret="", backup_codes=code_hashes
             )
+=======
+            List of backup code strings.
+        """
+        codes = [secrets.token_hex(4).upper() for _ in range(count)]
+        entry = self._secrets.get(user_id)
+        if entry:
+            entry.backup_codes = codes
+        else:
+            self._secrets[user_id] = TOTPSecret(user_id=user_id, secret="", backup_codes=codes)
+>>>>>>> origin/fix/scenario-tests-properly
         logger.info("Generated %d backup codes for user %s", count, user_id)
         return codes
 
     def verify_backup_code(self, user_id: str, code: str) -> bool:
         """Verify and consume a backup code (one-time use).
 
+<<<<<<< HEAD
         V-9 FIX: The code parameter is now expected to be a SHA-256 hash
         of the plaintext backup code. The api/mfa.py layer hashes the
         user-supplied code before passing it here.
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
         Parameters
         ----------
         user_id : str
             User identifier.
         code : str
+<<<<<<< HEAD
             SHA-256 hash of the backup code to verify.
+=======
+            Backup code to verify.
+>>>>>>> origin/fix/scenario-tests-properly
 
         Returns
         -------
@@ -405,16 +467,24 @@ class TOTPProvider:
         if entry and code in entry.backup_codes:
             entry.backup_codes.remove(code)
             logger.info(
+<<<<<<< HEAD
                 "Backup code used for user %s (%d remaining)",
                 user_id,
                 len(entry.backup_codes),
+=======
+                "Backup code used for user %s (%d remaining)", user_id, len(entry.backup_codes)
+>>>>>>> origin/fix/scenario-tests-properly
             )
             return True
         return False
 
     # -- user management helpers ---------------------------------------------
 
+<<<<<<< HEAD
     def enable_totp(self, user_id: str) -> dict[str, str]:
+=======
+    def enable_totp(self, user_id: str) -> Dict[str, str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Enable TOTP for a user.  Returns secret and QR URI.
 
         Parameters
@@ -436,7 +506,11 @@ class TOTPProvider:
             "backup_codes": backup_codes,
         }
 
+<<<<<<< HEAD
     def get_secret(self, user_id: str) -> Optional[str]:
+=======
+    def get_secret(self, user_id: str) -> str | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return the stored Base32 secret for a user, or ``None``."""
         entry = self._secrets.get(user_id)
         return entry.secret if entry else None
@@ -469,7 +543,11 @@ class WebAuthnCredential:
     user_id: str
     public_key: bytes
     sign_count: int = 0
+<<<<<<< HEAD
     transports: list[str] = field(default_factory=list)
+=======
+    transports: List[str] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
     created_at: float = field(default_factory=time.time)
 
 
@@ -504,12 +582,21 @@ class WebAuthnProvider:
         self.rp_id = rp_id
         self.rp_name = rp_name
         self.origin = origin
+<<<<<<< HEAD
         self._credentials: dict[str, list[WebAuthnCredential]] = {}
         self._challenges: dict[str, str] = {}  # user_id -> challenge
 
     # -- registration --------------------------------------------------------
 
     def generate_registration_options(self, user_id: str) -> dict[str, Any]:
+=======
+        self._credentials: Dict[str, List[WebAuthnCredential]] = {}
+        self._challenges: Dict[str, str] = {}  # user_id -> challenge
+
+    # -- registration --------------------------------------------------------
+
+    def generate_registration_options(self, user_id: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Generate WebAuthn registration challenge.
 
         Parameters
@@ -564,7 +651,11 @@ class WebAuthnProvider:
             },
         }
 
+<<<<<<< HEAD
     def verify_registration(self, user_id: str, response: dict) -> dict[str, Any]:
+=======
+    def verify_registration(self, user_id: str, response: dict) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Verify WebAuthn registration response from the client.
 
         Parameters
@@ -610,6 +701,7 @@ class WebAuthnProvider:
                 logger.warning("WebAuthn registration verification failed: %s", exc)
                 return {"success": False, "error": str(exc)}
 
+<<<<<<< HEAD
         # SECURITY: Reject WebAuthn registration when the 'webauthn' library is
         # not installed. Storing a credential without cryptographic verification
         # of the authenticator's attestation would allow a malicious client to
@@ -638,6 +730,30 @@ class WebAuthnProvider:
     # -- authentication ------------------------------------------------------
 
     def generate_authentication_options(self, user_id: str) -> dict[str, Any]:
+=======
+        # Fallback: store credential without full crypto verification
+        cred_id = response.get("id", secrets.token_hex(16))
+        public_key_b64 = response.get("response", {}).get("publicKey", "")
+        try:
+            public_key = base64.urlsafe_b64decode(public_key_b64 + "==")
+        except Exception:
+            public_key = b""
+
+        credential = WebAuthnCredential(
+            credential_id=cred_id,
+            user_id=user_id,
+            public_key=public_key,
+            sign_count=0,
+            transports=response.get("transports", []),
+        )
+        self._credentials.setdefault(user_id, []).append(credential)
+        logger.info("WebAuthn credential registered (fallback) for user %s", user_id)
+        return {"credential_id": cred_id, "success": True}
+
+    # -- authentication ------------------------------------------------------
+
+    def generate_authentication_options(self, user_id: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Generate WebAuthn authentication challenge.
 
         Parameters
@@ -702,8 +818,13 @@ class WebAuthnProvider:
             ``True`` if authentication succeeded.
         """
         # Find the credential
+<<<<<<< HEAD
         stored_cred: Optional[WebAuthnCredential] = None
         owner_id: Optional[str] = None
+=======
+        stored_cred: WebAuthnCredential | None = None
+        owner_id: str | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         for uid, creds in self._credentials.items():
             for c in creds:
                 if c.credential_id == credential_id:
@@ -734,8 +855,12 @@ class WebAuthnProvider:
                 )
                 # Update sign count
                 stored_cred.sign_count = response.get("response", {}).get(
+<<<<<<< HEAD
                     "signCount",
                     stored_cred.sign_count + 1,
+=======
+                    "signCount", stored_cred.sign_count + 1
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 logger.info("WebAuthn authentication succeeded for user %s", owner_id)
                 return True
@@ -757,7 +882,11 @@ class WebAuthnProvider:
 
     # -- credential management -----------------------------------------------
 
+<<<<<<< HEAD
     def get_credentials(self, user_id: str) -> list[dict[str, Any]]:
+=======
+    def get_credentials(self, user_id: str) -> List[Dict[str, Any]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return all registered credentials for a user.
 
         Parameters
@@ -829,14 +958,24 @@ class MFAOrchestrator:
 
     def __init__(
         self,
+<<<<<<< HEAD
         totp_provider: Optional[TOTPProvider] = None,
         webauthn_provider: Optional[WebAuthnProvider] = None,
         require_mfa_for_roles: list[str] | None = None,
+=======
+        totp_provider: TOTPProvider | None = None,
+        webauthn_provider: WebAuthnProvider | None = None,
+        require_mfa_for_roles: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         self.totp = totp_provider or TOTPProvider()
         self.webauthn = webauthn_provider or WebAuthnProvider()
         self.require_mfa_for_roles = require_mfa_for_roles or ["admin", "engineer"]
+<<<<<<< HEAD
         self._mfa_verified_sessions: dict[str, float] = {}  # session_id -> expiry
+=======
+        self._mfa_verified_sessions: Dict[str, float] = {}  # session_id -> expiry
+>>>>>>> origin/fix/scenario-tests-properly
 
     def is_mfa_required(self, role: str) -> bool:
         """Check whether a given role requires MFA.
@@ -948,7 +1087,11 @@ class MFAOrchestrator:
         self._mfa_verified_sessions.pop(session_id, None)
         logger.info("MFA verification revoked for session %s", session_id)
 
+<<<<<<< HEAD
     def get_status(self, user_id: str) -> dict[str, Any]:
+=======
+    def get_status(self, user_id: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get MFA enrollment status for a user.
 
         Parameters

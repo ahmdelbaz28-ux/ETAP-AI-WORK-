@@ -31,9 +31,15 @@ import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, Literal, Optional
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+=======
+from typing import Any, Dict, List, Literal, Optional, Tuple
+
+from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger("agent.etap_expert")
 
@@ -81,6 +87,7 @@ def _load_system_prompt() -> str:
 Classification = Literal["complete", "incomplete", "wrong", "adms"]
 
 # ADMS / DER trigger words (from skill Section 5 + 11)
+<<<<<<< HEAD
 _ADMS_KEYWORDS: tuple[str, ...] = (
     "flisr",
     "fdir",
@@ -109,6 +116,18 @@ _ADMS_KEYWORDS: tuple[str, ...] = (
 
 # Wrong-study patterns (from skill Section 14 — Mistake Category 1)
 _WRONG_STUDY_PATTERNS: list[tuple[str, str, str]] = [
+=======
+_ADMS_KEYWORDS: Tuple[str, ...] = (
+    "flisr", "fdir", "vvo", "volt/var", "cvr", "derms", "dms", "oms",
+    "escada", "scada", "adms", "state estimation", "load forecasting",
+    "prass", "feeder balancing", "switching order", "outage management",
+    "predictive simulation", "real-time", "real time", "operator training",
+    "iap", "intelligent alarm",
+)
+
+# Wrong-study patterns (from skill Section 14 — Mistake Category 1)
+_WRONG_STUDY_PATTERNS: List[Tuple[str, str, str]] = [
+>>>>>>> origin/fix/scenario-tests-properly
     (
         r"load\s*flow.*fault\s*current|fault\s*current.*load\s*flow",
         "Load Flow calculates steady-state power flow, not fault currents",
@@ -153,14 +172,24 @@ _WRONG_STUDY_PATTERNS: list[tuple[str, str, str]] = [
 
 # Missing-data patterns (from skill Section 14 — Mistake Category 2)
 # Each entry: (regex, missing_data_description, clarifying_question)
+<<<<<<< HEAD
 _INCOMPLETE_PATTERNS: list[tuple[str, str, str]] = [
     (
         r"size\s+transformer.*?(\d+)\s*kw|transformer.*?for\s*(\d+)\s*kw",
+=======
+_INCOMPLETE_PATTERNS: List[Tuple[str, str, str]] = [
+    (
+        r"size\s+transformer.*?(\d+)\s*kw|transformer.*?for\s+(\d+)\s*kw",
+>>>>>>> origin/fix/scenario-tests-properly
         "Voltage, power factor, load type, future growth factor",
         "What is the primary and secondary voltage? What is the load power factor and type (continuous/intermittent)?",
     ),
     (
+<<<<<<< HEAD
         r"set\s+relay.*?motor|relay.*?for\s+motor",
+=======
+        r"set\s+relay.*motor|relay.*for\s*motor",
+>>>>>>> origin/fix/scenario-tests-properly
         "Motor HP, starting method, CT ratio, full-load current",
         "What is the motor HP, rated voltage, and CT ratio? What starting method is used (DOL, star-delta, VFD)?",
     ),
@@ -220,11 +249,17 @@ def classify(question: str) -> Classification:
 # Internal simulation engine — produces real numbers for common questions
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 
 @dataclass
 class CableSizingResult:
     """Cable sizing calculation result (per NEC Table 310.16, 75°C copper)."""
 
+=======
+@dataclass
+class CableSizingResult:
+    """Cable sizing calculation result (per NEC Table 310.16, 75°C copper)."""
+>>>>>>> origin/fix/scenario-tests-properly
     load_current_a: float
     length_ft: float
     voltage_v: float
@@ -232,11 +267,16 @@ class CableSizingResult:
     recommended_awg: str = ""
     voltage_drop_v: float = 0.0
     voltage_drop_pct: float = 0.0
+<<<<<<< HEAD
     assumption_notes: list[str] = field(default_factory=list)
+=======
+    assumption_notes: List[str] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # NEC Table 310.16 (75°C copper) — ampacity by AWG
 _NEC_AMPACITY = {
+<<<<<<< HEAD
     "14 AWG": 20,
     "12 AWG": 25,
     "10 AWG": 35,
@@ -252,6 +292,12 @@ _NEC_AMPACITY = {
     "350 kcmil": 310,
     "500 kcmil": 380,
     "750 kcmil": 475,
+=======
+    "14 AWG": 20, "12 AWG": 25, "10 AWG": 35, "8 AWG": 50,
+    "6 AWG": 65, "4 AWG": 85, "2 AWG": 115, "1/0 AWG": 150,
+    "2/0 AWG": 175, "3/0 AWG": 200, "4/0 AWG": 230,
+    "250 kcmil": 255, "350 kcmil": 310, "500 kcmil": 380, "750 kcmil": 475,
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 # Approximate R and X for copper cables at 75°C (Ω per 1000 ft)
@@ -264,7 +310,11 @@ _CABLE_RX = {
 }
 
 
+<<<<<<< HEAD
 def _select_cable(load_current: float) -> tuple[str, float]:
+=======
+def _select_cable(load_current: float) -> Tuple[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Select smallest cable whose ampacity >= load_current."""
     for awg, amp in _NEC_AMPACITY.items():
         if amp >= load_current:
@@ -317,7 +367,11 @@ def simulate_cable_sizing(
 _SEP = "━" * 60
 
 
+<<<<<<< HEAD
 def _format_a_complete(question: str, simulation: dict[str, Any]) -> str:
+=======
+def _format_a_complete(question: str, simulation: Dict[str, Any]) -> str:
+>>>>>>> origin/fix/scenario-tests-properly
     """Format A — COMPLETE request → expert answer with internal simulation."""
     sim_lines = simulation.get("simulation_steps", ["(no simulation available)"])
     result_line = simulation.get("result", "")
@@ -339,6 +393,7 @@ def _format_a_complete(question: str, simulation: dict[str, Any]) -> str:
     ]
     for step in sim_lines:
         lines.append(f"  {step}")
+<<<<<<< HEAD
     lines.extend(
         [
             "",
@@ -347,13 +402,25 @@ def _format_a_complete(question: str, simulation: dict[str, Any]) -> str:
             "**ETAP IMPLEMENTATION STEPS:**",
         ],
     )
+=======
+    lines.extend([
+        "",
+        f"**RESULT:** {result_line}",
+        "",
+        "**ETAP IMPLEMENTATION STEPS:**",
+    ])
+>>>>>>> origin/fix/scenario-tests-properly
     for i, step in enumerate(etap_steps, 1):
         lines.append(f"  {i}. {step}")
     lines.append("")
     lines.append("**VALIDATION:**")
+<<<<<<< HEAD
     lines.append(
         f"  {simulation.get('validation', 'Result is physically reasonable and within typical engineering limits.')}",
     )
+=======
+    lines.append(f"  {simulation.get('validation', 'Result is physically reasonable and within typical engineering limits.')}")
+>>>>>>> origin/fix/scenario-tests-properly
     if assumptions:
         lines.append("")
         lines.append("**ASSUMPTIONS MADE:**")
@@ -373,6 +440,7 @@ def _format_a_complete(question: str, simulation: dict[str, Any]) -> str:
 
 def _format_b_incomplete(question: str, missing: str, clarifying_q: str) -> str:
     """Format B — INCOMPLETE request → ask 1-3 clarifying questions."""
+<<<<<<< HEAD
     return "\n".join(
         [
             "⚠️ REQUEST ANALYSIS: INCOMPLETE",
@@ -396,10 +464,34 @@ def _format_b_incomplete(question: str, missing: str, clarifying_q: str) -> str:
             "  3. Validate the results against applicable standards",
         ],
     )
+=======
+    return "\n".join([
+        "⚠️ REQUEST ANALYSIS: INCOMPLETE",
+        _SEP,
+        "",
+        f"**Your Request:** {question}",
+        f"**What's Missing:** {missing}",
+        "",
+        "I need a bit more information to give you an accurate answer:",
+        "",
+        f"**Question 1:** {clarifying_q}",
+        "Why I need this: Without these parameters, the calculation could be off by 30-50% and may result in unsafe sizing.",
+        "",
+        "**What I can tell you now:**",
+        "  Once you provide the missing parameters, I will run the full internal simulation,",
+        "  give you exact ETAP menu paths, and validate the result against IEEE/IEC standards.",
+        "",
+        "**Once you provide these details, I will:**",
+        "  1. Run the complete analysis with step-by-step calculations",
+        "  2. Give you exact ETAP implementation steps",
+        "  3. Validate the results against applicable standards",
+    ])
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def _format_c_wrong(question: str, problem: str, correct: str) -> str:
     """Format C — WRONG request → correction & education."""
+<<<<<<< HEAD
     return "\n".join(
         [
             "❌ REQUEST ANALYSIS: INCORRECT APPROACH",
@@ -439,10 +531,50 @@ def _format_c_wrong(question: str, problem: str, correct: str) -> str:
             "  D) Generate the correct ETAP settings for your case?",
         ],
     )
+=======
+    return "\n".join([
+        "❌ REQUEST ANALYSIS: INCORRECT APPROACH",
+        "━" * 60,
+        "",
+        f"**Your Request:** {question}",
+        f"**The Problem:** {problem}",
+        "",
+        "**Why This Matters:**",
+        "  Using the wrong study type can produce results that are off by an order of magnitude,",
+        "  miss safety-critical phenomena (fault currents, arc flash energy), and lead to",
+        "  non-compliant designs that fail IEEE/IEC/NEC audits.",
+        "",
+        "**The Correct Approach:**",
+        f"  {correct}",
+        "",
+        "**In ETAP Specifically:**",
+        "  1. Open the correct Study Case from Study Case menu",
+        "  2. Configure the study per the applicable standard (ANSI C37 / IEC 60909 / IEEE 1584)",
+        "  3. Run the study and review the Output Report",
+        "  4. Validate results against equipment ratings",
+        "",
+        "**What Would Happen If You Did It Your Way:**",
+        "  - Results would not reflect the physical phenomenon you're investigating",
+        "  - Equipment may be under-sized (safety risk) or over-sized (cost overrun)",
+        "  - Audit/compliance failure",
+        "",
+        "**What Happens With The Correct Way:**",
+        "  - Results match the physical reality",
+        "  - Equipment is properly sized with appropriate safety margins",
+        "  - Standards compliance is maintained",
+        "",
+        "**Would you like me to:**",
+        "  A) Walk you through this step-by-step?",
+        "  B) Explain the theory behind this?",
+        "  C) Show you an example with sample data?",
+        "  D) Generate the correct ETAP settings for your case?",
+    ])
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def _format_d_adms(question: str) -> str:
     """Format D — ADMS/DER request."""
+<<<<<<< HEAD
     return "\n".join(
         [
             "🔷 ADMS REQUEST ANALYSIS",
@@ -482,6 +614,45 @@ def _format_d_adms(question: str) -> str:
             "  - IEC 61850 (substation automation)",
         ],
     )
+=======
+    return "\n".join([
+        "🔷 ADMS REQUEST ANALYSIS",
+        _SEP,
+        "",
+        f"**Your Request:** {question}",
+        "**Operational Context:** Real-time / Planning / Training (please specify)",
+        "**ADMS Module:** eSCADA / DMS / OMS / DERMS (auto-detected from request)",
+        "**User Role:** Dispatcher / Planner / Engineer",
+        "",
+        "**REAL-TIME ANALYSIS:**",
+        "  ADMS uses Distribution State Estimation (DSE) — not Load Flow — for real-time model.",
+        "  DSE fuses SCADA measurements (P, Q, V, I) with AMI data via Weighted Least Squares.",
+        "",
+        "**SIMULATION RESULTS:**",
+        "  (Requires live SCADA feed — provide the operational scenario for specific numbers)",
+        "",
+        "**RECOMMENDED ACTIONS:**",
+        "  1. Verify DSE convergence and bad-data rejection (high priority)",
+        "  2. Confirm network topology is up-to-date in the switching model (high priority)",
+        "  3. Execute the relevant ADMS application (FLISR / VVO / DCA — based on context)",
+        "",
+        "**RISKS IF NOT ACTED:**",
+        "  - Cascading outages if fault isolation is delayed",
+        "  - Voltage violations if VVO is not engaged during DER injection changes",
+        "  - SAIDI/SAIFI impact if restoration is slow",
+        "",
+        "**ETAP ADMS NAVIGATION:**",
+        "  1. ADMS → eSCADA (verify live telemetry)",
+        "  2. ADMS → Distribution Management (launch DSE)",
+        "  3. ADMS → Fault Location & Restoration (FLISR) or Volt/VAR Optimization (VVO)",
+        "  4. Review operator alerts via Intelligent Alarm Processing (IAP)",
+        "",
+        "**REFERENCES:**",
+        "  - skills/etap-expert.md Section 5 (ADMS architecture)",
+        "  - IEEE 1547-2018 (DER interconnection)",
+        "  - IEC 61850 (substation automation)",
+    ])
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ---------------------------------------------------------------------------
@@ -489,14 +660,22 @@ def _format_d_adms(question: str) -> str:
 # ---------------------------------------------------------------------------
 
 _CABLE_SIZING_RE = re.compile(
+<<<<<<< HEAD
     # NOSONAR
     # user query strings (max ~500 chars); no catastrophic backtracking.
     r"cable\s*siz.*?(?P<current>\d+)\s*a.*?(?P<length>\d+)\s*ft.*?(?P<voltage>\d+)\s*v",  # NOSONAR
+=======
+    r"cable\s*siz.*?(?P<current>\d+)\s*a.*?(?P<length>\d+)\s*ft.*?(?P<voltage>\d+)\s*v",
+>>>>>>> origin/fix/scenario-tests-properly
     re.IGNORECASE,
 )
 
 
+<<<<<<< HEAD
 def _try_cable_sizing_simulation(question: str) -> dict[str, Any] | None:
+=======
+def _try_cable_sizing_simulation(question: str) -> Optional[Dict[str, Any]]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Detect cable-sizing question and run the simulation."""
     m = _CABLE_SIZING_RE.search(question)
     if not m:
@@ -548,7 +727,11 @@ def _try_cable_sizing_simulation(question: str) -> dict[str, Any] | None:
     }
 
 
+<<<<<<< HEAD
 def _generic_complete_response(question: str) -> dict[str, Any]:
+=======
+def _generic_complete_response(question: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
     """Default simulation block when no specific pattern matches."""
     return {
         "study_type": "General ETAP consultation",
@@ -597,15 +780,23 @@ class ETAPExpertAgent(BaseAgent):
         # Eagerly load the skill so missing-file errors surface at startup
         skill_text = _load_skill()
         if not skill_text:
+<<<<<<< HEAD
             logger.warning(
                 "ETAP Expert skill knowledge base is empty — agent will operate in degraded mode",
             )
+=======
+            logger.warning("ETAP Expert skill knowledge base is empty — agent will operate in degraded mode")
+>>>>>>> origin/fix/scenario-tests-properly
         # Also load the system prompt for reference (used by Mastra side)
         _load_system_prompt()
 
     # ----- Public API -----
 
+<<<<<<< HEAD
     def answer(self, question: str) -> dict[str, Any]:
+=======
+    def answer(self, question: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Answer a question using the 6-step workflow.
 
         Returns a dict with keys: classification, response (Format A/B/C/D text),
@@ -643,34 +834,57 @@ class ETAPExpertAgent(BaseAgent):
         question = str(task.parameters.get("question", "")).strip()
         if not question:
             return AgentResult(
+<<<<<<< HEAD
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,  # Placeholder since etap_expert is not in StudyType enum
                 status=AgentStatus.FAILED,
                 data={},
                 validation_errors=["Missing 'question' parameter"],
+=======
+                success=False,
+                agent_name=self.agent_name,
+                status=AgentStatus.FAILED,
+                error="Missing 'question' parameter",
+>>>>>>> origin/fix/scenario-tests-properly
             )
         try:
             data = self.answer(question)
             return AgentResult(
+<<<<<<< HEAD
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,
+=======
+                success=True,
+                agent_name=self.agent_name,
+>>>>>>> origin/fix/scenario-tests-properly
                 status=AgentStatus.COMPLETED,
                 data=data,
             )
         except Exception as exc:
             logger.exception("ETAPExpertAgent failed")
             return AgentResult(
+<<<<<<< HEAD
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,
                 status=AgentStatus.FAILED,
                 data={},
                 validation_errors=[str(exc)],
+=======
+                success=False,
+                agent_name=self.agent_name,
+                status=AgentStatus.FAILED,
+                error=str(exc),
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     # ----- Helpers -----
 
     @staticmethod
+<<<<<<< HEAD
     def _find_wrong_pattern(question: str) -> tuple[str, str]:
+=======
+    def _find_wrong_pattern(question: str) -> Tuple[str, str]:
+>>>>>>> origin/fix/scenario-tests-properly
         q = question.lower()
         for pattern, problem, correct in _WRONG_STUDY_PATTERNS:
             if re.search(pattern, q):
@@ -681,7 +895,11 @@ class ETAPExpertAgent(BaseAgent):
         )
 
     @staticmethod
+<<<<<<< HEAD
     def _find_incomplete_pattern(question: str) -> tuple[str, str]:
+=======
+    def _find_incomplete_pattern(question: str) -> Tuple[str, str]:
+>>>>>>> origin/fix/scenario-tests-properly
         q = question.lower()
         for pattern, missing, clarifying in _INCOMPLETE_PATTERNS:
             if re.search(pattern, q):
@@ -691,7 +909,11 @@ class ETAPExpertAgent(BaseAgent):
             "Please provide the specific numerical parameters (voltage, current, length, etc.)",
         )
 
+<<<<<<< HEAD
     def get_agent_info(self) -> dict[str, Any]:
+=======
+    def get_agent_info(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Return metadata about this agent."""
         return {
             "name": self.agent_name,

@@ -8,7 +8,11 @@ import time
 from collections.abc import Callable
 from enum import Enum
 from functools import wraps
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any, Dict, List, Set, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 try:
     from cachetools import LRUCache, TLRUCache
@@ -46,12 +50,16 @@ class _CacheEntry:
         "last_access",
     )
 
+<<<<<<< HEAD
     def __init__(
         self,
         value: Any,
         expires_at: Optional[float] = None,
         tags: list[str] | None = None,
     ):
+=======
+    def __init__(self, value: Any, expires_at: float | None = None, tags: List[str] | None = None):
+>>>>>>> origin/fix/scenario-tests-properly
         self.value = value
         self.expires_at = expires_at
         self.tags = tags or []
@@ -80,9 +88,15 @@ class CalculationCache:
         self._strategy = strategy
         self._default_ttl = default_ttl_seconds
         self._lock = threading.Lock()
+<<<<<<< HEAD
         self._entries: dict[str, _CacheEntry] = {}
         self._tag_index: dict[str, set[str]] = {}
         self._access_order: list[str] = []
+=======
+        self._entries: Dict[str, _CacheEntry] = {}
+        self._tag_index: Dict[str, Set[str]] = {}
+        self._access_order: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
         self._hits = 0
         self._misses = 0
         self._current_size_bytes = 0
@@ -91,6 +105,7 @@ class CalculationCache:
             maxsize = max(1, int(max_size_mb * 1024 * 1024 / 512))
             if strategy == CacheStrategy.TTL:
                 self._cachetools_cache = TLRUCache(
+<<<<<<< HEAD
                     maxsize=maxsize,
                     ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds),
                 )  # type: ignore
@@ -101,6 +116,17 @@ class CalculationCache:
             self._cachetools_cache = None
 
     def get(self, cache_key: str) -> Optional[Any]:
+=======
+                    maxsize=maxsize, ttu=lambda k, v, now: now + (v.ttl or default_ttl_seconds)
+                )  # type: ignore
+            else:
+                self._cachetools_cache = LRUCache(maxsize=maxsize)
+            self._cachetools_data: Dict[str, Tuple[Any, float | None, List[str]]] = {}
+        else:
+            self._cachetools_cache = None
+
+    def get(self, cache_key: str) -> Any | None:
+>>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             entry = self._entries.get(cache_key)
             if entry is None:
@@ -128,8 +154,13 @@ class CalculationCache:
         self,
         cache_key: str,
         value: Any,
+<<<<<<< HEAD
         ttl_seconds: Optional[int] = None,
         tags: list[str] | None = None,
+=======
+        ttl_seconds: int | None = None,
+        tags: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> None:
         ttl = ttl_seconds if ttl_seconds is not None else self._default_ttl
         expires_at = time.time() + ttl if ttl > 0 else None
@@ -155,8 +186,12 @@ class CalculationCache:
                     self._cachetools_data[cache_key] = (value, expires_at, tags or [])
                 except ValueError:
                     logger.debug(
+<<<<<<< HEAD
                         "Cachetools cache set skipped for key %s (value too large)",
                         cache_key,
+=======
+                        "Cachetools cache set skipped for key %s (value too large)", cache_key
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
     def invalidate(self, cache_key: str) -> bool:
@@ -174,7 +209,11 @@ class CalculationCache:
         with self._lock:
             keys = self._tag_index.pop(tag, set())
             count = 0
+<<<<<<< HEAD
             for key in keys:
+=======
+            for key in list(keys):
+>>>>>>> origin/fix/scenario-tests-properly
                 if key in self._entries:
                     self._remove_entry(key)
                     count += 1
@@ -195,7 +234,11 @@ class CalculationCache:
                 self._cachetools_cache.clear()
                 self._cachetools_data.clear()
 
+<<<<<<< HEAD
     def get_stats(self) -> dict[str, Any]:
+=======
+    def get_stats(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             total = self._hits + self._misses
             hit_rate = (self._hits / total * 100) if total > 0 else 0.0
@@ -213,7 +256,11 @@ class CalculationCache:
                 "strategy": self._strategy.value,
             }
 
+<<<<<<< HEAD
     def get_cache_keys(self, pattern: Optional[str] = None) -> list[str]:
+=======
+    def get_cache_keys(self, pattern: str | None = None) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             if pattern is None:
                 return list(self._entries.keys())
@@ -241,7 +288,11 @@ class CalculationCache:
         if cache_key in self._access_order:
             self._access_order.remove(cache_key)
 
+<<<<<<< HEAD
     def _remove_from_tag_index(self, cache_key: str, tags: list[str]) -> None:
+=======
+    def _remove_from_tag_index(self, cache_key: str, tags: List[str]) -> None:
+>>>>>>> origin/fix/scenario-tests-properly
         for tag in tags:
             key_set = self._tag_index.get(tag)
             if key_set:
@@ -263,7 +314,11 @@ class CalculationCache:
                 victim = next(iter(self._entries))
                 self._remove_entry(victim)
 
+<<<<<<< HEAD
     def _get_lfu_victim(self) -> Optional[str]:
+=======
+    def _get_lfu_victim(self) -> str | None:
+>>>>>>> origin/fix/scenario-tests-properly
         if not self._entries:
             return None
         min_count = float("inf")
@@ -329,7 +384,11 @@ class CacheKeyBuilder:
         return hasher.hexdigest()
 
 
+<<<<<<< HEAD
 TTL_RECOMMENDATIONS: dict[str, int] = {
+=======
+TTL_RECOMMENDATIONS: Dict[str, int] = {
+>>>>>>> origin/fix/scenario-tests-properly
     "load_flow": 300,
     "fault_analysis": 600,
     "harmonic_analysis": 600,
@@ -347,8 +406,13 @@ class SmartCacheStrategy:
     def should_cache(
         self,
         component: str,
+<<<<<<< HEAD
         params: dict[str, Any],
         frequency_estimate: Optional[float] = None,
+=======
+        params: Dict[str, Any],
+        frequency_estimate: float | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> bool:
         if frequency_estimate is not None and frequency_estimate < 0.01:
             return False
@@ -362,9 +426,17 @@ class SmartCacheStrategy:
         if expensive:
             return True
         size_estimate = _estimate_size(params)
+<<<<<<< HEAD
         return size_estimate <= 1024 * 100
 
     def get_cache_ttl(self, component: str, _result_type: Optional[str] = None) -> int:
+=======
+        if size_estimate > 1024 * 100:
+            return False
+        return True
+
+    def get_cache_ttl(self, component: str, result_type: str | None = None) -> int:
+>>>>>>> origin/fix/scenario-tests-properly
         mapped = component
         if "load_flow" in component or "loadflow" in component:
             mapped = "load_flow"
@@ -380,7 +452,11 @@ class SmartCacheStrategy:
             mapped = "system_build"
         return TTL_RECOMMENDATIONS.get(mapped, self._cache._default_ttl)
 
+<<<<<<< HEAD
     def pre_warm(self, system: Any, study_types: list[str]) -> int:
+=======
+    def pre_warm(self, system: Any, study_types: List[str]) -> int:
+>>>>>>> origin/fix/scenario-tests-properly
         pre_warmed = 0
         builder = CacheKeyBuilder()
         for study in study_types:
@@ -396,9 +472,13 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "fault_analysis":
                 key = builder.build_key(
+<<<<<<< HEAD
                     "fault_analysis",
                     "analyze",
                     builder.hash_system_state(system),
+=======
+                    "fault_analysis", "analyze", builder.hash_system_state(system)
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -410,9 +490,13 @@ class SmartCacheStrategy:
                     pre_warmed += 1
             elif study == "coordination":
                 key = builder.build_key(
+<<<<<<< HEAD
                     "coordination",
                     "evaluate",
                     builder.hash_system_state(system),
+=======
+                    "coordination", "evaluate", builder.hash_system_state(system)
+>>>>>>> origin/fix/scenario-tests-properly
                 )
                 if not self._cache.exists(key):
                     self._cache.set(
@@ -431,8 +515,13 @@ class MemoryManager:
         self._max_memory_percent = max_memory_percent
         self._lock = threading.Lock()
 
+<<<<<<< HEAD
     def get_memory_usage(self) -> dict[str, Any]:
         result: dict[str, Any] = {
+=======
+    def get_memory_usage(self) -> Dict[str, Any]:
+        result: Dict[str, Any] = {
+>>>>>>> origin/fix/scenario-tests-properly
             "cache_size_mb": round(self._cache._current_size_bytes / (1024 * 1024), 2),
             "max_cache_mb": round(self._cache._max_size_bytes / (1024 * 1024), 2),
             "cache_utilization": 0.0,
@@ -461,9 +550,13 @@ class MemoryManager:
             )
         return result
 
+<<<<<<< HEAD
     def evict_if_needed(  # NOSONAR
         self, _required_mb: int = 0
     ) -> bool:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+=======
+    def evict_if_needed(self, required_mb: int = 0) -> bool:
+>>>>>>> origin/fix/scenario-tests-properly
         with self._lock:
             usage = self.get_memory_usage()
             if HAS_PSUTIL:
@@ -498,7 +591,11 @@ class MemoryManager:
                     evicted += 1
             return evicted > 0
 
+<<<<<<< HEAD
     def optimize(self) -> dict[str, int]:
+=======
+    def optimize(self) -> Dict[str, int]:
+>>>>>>> origin/fix/scenario-tests-properly
         removed_expired = 0
         removed_orphaned = 0
         with self._lock:
@@ -516,7 +613,11 @@ class MemoryManager:
                 self._cache._tag_index.pop(t, None)
         return {"expired_removed": removed_expired, "orphaned_tags_removed": removed_orphaned}
 
+<<<<<<< HEAD
     def get_memory_report(self) -> dict[str, Any]:
+=======
+    def get_memory_report(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         usage = self.get_memory_usage()
         stats = self._cache.get_stats()
         return {
@@ -525,17 +626,30 @@ class MemoryManager:
             "recommendations": self._generate_recommendations(usage, stats),
         }
 
+<<<<<<< HEAD
     def _generate_recommendations(self, usage: dict[str, Any], stats: dict[str, Any]) -> list[str]:
         recs: list[str] = []
+=======
+    def _generate_recommendations(self, usage: Dict[str, Any], stats: Dict[str, Any]) -> List[str]:
+        recs: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
         if usage.get("cache_utilization", 0) > 90:
             recs.append("Cache utilization exceeds 90%. Consider increasing max_size_mb.")
         if stats.get("hit_rate", 100) < 50:
             recs.append(
+<<<<<<< HEAD
                 f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy.",
             )
         if usage.get("system_percent", 0) > self._max_memory_percent:
             recs.append(
                 f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended.",
+=======
+                f"Low hit rate ({stats['hit_rate']}%). Review TTL values or caching strategy."
+            )
+        if usage.get("system_percent", 0) > self._max_memory_percent:
+            recs.append(
+                f"System memory at {usage['system_percent']}% (limit: {self._max_memory_percent}%). Aggressive eviction recommended."
+>>>>>>> origin/fix/scenario-tests-properly
             )
         if not recs:
             recs.append("Cache health is good.")
@@ -543,9 +657,15 @@ class MemoryManager:
 
 
 _singleton_lock = threading.Lock()
+<<<<<<< HEAD
 _calculation_cache_instance: Optional[CalculationCache] = None
 _smart_strategy_instance: Optional[SmartCacheStrategy] = None
 _memory_manager_instance: Optional[MemoryManager] = None
+=======
+_calculation_cache_instance: CalculationCache | None = None
+_smart_strategy_instance: SmartCacheStrategy | None = None
+_memory_manager_instance: MemoryManager | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 def get_calculation_cache(
@@ -588,8 +708,13 @@ def get_memory_manager(max_memory_percent: float = 80.0) -> MemoryManager:
 
 def cached(
     component: str,
+<<<<<<< HEAD
     ttl_seconds: Optional[int] = None,
     tags: list[str] | None = None,
+=======
+    ttl_seconds: int | None = None,
+    tags: List[str] | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)

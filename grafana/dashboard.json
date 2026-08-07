@@ -51,6 +51,7 @@
       },
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
       "id": 1,
+<<<<<<< HEAD
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -59,6 +60,9 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
+=======
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Total Operations",
       "type": "stat",
       "targets": [
@@ -86,6 +90,7 @@
       },
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
       "id": 2,
+<<<<<<< HEAD
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -94,6 +99,9 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
+=======
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Total Errors",
       "type": "stat",
       "targets": [
@@ -121,6 +129,7 @@
       },
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
       "id": 3,
+<<<<<<< HEAD
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -129,6 +138,9 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
+=======
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "In-Flight Operations",
       "type": "stat",
       "targets": [
@@ -145,13 +157,20 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "thresholds": {
+<<<<<<< HEAD
             "steps": [{ "color": "blue", "value": null }]
+=======
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+>>>>>>> origin/fix/scenario-tests-properly
           },
           "unit": "none"
         }
       },
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
       "id": 4,
+<<<<<<< HEAD
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -160,6 +179,9 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
+=======
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Cache Entries",
       "type": "stat",
       "targets": [
@@ -182,6 +204,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "ops/s",
@@ -196,15 +219,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "ops/s", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "ops"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
       "id": 10,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Operations by Type",
       "type": "timeseries",
       "targets": [
@@ -220,6 +250,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "count",
@@ -234,15 +265,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "normal" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "count", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "normal" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "short"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
       "id": 11,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Cumulative Operations (Stacked)",
       "type": "timeseries",
       "targets": [
@@ -265,6 +303,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "seconds",
@@ -279,15 +318,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "seconds", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 10, "gradientMode": "scheme", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "s"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
       "id": 20,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Execution Duration (P95)",
       "type": "timeseries",
       "targets": [
@@ -308,6 +354,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "count",
@@ -322,15 +369,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "count", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "short"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
       "id": 21,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Executions per Skill",
       "type": "timeseries",
       "targets": [
@@ -353,6 +407,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "count",
@@ -367,15 +422,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "normal" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "count", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 30, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "normal" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "short"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "id": 30,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Errors by Type",
       "type": "timeseries",
       "targets": [
@@ -391,6 +453,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "count",
@@ -405,15 +468,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "normal" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "count", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 30, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "normal" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "short"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "id": 31,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Validation Failures by Reason",
       "type": "timeseries",
       "targets": [
@@ -436,6 +506,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "bytes",
@@ -450,15 +521,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "bytes", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "scheme", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "bytes"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
       "id": 40,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Memory Usage by Component",
       "type": "timeseries",
       "targets": [
@@ -474,6 +552,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
+<<<<<<< HEAD
           "custom": {
             "axisCenteredZero": false,
             "axisLabel": "connections",
@@ -488,15 +567,22 @@
             "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }
           },
+=======
+          "custom": { "axisCenteredZero": false, "axisLabel": "connections", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "none", "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "showPoints": "auto", "spanNulls": false, "stacking": { "group": "A", "mode": "none" } },
+>>>>>>> origin/fix/scenario-tests-properly
           "unit": "short"
         }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
       "id": 41,
+<<<<<<< HEAD
       "options": {
         "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
+=======
+      "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "Active Connections",
       "type": "timeseries",
       "targets": [
@@ -514,12 +600,20 @@
           "color": { "mode": "thresholds" },
           "mappings": [],
           "thresholds": {
+<<<<<<< HEAD
             "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+=======
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+>>>>>>> origin/fix/scenario-tests-properly
           }
         }
       },
       "gridPos": { "h": 4, "w": 24, "x": 0, "y": 41 },
       "id": 50,
+<<<<<<< HEAD
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -528,6 +622,9 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
+=======
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+>>>>>>> origin/fix/scenario-tests-properly
       "title": "App Info",
       "type": "stat",
       "targets": [
@@ -544,12 +641,16 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
+<<<<<<< HEAD
             "renameByName": {
               "Value": "Version",
               "name": "Name",
               "version": "Version",
               "environment": "Environment"
             }
+=======
+            "renameByName": { "Value": "Version", "name": "Name", "version": "Version", "environment": "Environment" }
+>>>>>>> origin/fix/scenario-tests-properly
           }
         }
       ]

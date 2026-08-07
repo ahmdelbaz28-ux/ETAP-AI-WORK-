@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """Tests for engineering_service.py — FastAPI endpoints.
 
 Covers:
@@ -17,10 +18,16 @@ Covers:
 import os
 import uuid
 from unittest.mock import patch
+=======
+"""Tests for engineering_service.py — FastAPI endpoints."""
+
+import uuid
+>>>>>>> origin/fix/scenario-tests-properly
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -29,6 +36,12 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 def app():
     from api.routes import app
+=======
+
+@pytest.fixture
+def app():
+    from engineering_service import app
+>>>>>>> origin/fix/scenario-tests-properly
 
     return app
 
@@ -36,6 +49,7 @@ def app():
 @pytest.fixture
 async def client(app):
     transport = ASGITransport(app=app)
+<<<<<<< HEAD
     async with AsyncClient(
         transport=transport, base_url="http://test"
     ) as ac:  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
@@ -88,6 +102,12 @@ _MINI_SYSTEM = {
 # ===================================================================
 
 
+=======
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
+>>>>>>> origin/fix/scenario-tests-properly
 class TestHealthEndpoint:
     async def test_health_returns_200(self, client):
         resp = await client.get("/health")
@@ -103,16 +123,23 @@ class TestHealthEndpoint:
         data = resp.json()
         assert "version" in data
 
+<<<<<<< HEAD
     async def test_health_response_body_contains_trace_id(self, client):
         """The trace_id should be present in the response body."""
         resp = await client.get("/health")
         data = resp.json()
         assert "trace_id" in data
         assert data["trace_id"]  # non-empty
+=======
+    async def test_health_response_has_trace_id_header(self, client):
+        resp = await client.get("/health")
+        assert "x-trace-id" in resp.headers
+>>>>>>> origin/fix/scenario-tests-properly
 
     async def test_health_preserves_provided_trace_id(self, client):
         trace_id = str(uuid.uuid4())
         resp = await client.get("/health", headers={"x-trace-id": trace_id})
+<<<<<<< HEAD
         data = resp.json()
         assert data["trace_id"] == trace_id
 
@@ -142,6 +169,9 @@ class TestHealthEndpoint:
 # ===================================================================
 # 2. Ready endpoint — GET /ready returns correct schema
 # ===================================================================
+=======
+        assert resp.headers["x-trace-id"] == trace_id
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class TestReadyEndpoint:
@@ -154,6 +184,7 @@ class TestReadyEndpoint:
         data = resp.json()
         assert data["ready"] is True
 
+<<<<<<< HEAD
     # --- Schema validation (new) ---
 
     async def test_ready_schema_has_native_engine_available(self, client):
@@ -199,6 +230,8 @@ class TestReadyEndpoint:
 # 3. Metrics endpoint — JSON + Prometheus format
 # ===================================================================
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 class TestMetricsEndpoint:
     async def test_metrics_returns_200(self, client):
@@ -222,6 +255,7 @@ class TestMetricsEndpoint:
         assert data["requests_total"] >= 0
         assert data["requests_success"] >= 0
 
+<<<<<<< HEAD
     async def test_metrics_schema_has_trace_id(self, client):
         resp = await client.get("/metrics")
         data = resp.json()
@@ -257,11 +291,25 @@ class TestMetricsEndpoint:
 
 class TestStudyRunEndpoint:
     # --- Existing tests (kept for regression) ---
+=======
+
+class TestStudyRunEndpoint:
+    async def test_study_run_returns_200(self, client):
+        resp = await client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
+        assert resp.status_code == 200
+
+    async def test_study_run_returns_json_with_trace_id(self, client):
+        resp = await client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
+        data = resp.json()
+        assert "trace_id" in data
+        assert data["success"] is False
+>>>>>>> origin/fix/scenario-tests-properly
 
     async def test_study_run_with_invalid_type_returns_422(self, client):
         resp = await client.post("/api/v1/studies/run", json={"study_type": "invalid"})
         assert resp.status_code == 422
 
+<<<<<<< HEAD
     # --- 4. Success path: valid load_flow with system ---
 
     async def test_study_run_load_flow_success_path(self, client):
@@ -825,6 +873,8 @@ class TestSupportedStudyTypes:
 # Regression: System validate endpoint
 # ===================================================================
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 class TestSystemValidateEndpoint:
     async def test_system_validate_returns_200(self, client):
@@ -843,3 +893,24 @@ class TestSystemValidateEndpoint:
         }
         resp = await client.post("/api/v1/system/validate", json=payload)
         assert resp.status_code == 200
+<<<<<<< HEAD
+=======
+
+
+class TestCORS:
+    async def test_cors_headers_present(self, client):
+        # With restrictive CORS (no ENGINEERING_SERVICE_CORS_ORIGINS set),
+        # only explicitly allowed origins receive access-control-allow-origin.
+        # The preflight response should still include allow-methods/headers.
+        resp = await client.options(
+            "/health",
+            headers={
+                "Origin": "https://example.com",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        # CORS middleware responds with 400 when origin not in allowed list
+        # (since default is restrictive, not wildcard). Key CORS headers
+        # should still be present in the response.
+        assert "access-control-allow-methods" in resp.headers
+>>>>>>> origin/fix/scenario-tests-properly

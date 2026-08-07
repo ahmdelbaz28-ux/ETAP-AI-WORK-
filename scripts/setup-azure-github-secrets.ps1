@@ -47,17 +47,29 @@ $ErrorActionPreference = "Stop"
 
 function Write-Step {
     param([string]$Message)
+<<<<<<< HEAD
     Write-Host "`n=== $Message ===" -ForegroundColor Cyan  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+    Write-Host "`n=== $Message ===" -ForegroundColor Cyan
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 function Write-Success {
     param([string]$Message)
+<<<<<<< HEAD
     Write-Host "  ✓ $Message" -ForegroundColor Green  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+    Write-Host "  ✓ $Message" -ForegroundColor Green
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 function Write-Instruction {
     param([string]$Message)
+<<<<<<< HEAD
     Write-Host "  $Message" -ForegroundColor Yellow  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+=======
+    Write-Host "  $Message" -ForegroundColor Yellow
+>>>>>>> origin/fix/scenario-tests-properly
 }
 
 # ============================================================================

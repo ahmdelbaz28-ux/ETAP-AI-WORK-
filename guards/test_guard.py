@@ -25,7 +25,11 @@ from __future__ import annotations
 import ast
 import logging
 import re
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -45,8 +49,11 @@ class TestGuard(BaseGuard):
     >>> result = guard.scan(test_source_code)
     """
 
+<<<<<<< HEAD
     __test__ = False  # Prevent pytest from collecting this class
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     name: str = "test_guard"
 
     def __init__(self, mode: GuardMode = GuardMode.GUARD_PASS) -> None:
@@ -54,6 +61,7 @@ class TestGuard(BaseGuard):
         self._ai_detector = AIFailureModeDetector(mode)
 
     def scan(
+<<<<<<< HEAD
         self,
         source: str,
         language: str = "python",
@@ -63,6 +71,14 @@ class TestGuard(BaseGuard):
         context = context or {}
 
         tree: Optional[ast.AST] = None
+=======
+        self, source: str, language: str = "python", context: Dict[str, Any] | None = None
+    ) -> GuardResult:
+        violations: List[GuardViolation] = []
+        context = context or {}
+
+        tree: ast.AST | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -123,9 +139,15 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-01: Test behavior, not implementation
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_impl_testing(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: test accesses private attributes (leading underscore)."""
         violations: list[GuardViolation] = []
+=======
+    def _check_impl_testing(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: test accesses private attributes (leading underscore)."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
                 if node.attr.startswith("_") and not node.attr.startswith("__"):
@@ -142,13 +164,18 @@ class TestGuard(BaseGuard):
                             suggestion="Test the public interface instead. If the private attribute "
                             "has no public observable effect, it may not need testing.",
                             evidence=f"accessing .{node.attr}",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # T-02: Every mock must be justified (system boundaries only)
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_unjustified_mocks(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: patching internal modules/functions (not I/O boundaries)."""
         violations: list[GuardViolation] = []
@@ -156,6 +183,15 @@ class TestGuard(BaseGuard):
         internal_patch_patterns = [
             r'patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
             r'mock\.patch\(["\'](?!\b(Union[requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy, subprocess])\b)',
+=======
+    def _check_unjustified_mocks(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: patching internal modules/functions (not I/O boundaries)."""
+        violations: List[GuardViolation] = []
+        # Patterns suggesting internal patching
+        internal_patch_patterns = [
+            r'patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
+            r'mock\.patch\(["\'](?!\b(requests|httpx|aiohttp|boto|redis|psycopg|sqlalchemy|subprocess)\b)',
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         for pat in internal_patch_patterns:
             for match in re.finditer(pat, source):
@@ -171,13 +207,18 @@ class TestGuard(BaseGuard):
                         suggestion="Use the real implementation for internal code. Only mock at "
                         "system boundaries (APIs, databases, file I/O, external services).",
                         evidence=match.group(0)[:80],
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-03: One scenario per test
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_multi_scenario(  # NOSONAR
         self, tree: ast.AST, source: str
     ) -> list[
@@ -185,6 +226,11 @@ class TestGuard(BaseGuard):
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Heuristic: multiple assert statements in a single test function."""
         violations: list[GuardViolation] = []
+=======
+    def _check_multi_scenario(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: multiple assert statements in a single test function."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if not node.name.startswith("test_"):
@@ -215,16 +261,26 @@ class TestGuard(BaseGuard):
                             suggestion="Split into separate test cases or use pytest.mark.parametrize "
                             "for data-driven variants.",
                             evidence=f"{total} assertions",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # T-05: Name tests for the scenario
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_test_naming(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Check that test names follow test_<scenario>_<expected> pattern."""
         violations: list[GuardViolation] = []
+=======
+    def _check_test_naming(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Check that test names follow test_<scenario>_<expected> pattern."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
                 name = node.name
@@ -240,7 +296,11 @@ class TestGuard(BaseGuard):
                             suggestion="Rename to test_<scenario>_<expected>, e.g. "
                             "test_load_flow_converges_with_valid_system.",
                             evidence=name,
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 elif len(name) < 12:
                     violations.append(
@@ -253,13 +313,18 @@ class TestGuard(BaseGuard):
                             location=f"function '{name}' (line {node.lineno})",
                             suggestion="Use a more descriptive name following test_<scenario>_<expected>.",
                             evidence=name,
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # T-07: No tests for framework guarantees
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_framework_guarantees(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: test that only verifies Python built-in behavior."""
         violations: list[GuardViolation] = []
@@ -268,6 +333,13 @@ class TestGuard(BaseGuard):
                 r"assert\s+(Union[type|isinstance|len|str|int|float|dict, list])\s*\(",
                 "type/builtin check",
             ),
+=======
+    def _check_framework_guarantees(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: test that only verifies Python built-in behavior."""
+        violations: List[GuardViolation] = []
+        framework_assert_patterns = [
+            (r"assert\s+(type|isinstance|len|str|int|float|dict|list)\s*\(", "type/builtin check"),
+>>>>>>> origin/fix/scenario-tests-properly
         ]
         for pat, _desc in framework_assert_patterns:
             for match in re.finditer(pat, source):
@@ -284,16 +356,26 @@ class TestGuard(BaseGuard):
                         suggestion="Remove the framework-guarantee assertion and focus on "
                         "application-specific behavior.",
                         evidence=match.group(0)[:80],
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-08: State/value objects are real, never mocked
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_mocked_value_objects(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: MagicMock used for data/value objects."""
         violations: list[GuardViolation] = []
+=======
+    def _check_mocked_value_objects(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: MagicMock used for data/value objects."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         pattern = r"MagicMock\(\s*spec\s*=\s*(\w+)"
         for match in re.finditer(pattern, source):
             class_name = match.group(1)
@@ -311,16 +393,26 @@ class TestGuard(BaseGuard):
                         location=f"line {line_num}",
                         suggestion=f"Create a real {class_name} instance with test data instead of mocking it.",
                         evidence=match.group(0)[:80],
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-04: Every test must justify its existence
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_test_justification(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: test functions with only 'pass' or trivial asserts."""
         violations: list[GuardViolation] = []
+=======
+    def _check_test_justification(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: test functions with only 'pass' or trivial asserts."""
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -341,7 +433,11 @@ class TestGuard(BaseGuard):
                             suggestion="Either implement the test or remove it. Empty tests "
                             "give a false sense of coverage.",
                             evidence="test body is 'pass'",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 elif "Constant(value=True)" in body_strs[0]:
                     violations.append(
@@ -354,13 +450,18 @@ class TestGuard(BaseGuard):
                             location=f"function '{node.name}' (line {node.lineno})",
                             suggestion="Assert on actual system behavior, or remove the test.",
                             evidence="assert True",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
         return violations
 
     # ------------------------------------------------------------------
     # T-06: Production regression tests are sacred
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_regression_tests(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Detect tests that skip or modify a regression test's core assertion."""
         violations: list[GuardViolation] = []
@@ -368,6 +469,15 @@ class TestGuard(BaseGuard):
         # bug/issue/regression in their name
         skip_pattern = r"@(Union[skip, xfail])\b"
         regression_name_pattern = r"test_.*(Union[regression|bug|issue|fix|crash, error])_"
+=======
+    def _check_regression_tests(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Detect tests that skip or modify a regression test's core assertion."""
+        violations: List[GuardViolation] = []
+        # Heuristic: @skip or @xfail decorators on tests that reference
+        # bug/issue/regression in their name
+        skip_pattern = r"@(skip|xfail)\b"
+        regression_name_pattern = r"test_.*(regression|bug|issue|fix|crash|error)_"
+>>>>>>> origin/fix/scenario-tests-properly
         for match in re.finditer(skip_pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             # Check if nearby test name mentions regression
@@ -385,13 +495,18 @@ class TestGuard(BaseGuard):
                         suggestion="Fix the test so it passes. If the underlying bug is not "
                         "fixed, fix the bug. Never skip a regression test.",
                         evidence=match.group(0),
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-09: Infrastructure under test gets real infrastructure
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_infrastructure_mocking(self, tree: ast.AST, source: str) -> list[GuardViolation]:
         """Heuristic: mocking database or message-queue interactions in
         integration-like tests (test files containing 'integration' or 'e2e')."""
@@ -399,6 +514,15 @@ class TestGuard(BaseGuard):
         # Only flag if the test file looks like an integration test
         is_integration = bool(
             re.search(r"(Union[integration|e2e|end.to.end, system])", source, re.IGNORECASE),
+=======
+    def _check_infrastructure_mocking(self, tree: ast.AST, source: str) -> List[GuardViolation]:
+        """Heuristic: mocking database or message-queue interactions in
+        integration-like tests (test files containing 'integration' or 'e2e')."""
+        violations: List[GuardViolation] = []
+        # Only flag if the test file looks like an integration test
+        is_integration = bool(
+            re.search(r"(integration|e2e|end.to.end|system)", source, re.IGNORECASE)
+>>>>>>> origin/fix/scenario-tests-properly
         )
         if not is_integration:
             return violations
@@ -406,11 +530,19 @@ class TestGuard(BaseGuard):
         # Flag mocking of databases and message queues in integration tests
         infra_mock_patterns = [
             (
+<<<<<<< HEAD
                 r'patch\(["\'].*((?:database|db|redis|kafka|rabbitmq|celery))',
                 "database/messaging mock in integration test",
             ),
             (
                 r"MagicMock.*(Union[?:Database|Repository|Queue, Broker])",
+=======
+                r'patch\(["\'].*(?:database|db|redis|kafka|rabbitmq|celery)',
+                "database/messaging mock in integration test",
+            ),
+            (
+                r"MagicMock.*(?:Database|Repository|Queue|Broker)",
+>>>>>>> origin/fix/scenario-tests-properly
                 "infrastructure mock in integration test",
             ),
         ]
@@ -428,13 +560,18 @@ class TestGuard(BaseGuard):
                         suggestion="Use a real test database (SQLite in-memory, test container) "
                         "instead of mocking infrastructure in integration tests.",
                         evidence=match.group(0)[:80],
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-L1: LLM app testing patterns
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_llm_test_patterns(self, source: str) -> list[GuardViolation]:
         """Check for common anti-patterns in LLM application tests."""
         violations: list[GuardViolation] = []
@@ -442,6 +579,15 @@ class TestGuard(BaseGuard):
         # T-L1: Test prompt contracts not content
         # Heuristic: exact string match on LLM output.
         pattern = r'assert\s+[^\n]*(?:response|output|result|completion)[^\n]*==\s*["\']'  # NOSONAR
+=======
+    def _check_llm_test_patterns(self, source: str) -> List[GuardViolation]:
+        """Check for common anti-patterns in LLM application tests."""
+        violations: List[GuardViolation] = []
+
+        # T-L1: Test prompt contracts not content
+        # Heuristic: exact string match on LLM output
+        pattern = r'assert\s+.*(?:response|output|result|completion).*==\s*["\']'
+>>>>>>> origin/fix/scenario-tests-properly
         for match in re.finditer(pattern, source):
             line_num = source[: match.start()].count("\n") + 1
             violations.append(
@@ -456,7 +602,11 @@ class TestGuard(BaseGuard):
                     suggestion="Assert on structure (JSON schema, presence of key fields, "
                     "type of response) rather than exact string content.",
                     evidence=match.group(0)[:80],
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         return violations
@@ -464,14 +614,22 @@ class TestGuard(BaseGuard):
     # ------------------------------------------------------------------
     # T-L2: LLM app testing — observability is infrastructure
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_llm_observability_patterns(self, source: str) -> list[GuardViolation]:
+=======
+    def _check_llm_observability_patterns(self, source: str) -> List[GuardViolation]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Check that LLM tests verify observability (logging, tracing, metrics)
         rather than just input/output.
 
         Heuristic: tests that call LLM agents but have no assertions on
         logs, traces, or token counts — the test only checks output.
         """
+<<<<<<< HEAD
         violations: list[GuardViolation] = []
+=======
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         # Pattern: test creates an LLM agent/call but doesn't check observability
         llm_call_pattern = r"(?:agent|llm|completion|chat|prompt|openai|claude)\s*\("
         has_llm_call = bool(re.search(llm_call_pattern, source, re.IGNORECASE))
@@ -506,21 +664,33 @@ class TestGuard(BaseGuard):
                         "span existence. LLM tests should verify the system is "
                         "observable, not just that it produces output.",
                         evidence="LLM call without observability checks",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations
 
     # ------------------------------------------------------------------
     # T-L3: LLM app testing — agent-flow tests test transitions
     # ------------------------------------------------------------------
+<<<<<<< HEAD
     def _check_llm_agent_flow_patterns(self, source: str) -> list[GuardViolation]:
+=======
+    def _check_llm_agent_flow_patterns(self, source: str) -> List[GuardViolation]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Check that agent-flow tests verify state transitions, not just
         final output.
 
         Heuristic: tests that assert only on the final result of an agent
         chain without checking intermediate steps or state transitions.
         """
+<<<<<<< HEAD
         violations: list[GuardViolation] = []
+=======
+        violations: List[GuardViolation] = []
+>>>>>>> origin/fix/scenario-tests-properly
         # Pattern: test that uses agent workflow but only checks final result
         agent_flow_pattern = r"(?:workflow|pipeline|chain|agent_run|run_agent|execute_agent)"
         has_agent_flow = bool(re.search(agent_flow_pattern, source, re.IGNORECASE))
@@ -554,6 +724,10 @@ class TestGuard(BaseGuard):
                         "what changed between step N and step N+1? Did the agent "
                         "transition to the expected state?",
                         evidence="agent flow without transition checks",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
         return violations

@@ -20,8 +20,13 @@ LABEL stage="engineering-service-builder"
 
 # Build deps for numpy/scipy wheels
 RUN apt-get update && apt-get install -y --no-install-recommends \
+<<<<<<< HEAD
     g++ \
     gcc \
+=======
+    gcc \
+    g++ \
+>>>>>>> origin/fix/scenario-tests-properly
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -58,10 +63,14 @@ RUN groupadd -r engsvc && \
 WORKDIR /app
 
 # Copy the service code + ALL required Python modules
+<<<<<<< HEAD
 # SonarCloud S6504: Files are owned by root (not the non-root `engsvc` user)
 # so the runtime container user can read+execute them but CANNOT modify them.
 COPY --chown=root:root --chmod=go-w engineering_service.py ./
 COPY --chown=root:root --chmod=go-w compat.py ./
+=======
+COPY --chown=engsvc:engsvc engineering_service.py ./
+>>>>>>> origin/fix/scenario-tests-properly
 COPY --chown=engsvc:engsvc api/ ./api/
 COPY --chown=engsvc:engsvc core/ ./core/
 COPY --chown=engsvc:engsvc services/ ./services/
@@ -93,7 +102,10 @@ COPY --chown=engsvc:engsvc gis_model/ ./gis_model/
 COPY --chown=engsvc:engsvc gis_validation/ ./gis_validation/
 COPY --chown=engsvc:engsvc gis_validation_electrical/ ./gis_validation_electrical/
 COPY --chown=engsvc:engsvc gis_validation_real/ ./gis_validation_real/
+<<<<<<< HEAD
 COPY --chown=engsvc:engsvc autodesk_connector/ ./autodesk_connector/
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 COPY --chown=engsvc:engsvc skills/ ./skills/
 COPY --chown=engsvc:engsvc reporting/ ./reporting/
 COPY --chown=engsvc:engsvc prompts/ ./prompts/
@@ -103,7 +115,11 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENGINEERING_SERVICE_HOST=0.0.0.0 \
     ENGINEERING_SERVICE_PORT=8000 \
+<<<<<<< HEAD
     ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-http://localhost:3000} \
+=======
+    ENGINEERING_SERVICE_CORS_ORIGINS=* \
+>>>>>>> origin/fix/scenario-tests-properly
     DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 EXPOSE 8000

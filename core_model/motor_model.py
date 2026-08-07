@@ -7,6 +7,7 @@ Supports:
 - Acceleration time estimation
 - Voltage dip contribution
 - Short circuit contribution
+<<<<<<< HEAD
 - Transient voltage drop during motor starting (CRITICAL FIX)
 
 Reference: IEEE Std 399 "IEEE Recommended Practice for Industrial and
@@ -25,6 +26,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Optional
+=======
+
+Reference: IEEE Std 399 "IEEE Recommended Practice for Industrial and
+Commercial Power Systems Analysis" (Brown Book)
+"""
+
+from dataclasses import dataclass
+from typing import Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -41,14 +51,22 @@ class MotorParameters:
     efficiency: float = 0.90  # Motor efficiency
     starting_pf: float = 0.20  # Starting power factor
     lr_current_multiplier: float = 6.0  # Locked rotor current / full load current
+<<<<<<< HEAD
     inertia_constant_H: float = 0.5  # NOSONAR
+=======
+    inertia_constant_H: float = 0.5  # Inertia constant (seconds)
+>>>>>>> origin/fix/scenario-tests-properly
     x_d_prime: float = 0.20  # Transient reactance (per-unit)
     x_d_double_prime: float = 0.15  # Subtransient reactance (per-unit)
     r_stator: float = 0.01  # Stator resistance (per-unit)
     r_rotor: float = 0.02  # Rotor resistance (per-unit)
     slip_rated: float = 0.03  # Rated slip
     base_mva: float = 100.0  # System base MVA
+<<<<<<< HEAD
     torque_speed_curve: Optional[dict] = None  # Optional: {slip: torque_pu}
+=======
+    torque_speed_curve: dict = None  # Optional: {slip: torque_pu}
+>>>>>>> origin/fix/scenario-tests-properly
 
     def __post_init__(self):
         """Calculate derived parameters."""
@@ -126,10 +144,15 @@ class MotorModel:
         """
         # I_start = V / X_d" (approximately)
         V = 1.0  # per-unit
+<<<<<<< HEAD
         i_start = (
             V / self.x_d_double_prime_sys
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return i_start * self.mva_ratio
+=======
+        I_start = V / self.x_d_double_prime_sys
+        return I_start * self.mva_ratio
+>>>>>>> origin/fix/scenario-tests-properly
 
     def locked_rotor_current_pu(self) -> complex:
         """
@@ -143,6 +166,7 @@ class MotorModel:
         """
         p = self.params
         # Locked rotor impedance (simplified)
+<<<<<<< HEAD
         z_lr = complex(
             p.r_stator, p.x_d_double_prime
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -150,6 +174,14 @@ class MotorModel:
             1.0 / z_lr if abs(z_lr) > 0 else complex(0, 0)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         return i_lr * self.mva_ratio
+=======
+        Z_lr = complex(p.r_stator, p.x_d_double_prime)
+        if abs(Z_lr) > 0:
+            I_lr = 1.0 / Z_lr  # at rated voltage
+        else:
+            I_lr = complex(0, 0)
+        return I_lr * self.mva_ratio
+>>>>>>> origin/fix/scenario-tests-properly
 
     def running_current_pu(self) -> complex:
         """
@@ -161,6 +193,7 @@ class MotorModel:
         p = self.params
         # Running impedance
         pf_angle = np.arccos(p.power_factor)
+<<<<<<< HEAD
         i_running = (
             self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -170,6 +203,13 @@ class MotorModel:
         self,
         load_torque_fraction: float = 0.3,
         voltage_fraction: float = 1.0,
+=======
+        I_running = self.mva_ratio * (np.cos(pf_angle) - 1j * np.sin(pf_angle))
+        return I_running
+
+    def acceleration_time(
+        self, load_torque_fraction: float = 0.3, voltage_fraction: float = 1.0
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> float:
         """
         Estimate motor acceleration time.
@@ -193,6 +233,7 @@ class MotorModel:
 
         # Average motor torque during acceleration (simplified)
         # Typically 1.0-1.5 pu of rated torque
+<<<<<<< HEAD
         t_motor_avg = (
             1.2 * voltage_fraction**2
         )  # NOSONAR
@@ -214,6 +255,23 @@ class MotorModel:
         source_impedance: complex,
         system_kv: float = None,
     ) -> tuple[float, float]:
+=======
+        T_motor_avg = 1.2 * voltage_fraction**2  # Torque proportional to V^2
+
+        # Average load torque (typically 0.3 for fans, 0.1 for pumps)
+        T_load_avg = load_torque_fraction
+
+        delta_T = T_motor_avg - T_load_avg
+        if delta_T <= 0:
+            return float("inf")  # Motor cannot accelerate
+
+        t_acc = (2 * H) / delta_T
+        return t_acc
+
+    def voltage_dip_contribution(
+        self, source_impedance: complex, system_kv: float = None
+    ) -> Tuple[float, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate voltage dip during motor starting.
 
@@ -228,6 +286,7 @@ class MotorModel:
         p = self.params
         pf_angle = np.arccos(p.starting_pf)
         # x_d_double_prime_sys is already on system base; no further conversion needed
+<<<<<<< HEAD
         z_motor = (
             self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -336,6 +395,25 @@ class MotorModel:
         self,
         fault_type: str = "three_phase",
         t: float = 0.0,
+=======
+        Z_motor = self.x_d_double_prime_sys * (np.cos(pf_angle) + 1j * np.sin(pf_angle))
+
+        # Voltage divider
+        V_source = 1.0  # per-unit
+        Z_total = source_impedance + Z_motor
+        if abs(Z_total) > 0:
+            V_motor = V_source * Z_motor / Z_total
+        else:
+            V_motor = V_source
+
+        V_motor_mag = abs(V_motor)
+        dip_percent = (1.0 - V_motor_mag) * 100.0
+
+        return dip_percent, V_motor_mag
+
+    def short_circuit_contribution(
+        self, fault_type: str = "three_phase", t: float = 0.0
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> complex:
         """
         Calculate motor contribution to short-circuit current.
@@ -353,6 +431,7 @@ class MotorModel:
         p = self.params
 
         # Initial subtransient current
+<<<<<<< HEAD
         i_double_prime = (
             1.0 / complex(p.r_stator, p.x_d_double_prime)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -396,6 +475,33 @@ class MotorModel:
             i_motor = complex(np.sqrt(abs(i_ac) ** 2 + i_dc**2) * self.mva_ratio, 0)
 
         return i_motor
+=======
+        I_double_prime = 1.0 / complex(p.r_stator, p.x_d_double_prime)
+
+        # Transient current
+        I_prime = 1.0 / complex(p.r_stator, p.x_d_prime)
+
+        # Time constants (simplified)
+        T_double_prime = p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)  # subtransient
+        T_prime = p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)  # transient
+
+        # DC offset decay
+        T_dc = p.x_d_double_prime / (2 * np.pi * 60 * p.r_stator)
+
+        # Current at time t
+        if t <= 0:
+            I_motor = I_double_prime * self.mva_ratio
+        else:
+            I_ac = (I_double_prime - I_prime) * np.exp(-t / T_double_prime) + I_prime * np.exp(
+                -t / T_prime
+            )
+            I_dc = np.sqrt(2) * abs(I_double_prime) * np.exp(-t / T_dc)
+            # Asymmetrical current magnitude = sqrt(I_ac_rms^2 + I_dc^2)
+            # Always return complex for API consistency (t<=0 returns complex)
+            I_motor = complex(np.sqrt(abs(I_ac) ** 2 + I_dc**2) * self.mva_ratio, 0)
+
+        return I_motor
+>>>>>>> origin/fix/scenario-tests-properly
 
     def get_torque_speed(self, slip: float) -> float:
         """
@@ -420,6 +526,7 @@ class MotorModel:
         X2 = p.x_d_double_prime * 0.5  # approximate
         omega_s = 2 * np.pi * 60  # synchronous speed
 
+<<<<<<< HEAD
         r2_s = (
             R2 / slip
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -445,6 +552,21 @@ class MotorModel:
 
         if t_rated > 0:
             return T / t_rated
+=======
+        R2_s = R2 / slip
+        Z_total = complex(R1 + R2_s, X1 + X2)
+        I = V / Z_total
+        T = (abs(I) ** 2 * R2_s) / omega_s
+
+        # Normalize to rated torque
+        R2_rated = R2 / p.slip_rated
+        Z_rated = complex(R1 + R2_rated, X1 + X2)
+        I_rated = V / Z_rated
+        T_rated = (abs(I_rated) ** 2 * R2_rated) / omega_s
+
+        if T_rated > 0:
+            return T / T_rated
+>>>>>>> origin/fix/scenario-tests-properly
         return 0.0
 
     def to_dict(self) -> dict:

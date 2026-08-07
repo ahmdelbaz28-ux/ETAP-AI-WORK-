@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+<<<<<<< HEAD
 from typing import Optional
+=======
+from typing import Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
@@ -38,7 +42,11 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to load ArcGIS project: {exc}") from exc
 
+<<<<<<< HEAD
     def list_layers(self) -> list[str]:
+=======
+    def list_layers(self) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         # ArcGIS layer listing is non-trivial without a concrete project/workspace.
         # Degrade gracefully: return empty list if not loaded.
         if not self._loaded:
@@ -47,7 +55,11 @@ class ArcGISProvider(GISProviderInterface):
             import arcpy  # type: ignore
 
             # Best-effort: list layers from the default workspace if set.
+<<<<<<< HEAD
             layers: list[str] = []
+=======
+            layers: List[str] = []
+>>>>>>> origin/fix/scenario-tests-properly
             try:
                 desc = arcpy.Describe(arcpy.env.workspace)  # type: ignore
                 _ = desc
@@ -83,12 +95,21 @@ class ArcGISProvider(GISProviderInterface):
                 _ = lyr
             except Exception as exc:
                 raise GISDataExtractionError(
+<<<<<<< HEAD
                     f"Invalid ArcGIS layer_id '{layer_id}': {exc}",
+=======
+                    f"Invalid ArcGIS layer_id '{layer_id}': {exc}"
+>>>>>>> origin/fix/scenario-tests-properly
                 ) from exc
 
             # Fallback cursor approach: attempt to iterate without strict schema.
             cursor = arcpy.da.SearchCursor(layer_id, ["OID@", "SHAPE@"])  # type: ignore
+<<<<<<< HEAD
             for idx, row in enumerate(cursor):
+=======
+            idx = 0
+            for row in cursor:
+>>>>>>> origin/fix/scenario-tests-properly
                 oid = row[0]
                 geom = row[1]
                 # Convert geometry to GeoJSON-like dict via arcpy geometry JSON (if available).
@@ -97,7 +118,11 @@ class ArcGISProvider(GISProviderInterface):
                     geom_dict = safe_parse_geojson(geojson_geom_str)
                 except Exception as err:
                     raise GISDataExtractionError(
+<<<<<<< HEAD
                         "Unable to convert ArcGIS geometry to GeoJSON",
+=======
+                        "Unable to convert ArcGIS geometry to GeoJSON"
+>>>>>>> origin/fix/scenario-tests-properly
                     ) from err
 
                 ok, reason = validate_geometry_dict(geom_dict)
@@ -112,12 +137,20 @@ class ArcGISProvider(GISProviderInterface):
                     crs=self._crs.crs,
                 )
                 yield feature
+<<<<<<< HEAD
+=======
+                idx += 1
+>>>>>>> origin/fix/scenario-tests-properly
         except GISDataExtractionError:
             raise
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to extract features from ArcGIS: {exc}") from exc
 
+<<<<<<< HEAD
     def export_geojson(self, layer_id: str) -> dict:
+=======
+    def export_geojson(self, layer_id: str) -> Dict:
+>>>>>>> origin/fix/scenario-tests-properly
         try:
             features = list(self.extract_features(layer_id))
             return {
@@ -126,7 +159,11 @@ class ArcGISProvider(GISProviderInterface):
                     {
                         "type": "Feature",
                         "geometry": f.geometry,
+<<<<<<< HEAD
                         "properties": {**f.properties, "id": f.id, "layer": f.layer_name},
+=======
+                        "properties": f.properties | {"id": f.id, "layer": f.layer_name},
+>>>>>>> origin/fix/scenario-tests-properly
                     }
                     for f in features
                 ],
@@ -135,7 +172,11 @@ class ArcGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to export GeoJSON from ArcGIS: {exc}") from exc
 
+<<<<<<< HEAD
     def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+=======
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
+>>>>>>> origin/fix/scenario-tests-properly
         return self._crs
 
     def health_check(self) -> bool:

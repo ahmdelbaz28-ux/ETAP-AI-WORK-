@@ -15,11 +15,18 @@ Supports:
 Reference: IEEE 519-2022 "IEEE Standard for Harmonic Control in Electric Power Systems"
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from enum import Enum
+=======
+import logging
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 import numpy as np
 
@@ -58,10 +65,17 @@ class HarmonicResult:
 
     harmonic_order: int
     frequency_hz: float
+<<<<<<< HEAD
     bus_voltages: dict[str, complex]  # bus_id -> voltage phasor
     branch_currents: dict[str, complex]  # branch_id -> current phasor
     thd_voltage: dict[str, float]  # bus_id -> THD %
     thd_current: dict[str, float]  # branch_id -> THD %
+=======
+    bus_voltages: Dict[str, complex]  # bus_id -> voltage phasor
+    branch_currents: Dict[str, complex]  # branch_id -> current phasor
+    thd_voltage: Dict[str, float]  # bus_id -> THD %
+    thd_current: Dict[str, float]  # branch_id -> THD %
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 @dataclass
@@ -70,6 +84,7 @@ class HarmonicAnalysisResult:
 
     fundamental_frequency: float  # Hz
     max_harmonic_order: int
+<<<<<<< HEAD
     harmonic_results: list[HarmonicResult]
     total_thd_voltage: dict[str, float]  # bus_id -> Total THD %
     total_tdd_current: dict[str, float]  # bus_id -> Total TDD %
@@ -77,6 +92,15 @@ class HarmonicAnalysisResult:
     resonance_frequencies: list[float]
     compliance_status: dict[str, bool]  # bus_id -> compliant (True/False)
     violations: list[str]
+=======
+    harmonic_results: List[HarmonicResult]
+    total_thd_voltage: Dict[str, float]  # bus_id -> Total THD %
+    total_tdd_current: Dict[str, float]  # bus_id -> Total TDD %
+    resonance_detected: bool
+    resonance_frequencies: List[float]
+    compliance_status: Dict[str, bool]  # bus_id -> compliant (True/False)
+    violations: List[str]
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class HarmonicAnalysisEngine:
@@ -97,16 +121,25 @@ class HarmonicAnalysisEngine:
         """
         self.fundamental_freq = fundamental_freq
         self.max_harmonic = max_harmonic
+<<<<<<< HEAD
         self.harmonic_sources: list[HarmonicSource] = []
         self.Ybus_fundamental = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+=======
+        self.harmonic_sources: List[HarmonicSource] = []
+        self.Ybus_fundamental = None
+>>>>>>> origin/fix/scenario-tests-properly
         self.bus_ids = []
         self.branch_data = {}
 
     def set_system_data(
+<<<<<<< HEAD
         self,
         ybus_fundamental: np.ndarray,
         bus_ids: list[str],
         branch_data: dict = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        self, Ybus_fundamental: np.ndarray, bus_ids: List[str], branch_data: Dict = None
+>>>>>>> origin/fix/scenario-tests-properly
     ):
         """
         Set system admittance matrix and topology.
@@ -116,7 +149,11 @@ class HarmonicAnalysisEngine:
         bus_ids: List of bus IDs
         branch_data: Optional branch impedance data
         """
+<<<<<<< HEAD
         self.Ybus_fundamental = ybus_fundamental
+=======
+        self.Ybus_fundamental = Ybus_fundamental
+>>>>>>> origin/fix/scenario-tests-properly
         self.bus_ids = bus_ids
         self.branch_data = branch_data or {}
 
@@ -124,6 +161,7 @@ class HarmonicAnalysisEngine:
         """Add a harmonic current/voltage source."""
         self.harmonic_sources.append(source)
         logger.info(
+<<<<<<< HEAD
             "Added harmonic source: order=%d, magnitude=%s pu",
             source.harmonic_order,
             source.magnitude_pu,
@@ -133,6 +171,14 @@ class HarmonicAnalysisEngine:
         self,
         harmonic_order: int,
         ybus_fundamental: np.ndarray = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+            f"Added harmonic source: order={source.harmonic_order}, "
+            f"magnitude={source.magnitude_pu} pu"
+        )
+
+    def calculate_harmonic_impedance(
+        self, harmonic_order: int, Ybus_fundamental: np.ndarray = None
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> np.ndarray:
         """
         Calculate system impedance matrix at a specific harmonic order.
@@ -149,6 +195,7 @@ class HarmonicAnalysisEngine:
         Returns:
         Harmonic order Ybus matrix
         """
+<<<<<<< HEAD
         if ybus_fundamental is None:
             ybus_fundamental = self.Ybus_fundamental
 
@@ -160,6 +207,17 @@ class HarmonicAnalysisEngine:
         ybus_h = np.zeros(
             (n, n), dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        if Ybus_fundamental is None:
+            Ybus_fundamental = self.Ybus_fundamental
+
+        if Ybus_fundamental is None:
+            raise ValueError("Ybus matrix not set. Call set_system_data() first.")
+
+        h = harmonic_order
+        n = Ybus_fundamental.shape[0]
+        Ybus_h = np.zeros((n, n), dtype=complex)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # IEEE 519-2022 frequency-dependent scaling:
         #   R(h) ≈ R(1) × sqrt(h)   (skin effect)
@@ -178,6 +236,7 @@ class HarmonicAnalysisEngine:
         # Simplified approach: compute Zbus at fundamental → scale each
         # element's R and X components individually → rebuild Ybus via
         # pseudo-inversion.  This is more accurate than sign-based scaling.
+<<<<<<< HEAD
         zbus_1 = np.linalg.inv(
             ybus_fundamental
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -209,19 +268,52 @@ class HarmonicAnalysisEngine:
                     x_h = 0.0
 
                 zbus_h[i, j] = complex(r_h, x_h)
+=======
+        Zbus_1 = np.linalg.inv(Ybus_fundamental)
+        Zbus_h = np.zeros_like(Zbus_1, dtype=complex)
+
+        for i in range(n):
+            for j in range(n):
+                Z_ij = Zbus_1[i, j]
+                R = Z_ij.real
+                X = Z_ij.imag
+
+                # Skin effect on resistance (approximate)
+                R_h = R * np.sqrt(h) if R != 0 else 0.0
+
+                # Reactance scaling: inductive X > 0, capacitive X < 0
+                if X > 0:  # Net inductive at this (i,j)
+                    X_h = X * h
+                elif X < 0:  # Net capacitive at this (i,j)
+                    X_h = X / h if h > 0 else X
+                else:
+                    X_h = 0.0
+
+                Zbus_h[i, j] = complex(R_h, X_h)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Rebuild Ybus from scaled Zbus.  For non-square or singular systems
         # use pseudo-inverse as a fallback.
         try:
+<<<<<<< HEAD
             ybus_h = np.linalg.inv(zbus_h)
+=======
+            Ybus_h = np.linalg.inv(Zbus_h)
+>>>>>>> origin/fix/scenario-tests-properly
         except np.linalg.LinAlgError:
             logger.warning(
                 "Zbus_h at harmonic %d is singular; falling back to pseudo-inverse",
                 h,
             )
+<<<<<<< HEAD
             ybus_h = np.linalg.pinv(zbus_h)
 
         return ybus_h
+=======
+            Ybus_h = np.linalg.pinv(Zbus_h)
+
+        return Ybus_h
+>>>>>>> origin/fix/scenario-tests-properly
 
     def solve_harmonic_power_flow(self, harmonic_order: int) -> HarmonicResult:
         """
@@ -239,6 +331,7 @@ class HarmonicAnalysisEngine:
         freq = h * self.fundamental_freq
 
         # Build harmonic Ybus
+<<<<<<< HEAD
         ybus_h = self.calculate_harmonic_impedance(
             h
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -257,6 +350,20 @@ class HarmonicAnalysisEngine:
         i_h = np.zeros(
             n, dtype=complex
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+        Ybus_h = self.calculate_harmonic_impedance(h)
+
+        # Compute Zbus by inversion
+        try:
+            Zbus_h = np.linalg.inv(Ybus_h)
+        except np.linalg.LinAlgError:
+            logger.warning(f"Singular Ybus at harmonic {h}, using pseudo-inverse")
+            Zbus_h = np.linalg.pinv(Ybus_h)
+
+        # Build harmonic current injection vector
+        n = len(self.bus_ids)
+        I_h = np.zeros(n, dtype=complex)
+>>>>>>> origin/fix/scenario-tests-properly
 
         for source in self.harmonic_sources:
             if source.harmonic_order == h and source.source_type == "current":
@@ -264,6 +371,7 @@ class HarmonicAnalysisEngine:
                     bus_idx = self.bus_ids.index(source.bus_id)
                     # Convert polar to rectangular
                     angle_rad = np.radians(source.angle_deg)
+<<<<<<< HEAD
                     i_injection = (
                         source.magnitude_pu * np.exp(1j * angle_rad)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -273,11 +381,22 @@ class HarmonicAnalysisEngine:
         v_h = (
             zbus_h @ i_h
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+=======
+                    I_injection = source.magnitude_pu * np.exp(1j * angle_rad)
+                    I_h[bus_idx] += I_injection
+
+        # Solve for voltages: V = Zbus * I
+        V_h = Zbus_h @ I_h
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Create result dictionaries
         bus_voltages = {}
         for i, bus_id in enumerate(self.bus_ids):
+<<<<<<< HEAD
             bus_voltages[bus_id] = v_h[i]
+=======
+            bus_voltages[bus_id] = V_h[i]
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Calculate branch currents (simplified - would need branch data)
         branch_currents = {}
@@ -296,10 +415,15 @@ class HarmonicAnalysisEngine:
         )
 
     def calculate_thd(
+<<<<<<< HEAD
         self,
         harmonic_results: list[HarmonicResult],
         fundamental_magnitude: dict[str, float],
     ) -> dict[str, float]:
+=======
+        self, harmonic_results: List[HarmonicResult], fundamental_magnitude: Dict[str, float]
+    ) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate Total Harmonic Distortion (THD).
 
@@ -326,10 +450,15 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:  # Exclude fundamental
+<<<<<<< HEAD
                     v_h = abs(
                         result.bus_voltages.get(bus_id, 0)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += v_h**2
+=======
+                    V_h = abs(result.bus_voltages.get(bus_id, 0))
+                    sum_squared += V_h**2
+>>>>>>> origin/fix/scenario-tests-properly
 
             # Calculate THD
             thd[bus_id] = (np.sqrt(sum_squared) / V1) * 100.0
@@ -337,10 +466,15 @@ class HarmonicAnalysisEngine:
         return thd
 
     def calculate_tdd(
+<<<<<<< HEAD
         self,
         harmonic_results: list[HarmonicResult],
         fundamental_current: dict[str, float],
     ) -> dict[str, float]:
+=======
+        self, harmonic_results: List[HarmonicResult], fundamental_current: Dict[str, float]
+    ) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Calculate Total Demand Distortion (TDD).
 
@@ -356,7 +490,11 @@ class HarmonicAnalysisEngine:
         """
         tdd = {}
 
+<<<<<<< HEAD
         for branch_id in self.branch_data:
+=======
+        for branch_id in self.branch_data.keys():
+>>>>>>> origin/fix/scenario-tests-properly
             # Get fundamental (load) current
             I_L = fundamental_current.get(branch_id, 1.0)
 
@@ -368,10 +506,15 @@ class HarmonicAnalysisEngine:
             sum_squared = 0.0
             for result in harmonic_results:
                 if result.harmonic_order > 1:
+<<<<<<< HEAD
                     i_h = abs(
                         result.branch_currents.get(branch_id, 0)
                     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                     sum_squared += i_h**2
+=======
+                    I_h = abs(result.branch_currents.get(branch_id, 0))
+                    sum_squared += I_h**2
+>>>>>>> origin/fix/scenario-tests-properly
 
             # Calculate TDD
             tdd[branch_id] = (np.sqrt(sum_squared) / I_L) * 100.0
@@ -379,10 +522,15 @@ class HarmonicAnalysisEngine:
         return tdd
 
     def detect_resonance(
+<<<<<<< HEAD
         self,
         harmonic_results: list[HarmonicResult],
         threshold_factor: float = 10.0,
     ) -> tuple[bool, list[float]]:
+=======
+        self, harmonic_results: List[HarmonicResult], threshold_factor: float = 10.0
+    ) -> Tuple[bool, List[float]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Detect potential resonance conditions.
 
@@ -406,15 +554,21 @@ class HarmonicAnalysisEngine:
             if max_voltage > threshold_factor:
                 resonance_freqs.append(result.frequency_hz)
                 logger.warning(
+<<<<<<< HEAD
                     "Potential resonance detected at %s Hz (harmonic %d)",
                     result.frequency_hz,
                     result.harmonic_order,
+=======
+                    f"Potential resonance detected at {result.frequency_hz} Hz "
+                    f"(harmonic {result.harmonic_order})"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         resonance_detected = len(resonance_freqs) > 0
         return resonance_detected, resonance_freqs
 
     def check_ieee_519_compliance(
+<<<<<<< HEAD
         self,
         thd_voltage: dict[str, float],
         _tdd_current: dict[
@@ -422,6 +576,10 @@ class HarmonicAnalysisEngine:
         ],  # NOSONAR
         voltage_kv: float,  # NOSONAR unused param kept for API compatibility
     ) -> dict[str, bool]:
+=======
+        self, thd_voltage: Dict[str, float], tdd_current: Dict[str, float], voltage_kv: float
+    ) -> Dict[str, bool]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Check compliance with IEEE 519-2022 limits.
 
@@ -458,18 +616,28 @@ class HarmonicAnalysisEngine:
 
             if not compliant:
                 logger.warning(
+<<<<<<< HEAD
                     "IEEE 519 violation at bus %s: THD=%.2f%% exceeds limit %s%%",
                     bus_id,
                     thd,
                     vthd_limit,
+=======
+                    f"IEEE 519 violation at bus {bus_id}: "
+                    f"THD={thd:.2f}% exceeds limit {vthd_limit}%"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         return compliance
 
     def run_full_analysis(
         self,
+<<<<<<< HEAD
         fundamental_magnitudes: dict[str, float] = None,
         fundamental_currents: dict[str, float] = None,
+=======
+        fundamental_magnitudes: Dict[str, float] = None,
+        fundamental_currents: Dict[str, float] = None,
+>>>>>>> origin/fix/scenario-tests-properly
         voltage_kv: float = 13.8,
     ) -> HarmonicAnalysisResult:
         """
@@ -483,7 +651,11 @@ class HarmonicAnalysisEngine:
         Returns:
         HarmonicAnalysisResult with complete results
         """
+<<<<<<< HEAD
         logger.info("Starting harmonic analysis up to %sth harmonic", self.max_harmonic)
+=======
+        logger.info(f"Starting harmonic analysis up to {self.max_harmonic}th harmonic")
+>>>>>>> origin/fix/scenario-tests-properly
 
         harmonic_results = []
 
@@ -498,7 +670,11 @@ class HarmonicAnalysisEngine:
                 result = self.solve_harmonic_power_flow(h)
                 harmonic_results.append(result)
             except Exception as e:
+<<<<<<< HEAD
                 logger.exception("Failed to solve harmonic %s: %s", h, e)
+=======
+                logger.error(f"Failed to solve harmonic {h}: {e}")
+>>>>>>> origin/fix/scenario-tests-properly
                 continue
 
         # Calculate THD
@@ -520,7 +696,11 @@ class HarmonicAnalysisEngine:
         for bus_id, compliant in compliance.items():
             if not compliant:
                 violations.append(
+<<<<<<< HEAD
                     f"Bus {bus_id}: THD={thd_voltage[bus_id]:.2f}% exceeds IEEE 519 limit",
+=======
+                    f"Bus {bus_id}: THD={thd_voltage[bus_id]:.2f}% exceeds IEEE 519 limit"
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         result = HarmonicAnalysisResult(
@@ -536,19 +716,29 @@ class HarmonicAnalysisEngine:
         )
 
         logger.info(
+<<<<<<< HEAD
             "Harmonic analysis complete. Resonance: %s, Violations: %d",
             resonance_detected,
             len(violations),
+=======
+            f"Harmonic analysis complete. Resonance: {resonance_detected}, "
+            f"Violations: {len(violations)}"
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return result
 
     def design_passive_filter(
+<<<<<<< HEAD
         self,
         target_harmonic: int,
         q_factor: float = 50.0,
         tuning_frequency_offset: float = 0.05,
     ) -> dict[str, float]:
+=======
+        self, target_harmonic: int, q_factor: float = 50.0, tuning_frequency_offset: float = 0.05
+    ) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Design a passive harmonic filter (single-tuned).
 
@@ -571,16 +761,26 @@ class HarmonicAnalysisEngine:
         # Assume we want to provide low impedance path at tuned frequency
 
         # Choose capacitor rating (typical values)
+<<<<<<< HEAD
         Q_cap_MVAR = 1.0  # NOSONAR
         V_ll = 13.8  # NOSONAR
         v_phase = (
             V_ll / np.sqrt(3)
         )  # NOSONAR
+=======
+        Q_cap_MVAR = 1.0  # 1 MVAR capacitor bank
+        V_ll = 13.8  # Line-to-line voltage in kV (example)
+        V_phase = V_ll / np.sqrt(3)  # Phase voltage in kV
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C
         omega_tuned = 2 * np.pi * f_tuned
+<<<<<<< HEAD
         C = (Q_cap_MVAR * 1e6) / (omega_tuned * (v_phase * 1e3) ** 2)
+=======
+        C = (Q_cap_MVAR * 1e6) / (omega_tuned * (V_phase * 1e3) ** 2)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Calculate inductance for resonance at tuned frequency
         # omega^2 = 1/(LC)
@@ -603,11 +803,16 @@ class HarmonicAnalysisEngine:
         }
 
         logger.info(
+<<<<<<< HEAD
             "Passive filter designed for harmonic %d: C=%.2f uF, L=%.2f mH, R=%.3f ohm",
             h_target,
             C * 1e6,
             L * 1e3,
             R,
+=======
+            f"Passive filter designed for harmonic {h_target}: "
+            f"C={C * 1e6:.2f} uF, L={L * 1e3:.2f} mH, R={R:.3f} ohm"
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
         return filter_design

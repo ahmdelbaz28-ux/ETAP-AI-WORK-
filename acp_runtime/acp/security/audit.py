@@ -18,12 +18,19 @@ import json
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, Union
 
 import anyio
 
 from acp.observability.structured_logger import sanitize_log_payload
 
+=======
+from typing import Any
+
+import anyio
+
+>>>>>>> origin/fix/scenario-tests-properly
 __all__ = [
     "AuditEntry",
     "AuditLogger",
@@ -35,7 +42,11 @@ __all__ = [
 # ------------------------------------------------------------------ AuditEntry
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True)
+=======
+@dataclass(frozen=True, slots=True)
+>>>>>>> origin/fix/scenario-tests-properly
 class AuditEntry:
     """A single audit log entry.
 
@@ -62,6 +73,7 @@ class AuditEntry:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> str:
+<<<<<<< HEAD
         """Serialize as a single-line JSON string with sensitive data redacted.
 
         CRITICAL FIX: The metadata dict is sanitized before serialization
@@ -83,6 +95,10 @@ class AuditEntry:
             "metadata": safe_metadata,
         }
         return json.dumps(safe_entry, default=str, separators=(",", ":"), sort_keys=True)
+=======
+        """Serialize as a single-line JSON string."""
+        return json.dumps(asdict(self), default=str, separators=(",", ":"), sort_keys=True)
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ------------------------------------------------------------------ AuditLogger (ABC)
@@ -174,7 +190,11 @@ class NDJSONAuditLogger(AuditLogger):
 
     def __init__(
         self,
+<<<<<<< HEAD
         path: Union[str, Path],
+=======
+        path: str | Path,
+>>>>>>> origin/fix/scenario-tests-properly
         *,
         max_bytes: int = 0,
         max_backups: int = 3,

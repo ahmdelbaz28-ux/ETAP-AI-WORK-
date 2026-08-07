@@ -181,7 +181,10 @@ All ML features gracefully degrade when optional dependencies are unavailable:
 
 ```python
 from ml.predictive import get_ml_capabilities
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 caps = get_ml_capabilities()
 # Returns which libraries are available and the best available method
 ```

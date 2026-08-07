@@ -17,7 +17,11 @@ Usage::
 
     from etap_integration.scada_client import SCADAClient
 
+<<<<<<< HEAD
     client = SCADAClient(host=os.environ.get("SERVICE_HOST", "192.168.1.100"), port=102)
+=======
+    client = SCADAClient(host="192.168.1.100", port=102)
+>>>>>>> origin/fix/scenario-tests-properly
     data = await client.get_live_data()
     # {"voltages": [...], "currents": [...], "timestamp": 1718...}
 
@@ -34,7 +38,11 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +75,19 @@ class SCADAReading:
 class SCADATelemetry:
     """Aggregated SCADA telemetry snapshot."""
 
+<<<<<<< HEAD
     voltages: list[SCADAReading] = field(default_factory=list)
     currents: list[SCADAReading] = field(default_factory=list)
     frequencies: list[SCADAReading] = field(default_factory=list)
     active_power: list[SCADAReading] = field(default_factory=list)
     reactive_power: list[SCADAReading] = field(default_factory=list)
+=======
+    voltages: List[SCADAReading] = field(default_factory=list)
+    currents: List[SCADAReading] = field(default_factory=list)
+    frequencies: List[SCADAReading] = field(default_factory=list)
+    active_power: List[SCADAReading] = field(default_factory=list)
+    reactive_power: List[SCADAReading] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
     timestamp: float = field(default_factory=time.time)
     source: str = "simulation"  # simulation, iec61850, mock
 
@@ -98,7 +114,11 @@ except ImportError:
     except ImportError:
         logger.info(
             "No IEC 61850 library installed — SCADA client will use simulated data. "
+<<<<<<< HEAD
             "Install iec61850datamodel or py61850 for real SCADA integration.",
+=======
+            "Install iec61850datamodel or py61850 for real SCADA integration."
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
 
@@ -138,7 +158,11 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Voltage",
                     value=round(v_base + v_noise, 4),
                     unit="p.u.",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Current: 0.5-0.9 p.u. with load pattern
@@ -149,7 +173,11 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Current",
                     value=round(i_base + i_noise, 4),
                     unit="p.u.",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Frequency: 50 Hz ± 0.05 Hz
@@ -160,7 +188,11 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/Frequency",
                     value=round(f_base + f_noise, 4),
                     unit="Hz",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Active power
@@ -170,7 +202,11 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/ActivePower",
                     value=round(p_val, 4),
                     unit="p.u.",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
             # Reactive power
@@ -180,7 +216,11 @@ class SimulatedSCADA:
                     tag=f"{bus_name}/ReactivePower",
                     value=round(q_val, 4),
                     unit="p.u.",
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
         return telemetry
@@ -219,7 +259,11 @@ class SCADAClient:
             poll_interval_sec if poll_interval_sec is not None else _SCADA_POLL_SEC
         )
         self._connected = False
+<<<<<<< HEAD
         self._last_telemetry: Optional[SCADATelemetry] = None
+=======
+        self._last_telemetry: SCADATelemetry | None = None
+>>>>>>> origin/fix/scenario-tests-properly
         self._simulated = SimulatedSCADA()
         self._client: Any = None
 
@@ -255,7 +299,11 @@ class SCADAClient:
             )
             self._connected = False
 
+<<<<<<< HEAD
     async def get_live_data(self) -> dict[str, Any]:
+=======
+    async def get_live_data(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Fetch current SCADA telemetry data.
 
         Returns
@@ -268,9 +316,13 @@ class SCADAClient:
             return await self._read_from_server()
         return self._read_from_simulation()
 
+<<<<<<< HEAD
     async def _read_from_server(  # NOSONAR
         self,
     ) -> dict[str, Any]:  # NOSONAR async function uses sync I/O for compatibility reasons
+=======
+    async def _read_from_server(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Read data from the IEC 61850 server."""
         try:
             telemetry = SCADATelemetry(source="iec61850", timestamp=time.time())
@@ -289,7 +341,11 @@ class SCADAClient:
                             tag=f"BUS{i + 1}/Voltage",
                             value=float(val) if val else 0.0,
                             unit="p.u.",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
                 except Exception:
                     telemetry.voltages.append(
@@ -298,7 +354,11 @@ class SCADAClient:
                             value=0.0,
                             unit="p.u.",
                             quality="bad",
+<<<<<<< HEAD
                         ),
+=======
+                        )
+>>>>>>> origin/fix/scenario-tests-properly
                     )
 
             self._last_telemetry = telemetry
@@ -309,17 +369,28 @@ class SCADAClient:
             self._connected = False
             return self._read_from_simulation()
 
+<<<<<<< HEAD
     def _read_from_simulation(self) -> dict[str, Any]:
+=======
+    def _read_from_simulation(self) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Read data from the simulated SCADA source."""
         telemetry = self._simulated.generate_telemetry()
         self._last_telemetry = telemetry
         return self._telemetry_to_dict(telemetry)
 
     @staticmethod
+<<<<<<< HEAD
     def _telemetry_to_dict(telemetry: SCADATelemetry) -> dict[str, Any]:
         """Convert SCADATelemetry to a JSON-serializable dictionary."""
 
         def readings_to_list(readings: list[SCADAReading]) -> list[dict[str, Any]]:
+=======
+    def _telemetry_to_dict(telemetry: SCADATelemetry) -> Dict[str, Any]:
+        """Convert SCADATelemetry to a JSON-serializable dictionary."""
+
+        def readings_to_list(readings: List[SCADAReading]) -> List[Dict[str, Any]]:
+>>>>>>> origin/fix/scenario-tests-properly
             return [
                 {
                     "tag": r.tag,
@@ -355,7 +426,11 @@ class SCADAClient:
         return "simulation"
 
     @property
+<<<<<<< HEAD
     def last_telemetry(self) -> Optional[SCADATelemetry]:
+=======
+    def last_telemetry(self) -> SCADATelemetry | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """The most recent telemetry snapshot."""
         return self._last_telemetry
 
@@ -366,7 +441,11 @@ class SCADAClient:
 
 
 async def stream_scada_data(
+<<<<<<< HEAD
     client: Optional[SCADAClient] = None,
+=======
+    client: SCADAClient | None = None,
+>>>>>>> origin/fix/scenario-tests-properly
     interval_sec: int = 5,
 ):
     """Async generator that yields SCADA telemetry at the configured interval.

@@ -10,11 +10,17 @@ Adapted from: github.com/amElnagdy/guard-skills
 Integration point: agents/orchestrator.py → ChiefEngineeringOrchestrator
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
 import time
 from typing import Any
+=======
+import logging
+import time
+from typing import Any, Dict
+>>>>>>> origin/fix/scenario-tests-properly
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -58,8 +64,12 @@ class CodeGuardAgent(BaseAgent):
             self.logger.info("Guard skills initialized successfully")
         except ImportError as e:
             self.logger.warning(
+<<<<<<< HEAD
                 "Guards module not available: %s. Agent will operate in fallback mode.",
                 e,
+=======
+                "Guards module not available: %s. Agent will operate in fallback mode.", e
+>>>>>>> origin/fix/scenario-tests-properly
             )
 
     async def execute(self, task: EngineeringTask) -> AgentResult:
@@ -87,7 +97,11 @@ class CodeGuardAgent(BaseAgent):
                     execution_time=time.time() - start_time,
                 )
 
+<<<<<<< HEAD
             results: dict[str, Any] = {}
+=======
+            results: Dict[str, Any] = {}
+>>>>>>> origin/fix/scenario-tests-properly
 
             if guard_type in ("all", "code") and self._code_guard:
                 code_result = self._code_guard.scan(source, language)
@@ -135,7 +149,11 @@ class CodeGuardAgent(BaseAgent):
 
         except Exception as e:
             self.status = AgentStatus.FAILED
+<<<<<<< HEAD
             self.logger.exception("Code guard review failed: ")
+=======
+            self.logger.error("Code guard review failed: %s", e, exc_info=True)
+>>>>>>> origin/fix/scenario-tests-properly
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
@@ -144,9 +162,13 @@ class CodeGuardAgent(BaseAgent):
                 execution_time=time.time() - start_time,
             )
 
+<<<<<<< HEAD
     async def review_code(  # NOSONAR
         self, source: str, language: str = "python"
     ) -> dict[str, Any]:  # NOSONAR
+=======
+    async def review_code(self, source: str, language: str = "python") -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Convenience method for quick code reviews without a full EngineeringTask.
 
         Returns a dict with guard results suitable for API responses.
@@ -157,9 +179,13 @@ class CodeGuardAgent(BaseAgent):
         result = self._code_guard.scan(source, language)
         return result.to_dict()
 
+<<<<<<< HEAD
     async def detect_ai_failure_modes(  # NOSONAR
         self, source: str
     ) -> dict[str, Any]:  # NOSONAR
+=======
+    async def detect_ai_failure_modes(self, source: str) -> Dict[str, Any]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Run only the AI failure mode detector on the given source."""
         if not self._ai_detector:
             return {"error": "AI failure mode detector not initialized", "passed": False}

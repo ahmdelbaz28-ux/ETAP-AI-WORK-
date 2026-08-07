@@ -13,7 +13,11 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import Optional
+=======
+from typing import Dict, List, Set, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 # ============================================================
 # ADMS CONTROL TYPES
@@ -53,7 +57,11 @@ class SwitchingAction:
     timestamp: float = field(default_factory=time.time)
     status: ControlCommandStatus = ControlCommandStatus.PENDING
     reason: str = ""
+<<<<<<< HEAD
     rollback_action_id: Optional[str] = None
+=======
+    rollback_action_id: str | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
     def to_dict(self) -> dict:
         return {
@@ -73,7 +81,11 @@ class SwitchingSequence:
     """Ordered sequence of switching actions."""
 
     sequence_id: str
+<<<<<<< HEAD
     actions: list[SwitchingAction] = field(default_factory=list)
+=======
+    actions: List[SwitchingAction] = field(default_factory=list)
+>>>>>>> origin/fix/scenario-tests-properly
     description: str = ""
     estimated_duration_s: float = 0.0
     created_at: float = field(default_factory=time.time)
@@ -94,11 +106,19 @@ class SwitchingSequence:
 class FLISRResult:
     """Result of FLISR operation."""
 
+<<<<<<< HEAD
     fault_section: Optional[str] = None
     isolated_sections: list[str] = field(default_factory=list)
     restored_sections: list[str] = field(default_factory=list)
     unrestored_sections: list[str] = field(default_factory=list)
     switching_sequence: Optional[SwitchingSequence] = None
+=======
+    fault_section: str | None = None
+    isolated_sections: List[str] = field(default_factory=list)
+    restored_sections: List[str] = field(default_factory=list)
+    unrestored_sections: List[str] = field(default_factory=list)
+    switching_sequence: SwitchingSequence | None = None
+>>>>>>> origin/fix/scenario-tests-properly
     stage: FLISRStage = FLISRStage.FAULT_DETECTION
     customers_restored: int = 0
     customers_affected: int = 0
@@ -129,10 +149,17 @@ class TopologyProcessor:
     """
 
     def __init__(self):
+<<<<<<< HEAD
         self.bus_connections: dict[str, set[str]] = {}  # bus -> connected buses
         self.section_buses: dict[str, set[str]] = {}  # section -> bus IDs
         self.bus_section: dict[str, str] = {}  # bus -> section ID
         self.switches: dict[str, tuple[str, str]] = {}  # switch_id -> (bus1, bus2)
+=======
+        self.bus_connections: Dict[str, Set[str]] = {}  # bus -> connected buses
+        self.section_buses: Dict[str, Set[str]] = {}  # section -> bus IDs
+        self.bus_section: Dict[str, str] = {}  # bus -> section ID
+        self.switches: Dict[str, Tuple[str, str]] = {}  # switch_id -> (bus1, bus2)
+>>>>>>> origin/fix/scenario-tests-properly
 
     def add_connection(self, bus1: str, bus2: str, switch_id: str = None) -> None:
         """Add a connection between two buses."""
@@ -164,6 +191,7 @@ class TopologyProcessor:
             bus1, bus2 = self.switches[switch_id]
             self.add_connection(bus1, bus2, switch_id)
 
+<<<<<<< HEAD
     def _collect_component(self, start_bus: str, visited: set[str]) -> set[str]:
         """BFS from ``start_bus`` collecting one connected component."""
         component = set()
@@ -182,15 +210,36 @@ class TopologyProcessor:
     def find_connected_components(
         self,
     ) -> list[set[str]]:
+=======
+    def find_connected_components(self) -> List[Set[str]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Find all connected components using BFS with O(1) deque.popleft()."""
         visited = set()
         components = []
         for bus in self.bus_connections:
             if bus not in visited:
+<<<<<<< HEAD
                 components.append(self._collect_component(bus, visited))
         return components
 
     def find_path(self, start: str, end: str) -> list[str] | None:
+=======
+                component = set()
+                queue = deque([bus])
+                while queue:
+                    current = queue.popleft()
+                    if current in visited:
+                        continue
+                    visited.add(current)
+                    component.add(current)
+                    for neighbor in self.bus_connections.get(current, set()):
+                        if neighbor not in visited:
+                            queue.append(neighbor)
+                components.append(component)
+        return components
+
+    def find_path(self, start: str, end: str) -> List[str] | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Find shortest path between two buses using BFS with O(1) deque.popleft()."""
         if start not in self.bus_connections or end not in self.bus_connections:
             return None
@@ -206,7 +255,11 @@ class TopologyProcessor:
                     queue.append((neighbor, path + [neighbor]))
         return None
 
+<<<<<<< HEAD
     def get_switches_on_path(self, path: list[str]) -> list[str]:
+=======
+    def get_switches_on_path(self, path: List[str]) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get all switches along a path."""
         switches = []
         for i in range(len(path) - 1):
@@ -216,7 +269,11 @@ class TopologyProcessor:
                     switches.append(sid)
         return switches
 
+<<<<<<< HEAD
     def identify_sections(self) -> dict[str, set[str]]:
+=======
+    def identify_sections(self) -> Dict[str, Set[str]]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Identify network sections (connected components)."""
         components = self.find_connected_components()
         self.section_buses = {}
@@ -247,12 +304,21 @@ class ADMSControlEngine:
 
     def __init__(self, topology: TopologyProcessor = None):
         self.topology = topology or TopologyProcessor()
+<<<<<<< HEAD
         self.switching_history: list[SwitchingSequence] = []
         self.active_flisr: Optional[FLISRResult] = None
         self.source_buses: set[str] = set()  # Buses with generation/source
         self.feeder_roots: dict[str, str] = {}  # feeder_id -> root_bus
         self.section_loads: dict[str, float] = {}  # section_id -> load MW
         self.section_customers: dict[str, int] = {}  # section_id -> customer count
+=======
+        self.switching_history: List[SwitchingSequence] = []
+        self.active_flisr: FLISRResult | None = None
+        self.source_buses: Set[str] = set()  # Buses with generation/source
+        self.feeder_roots: Dict[str, str] = {}  # feeder_id -> root_bus
+        self.section_loads: Dict[str, float] = {}  # section_id -> load MW
+        self.section_customers: Dict[str, int] = {}  # section_id -> customer count
+>>>>>>> origin/fix/scenario-tests-properly
 
     def register_source_bus(self, bus_id: str) -> None:
         """Register a bus as a source (substation feed point)."""
@@ -271,9 +337,13 @@ class ADMSControlEngine:
     # --- Feeder Switching ---
 
     def create_switching_sequence(
+<<<<<<< HEAD
         self,
         actions: list[tuple[str, SwitchingActionType, str]],
         description: str = "",
+=======
+        self, actions: List[Tuple[str, SwitchingActionType, str]], description: str = ""
+>>>>>>> origin/fix/scenario-tests-properly
     ) -> SwitchingSequence:
         """
         Create a switching sequence from a list of actions.
@@ -286,8 +356,12 @@ class ADMSControlEngine:
         SwitchingSequence
         """
         seq = SwitchingSequence(
+<<<<<<< HEAD
             sequence_id=f"seq_{int(time.time() * 1000)}",
             description=description,
+=======
+            sequence_id=f"seq_{int(time.time() * 1000)}", description=description
+>>>>>>> origin/fix/scenario-tests-properly
         )
         for i, (device_id, action_type, reason) in enumerate(actions):
             action = SwitchingAction(
@@ -353,7 +427,11 @@ class ADMSControlEngine:
 
         return True
 
+<<<<<<< HEAD
     def _rollback_action(self, action: SwitchingAction, _scada_db=None) -> None:
+=======
+    def _rollback_action(self, action: SwitchingAction, scada_db=None) -> None:
+>>>>>>> origin/fix/scenario-tests-properly
         """Rollback a single switching action."""
         device_id = action.device_id
         if device_id not in self.topology.switches:
@@ -366,11 +444,16 @@ class ADMSControlEngine:
     # --- Load Transfer ---
 
     def plan_load_transfer(
+<<<<<<< HEAD
         self,
         from_feeder: str,
         to_feeder: str,
         section_id: str,
     ) -> Optional[SwitchingSequence]:
+=======
+        self, from_feeder: str, to_feeder: str, section_id: str
+    ) -> SwitchingSequence | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Plan a load transfer from one feeder to another.
 
@@ -390,7 +473,11 @@ class ADMSControlEngine:
         # Find path from target feeder to section
         path = self.topology.find_path(
             to_root,
+<<<<<<< HEAD
             next(iter(self.topology.section_buses.get(section_id, set())))  # NOSONAR
+=======
+            list(self.topology.section_buses.get(section_id, set()))[0]
+>>>>>>> origin/fix/scenario-tests-properly
             if section_id in self.topology.section_buses
             else to_root,
         )
@@ -409,7 +496,11 @@ class ADMSControlEngine:
 
     # --- FLISR ---
 
+<<<<<<< HEAD
     def detect_fault_section(self, tripped_switch_ids: list[str]) -> Optional[str]:
+=======
+    def detect_fault_section(self, tripped_switch_ids: List[str]) -> str | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Identify the faulted section based on tripped switches.
 
@@ -433,7 +524,11 @@ class ADMSControlEngine:
                 return section_id
         return None
 
+<<<<<<< HEAD
     def isolate_fault(self, fault_section: str) -> Optional[SwitchingSequence]:
+=======
+    def isolate_fault(self, fault_section: str) -> SwitchingSequence | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Create switching sequence to isolate the faulted section.
 
@@ -451,13 +546,18 @@ class ADMSControlEngine:
                         switch_id,
                         SwitchingActionType.OPEN,
                         f"Fault isolation: open boundary switch for section {fault_section}",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> origin/fix/scenario-tests-properly
                 )
 
         if not actions:
             return None
 
         return self.create_switching_sequence(
+<<<<<<< HEAD
             actions,
             description=f"Fault isolation for section {fault_section}",
         )
@@ -493,6 +593,14 @@ class ADMSControlEngine:
         fault_section: str,
         de_energized_sections: list[str] = None,
     ) -> Optional[SwitchingSequence]:
+=======
+            actions, description=f"Fault isolation for section {fault_section}"
+        )
+
+    def plan_restoration(
+        self, fault_section: str, de_energized_sections: List[str] = None
+    ) -> SwitchingSequence | None:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Plan service restoration for de-energized sections after fault isolation.
 
@@ -509,15 +617,44 @@ class ADMSControlEngine:
             if section_id == fault_section:
                 continue
 
+<<<<<<< HEAD
             action = self._find_restoration_action(section_id, fault_section)
             if action is not None:
                 actions.append(action)
                 restored.append(section_id)
+=======
+            section_buses = self.topology.section_buses.get(section_id, set())
+            if not section_buses:
+                continue
+
+            # Find tie switches connecting to energized sections
+            for switch_id, (bus1, bus2) in self.topology.switches.items():
+                if bus1 in section_buses and bus2 not in section_buses:
+                    # Check if bus2's section is energized (connected to source)
+                    bus2_section = self.topology.bus_section.get(bus2)
+                    if bus2_section and bus2_section != fault_section:
+                        bus2_buses = self.topology.section_buses.get(bus2_section, set())
+                        if bus2_buses & self.source_buses or any(
+                            self.topology.find_path(bus, src)
+                            for bus in bus2_buses
+                            for src in self.source_buses
+                        ):
+                            actions.append(
+                                (
+                                    switch_id,
+                                    SwitchingActionType.CLOSE,
+                                    f"Restoration: close tie switch for section {section_id}",
+                                )
+                            )
+                            restored.append(section_id)
+                            break
+>>>>>>> origin/fix/scenario-tests-properly
 
         if not actions:
             return None
 
         return self.create_switching_sequence(
+<<<<<<< HEAD
             actions,
             description=f"Service restoration for sections: {restored}",
         )
@@ -570,6 +707,12 @@ class ADMSControlEngine:
             result.unrestored_sections = de_energized
 
     def execute_flisr(self, tripped_switch_ids: list[str], scada_db=None) -> FLISRResult:
+=======
+            actions, description=f"Service restoration for sections: {restored}"
+        )
+
+    def execute_flisr(self, tripped_switch_ids: List[str], scada_db=None) -> FLISRResult:
+>>>>>>> origin/fix/scenario-tests-properly
         """
         Execute full FLISR sequence:
         1. Detect fault section
@@ -596,18 +739,55 @@ class ADMSControlEngine:
 
         # Stage 2: Fault Isolation
         result.stage = FLISRStage.FAULT_ISOLATION
+<<<<<<< HEAD
         if self._isolate_fault(fault_section, scada_db, result):
             return result
+=======
+        isolation_seq = self.isolate_fault(fault_section)
+        if isolation_seq:
+            success = self.execute_switching_sequence(isolation_seq, scada_db)
+            if not success:
+                result.stage = FLISRStage.FAILED
+                return result
+            result.isolated_sections.append(fault_section)
+>>>>>>> origin/fix/scenario-tests-properly
 
         # Update topology after isolation
         self.topology.identify_sections()
 
         # Find de-energized sections (not connected to any source)
+<<<<<<< HEAD
         de_energized = self._find_de_energized_sections(fault_section)
 
         # Stage 3: Service Restoration
         result.stage = FLISRStage.SERVICE_RESTORATION
         self._restore_service(fault_section, de_energized, scada_db, result)
+=======
+        de_energized = []
+        for section_id, buses in self.topology.section_buses.items():
+            if section_id == fault_section:
+                continue
+            is_energized = any(
+                self.topology.find_path(bus, src) for bus in buses for src in self.source_buses
+            )
+            if not is_energized:
+                de_energized.append(section_id)
+
+        # Stage 3: Service Restoration
+        result.stage = FLISRStage.SERVICE_RESTORATION
+        if de_energized:
+            restoration_seq = self.plan_restoration(fault_section, de_energized)
+            if restoration_seq:
+                success = self.execute_switching_sequence(restoration_seq, scada_db)
+                if success:
+                    result.restored_sections = de_energized
+                    for sec in de_energized:
+                        result.customers_restored += self.section_customers.get(sec, 0)
+                else:
+                    result.unrestored_sections = de_energized
+            else:
+                result.unrestored_sections = de_energized
+>>>>>>> origin/fix/scenario-tests-properly
 
         for sec in result.unrestored_sections:
             result.customers_affected += self.section_customers.get(sec, 0)
@@ -620,7 +800,11 @@ class ADMSControlEngine:
 
     # --- Topology Analysis ---
 
+<<<<<<< HEAD
     def get_energized_sections(self) -> list[str]:
+=======
+    def get_energized_sections(self) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get list of currently energized sections."""
         self.topology.identify_sections()
         energized = []
@@ -629,12 +813,20 @@ class ADMSControlEngine:
                 energized.append(section_id)
         return energized
 
+<<<<<<< HEAD
     def get_de_energized_sections(self) -> list[str]:
+=======
+    def get_de_energized_sections(self) -> List[str]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get list of currently de-energized sections."""
         all_sections = set(self.topology.section_buses.keys())
         return list(all_sections - set(self.get_energized_sections()))
 
+<<<<<<< HEAD
     def get_feeder_loading(self) -> dict[str, float]:
+=======
+    def get_feeder_loading(self) -> Dict[str, float]:
+>>>>>>> origin/fix/scenario-tests-properly
         """Get total loading per feeder in MW."""
         loading = {}
         for feeder_id, root_bus in self.feeder_roots.items():

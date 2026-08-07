@@ -14,16 +14,25 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+<<<<<<< HEAD
 import secrets
 from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request, status
+=======
+
+import jwt
+from fastapi import Depends, Header, HTTPException, Query, status
+>>>>>>> origin/fix/scenario-tests-properly
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+<<<<<<< HEAD
 from api._messages import MSG_USER_NOT_FOUND
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 from api.database import get_db
 
 logger = logging.getLogger(__name__)
@@ -38,6 +47,7 @@ if not _jwt_key:
     if _env in ("production", "prod", "staging"):
         raise RuntimeError(
             "JWT_SECRET_KEY must be set in production/staging. "
+<<<<<<< HEAD
             "Refusing to start with a default secret. "
             'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
         )
@@ -53,6 +63,17 @@ if not _jwt_key:
         "On HF Space with multiple replicas, each replica MUST have the "
         "same JWT_SECRET_KEY env var set — otherwise tokens are rejected "
         "with 'Invalid token' across replicas.",
+=======
+            "Refusing to start with a default secret."
+        )
+    import logging as _logging
+    import secrets as _secrets
+
+    _jwt_key = _secrets.token_hex(32)
+    _logging.getLogger(__name__).warning(
+        "JWT_SECRET_KEY not set; using random key. "
+        "Tokens will NOT survive restarts. Set JWT_SECRET_KEY in production."
+>>>>>>> origin/fix/scenario-tests-properly
     )
 JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"
@@ -67,7 +88,11 @@ if not API_KEY:
     if _env in ("production", "prod", "staging"):
         raise RuntimeError(
             "ENGINEERING_SERVICE_API_KEY must be set in production/staging. "
+<<<<<<< HEAD
             "Refusing to start with no API key.",
+=======
+            "Refusing to start with no API key."
+>>>>>>> origin/fix/scenario-tests-properly
         )
     logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 
@@ -113,11 +138,14 @@ class CurrentUser(BaseModel):
     """Representation of the authenticated user injected into route handlers.
 
     This is a lightweight DTO; it is **not** an ORM model.
+<<<<<<< HEAD
 
     V-07 (Phase 2): Added ``tenant_id`` to support multi-tenant isolation.
     The tenant_id is extracted from the JWT payload and propagated to
     all downstream handlers, ORM queries, and the PostgreSQL RLS
     session variable.
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     """
 
     model_config = ConfigDict(frozen=True)
@@ -127,12 +155,19 @@ class CurrentUser(BaseModel):
     email: str
     role: str
     is_active: bool = True
+<<<<<<< HEAD
     tenant_id: str = ""
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),  # noqa: B008
+<<<<<<< HEAD
     authorization: Optional[str] = None,  # injected by FastAPI header param
+=======
+    authorization: str | None = None,  # injected by FastAPI header param
+>>>>>>> origin/fix/scenario-tests-properly
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
 
@@ -173,6 +208,7 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
+<<<<<<< HEAD
     user_id: Optional[str] = payload.get("sub")
     token_type: Optional[str] = payload.get("type")
 
@@ -186,10 +222,17 @@ async def get_current_user(
     # JWT should never have been minted with an empty subject.
     # Fix: reject both None AND empty/whitespace-only strings.
     if not user_id or not user_id.strip() or token_type != "access":
+=======
+    user_id: str | None = payload.get("sub")
+    token_type: str | None = payload.get("type")
+
+    if user_id is None or token_type != "access":
+>>>>>>> origin/fix/scenario-tests-properly
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
+<<<<<<< HEAD
     user_id = user_id.strip()
 
     # SECURITY (S-09): Check token blacklist (revoked tokens).
@@ -216,6 +259,8 @@ async def get_current_user(
                 "Ensure api.auth module is importable.",
                 jti,
             )
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
     # Verify the user still exists and is active
     result = await db.execute(select(User).where(User.id == user_id))
@@ -224,7 +269,11 @@ async def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
+<<<<<<< HEAD
             detail=MSG_USER_NOT_FOUND,
+=======
+            detail="User not found",
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     if not user.is_active:
@@ -233,6 +282,7 @@ async def get_current_user(
             detail="User account is deactivated",
         )
 
+<<<<<<< HEAD
     # SECURITY (self-critique M-2): After the user is verified from the
     # database, we override the ContextVar tenant_id with the DB-verified
     # value. This prevents a scenario where the JWT contains a different
@@ -245,13 +295,18 @@ async def get_current_user(
     db_tenant_id = str(user.tenant_id) if user.tenant_id else ""
     _set_ctx_tenant_id(db_tenant_id)
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     return CurrentUser(
         user_id=str(user.id),
         username=user.username,
         email=user.email,
         role=user.role,
         is_active=user.is_active,
+<<<<<<< HEAD
         tenant_id=db_tenant_id,
+=======
+>>>>>>> origin/fix/scenario-tests-properly
     )
 
 
@@ -288,13 +343,21 @@ def require_role(*roles: str):
     Returns a dependency callable suitable for ``Depends()``.
     """
 
+<<<<<<< HEAD
     async def _check_role(  # NOSONAR async function uses sync I/O for compatibility reasons
+=======
+    async def _check_role(
+>>>>>>> origin/fix/scenario-tests-properly
         user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     ) -> CurrentUser:
         if user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
+<<<<<<< HEAD
                 detail="Insufficient permissions.",
+=======
+                detail=f"Role '{user.role}' not permitted. Required: {', '.join(roles)}",
+>>>>>>> origin/fix/scenario-tests-properly
             )
         return user
 
@@ -306,8 +369,12 @@ def require_role(*roles: str):
 # ---------------------------------------------------------------------------
 
 
+<<<<<<< HEAD
 async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility reasons
     request: Request,
+=======
+async def get_api_key(
+>>>>>>> origin/fix/scenario-tests-properly
     x_api_key: str = Header(default="", alias="X-API-Key"),
 ) -> str:
     """Validate the ``X-API-Key`` header against the configured API key.
@@ -315,6 +382,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     Raises 401 if the key is missing or does not match. If no
     ``ENGINEERING_SERVICE_API_KEY`` is configured, the check is skipped
     (useful for local development).
+<<<<<<< HEAD
 
     JWT bypass: if the request carries a VALID ``Authorization: Bearer``
     header (JWT), the X-API-Key check is skipped. This allows the React
@@ -386,6 +454,12 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         except jwt.InvalidTokenError:
             # Invalid JWT — fall through to API key validation
             pass
+=======
+    """
+    if not API_KEY:
+        # No API key configured — skip validation
+        return ""
+>>>>>>> origin/fix/scenario-tests-properly
 
     if not x_api_key:
         raise HTTPException(

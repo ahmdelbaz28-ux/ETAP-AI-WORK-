@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Dict, List, Set, Tuple
+>>>>>>> origin/fix/scenario-tests-properly
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -9,8 +13,13 @@ from gis_integration.models import ADMSAsset, ADMSAssetType
 @dataclass(frozen=True)
 class TopologyIssue:
     issue_type: str
+<<<<<<< HEAD
     affected_assets: list[str]
     details: dict[str, Any]
+=======
+    affected_assets: List[str]
+    details: Dict[str, Any]
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class ADMSGraphModel:
@@ -22,16 +31,28 @@ class ADMSGraphModel:
     - edges are inferred only from explicit geometry endpoints for determinism
     """
 
+<<<<<<< HEAD
     def __init__(self, assets: list[ADMSAsset]) -> None:
         self.assets = assets
         self.nodes: set[str] = {a.asset_id for a in assets}
         self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
+=======
+    def __init__(self, assets: List[ADMSAsset]) -> None:
+        self.assets = assets
+        self.nodes: Set[str] = {a.asset_id for a in assets}
+        self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
+>>>>>>> origin/fix/scenario-tests-properly
         self._build_deterministic_edges()
 
     @staticmethod
     def _extract_endpoints(
+<<<<<<< HEAD
         geometry: dict[str, Any],
     ) -> tuple[tuple[float, float], tuple[float, float]] | None:
+=======
+        geometry: Dict[str, Any],
+    ) -> Tuple[Tuple[float, float], Tuple[float, float]] | None:
+>>>>>>> origin/fix/scenario-tests-properly
         gtype = geometry.get("type")
         coords = geometry.get("coordinates")
         if gtype == "LineString" and isinstance(coords, list) and len(coords) >= 2:
@@ -50,7 +71,11 @@ class ADMSGraphModel:
             a for a in self.assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)
         ]
 
+<<<<<<< HEAD
         sub_endpoints: dict[tuple[float, float], list[str]] = {}
+=======
+        sub_endpoints: Dict[Tuple[float, float], List[str]] = {}
+>>>>>>> origin/fix/scenario-tests-properly
         for s in substations:
             geom = s.geometry
             if geom.get("type") == "Point":
@@ -70,14 +95,24 @@ class ADMSGraphModel:
                     self.edges[l.asset_id].add(sid)
                     self.edges[sid].add(l.asset_id)
 
+<<<<<<< HEAD
     def find_disconnected_components(self) -> list[set[str]]:
         visited: set[str] = set()
         comps: list[set[str]] = []
+=======
+    def find_disconnected_components(self) -> List[Set[str]]:
+        visited: Set[str] = set()
+        comps: List[Set[str]] = []
+>>>>>>> origin/fix/scenario-tests-properly
         for n in self.nodes:
             if n in visited:
                 continue
             stack = [n]
+<<<<<<< HEAD
             comp: set[str] = set()
+=======
+            comp: Set[str] = set()
+>>>>>>> origin/fix/scenario-tests-properly
             while stack:
                 cur = stack.pop()
                 if cur in visited:
@@ -91,7 +126,11 @@ class ADMSGraphModel:
         return comps
 
 
+<<<<<<< HEAD
 def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[TopologyIssue]]:
+=======
+def validate_adms_topology(assets: List[ADMSAsset]) -> Tuple[bool, List[TopologyIssue]]:
+>>>>>>> origin/fix/scenario-tests-properly
     """
     Validate basic electrical consistency derived from geometry.
 
@@ -101,7 +140,11 @@ def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[Topology
     - disconnected components
     - dangling lines (line assets with no edges)
     """
+<<<<<<< HEAD
     issues: list[TopologyIssue] = []
+=======
+    issues: List[TopologyIssue] = []
+>>>>>>> origin/fix/scenario-tests-properly
     if not assets:
         return False, [TopologyIssue("empty_graph", [], {"reason": "No assets provided"})]
 
@@ -115,7 +158,11 @@ def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[Topology
                 issue_type="disconnected_components",
                 affected_assets=sorted([a for comp in components for a in comp]),
                 details={"component_count": len(components)},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     substations = [a.asset_id for a in assets if a.asset_type == ADMSAssetType.SUBSTATION]
@@ -131,7 +178,11 @@ def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[Topology
                 issue_type="isolated_substations",
                 affected_assets=isolated_subs,
                 details={},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     # Dangling lines: line/feeder with degree 0
@@ -142,7 +193,11 @@ def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[Topology
                 issue_type="dangling_lines",
                 affected_assets=dangling,
                 details={},
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     ok = len(issues) == 0

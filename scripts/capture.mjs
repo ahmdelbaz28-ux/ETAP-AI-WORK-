@@ -1,6 +1,11 @@
 import { chromium } from 'playwright';
+<<<<<<< HEAD
 import { mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+=======
+import { mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
+>>>>>>> origin/fix/scenario-tests-properly
 
 const BASE_URL = 'http://localhost:5173';
 const OUTPUT_DIR = join(process.cwd(), 'docs', 'screenshots', 'ui');
@@ -34,8 +39,13 @@ for (const p of pages) {
     await page.waitForTimeout(3000);
     const filePath = join(OUTPUT_DIR, `${p.name}.png`);
     await page.screenshot({ path: filePath, fullPage: false });
+<<<<<<< HEAD
     const size = (await import('node:fs')).statSync(filePath).size;
     console.log(`${p.name}.png — ${Math.round(size / 1024)}KB`);
+=======
+    const size = (await import('fs')).statSync(filePath).size;
+    console.log(`${p.name}.png — ${Math.round(size/1024)}KB`);
+>>>>>>> origin/fix/scenario-tests-properly
   } catch (err) {
     console.log(`Failed: ${p.name} — ${err.message?.slice(0, 60)}`);
   }

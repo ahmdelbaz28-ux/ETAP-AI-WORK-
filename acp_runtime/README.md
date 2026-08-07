@@ -43,19 +43,28 @@ pytest -v
 import anyio
 from acp.runtime import AcpRuntime, capability
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class MathHandler:
     @capability("math.sum", scopes=("math.read",))
     async def sum(self, a: int, b: int) -> int:
         await anyio.sleep(0.001)
         return a + b
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 async def main():
     runtime = AcpRuntime([MathHandler()])
     result = await runtime.execute("math.sum", {"a": 1, "b": 2}, deadline_ms=1000)
     assert result == 3
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 anyio.run(main)
 ```

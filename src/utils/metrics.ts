@@ -11,7 +11,10 @@ import type { Env } from '../core/types.js';
 import { CONFIG } from '../core/config.js';
 import { getProviderLatency } from '../core/providers.js';
 import { getAllCircuitHealth } from '../core/circuitBreaker.js';
+<<<<<<< HEAD
 import { getTokenStats } from '../core/tokenStats.js';
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 
 interface ApiMetrics {
   totalRequests: number;
@@ -95,9 +98,13 @@ export async function saveMetrics(env: Env): Promise<void> {
   if (now - _lastMetricsSave < CONFIG.METRICS_SAVE_INTERVAL_MS) return;
   _lastMetricsSave = now;
   try {
+<<<<<<< HEAD
     await env.METRICS_KV.put('metrics:api', JSON.stringify(_apiMetrics), {
       expirationTtl: 7 * 24 * 60 * 60,
     });
+=======
+    await env.METRICS_KV.put('metrics:api', JSON.stringify(_apiMetrics), { expirationTtl: 7 * 24 * 60 * 60 });
+>>>>>>> origin/fix/scenario-tests-properly
   } catch {
     // silent
   }
@@ -122,8 +129,11 @@ export async function composeMetrics(env: Env) {
     perKey: getPerKeyMetrics(),
     perRoute: getPerRouteMetrics(),
     tasks: { total: await getTaskCount(env) },
+<<<<<<< HEAD
     // LLM token economy — the new field. This is what makes the
     // production prompt-cache hit ratio observable from /metrics.
     tokenStats: getTokenStats(),
+=======
+>>>>>>> origin/fix/scenario-tests-properly
   };
 }

@@ -9,7 +9,11 @@ from __future__ import annotations
 
 import os
 import sys
+<<<<<<< HEAD
 from typing import Annotated, Any, Optional
+=======
+from typing import Any, Dict, List
+>>>>>>> origin/fix/scenario-tests-properly
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -35,6 +39,7 @@ API_KEY_NAME = "X-ETAP-Worker-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
+<<<<<<< HEAD
 def _reject_legacy_api_key(api_key: Optional[str]) -> None:
     if api_key:
         raise HTTPException(  # NOSONAR
@@ -45,6 +50,17 @@ def _reject_legacy_api_key(api_key: Optional[str]) -> None:
 
 async def _require_auth(  # NOSONAR async function uses sync I/O for compatibility reasons
     legacy_api_key: Optional[str] = Security(api_key_header),
+=======
+def _reject_legacy_api_key(api_key: str | None) -> None:
+    if api_key:
+        raise HTTPException(
+            status_code=401, detail="Legacy API key auth is not supported. Use JWT Bearer token."
+        )
+
+
+async def _require_auth(
+    legacy_api_key: str | None = Security(api_key_header),
+>>>>>>> origin/fix/scenario-tests-properly
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """
@@ -58,7 +74,11 @@ async def _require_auth(  # NOSONAR async function uses sync I/O for compatibili
 
 
 # Map ETAP study types to RBAC permissions.
+<<<<<<< HEAD
 STUDY_TYPE_TO_PERMISSION: dict[ETAPStudyType, Permission] = {
+=======
+STUDY_TYPE_TO_PERMISSION: Dict[ETAPStudyType, Permission] = {
+>>>>>>> origin/fix/scenario-tests-properly
     ETAPStudyType.LOAD_FLOW: Permission.CALC_LOAD_FLOW,
     ETAPStudyType.SHORT_CIRCUIT: Permission.CALC_SHORT_CIRCUIT,
     ETAPStudyType.ARC_FLASH: Permission.CALC_ARC_FLASH,
@@ -78,19 +98,30 @@ class StudyRequest(BaseModel):
     project_path: str
     study_type: str
     visible: bool = False
+<<<<<<< HEAD
     parameters: dict[str, Any] | None = None
+=======
+    parameters: Dict[str, Any] | None = None
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 class StudyResponse(BaseModel):
     success: bool
+<<<<<<< HEAD
     data: dict[str, Any]
     warnings: list[str]
     errors: list[str]
+=======
+    data: Dict[str, Any]
+    warnings: List[str]
+    errors: List[str]
+>>>>>>> origin/fix/scenario-tests-properly
     execution_time: float
 
 
 @app.get("/health")
 async def health_check():
+<<<<<<< HEAD
     """Check if the worker and ETAP COM are reachable.
 
     P0-8: Previously returned hardcoded {'status': 'healthy'} — a stub
@@ -125,13 +156,25 @@ async def health_check():
         "etap_com_available": etap_available,
         "issues": issues if issues else None,
         "timestamp": _time.time(),
+=======
+    """Check if the worker and ETAP COM are reachable."""
+    is_windows = sys.platform == "win32"
+    return {
+        "status": "healthy",
+        "platform": sys.platform,
+        "etap_compatible": is_windows,
+>>>>>>> origin/fix/scenario-tests-properly
     }
 
 
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
+<<<<<<< HEAD
     token: Annotated[str, Depends(_require_auth)],  # NOSONAR
+=======
+    token: str = Depends(_require_auth),
+>>>>>>> origin/fix/scenario-tests-properly
 ):
     """
     Execute an ETAP study via COM automation.
@@ -140,32 +183,50 @@ async def execute_study(
     Authorization: RBAC permission checked based on study type.
     """
     if sys.platform != "win32":
+<<<<<<< HEAD
         raise HTTPException(  # NOSONAR
             status_code=400, detail="ETAP automation only supported on Windows"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+        raise HTTPException(status_code=400, detail="ETAP automation only supported on Windows")
+>>>>>>> origin/fix/scenario-tests-properly
 
     # Map string to ETAPStudyType
     try:
         study_type = ETAPStudyType[request.study_type.upper()]
     except KeyError as err:
+<<<<<<< HEAD
         raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"Invalid study type: {request.study_type}",
+=======
+        raise HTTPException(
+            status_code=400, detail=f"Invalid study type: {request.study_type}"
+>>>>>>> origin/fix/scenario-tests-properly
         ) from err
 
     # RBAC: check that the authenticated user has permission for this study type
     required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
     if required_perm is None:
+<<<<<<< HEAD
         raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
             status_code=400,
             detail=f"No RBAC mapping for study type: {study_type.value}",
+=======
+        raise HTTPException(
+            status_code=400, detail=f"No RBAC mapping for study type: {study_type.value}"
+>>>>>>> origin/fix/scenario-tests-properly
         )
 
     authz = get_authz_manager()
     if not authz.check_permission(token, required_perm):
+<<<<<<< HEAD
         raise HTTPException(  # NOSONAR
             status_code=403, detail="Forbidden: insufficient permissions"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+=======
+        raise HTTPException(status_code=403, detail="Forbidden: insufficient permissions")
+>>>>>>> origin/fix/scenario-tests-properly
 
     # Validate parameters against the study type schema
     if request.parameters:
@@ -213,6 +274,7 @@ async def execute_study(
 if __name__ == "__main__":
     # Load configuration
     port = int(os.environ.get("ETAP_WORKER_PORT", 8080))
+<<<<<<< HEAD
     # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
     # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
     # SonarCloud S8392: 0.0.0.0 is NOT the default — it's only used when
@@ -220,3 +282,7 @@ if __name__ == "__main__":
     host = os.environ.get("ETAP_WORKER_HOST", "127.0.0.1")
     print(f"Starting ETAP Worker on {host}:{port}...")
     uvicorn.run(app, host=host, port=port)
+=======
+    print(f"Starting ETAP Worker on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+>>>>>>> origin/fix/scenario-tests-properly

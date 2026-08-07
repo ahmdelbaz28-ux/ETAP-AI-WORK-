@@ -1,7 +1,10 @@
 """
 Tests for relays module — OvercurrentRelay, DistanceRelay, DifferentialRelay, DirectionalRelay.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 import math
 
 import numpy as np
@@ -19,7 +22,10 @@ from relays.relay import (
 # Base Relay
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestRelay:
     def test_default_pickup_is_false(self):
         r = Relay(relay_id=1)
@@ -45,7 +51,10 @@ class TestRelay:
 # OvercurrentRelay
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestOvercurrentRelay:
     def test_pickup_below_threshold(self):
         r = OvercurrentRelay(relay_id=1, Ip=1.0)
@@ -103,9 +112,15 @@ class TestOvercurrentRelay:
         assert r2.trip_time(5.0) > r1.trip_time(5.0)
 
     def test_unknown_curve_raises(self):
+<<<<<<< HEAD
         # V-TCC-01: Validation now happens in __init__ (earlier detection)
         with pytest.raises(ValueError, match="Unknown curve type"):
             OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
+=======
+        r = OvercurrentRelay(relay_id=1, curve_type="invalid_curve", TMS=1.0, Ip=1.0)
+        with pytest.raises(ValueError, match="Unknown curve type"):
+            r.trip_time(5.0)
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_operate_doesnt_trip_without_enough_time(self):
         r = OvercurrentRelay(relay_id=1, curve_type="standard_inverse", TMS=1.0, Ip=1.0)
@@ -142,6 +157,7 @@ class TestOvercurrentRelay:
 
     def test_tms_property(self):
         r = OvercurrentRelay(relay_id=1, TMS=0.75)
+<<<<<<< HEAD
         assert (
             pytest.approx(0.75) == r.TMS
         )  # NOSONAR S3415: intentional; see prior batch commits for context
@@ -149,13 +165,23 @@ class TestOvercurrentRelay:
     def test_ip_property(self):
         r = OvercurrentRelay(relay_id=1, Ip=0.8)
         assert r.Ip == pytest.approx(0.8)
+=======
+        assert r.TMS == 0.75
+
+    def test_ip_property(self):
+        r = OvercurrentRelay(relay_id=1, Ip=0.8)
+        assert r.Ip == 0.8
+>>>>>>> origin/fix/scenario-tests-properly
 
 
 # ===========================================================================
 # DistanceRelay
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestDistanceRelay:
     def test_pickup_within_zone(self):
         r = DistanceRelay(relay_id=1, impedance_setting=0.5)
@@ -210,7 +236,10 @@ class TestDistanceRelay:
 # DifferentialRelay
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestDifferentialRelay:
     def test_no_pickup_balanced(self):
         r = DifferentialRelay(relay_id=1, Ip=0.1, slope1=0.2, slope2=0.5)
@@ -244,9 +273,15 @@ class TestDifferentialRelay:
 
     def test_custom_slopes(self):
         r = DifferentialRelay(relay_id=1, Ip=0.2, slope1=0.3, slope2=0.6)
+<<<<<<< HEAD
         assert r.slope1 == pytest.approx(0.3)
         assert r.slope2 == pytest.approx(0.6)
         assert r.Ip == pytest.approx(0.2)
+=======
+        assert r.slope1 == 0.3
+        assert r.slope2 == 0.6
+        assert r.Ip == 0.2
+>>>>>>> origin/fix/scenario-tests-properly
 
     def test_default_name(self):
         r = DifferentialRelay(relay_id=1)
@@ -257,7 +292,10 @@ class TestDifferentialRelay:
 # DirectionalRelay (uses numpy, use == not is for assertions)
 # ===========================================================================
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/fix/scenario-tests-properly
 class TestDirectionalRelay:
     def test_pickup_forward_power(self):
         r = DirectionalRelay(relay_id=1, voltage_threshold=0.1, angle_offset=0)
