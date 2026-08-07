@@ -3,7 +3,7 @@
 	"version": "1.55.0",
 	"type": "module",
 	"private": true,
-	"description": "BAZSpark — Safety-Critical Fire Alarm Engineering Platform",
+	"description": "BAZSpark \u2014 Safety-Critical Fire Alarm Engineering Platform",
 	"author": {
 		"name": "Eng. Ahmed Elbaz",
 		"email": "engineering@bazspark.com"
@@ -83,7 +83,7 @@
 		"react-hook-form": "^7.75.0",
 		"react-i18next": "^17.0.8",
 		"react-resizable-panels": "^2.1.9",
-		"react-router-dom": "7.15.1",
+		"react-router-dom": "^7.18.2",
 		"recharts": "^2.15.4",
 		"sonner": "^2.0.7",
 		"tailwind-merge": "^2.2.0",
@@ -107,7 +107,7 @@
 		"@vitejs/plugin-react": "^6.0.3",
 		"@vitest/coverage-v8": "^4.1.8",
 		"chokidar": "^4.0.3",
-		"electron": "^42.4.0",
+		"electron": "^42.8.1",
 		"electron-builder": "^26.15.3",
 		"eslint": "^9.0.0",
 		"eslint-plugin-react-hooks": "^5.0.0",
@@ -215,5 +215,13 @@
 		"extraMetadata": {
 			"main": "electron/compiled/main.js"
 		}
+	},
+	"overrides": {
+		"undici": "^7.29.0",
+		"js-yaml": "^4.3.1",
+		"postcss": "^8.5.23",
+		"brace-expansion": "^5.0.7",
+		"fast-uri": "^3.1.5",
+		"tar": "^7.5.18"
 	}
 }

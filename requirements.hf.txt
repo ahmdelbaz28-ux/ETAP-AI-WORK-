@@ -48,7 +48,7 @@ email-validator>=2.0.0
 
 # Document processing
 # SECURITY: pypdf replaces deprecated PyPDF2
-pypdf>=6.13.0
+pypdf>=6.15.0
 pdfplumber>=0.7.0
 python-docx>=0.8.11
 openpyxl>=3.0.0
