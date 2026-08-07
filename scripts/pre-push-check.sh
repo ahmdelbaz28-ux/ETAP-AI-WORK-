@@ -114,17 +114,14 @@ for f in $PY_FILES; do
   if [[ -f "$f" ]]; then
     # Check syntax
     if ! python3 -c "import ast; ast.parse(open('$f').read())" 2>/dev/null; then
-      echo "  ✗ SYNTAX ERROR in $f"
+      echo "  ✗ SYNTAX ERROR in $f" >&2  # noqa: S7677
       IMPORT_ERRORS=$((IMPORT_ERRORS + 1))
     fi
     # Check for common missing imports: Depends, get_api_key, Request, etc.
     # used in decorators but not imported
-    if grep -q "Depends(" "$f" && ! grep -q "from fastapi import.*Depends\|from fastapi import Depends" "$f" && ! grep -q "import Depends" "$f"; then
-      # Check if Depends is imported via wildcard or star import
-      if ! grep -q "from fastapi import \*" "$f"; then
-        echo "  ⚠ POSSIBLE MISSING IMPORT: Depends used in $f but not imported"
-        IMPORT_ERRORS=$((IMPORT_ERRORS + 1))
-      fi
+    if grep -q "Depends(" "$f" && ! grep -q "from fastapi import.*Depends\|from fastapi import Depends" "$f" && ! grep -q "import Depends" "$f" && ! grep -q "from fastapi import \*" "$f"; then  # noqa: S1066 — merged nested if
+      echo "  ⚠ POSSIBLE MISSING IMPORT: Depends used in $f but not imported"
+      IMPORT_ERRORS=$((IMPORT_ERRORS + 1))
     fi
     if grep -q "get_api_key(" "$f" && ! grep -qE "from api\.dependencies import.*get_api_key|import get_api_key" "$f"; then
       echo "  ⚠ POSSIBLE MISSING IMPORT: get_api_key used in $f but not imported"

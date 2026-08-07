@@ -38,8 +38,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: Lint
         run: npm run lint
 
@@ -60,8 +59,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: Type check
         run: npm run typecheck
 
@@ -79,8 +77,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: Run all tests with coverage
         run: npm run test:ci
         env:
@@ -109,8 +106,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: Build
         run: npm run build
 
@@ -134,7 +130,7 @@ jobs:
   #         node-version: '22'
   #         cache: 'npm'
   #         cache-dependency-path: ts-service/package-lock.json
-  #     - run: npm ci
+  #     - run: npm ci --ignore-scripts  # noqa: S6505
   #     - name: Install Playwright
   #       run: npx playwright install --with-deps chromium
   #     - name: Build
@@ -161,8 +157,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: npm audit
         run: npm audit --audit-level=high
         continue-on-error: false
@@ -236,8 +231,7 @@ jobs:
           cache-dependency-path: ts-service/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
+        run: npm ci --ignore-scripts  # noqa: S6505
       - name: Build
         run: npm run build
 

@@ -55,13 +55,12 @@ env:
 
 # =============================================================================
 
-permissions:
-  contents: read  # Least privilege — only read repo contents
-
 jobs:
 
   # ── 1. K6 LOAD TEST ─────────────────────────────────────────────────────────
   k6-load-test:
+    permissions:
+      contents: read
     name: "📊 k6 Load Test"
     runs-on: ubuntu-latest
     if: >
@@ -235,6 +234,8 @@ jobs:
 
   # ── 2. LOCUST STRESS TEST ──────────────────────────────────────────────────
   locust-stress-test:
+    permissions:
+      contents: read
     name: "🦗 Locust Stress Test"
     runs-on: ubuntu-latest
     if: >
@@ -420,6 +421,8 @@ jobs:
 
   # ── 3. COMMENT ON PR ───────────────────────────────────────────────────────
   comment-on-pr:
+    permissions:
+      contents: read
     name: "💬 Post Load Test Results"
     runs-on: ubuntu-latest
     needs: [k6-load-test, locust-stress-test]
@@ -533,6 +536,8 @@ jobs:
   # To make this blocking again, remove continue-on-error and ensure the CI
   # test backend has all required dependencies configured.
   load-test-gate:
+    permissions:
+      contents: read
     name: "🚦 Load Test Gate"
     runs-on: ubuntu-latest
     needs: [k6-load-test, locust-stress-test]

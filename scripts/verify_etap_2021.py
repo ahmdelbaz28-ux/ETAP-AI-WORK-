@@ -43,6 +43,22 @@ def _validate_cmd_args(args):
             raise ValueError(f"Disallowed character in command arg: {s!r}")
         safe_args.append(s)
     return safe_args
+
+
+def _validate_path(path_str: str, base_dir: str | None = None) -> str:
+    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
+
+    If base_dir is given, ensures the resolved path stays within base_dir.
+    """
+    if not path_str:
+        raise ValueError("Empty path")
+    resolved = os.path.realpath(path_str)
+    if base_dir:
+        base_resolved = os.path.realpath(base_dir)
+        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
+            raise ValueError(f"Path escapes allowed base: {path_str!r}")
+    return resolved
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",

@@ -14,16 +14,16 @@ echo "════════════════════════�
 # ─── 1. Python environment ────────────────────────────────────────────────────
 echo "▶ [1/6] Python: upgrading pip, installing ruff/uv"
 python -m pip install --upgrade pip --quiet
-pip install --quiet ruff uv 2>/dev/null || echo "  ⚠ ruff/uv install skipped (offline?)"
+pip install --quiet --only-binary :all: ruff uv 2>/dev/null  # noqa: S8541 || echo "  ⚠ ruff/uv install skipped (offline?)"
 
 # Install core Python deps (use requirements-minimal to keep memory low on free tiers)
 if [[ -f requirements.txt ]]; then
   echo "▶ [2/6] Python: installing requirements.txt"
-  if pip install --quiet -r requirements.txt 2>/dev/null; then
+  if pip install --quiet --only-binary :all: -r requirements.txt 2>/dev/null; then  # noqa: S8541
     echo "  ✓ Full requirements installed"
   else
     echo "  ⚠ Full requirements failed, falling back to requirements-minimal.txt"
-    [[ -f requirements-minimal.txt ]] && pip install --quiet -r requirements-minimal.txt || true
+    [[ -f requirements-minimal.txt ]] && pip install --quiet --only-binary :all: -r requirements-minimal.txt  # noqa: S8541 || true
   fi
 else
   echo "▶ [2/6] No requirements.txt found — skipping"

@@ -168,12 +168,10 @@ fi
 for env_file in .env .env.local .env.production .env.staging; do
   if [[ -f "$env_file" ]]; then
     log_warn "Found $env_file — ensure it is in .gitignore"
-    if [[ -f ".gitignore" ]]; then
-      if ! grep -q "^${env_file}$" .gitignore 2>/dev/null; then
+    if [[ -f ".gitignore" ]] && ! grep -q "^${env_file}$" .gitignore 2>/dev/null; then  # noqa: S1066 — merged nested if
         FINDINGS+=("[CRITICAL] $env_file not in .gitignore")
         critical_findings=$((critical_findings + 1))
         total_findings=$((total_findings + 1))
-      fi
     fi
   fi
 done

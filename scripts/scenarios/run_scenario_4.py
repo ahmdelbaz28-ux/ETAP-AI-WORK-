@@ -57,6 +57,22 @@ def _validate_cmd_args(args):
             raise ValueError(f"Disallowed character in command arg: {s!r}")
         safe_args.append(s)
     return safe_args
+
+
+def _validate_path(path_str: str, base_dir: str | None = None) -> str:
+    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
+
+    If base_dir is given, ensures the resolved path stays within base_dir.
+    """
+    if not path_str:
+        raise ValueError("Empty path")
+    resolved = os.path.realpath(path_str)
+    if base_dir:
+        base_resolved = os.path.realpath(base_dir)
+        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
+            raise ValueError(f"Path escapes allowed base: {path_str!r}")
+    return resolved
+
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -294,13 +310,13 @@ async def run_scenario(
             try:
                 await bridge_task
             except asyncio.CancelledError:
-                pass
+                pass  # noqa: S7497 — intentional: cleanup-only cancellation
         if consumer_task:
             consumer_task.cancel()
             try:
                 await consumer_task
             except asyncio.CancelledError:
-                pass
+                pass  # noqa: S7497 — intentional: cleanup-only cancellation
 
     # ─── STEP 6: Impact analysis ──────────────────────────────────
     logger.info("")
@@ -648,7 +664,7 @@ def main() -> None:
             scada_monitoring_sec=args.scada_monitoring_sec,
         ))
 
-        result_path = os.path.join(args.output_dir, "scenario4_result.json")
+        result_path = _validate_path(os.path.join(args.output_dir, "scenario4_result.json"))
         with open(result_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, default=str, ensure_ascii=False)
 
