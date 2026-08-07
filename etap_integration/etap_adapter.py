@@ -7,40 +7,15 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import Any
 
 from core.bootstrap import logger
 
-
-class ETAPStudyType(Enum):
-    """Enumeration of supported ETAP study types."""
-
-    LOAD_FLOW = "load_flow"
-    SHORT_CIRCUIT = "short_circuit"
-    ARC_FLASH = "arc_flash"
-    HARMONIC_ANALYSIS = "harmonic_analysis"
-    OPTIMAL_POWER_FLOW = "optimal_power_flow"
-    MOTOR_STARTING = "motor_starting"
-    PROTECTION_COORDINATION = "protection_coordination"
-
-
-class ETAPResult:
-    """Result wrapper for ETAP operations."""
-
-    def __init__(
-        self,
-        success: bool,
-        data: dict[str, Any],
-        warnings: list = None,
-        errors: list = None,
-        execution_time: float = 0.0,
-    ):
-        self.success = success
-        self.data = data
-        self.warnings = warnings or []
-        self.errors = errors or []
-        self.execution_time = execution_time
+# ─── Unified types (single source of truth) ─────────────────────────────
+# ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
+# to eliminate the 3-way duplication.
+# See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
+from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
 
 
 class ETAPAdapter(ABC):
