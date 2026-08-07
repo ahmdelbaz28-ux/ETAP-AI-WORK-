@@ -397,7 +397,7 @@ def _notify_clients(request_id: str, request: dict) -> None:
         dead = []
         for session_id, sockets in list(
             _websocket_clients.items()
-        ):  # NOSONAR
+        ):  # noqa: S7504 — list() needed: dict mutated during iteration
             for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)

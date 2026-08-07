@@ -267,7 +267,7 @@ class SCADALiveFeed:
         while self.active_connections:
             zombie_connections: List[WebSocket] = []
 
-            for ws in list(self.active_connections):
+            for ws in list(self.active_connections):  # noqa: S7504 — list() needed: list mutated during iteration
                 ws_id = id(ws)
                 meta = self._connection_meta.get(ws_id)
                 if not meta:
