@@ -8,13 +8,16 @@ Separated from main engineering service for better modularity.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import time
 import uuid
-from typing import Any, Dict, Mapping, Optional
+from typing import Annotated, Any, Dict, Mapping
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+
+logger = logging.getLogger(__name__)
 
 from api.dependencies import get_api_key
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
@@ -205,7 +208,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 
 def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
-    system: Optional[Any],
+    system: Any | None,
     parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""
@@ -402,7 +405,7 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
         )
 
 
-def _pre_flight_basic(system: dict) -> Optional[dict]:
+def _pre_flight_basic(system: dict) -> dict | None:
     """Check basic structural requirements. Returns error dict or None."""
     if not system:
         return {"error": "System configuration is required"}
@@ -418,7 +421,7 @@ def _pre_flight_basic(system: dict) -> Optional[dict]:
     return None
 
 
-def _pre_flight_lines(lines: list, bus_ids: set) -> Optional[dict]:
+def _pre_flight_lines(lines: list, bus_ids: set) -> dict | None:
     """Check line impedance and bus references. Returns error dict or None."""
     for line in lines:
         if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
@@ -434,7 +437,7 @@ def _pre_flight_lines(lines: list, bus_ids: set) -> Optional[dict]:
     return None
 
 
-def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> Optional[dict]:
+def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> dict | None:
     """Check for isolated buses (no line connections). Returns error dict or None."""
     connected_buses = set()
     for line in lines:
@@ -446,7 +449,7 @@ def _pre_flight_isolated_buses(bus_ids: set, lines: list) -> Optional[dict]:
     return None
 
 
-def _pre_flight_voltage_bounds(buses: list) -> Optional[dict]:
+def _pre_flight_voltage_bounds(buses: list) -> dict | None:
     """Check bus voltage magnitudes are in a realistic range. Returns error dict or None."""
     for bus in buses:
         v = bus.get("voltage_magnitude")
@@ -457,7 +460,7 @@ def _pre_flight_voltage_bounds(buses: list) -> Optional[dict]:
     return None
 
 
-def pre_flight_check(system: dict) -> Optional[dict]:
+def pre_flight_check(system: dict) -> dict | None:
     """Validate system configuration before running a study.
     Returns None if OK, or an error dict if validation fails."""
     err = _pre_flight_basic(system)
@@ -514,9 +517,7 @@ def _validate_study_request(payload: StudyRequest) -> None:
     if payload.system is not None:
         pf_result = pre_flight_check(payload.system.model_dump())
         if pf_result is not None:
-            raise HTTPException(
-                status_code=400, detail=pf_result["error"]
-            )  # NOSONAR
+            raise HTTPException(status_code=400, detail=pf_result["error"])  # NOSONAR
 
 
 def _build_cache_params(payload: StudyRequest) -> dict:
@@ -543,6 +544,7 @@ async def _lookup_cache(study_cache, payload: StudyRequest, trace_id: str) -> tu
         cached_result = await study_cache.get(payload.study_type, cache_params)
         if cached_result:
             from logging import getLogger
+
             logger = getLogger("engineering_service")
             logger.info(  # NOSONAR
                 "study_cache_hit study_type=%s task_id=%s",
@@ -561,7 +563,7 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     if not payload.etap_project_path:
         raise ValueError("etap_project_path is required when use_etap=True")
 
-    from etap_integration.etap_provider import get_etap_provider, ETAPStudyType
+    from etap_integration.etap_provider import ETAPStudyType, get_etap_provider
 
     provider = get_etap_provider()
 
@@ -592,7 +594,9 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     return data, warnings, errors
 
 
-async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, trace_id: str) -> None:
+async def _store_cache_result(
+    study_cache, payload: StudyRequest, data: dict, trace_id: str
+) -> None:
     """Store study result in cache (non-fatal on failure)."""
     if not study_cache:
         return
@@ -601,12 +605,128 @@ async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, tr
         await study_cache.set(payload.study_type, cache_params, data)
     except Exception as cache_err:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.debug(
             "Cache store failed (non-fatal): %s",
             cache_err,
             extra={"trace_id": trace_id},
         )
+
+
+def _pe_stamp_warnings(payload: StudyRequest) -> list[str]:
+    """Collect PE-stamp advisory warnings (Item 5)."""
+    if requires_stamp(payload.study_type) and not payload.pe_stamp:
+        return [
+            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
+            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
+        ]
+    return []
+
+
+def _init_study_cache() -> StudyCache | None:
+    """Create the study cache instance (non-fatal on failure)."""
+    try:
+        return StudyCache(
+            redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
+            ttl=3600,
+        )
+    except Exception:
+        from logging import getLogger
+
+        getLogger("engineering_service").debug("StudyCache init failed (non-fatal)")
+        return None
+
+
+async def _execute_study(
+    payload: StudyRequest,
+    study_cache: StudyCache | None,
+    trace_id: str,
+    warnings: list[str],
+    errors: list[str],
+) -> tuple[dict[str, Any], list[str], list[str], str]:
+    """Execute a study via cache lookup, ETAP, or the native engine.
+
+    Returns (data, warnings, errors, provider_name). Raises HTTPException
+    for system spec errors; other validation errors propagate as ValueError.
+    """
+    data: dict[str, Any] = {}
+    provider_name = "native"
+    cache_hit = False
+
+    # --- Cache lookup for native studies (non-ETAP) ---
+    if not payload.use_etap:
+        try:
+            data, cache_hit = await _lookup_cache(study_cache, payload, trace_id)
+        except Exception as cache_err:
+            from logging import getLogger
+
+            getLogger("engineering_service").debug(
+                "Cache lookup failed (non-fatal): %s",
+                cache_err,
+                extra={"trace_id": trace_id},
+            )
+
+    if cache_hit:
+        return data, warnings, errors, provider_name
+    if payload.use_etap:
+        provider_name = "etap"
+        data, warnings, errors = await _run_etap_study(payload)
+        return data, warnings, errors, provider_name
+
+    system = None
+    if payload.system:
+        try:
+            system = _build_system_from_spec(payload.system)
+        except ValueError as ve:
+            raise HTTPException(  # NOSONAR
+                status_code=400, detail=f"System spec error: {ve}"
+            ) from ve  # NOSONAR
+    data = _run_native_study(payload.study_type, system, payload.parameters)
+    provider_name = "native"
+
+    # --- Store result in cache ---
+    await _store_cache_result(study_cache, payload, data, trace_id)
+    return data, warnings, errors, provider_name
+
+
+def _apply_ai_failure_scan(
+    data: dict[str, Any],
+    study_type: str,
+    status: str,
+    errors: list[str],
+) -> tuple[dict[str, Any], str]:
+    """Run the F-12 AI failure mode scan at the API boundary.
+
+    Scans AI-generated content in the response for the 14 systematic LLM
+    failure patterns (catch-all swallowing, hardcoded success, package
+    hallucination, etc.) before returning to the client.
+    Returns (data, status); inserts a blocking error when MUST_FIX is found.
+    """
+    if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
+        _ai_fm_violations = _scan_ai_failure_modes(data, study_type)
+        if _ai_fm_violations:
+            _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
+            if _must_fix:
+                errors.insert(
+                    0,
+                    (
+                        f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
+                        f"violations detected (F-12). See ai_failure_mode_violations in data."
+                    ),
+                )
+                status = "failed"
+            data["ai_failure_mode_violations"] = _ai_fm_violations
+    return data, status
+
+
+def _apply_risk_score(data: dict[str, Any], study_type: str, status: str) -> dict[str, Any]:
+    """Attach risk score and violations for successful studies (Item 3)."""
+    if status == "success":
+        risk_info = compute_risk(study_type, data)
+        data["risk_score"] = risk_info["risk_score"]
+        data["risk_violations"] = risk_info["risk_violations"]
+    return data
 
 
 @router.post(
@@ -619,9 +739,7 @@ async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, tr
 async def run_study(
     req: Request,
     payload: StudyRequest,
-    _: str = Depends(
-        get_api_key
-    ),
+    _: Annotated[str, Depends(get_api_key)],
 ):
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
@@ -629,18 +747,10 @@ async def run_study(
 
     _validate_study_request(payload)
 
-    warnings: list[str] = []
+    warnings: list[str] = _pe_stamp_warnings(payload)
     errors: list[str] = []
     data: dict[str, Any] = {}
     provider_name = "native"
-    cache_hit = False
-
-    # --- PE stamp check (Item 5) ---
-    if requires_stamp(payload.study_type) and not payload.pe_stamp:
-        warnings.append(
-            f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
-            "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
-        )
 
     from core.bootstrap import _add_execution_time, _increment_counter
 
@@ -658,48 +768,10 @@ async def run_study(
     )
 
     try:
-        # Initialize study cache if needed
-        study_cache = None
-        try:
-            study_cache = StudyCache(
-                redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
-                ttl=3600,
-            )
-        except Exception:
-            logger.debug("StudyCache init failed (non-fatal)")
-
-        # --- Cache lookup for native studies (non-ETAP) ---
-        if not payload.use_etap:
-            try:
-                data, cache_hit = await _lookup_cache(study_cache, payload, trace_id)
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache lookup failed (non-fatal): %s",
-                    cache_err,
-                    extra={"trace_id": trace_id},
-                )
-
-        if cache_hit:
-            # Use cached data
-            pass
-        elif payload.use_etap:
-            provider_name = "etap"
-            data, warnings, errors = await _run_etap_study(payload)
-        else:
-            system = None
-            if payload.system:
-                try:
-                    system = _build_system_from_spec(payload.system)
-                except ValueError as ve:
-                    raise HTTPException(  # NOSONAR
-                        status_code=400, detail=f"System spec error: {ve}"
-                    ) from ve  # NOSONAR
-            data = _run_native_study(payload.study_type, system, payload.parameters)
-            provider_name = "native"
-
-            # --- Store result in cache ---
-            await _store_cache_result(study_cache, payload, data, trace_id)
-
+        study_cache = _init_study_cache()
+        data, warnings, errors, provider_name = await _execute_study(
+            payload, study_cache, trace_id, warnings, errors
+        )
         _increment_counter("success")
         status = "success"
     except HTTPException:
@@ -736,23 +808,10 @@ async def run_study(
     # Scan AI-generated content in the response for the 14 systematic
     # LLM failure patterns (catch-all swallowing, hardcoded success,
     # package hallucination, etc.) before returning to the client.
-    if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
-        _ai_fm_violations = _scan_ai_failure_modes(data, payload.study_type)
-        if _ai_fm_violations:
-            _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
-            if _must_fix:
-                errors.insert(0, (
-                    f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
-                    f"violations detected (F-12). See ai_failure_mode_violations in data."
-                ))
-                status = "failed"
-            data["ai_failure_mode_violations"] = _ai_fm_violations
+    data, status = _apply_ai_failure_scan(data, payload.study_type, status, errors)
 
     # --- Risk scoring (Item 3) ---
-    if status == "success":
-        risk_info = compute_risk(payload.study_type, data)
-        data["risk_score"] = risk_info["risk_score"]
-        data["risk_violations"] = risk_info["risk_violations"]
+    data = _apply_risk_score(data, payload.study_type, status)
 
     elapsed_sec = time.perf_counter() - start
     _add_execution_time(elapsed_sec)
@@ -822,7 +881,7 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
         List of violation dicts with keys: rule_id, severity, description.
     """
     try:
-        from guards.ai_failure_modes import AIFailureModeDetector, GuardSeverity
+        from guards.ai_failure_modes import AIFailureModeDetector
     except ImportError:
         return []
 
@@ -844,11 +903,13 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
 
         violations = []
         for v in result.violations:
-            violations.append({
-                "rule_id": v.rule_id,
-                "severity": v.severity.value,
-                "description": v.description[:200],
-            })
+            violations.append(
+                {
+                    "rule_id": v.rule_id,
+                    "severity": v.severity.value,
+                    "description": v.description[:200],
+                }
+            )
 
         if violations:
             _must_fix_count = sum(1 for v in violations if v["severity"] == "must_fix")

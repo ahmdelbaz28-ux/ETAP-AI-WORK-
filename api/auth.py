@@ -32,7 +32,7 @@ import os
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Any
 
 from api._messages import (
     MSG_PASSWORD_MIN_LENGTH,
@@ -141,7 +141,7 @@ _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 
 # In-memory token blacklist fallback (with TTL cleanup)
 _token_blacklist_memory: dict[str, float] = {}  # jti -> expiry timestamp
-_token_blacklist_lock = threading.Lock()
+_token_blacklist_lock = threading.RLock()
 
 # Redis async client singleton. NOTE: this client binds to the event loop
 # that is current when first created. In tests with TestClient, each test
@@ -149,10 +149,10 @@ _token_blacklist_lock = threading.Lock()
 # stale and raises 'RuntimeError: Event loop is closed' on the next use.
 # The client fixture in tests/conftest.py resets this to None before each
 # test to force a fresh client on the new event loop.
-_redis_client: Optional[redis_async.Redis] = None
+_redis_client: redis_async.Redis | None = None
 
 
-def _get_redis_client() -> Optional[redis_async.Redis]:
+def _get_redis_client() -> redis_async.Redis | None:
     """Return the shared async Redis client, or None if Redis is unavailable.
 
     Reads REDIS_URL at call time (not import time) so tests using
@@ -178,7 +178,7 @@ def _cleanup_expired_blacklist() -> None:
             del _token_blacklist_memory[jti]
 
 
-async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
+async def _blacklist_token(jti: str, ttl_seconds: int | None = None) -> None:
     """Blacklist a refresh token JTI using Redis (with TTL), with in-memory fallback."""
     r = _get_redis_client()
     if r is not None:
@@ -317,7 +317,7 @@ class User(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
@@ -337,10 +337,10 @@ class User(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    reset_token: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
+    reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    reset_token_expires: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
@@ -397,8 +397,8 @@ class LoginRequest(BaseModel):
 
     username: str
     password: str
-    mfa_code: Optional[str] = None
-    mfa_challenge_token: Optional[str] = None
+    mfa_code: str | None = None
+    mfa_challenge_token: str | None = None
 
 
 class LoginResponse(BaseModel):
@@ -412,12 +412,12 @@ class LoginResponse(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
+    access_token: str | None = None
+    refresh_token: str | None = None
     token_type: str = "bearer"
-    expires_in: Optional[int] = None
+    expires_in: int | None = None
     mfa_required: bool = False
-    mfa_challenge_token: Optional[str] = None
+    mfa_challenge_token: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -487,16 +487,16 @@ class UpdateProfileRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    email: Optional[EmailStr] = None
-    mfa_enabled: Optional[bool] = None
+    email: EmailStr | None = None
+    mfa_enabled: bool | None = None
     # V-7: Required when mfa_enabled is set to False
-    current_password: Optional[str] = Field(
+    current_password: str | None = Field(
         default=None,
         min_length=1,
         max_length=128,
         description="Current password (required when disabling MFA)",
     )
-    mfa_code: Optional[str] = Field(
+    mfa_code: str | None = Field(
         default=None,
         min_length=4,
         max_length=20,
@@ -515,9 +515,9 @@ class UserResponse(BaseModel):
     role: str
     mfa_enabled: bool
     is_active: bool
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_login: datetime | None = None
 
 
 class UserListResponse(BaseModel):
@@ -693,7 +693,7 @@ def _create_mfa_challenge_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
-def _verify_mfa_challenge_token(token: str) -> Optional[str]:
+def _verify_mfa_challenge_token(token: str) -> str | None:
     """Verify an MFA challenge token. Returns user_id or None."""
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
@@ -1293,7 +1293,7 @@ async def refresh(
             detail="Refresh token has been revoked",
         )
 
-    user_id: Optional[str] = payload.get("sub")
+    user_id: str | None = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1339,7 +1339,7 @@ async def refresh(
 )
 async def logout(
     user: CurrentUserDep,
-    body: Optional[RefreshRequest] = Body(None),  # NOSONAR  # S8410
+    body: RefreshRequest | None = Body(None),  # NOSONAR  # S8410
 ) -> Response:
     """Log the current user out by blacklisting the provided refresh token.
 
@@ -1357,7 +1357,7 @@ async def logout(
             )
             jti = payload.get("jti")
             exp = payload.get("exp")  # epoch seconds
-            ttl_seconds: Optional[int] = None
+            ttl_seconds: int | None = None
             if isinstance(exp, (int, float)):
                 now_epoch = datetime.now(tz=UTC).timestamp()
                 ttl_seconds = int(exp - now_epoch)

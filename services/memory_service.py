@@ -5,10 +5,12 @@ Handles vector-based semantic retrieval (Qdrant) and
 graph-based relationship retrieval (Neo4j GraphRAG).
 """
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import os
-from typing import Any, List, Optional
+from typing import Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -285,10 +287,12 @@ class AIMemoryService:
         # DummyLLM for dev/test only — explicitly NOT production-safe
         class _DummyAIMessage:
             """Mimics langchain_core.messages.AIMessage — EMPTY CONTENT."""
+
             content: str = ""
 
         class DummyLLM:
             """Returns empty content — ONLY for dev/test, NEVER for production."""
+
             IS_DUMMY: bool = True  # Sentinel for downstream checks
 
             def invoke(self, _prompt: Any, **_kwargs: Any) -> _DummyAIMessage:
@@ -299,7 +303,7 @@ class AIMemoryService:
 
         return DummyLLM()
 
-    def add_knowledge_to_graph(self, text: str, allowed_nodes: Optional[List[str]] = None) -> bool:
+    def add_knowledge_to_graph(self, text: str, allowed_nodes: List[str] | None = None) -> bool:
         """Parse text, extract entities and relationships, and save them to Neo4j graph.
 
         ARCHITECTURE AUDIT FIX (F-01): Content-quality assertion added —
@@ -437,8 +441,10 @@ class AIMemoryService:
                     "results would be based on hash proximity, not semantic similarity. "
                     "Set EMBEDDING_API_KEY or OPENAI_API_KEY."
                 )
-                return ("Vector search unavailable: embeddings service is using an unsafe "
-                        "fallback. Set EMBEDDING_API_KEY to enable semantic search.")
+                return (
+                    "Vector search unavailable: embeddings service is using an unsafe "
+                    "fallback. Set EMBEDDING_API_KEY to enable semantic search."
+                )
 
             if not self._qdrant_client.collection_exists(collection_name=index_name):
                 return "Vector memory collection does not exist."

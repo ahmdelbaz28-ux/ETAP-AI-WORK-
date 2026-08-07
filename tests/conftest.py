@@ -715,6 +715,7 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
     """
     import api.auth  # noqa: F401
     import api.projects  # noqa: F401
+    import api.tenants  # noqa: F401
 
     try:
         import api.mfa  # noqa: F401

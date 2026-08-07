@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 from pydantic import ValidationError
 
@@ -46,7 +46,8 @@ JSONRPC_INTERNAL_ERROR = -32603
 
 
 # Type alias for an optional notification handler callback.
-NotificationHandler = Optional[Callable[[dict], Any]]
+if TYPE_CHECKING:
+    NotificationHandler = Callable[[dict], Any] | None
 
 # Type alias for auth validator (re-exported from security for convenience)
 # Type alias for audit logger (re-exported from security for convenience)
@@ -81,12 +82,12 @@ class RouterConfig:
         caller_scopes: set[str] | None = None,
         *,
         on_notification: NotificationHandler = None,
-        auth_validator: Optional[AuthValidator] = None,
-        audit_logger: Optional[AuditLogger] = None,
+        auth_validator: AuthValidator | None = None,
+        audit_logger: AuditLogger | None = None,
         require_auth_for_public: bool = False,
-        tracer: Optional[Any] = None,
-        metrics: Optional[Any] = None,
-        logger: Optional[Any] = None,
+        tracer: Any | None = None,
+        metrics: Any | None = None,
+        logger: Any | None = None,
     ) -> None:
         self.caller_scopes = set(caller_scopes or ())
         self.on_notification = on_notification
@@ -111,7 +112,7 @@ class Router:
         response_dict = await router.handle(incoming_dict)
     """
 
-    def __init__(self, runtime: AcpRuntime, config: Optional[RouterConfig] = None) -> None:
+    def __init__(self, runtime: AcpRuntime, config: RouterConfig | None = None) -> None:
         self._runtime = runtime
         self._config = config or RouterConfig()
         self._scope_validator = ScopeValidator(self._config.caller_scopes)
@@ -119,7 +120,7 @@ class Router:
 
     # ------------------------------------------------------------- public API
 
-    async def handle(self, envelope: dict) -> Optional[dict]:
+    async def handle(self, envelope: dict) -> dict | None:
         """Accept a JSON-RPC envelope dict, return a response dict (or None).
 
         Args:
@@ -169,7 +170,7 @@ class Router:
 
     # ----------------------------------------------------------- request path
 
-    def _start_span(self, req: JsonRpcRequest) -> Optional[Any]:
+    def _start_span(self, req: JsonRpcRequest) -> Any | None:
         """Start an observability span for the request, if a tracer is configured."""
         if self._config.tracer is None:
             return None
@@ -182,7 +183,7 @@ class Router:
 
     async def _authenticate(
         self, req: JsonRpcRequest
-    ) -> tuple[str, ScopeValidator, Optional[tuple[int, str, Optional[Any]]]]:
+    ) -> tuple[str, ScopeValidator, tuple[int, str, Any | None] | None]:
         """Authenticate the request.
 
         Returns ``(caller_id, scope_validator, failure)`` where ``failure``
@@ -212,15 +213,15 @@ class Router:
     async def _fail_request(
         self,
         req: JsonRpcRequest,
-        span_ctx: Optional[Any],
+        span_ctx: Any | None,
         t0: float,
         code: int,
         message: str,
-        data: Optional[Any] = None,
+        data: Any | None = None,
         *,
         caller_id: str = "",
         outcome: str = "error",
-        audit_duration_ms: Optional[int] = None,
+        audit_duration_ms: int | None = None,
     ) -> dict:
         """Build an error response and finish observability.
 
@@ -245,9 +246,7 @@ class Router:
     async def _execute_capability(
         self,
         req: JsonRpcRequest,
-        _span_ctx: Optional[
-            Any
-        ],  # NOSONAR
+        _span_ctx: Any | None,  # NOSONAR
         _t0: float,  # NOSONAR
     ) -> tuple[dict, str, int]:
         """Dispatch the request; returns ``(response, outcome, error_code)``."""
@@ -360,7 +359,7 @@ class Router:
 
     async def _finish_observability(  # NOSONAR
         self,
-        span_ctx: Optional[Any],
+        span_ctx: Any | None,
         t0: float,
         req: JsonRpcRequest,
         outcome: str,
@@ -457,7 +456,7 @@ class Router:
         req_id: Any,
         code: int,
         message: str,
-        data: Optional[dict] = None,
+        data: dict | None = None,
     ) -> dict:
         return JsonRpcResponse(
             id=req_id,
