@@ -395,7 +395,7 @@ jobs:
 
       - name: Upload coverage report to Codecov
         # v7 — pinned by full commit SHA per S7637
-        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         if: always()
         with:
           files: coverage.xml
