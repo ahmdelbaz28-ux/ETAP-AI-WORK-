@@ -42,10 +42,10 @@ jobs:
 
       - name: Install Daytona SDK + review script deps
         run: |
-          pip install --quiet \
-            "daytona-sdk>=0.10.0" \
-            "pyyaml>=6.0" \
-            "requests>=2.31"
+          pip install --quiet --only-binary :all: \
+            "daytona-sdk==0.10.0" \
+            "pyyaml==6.0.2" \
+            "requests==2.32.3"
 
       - name: Run AI review in Daytona sandbox
         env:

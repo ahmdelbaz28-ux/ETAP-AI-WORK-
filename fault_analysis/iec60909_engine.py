@@ -61,23 +61,23 @@ class ShortCircuitResult:
     # Sequence currents
     i_positive: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     i_negative: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     i_zero: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     # Phase currents
     ia: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     ib: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
     ic: complex = complex(
         0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
 
 
 # Default R/X ratio when the bus impedance is purely resistive (imaginary
@@ -120,9 +120,9 @@ class IEC60909Engine:
         generators (list): List of generator objects with impedance info.
         r_override (dict): Override R/X ratios for specific buses.
         """
-        self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_neg = ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        self.Ybus_zero = ybus_zero  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_pos = ybus_pos  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_neg = ybus_neg  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_zero = ybus_zero  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = ybus_pos.shape[0]
         self.base_mva = base_mva
         self.base_kv = base_kv
@@ -142,19 +142,19 @@ class IEC60909Engine:
         try:
             self.Zbus_pos = np.linalg.inv(
                 self.Ybus_pos
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:
             self.Zbus_pos = np.linalg.pinv(self.Ybus_pos)
         try:
             self.Zbus_neg = np.linalg.inv(
                 self.Ybus_neg
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:
             self.Zbus_neg = np.linalg.pinv(self.Ybus_neg)
         try:
             self.Zbus_zero = np.linalg.inv(
                 self.Ybus_zero
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         except np.linalg.LinAlgError:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 

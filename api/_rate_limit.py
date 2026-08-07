@@ -217,7 +217,7 @@ def _is_scada_internal_request(request: Request) -> bool:
     return False
 
 
-async def check_rate_limit(request: Request) -> None:
+async def check_rate_limit(request: Request) -> None:  # noqa: S7503 — FastAPI async dependency contract
     """FastAPI dependency that enforces rate limiting with SCADA bypass.
 
     This function should be used as a FastAPI Depends() dependency on
@@ -249,7 +249,7 @@ async def check_rate_limit(request: Request) -> None:
         )
 
 
-async def check_scada_rate_limit(request: Request) -> None:
+async def check_scada_rate_limit(request: Request) -> None:  # noqa: S7503 — FastAPI async dependency contract
     """FastAPI dependency for SCADA endpoints with higher rate limits.
 
     SCADA endpoints use a more permissive rate limiter (3000 req/min)

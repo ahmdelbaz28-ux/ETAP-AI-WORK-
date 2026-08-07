@@ -1270,7 +1270,7 @@ async def _main() -> (  # NOSONAR
             if args.output == "-"
             else stack.enter_context(
                 open(args.output, "w", encoding="utf-8")
-            )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            )  # noqa: S7493 — output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         if not args.json_only:

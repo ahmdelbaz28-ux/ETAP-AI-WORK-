@@ -27,13 +27,13 @@ class FaultAnalyzer:
         base_mva (float): Base MVA for per-unit conversion. Default 100.0.
         base_kv (float): Base kV for current conversion. Default 115.0.
         """
-        self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Ybus_pos = ybus_pos  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_neg = (
             ybus_neg if ybus_neg is not None else ybus_pos
-        )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_zero = (
             ybus_zero if ybus_zero is not None else ybus_pos
-        )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.base_mva = base_mva
         self.base_kv = base_kv
 
@@ -45,9 +45,9 @@ class FaultAnalyzer:
             self._lu_neg = splu(ybus_neg)
             self._lu_zero = splu(ybus_zero)
             self._use_lu = True
-            self.Zbus_pos = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_neg = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_zero = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_pos = None  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_neg = None  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_zero = None  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         else:
             # Dense path: full inversion for backward compatibility
             self._use_lu = False

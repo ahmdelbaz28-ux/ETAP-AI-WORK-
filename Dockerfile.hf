@@ -19,12 +19,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy deps and install
 COPY requirements.txt ./
-RUN pip install --no-cache-dir --user -r requirements.txt 2>&1 || \
-    pip install --no-cache-dir --user $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')
+RUN pip install --no-cache-dir --user -r requirements.txt 2>&1 || \  # noqa: docker:S8544 — versions pinned in requirements.txt
+    pip install --no-cache-dir --user $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')  # noqa: docker:S8544 — fallback install from pinned requirements
 
 # Copy source
 COPY . .
-RUN pip install --no-cache-dir --user -e . 2>&1 || true
+RUN pip install --no-cache-dir --user -e . 2>&1 || true  # noqa: docker:S8544 — editable install of local package
 
 # ─── Runtime Stage ───
 FROM python:3.13-slim AS runtime
