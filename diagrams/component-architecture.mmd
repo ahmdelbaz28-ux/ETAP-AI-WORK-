@@ -1,0 +1,9 @@
+flowchart LR
+  UI[Web UI and CLI] --> API[FastAPI Services]
+  API --> ORCH[Agent Orchestrator]
+  ORCH --> CORE[Core Power System Model]
+  CORE --> SOLVE[Solvers and Studies]
+  SOLVE --> VERIFY[Validation Engine]
+  VERIFY --> REPORT[Reporting Engine]
+  API --> SEC[Security Framework]
+  API --> OBS[Observability and Audit]

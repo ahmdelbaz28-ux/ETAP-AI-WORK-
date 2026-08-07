@@ -1,0 +1,1192 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Akamai Incident Response — BAZSPARK - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#akamai-incident-response-bazspark" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Akamai Incident Response — BAZSPARK
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-incident-severity" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. تصنيف الحوادث (Incident Severity)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-sev-1-ddos-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. SEV-1: DDoS Attack
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. SEV-1: DDoS Attack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Indicators
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-immediate-actions-first-5-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Immediate Actions (first 5 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-mitigation-actions-5-30-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Mitigation Actions (5-30 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-recovery-after-attack-subsides" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Recovery (after attack subsides)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-sev-2-credential-stuffing-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. SEV-2: Credential Stuffing Attack
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. SEV-2: Credential Stuffing Attack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Indicators
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-immediate-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Immediate Actions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-sev-1-waf-bypass-exploited" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. SEV-1: WAF Bypass Exploited
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. SEV-1: WAF Bypass Exploited">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Indicators
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-immediate-actions-first-15-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Immediate Actions (first 15 minutes)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-investigation-1-4-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Investigation (1-4 hours)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-sev-2-direct-origin-access-detected" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. SEV-2: Direct Origin Access Detected
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. SEV-2: Direct Origin Access Detected">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Indicators
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-immediate-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Immediate Actions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-sev-3-waf-false-positive" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. SEV-3: WAF False Positive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. SEV-3: WAF False Positive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-indicators" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 Indicators
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Actions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-contact-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Contact List
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-post-incident-review-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Post-Incident Review Template
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="akamai-incident-response-bazspark">Akamai Incident Response — BAZSPARK</h1>
+<blockquote>
+<p><strong>خطة الاستجابة للحوادث الأمنية على Akamai</strong>
+Follow this runbook when an Akamai-related security incident is detected.</p>
+</blockquote>
+<hr />
+<h2 id="1-incident-severity">1. تصنيف الحوادث (Incident Severity)</h2>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Definition</th>
+<th>Examples</th>
+<th>Response Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SEV-1 (Critical)</strong></td>
+<td>Service down or active breach</td>
+<td>DDoS overwhelming origin, confirmed data breach, WAF bypass exploited</td>
+<td>&lt; 15 min</td>
+</tr>
+<tr>
+<td><strong>SEV-2 (High)</strong></td>
+<td>Major degradation or active attack</td>
+<td>Credential stuffing attack, bot swarm, 5xx spike &gt; 50%</td>
+<td>&lt; 1 hour</td>
+</tr>
+<tr>
+<td><strong>SEV-3 (Medium)</strong></td>
+<td>Minor degradation or isolated attack</td>
+<td>Single IP abuse, WAF false positive, cache hit drop</td>
+<td>&lt; 4 hours</td>
+</tr>
+<tr>
+<td><strong>SEV-4 (Low)</strong></td>
+<td>Investigation needed</td>
+<td>Suspicious pattern, low-volume scan, config warning</td>
+<td>Next business day</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-sev-1-ddos-attack">2. SEV-1: DDoS Attack</h2>
+<h3 id="21-indicators">2.1 Indicators</h3>
+<ul>
+<li>Akamai sends DDoS alert (Prolexic triggered)</li>
+<li>Origin 5xx errors &gt; 100/minute</li>
+<li>Origin response time &gt; 5000ms</li>
+<li>Backend <code>/api/health</code> returns <code>database: disconnected</code> (origin overwhelmed)</li>
+</ul>
+<h3 id="22-immediate-actions-first-5-minutes">2.2 Immediate Actions (first 5 minutes)</h3>
+<ol>
+<li><strong>Acknowledge alert</strong> في Akamai Control Center</li>
+<li><strong>Verify it's a real attack</strong> (not a marketing campaign / load test):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check traffic sources</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$AKAMAI_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s2">&quot;https://{host}/reporting-api/v1/reports/traffic-by-time/summarize?start=</span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;15 min ago&#39;</span><span class="w"> </span>-u<span class="w"> </span>+%Y-%m-%dT%H:%M<span class="k">)</span><span class="s2">&amp;end=</span><span class="k">$(</span>date<span class="w"> </span>-u<span class="w"> </span>+%Y-%m-%dT%H:%M<span class="k">)</span><span class="s2">&quot;</span>
+</code></pre></div></li>
+<li><strong>Activate DDoS Protection Mode</strong> في Property Manager:</li>
+<li>Navigate to Property → Rules → DDoS Protection</li>
+<li>Switch from "DETECT" to "MITIGATE"</li>
+<li>Activate on production (immediate, no staging)</li>
+<li><strong>Notify incident commander</strong>: <code>eng.ahmed.elbaz@gmail.com</code> + <code>+20-XXX-XXXX-XXX</code></li>
+</ol>
+<h3 id="23-mitigation-actions-5-30-minutes">2.3 Mitigation Actions (5-30 minutes)</h3>
+<ol>
+<li><strong>Block top attacking IPs</strong>:</li>
+<li>Akamai Control Center → Security → IP Allowlist/Denylist</li>
+<li>Add offending IPs/CIDRs to denylist</li>
+<li><strong>Tighten rate limits</strong>:</li>
+<li>Property Manager → Rate Limiting</li>
+<li>Reduce API rate from 300/min → 50/min</li>
+<li>Reduce auth rate from 10/min → 3/min</li>
+<li><strong>Enable additional bot challenges</strong>:</li>
+<li>Bot Manager → All endpoints → JS Challenge</li>
+<li><strong>Monitor</strong>:</li>
+<li>Watch Security Events dashboard</li>
+<li>Watch origin 5xx error rate</li>
+<li>Watch <code>/api/health</code> endpoint</li>
+</ol>
+<h3 id="24-recovery-after-attack-subsides">2.4 Recovery (after attack subsides)</h3>
+<ol>
+<li><strong>Document the attack</strong>:</li>
+<li>Start time, end time, peak RPS, source IPs, attack type</li>
+<li>Save Security Events CSV</li>
+<li><strong>Gradually relax rate limits</strong>:</li>
+<li>50/min → 100/min → 200/min → 300/min (every 30 min)</li>
+<li><strong>Post-incident review</strong> within 48 hours</li>
+<li><strong>Update WAF rules</strong> based on attack patterns</li>
+</ol>
+<hr />
+<h2 id="3-sev-2-credential-stuffing-attack">3. SEV-2: Credential Stuffing Attack</h2>
+<h3 id="31-indicators">3.1 Indicators</h3>
+<ul>
+<li>Account Protector alert: <code>CREDENTIAL_STUFFING_DETECTED</code></li>
+<li>
+<blockquote>
+<p>50 failed logins from same IP in 5 min</p>
+</blockquote>
+</li>
+<li>
+<blockquote>
+<p>500 failed logins across multiple IPs in 10 min</p>
+</blockquote>
+</li>
+<li>Successful logins followed by immediate sensitive actions (API key generation)</li>
+</ul>
+<h3 id="32-immediate-actions">3.2 Immediate Actions</h3>
+<ol>
+<li><strong>Verify the attack</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Check failed login patterns</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$AKAMAI_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="s2">&quot;https://{host}/siem/v1/attacks?attackType=credential_stuffing&amp;start=</span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;1 hour ago&#39;</span><span class="w"> </span>-u<span class="w"> </span>+%Y-%m-%dT%H:%M<span class="k">)</span><span class="s2">&quot;</span>
+</code></pre></div></li>
+<li><strong>Auto-mitigation</strong> (should trigger automatically):</li>
+<li>Bot Manager blocks source IPs for 1 hour</li>
+<li>Account Protector locks targeted accounts for 30 min</li>
+<li>Backend rate limiter returns 429</li>
+<li><strong>Manual escalation</strong> (if auto-mitigation insufficient):</li>
+<li>Bot Manager → Challenge ALL login attempts with CAPTCHA</li>
+<li>Add source IPs to global denylist</li>
+<li><strong>Notify affected users</strong>:</li>
+<li>Send email to all users whose accounts were targeted</li>
+<li>Recommend password change if any account was compromised</li>
+</ol>
+<h3 id="33-recovery">3.3 Recovery</h3>
+<ol>
+<li>Review attack patterns</li>
+<li>Update <code>account-protector.json</code> thresholds if needed</li>
+<li>Add compromised credentials to forced password reset list</li>
+</ol>
+<hr />
+<h2 id="4-sev-1-waf-bypass-exploited">4. SEV-1: WAF Bypass Exploited</h2>
+<h3 id="41-indicators">4.1 Indicators</h3>
+<ul>
+<li>Successful SQL injection / XSS payload reaches backend</li>
+<li>Backend audit logs show unexpected SQL patterns</li>
+<li>Database integrity check fails</li>
+<li>WAF did NOT block the request (check Security Events)</li>
+</ul>
+<h3 id="42-immediate-actions-first-15-minutes">4.2 Immediate Actions (first 15 minutes)</h3>
+<ol>
+<li><strong>Identify the bypass</strong>:</li>
+<li>Pull backend logs for the suspicious request</li>
+<li>Extract the payload</li>
+<li>Test the payload against staging WAF</li>
+<li><strong>Block the specific pattern</strong>:</li>
+<li>Akamai Control Center → Security → Custom Rules</li>
+<li>Add new rule: <code>IF request.body matches "&lt;payload_pattern&gt;" THEN DENY</code></li>
+<li>Activate immediately on production</li>
+<li><strong>Identify compromised data</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Check if data was exfiltrated</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>grep<span class="w"> </span><span class="s2">&quot;API_KEY_VALID&quot;</span><span class="w"> </span>/var/log/fireai/audit.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;&lt;attacker_ip&gt;&quot;</span>
+</code></pre></div></li>
+<li><strong>Rotate all API keys</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Force-rotate ALL API keys (nuclear option)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>scripts/rotate_all_api_keys.py<span class="w"> </span>--reason<span class="w"> </span><span class="s2">&quot;WAF bypass incident&quot;</span>
+</code></pre></div></li>
+</ol>
+<h3 id="43-investigation-1-4-hours">4.3 Investigation (1-4 hours)</h3>
+<ol>
+<li>Pull all logs for the attacker IP (last 7 days)</li>
+<li>Identify all affected endpoints</li>
+<li>Notify users whose data may have been accessed</li>
+<li>Engage Akamai support for forensic analysis</li>
+</ol>
+<h3 id="44-recovery">4.4 Recovery</h3>
+<ol>
+<li>Patch the WAF bypass (update Kona rules + custom rules)</li>
+<li>Test the patch on staging</li>
+<li>Deploy to production</li>
+<li>Document the bypass in <code>docs/security/waf-bypasses-history.md</code></li>
+</ol>
+<hr />
+<h2 id="5-sev-2-direct-origin-access-detected">5. SEV-2: Direct Origin Access Detected</h2>
+<h3 id="51-indicators">5.1 Indicators</h3>
+<ul>
+<li>Backend logs show: <code>Direct origin access blocked</code></li>
+<li>Multiple requests to HF Space direct URL (<code>ahmdelbaz28-bazspark.hf.space</code>)</li>
+<li>The <code>Akamai-Internal</code> header is missing</li>
+</ul>
+<h3 id="52-immediate-actions">5.2 Immediate Actions</h3>
+<ol>
+<li><strong>Confirm it's an attack</strong> (not a misconfigured monitor):</li>
+<li>Check User-Agent (curl/python = attack, uptime-monitor = misconfigured)</li>
+<li>Check request pattern (single request = probe, flood = attack)</li>
+<li><strong>Block the offending IPs</strong>:</li>
+<li>On HF Space: add to <code>BLOCKED_IPS</code> env var</li>
+<li>On Vercel: add to firewall rules</li>
+<li><strong>Investigate the leak</strong>:</li>
+<li>Search GitHub / public code for the HF Space URL</li>
+<li>Search Shodan / Censys for indexed exposure</li>
+<li>Check if a subdomain was previously pointing to HF Space</li>
+<li><strong>Hide the origin</strong> (long-term):</li>
+<li>Consider moving backend to a non-public URL</li>
+<li>Use Vercel's preview deployments (random URLs)</li>
+<li>Configure HF Space to require auth header</li>
+</ol>
+<h3 id="53-recovery">5.3 Recovery</h3>
+<ol>
+<li>Update <code>AKAMAI_REQUIRE_ORIGIN_TOKEN</code> (rotate the secret)</li>
+<li>Document the leak source in <code>docs/security/origin-leak-incident.md</code></li>
+</ol>
+<hr />
+<h2 id="6-sev-3-waf-false-positive">6. SEV-3: WAF False Positive</h2>
+<h3 id="61-indicators">6.1 Indicators</h3>
+<ul>
+<li>Legitimate user reports 403 Forbidden</li>
+<li>WAF rule triggered on a benign request</li>
+<li>Backend never received the request</li>
+</ul>
+<h3 id="62-actions">6.2 Actions</h3>
+<ol>
+<li><strong>Get the request details</strong>:</li>
+<li>User provides: URL, method, body, timestamp, <code>X-Akamai-GRN</code> (if visible)</li>
+<li><strong>Find the rule that blocked it</strong>:</li>
+<li>Akamai Control Center → Security Events</li>
+<li>Search by <code>X-Akamai-GRN</code> or timestamp</li>
+<li><strong>Add exception</strong>:</li>
+<li>Update <code>kona-config.json</code> → <code>exceptions</code> array</li>
+<li>OR: Update the specific custom rule to be more specific</li>
+<li><strong>Test on staging</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Pragma: akamai-x-get-extracted-values&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;X-Akamai-Debug: true&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">     </span>https://bazspark.edgeservices.net.staging.akamaihd.net/&lt;path&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">     </span>-d<span class="w"> </span><span class="s1">&#39;&lt;body&gt;&#39;</span>
+</code></pre></div></li>
+<li><strong>Deploy to production</strong></li>
+</ol>
+<hr />
+<h2 id="7-contact-list">7. Contact List</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Contact</th>
+<th>When to contact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Incident Commander</td>
+<td>Eng. Ahmed Elbaz</td>
+<td>eng.ahmed.elbaz@gmail.com / +20-XXX</td>
+<td>All SEV-1/SEV-2 incidents</td>
+</tr>
+<tr>
+<td>Akamai Support</td>
+<td>Akamai 24/7</td>
+<td>+1-617-444-2525 / Support Portal</td>
+<td>WAF bypass, DDoS, Property activation issues</td>
+</tr>
+<tr>
+<td>Backend Developer</td>
+<td>(TBD)</td>
+<td>(TBD)</td>
+<td>Backend-specific issues</td>
+</tr>
+<tr>
+<td>Database Admin</td>
+<td>(TBD)</td>
+<td>(TBD)</td>
+<td>DB-related incidents</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-post-incident-review-template">8. Post-Incident Review Template</h2>
+<p>بعد كل incident (خلال 48 ساعة)، اكتب تقريراً في <code>docs/incidents/INCIDENT-YYYY-MM-DD-XX.md</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gh"># Incident Report — YYYY-MM-DD-XX</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="gu">## Summary</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">-</span><span class="w"> </span>Type: DDoS / Credential Stuffing / WAF Bypass / Other
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">-</span><span class="w"> </span>Severity: SEV-1 / SEV-2 / SEV-3
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">-</span><span class="w"> </span>Start: YYYY-MM-DD HH:MM (UTC)
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">-</span><span class="w"> </span>End: YYYY-MM-DD HH:MM (UTC)
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">-</span><span class="w"> </span>Duration: X hours Y minutes
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">-</span><span class="w"> </span>Detected by: Akamai alert / User report / Backend log
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="gu">## Timeline</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="k">-</span><span class="w"> </span>HH:MM — Alert received
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="k">-</span><span class="w"> </span>HH:MM — Investigation started
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="k">-</span><span class="w"> </span>HH:MM — Root cause identified
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="k">-</span><span class="w"> </span>HH:MM — Mitigation applied
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="k">-</span><span class="w"> </span>HH:MM — Recovery complete
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="gu">## Impact</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="k">-</span><span class="w"> </span>Users affected: X
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="k">-</span><span class="w"> </span>Requests blocked: X
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="k">-</span><span class="w"> </span>Data compromised: None / X records (describe)
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="k">-</span><span class="w"> </span>Downtime: X minutes
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="k">-</span><span class="w"> </span>Business impact: (describe)
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="gu">## Root Cause</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>(Detailed technical analysis)
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="gu">## Mitigation</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>(What was done to stop the incident)
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="gu">## Lessons Learned</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="k">1.</span> (Specific actionable lesson)
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="k">2.</span> (Specific actionable lesson)
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a>
+<a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a><span class="gu">## Action Items</span>
+<a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a><span class="k">- [ ]</span> Update WAF rule X — owner: NAME, due: YYYY-MM-DD
+<a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a><span class="k">- [ ]</span> Add monitoring for Y — owner: NAME, due: YYYY-MM-DD
+<a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="k">- [ ]</span> Train team on Z — owner: NAME, due: YYYY-MM-DD
+<a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a>
+<a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a><span class="gu">## References</span>
+<a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a><span class="k">-</span><span class="w"> </span>Akamai Security Event ID: SE-XXXXXX
+<a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a><span class="k">-</span><span class="w"> </span>HF Space logs: (link)
+<a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a><span class="k">-</span><span class="w"> </span>Backend audit trail: (query)
+<a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a>
+<a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a><span class="gu">## Sign-off</span>
+<a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a><span class="k">-</span><span class="w"> </span>Incident Commander: Ahmed Elbaz
+<a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a><span class="k">-</span><span class="w"> </span>Date: YYYY-MM-DD
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
