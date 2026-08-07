@@ -3,6 +3,34 @@ ETAP COM Automation Interface
 ==============================
 Provides direct integration with ETAP Power System software via COM automation.
 
+⚠️⚠️⚠️ SAFETY-CRITICAL WARNING ⚠️⚠️⚠️
+=====================================
+This module reads engineering values (fault currents, voltages, arc flash
+energy) from ETAP via COM automation. These values are used for:
+
+  - Breaker sizing (wrong values → breaker fails during fault → explosion)
+  - Arc flash PPE selection (wrong values → worker burns → injury/death)
+  - Protection coordination (wrong values → fault not cleared → equipment fire)
+
+BEFORE USING ANY RESULTS from this module in production:
+
+  1. Run scripts/verify_etap_2021.py against a real ETAP 2021 installation
+  2. Manually verify that COM property names return non-zero values:
+     - bus.I3PhaseKA must be > 0 (three-phase fault current)
+     - bus.ILLKA must be > 0 (line-to-line fault current) ← was "IllKA" typo
+     - bus.ILGKA must be > 0 (line-to-ground fault current)
+  3. Cross-check results against ETAP GUI manual readings
+  4. If ANY value is 0.0 where it shouldn't be, STOP and investigate
+
+The following property names were MODIFIED but NOT YET VERIFIED with real
+ETAP 2021 (pending Windows testing):
+
+  - "IllKA" → "ILLKA" (line-to-line kA) — was returning 0.0 silently
+  - "HarmonicAnalysis" → "Harmonic" (module name) — may fail if wrong
+  - "RotorAngleTrajectory" → fallback to "RotorAngle" — may lose time series
+
+If verify_etap_2021.py reports incompatibility, DO NOT use results.
+
 Requirements:
 - Windows OS
 - ETAP installed (v12.0 or later)
