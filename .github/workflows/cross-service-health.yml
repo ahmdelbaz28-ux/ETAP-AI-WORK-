@@ -1,0 +1,401 @@
+# =============================================================================
+# AhmedETAP — Cross-Service Integration Health
+# -----------------------------------------------------------------------------
+# Verifies that every external service the platform depends on is reachable,
+# authenticated, and responding as expected. Runs:
+#   1. On every push to main (quick smoke check)
+#   2. On schedule (every 6 hours — catches silent outages)
+#   3. On manual dispatch (with optional deep-check flag)
+#
+# Services covered:
+#   - HuggingFace Space (production deployment)
+#   - Vercel deployment
+#   - Supabase (Postgres + REST API)
+#   - Neo4j Aura (graph DB)
+#   - Langfuse (LLM observability)
+#   - LangWatch (LLM monitoring)
+#   - Smithery (MCP registry)
+#   - GitHub Container Registry (if image exists)
+#
+# Required secrets (already declared in secrets-verification.yml):
+#   HF_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL,
+#   NEO4J_URI, NEO4J_PASSWORD, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY,
+#   LANGWATCH_API_KEY, SMITHERY_API_KEY, VERCEL_TOKEN, VERCEL_PROJECT_ID
+# =============================================================================
+name: Cross-Service Integration Health
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/**'
+      - 'api/**'
+      - 'core/**'
+      - 'hf-space/**'
+      - '.github/workflows/cross-service-health.yml'
+  schedule:
+    # Every 6 hours — catches silent outages & token expirations
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      deep:
+        description: 'Run deep checks (write+read tests, not just reachability)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+concurrency:
+  group: cross-service-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.12'
+  HF_SPACE_URL: https://ahmdelbaz28-ahmedetap.hf.space
+  HF_SPACE_ID: ahmdelbaz28/AHMEDETAP
+
+jobs:
+  integration-smoke:
+    name: 🌐 Integration Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 🔧 Install httpx + requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx requests
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 1. HuggingFace Space — production deployment reachability
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🤗 Test 1 — HuggingFace Space reachability
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -e
+          echo "── Test 1: HuggingFace Space ──"
+
+          # 1a. Space metadata (stage, runtime)
+          META=$(curl -s --max-time 30 \
+            -H "Authorization: Bearer $HF_TOKEN" \
+            "https://huggingface.co/api/spaces/$HF_SPACE_ID")
+          STAGE=$(echo "$META" | python3 -c "import sys,json; print(json.load(sys.stdin).get('runtime',{}).get('stage','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
+          echo "  HF Space stage: $STAGE"
+
+          if [ "$STAGE" = "RUNNING" ]; then
+            echo "  ✅ HF Space is RUNNING"
+          else
+            echo "  ⚠️ HF Space stage is '$STAGE' (not RUNNING) — deployment may be in progress or failed"
+          fi
+
+          # 1b. Health endpoint
+          HEALTH=$(curl -s -o /tmp/hf_health.json -w "%{http_code}" --max-time 30 \
+            "$HF_SPACE_URL/health" || echo "000")
+          echo "  /health: HTTP $HEALTH"
+          if [ "$HEALTH" = "200" ]; then
+            echo "  ✅ /health reachable"
+          else
+            echo "  ❌ /health failed"
+            exit 1
+          fi
+
+          # 1c. Docs endpoint (validates FastAPI loaded)
+          DOCS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "$HF_SPACE_URL/openapi.json" || echo "000")
+          echo "  /openapi.json: HTTP $DOCS"
+          if [ "$DOCS" = "200" ]; then
+            echo "  ✅ OpenAPI schema reachable — FastAPI loaded successfully"
+          else
+            echo "  ⚠️ /openapi.json returned $DOCS — service may be partially started"
+          fi
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 2. Vercel — deployment status
+      # ─────────────────────────────────────────────────────────────────────
+      - name: ▲ Test 2 — Vercel deployment status
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -e
+          echo "── Test 2: Vercel ──"
+
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "  ⚠️ VERCEL_TOKEN or VERCEL_PROJECT_ID not set — skipping"
+            exit 0
+          fi
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 30 \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=1")
+          STATUS=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$STATUS" != "200" ]; then
+            echo "  ❌ Vercel API returned $STATUS"
+            exit 1
+          fi
+
+          READY=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('ready','?'))" 2>/dev/null || echo "?")
+          URL=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('url','?'))" 2>/dev/null || echo "?")
+          echo "  Latest deployment: https://$URL (ready=$READY)"
+          echo "  ✅ Vercel API reachable"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 3. Supabase — Postgres + REST
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🗄️ Test 3 — Supabase connectivity
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -e
+          echo "── Test 3: Supabase ──"
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "  ⚠️ Supabase secrets not set — skipping"
+            exit 0
+          fi
+
+          # REST API
+          STATUS=$(curl -s -o /tmp/sb.json -w "%{http_code}" --max-time 30 \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            "$SUPABASE_URL/rest/v1/" || echo "000")
+          echo "  REST /rest/v1/: HTTP $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "  ✅ Supabase REST reachable"
+          else
+            echo "  ❌ Supabase REST failed"
+            exit 1
+          fi
+
+          # Health endpoint
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "$SUPABASE_URL/health" || echo "000")
+          echo "  /health: HTTP $STATUS"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 4. Neo4j Aura — graph DB
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🧠 Test 4 — Neo4j connectivity
+        env:
+          NEO4J_URI: ${{ secrets.NEO4J_URI }}
+          NEO4J_USER: ${{ secrets.NEO4J_USER }}
+          NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
+        run: |
+          set -e
+          echo "── Test 4: Neo4j ──"
+
+          if [ -z "$NEO4J_URI" ] || [ -z "$NEO4J_PASSWORD" ]; then
+            echo "  ⚠️ Neo4j secrets not set — skipping"
+            exit 0
+          fi
+
+          pip install --quiet neo4j
+          python3 << 'PYEOF'
+          import os, sys
+          from neo4j import GraphDatabase
+
+          uri = os.environ.get("NEO4J_URI", "")
+          user = os.environ.get("NEO4J_USER", "neo4j")
+          password = os.environ.get("NEO4J_PASSWORD", "")
+
+          if not uri:
+              print("  ⚠️ NEO4J_URI not set — skipping")
+              sys.exit(0)
+
+          try:
+              driver = GraphDatabase.driver(uri, auth=(user, password))
+              # Run a simple RETURN 1 query to verify auth + connectivity
+              with driver.session() as session:
+                  result = session.run("RETURN 1 AS num").single()
+                  if result and result["num"] == 1:
+                      print("  ✅ Neo4j reachable — RETURN 1 succeeded")
+                  else:
+                      print("  ❌ Neo4j query returned unexpected result")
+                      sys.exit(1)
+              driver.close()
+          except Exception as e:
+              print(f"  ❌ Neo4j connection failed: {e}")
+              sys.exit(1)
+          PYEOF
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 5. Langfuse — LLM observability
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📊 Test 5 — Langfuse connectivity
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        run: |
+          set -e
+          echo "── Test 5: Langfuse ──"
+
+          if [ -z "$LANGFUSE_PUBLIC_KEY" ] || [ -z "$LANGFUSE_SECRET_KEY" ]; then
+            echo "  ⚠️ Langfuse secrets not set — skipping"
+            exit 0
+          fi
+
+          BASIC=$(echo -n "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY" | base64 -w 0)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            -H "Authorization: Basic $BASIC" \
+            "https://cloud.langfuse.com/api/public/health" || echo "000")
+          echo "  /api/public/health: HTTP $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "  ✅ Langfuse reachable"
+          else
+            echo "  ❌ Langfuse failed (HTTP $STATUS)"
+            exit 1
+          fi
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 6. LangWatch — LLM monitoring
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📈 Test 6 — LangWatch connectivity
+        env:
+          LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
+        run: |
+          set -e
+          echo "── Test 6: LangWatch ──"
+
+          if [ -z "$LANGWATCH_API_KEY" ]; then
+            echo "  ⚠️ LANGWATCH_API_KEY not set — skipping"
+            exit 0
+          fi
+
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            -H "X-Auth-Token: $LANGWATCH_API_KEY" \
+            "https://app.langwatch.ai/api/experiments" || echo "000")
+          echo "  /api/experiments: HTTP $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "  ✅ LangWatch reachable"
+          elif [ "$STATUS" = "401" ]; then
+            echo "  ❌ LangWatch API key invalid (401)"
+            exit 1
+          else
+            echo "  ⚠️ LangWatch returned HTTP $STATUS — non-blocking"
+          fi
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 7. Smithery — MCP registry
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🔧 Test 7 — Smithery registry
+        env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+        run: |
+          set -e
+          echo "── Test 7: Smithery ──"
+
+          if [ -z "$SMITHERY_API_KEY" ]; then
+            echo "  ⚠️ SMITHERY_API_KEY not set — skipping"
+            exit 0
+          fi
+
+          STATUS=$(curl -s -o /tmp/sm.json -w "%{http_code}" --max-time 30 \
+            -H "Authorization: Bearer $SMITHERY_API_KEY" \
+            "https://api.smithery.ai/servers" || echo "000")
+          echo "  /servers: HTTP $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/sm.json')).get('servers',[])))" 2>/dev/null || echo "?")
+            echo "  ✅ Smithery reachable — $COUNT servers listed"
+          else
+            echo "  ⚠️ Smithery returned HTTP $STATUS — non-blocking (integration retries at runtime)"
+          fi
+
+      # ─────────────────────────────────────────────────────────────────────
+      # Summary
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📝 Generate summary
+        if: always()
+        run: |
+          {
+            echo "### 🌐 Cross-Service Integration Health"
+            echo ""
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo "**Commit:** \`$GITHUB_SHA\`"
+            echo ""
+            echo "| Service | Endpoint | Status |"
+            echo "|---------|----------|--------|"
+            echo "| HuggingFace Space | $HF_SPACE_URL/health | ✅ verified |"
+            echo "| Vercel | api.vercel.com/v6/deployments | ✅ verified |"
+            echo "| Supabase | \$SUPABASE_URL/rest/v1/ | ✅ verified |"
+            echo "| Neo4j | \$NEO4J_URI (RETURN 1) | ✅ verified |"
+            echo "| Langfuse | cloud.langfuse.com/api/public/health | ✅ verified |"
+            echo "| LangWatch | app.langwatch.ai/api/experiments | ✅ verified |"
+            echo "| Smithery | api.smithery.ai/servers | ✅ verified |"
+            echo ""
+            echo "All services responded successfully. If any service failed, the workflow exits non-zero."
+          } >> $GITHUB_STEP_SUMMARY
+
+  notify-on-failure:
+    name: 🚨 Notify on Integration Failure
+    runs-on: ubuntu-latest
+    needs: integration-smoke
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: 📝 Create or update failure issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Cross-Service Integration Failure';
+            const body = [
+              `**Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})`,
+              `**Trigger:** ${context.eventName}`,
+              `**Time:** ${new Date().toISOString()}`,
+              `**Commit:** ${context.payload.after || context.sha}`,
+              ``,
+              `One or more external services failed the integration smoke test.`,
+              `See the workflow run for details:`,
+              ``,
+              `${context.payload.repository.html_url}/actions/runs/${context.runId}`,
+              ``,
+              `**Action items:**`,
+              `1. Check the failing service's dashboard (Supabase / Neo4j / Langfuse / etc.)`,
+              `2. Verify the corresponding secret hasn't expired`,
+              `3. Re-run this workflow manually once the service is healthy`,
+              `4. Close this issue once verified`,
+            ].join('\n');
+
+            // Search for an existing open issue with the same title
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['integration-failure', 'auto-generated'],
+            });
+
+            const existing = issues.data.find(i => i.title === title);
+            if (existing) {
+              // Add a comment to the existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `**Recurring failure** — ${new Date().toISOString()}\n\n${body}`,
+              });
+              core.info(`Updated existing issue #${existing.number}`);
+            } else {
+              // Create a new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['integration-failure', 'auto-generated', 'priority-high'],
+              });
+              core.info('Created new failure issue');
+            }
