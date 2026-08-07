@@ -229,12 +229,12 @@ uvicorn>=0.24.0
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
-# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 to fix CVEs including:
+# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 → 6.15.0 to fix CVEs including:
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
 #   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
 #   CVE-2026-59936 (infinite loop for not terminated inline images)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf~=6.14.0
+pypdf~=6.15.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP

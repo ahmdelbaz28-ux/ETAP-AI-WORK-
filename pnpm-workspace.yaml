@@ -6,8 +6,8 @@ packages:
 # dependencies. pnpm 11+ reads overrides from pnpm-workspace.yaml (NOT from
 # the `pnpm.overrides` field in package.json — that field is ignored).
 # Source of the vulnerability list: GitHub Dependabot alerts on this repo
-# (fetched 2026-08-03). Each entry below corresponds to one or more open
-# alerts that are fixed by the pinned version.
+# (fetched 2026-08-03; refreshed 2026-08-08). Each entry below corresponds to
+# one or more open alerts that are fixed by the pinned version.
 # =============================================================================
 overrides:
   # CRITICAL: protobufjs 8.0.1 had Arbitrary Code Execution (CVE) — 25 alerts.
@@ -58,16 +58,29 @@ overrides:
   # Override forces all transitive references to the patched v7.29.0+.
   undici: ^7.29.0
   # HIGH: @ai-sdk/provider-utils uncontrolled resource consumption (2 alerts, same CVE)
-  # @mastra/core uses aliased versions (-v5/-v6) that resolve to older 3.x/4.x;
-  # the override covers direct references but aliases may still pull old versions.
+  # @mastra/core declares three aliased deps:
+  #   - "@ai-sdk/provider-utils-v5": "npm:@ai-sdk/provider-utils@3.0.30"  (vulnerable)
+  #   - "@ai-sdk/provider-utils-v6": "npm:@ai-sdk/provider-utils@4.0.40"
+  #   - "@ai-sdk/provider-utils-v7": "npm:@ai-sdk/provider-utils@5.0.11"
+  # The bare override covers direct references; the three selector overrides
+  # below rewrite each alias inside @mastra/core to a patched version
+  # (4.0.42 satisfies > 3.0.97 and is API-compatible with the 4.x line).
   # LOW severity — code path only reachable from streaming LLM responses.
   '@ai-sdk/provider-utils': ^5.0.0
-  # NOTE: react-router / react-router-dom (RSC CSRF bypass, GHSA-qwww-vcr4-c8h2)
-  # has NO fix available yet — the patched version (8.3.0) has not been
-  # published to npm. Currently installed: 7.18.1 (vulnerable range 7.12.0 - 8.3.0).
-  # Mitigation: this app does NOT use React Server Components mode (RSC), so
-  # the vulnerable code path is not reachable. Track upstream for 8.3.0 release.
-  # Do NOT add an override here — it would break `pnpm install` (no 8.x exists on npm).
+  '@mastra/core>@ai-sdk/provider-utils-v5': npm:@ai-sdk/provider-utils@4.0.42
+  '@mastra/core>@ai-sdk/provider-utils-v6': npm:@ai-sdk/provider-utils@4.0.42
+  '@mastra/core>@ai-sdk/provider-utils-v4': npm:@ai-sdk/provider-utils@4.0.42
+  # react-router / react-router-dom — multiple HIGH/MEDIUM alerts.
+  # Re-verified 2026-08-08 against GitHub Dependabot API: patched version
+  # 7.18.2 IS available on npm (the prior comment about "no fix" was stale).
+  # Alerts closed by this bump:
+  #   - GHSA-qwww-vcr4-c8h2 (HIGH) RSC Mode CSRF Bypass
+  #   - GHSA-chx6-hx7r-mcp5 (HIGH) Unauthenticated DoS via Inefficient Pattern
+  #   - GHSA-wrjc-x8rr-h8h6 (MED)  Open redirect via backslash in <Link>
+  #   - GHSA-h8fp-f39c-q6mh (MED)  RSCErrorHandler Missing Protocol Validation (XSS)
+  #   - GHSA-337j-9hxr-rhxg (MED)  Arbitrary Constructor Injection via deserialization
+  react-router: ^7.18.2
+  react-router-dom: ^7.18.2
 
 allowBuilds:
   '@biomejs/biome': true
@@ -79,3 +92,6 @@ allowBuilds:
   protobufjs: true
 
 onlyBuiltDependencies: ''
+
+minimumReleaseAgeExclude:
+  - '@ai-sdk/provider-utils@4.0.42'
