@@ -1132,36 +1132,37 @@
 <p><strong>Design</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># fireai/core/plugin_registry.py</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">PluginRegistry</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Central registry for all FireAI plugins.</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sd">    Plugins register themselves on startup. The app.py initialization</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    calls registry.discover() to load all registered plugins.</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="sd">    Categories:</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sd">      - computation: ComputationKernel implementations</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="sd">      - parser: ParserGateway implementations (DXF, DWG, IFC, PDF, etc.)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="sd">      - export: Export plugins (DXF, IFC, Revit, PDF)</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="sd">      - validation: ValidationEngine implementations (NFPA72, IEC, NEC)</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="sd">      - audit: AuditChain implementations</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="sd">      - service: External service adapters (weather, geocoding, etc.)</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="n">_registry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    <span class="nd">@classmethod</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">implementation</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="p">{})[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">implementation</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="nd">@classmethod</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">:</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">category</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="nd">@classmethod</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Auto-discover plugins via entry_points or explicit registration.&quot;&quot;&quot;</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>        <span class="c1"># Import all known modules that contain register() calls</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>        <span class="o">...</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">PluginRegistry</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Central registry for all FireAI plugins.</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    Plugins register themselves on startup. The app.py initialization</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="sd">    calls registry.discover() to load all registered plugins.</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sd">    Categories:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="sd">      - computation: ComputationKernel implementations</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="sd">      - parser: ParserGateway implementations (DXF, DWG, IFC, PDF, etc.)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="sd">      - export: Export plugins (DXF, IFC, Revit, PDF)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="sd">      - validation: ValidationEngine implementations (NFPA72, IEC, NEC)</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="sd">      - audit: AuditChain implementations</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="sd">      - service: External service adapters (weather, geocoding, etc.)</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="n">_registry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">implementation</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="p">{})[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">implementation</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">:</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">category</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Auto-discover plugins via entry_points or explicit registration.&quot;&quot;&quot;</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>        <span class="c1"># Import all known modules that contain register() calls</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>        <span class="o">...</span>
 </code></pre></div>
 <p><strong>Registration pattern</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Each plugin module contains a register() function:</span>
@@ -1170,13 +1171,15 @@
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;computation&quot;</span><span class="p">,</span> <span class="s2">&quot;qomn&quot;</span><span class="p">,</span> <span class="n">QOMNKernel</span><span class="p">)</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># parsers/dxf_parser.py  </span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="s2">&quot;dxf&quot;</span><span class="p">,</span> <span class="n">DXFParser</span><span class="p">)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># parsers/dwg_parser.py</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="s2">&quot;dwg&quot;</span><span class="p">,</span> <span class="n">DWGParser</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># parsers/dxf_parser.py</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="s2">&quot;dxf&quot;</span><span class="p">,</span> <span class="n">DXFParser</span><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># parsers/dwg_parser.py</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="s2">&quot;dwg&quot;</span><span class="p">,</span> <span class="n">DWGParser</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Router usage pattern</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># backend/routers/qomn.py (refactored)</span>
@@ -1197,25 +1200,27 @@
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">PROJECT_SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProjectState</span><span class="p">:</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Canonical project state — single source of truth.</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="sd">    Both System A and System B must convert to/from this format.</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="sd">    schema_version enables future migration detection.</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PROJECT_SCHEMA_VERSION</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># Unified ID (was &#39;id&#39; in System A, &#39;project_id&#39; in System B)</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>              <span class="c1"># &quot;active&quot; | &quot;draft&quot; | &quot;archived&quot;</span>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>    <span class="n">created_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>     <span class="c1"># ISO 8601 UTC</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="n">updated_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>     <span class="c1"># ISO 8601 UTC</span>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    <span class="n">element_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="n">device_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    <span class="n">connection_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProjectState</span><span class="p">:</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Canonical project state — single source of truth.</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="sd">    Both System A and System B must convert to/from this format.</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="sd">    schema_version enables future migration detection.</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PROJECT_SCHEMA_VERSION</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Unified ID (was &#39;id&#39; in System A, &#39;project_id&#39; in System B)</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># &quot;active&quot; | &quot;draft&quot; | &quot;archived&quot;</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    <span class="n">created_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># ISO 8601 UTC</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="n">updated_at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># ISO 8601 UTC</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    <span class="n">element_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>    <span class="n">device_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>    <span class="n">connection_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 </code></pre></div>
 <p><strong>Bridge conversion</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># backend/project_bridge.py (extended)</span>
@@ -1253,65 +1258,66 @@
 <p><strong>Design</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># fireai/core/cad_sandbox.py</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADOperationSandbox</span><span class="p">:</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Sandboxed, reversible CAD operation execution.</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="sd">    Before any parser/export operation:</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sd">    1. Snapshot current project state (twin_db.save_snapshot)</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sd">    2. Execute operation in isolated context</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sd">    3. Validate result (contract check, no NaN/Inf, no negative areas)</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="sd">    4. If validation fails → rollback to snapshot</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="sd">    All operations produce a OperationRecord for audit trail.</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">twin_db</span><span class="p">:</span> <span class="n">TwinDB</span><span class="p">):</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span> <span class="o">=</span> <span class="n">twin_db</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_operation_log</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OperationRecord</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_parse</span><span class="p">(</span>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>        <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>        <span class="n">parser_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>        <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>        <span class="n">target_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">OperationRecord</span><span class="p">]:</span>
-<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a CAD file with automatic rollback on failure.&quot;&quot;&quot;</span>
-<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>        <span class="c1"># 1. Snapshot</span>
-<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>        <span class="n">snapshot_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span><span class="o">.</span><span class="n">save_snapshot</span><span class="p">(</span>
-<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>            <span class="p">{</span><span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="s2">&quot;rooms&quot;</span><span class="p">:</span> <span class="n">target_rooms</span><span class="p">},</span>
-<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>            <span class="n">analysis</span><span class="o">=</span><span class="p">{},</span>
-<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>            <span class="n">envelope</span><span class="o">=</span><span class="p">{},</span>
-<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>        <span class="p">)</span>
-<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>        <span class="c1"># 2. Parse</span>
-<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a>        <span class="n">parser</span> <span class="o">=</span> <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">)</span>
-<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
-<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>        <span class="c1"># 3. Validate</span>
-<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_parse_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
-<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a>            <span class="c1"># Rollback</span>
-<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_rollback</span><span class="p">(</span><span class="n">snapshot_id</span><span class="p">)</span>
-<a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a>            <span class="k">raise</span> <span class="n">CADOperationError</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a>        <span class="c1"># 4. Record</span>
-<a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a>        <span class="n">record</span> <span class="o">=</span> <span class="n">OperationRecord</span><span class="p">(</span>
-<a id="__codelineno-6-43" name="__codelineno-6-43" href="#__codelineno-6-43"></a>            <span class="n">operation_type</span><span class="o">=</span><span class="s2">&quot;parse&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-44" name="__codelineno-6-44" href="#__codelineno-6-44"></a>            <span class="n">parser_name</span><span class="o">=</span><span class="n">parser_name</span><span class="p">,</span>
-<a id="__codelineno-6-45" name="__codelineno-6-45" href="#__codelineno-6-45"></a>            <span class="n">snapshot_before</span><span class="o">=</span><span class="n">snapshot_id</span><span class="p">,</span>
-<a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a>            <span class="n">snapshot_after</span><span class="o">=...</span><span class="p">,</span>
-<a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a>            <span class="n">timestamp</span><span class="o">=...</span><span class="p">,</span>
-<a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a>        <span class="p">)</span>
-<a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_operation_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
-<a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a>        <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">record</span>
-<a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a>
-<a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Undo a CAD operation by restoring the pre-operation snapshot.&quot;&quot;&quot;</span>
-<a id="__codelineno-6-54" name="__codelineno-6-54" href="#__codelineno-6-54"></a>        <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_record</span><span class="p">(</span><span class="n">operation_id</span><span class="p">)</span>
-<a id="__codelineno-6-55" name="__codelineno-6-55" href="#__codelineno-6-55"></a>        <span class="n">pre_snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span><span class="o">.</span><span class="n">load_snapshot_bundle</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">snapshot_before</span><span class="p">)</span>
-<a id="__codelineno-6-56" name="__codelineno-6-56" href="#__codelineno-6-56"></a>        <span class="c1"># Restore project state from pre_snapshot</span>
-<a id="__codelineno-6-57" name="__codelineno-6-57" href="#__codelineno-6-57"></a>        <span class="o">...</span>
-<a id="__codelineno-6-58" name="__codelineno-6-58" href="#__codelineno-6-58"></a>
-<a id="__codelineno-6-59" name="__codelineno-6-59" href="#__codelineno-6-59"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_parse_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-6-60" name="__codelineno-6-60" href="#__codelineno-6-60"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-parse validation: no NaN, no negative areas, no missing room_ids.&quot;&quot;&quot;</span>
-<a id="__codelineno-6-61" name="__codelineno-6-61" href="#__codelineno-6-61"></a>        <span class="o">...</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADOperationSandbox</span><span class="p">:</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Sandboxed, reversible CAD operation execution.</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sd">    Before any parser/export operation:</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sd">    1. Snapshot current project state (twin_db.save_snapshot)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sd">    2. Execute operation in isolated context</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="sd">    3. Validate result (contract check, no NaN/Inf, no negative areas)</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="sd">    4. If validation fails → rollback to snapshot</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="sd">    All operations produce a OperationRecord for audit trail.</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">twin_db</span><span class="p">:</span> <span class="n">TwinDB</span><span class="p">):</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">project_id</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span> <span class="o">=</span> <span class="n">twin_db</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_operation_log</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">OperationRecord</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_parse</span><span class="p">(</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>        <span class="n">parser_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>        <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>        <span class="n">target_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">OperationRecord</span><span class="p">]:</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a CAD file with automatic rollback on failure.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>        <span class="c1"># 1. Snapshot</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>        <span class="n">snapshot_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span><span class="o">.</span><span class="n">save_snapshot</span><span class="p">(</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>            <span class="p">{</span><span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_id</span><span class="p">,</span> <span class="s2">&quot;rooms&quot;</span><span class="p">:</span> <span class="n">target_rooms</span><span class="p">},</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>            <span class="n">analysis</span><span class="o">=</span><span class="p">{},</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>            <span class="n">envelope</span><span class="o">=</span><span class="p">{},</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>        <span class="p">)</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a>        <span class="c1"># 2. Parse</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a>        <span class="n">parser</span> <span class="o">=</span> <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;parser&quot;</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">)</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a>        <span class="c1"># 3. Validate</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_parse_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a>            <span class="c1"># Rollback</span>
+<a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_rollback</span><span class="p">(</span><span class="n">snapshot_id</span><span class="p">)</span>
+<a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a>            <span class="k">raise</span> <span class="n">CADOperationError</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a>        <span class="c1"># 4. Record</span>
+<a id="__codelineno-6-43" name="__codelineno-6-43" href="#__codelineno-6-43"></a>        <span class="n">record</span> <span class="o">=</span> <span class="n">OperationRecord</span><span class="p">(</span>
+<a id="__codelineno-6-44" name="__codelineno-6-44" href="#__codelineno-6-44"></a>            <span class="n">operation_type</span><span class="o">=</span><span class="s2">&quot;parse&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-45" name="__codelineno-6-45" href="#__codelineno-6-45"></a>            <span class="n">parser_name</span><span class="o">=</span><span class="n">parser_name</span><span class="p">,</span>
+<a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a>            <span class="n">snapshot_before</span><span class="o">=</span><span class="n">snapshot_id</span><span class="p">,</span>
+<a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a>            <span class="n">snapshot_after</span><span class="o">=...</span><span class="p">,</span>
+<a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a>            <span class="n">timestamp</span><span class="o">=...</span><span class="p">,</span>
+<a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a>        <span class="p">)</span>
+<a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_operation_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+<a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a>        <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">record</span>
+<a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a>
+<a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-6-54" name="__codelineno-6-54" href="#__codelineno-6-54"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Undo a CAD operation by restoring the pre-operation snapshot.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-55" name="__codelineno-6-55" href="#__codelineno-6-55"></a>        <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_record</span><span class="p">(</span><span class="n">operation_id</span><span class="p">)</span>
+<a id="__codelineno-6-56" name="__codelineno-6-56" href="#__codelineno-6-56"></a>        <span class="n">pre_snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_db</span><span class="o">.</span><span class="n">load_snapshot_bundle</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">snapshot_before</span><span class="p">)</span>
+<a id="__codelineno-6-57" name="__codelineno-6-57" href="#__codelineno-6-57"></a>        <span class="c1"># Restore project state from pre_snapshot</span>
+<a id="__codelineno-6-58" name="__codelineno-6-58" href="#__codelineno-6-58"></a>        <span class="o">...</span>
+<a id="__codelineno-6-59" name="__codelineno-6-59" href="#__codelineno-6-59"></a>
+<a id="__codelineno-6-60" name="__codelineno-6-60" href="#__codelineno-6-60"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_parse_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-6-61" name="__codelineno-6-61" href="#__codelineno-6-61"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-parse validation: no NaN, no negative areas, no missing room_ids.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-62" name="__codelineno-6-62" href="#__codelineno-6-62"></a>        <span class="o">...</span>
 </code></pre></div>
 <p><strong>Integration with <code>twin_db.py</code></strong>: The existing <code>TwinDB</code> already has <code>save_snapshot()</code>, <code>load_snapshot_bundle()</code>, and <code>diff_snapshots()</code>. The sandbox wraps every parser call with snapshot+validate+rollback.</p>
 <p><strong>Migration plan</strong>:
@@ -1389,30 +1395,31 @@
 <p><strong>Design</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># fireai/core/cad_transform_verifier.py</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADTransformVerifier</span><span class="p">:</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify bidirectional CAD transformations are loss-minimized.</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="sd">    For every DXF→Room→IFC round-trip:</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="sd">    1. Compute checksum of input (DXF room properties)</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="sd">    2. Compute checksum of output (IFC room properties)</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="sd">    3. Report lost properties</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="sd">    4. For safety-critical properties (wall thickness, door locations),</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="sd">       FAIL if lost — these affect NFPA calculations.</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>    <span class="n">CRITICAL_PROPERTIES</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="s2">&quot;wall_thickness_m&quot;</span><span class="p">,</span>   <span class="c1"># Affects cable routing clearance</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="s2">&quot;door_locations&quot;</span><span class="p">,</span>     <span class="c1"># Affects door entrapment (NFPA 92)</span>
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="s2">&quot;ceiling_height_m&quot;</span><span class="p">,</span>   <span class="c1"># Affects detector spacing (NFPA 72 §17.6.3)</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>    <span class="p">]</span>
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>
-<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">verify_round_trip</span><span class="p">(</span>
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>        <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>        <span class="n">input_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
-<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>        <span class="n">output_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
-<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformVerificationResult</span><span class="p">:</span>
-<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that all safety-critical properties survive the transformation.&quot;&quot;&quot;</span>
-<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>        <span class="o">...</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADTransformVerifier</span><span class="p">:</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify bidirectional CAD transformations are loss-minimized.</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="sd">    For every DXF→Room→IFC round-trip:</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="sd">    1. Compute checksum of input (DXF room properties)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="sd">    2. Compute checksum of output (IFC room properties)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="sd">    3. Report lost properties</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="sd">    4. For safety-critical properties (wall thickness, door locations),</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="sd">       FAIL if lost — these affect NFPA calculations.</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>    <span class="n">CRITICAL_PROPERTIES</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="s2">&quot;wall_thickness_m&quot;</span><span class="p">,</span>  <span class="c1"># Affects cable routing clearance</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="s2">&quot;door_locations&quot;</span><span class="p">,</span>  <span class="c1"># Affects door entrapment (NFPA 92)</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>        <span class="s2">&quot;ceiling_height_m&quot;</span><span class="p">,</span>  <span class="c1"># Affects detector spacing (NFPA 72 §17.6.3)</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="p">]</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">verify_round_trip</span><span class="p">(</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>        <span class="n">input_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>        <span class="n">output_rooms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TransformVerificationResult</span><span class="p">:</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that all safety-critical properties survive the transformation.&quot;&quot;&quot;</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>        <span class="o">...</span>
 </code></pre></div>
 <p><strong>Migration plan</strong>:
 - Phase 1 (v1.1.0): Create <code>CADTransformVerifier</code> with critical property list
@@ -1453,107 +1460,116 @@
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
 <a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># ── Computation Plugin ──────────────────────────────────────────────────</span>
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">ComputationKernel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for deterministic computation engines.</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="sd">    Safety guarantee: all implementations MUST go through L0-L4 pipeline.</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="sd">    No implementation may skip validation (L3) or audit (L4).</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_detector_spacing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_spec</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute detector spacing for a room. Must pass through all 5 layers.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>        <span class="o">...</span>
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>
-<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_voltage_drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute voltage drop. Must pass through L0-L4.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>        <span class="o">...</span>
-<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>
-<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="c1"># ── Parser Plugin ────────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">ComputationKernel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for deterministic computation engines.</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="sd">    Safety guarantee: all implementations MUST go through L0-L4 pipeline.</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="sd">    No implementation may skip validation (L3) or audit (L4).</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_detector_spacing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room_spec</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute detector spacing for a room. Must pass through all 5 layers.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>        <span class="o">...</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">compute_voltage_drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute voltage drop. Must pass through L0-L4.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>        <span class="o">...</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
 <a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>
-<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParserGateway</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for CAD/BIM file parsers.</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="c1"># ── Parser Plugin ────────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>
 <a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>
-<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="sd">    Safety guarantee: all implementations MUST validate path security.</span>
-<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="sd">    All implementations MUST validate input before processing.</span>
-<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>
-<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">detect_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect file format (dxf, dwg, ifc, pdf, etc.).&quot;&quot;&quot;</span>
-<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>        <span class="o">...</span>
-<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>
-<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse file into room specifications. Must validate path first.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>        <span class="o">...</span>
-<a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a>
-<a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">supported_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of supported format identifiers.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a>        <span class="o">...</span>
-<a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>
-<a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a><span class="c1"># ── Validation Plugin ────────────────────────────────────────────────────</span>
-<a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a>
-<a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidationEngine</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for code-compliance validation engines.</span>
-<a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a>
-<a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a><span class="sd">    Safety guarantee: validation results are NON-BYPASSABLE.</span>
-<a id="__codelineno-10-55" name="__codelineno-10-55" href="#__codelineno-10-55"></a><span class="sd">    is_safe=False cannot be overridden by downstream code.</span>
-<a id="__codelineno-10-56" name="__codelineno-10-56" href="#__codelineno-10-56"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-10-57" name="__codelineno-10-57" href="#__codelineno-10-57"></a>
-<a id="__codelineno-10-58" name="__codelineno-10-58" href="#__codelineno-10-58"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-59" name="__codelineno-10-59" href="#__codelineno-10-59"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
-<a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate computation results against code rules.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-61" name="__codelineno-10-61" href="#__codelineno-10-61"></a>        <span class="o">...</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParserGateway</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for CAD/BIM file parsers.</span>
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="sd">    Safety guarantee: all implementations MUST validate path security.</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="sd">    All implementations MUST validate input before processing.</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>
+<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">detect_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect file format (dxf, dwg, ifc, pdf, etc.).&quot;&quot;&quot;</span>
+<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a>        <span class="o">...</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a>
+<a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse file into room specifications. Must validate path first.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a>        <span class="o">...</span>
+<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a>
+<a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">supported_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of supported format identifiers.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a>        <span class="o">...</span>
+<a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a>
+<a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a>
+<a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a><span class="c1"># ── Validation Plugin ────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a>
+<a id="__codelineno-10-55" name="__codelineno-10-55" href="#__codelineno-10-55"></a>
+<a id="__codelineno-10-56" name="__codelineno-10-56" href="#__codelineno-10-56"></a><span class="k">class</span><span class="w"> </span><span class="nc">ValidationEngine</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<a id="__codelineno-10-57" name="__codelineno-10-57" href="#__codelineno-10-57"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for code-compliance validation engines.</span>
+<a id="__codelineno-10-58" name="__codelineno-10-58" href="#__codelineno-10-58"></a>
+<a id="__codelineno-10-59" name="__codelineno-10-59" href="#__codelineno-10-59"></a><span class="sd">    Safety guarantee: validation results are NON-BYPASSABLE.</span>
+<a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a><span class="sd">    is_safe=False cannot be overridden by downstream code.</span>
+<a id="__codelineno-10-61" name="__codelineno-10-61" href="#__codelineno-10-61"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-10-62" name="__codelineno-10-62" href="#__codelineno-10-62"></a>
 <a id="__codelineno-10-63" name="__codelineno-10-63" href="#__codelineno-10-63"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-64" name="__codelineno-10-64" href="#__codelineno-10-64"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rule_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of active validation rules.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-64" name="__codelineno-10-64" href="#__codelineno-10-64"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate computation results against code rules.&quot;&quot;&quot;</span>
 <a id="__codelineno-10-66" name="__codelineno-10-66" href="#__codelineno-10-66"></a>        <span class="o">...</span>
 <a id="__codelineno-10-67" name="__codelineno-10-67" href="#__codelineno-10-67"></a>
-<a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a><span class="c1"># ── Audit Plugin ─────────────────────────────────────────────────────────</span>
-<a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a>
-<a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a><span class="k">class</span><span class="w"> </span><span class="nc">AuditChain</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<a id="__codelineno-10-71" name="__codelineno-10-71" href="#__codelineno-10-71"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for tamper-evident audit logging.</span>
+<a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rule_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return number of active validation rules.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-71" name="__codelineno-10-71" href="#__codelineno-10-71"></a>        <span class="o">...</span>
 <a id="__codelineno-10-72" name="__codelineno-10-72" href="#__codelineno-10-72"></a>
-<a id="__codelineno-10-73" name="__codelineno-10-73" href="#__codelineno-10-73"></a><span class="sd">    Safety guarantee: chain integrity is verifiable.</span>
-<a id="__codelineno-10-74" name="__codelineno-10-74" href="#__codelineno-10-74"></a><span class="sd">    append-only, no delete/update allowed.</span>
-<a id="__codelineno-10-75" name="__codelineno-10-75" href="#__codelineno-10-75"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-73" name="__codelineno-10-73" href="#__codelineno-10-73"></a>
+<a id="__codelineno-10-74" name="__codelineno-10-74" href="#__codelineno-10-74"></a><span class="c1"># ── Audit Plugin ─────────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-75" name="__codelineno-10-75" href="#__codelineno-10-75"></a>
 <a id="__codelineno-10-76" name="__codelineno-10-76" href="#__codelineno-10-76"></a>
-<a id="__codelineno-10-77" name="__codelineno-10-77" href="#__codelineno-10-77"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-78" name="__codelineno-10-78" href="#__codelineno-10-78"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-79" name="__codelineno-10-79" href="#__codelineno-10-79"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Append entry to chain. Returns entry hash.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-80" name="__codelineno-10-80" href="#__codelineno-10-80"></a>        <span class="o">...</span>
-<a id="__codelineno-10-81" name="__codelineno-10-81" href="#__codelineno-10-81"></a>
-<a id="__codelineno-10-82" name="__codelineno-10-82" href="#__codelineno-10-82"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-83" name="__codelineno-10-83" href="#__codelineno-10-83"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">verify_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-10-84" name="__codelineno-10-84" href="#__codelineno-10-84"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify entire chain integrity.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-85" name="__codelineno-10-85" href="#__codelineno-10-85"></a>        <span class="o">...</span>
-<a id="__codelineno-10-86" name="__codelineno-10-86" href="#__codelineno-10-86"></a>
-<a id="__codelineno-10-87" name="__codelineno-10-87" href="#__codelineno-10-87"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-88" name="__codelineno-10-88" href="#__codelineno-10-88"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-89" name="__codelineno-10-89" href="#__codelineno-10-89"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Export chain for AHJ review.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-90" name="__codelineno-10-90" href="#__codelineno-10-90"></a>        <span class="o">...</span>
-<a id="__codelineno-10-91" name="__codelineno-10-91" href="#__codelineno-10-91"></a>
-<a id="__codelineno-10-92" name="__codelineno-10-92" href="#__codelineno-10-92"></a><span class="c1"># ── Export Plugin ─────────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-77" name="__codelineno-10-77" href="#__codelineno-10-77"></a><span class="k">class</span><span class="w"> </span><span class="nc">AuditChain</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<a id="__codelineno-10-78" name="__codelineno-10-78" href="#__codelineno-10-78"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for tamper-evident audit logging.</span>
+<a id="__codelineno-10-79" name="__codelineno-10-79" href="#__codelineno-10-79"></a>
+<a id="__codelineno-10-80" name="__codelineno-10-80" href="#__codelineno-10-80"></a><span class="sd">    Safety guarantee: chain integrity is verifiable.</span>
+<a id="__codelineno-10-81" name="__codelineno-10-81" href="#__codelineno-10-81"></a><span class="sd">    append-only, no delete/update allowed.</span>
+<a id="__codelineno-10-82" name="__codelineno-10-82" href="#__codelineno-10-82"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-83" name="__codelineno-10-83" href="#__codelineno-10-83"></a>
+<a id="__codelineno-10-84" name="__codelineno-10-84" href="#__codelineno-10-84"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-85" name="__codelineno-10-85" href="#__codelineno-10-85"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-10-86" name="__codelineno-10-86" href="#__codelineno-10-86"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Append entry to chain. Returns entry hash.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-87" name="__codelineno-10-87" href="#__codelineno-10-87"></a>        <span class="o">...</span>
+<a id="__codelineno-10-88" name="__codelineno-10-88" href="#__codelineno-10-88"></a>
+<a id="__codelineno-10-89" name="__codelineno-10-89" href="#__codelineno-10-89"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-90" name="__codelineno-10-90" href="#__codelineno-10-90"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">verify_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-10-91" name="__codelineno-10-91" href="#__codelineno-10-91"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify entire chain integrity.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-92" name="__codelineno-10-92" href="#__codelineno-10-92"></a>        <span class="o">...</span>
 <a id="__codelineno-10-93" name="__codelineno-10-93" href="#__codelineno-10-93"></a>
-<a id="__codelineno-10-94" name="__codelineno-10-94" href="#__codelineno-10-94"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExportGateway</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<a id="__codelineno-10-95" name="__codelineno-10-95" href="#__codelineno-10-95"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for CAD/BIM file exporters.</span>
-<a id="__codelineno-10-96" name="__codelineno-10-96" href="#__codelineno-10-96"></a>
-<a id="__codelineno-10-97" name="__codelineno-10-97" href="#__codelineno-10-97"></a><span class="sd">    Safety guarantee: exported files must include code references.</span>
-<a id="__codelineno-10-98" name="__codelineno-10-98" href="#__codelineno-10-98"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-94" name="__codelineno-10-94" href="#__codelineno-10-94"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-95" name="__codelineno-10-95" href="#__codelineno-10-95"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-10-96" name="__codelineno-10-96" href="#__codelineno-10-96"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Export chain for AHJ review.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-97" name="__codelineno-10-97" href="#__codelineno-10-97"></a>        <span class="o">...</span>
+<a id="__codelineno-10-98" name="__codelineno-10-98" href="#__codelineno-10-98"></a>
 <a id="__codelineno-10-99" name="__codelineno-10-99" href="#__codelineno-10-99"></a>
-<a id="__codelineno-10-100" name="__codelineno-10-100" href="#__codelineno-10-100"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-101" name="__codelineno-10-101" href="#__codelineno-10-101"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-10-102" name="__codelineno-10-102" href="#__codelineno-10-102"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Export project state to CAD format.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-103" name="__codelineno-10-103" href="#__codelineno-10-103"></a>        <span class="o">...</span>
-<a id="__codelineno-10-104" name="__codelineno-10-104" href="#__codelineno-10-104"></a>
-<a id="__codelineno-10-105" name="__codelineno-10-105" href="#__codelineno-10-105"></a>    <span class="nd">@abstractmethod</span>
-<a id="__codelineno-10-106" name="__codelineno-10-106" href="#__codelineno-10-106"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">supported_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-10-107" name="__codelineno-10-107" href="#__codelineno-10-107"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of supported export formats.&quot;&quot;&quot;</span>
-<a id="__codelineno-10-108" name="__codelineno-10-108" href="#__codelineno-10-108"></a>        <span class="o">...</span>
+<a id="__codelineno-10-100" name="__codelineno-10-100" href="#__codelineno-10-100"></a><span class="c1"># ── Export Plugin ─────────────────────────────────────────────────────────</span>
+<a id="__codelineno-10-101" name="__codelineno-10-101" href="#__codelineno-10-101"></a>
+<a id="__codelineno-10-102" name="__codelineno-10-102" href="#__codelineno-10-102"></a>
+<a id="__codelineno-10-103" name="__codelineno-10-103" href="#__codelineno-10-103"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExportGateway</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<a id="__codelineno-10-104" name="__codelineno-10-104" href="#__codelineno-10-104"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for CAD/BIM file exporters.</span>
+<a id="__codelineno-10-105" name="__codelineno-10-105" href="#__codelineno-10-105"></a>
+<a id="__codelineno-10-106" name="__codelineno-10-106" href="#__codelineno-10-106"></a><span class="sd">    Safety guarantee: exported files must include code references.</span>
+<a id="__codelineno-10-107" name="__codelineno-10-107" href="#__codelineno-10-107"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-108" name="__codelineno-10-108" href="#__codelineno-10-108"></a>
+<a id="__codelineno-10-109" name="__codelineno-10-109" href="#__codelineno-10-109"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-110" name="__codelineno-10-110" href="#__codelineno-10-110"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-10-111" name="__codelineno-10-111" href="#__codelineno-10-111"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Export project state to CAD format.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-112" name="__codelineno-10-112" href="#__codelineno-10-112"></a>        <span class="o">...</span>
+<a id="__codelineno-10-113" name="__codelineno-10-113" href="#__codelineno-10-113"></a>
+<a id="__codelineno-10-114" name="__codelineno-10-114" href="#__codelineno-10-114"></a>    <span class="nd">@abstractmethod</span>
+<a id="__codelineno-10-115" name="__codelineno-10-115" href="#__codelineno-10-115"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">supported_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-10-116" name="__codelineno-10-116" href="#__codelineno-10-116"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return list of supported export formats.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-117" name="__codelineno-10-117" href="#__codelineno-10-117"></a>        <span class="o">...</span>
 </code></pre></div>
 <h3 id="plugin-registration-contract">Plugin Registration Contract</h3>
 <p>Every plugin module MUST contain a <code>register()</code> function:</p>
@@ -1568,23 +1584,28 @@
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Discover and register all plugins.&quot;&quot;&quot;</span>
 <a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="c1"># Core plugins (always available)</span>
 <a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.qomn_kernel</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">qomn_register</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="n">qomn_register</span><span class="p">()</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">pipeline_register</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="n">pipeline_register</span><span class="p">()</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">qomn_register</span><span class="p">()</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">pipeline_register</span>
 <a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>    <span class="c1"># Parser plugins (always available)</span>
-<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">parsers.dxf_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">dxf_register</span>
-<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>    <span class="n">dxf_register</span><span class="p">()</span>
-<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>
-<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>    <span class="c1"># Optional plugins (conditional)</span>
-<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>    <span class="k">if</span> <span class="n">WORKFLOW_ROUTER_AVAILABLE</span><span class="p">:</span>
-<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">backend.services.workflow_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">workflow_register</span>
-<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>        <span class="n">workflow_register</span><span class="p">()</span>
-<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>
-<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>    <span class="k">if</span> <span class="n">MEMORY_ROUTER_AVAILABLE</span><span class="p">:</span>
-<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">backend.services.memory_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">memory_register</span>
-<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>        <span class="n">memory_register</span><span class="p">()</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>    <span class="n">pipeline_register</span><span class="p">()</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>    <span class="c1"># Parser plugins (always available)</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">parsers.dxf_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">dxf_register</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>    <span class="n">dxf_register</span><span class="p">()</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>    <span class="c1"># Optional plugins (conditional)</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>    <span class="k">if</span> <span class="n">WORKFLOW_ROUTER_AVAILABLE</span><span class="p">:</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">backend.services.workflow_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">workflow_register</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>        <span class="n">workflow_register</span><span class="p">()</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a>    <span class="k">if</span> <span class="n">MEMORY_ROUTER_AVAILABLE</span><span class="p">:</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">backend.services.memory_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">memory_register</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a>        <span class="n">memory_register</span><span class="p">()</span>
 </code></pre></div>
 <hr />
 <h2 id="4-risk-analysis">4. RISK ANALYSIS</h2>
@@ -1909,26 +1930,26 @@
 <h3 id="81-round-trip-test-suite">8.1 Round-Trip Test Suite</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># tests/test_cad_transform_verifier.py</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestCADTransformVerification</span><span class="p">:</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify DXF→Room→IFC/Revit round-trips preserve safety-critical data.&quot;&quot;&quot;</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
-<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_ceiling_height_preserved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;ceiling_height_m MUST survive round-trip (NFPA 72 §17.6.3).&quot;&quot;&quot;</span>
-<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>        <span class="n">dxf_rooms</span> <span class="o">=</span> <span class="n">parse_dxf</span><span class="p">(</span><span class="n">test_file</span><span class="p">)</span>
-<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">ifc_rooms</span> <span class="o">=</span> <span class="n">export_ifc</span><span class="p">(</span><span class="n">dxf_rooms</span><span class="p">)</span>
-<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="k">for</span> <span class="n">room_in</span><span class="p">,</span> <span class="n">room_out</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dxf_rooms</span><span class="p">,</span> <span class="n">ifc_rooms</span><span class="p">):</span>
-<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>            <span class="k">assert</span> <span class="n">room_out</span><span class="o">.</span><span class="n">ceiling_height_m</span> <span class="o">==</span> <span class="n">room_in</span><span class="o">.</span><span class="n">ceiling_height_m</span>
-<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>
-<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_wall_thickness_not_hardcoded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Wall thickness SHOULD come from DXF, not hardcoded 0.2m.&quot;&quot;&quot;</span>
-<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">verifier</span><span class="o">.</span><span class="n">verify_round_trip</span><span class="p">(</span><span class="n">input_rooms</span><span class="p">,</span> <span class="n">output_rooms</span><span class="p">)</span>
-<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>        <span class="k">assert</span> <span class="s2">&quot;wall_thickness_m&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lost_properties</span>
-<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>
-<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_door_locations_preserved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Door locations MUST survive round-trip (NFPA 92 door entrapment).&quot;&quot;&quot;</span>
-<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">verifier</span><span class="o">.</span><span class="n">verify_round_trip</span><span class="p">(</span><span class="n">input_rooms</span><span class="p">,</span> <span class="n">output_rooms</span><span class="p">)</span>
-<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>        <span class="n">critical_losses</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lost_properties</span> 
-<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>                          <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">verifier</span><span class="o">.</span><span class="n">CRITICAL_PROPERTIES</span><span class="p">]</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestCADTransformVerification</span><span class="p">:</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify DXF→Room→IFC/Revit round-trips preserve safety-critical data.&quot;&quot;&quot;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_ceiling_height_preserved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;ceiling_height_m MUST survive round-trip (NFPA 72 §17.6.3).&quot;&quot;&quot;</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">dxf_rooms</span> <span class="o">=</span> <span class="n">parse_dxf</span><span class="p">(</span><span class="n">test_file</span><span class="p">)</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="n">ifc_rooms</span> <span class="o">=</span> <span class="n">export_ifc</span><span class="p">(</span><span class="n">dxf_rooms</span><span class="p">)</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="k">for</span> <span class="n">room_in</span><span class="p">,</span> <span class="n">room_out</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dxf_rooms</span><span class="p">,</span> <span class="n">ifc_rooms</span><span class="p">):</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>            <span class="k">assert</span> <span class="n">room_out</span><span class="o">.</span><span class="n">ceiling_height_m</span> <span class="o">==</span> <span class="n">room_in</span><span class="o">.</span><span class="n">ceiling_height_m</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_wall_thickness_not_hardcoded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Wall thickness SHOULD come from DXF, not hardcoded 0.2m.&quot;&quot;&quot;</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">verifier</span><span class="o">.</span><span class="n">verify_round_trip</span><span class="p">(</span><span class="n">input_rooms</span><span class="p">,</span> <span class="n">output_rooms</span><span class="p">)</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>        <span class="k">assert</span> <span class="s2">&quot;wall_thickness_m&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lost_properties</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_door_locations_preserved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Door locations MUST survive round-trip (NFPA 92 door entrapment).&quot;&quot;&quot;</span>
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">verifier</span><span class="o">.</span><span class="n">verify_round_trip</span><span class="p">(</span><span class="n">input_rooms</span><span class="p">,</span> <span class="n">output_rooms</span><span class="p">)</span>
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>        <span class="n">critical_losses</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lost_properties</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">verifier</span><span class="o">.</span><span class="n">CRITICAL_PROPERTIES</span><span class="p">]</span>
 <a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">critical_losses</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 <a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>
 <a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_detector_positions_survive_export</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
