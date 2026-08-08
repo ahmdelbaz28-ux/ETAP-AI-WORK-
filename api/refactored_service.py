@@ -50,8 +50,9 @@ from __future__ import annotations
 
 import warnings
 
-# Re-export the canonical app so any lingering imports still work.
-from api.routes import app  # noqa: F401 — re-exported for backward compat
+# NOTE: The canonical app is defined later in this file (line ~1048).
+# The previous `from api.routes import app` re-export was overridden by the
+# local definition below, making it dead code (F811).
 
 # Emit a DeprecationWarning so callers know to migrate.
 warnings.warn(
@@ -1045,7 +1046,7 @@ async def lifespan(app: FastAPI):
 # FastAPI app — Create and configure
 # ---------------------------------------------------------------------------
 
-app = FastAPI(  # noqa: F811
+app = FastAPI(
     title="AhmedETAP Engineering Service",
     description="Production-grade power systems engineering computation API (refactored)",
     version="2.0.0",

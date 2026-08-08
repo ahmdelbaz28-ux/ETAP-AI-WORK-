@@ -99,13 +99,6 @@ class SyncRequest(BaseModel):
 
 
 class ValidateRequest(BaseModel):
-    model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
-    checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
-
-    systems: List[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
-
-
-class ValidateRequest(BaseModel):  # noqa: F811
     model_json: str | None = Field(None, description="Optional model JSON to validate")
     checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 

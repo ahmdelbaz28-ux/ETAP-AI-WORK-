@@ -123,12 +123,7 @@ class ETAPCompatibilityChecker:
         self._cached_version: Optional[str] = None
         self._cached_com_modules: dict[str, bool] | None = None
 
-    def check_version(self) -> Optional[str]:
-
-        self._cached_version: str | None = None
-        self._cached_com_modules: Dict[str, bool] | None = None
-
-    def check_version(self) -> str | None:  # noqa: F811
+    def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version

@@ -85,18 +85,7 @@ class TestPromptLoader:
         assert isinstance(prompt, str)
         assert len(prompt) > 0, "Fallback prompt should not be empty"
 
-    def test_missing_prompts_dir_graceful(self, monkeypatch):
-        """When prompts directory doesn't exist, should still return fallback."""
-        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        clear_prompt_cache()
-        prompt = get_system_prompt("load_flow_agent")
-        assert isinstance(prompt, str)
-        assert len(prompt) > 0
-        clear_prompt_cache()
-
-    def test_missing_prompts_dir_graceful(self):  # noqa: F811
+    def test_missing_prompts_dir_graceful(self):
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
@@ -253,22 +242,7 @@ class TestAgentPromptIntegration:
             assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
             assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
 
-    def test_agent_graceful_prompt_failure(self, monkeypatch):
-        """Agent should still work when prompt loading fails."""
-        from agents.orchestrator import LoadFlowAgent
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        from agents.prompt_loader import clear_prompt_cache
-
-        clear_prompt_cache()
-        agent = LoadFlowAgent()
-        # Agent should still have a system_prompt property (fallback)
-        assert len(agent.system_prompt) > 0
-        # Agent should still be functional
-        assert agent.agent_name == "LoadFlowAgent"
-        clear_prompt_cache()
-
-    def test_agent_graceful_prompt_failure(self):  # noqa: F811
+    def test_agent_graceful_prompt_failure(self):
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
 

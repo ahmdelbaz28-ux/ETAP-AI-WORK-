@@ -22,12 +22,7 @@ class ADMSGraphModel:
     - edges are inferred only from explicit geometry endpoints for determinism
     """
 
-    def __init__(self, assets: list[ADMSAsset]) -> None:
-        self.assets = assets
-        self.nodes: set[str] = {a.asset_id for a in assets}
-        self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
-
-    def __init__(self, assets: List[ADMSAsset]) -> None:  # noqa: F811
+    def __init__(self, assets: List[ADMSAsset]) -> None:
         self.assets = assets
         self.nodes: Set[str] = {a.asset_id for a in assets}
         self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
@@ -75,11 +70,7 @@ class ADMSGraphModel:
                     self.edges[l.asset_id].add(sid)
                     self.edges[sid].add(l.asset_id)
 
-    def find_disconnected_components(self) -> list[set[str]]:
-        visited: set[str] = set()  # noqa: F841
-        comps: list[set[str]] = []  # noqa: F841
-
-    def find_disconnected_components(self) -> List[Set[str]]:  # noqa: F811
+    def find_disconnected_components(self) -> List[Set[str]]:
         visited: Set[str] = set()
         comps: List[Set[str]] = []
         for n in self.nodes:

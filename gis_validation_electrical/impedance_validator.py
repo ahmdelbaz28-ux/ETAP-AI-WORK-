@@ -14,14 +14,7 @@ class ImpedanceIssue:
     details: dict[str, object]
 
 
-def validate_impedance_consistency(model: ElectricalModel) -> tuple[bool, list[ImpedanceIssue]]:
-
-    affected_edges: List[str]  # noqa: F842
-    affected_nodes: List[str]  # noqa: F842
-    details: Dict[str, object]  # noqa: F842
-
-
-def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[ImpedanceIssue]]:  # noqa: F811
+def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[ImpedanceIssue]]:
     """
     Deterministic impedance consistency validation:
     - Impedance values must not exhibit unrealistic discontinuities along connected edges.

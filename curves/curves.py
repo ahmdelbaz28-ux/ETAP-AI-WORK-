@@ -247,18 +247,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def very_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if Ip >= I:  # noqa: F821
-            return float("inf")
-        return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))  # noqa: F821
-
-    @staticmethod
-    def very_inverse(TMS, I, Ip):  # noqa: F811
+    def very_inverse(TMS, I, Ip):
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
@@ -272,18 +261,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def extremely_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if Ip >= I:  # noqa: F821
-            return float("inf")
-        return TMS * (13.5 / ((I / Ip) - 1))  # noqa: F821
-
-    @staticmethod
-    def extremely_inverse(TMS, I, Ip):  # noqa: F811
+    def extremely_inverse(TMS, I, Ip):
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
@@ -297,18 +275,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def long_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if Ip >= I:  # noqa: F821
-            return float("inf")
-        return TMS * (80 / ((I / Ip) ** 2 - 1))  # noqa: F821
-
-    @staticmethod
-    def long_inverse(TMS, I, Ip):  # noqa: F811
+    def long_inverse(TMS, I, Ip):
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))

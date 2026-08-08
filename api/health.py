@@ -47,29 +47,7 @@ def _get_redis_client_func():
 # generate a valid response_model schema. Plain Python classes cause
 # `fastapi.exceptions.FastAPIError: Invalid args for response field!` at
 # router decoration time, which crashes the entire app on import.
-class HealthResponse(BaseModel):
-    status: str
-    version: str
-    timestamp: str
-    trace_id: str
-
-
-class ReadyResponse(BaseModel):
-    ready: bool
-    native_engine_available: bool
-    etap_available: bool
-    timestamp: str
-    trace_id: str
-
-
-class MetricsResponse(BaseModel):
-    requests_total: int
-    requests_success: int
-    requests_failed: int
-    avg_execution_time_ms: float
-    trace_id: str
-
-class HealthResponse:  # noqa: F811
+class HealthResponse:
     def __init__(self, status: str, version: str, timestamp: str, trace_id: str):
         self.status = status
         self.version = version
@@ -77,7 +55,7 @@ class HealthResponse:  # noqa: F811
         self.trace_id = trace_id
 
 
-class ReadyResponse:  # noqa: F811
+class ReadyResponse:
     def __init__(
         self,
         ready: bool,
@@ -93,7 +71,7 @@ class ReadyResponse:  # noqa: F811
         self.trace_id = trace_id
 
 
-class MetricsResponse:  # noqa: F811
+class MetricsResponse:
     def __init__(
         self,
         requests_total: int,
@@ -125,62 +103,7 @@ async def healthz() -> Dict[str, str]:
 
 @router.head("/readyz")
 @router.get("/readyz")
-async def readyz() -> Dict[str, object]:
-    """Readiness probe — checks critical dependencies.
-
-    SECURITY/OPS (E-07): Previously this returned a hardcoded {"ready": True}
-    regardless of DB/Redis state. K8s/HF would route traffic to a broken
-    instance. Now performs real checks on DB + Redis and returns 503 if
-    any critical dependency is down.
-    """
-    checks: Dict[str, object] = {"python": True, "imports": True}
-
-    # DB check
-    try:
-        get_db_context = _get_db_context()
-        async with get_db_context() as db:
-            result = await db.execute(text("SELECT 1"))
-            if result.scalar() == 1:
-                checks["db"] = "ok"
-            else:
-                checks["db"] = "fail: unexpected scalar"
-    except Exception as exc:
-        checks["db"] = f"fail: {type(exc).__name__}: {exc}"
-
-    # Redis check
-    try:
-        get_redis_client = _get_redis_client_func()
-        r = get_redis_client()
-        if r is None:
-            # Redis is optional — mark as not-configured, not failed
-            checks["redis"] = "not_configured"
-        else:
-            await r.ping()
-            checks["redis"] = "ok"
-    except Exception as exc:
-        checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
-
-    # Critical dependencies: DB must be ok. Redis is optional in dev but
-    # required in production (fail-closed if configured but unreachable).
-    _env = os.getenv("ENVIRONMENT", "development").lower()
-    is_prod = _env in ("production", "prod", "staging")
-
-    db_ok = checks["db"] == "ok"
-    redis_ok = checks["redis"] == "ok"
-    redis_required = is_prod
-
-    all_ready = db_ok and (redis_ok or not redis_required)
-    # SECURITY (LB-2): Return HTTP 503 when not ready — K8s/HF readiness
-    # probes check the HTTP status code, not the JSON body. Previously
-    # this always returned 200, so the probe would route traffic to a
-    # broken instance even when DB/Redis were down.
-    status_code = 200 if all_ready else 503
-    return JSONResponse(
-        status_code=status_code,
-        content={"ready": all_ready, "checks": checks},
-    )
-
-async def readyz():  # noqa: F811
+async def readyz():
     """Readiness probe — checks critical dependencies."""
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())

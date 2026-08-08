@@ -16,10 +16,7 @@ from core.bootstrap import logger
 # ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
 # to eliminate the 3-way duplication.
 # See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
-from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
-
-
-class ETAPStudyType(Enum):  # noqa: F811
+class ETAPStudyType(Enum):
     """Enumeration of supported ETAP study types."""
 
     LOAD_FLOW = "load_flow"
@@ -31,7 +28,7 @@ class ETAPStudyType(Enum):  # noqa: F811
     PROTECTION_COORDINATION = "protection_coordination"
 
 
-class ETAPResult:  # noqa: F811
+class ETAPResult:
     """Result wrapper for ETAP operations."""
 
     def __init__(

@@ -35,12 +35,7 @@ from typing import Any, Optional
 
 import numpy as np
 
-from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-
-UTC = UTC
-
-
-from agents.orchestrator import (  # noqa: F811
+from agents.orchestrator import (
     AgentResult,
     AgentStatus,
     BaseAgent,

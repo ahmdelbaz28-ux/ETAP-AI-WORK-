@@ -174,14 +174,9 @@ class TestBusEdgeCases:
         assert bus.q_min == -0.5
         assert bus.q_max == pytest.approx(0.5)
 
-    def test_bus_complex_power(self):
-        bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))
-        assert bus.generation_power.real == pytest.approx(1.0)
-        assert bus.load_power.imag == pytest.approx(0.1)
-
         assert bus.q_max == 0.5
 
-    def test_bus_complex_power(self):  # noqa: F811
+    def test_bus_complex_power(self):
         bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))
         assert bus.generation_power.real == 1.0
         assert bus.load_power.imag == 0.1

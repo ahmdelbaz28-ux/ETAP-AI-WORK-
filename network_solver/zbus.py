@@ -31,22 +31,7 @@ def zbus_from_ybus(
     return z_reduced
 
 
-def zbus_full(
-    ybus,
-):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-    Y_reduced = np.delete(np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1)  # noqa: F821
-    # Compute the inverse
-    try:
-        Z_reduced = np.linalg.inv(Y_reduced)
-    except np.linalg.LinAlgError:
-        # If singular, use pseudo-inverse
-        Z_reduced = np.linalg.pinv(Y_reduced)
-    # Expand back to full size if needed, but we return reduced for now
-    return Z_reduced
-
-
-def zbus_full(Ybus):  # noqa: F811
+def zbus_full(Ybus):
     """
     Compute Zbus by inverting the full Ybus matrix.
     Note: This may fail if Ybus is singular (which it is if there is no reference).
