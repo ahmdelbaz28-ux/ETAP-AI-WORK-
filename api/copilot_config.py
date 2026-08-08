@@ -33,6 +33,18 @@ from pydantic import BaseModel, Field
 
 from api.dependencies import get_api_key
 
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs."""
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
 logger = logging.getLogger("etap.api.copilot_config")
 
 router = APIRouter(

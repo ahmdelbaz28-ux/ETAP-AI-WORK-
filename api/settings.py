@@ -67,6 +67,18 @@ from pydantic import BaseModel, Field
 from api.dependencies import get_api_key
 from services.api_key_store import APIKeyStore, api_key_store
 
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs."""
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
@@ -247,7 +259,7 @@ async def save_key(
             },
         )
     except ValueError as exc:
-        logger.warning("api_key_save_validation_failed provider=%s error=%s", provider, str(exc))
+        logger.warning("api_key_save_validation_failed provider=%s error=%s", _sanitize_for_log(provider), _sanitize_for_log(str(exc)))
         raise HTTPException(status_code=400, detail="Invalid API key configuration") from exc
     except Exception:  # noqa: BLE001
         logger.exception("Failed to save API key")

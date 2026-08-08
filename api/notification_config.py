@@ -43,6 +43,18 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 from api.dependencies import get_api_key
 
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs."""
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
 logger = logging.getLogger("etap.api.notification_config")
 
 # ---------------------------------------------------------------------------
@@ -336,7 +348,7 @@ async def update_notification_config(
     """
     if body.digest is not None:
         _store["digest"].update(body.digest.model_dump())
-        logger.info("digest_config_updated new_config=%s", body.digest.model_dump())
+        logger.info("digest_config_updated new_config=%s", _sanitize_for_log(body.digest.model_dump()))
 
     if body.alerts is not None:
         for alert_cfg in body.alerts:
@@ -372,7 +384,7 @@ async def update_digest_config(
     All fields of the digest schedule are replaced with the provided values.
     """
     _store["digest"].update(body.model_dump())
-    logger.info("digest_schedule_updated config=%s", body.model_dump())
+    logger.info("digest_schedule_updated config=%s", _sanitize_for_log(body.model_dump()))
     return DigestScheduleConfig(**_store["digest"])
 
 
@@ -416,7 +428,7 @@ async def update_alert_config(
         )
 
     _store["alerts"][alert_type] = body.model_dump()
-    logger.info("alert_config_updated alert_type=%s config=%s", alert_type, body.model_dump())
+    logger.info("alert_config_updated alert_type=%s config=%s", _sanitize_for_log(alert_type), _sanitize_for_log(body.model_dump()))
     return AlertTypeConfig(**_store["alerts"][alert_type])
 
 
@@ -490,7 +502,7 @@ async def delete_webhook(
         )
 
     del _store["webhooks"][webhook_id]
-    logger.info("webhook_deleted id=%s", webhook_id)
+    logger.info("webhook_deleted id=%s", _sanitize_for_log(webhook_id))
 
 
 __all__ = ["router"]

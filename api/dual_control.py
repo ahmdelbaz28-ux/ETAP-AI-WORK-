@@ -85,10 +85,10 @@ def _add_audit_entry(
             _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2 :]
     logger.info(
         "audit_trail event=%s request=%s user=%s",
-        event_type,
-        request_id,
+        _sanitize_for_log(event_type),
+        _sanitize_for_log(request_id),
         _sanitize_for_log(user_id),
-    )  # NOSONAR
+    )
 
 
 def _cleanup_expired_approvals() -> int:
@@ -164,8 +164,8 @@ def create_approval_request(
 
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
-        request_id,
-        action.get("type", "unknown"),
+        _sanitize_for_log(request_id),
+        _sanitize_for_log(action.get("type", "unknown")),
         _sanitize_for_log(operator_id),
         AUTO_REJECT_SECONDS,
     )

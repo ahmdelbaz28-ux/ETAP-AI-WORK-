@@ -46,6 +46,20 @@ from api.r2_storage import (
 
 logger = logging.getLogger(__name__)
 
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs."""
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
+
+
 router = APIRouter(prefix="/api/v1/storage", tags=["storage", "r2"])
 
 # Type alias for FastAPI dependency (SonarCloud S8410)
@@ -401,7 +415,7 @@ async def purge_storage(
 
     logger.info(
         "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s",
-        prefix or "(all)",
+        _sanitize_for_log(prefix or "(all)"),
         older_than_days,
         request.dry_run,
     )
