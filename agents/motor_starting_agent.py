@@ -30,9 +30,7 @@ CRITICAL FIX — Motor Transient Undervoltage Drop:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import numpy as np
@@ -42,7 +40,13 @@ from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, 
 UTC = UTC
 
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType  # noqa: F811
+from agents.orchestrator import (  # noqa: F811
+    AgentResult,
+    AgentStatus,
+    BaseAgent,
+    EngineeringTask,
+    StudyType,
+)
 
 logger = logging.getLogger(__name__)
 
