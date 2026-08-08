@@ -529,16 +529,13 @@ def _generate_qgis_project(
     # need to CREATE a new one. We'll use QgsProject directly.
     provider._ensure_qgs_application()
 
+    from PyQt5.QtGui import QColor  # type: ignore
     from qgis.core import (  # type: ignore
+        QgsFillSymbol,
+        QgsGraduatedSymbolRenderer,
         QgsProject,
         QgsVectorLayer,
-        QgsGraduatedSymbolRenderer,
-        QgsFillSymbol,
-        QgsMapSettings,
-        QgsMapRendererSequentialJob,
     )
-    from PyQt5.QtCore import QSize  # type: ignore
-    from PyQt5.QtGui import QColor  # type: ignore
 
     # Create vector layer from GeoJSON
     layer = QgsVectorLayer(geojson_path, "ETAP_LoadFlow_Results", "ogr")

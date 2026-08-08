@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from typing import Any
+from enum import Enum
+from typing import Any, Dict
 
 from core.bootstrap import logger
 
@@ -16,11 +17,6 @@ from core.bootstrap import logger
 # to eliminate the 3-way duplication.
 # See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
 from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
-
-from enum import Enum
-from typing import Any, Dict
-
-from core.bootstrap import logger
 
 
 class ETAPStudyType(Enum):

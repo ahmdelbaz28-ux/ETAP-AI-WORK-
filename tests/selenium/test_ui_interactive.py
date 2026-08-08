@@ -7,23 +7,23 @@ testing form interactions on the Swagger UI.
 
 Run: python3 tests/selenium/test_ui_interactive.py
 """
+import json
+import os
 import sys
 import time
-import os
-import json
 import urllib.request
 
 from selenium import webdriver
+from selenium.common.exceptions import (
+    ElementNotInteractableException,
+    NoSuchElementException,
+    TimeoutException,
+)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    TimeoutException,
-    ElementNotInteractableException,
-)
+from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "http://127.0.0.1:7860"
 CHROME_BINARY = "/tmp/chrome-extracted/opt/google/chrome/google-chrome"
@@ -39,7 +39,7 @@ def run_test(name: str, test_fn, driver):
     try:
         result = test_fn(driver)
         if result:
-            print(f"  ✓ PASS")
+            print("  ✓ PASS")
             passed += 1
         else:
             failed += 1
@@ -95,7 +95,7 @@ def test_homepage_displays_correct_agent_count(driver):
             break
 
     if not agents_stat:
-        print(f"  ✗ FAIL: could not find 'AI Agents' stat element")
+        print("  ✗ FAIL: could not find 'AI Agents' stat element")
         return False
 
     # Extract the number
@@ -167,7 +167,7 @@ def test_click_swagger_docs_link(driver):
     try:
         swagger_link = driver.find_element(By.LINK_TEXT, "Swagger Docs")
     except NoSuchElementException:
-        print(f"  ✗ FAIL: 'Swagger Docs' link not found")
+        print("  ✗ FAIL: 'Swagger Docs' link not found")
         return False
 
     # Click it
@@ -184,7 +184,7 @@ def test_click_swagger_docs_link(driver):
     time.sleep(3)  # Swagger UI takes time to render
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if "AhmedETAP" not in body_text and "API" not in body_text:
-        print(f"  ✗ FAIL: Swagger UI did not load properly")
+        print("  ✗ FAIL: Swagger UI did not load properly")
         return False
 
     print(f"  Navigated to {driver.current_url}, Swagger UI loaded")
@@ -199,7 +199,7 @@ def test_click_health_link(driver):
     try:
         health_link = driver.find_element(By.LINK_TEXT, "Health")
     except NoSuchElementException:
-        print(f"  ✗ FAIL: 'Health' link not found")
+        print("  ✗ FAIL: 'Health' link not found")
         return False
 
     health_link.click()
@@ -212,7 +212,7 @@ def test_click_health_link(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if "ok" not in body_text:
-        print(f"  ✗ FAIL: health response does not contain 'ok'")
+        print("  ✗ FAIL: health response does not contain 'ok'")
         return False
 
     print(f"  Navigated to {driver.current_url}, health status displayed")
@@ -227,7 +227,7 @@ def test_click_agents_link(driver):
     try:
         agents_link = driver.find_element(By.LINK_TEXT, "Agents")
     except NoSuchElementException:
-        print(f"  ✗ FAIL: 'Agents' link not found")
+        print("  ✗ FAIL: 'Agents' link not found")
         return False
 
     agents_link.click()
@@ -240,7 +240,7 @@ def test_click_agents_link(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if "agents" not in body_text.lower():
-        print(f"  ✗ FAIL: agents response does not contain 'agents'")
+        print("  ✗ FAIL: agents response does not contain 'agents'")
         return False
 
     # Verify the count in the response matches the UI homepage
@@ -274,7 +274,7 @@ def test_swagger_ui_has_endpoints(driver):
         print(f"  ✗ FAIL: Swagger UI missing endpoints: {missing}")
         return False
 
-    print(f"  Swagger UI displays all expected endpoints")
+    print("  Swagger UI displays all expected endpoints")
     return True
 
 
@@ -291,7 +291,7 @@ def test_swagger_ui_try_it_out(driver):
         healthz_element.click()
         time.sleep(2)
     except NoSuchElementException:
-        print(f"  ⚠ SKIP: could not find healthz endpoint in Swagger UI (UI may differ)")
+        print("  ⚠ SKIP: could not find healthz endpoint in Swagger UI (UI may differ)")
         return True  # Don't fail — Swagger UI structure varies
 
     # Look for "Try it out" button
@@ -308,13 +308,13 @@ def test_swagger_ui_try_it_out(driver):
         # Check for response
         body_text = driver.find_element(By.TAG_NAME, "body").text
         if "ok" not in body_text:
-            print(f"  ⚠ SKIP: Try it out did not show expected response (UI may differ)")
+            print("  ⚠ SKIP: Try it out did not show expected response (UI may differ)")
             return True
     except (NoSuchElementException, ElementNotInteractableException):
-        print(f"  ⚠ SKIP: Try it out button not interactable (UI may differ)")
+        print("  ⚠ SKIP: Try it out button not interactable (UI may differ)")
         return True
 
-    print(f"  Swagger UI 'Try it out' works for /healthz")
+    print("  Swagger UI 'Try it out' works for /healthz")
     return True
 
 
@@ -326,7 +326,7 @@ def test_redoc_loads(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if "AhmedETAP" not in body_text and "API" not in body_text:
-        print(f"  ✗ FAIL: ReDoc did not load properly")
+        print("  ✗ FAIL: ReDoc did not load properly")
         return False
 
     print(f"  ReDoc loaded at {driver.current_url}")
@@ -343,7 +343,7 @@ def test_404_page_displays_error(driver):
         print(f"  ✗ FAIL: 404 page should show 'not found', got: {body_text[:200]!r}")
         return False
 
-    print(f"  404 error displayed correctly")
+    print("  404 error displayed correctly")
     return True
 
 
@@ -355,7 +355,7 @@ def test_homepage_status_indicator(driver):
     try:
         status = driver.find_element(By.CSS_SELECTOR, ".status")
     except NoSuchElementException:
-        print(f"  ✗ FAIL: status indicator element not found")
+        print("  ✗ FAIL: status indicator element not found")
         return False
 
     status_text = status.text
@@ -382,7 +382,7 @@ if __name__ == "__main__":
 
     try:
         driver = create_driver()
-        print(f"Chrome WebDriver started")
+        print("Chrome WebDriver started")
     except Exception as e:
         print(f"FATAL: Could not start Chrome WebDriver: {e}")
         sys.exit(1)

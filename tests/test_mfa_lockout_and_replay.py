@@ -17,8 +17,8 @@ Run:
 from __future__ import annotations
 
 import hashlib
-import time
 import threading
+import time
 from collections import defaultdict
 
 import pytest

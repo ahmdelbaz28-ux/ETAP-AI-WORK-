@@ -24,12 +24,10 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
+from datetime import UTC
 from typing import Any, Optional, Union
 
-from datetime import UTC, datetime
-
 UTC = UTC
-from typing import Any, Dict, List
 
 import numpy as np
 

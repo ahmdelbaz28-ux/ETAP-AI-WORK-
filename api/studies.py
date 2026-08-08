@@ -568,7 +568,7 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     if not payload.etap_project_path:
         raise ValueError("etap_project_path is required when use_etap=True")
 
-    from etap_integration.etap_provider import get_etap_provider, ETAPStudyType
+    from etap_integration.etap_provider import ETAPStudyType, get_etap_provider
 
     provider = get_etap_provider()
 

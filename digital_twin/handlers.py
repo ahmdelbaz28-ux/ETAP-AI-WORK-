@@ -578,7 +578,6 @@ class ProtectionRefreshHandler(PropagationHandler):
 
             fault_currents: list[float] = []
 
-            from relays.relay import OvercurrentRelay
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")

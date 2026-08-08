@@ -50,7 +50,7 @@ def main():
 
     # Print summary
     avg = sum(r.improvement_pct for r in results) / len(results) if results else 0
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Tests run: {len(results)}")
     print(f"Average improvement: {avg:+.1f}%")
 

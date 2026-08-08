@@ -442,7 +442,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
                     })
                     await websocket.close(code=4003, reason="Authentication failed")
                     return
-            except (asyncio.TimeoutError, json.JSONDecodeError):
+            except (TimeoutError, json.JSONDecodeError):
                 await websocket.send_json({
                     "channel": "system",
                     "type": "auth_timeout",

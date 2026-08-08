@@ -11,22 +11,22 @@ These tests open the actual web UI in a headless Chrome browser and verify:
 
 Run: python3 tests/selenium/test_ui_real.py
 """
+import os
 import sys
 import time
-import os
 
 # Selenium imports
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     WebDriverException,
 )
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "http://127.0.0.1:7860"
 CHROME_BINARY = "/tmp/chrome-extracted/opt/google/chrome/google-chrome"
@@ -43,7 +43,7 @@ def run_test(name: str, test_fn, driver):
     try:
         result = test_fn(driver)
         if result:
-            print(f"  ✓ PASS")
+            print("  ✓ PASS")
             passed += 1
         else:
             failed += 1
@@ -128,13 +128,13 @@ def test_agents_page_loads(driver):
         print(f"  ✗ FAIL: response should contain 'agents', got: {body_text[:200]!r}")
         return False
     if '"count"' not in body_text and "count" not in body_text:
-        print(f"  ✗ FAIL: response should contain 'count'")
+        print("  ✗ FAIL: response should contain 'count'")
         return False
     # Verify there are actual agent IDs in the response
     if "agent" not in body_text.lower():
-        print(f"  ✗ FAIL: no agent IDs found in response")
+        print("  ✗ FAIL: no agent IDs found in response")
         return False
-    print(f"  Response contains agents list")
+    print("  Response contains agents list")
     return True
 
 
@@ -151,7 +151,7 @@ def test_docs_page_loads(driver):
     if "AhmedETAP" not in body_text and "API" not in body_text and "swagger" not in body_text.lower():
         print(f"  ✗ FAIL: docs page should contain 'AhmedETAP' or 'API', got: {body_text[:200]!r}")
         return False
-    print(f"  Docs page loaded")
+    print("  Docs page loaded")
     return True
 
 
@@ -162,15 +162,15 @@ def test_openapi_schema_valid(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if '"openapi"' not in body_text and "openapi" not in body_text:
-        print(f"  ✗ FAIL: response should contain 'openapi'")
+        print("  ✗ FAIL: response should contain 'openapi'")
         return False
     if '"paths"' not in body_text and "paths" not in body_text:
-        print(f"  ✗ FAIL: response should contain 'paths'")
+        print("  ✗ FAIL: response should contain 'paths'")
         return False
     if '"info"' not in body_text and "info" not in body_text:
-        print(f"  ✗ FAIL: response should contain 'info'")
+        print("  ✗ FAIL: response should contain 'info'")
         return False
-    print(f"  OpenAPI schema is valid")
+    print("  OpenAPI schema is valid")
     return True
 
 
@@ -184,7 +184,7 @@ def test_nonexistent_page_error(driver):
     if "not found" not in body_text.lower() and "error" not in body_text.lower():
         print(f"  ✗ FAIL: should contain 'not found' or 'error', got: {body_text[:200]!r}")
         return False
-    print(f"  Error response correct")
+    print("  Error response correct")
     return True
 
 
@@ -213,10 +213,10 @@ def test_settings_page_api(driver):
         return False
 
     if "data" not in data or "crypto_available" not in data["data"]:
-        print(f"  ✗ FAIL: missing crypto_available in response")
+        print("  ✗ FAIL: missing crypto_available in response")
         return False
 
-    print(f"  Settings API accessible from browser")
+    print("  Settings API accessible from browser")
     return True
 
 
@@ -233,7 +233,7 @@ def test_studies_types_via_browser(driver):
         print(f"  ✗ FAIL: missing expected study types: {missing}")
         return False
 
-    print(f"  All expected study types present")
+    print("  All expected study types present")
     return True
 
 
@@ -244,12 +244,12 @@ def test_ml_capabilities_via_browser(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     if "sklearn" not in body_text:
-        print(f"  ✗ FAIL: 'sklearn' not in response")
+        print("  ✗ FAIL: 'sklearn' not in response")
         return False
     if "success" not in body_text:
-        print(f"  ✗ FAIL: 'success' not in response")
+        print("  ✗ FAIL: 'success' not in response")
         return False
-    print(f"  ML capabilities returned correctly")
+    print("  ML capabilities returned correctly")
     return True
 
 
@@ -317,7 +317,7 @@ def test_chat_api_via_browser_fetch(driver):
         return False
 
     if "data" not in data or "response" not in data.get("data", {}):
-        print(f"  ✗ FAIL: missing data.response in chat response")
+        print("  ✗ FAIL: missing data.response in chat response")
         return False
 
     response_text = data["data"]["response"]

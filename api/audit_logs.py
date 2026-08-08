@@ -38,7 +38,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependencies import get_api_key
-from api.security_audit import Severity
 
 # ---------------------------------------------------------------------------
 # Router

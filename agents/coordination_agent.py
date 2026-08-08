@@ -42,9 +42,9 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 from curves.curves import (
-    calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
+    calculate_iec_operating_time,
 )
 
 logger = logging.getLogger(__name__)

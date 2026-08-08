@@ -696,10 +696,10 @@ class TestConstants:
         assert DEFAULT_RECALL_FLOOR == "GF"
 
     def test_stack_effect_velocity(self) -> None:
-        assert STACK_EFFECT_VELOCITY_MPS == pytest.approx(3.0)
+        assert pytest.approx(3.0) == STACK_EFFECT_VELOCITY_MPS
 
     def test_min_smoke_barrier_rating(self) -> None:
-        assert MIN_SMOKE_BARRIER_RATING_H == pytest.approx(1.0)
+        assert pytest.approx(1.0) == MIN_SMOKE_BARRIER_RATING_H
 
 
 # ============================================================================

@@ -172,7 +172,7 @@ def calculate_iec_operating_time(
         }
 
     # --- Cap M at maximum valid range ---
-    if M > max_multiplier:
+    if max_multiplier < M:
         warnings.append(
             f"M={M:.1f} exceeds max_multiplier={max_multiplier}; "
             f"capped to {max_multiplier}. Results may be unreliable."
@@ -253,7 +253,7 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
 
@@ -278,7 +278,7 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (13.5 / ((I / Ip) - 1))
 
@@ -303,7 +303,7 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (80 / ((I / Ip) ** 2 - 1))
 
@@ -321,6 +321,6 @@ class IEC60255Curves:
         )
         return result["operating_time_s"]
 
-        if I <= Ip:
+        if Ip >= I:
             return float("inf")
         return TMS * (120 / ((I / Ip) - 1))

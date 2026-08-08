@@ -16,7 +16,6 @@ from autodesk_connector.autocad.connector import (
     AutoCADPluginClient,
 )
 
-
 __all__ = [
     "AutoCADConnector",
     "AutoCADDrawingOperation",

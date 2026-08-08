@@ -226,7 +226,8 @@ async def run_scenario(
 
     try:
         from etap_integration.unified_etap_types import (
-            ETAPStudyType, get_etap_provider,
+            ETAPStudyType,
+            get_etap_provider,
         )
 
         etap_provider = get_etap_provider()
@@ -468,8 +469,8 @@ def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
             f"Current platform: {os.name}"
         )
 
-    import win32com.client  # type: ignore
     import pythoncom  # type: ignore
+    import win32com.client  # type: ignore
 
     pythoncom.CoInitialize()
     try:

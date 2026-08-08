@@ -222,8 +222,9 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
 async def compliance_report(request: ComplianceReportRequest):
     """Generate full MSHA + NFPA 120 compliance report."""
     try:
-        from fireai.mining.core.msha_compliance import MSHAComplianceChecker
         from fireai.mining.output.msha_report import generate_msha_report
+
+        from fireai.mining.core.msha_compliance import MSHAComplianceChecker
 
         report = MSHAComplianceChecker.full_compliance_report(
             mine_name=request.mine_name,

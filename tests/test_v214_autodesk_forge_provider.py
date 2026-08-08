@@ -248,7 +248,7 @@ class TestV214AutodeskForgeProviderRealImplementation:
         """
         import re
         src_path = "fireai/bridges/bim_provider.py"
-        with open(src_path, "r", encoding="utf-8") as f:
+        with open(src_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check for actual STUB return patterns as CODE (not in comments)

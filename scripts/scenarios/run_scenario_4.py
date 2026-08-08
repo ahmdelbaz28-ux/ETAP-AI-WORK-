@@ -137,7 +137,8 @@ async def run_scenario(
 
     try:
         from etap_integration.unified_etap_types import (
-            ETAPStudyType, get_etap_provider,
+            ETAPStudyType,
+            get_etap_provider,
         )
 
         etap_provider = get_etap_provider()
@@ -483,8 +484,8 @@ def _restore_etap(backup_path: str, original_path: str) -> None:
 def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
     if os.name != "nt":
         raise RuntimeError("apply_diff_to_etap requires Windows (COM)")
-    import win32com.client  # type: ignore
     import pythoncom  # type: ignore
+    import win32com.client  # type: ignore
 
     pythoncom.CoInitialize()
     try:
@@ -570,6 +571,7 @@ async def _run_consumer_simplified() -> None:
     """Simplified consumer for Step 5 (full consumer in scenario 3)."""
     try:
         import json
+
         import paho.mqtt.client as mqtt
 
         broker = os.environ.get("MQTT_BROKER", "tcp://localhost:1883")
