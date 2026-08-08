@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Dict, List, Tuple
 
 from gis_validation_electrical.electrical_model import ElectricalEdge, ElectricalModel
-from typing import Dict, List, Tuple
 
 
 @dataclass(frozen=True)
@@ -16,9 +16,9 @@ class ImpedanceIssue:
 
 def validate_impedance_consistency(model: ElectricalModel) -> tuple[bool, list[ImpedanceIssue]]:
 
-    affected_edges: List[str]
-    affected_nodes: List[str]
-    details: Dict[str, object]
+    affected_edges: List[str]  # noqa: F842
+    affected_nodes: List[str]  # noqa: F842
+    details: Dict[str, object]  # noqa: F842
 
 
 def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[ImpedanceIssue]]:

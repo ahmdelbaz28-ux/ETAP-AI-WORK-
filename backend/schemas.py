@@ -490,7 +490,7 @@ class StatisticsResponse(CamelModel):
 T = TypeVar("T")
 
 
-class ApiResponse(CamelModel, Generic[T]):
+class ApiResponse(CamelModel, Generic[T]):  # noqa: UP046
     """Universal response wrapper for all API endpoints."""
 
     success: bool
@@ -498,7 +498,7 @@ class ApiResponse(CamelModel, Generic[T]):
     message: str | None = None
 
 
-class PaginatedData(CamelModel, Generic[T]):
+class PaginatedData(CamelModel, Generic[T]):  # noqa: UP046
     """Wrapper for paginated data inside ApiResponse."""
 
     items: list[T]

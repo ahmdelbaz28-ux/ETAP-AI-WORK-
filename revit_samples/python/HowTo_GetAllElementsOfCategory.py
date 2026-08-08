@@ -17,7 +17,7 @@ from Autodesk.Revit.DB import BuiltInCategory, FilteredElementCollector
 doc = __revit__.ActiveUIDocument.Document
 
 def all_elements_of_category(category):
-	return FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType().ToElements()
+	return FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType().ToElements()  # noqa: W191
 
 #All Elements Of Walls Category.
 walls = all_elements_of_category(BuiltInCategory.OST_Walls)

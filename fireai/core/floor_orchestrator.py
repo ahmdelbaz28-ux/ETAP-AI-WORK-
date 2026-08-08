@@ -334,7 +334,7 @@ class FloorOrchestrator:
             # Heat detectors use square/Chebyshev geometry per NFPA 72 Table 17.6.2.1.
             # Previous code hardcoded "circular" for ALL detector types, causing
             # heat detector coverage to be verified with wrong geometry.
-            from fireai.core.nfpa72_models import DetectorType as _DT
+            from fireai.core.nfpa72_models import DetectorType as _DT  # noqa: N814
 
             is_heat = spec.detector_type == _DT.HEAT if hasattr(spec, "detector_type") else False
             coverage_geom = "square_grid" if is_heat else "circular"

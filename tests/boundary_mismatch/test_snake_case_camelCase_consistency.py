@@ -1,4 +1,4 @@
-"""Test: snake_case ↔ camelCase consistency.
+"""Test: snake_case ↔ camelCase consistency.  # noqa: N999
 
 Catches field naming drift between DB columns, API responses, and TS types.
 """

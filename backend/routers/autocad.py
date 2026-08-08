@@ -602,7 +602,7 @@ _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 @router.post("/upload_dwg", response_model=ReadFileResponse, dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])  # NOSONAR - python:S8409
 @router.post("/upload", response_model=ReadFileResponse, dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])  # NOSONAR - python:S8409
 @limiter.limit("10/minute")
-async def upload_and_read_dwg(request: Request, file: UploadFile = File(...)) -> ReadFileResponse:  # NOSONAR - python:S8410
+async def upload_and_read_dwg(request: Request, file: UploadFile = File(...)) -> ReadFileResponse:  # NOSONAR - python:S8410  # noqa: B008
     """
     Upload a DWG file and read its contents.
 

@@ -15,10 +15,7 @@ config = context.config
 
 # Override URL from environment (same as main app) or use default
 db_url = os.getenv("DATABASE_URL", "sqlite:///./db/digital_twin.db")
-if db_url.startswith("sqlite:///"):
-    db_path = db_url.replace("sqlite:///", "")
-else:
-    db_path = db_url
+db_path = db_url.replace("sqlite:///", "") if db_url.startswith("sqlite:///") else db_url
 config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.

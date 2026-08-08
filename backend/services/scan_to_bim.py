@@ -354,7 +354,7 @@ class ScanToBIMService:
 
             # Assign standalone areas to potential names
             for i, area_value in enumerate(standalone_areas):
-                if i < len(potential_names):
+                if i < len(potential_names):  # noqa: SIM108
                     room_name = potential_names[i]
                 else:
                     # If no names available, create generic name

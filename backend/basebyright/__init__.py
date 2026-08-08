@@ -740,10 +740,7 @@ class BaseByRight:
             The actual status code (for chaining).
         """
         actual = response.status_code
-        if isinstance(expected, (set, list)):
-            passed = actual in expected
-        else:
-            passed = actual == expected
+        passed = actual in expected if isinstance(expected, (set, list)) else actual == expected
 
         contract_name = f"STATUS_{actual}" if passed else f"STATUS_{expected}"
         ctx = f" [{context}]" if context else ""

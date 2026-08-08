@@ -39,7 +39,7 @@ async def list_conflicts(
     conflict_type: str | None = Query(None, description="Filter by conflict type"),  # NOSONAR - python:S8410
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """List conflicts with optional filtering and pagination."""
     try:
@@ -68,7 +68,7 @@ async def list_conflicts(
 
 @router.post("/detect", response_model=ApiResponse[list], dependencies=[Depends(require_permission(Permission.CONFLICT_READ))])
 async def detect_conflicts(
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Run conflict detection on all elements."""
     try:
@@ -87,7 +87,7 @@ async def detect_conflicts(
 async def resolve_conflict(
     conflict_id: str,
     resolve_data: ConflictResolveRequest,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Resolve a conflict by ID."""
     try:

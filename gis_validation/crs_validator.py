@@ -15,8 +15,8 @@ class CRSIssue:
 
 def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
 
-    affected_assets: List[str]
-    details: Dict[str, Any]
+    affected_assets: List[str]  # noqa: F842
+    details: Dict[str, Any]  # noqa: F842
 
 
 def _asset_source_crs(asset: ADMSAsset) -> str | None:

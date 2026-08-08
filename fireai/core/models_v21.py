@@ -369,7 +369,7 @@ class ZoneExtent(BaseModel):
     def extent_geometry(self) -> ZoneExtent:
         # Volume must be consistent with the appropriate volume model
         r = max(self.horizontal_m, self.vertical_m)
-        if self.is_outdoor:
+        if self.is_outdoor:  # noqa: SIM108
             max_vol = (4.0 / 3.0) * math.pi * r**3  # Full sphere
         else:
             max_vol = (2.0 / 3.0) * math.pi * r**3  # Hemisphere

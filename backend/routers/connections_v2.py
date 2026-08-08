@@ -45,7 +45,7 @@ async def list_connections(
     relationship_type: str | None = Query(None, description="Filter by relationship type"),  # NOSONAR - python:S8410
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """List connections (relationships) with optional filtering and pagination."""
     try:
@@ -76,7 +76,7 @@ async def list_connections(
 @router.post("", response_model=ApiResponse[ConnectionResponse], status_code=201, dependencies=[Depends(require_permission(Permission.CONNECTION_CREATE))])
 async def create_connection(
     connection_data: ConnectionCreate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Create a new connection (relationship) between elements."""
     try:
@@ -95,7 +95,7 @@ async def create_connection(
 async def update_connection(
     connection_id: str,
     data: ConnectionCreate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Update a connection by ID. V215 FIX: was missing — frontend got 405."""
     try:
@@ -117,7 +117,7 @@ async def update_connection(
 @router.delete("/{connection_id}", response_model=ApiResponse[None], dependencies=[Depends(require_permission(Permission.CONNECTION_DELETE))])
 async def delete_connection(
     connection_id: str,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Delete a connection by ID."""
     try:

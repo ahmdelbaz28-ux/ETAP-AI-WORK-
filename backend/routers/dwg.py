@@ -190,7 +190,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
 # endpoint. The previous @router.post + @limiter.limit order was wrong.
 if _HAS_LIMITER:
     @limiter.limit("10/minute")
-    async def _rate_limited_parse_dwg(request: Request, file: UploadFile = File(...)):
+    async def _rate_limited_parse_dwg(request: Request, file: UploadFile = File(...)):  # noqa: B008
         """Rate-limited wrapper for DWG parse endpoint."""
         return await _parse_dwg_impl(request, file)
 

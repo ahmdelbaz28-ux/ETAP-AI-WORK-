@@ -545,11 +545,11 @@ def main() -> None:
                         help="Compute diff only, don't apply to ETAP")
     args = parser.parse_args()
 
-    if not os.environ.get("ALLOW_GIS_TO_ETAP_SYNC") == "true":
+    if os.environ.get("ALLOW_GIS_TO_ETAP_SYNC") != "true":
         print("❌ Set ALLOW_GIS_TO_ETAP_SYNC=true to run this scenario")
         sys.exit(1)
 
-    if not args.dry_run and not os.environ.get("USE_ETAP") == "true":
+    if not args.dry_run and os.environ.get("USE_ETAP") != "true":
         print("❌ Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 

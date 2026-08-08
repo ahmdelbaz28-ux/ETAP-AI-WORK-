@@ -43,7 +43,7 @@ async def list_elements(
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
     sort_by: str = Query("created_timestamp", description="Sort field"),  # NOSONAR - python:S8410
     sort_order: str = Query("desc", description="Sort order (asc/desc)"),  # NOSONAR - python:S8410
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """List elements with optional filtering and pagination."""
     # V140 FIX: Validate sort_order to prevent injection
@@ -79,7 +79,7 @@ async def list_elements(
 @router.post("", response_model=ApiResponse[ElementResponse], status_code=201, dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
 async def create_element(
     element_data: ElementCreate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Create a new element."""
     try:
@@ -101,7 +101,7 @@ async def create_element(
 @router.get("/{element_id}", response_model=ApiResponse[ElementResponse], dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
 async def get_element(
     element_id: str,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Get an element by ID."""
     try:
@@ -120,7 +120,7 @@ async def get_element(
 async def update_element(
     element_id: str,
     element_data: ElementUpdate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Update an element."""
     try:
@@ -138,7 +138,7 @@ async def update_element(
 @router.delete("/{element_id}", response_model=ApiResponse[None], dependencies=[Depends(require_permission(Permission.ELEMENT_DELETE))])
 async def delete_element(
     element_id: str,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Soft delete an element."""
     try:

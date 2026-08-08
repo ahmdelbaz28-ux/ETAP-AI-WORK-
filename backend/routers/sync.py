@@ -271,7 +271,7 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
 
     # Missing Origin header
     if not origin:
-        if is_dev_mode:
+        if is_dev_mode:  # noqa: SIM103
             return True  # Dev mode — allow missing Origin for local tools/TestClient
         # Production: missing Origin means external client — reject
         return False
@@ -293,10 +293,7 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
         return True
 
     # External origin — allow in dev mode, reject in production
-    if is_dev_mode:
-        return True
-
-    return False
+    return bool(is_dev_mode)
 
 
 def _validate_ws_api_key(_websocket: WebSocket) -> bool:  # NOSONAR — S1172: parameter retained for API stability
@@ -313,7 +310,7 @@ def _validate_ws_api_key(_websocket: WebSocket) -> bool:  # NOSONAR — S1172: p
     - Referrer headers
     - Proxy logs
     """
-    if not os.getenv("FIREAI_API_KEY"):
+    if not os.getenv("FIREAI_API_KEY"):  # noqa: SIM103
         return True  # No API key configured → auth disabled
 
     # Query parameter auth is DEPRECATED for security — query params

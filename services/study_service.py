@@ -210,7 +210,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 T = TypeVar("T")
 
 
-def _run_async(coro: Coroutine[Any, Any, T]) -> T:
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:  # noqa: UP047
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()

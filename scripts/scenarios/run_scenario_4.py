@@ -609,10 +609,10 @@ def main() -> None:
     parser.add_argument("--scada-monitoring-sec", type=int, default=300)
     args = parser.parse_args()
 
-    if not os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") == "true":
+    if os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") != "true":
         print("Set ALLOW_BIDIRECTIONAL_SYNC=true to run this scenario")
         sys.exit(1)
-    if not os.environ.get("USE_ETAP") == "true":
+    if os.environ.get("USE_ETAP") != "true":
         print("Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 

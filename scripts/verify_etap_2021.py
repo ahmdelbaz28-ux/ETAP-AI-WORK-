@@ -65,7 +65,7 @@ MODULES_TO_VERIFY = [
 def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
     """
     التحقق من توافق ETAP 2021 COM.
-    
+
     Returns:
         dict مع نتائج كل فحص
     """

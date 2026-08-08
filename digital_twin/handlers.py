@@ -444,10 +444,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 bus = ctx.dt_state.system.buses.get(bus_id)
                 bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
-                if bus is not None:
-                    bus_kv = abs(bus.voltage) * system_base_kv
-                else:
-                    bus_kv = system_base_kv
+                bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
                 # IEEE 1584-2018 valid range: 0.208–15 kV.
                 # Buses above 15 kV (transmission) use Ralph Lee fallback.

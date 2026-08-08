@@ -175,7 +175,7 @@ class MotorStartingAgent(BaseAgent):
             _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
         )
 
-        if code in _NEMA_CODE_LETTERS:
+        if code in _NEMA_CODE_LETTERS:  # noqa: SIM108
             lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1]  # Use upper bound
         else:
             lr_kva_per_hp = 5.6  # Default to code F

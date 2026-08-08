@@ -680,10 +680,7 @@ class AnomalyAgent(BaseAgent):
             if method in ("ml", "full"):
                 ml_method = task.parameters.get("ml_method", "iforest")
                 contamination = float(task.parameters.get("contamination", 0.05))
-                if data.ndim == 1:
-                    ml_data = data.reshape(-1, 1)
-                else:
-                    ml_data = data
+                ml_data = data.reshape(-1, 1) if data.ndim == 1 else data
                 results["ml_anomaly"] = self.detect_ml_anomaly(
                     data=ml_data,
                     method=ml_method,

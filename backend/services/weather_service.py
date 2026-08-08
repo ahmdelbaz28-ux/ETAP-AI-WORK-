@@ -349,7 +349,7 @@ class WeatherService:
         """
         weather = await self.fetch_weather(latitude, longitude)
 
-        if is_indoor:
+        if is_indoor:  # noqa: SIM108
             # Indoor: use industrial default temperature (40°C) for HAC,
             # but ambient weather for battery derating comparison
             temp_c = DEFAULT_INDOOR_TEMP_C

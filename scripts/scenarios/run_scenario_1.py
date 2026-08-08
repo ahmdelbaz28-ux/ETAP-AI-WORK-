@@ -661,7 +661,7 @@ Examples:
     args = parser.parse_args()
 
     # Validate env
-    if not os.environ.get("USE_ETAP", "false").lower() == "true":
+    if os.environ.get("USE_ETAP", "false").lower() != "true":
         print("❌ Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 

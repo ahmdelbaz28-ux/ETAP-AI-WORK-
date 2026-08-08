@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import List
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISIntegrationError
 from gis_integration.models import GISFeature
-from typing import List
 
 
 @dataclass(frozen=True)
@@ -20,7 +20,7 @@ def extract_layers_as_features(
     layer_ids: list[str] | None = None,
 ) -> list[ExtractedLayer]:
 
-    features: List[GISFeature]
+    features: List[GISFeature]  # noqa: F842
 
 
 def extract_layers_as_features(
@@ -40,10 +40,7 @@ def extract_layers_as_features(
 
         extracted: list[ExtractedLayer] = []
 
-        if layer_ids is None:
-            target = sorted(available)
-        else:
-            target = sorted(layer_ids)
+        target = sorted(available) if layer_ids is None else sorted(layer_ids)
 
         extracted: List[ExtractedLayer] = []
         for lid in target:

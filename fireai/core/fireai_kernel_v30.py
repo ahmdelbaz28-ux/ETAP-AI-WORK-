@@ -780,7 +780,7 @@ class SafetyLedger:
         self._open()
 
     def _open(self) -> None:
-        self._fh = open(self._path, "ab", buffering=0)
+        self._fh = open(self._path, "ab", buffering=0)  # noqa: SIM115
 
     def record(
         self,

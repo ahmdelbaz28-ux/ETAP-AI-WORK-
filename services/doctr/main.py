@@ -67,7 +67,7 @@ os.environ["USE_TF"] = "NO"
 
 # ─── Models ──────────────────────────────────────────────────────────────────
 
-class Detection(GenericModel, Generic[TypeVar("T")]):
+class Detection(GenericModel, Generic[TypeVar("T")]):  # noqa: UP046
     value: Optional[TypeVar("T")]
     confidence: Optional[float]
 
@@ -180,7 +180,7 @@ app = FastAPI(lifespan=lifespan, title="FireAI DocTR OCR Service")
 
 
 @app.post("/batch")
-async def batch_ocr(files: List[UploadFile] = File(...)):  # NOSONAR - python:S8410
+async def batch_ocr(files: List[UploadFile] = File(...)):  # NOSONAR - python:S8410  # noqa: B008
     """Process a batch of images and return OCR results with bounding boxes."""
     tasks = []
     for file in files:

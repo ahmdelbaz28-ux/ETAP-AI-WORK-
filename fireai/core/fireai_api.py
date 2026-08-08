@@ -119,12 +119,8 @@ async def _run_with_timeout(coro, timeout: float = REQUEST_TIMEOUT_SECONDS):  # 
     try:
         # Use asyncio.timeout as a context manager (available in Python 3.11+)
         import sys
-        if sys.version_info >= (3, 11):
-            async with asyncio.timeout(timeout):
-                return await coro
-        else:
-            # Fallback to asyncio.wait_for for older Python versions
-            return await asyncio.wait_for(coro, timeout=timeout)
+        async with asyncio.timeout(timeout):
+            return await coro
     except TimeoutError:
         raise HTTPException(
             status_code=503,
@@ -303,7 +299,7 @@ async def get_audit_trail() -> dict[str, Any]:
 # Rate-limited endpoints
 @app.post("/projects/", tags=["Projects"], dependencies=[Depends(verify_api_key)])
 @limiter.limit("10/minute")
-async def upload_file(request: Request, file: UploadFile = File(...)) -> dict[str, Any]:  # NOSONAR - python:S8410
+async def upload_file(request: Request, file: UploadFile = File(...)) -> dict[str, Any]:  # NOSONAR - python:S8410  # noqa: B008
     content = await file.read()
     if len(content) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(status_code=413, detail=f"File too large. Maximum allowed size is {MAX_FILE_SIZE_MB} MB.")  # NOSONAR — S8415: assignment kept for readability / debuggability

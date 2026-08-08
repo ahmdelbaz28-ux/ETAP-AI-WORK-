@@ -1063,7 +1063,7 @@ class HACClassificationEngine:
         # that made zones 2× smaller (less conservative = less safe).
         r_v = r_h  # Uniform hemisphere/sphere per IEC simplified method
 
-        if indoor:
+        if indoor:  # noqa: SIM108
             vol = (2.0 / 3.0) * math.pi * r_h**3  # Hemisphere (IEC Annex A)
         else:
             vol = (4.0 / 3.0) * math.pi * r_h**3  # Full sphere (IEC Annex A)
@@ -1109,7 +1109,7 @@ class HACClassificationEngine:
         # The V43 fix incorrectly applied hemi-ellipsoid here too.
         r_v = r_h  # Uniform hemisphere/sphere per IEC simplified method
 
-        if indoor:
+        if indoor:  # noqa: SIM108
             vol = (2.0 / 3.0) * math.pi * r_h**3  # Hemisphere (IEC Annex A)
         else:
             vol = (4.0 / 3.0) * math.pi * r_h**3  # Full sphere (IEC Annex A)

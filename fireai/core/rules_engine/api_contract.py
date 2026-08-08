@@ -51,7 +51,7 @@ class ContractSeverity(str, Enum):
     DISABLED = "disabled"  # No validation (development only)
 
 
-class APIContract(BaseModel, Generic[T]):
+class APIContract(BaseModel, Generic[T]):  # noqa: UP046
     """
     Defines a typed API contract for an endpoint.
 
