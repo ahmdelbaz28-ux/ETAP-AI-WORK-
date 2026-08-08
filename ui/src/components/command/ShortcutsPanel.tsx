@@ -41,7 +41,7 @@ function KeySequence({ keys }: { readonly keys: readonly string[] }) {
   return (
     <div className="flex items-center gap-1">
       {keys.map((key, i) => (
-        <span key={`${key}-${i}`} className="flex items-center gap-1">
+         <span key={key} className="flex items-center gap-1">
           <KeyCap>{key}</KeyCap>
           {i < keys.length - 1 && (
             <span className="text-[var(--text-muted)] text-xs">{keys[i] === "G" ? "→" : "+"}</span>
@@ -132,9 +132,9 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {
 
                         {/* Shortcuts list */}
                         <div className="space-y-2">
-                          {catShortcuts.map((shortcut, i) => (
+                          {catShortcuts.map((shortcut) => (
                             <div
-                              key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+                              key={shortcut.description} // Unique per entry in SHORTCUT_DEFINITIONS
                               className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group"
                             >
                               <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">

@@ -151,7 +151,7 @@ describe("AIAssistant AbortController integration", () => {
 
     // Clear input and send second message (which should abort the first)
     const inputEl = screen.getByPlaceholderText(/Message AI Assistant/i) as HTMLTextAreaElement;
-    await user.clear(inputEl);
+    await user.type(inputEl, "{selectall}{backspace}");
     await user.type(inputEl, "Second message");
     await user.keyboard("{Enter}");
 

@@ -145,11 +145,19 @@ function MobileSidebarDrawer({
     <>
       {/* Backdrop */}
       {mobileSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
-          onClick={() => setMobileSidebarOpen(false)}
-          aria-hidden="true"
-        />
+         <div
+           className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
+           onClick={() => setMobileSidebarOpen(false)}
+           onKeyDown={(e) => {
+             if (e.key === "Enter" || e.key === " ") {
+               e.preventDefault();
+               setMobileSidebarOpen(false);
+             }
+           }}
+           role="button"
+           tabIndex={0}
+           aria-hidden="true"
+         />
       )}
 
       {/* Drawer */}
