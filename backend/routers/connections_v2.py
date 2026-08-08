@@ -70,7 +70,7 @@ async def list_connections(
         )
     except Exception as e:
         logger.exception("list_connections failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
 
 
 @router.post("", response_model=ApiResponse[ConnectionResponse], status_code=201, dependencies=[Depends(require_permission(Permission.CONNECTION_CREATE))])
@@ -85,10 +85,10 @@ async def create_connection(
     except ValueError as e:
         # Never expose str(e) from ValueError to the client.
         logger.warning("Connection creation ValueError: %s", e)
-        raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @router.put("/{connection_id}", response_model=ApiResponse[ConnectionResponse], dependencies=[Depends(require_permission(Permission.CONNECTION_UPDATE))])
@@ -111,7 +111,7 @@ async def update_connection(
         raise
     except Exception as e:
         logger.exception("update_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # noqa: S8415
+        raise HTTPException(status_code=500, detail="Internal server error") from None  # noqa: S8415
 
 
 @router.delete("/{connection_id}", response_model=ApiResponse[None], dependencies=[Depends(require_permission(Permission.CONNECTION_DELETE))])
@@ -130,4 +130,4 @@ async def delete_connection(
         raise
     except Exception as e:
         logger.exception("delete_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904

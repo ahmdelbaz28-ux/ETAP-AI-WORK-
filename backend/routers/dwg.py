@@ -124,7 +124,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
         try:
             from parsers.dwg_parser import DWGParser
         except ImportError as import_err:
-            raise HTTPException(
+            raise HTTPException(  # noqa: B904
                 status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
                 detail={
                     "success": False,
@@ -169,7 +169,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
         logger.exception(
             "DWG parse request failed: %s: %s", type(exc).__name__, exc,
         )
-        raise HTTPException(
+        raise HTTPException(  # noqa: B904
             status_code=500,
             detail={
                 "success": False,

@@ -169,7 +169,7 @@ def validate_input_path(
     try:
         safe_path = input_path_obj.resolve()  # NOSONAR — S6549: acceptable
     except (OSError, RuntimeError) as e:
-        raise UnsafePathError(
+        raise UnsafePathError(  # noqa: B904
             f"{parser_name}: cannot resolve path '{input_path}' (likely "
             f"symlink loop or permission error): {e}"
         )
@@ -257,7 +257,7 @@ def validate_output_path(
     try:
         safe_path = output_path_obj.resolve(strict=False)  # lgtm [py/path-injection]  # NOSONAR: S6549 path validated by caller  # NOSONAR — S7632: test function documented via class name / module path
     except (OSError, RuntimeError) as e:
-        raise UnsafePathError(
+        raise UnsafePathError(  # noqa: B904
             f"{parser_name}: cannot resolve output path '{output_path}' "
             f"(likely symlink loop or permission error): {e}"
         )

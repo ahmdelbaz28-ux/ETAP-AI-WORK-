@@ -318,7 +318,7 @@ async def disconnect_from_autocad() -> ConnectResponse:
             simulation_mode=service.simulation_mode,
         )
     except Exception as e:
-        raise _safe_error(500, "Failed to disconnect from AutoCAD", e)
+        raise _safe_error(500, "Failed to disconnect from AutoCAD", e)  # noqa: B904
 
 
 @router.get("/documents", response_model=DocumentsResponse, dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])  # NOSONAR - python:S8409

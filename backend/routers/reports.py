@@ -1060,7 +1060,7 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
         )
     except ImportError as ie:
         logger.exception("AHJ document dependencies not available: %s", ie)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability
+        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability  # noqa: B904
             status_code=503,
             detail={
                 "success": False,

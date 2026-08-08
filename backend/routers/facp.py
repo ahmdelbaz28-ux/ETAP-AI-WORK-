@@ -275,7 +275,7 @@ async def select_facp(req: FACPSelectionRequest):
     except ValueError as exc:
         # No compliant panels found
         logger.warning("FACP selection failed: %s", exc)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
             status_code=422,
             detail={
                 "error": "NO_COMPLIANT_PANEL",

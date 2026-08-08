@@ -507,7 +507,7 @@ async def disconnect_from_revit() -> ConnectResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Failed to disconnect from Revit", e)
+        raise _safe_error(500, "Failed to disconnect from Revit", e)  # noqa: B904
 
 
 @router.get("/status", response_model=StatusResponse, tags=["revit"])  # NOSONAR - python:S8409

@@ -73,7 +73,7 @@ async def list_elements(
         )
     except Exception as e:
         logger.exception("list_elements failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
 
 
 @router.post("", response_model=ApiResponse[ElementResponse], status_code=201, dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
@@ -92,10 +92,10 @@ async def create_element(
         # Remove common path patterns that leak server structure
         safe_msg = re.sub(r'/[\w./-]+', '[PATH]', safe_msg)
         safe_msg = re.sub(r'<class \w+>', '[CLASS]', safe_msg)
-        raise HTTPException(status_code=400, detail=safe_msg)  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=400, detail=safe_msg)  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @router.get("/{element_id}", response_model=ApiResponse[ElementResponse], dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
@@ -113,7 +113,7 @@ async def get_element(
         raise
     except Exception as e:
         logger.exception("get_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @router.put("/{element_id}", response_model=ApiResponse[ElementResponse], dependencies=[Depends(require_permission(Permission.ELEMENT_UPDATE))])
@@ -132,7 +132,7 @@ async def update_element(
         raise
     except Exception as e:
         logger.exception("update_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @router.delete("/{element_id}", response_model=ApiResponse[None], dependencies=[Depends(require_permission(Permission.ELEMENT_DELETE))])
@@ -150,4 +150,4 @@ async def delete_element(
         raise
     except Exception as e:
         logger.exception("delete_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904

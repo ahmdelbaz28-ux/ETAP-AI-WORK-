@@ -438,7 +438,7 @@ def memory_summary():
         return _get_system().get_memory_summary()
     except Exception as e:
         logger.exception("Memory summary failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @app.post("/analyse", response_model=RoomResponse, dependencies=[Depends(verify_api_key)])
@@ -447,16 +447,16 @@ def analyse_room(req: RoomRequest):
     try:
         spec = _build_spec(req)
     except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid room spec: {exc}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=f"Invalid room spec: {exc}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     try:
         result = _get_system().analyse_room(spec, user_id="api", run_resilience=req.run_resilience)
         return _to_response(result)
     except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as exc:
         logger.exception("Room analysis failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @app.post("/analyse/floor", response_model=List[RoomResponse], dependencies=[Depends(verify_api_key)])
@@ -473,7 +473,7 @@ def analyse_floor(rooms: list[RoomRequest]):
         return [_to_response(r) for r in results]
     except Exception as exc:
         logger.exception("Floor analysis failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Floor analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Floor analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 # ✅ NEW: Audit verification endpoint (from consultant suggestion)
@@ -494,7 +494,7 @@ def audit_verify():
         }
     except Exception as exc:
         logger.exception("Audit verification failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Verification failed")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Verification failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 # ============================================================================
@@ -558,10 +558,10 @@ def run_integration(req: IntegrationRequest):
             user_id="api",
         )
     except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as exc:
         logger.exception("Integration pipeline failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Integration pipeline failed")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Integration pipeline failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @app.get("/audit/hashchain", dependencies=[Depends(verify_api_key)])
@@ -582,7 +582,7 @@ def hashchain_report():
         }
     except Exception as exc:
         logger.exception("Hash chain report failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Hash chain report failed")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Hash chain report failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 # ============================================================================

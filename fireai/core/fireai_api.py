@@ -321,14 +321,14 @@ async def analyse_room(request: Request, body: AnalyseRoomRequest) -> RoomResult
     except ValueError as e:
         # Log rejection before returning error
         _audit_trail.log_rejection(room_id=body.room.room_id, reason=str(e))
-        raise HTTPException(status_code=422, detail="Invalid room specification. Check room parameters and try again.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail="Invalid room specification. Check room parameters and try again.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     forced_type: DetectorType | None = None
     if body.forced_detector_type:
         try:
             forced_type = DetectorType(body.forced_detector_type)
         except ValueError:
-            raise HTTPException(status_code=422, detail=f"Unknown detector type: {body.forced_detector_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(status_code=422, detail=f"Unknown detector type: {body.forced_detector_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     if forced_type:
         room_spec.detector_type = forced_type
@@ -359,7 +359,7 @@ async def analyse_floor(request: Request, body: AnalyseFloorRequest) -> FloorRes
             room_specs.append(_build_room_spec(r))
         except ValueError as e:
             _audit_trail.log_rejection(room_id=r.room_id, reason=str(e))
-            raise HTTPException(status_code=422, detail=f"Room '{r.room_id}': {e}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(status_code=422, detail=f"Room '{r.room_id}': {e}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     orchestrator = FloorOrchestrator(audit_trail=_audit_trail)
     floor_result = orchestrator.process(room_specs=room_specs, project_name=body.floor_id, source_dxf="")
@@ -419,7 +419,7 @@ async def analyse_room_v10(request: Request, body: AnalyseRoomRequest) -> RoomRe
         room_spec = _build_room_spec(body.room)
     except ValueError as e:
         logger.warning("Room spec validation failed: %s", e)
-        raise HTTPException(status_code=422, detail="Invalid room specification. Check room parameters and try again.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail="Invalid room specification. Check room parameters and try again.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     system = _get_fireai_system()
     result = system.analyse_room(
@@ -441,7 +441,7 @@ async def analyse_floor_v10(request: Request, body: AnalyseFloorRequestV10):
             room_specs.append(_build_room_spec(r))
         except ValueError as e:
             logger.warning("Room spec validation failed: %s", e)
-            raise HTTPException(status_code=422, detail="Invalid room specification in batch. Check room parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(status_code=422, detail="Invalid room specification in batch. Check room parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
     system = _get_fireai_system()
     results = system.analyse_floor(
