@@ -158,15 +158,16 @@ uvicorn~=0.25.0
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
 aiofiles>=24.1.0,<25.0.0
 
-# aiofiles — required by api/routes.py for streaming file uploads and async
-# static-asset responses. Was previously pulled in transitively by a different
-# package; declared explicitly to fail loudly if missing.
-aiofiles>=24.1.0,<25.0.0
+# NOTE: aiofiles is already pinned at line 159 (aiofiles>=24.1.0,<25.0.0).
+# Duplicate loose constraint removed to avoid pip resolver conflicts.
 
-# Observability - OpenTelemetry
-opentelemetry-api>=1.20.0
-opentelemetry-sdk>=1.20.0
-opentelemetry-exporter-otlp>=1.20.0
+# NOTE: OpenTelemetry packages are already pinned at lines 12-17 with
+# compatible-release versions (~=1.30.0 / ~=0.51b0) that satisfy the
+# >=1.20.0 floor. The loose constraints below have been removed to
+# eliminate the version conflict reported by Dependabot/pip.
+# opentelemetry-api>=1.20.0  — superseded by ~=1.30.0 (line 12)
+# opentelemetry-sdk>=1.20.0  — superseded by ~=1.30.0 (line 13)
+# opentelemetry-exporter-otlp>=1.20.0  — superseded by ~=1.44.0 (line 14)
 
 # Metrics - Prometheus
 prometheus-client>=0.19.0
