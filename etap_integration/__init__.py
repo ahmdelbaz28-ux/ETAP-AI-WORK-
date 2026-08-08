@@ -5,7 +5,6 @@ Provides ETAP COM automation, provider abstraction, worker service,
 error recovery, compatibility checking, and sync engine for the ETAP AI platform.
 """
 
-import sys as _sys
 
 # Lazy imports to support cross-platform loading.
 # Windows-only modules (winreg, pywin32) are only imported on win32.
