@@ -29,27 +29,6 @@ export default function EtapIntegration() {
     { name: "Arc Flash - MCC Panel", status: "completed", date: "2026-06-05" },
   ];
 
-import { motion } from 'framer-motion'
-import { Cable, Settings2, Link2, Activity, Clock, CheckCircle, Server, FileText } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader, Badge, Button } from '../components/ui'
-
-export function EtapIntegration() {
-  const { notify } = useNotify()
-
-  const connectionItems = [
-    { label: 'Worker URL', value: 'Not configured', status: 'warning' as const },
-    { label: 'License', value: 'Not connected', status: 'warning' as const },
-    { label: 'Worker Status', value: 'Offline', status: 'danger' as const },
-    { label: 'Projects', value: '0', status: 'default' as const },
-  ]
-
-  const recentStudies = [
-    { name: 'Load Flow - Industrial Plant', status: 'completed', date: '2026-06-09' },
-    { name: 'Short Circuit - Substation B', status: 'completed', date: '2026-06-07' },
-    { name: 'Arc Flash - MCC Panel', status: 'completed', date: '2026-06-05' },
-  ]
-
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

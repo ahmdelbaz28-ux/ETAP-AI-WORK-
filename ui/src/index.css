@@ -59,11 +59,6 @@
   --font-mono: "Fira Code", "Cascadia Code", ui-monospace, monospace;
   --font-engineering: "JetBrains Mono", "Fira Code", monospace;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-arabic: 'Cairo', 'Inter', system-ui, sans-serif;
-  --font-mono: 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
-  --font-engineering: 'JetBrains Mono', 'Fira Code', monospace;
-
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -583,60 +578,6 @@ body {
   50% {
     opacity: 1;
   }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes glow-border {
-  0%, 100% { border-color: var(--accent-primary); box-shadow: var(--glow-primary); }
-  50% { border-color: var(--accent-secondary); box-shadow: none; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-@keyframes ripple {
-  0% { transform: scale(0); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
 }
 
 .animate-fade-in {
@@ -972,10 +913,6 @@ body {
   }
   .card,
   .card-interactive {
-
-  .no-print { display: none !important; }
-  body { background: white !important; color: black !important; }
-  .card, .card-interactive {
     border: 1px solid #ddd !important;
     box-shadow: none !important;
   }

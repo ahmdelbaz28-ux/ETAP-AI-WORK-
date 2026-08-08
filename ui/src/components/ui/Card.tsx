@@ -65,49 +65,6 @@ export function CardHeader({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   return (
     <div className={cn("flex items-center justify-between mb-4", className)} {...props}>
-
-import type { ReactNode, HTMLAttributes } from 'react'
-import { cn } from '../../utils/helpers'
-
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'interactive' | 'bordered' | 'flat' | 'glass'
-  padding?: 'none' | 'sm' | 'md' | 'lg'
-  hover?: boolean
-}
-
-const variantStyles = {
-  default: 'bg-[var(--bg-card)] border border-[var(--border-primary)]',
-  interactive: 'card-interactive',
-  bordered: 'bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-brand-500/50 transition-all',
-  flat: 'bg-[var(--bg-elevated)]',
-  glass: 'glass border border-white/10',
-}
-
-const paddingStyles = {
-  none: '',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-6',
-}
-
-export function Card({ variant = 'default', padding = 'md', className, children, ...props }: CardProps) {
-  return (
-    <div className={cn('rounded-xl', variantStyles[variant], paddingStyles[padding], className)} {...props}>
-      {children}
-    </div>
-  )
-}
-
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
-  title: string
-  subtitle?: string
-  icon?: ReactNode
-  action?: ReactNode
-}
-
-export function CardHeader({ title, subtitle, icon, action, className, ...props }: CardHeaderProps) {
-  return (
-    <div className={cn('flex items-center justify-between mb-4', className)} {...props}>
       <div className="flex items-center gap-2.5">
         {icon && <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-400">{icon}</div>}
         <div>

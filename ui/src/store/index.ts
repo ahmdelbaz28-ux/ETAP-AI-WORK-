@@ -10,19 +10,6 @@ interface SelectedItem {
   type: string;
   name: string;
   details?: ContextItem[];
-
-import { create } from 'zustand'
-
-interface ContextItem {
-  label: string
-  value: string | number | React.ReactNode
-  icon?: React.ElementType
-}
-
-interface SelectedItem {
-  type: string
-  name: string
-  details?: ContextItem[]
 }
 
 interface AppState {
@@ -62,38 +49,6 @@ interface AppState {
   // Error state
   lastError: Error | string | null;
   setLastError: (error: Error | string | null) => void;
-
-  sidebarCollapsed: boolean
-  toggleSidebar: () => void
-  setSidebarCollapsed: (collapsed: boolean) => void
-
-  // Language
-  language: 'en' | 'ar'
-  setLanguage: (lang: 'en' | 'ar') => void
-
-  // Search
-  searchQuery: string
-  setSearchQuery: (query: string) => void
-
-  // Command Palette
-  commandPaletteOpen: boolean
-  setCommandPaletteOpen: (open: boolean) => void
-  toggleCommandPalette: () => void
-
-  // Context Panel
-  contextPanelOpen: boolean
-  setContextPanelOpen: (open: boolean) => void
-  selectedItem: SelectedItem | null
-  setSelectedItem: (item: SelectedItem | null) => void
-
-  // Help Panel
-  helpPanelOpen: boolean
-  setHelpPanelOpen: (open: boolean) => void
-  toggleHelpPanel: () => void
-
-  // Error state
-  lastError: Error | string | null
-  setLastError: (error: Error | string | null) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({

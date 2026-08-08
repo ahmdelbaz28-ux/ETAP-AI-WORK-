@@ -79,58 +79,6 @@ export default function CodeGuard() {
     }
   };
 
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
-import {
-  Shield, AlertTriangle, AlertCircle, Info,
-  Code, FileText, TestTube, Bug, Send
-} from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { guardReview, type GuardReviewResult, type GuardViolation } from '../lib/api'
-import { Card, CardHeader, Badge } from '../components/ui'
-
-const fadeIn = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 }
-}
-
-const severityConfig = {
-  must_fix: { icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', label: 'MUST FIX' },
-  should_fix: { icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/30', label: 'SHOULD FIX' },
-  worth_noting: { icon: Info, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', label: 'INFO' },
-}
-
-export default function CodeGuard() {
-  const { t } = useTranslation()
-  const { notify } = useNotify()
-  const [source, setSource] = useState('')
-  const [guardType, setGuardType] = useState('all')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<GuardReviewResult | null>(null)
-
-  const handleReview = async () => {
-    if (!source.trim()) {
-      notify('error', 'Please enter source code to review')
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await guardReview(source, guardType)
-      setResult(res)
-      if (res.all_passed) {
-        notify('success', 'Code passed all guard checks!')
-      } else {
-        notify('warning', `Found ${res.must_fix_total} must-fix and ${res.should_fix_total} should-fix violations`)
-      }
-    } catch (err) {
-      notify('error', `Guard review failed: ${err}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -151,12 +99,6 @@ export default function CodeGuard() {
                 "codeGuard.subtitle",
                 "AI-powered code quality review — 14 failure modes + 23 clean-code rules + 9 test rules + 10 docs rules",
               )}
-
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('codeGuard.title', 'Code Guard')}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('codeGuard.subtitle', 'AI-powered code quality review — 14 failure modes + 23 clean-code rules + 9 test rules + 10 docs rules')}
             </p>
           </div>
         </div>
@@ -176,16 +118,6 @@ export default function CodeGuard() {
                   { value: "test", label: "Tests", icon: TestTube },
                   { value: "docs", label: "Docs", icon: FileText },
                   { value: "ai_failure_modes", label: "AI Modes", icon: Bug },
-
-          <CardHeader title="Source Code" icon={<Code className="w-4 h-4 text-purple-500" />}
-            action={
-              <div className="flex gap-2">
-                {[
-                  { value: 'all', label: 'All Guards', icon: Shield },
-                  { value: 'code', label: 'Code', icon: Code },
-                  { value: 'test', label: 'Tests', icon: TestTube },
-                  { value: 'docs', label: 'Docs', icon: FileText },
-                  { value: 'ai_failure_modes', label: 'AI Modes', icon: Bug },
                 ].map(({ value, label, icon: Icon }) => (
                   <button
                     key={value}
@@ -292,12 +224,6 @@ export default function CodeGuard() {
                         key={`${v.rule_id}-${v.location ?? ""}`}
                         className={`p-4 rounded-lg border ${config.bg} ${config.border}`}
                       >
-
-                  guardData.violations.map((v: GuardViolation, i: number) => {
-                    const config = severityConfig[v.severity as keyof typeof severityConfig] || severityConfig.worth_noting
-                    const Icon = config.icon
-                    return (
-                      <div key={i} className={`p-4 rounded-lg border ${config.bg} ${config.border}`}>
                         <div className="flex items-start gap-3">
                           <Icon className={`w-5 h-5 mt-0.5 ${config.color}`} />
                           <div className="flex-1 min-w-0">
@@ -317,16 +243,6 @@ export default function CodeGuard() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {v.description}
                             </p>
-
-                              <Badge variant={v.severity === 'must_fix' ? 'danger' : v.severity === 'should_fix' ? 'warning' : 'default'}>
-                                {v.rule_id}
-                              </Badge>
-                              <span className="font-medium text-gray-900 dark:text-white">{v.rule_name}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded ${config.bg} ${config.color}`}>
-                                {config.label}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{v.description}</p>
                             {v.location && (
                               <p className="text-xs text-gray-500 mt-1 font-mono">{v.location}</p>
                             )}

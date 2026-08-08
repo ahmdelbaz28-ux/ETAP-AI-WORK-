@@ -46,49 +46,6 @@ const severityConfig = {
 export function ContextPanel({
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   title = "Properties",
-
-import { type ReactNode } from 'react'
-import { AlertTriangle, CheckCircle, Info, ExternalLink, X, ChevronRight } from 'lucide-react'
-import { cn } from '../../utils/helpers'
-
-export interface ContextItem {
-  label: string
-  value: string | number | ReactNode
-  icon?: React.ElementType
-}
-
-export interface ContextWarning {
-  id: string
-  message: string
-  severity: 'info' | 'warning' | 'error'
-  action?: { label: string; onClick: () => void }
-}
-
-export interface ContextAction {
-  label: string
-  onClick: () => void
-  icon?: React.ElementType
-  variant?: 'primary' | 'secondary' | 'ghost'
-}
-
-interface ContextPanelProps {
-  title?: string
-  selectedItem?: { type: string; name: string; details?: ContextItem[] }
-  warnings?: ContextWarning[]
-  actions?: ContextAction[]
-  helpTopic?: { title: string; url?: string; content?: ReactNode }
-  onClose?: () => void
-  emptyMessage?: string
-}
-
-const severityConfig = {
-  info: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400' },
-  warning: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
-  error: { icon: X, bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400' },
-}
-
-export function ContextPanel({
-  title = 'Properties',
   selectedItem,
   warnings = [],
   actions = [],
@@ -173,15 +130,6 @@ export function ContextPanel({
                 >
                   <div className="flex items-start gap-2">
                     <WarningIcon className={cn("w-3.5 h-3.5 mt-0.5 shrink-0", config.text)} />
-
-            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Warnings</div>
-            {warnings.map(warning => {
-              const config = severityConfig[warning.severity]
-              const WarningIcon = config.icon
-              return (
-                <div key={warning.id} className={cn('p-2.5 rounded-lg border', config.bg, config.border)}>
-                  <div className="flex items-start gap-2">
-                    <WarningIcon className={cn('w-3.5 h-3.5 mt-0.5 shrink-0', config.text)} />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-[var(--text-secondary)]">{warning.message}</p>
                       {warning.action && (
@@ -231,26 +179,6 @@ export function ContextPanel({
                 </button>
               );
             })}
-
-            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Actions</div>
-            {actions.map((action, i) => (
-              <button
-                key={i}
-                onClick={action.onClick}
-                className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left',
-                  action.variant === 'primary'
-                    ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20'
-                    : action.variant === 'ghost'
-                    ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
-                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--border-primary)]'
-                )}
-              >
-                {action.icon && <action.icon className="w-3.5 h-3.5" />}
-                <span className="flex-1">{action.label}</span>
-                <ChevronRight className="w-3 h-3 text-[var(--text-muted)]" />
-              </button>
-            ))}
           </div>
         )}
 

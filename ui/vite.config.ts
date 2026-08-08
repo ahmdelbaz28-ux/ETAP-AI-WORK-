@@ -34,41 +34,30 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Split vendor libraries into separate chunks for better caching
-          "react-vendor": ["react", "react-dom", "react-router"],
-          "charts-vendor": ["recharts"],
-          "animation-vendor": ["framer-motion", "gsap", "gsap/ScrollTrigger", "gsap/TextPlugin", "gsap/MotionPathPlugin", "gsap/Flip"],
-          "icons-vendor": ["lucide-react", "react-icons"],
-          "state-vendor": ["zustand", "@tanstack/react-query"],
-          "i18n-vendor": ["i18next", "react-i18next", "i18next-browser-languagedetector"],
+        // vite@8 (rolldown) requires manualChunks to be a function, not an object.
+        manualChunks: (id: string) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
+              return "react-vendor";
+            }
+            if (id.includes("recharts")) {
+              return "charts-vendor";
+            }
+            if (id.includes("framer-motion") || id.includes("gsap")) {
+              return "animation-vendor";
+            }
+            if (id.includes("lucide-react") || id.includes("react-icons")) {
+              return "icons-vendor";
+            }
+            if (id.includes("zustand") || id.includes("@tanstack/react-query")) {
+              return "state-vendor";
+            }
+            if (id.includes("i18next") || id.includes("react-i18next")) {
+              return "i18n-vendor";
+            }
+          }
         },
       },
     },
   },
 });
-
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-
-export default defineConfig({
-  plugins: [tailwindcss(), react()],
-  base: './',
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': 'http://localhost:8000',
-      '/health': 'http://localhost:8000',
-      '/healthz': 'http://localhost:8000',
-      '/ready': 'http://localhost:8000',
-      '/readyz': 'http://localhost:8000',
-      '/metrics': 'http://localhost:8000',
-      '/docs': 'http://localhost:8000',
-      '/openapi.json': 'http://localhost:8000',
-    },
-  },
-  build: {
-    outDir: 'dist',
-  },
-})

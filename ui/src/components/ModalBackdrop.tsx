@@ -39,6 +39,6 @@ export default function ModalBackdrop({
       }}
     >
       {children}
-    </dialog>
+    </div>
   );
 }

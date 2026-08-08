@@ -16,28 +16,6 @@ export function GlassPanel({ children, className, variant = "default" }: GlassPa
     subtle: "bg-[var(--bg-card)]/50 backdrop-blur-md border border-[var(--border-primary)]",
   };
   return <div className={cn("rounded-xl", variants[variant], className)}>{children}</div>;
-
-import { type ReactNode } from 'react'
-import { cn } from '../../utils/helpers'
-
-// ─── Glass Panel ────────────────────────────────────────────────────
-interface GlassPanelProps {
-  children: ReactNode
-  className?: string
-  variant?: 'default' | 'elevated' | 'subtle'
-}
-
-export function GlassPanel({ children, className, variant = 'default' }: GlassPanelProps) {
-  const variants = {
-    default: 'bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)]',
-    elevated: 'bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-xl',
-    subtle: 'bg-[var(--bg-card)]/50 backdrop-blur-md border border-[var(--border-primary)]',
-  }
-  return (
-    <div className={cn('rounded-xl', variants[variant], className)}>
-      {children}
-    </div>
-  )
 }
 
 // ─── Animated Background ────────────────────────────────────────────
@@ -48,12 +26,6 @@ interface AnimatedBackgroundProps {
 
 export function AnimatedBackground({ className, variant = "gradient" }: AnimatedBackgroundProps) {
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
-
-  className?: string
-  variant?: 'gradient' | 'mesh' | 'radial'
-}
-
-export function AnimatedBackground({ className, variant = 'gradient' }: AnimatedBackgroundProps) {
   const variants = {
     gradient: (
       <div className="absolute inset-0 overflow-hidden">
@@ -116,36 +88,6 @@ export function StatusIndicator({
   const config = statusConfig[status];
   const sizeClasses = { sm: "w-2 h-2", md: "w-2.5 h-2.5", lg: "w-3 h-3" };
 
-  }
-
-  return (
-    <div className={cn('absolute inset-0 pointer-events-none', className)}>
-      {variants[variant]}
-    </div>
-  )
-}
-
-// ─── Status Indicator ───────────────────────────────────────────────
-type StatusType = 'online' | 'offline' | 'warning' | 'loading'
-
-interface StatusIndicatorProps {
-  status: StatusType
-  label?: string
-  size?: 'sm' | 'md' | 'lg'
-  showLabel?: boolean
-}
-
-const statusConfig: Record<StatusType, { color: string; pulse: boolean; label: string }> = {
-  online: { color: 'bg-green-400', pulse: true, label: 'Online' },
-  offline: { color: 'bg-red-400', pulse: false, label: 'Offline' },
-  warning: { color: 'bg-amber-400', pulse: true, label: 'Warning' },
-  loading: { color: 'bg-blue-400', pulse: true, label: 'Loading' },
-}
-
-export function StatusIndicator({ status, label, size = 'md', showLabel = true }: StatusIndicatorProps) {
-  const config = statusConfig[status]
-  const sizeClasses = { sm: 'w-2 h-2', md: 'w-2.5 h-2.5', lg: 'w-3 h-3' }
-
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
@@ -203,30 +145,6 @@ export function PremiumEmptyState({
       <p className="text-sm text-[var(--text-secondary)] max-w-sm leading-relaxed mb-6">
         {description}
       </p>
-
-  icon: React.ElementType
-  title: string
-  description: string
-  action?: { label: string; onClick: () => void; icon?: React.ElementType }
-  variant?: 'default' | 'illustration'
-}
-
-export function PremiumEmptyState({ icon: Icon, title, description, action, variant = 'default' }: PremiumEmptyStateProps) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-      <div className={cn(
-        'w-20 h-20 rounded-2xl flex items-center justify-center mb-6',
-        variant === 'illustration'
-          ? 'bg-gradient-to-br from-[var(--accent-primary)]/10 to-purple-500/10'
-          : 'bg-[var(--bg-elevated)]'
-      )}>
-        <Icon className={cn(
-          'w-10 h-10',
-          variant === 'illustration' ? 'text-[var(--accent-primary)]' : 'text-[var(--text-muted)]'
-        )} />
-      </div>
-      <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
-      <p className="text-sm text-[var(--text-secondary)] max-w-sm leading-relaxed mb-6">{description}</p>
       {action && (
         <button
           onClick={action.onClick}
@@ -258,17 +176,6 @@ export function PremiumLoading({
     return (
       <div className="space-y-4 p-6">
         {[1, 2, 3].map((i) => (
-
-  message?: string
-  variant?: 'spinner' | 'skeleton' | 'progress'
-  progress?: number
-}
-
-export function PremiumLoading({ message = 'Loading...', variant = 'spinner', progress }: PremiumLoadingProps) {
-  if (variant === 'skeleton') {
-    return (
-      <div className="space-y-4 p-6">
-        {[1, 2, 3].map(i => (
           <div key={i} className="flex gap-4">
             <div className="w-10 h-10 rounded-lg skeleton shrink-0" />
             <div className="flex-1 space-y-2">
@@ -324,17 +231,6 @@ export function GradientText({
   return (
     <span
       className={cn("bg-clip-text text-transparent", className)}
-
-  children: ReactNode
-  className?: string
-  from?: string
-  to?: string
-}
-
-export function GradientText({ children, className, from = 'var(--accent-primary)', to = 'var(--accent-secondary)' }: GradientTextProps) {
-  return (
-    <span
-      className={cn('bg-clip-text text-transparent', className)}
       style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
     >
       {children}
@@ -385,7 +281,7 @@ export function Sparkline({
 
   // After the `if (!data.length) return null` guard above, data has at least
   // one element, so data[length-1] is safe and defined.
-  const trend = (data.at(-1) ?? 0) >= data[0];  // noqa: S7755 — using .at(-1)
+  const trend = data[data.length - 1] >= data[0];
   const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
   const lineColor = color || trendColor;
 
@@ -424,7 +320,7 @@ export function Sparkline({
       {/* End dot */}
       <circle
         cx={(data.length - 1) * xStep}
-        cy={height - (((data.at(-1) ?? 0) - min) / range) * (height - 4) - 2}  // noqa: S7755
+        cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2}
         r={2.5}
         fill={lineColor}
         stroke="var(--bg-card, #1a2340)"
@@ -460,26 +356,4 @@ export function GlowCard({ children, className, color = "primary" }: GlowCardPro
       {children}
     </div>
   );
-
-  children: ReactNode
-  className?: string
-  color?: 'primary' | 'success' | 'warning' | 'danger'
-}
-
-export function GlowCard({ children, className, color = 'primary' }: GlowCardProps) {
-  const glowColors = {
-    primary: 'hover:shadow-[var(--glow-primary)] hover:border-[var(--accent-primary)]/30',
-    success: 'hover:shadow-[var(--glow-success)] hover:border-green-500/30',
-    warning: 'hover:shadow-[var(--glow-warning)] hover:border-amber-500/30',
-    danger: 'hover:shadow-[var(--glow-danger)] hover:border-red-500/30',
-  }
-  return (
-    <div className={cn(
-      'bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl transition-all duration-300',
-      glowColors[color],
-      className
-    )}>
-      {children}
-    </div>
-  )
 }

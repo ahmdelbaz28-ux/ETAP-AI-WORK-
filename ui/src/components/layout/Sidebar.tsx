@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import { useAppStore } from '../../store';
@@ -32,10 +32,10 @@ import { cn } from '../../utils/helpers';
 import { StatusIndicator } from '../ui/Visual';
 
 interface NavItem {
-  readonly to: string;
-  readonly icon: React.ElementType;
-  readonly labelKey: string;
-  readonly section?: string;
+  to: string;
+  icon: React.ElementType;
+  labelKey: string;
+  section?: string;
 }
 
 const navItems: NavItem[] = [
@@ -74,14 +74,6 @@ const sectionIcons: Record<string, React.ElementType> = {
   integration: Plug,
   system: Wrench,
 };
-
-function healthIndicatorStatus(
-  health: 'online' | 'offline' | 'checking',
-): 'loading' | 'online' | 'offline' {
-  if (health === 'checking') return 'loading';
-  if (health === 'online') return 'online';
-  return 'offline';
-}
 
 export function Sidebar() {
   const { t, i18n } = useTranslation();
@@ -201,14 +193,19 @@ export function Sidebar() {
           )}
         >
           <StatusIndicator
-            status={healthIndicatorStatus(healthStatus)}
+            status={
+              healthStatus === 'checking'
+                ? 'loading'
+                : healthStatus === 'online'
+                  ? 'online'
+                  : 'offline'
+            }
             size="sm"
             showLabel={!sidebarCollapsed}
           />
         </div>
 
         <button
-          type="button"
           onClick={toggleTheme}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
@@ -226,7 +223,6 @@ export function Sidebar() {
         </button>
 
         <button
-          type="button"
           onClick={toggleSidebar}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors',

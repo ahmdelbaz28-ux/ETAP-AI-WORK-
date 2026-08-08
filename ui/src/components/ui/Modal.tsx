@@ -56,52 +56,6 @@ export function Modal({
 
   if (!open) return null;
 
-import { useEffect, type ReactNode, useRef } from 'react'
-import { cn } from '../../utils/helpers'
-import { X } from 'lucide-react'
-
-interface ModalProps {
-  open: boolean
-  onClose: () => void
-  title?: string
-  subtitle?: string
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  children: ReactNode
-  footer?: ReactNode
-  closeOnOverlay?: boolean
-}
-
-const sizeStyles = {
-  sm: 'max-w-sm',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
-  full: 'max-w-[90vw]',
-}
-
-export function Modal({ open, onClose, title, subtitle, size = 'md', children, footer, closeOnOverlay = true }: ModalProps) {
-  const previouslyOpen = useRef(open)
-
-  useEffect(() => {
-    previouslyOpen.current = open
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => { document.body.style.overflow = '' }
-  }, [open])
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) onClose()
-    }
-    window.addEventListener('keydown', handleEsc)
-    return () => window.removeEventListener('keydown', handleEsc)
-  }, [open, onClose])
-
-  if (!open) return null
-
   return (
     <div
       className={cn(
@@ -112,14 +66,6 @@ export function Modal({ open, onClose, title, subtitle, size = 'md', children, f
     >
       {/* Backdrop */}
       <div // NOSONAR — S6848: non-interactive DOM role; intentional
-
-        'fixed inset-0 z-[var(--z-modal-backdrop)] flex items-center justify-center p-4',
-        'transition-all duration-200',
-        open ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      )}
-    >
-      {/* Backdrop */}
-      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={closeOnOverlay ? onClose : undefined}
       />
@@ -133,13 +79,6 @@ export function Modal({ open, onClose, title, subtitle, size = 'md', children, f
           "transition-all duration-200",
           sizeStyles[size],
           open ? "scale-100 translate-y-0" : "scale-95 translate-y-4",
-
-          'relative z-[var(--z-modal)] w-full rounded-xl',
-          'bg-[var(--bg-secondary)] border border-[var(--border-primary)]',
-          'shadow-[var(--shadow-modal)]',
-          'transition-all duration-200',
-          sizeStyles[size],
-          open ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
         )}
       >
         {/* Header */}
@@ -164,10 +103,6 @@ export function Modal({ open, onClose, title, subtitle, size = 'md', children, f
 
         {/* Body */}
         <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">{children}</div>
-
-        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-          {children}
-        </div>
 
         {/* Footer */}
         {footer && (

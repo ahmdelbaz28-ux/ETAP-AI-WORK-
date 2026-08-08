@@ -315,8 +315,4 @@ declare module "lucide-react" {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const createElement: any;
-
-declare module '*.json' {
-  const value: Record<string, unknown>
-  export default value
 }

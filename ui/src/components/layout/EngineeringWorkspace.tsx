@@ -3,17 +3,18 @@ import { cn } from '../../utils/helpers';
 import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react';
 
 interface EngineeringWorkspaceProps {
-  readonly leftPanel?: ReactNode;
-  readonly centerPanel: ReactNode;
-  readonly rightPanel?: ReactNode;
-  readonly leftTitle?: string;
-  readonly rightTitle?: string;
-  readonly defaultLeftWidth?: number;
-  readonly defaultRightWidth?: number;
-  readonly minPanelWidth?: number;
+  leftPanel?: ReactNode;
+  centerPanel: ReactNode;
+  rightPanel?: ReactNode;
+  leftTitle?: string;
+  rightTitle?: string;
+  defaultLeftWidth?: number;
+  defaultRightWidth?: number;
+  minPanelWidth?: number;
 }
 
 export function EngineeringWorkspace({
+  // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
   leftPanel,
   centerPanel,
   rightPanel,
@@ -90,7 +91,6 @@ export function EngineeringWorkspace({
             {leftCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
-                  type="button"
                   onClick={() => setLeftCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -105,7 +105,6 @@ export function EngineeringWorkspace({
                     {leftTitle}
                   </span>
                   <button
-                    type="button"
                     onClick={() => setLeftCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
@@ -120,7 +119,7 @@ export function EngineeringWorkspace({
 
           {/* Left Resize Handle */}
           {!leftCollapsed && (
-            <div // NOSONAR — S6848/S1082: non-interactive resize handle; intentional drag UX
+            <div // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('left')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
@@ -141,7 +140,7 @@ export function EngineeringWorkspace({
         <>
           {/* Right Resize Handle */}
           {!rightCollapsed && (
-            <div // NOSONAR — S6848/S1082: non-interactive resize handle; intentional drag UX
+            <div // NOSONAR — S6848: non-interactive DOM role; intentional
               onMouseDown={handleMouseDown('right')}
               className={cn(
                 'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
@@ -162,7 +161,6 @@ export function EngineeringWorkspace({
             {rightCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
-                  type="button"
                   onClick={() => setRightCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -177,7 +175,6 @@ export function EngineeringWorkspace({
                     {rightTitle}
                   </span>
                   <button
-                    type="button"
                     onClick={() => setRightCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"

@@ -799,6 +799,7 @@ export default function EmailDashboardPage() {
                 );
               }
               return (
+              <Card>
                 <CardSection className="overflow-x-auto p-0">
                   <table className="w-full text-sm">
                     <thead>

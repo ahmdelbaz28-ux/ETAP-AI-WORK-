@@ -203,23 +203,6 @@ export default function DataImport() {
     }
   }, []);
 
-import { motion } from 'framer-motion'
-import { Upload, CloudUpload, FileJson, FileSpreadsheet, FileText, Database, Cable } from 'lucide-react'
-import { useNotify } from '../context/NotificationContext'
-import { Card, CardHeader } from '../components/ui'
-
-const supportedFormats = [
-  { name: 'CIM/XML', icon: <FileText className="w-5 h-5" />, desc: 'IEC Common Information Model' },
-  { name: 'PSS/E RAW', icon: <Database className="w-5 h-5" />, desc: 'Siemens PSS/E format' },
-  { name: 'MATPOWER', icon: <FileJson className="w-5 h-5" />, desc: 'MATLAB power system' },
-  { name: 'ETAP Project', icon: <Cable className="w-5 h-5" />, desc: 'ETAP native format' },
-  { name: 'JSON', icon: <FileJson className="w-5 h-5" />, desc: 'Structured data import' },
-  { name: 'CSV', icon: <FileSpreadsheet className="w-5 h-5" />, desc: 'Comma-separated values' },
-]
-
-export function DataImport() {
-  const { notify } = useNotify()
-
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -283,21 +266,6 @@ export function DataImport() {
             </p>
             <p className="text-xs text-[var(--text-muted)] mt-2">
               Maximum file size: 20 MB · Files are parsed on the server
-
-      {/* Upload Drop Zone */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card
-          padding="lg"
-          className="border-dashed border-2 border-[var(--border-secondary)] hover:border-[var(--color-brand-500)]/50 cursor-pointer transition-colors"
-          onClick={() => notify('info', 'Import functionality coming soon')}
-        >
-          <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center mx-auto mb-4">
-              <CloudUpload className="w-8 h-8 text-[var(--text-muted)]" />
-            </div>
-            <h3 className="text-base font-medium text-[var(--text-primary)]">Drop files here or click to browse</h3>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              Supported: {supportedFormats.map(f => f.name).join(', ')}
             </p>
           </div>
         </Card>
