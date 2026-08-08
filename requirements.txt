@@ -184,7 +184,12 @@ matplotlib>=3.4.0
 # pywin32>=303; sys_platform == 'win32'
 
 # GUI Automation
-pyautogui>=0.9.53
+# pyautogui requires X11/libs on Linux and has no wheel for headless CI runners.
+# Platform marker restricts it to Windows/macOS (where the CUA desktop agent runs).
+# On Linux (CI, HF Space, servers) it is skipped — the codebase imports it lazily
+# inside try/except (agents/cua_executor.py, agents/etap_gui_agent.py) so the
+# service still starts without it.
+pyautogui>=0.9.53; sys_platform != 'linux'
 opencv-python>=4.5.0
 
 # System monitoring
