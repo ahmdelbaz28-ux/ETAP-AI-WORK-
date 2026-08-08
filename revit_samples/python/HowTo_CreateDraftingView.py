@@ -19,8 +19,8 @@ from Autodesk.Revit.DB import (
     ViewFamilyType,
 )
 
-uidoc = __revit__.ActiveUIDocument
-doc = __revit__.ActiveUIDocument.Document
+uidoc = __revit__.ActiveUIDocument  # noqa: F821
+doc = __revit__.ActiveUIDocument.Document  # noqa: F821
 
 t = Transaction(doc, 'Create Drafting View')
 t.Start()

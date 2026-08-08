@@ -627,7 +627,7 @@ async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     entry_id = service.store(content=req.content, memory_type=mem_type, metadata=req.metadata)
     if entry_id is None:
         raise HTTPException(status_code=503, detail="Qdrant unavailable — memory not stored")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
@@ -645,7 +645,7 @@ async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     result = service.search(
         query=req.query, memory_type=mem_type,
         limit=req.limit, score_threshold=req.score_threshold,
@@ -672,7 +672,7 @@ async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]
     try:
         et = ElementType(req.element_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid element_type: {req.element_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=f"Invalid element_type: {req.element_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     element = NetworkElement(
         element_id=req.element_id, element_type=et,
         name=req.name, properties=req.properties,
@@ -693,7 +693,7 @@ async def add_topology_connection(req: TopologyAddConnectionRequest) -> Dict[str
     try:
         rt = RelationshipType(req.relationship_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     conn = NetworkConnection(
         from_element=req.from_element, to_element=req.to_element,
         relationship_type=rt, properties=req.properties,

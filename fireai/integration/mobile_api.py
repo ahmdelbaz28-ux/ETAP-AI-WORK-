@@ -17,7 +17,7 @@ import secrets
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from fireai.core.event_bus import EventBus, Events
@@ -54,7 +54,7 @@ class _RateLimiter:
 # ===========================================================================
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     INSPECTION = "INSPECTION"
     SURVEY = "SURVEY"
     PUNCH_ITEM = "PUNCH_ITEM"
@@ -62,7 +62,7 @@ class TaskType(str, Enum):
     COMMISSIONING = "COMMISSIONING"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
@@ -70,7 +70,7 @@ class TaskStatus(str, Enum):
     CANCELLED = "CANCELLED"
 
 
-class AuthScheme(str, Enum):
+class AuthScheme(StrEnum):
     BEARER = "BEARER"
     API_KEY = "API_KEY"  # Auth scheme name, not an actual key value
 

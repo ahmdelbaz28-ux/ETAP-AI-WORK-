@@ -124,7 +124,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
         try:
             from parsers.dwg_parser import DWGParser
         except ImportError as import_err:
-            raise HTTPException(
+            raise HTTPException(  # noqa: B904
                 status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
                 detail={
                     "success": False,
@@ -169,7 +169,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
         logger.exception(
             "DWG parse request failed: %s: %s", type(exc).__name__, exc,
         )
-        raise HTTPException(
+        raise HTTPException(  # noqa: B904
             status_code=500,
             detail={
                 "success": False,
@@ -190,7 +190,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
 # endpoint. The previous @router.post + @limiter.limit order was wrong.
 if _HAS_LIMITER:
     @limiter.limit("10/minute")
-    async def _rate_limited_parse_dwg(request: Request, file: UploadFile = File(...)):
+    async def _rate_limited_parse_dwg(request: Request, file: UploadFile = File(...)):  # noqa: B008
         """Rate-limited wrapper for DWG parse endpoint."""
         return await _parse_dwg_impl(request, file)
 

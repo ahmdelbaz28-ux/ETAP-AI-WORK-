@@ -524,7 +524,7 @@ def calculate_eol_voltage(
     # Clamped to 0.0 and flagged as CRITICAL violation.
     if v_eol < 0:
         logger.critical(
-            f"EOL voltage is NEGATIVE ({v_eol:.2f} VDC) — voltage drop "  # NOSONAR — S3457: replacement field {v_eol:.2f} IS the arg
+            f"EOL voltage is NEGATIVE ({v_eol:.2f} VDC) — voltage drop "  # NOSONAR — S3457: replacement field {v_eol:.2f} IS the arg  # noqa: G004
             f"exceeds supply voltage. Circuit cannot operate. "
             f"Per NFPA 72 §10.6.4, terminal voltage must be >= 80% of nominal."
         )

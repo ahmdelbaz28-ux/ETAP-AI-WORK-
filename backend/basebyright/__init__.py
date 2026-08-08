@@ -432,7 +432,7 @@ class GoldenTestRunner:
                 detail={"name": name, "path": path},
             )
 
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             golden = json.load(f)
 
         try:
@@ -740,10 +740,7 @@ class BaseByRight:
             The actual status code (for chaining).
         """
         actual = response.status_code
-        if isinstance(expected, (set, list)):
-            passed = actual in expected
-        else:
-            passed = actual == expected
+        passed = actual in expected if isinstance(expected, (set, list)) else actual == expected
 
         contract_name = f"STATUS_{actual}" if passed else f"STATUS_{expected}"
         ctx = f" [{context}]" if context else ""

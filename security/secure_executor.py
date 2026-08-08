@@ -389,7 +389,7 @@ def _build_wrapper_script(safe_globals: dict) -> str:
     _safe_builtins_names = list(safe_globals["__builtins__"].keys())
 
     # NOSONAR
-    wrapper_code = """
+    wrapper_code = f"""
 import sys
 import io
 import json
@@ -398,15 +398,15 @@ from contextlib import redirect_stdout
 # V-42: Set memory limit
 try:
     import resource
-    max_bytes = {max_memory_mb} * 1024 * 1024
+    max_bytes = {MAX_MEMORY_MB} * 1024 * 1024
     resource.setrlimit(resource.RLIMIT_AS, (max_bytes, max_bytes))
 except (ValueError, OSError, ImportError):
     pass
 
 # Reconstruct safe_globals in the subprocess
 # Builtins: only the safe subset
-_safe_builtins_names = {safe_builtins_names_json}
-_allowed_import_names = {allowed_imports_json}
+_safe_builtins_names = {json.dumps(_safe_builtins_names)}
+_allowed_import_names = {json.dumps(ALLOWED_IMPORT_NAMES)}
 
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     root_name = name.split(".")[0]
@@ -456,11 +456,7 @@ except Exception as e:
     print(str(e))
     import traceback
     traceback.print_exc()
-""".format(
-        max_memory_mb=MAX_MEMORY_MB,
-        safe_builtins_names_json=json.dumps(_safe_builtins_names),
-        allowed_imports_json=json.dumps(ALLOWED_IMPORT_NAMES),
-    )
+"""
     return wrapper_code
 
 

@@ -1,7 +1,9 @@
-import os, re
+import os
+import re
+
 for fname in sorted(os.listdir("templates/emails")):
  if not fname.endswith(".html"): continue
- with open(f"templates/emails/{fname}","r",encoding="utf-8") as f:
+ with open(f"templates/emails/{fname}",encoding="utf-8") as f:
   content = f.read()
  hex_colors = re.findall(r"#[0-9a-fA-F]{6}", content)
  inline_styles = re.findall(r'style="[^"]*"', content)

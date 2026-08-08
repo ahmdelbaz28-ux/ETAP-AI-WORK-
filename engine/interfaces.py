@@ -24,7 +24,7 @@ Usage::
 
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol
+from typing import Any, Dict, Optional, Protocol
 
 # ============================================================================
 # Load Flow Solver
@@ -60,14 +60,6 @@ class FaultAnalyzerProtocol(Protocol):
     matrices for all three sequences and calculates fault currents for
     each fault type.
     """
-
-    def three_phase_fault(self, bus_index: int) -> dict[str, Any]: ...
-
-    def line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
-
-    def line_to_line_fault(self, bus_index: int) -> dict[str, Any]: ...
-
-    def double_line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
 
     def three_phase_fault(self, bus_index: int) -> Dict[str, Any]: ...
 

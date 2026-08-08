@@ -35,7 +35,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -43,7 +43,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 logger = logging.getLogger(__name__)
 
 
-class MaterialGroup(str, Enum):
+class MaterialGroup(StrEnum):
     """IEC 60079-0 gas/dust groups for equipment selection."""
 
     IIA = "IIA"    # Propane group (least restrictive)
@@ -55,7 +55,7 @@ class MaterialGroup(str, Enum):
     UNKNOWN = "unknown"
 
 
-class TemperatureClass(str, Enum):
+class TemperatureClass(StrEnum):
     """IEC 60079-0 temperature classes based on auto-ignition temperature."""
 
     T1 = "T1"    # > 450°C
@@ -371,7 +371,7 @@ class HazmatService:
         - Low AIT = restrictive temperature class = conservative
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT hazmat data for '{material_name}'. "
+            f"Using CONSERVATIVE DEFAULT hazmat data for '{material_name}'. "  # noqa: G004
             f"Material not in internal DB and PubChem unavailable. "
             f"Assuming most restrictive classification."
         )
@@ -424,12 +424,12 @@ class HazmatService:
             return data
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"PubChem fetch failed for '{material_name}': "
+                f"PubChem fetch failed for '{material_name}': "  # noqa: G004
                 f"{type(e).__name__}: {e}. Using defaults."
             )
         except Exception as e:
             logger.exception(
-                f"Unexpected error fetching hazmat data for '{material_name}': "
+                f"Unexpected error fetching hazmat data for '{material_name}': "  # noqa: G004
                 f"{type(e).__name__}: {e}. Using defaults."
             )
 

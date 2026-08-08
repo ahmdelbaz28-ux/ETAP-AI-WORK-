@@ -264,7 +264,7 @@ def _test_openai_compatible_connectivity(base_url: str, api_key: str) -> bool:
             body = e.read().decode("utf-8", errors="replace")
             if "unsupported_country_region_territory" in body:
                 logger.warning(
-                    f"OpenAI-compatible API at {base_url} is region-blocked (403). Falling back to next provider."
+                    f"OpenAI-compatible API at {base_url} is region-blocked (403). Falling back to next provider."  # noqa: G004
                 )
                 return False
             logger.warning("API at %s returned 403: %s", base_url, body[:200])
@@ -414,7 +414,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
 
         if openrouter_reachable:
             logger.info(
-                f"OpenRouter API reachable at {openrouter_base_url} — "
+                f"OpenRouter API reachable at {openrouter_base_url} — "  # noqa: G004
                 "using OpenRouter as provider. "
                 "(LLM: gpt-4o via OpenRouter, Embeddings: local sentence-transformers, 384d)"
             )
@@ -430,7 +430,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
                 "base_url": openrouter_base_url,
             }
         logger.info(
-            f"OpenRouter API key found but {openrouter_base_url} not reachable. "
+            f"OpenRouter API key found but {openrouter_base_url} not reachable. "  # noqa: G004
             "Falling back to OpenCode, Gemini, or z-ai proxy."
         )
 
@@ -453,7 +453,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
 
         if opencode_reachable:
             logger.info(
-                f"OpenCode API reachable at {opencode_base_url} — "
+                f"OpenCode API reachable at {opencode_base_url} — "  # noqa: G004
                 "using OpenCode as provider. "
                 "(LLM: gpt-4o via OpenCode, Embeddings: local sentence-transformers, 384d)"
             )
@@ -469,7 +469,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
                 "base_url": opencode_base_url,
             }
         logger.info(
-            f"OpenCode API key found but {opencode_base_url} not reachable. Falling back to Gemini or z-ai proxy."
+            f"OpenCode API key found but {opencode_base_url} not reachable. Falling back to Gemini or z-ai proxy."  # noqa: G004
         )
 
     # ── Strategy 4: Gemini (PRIMARY when OpenAI/OpenRouter/OpenCode unavailable) ──
@@ -537,7 +537,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
 
         if nvidia_reachable:
             logger.info(
-                f"NVIDIA API reachable at {nvidia_base_url} — "
+                f"NVIDIA API reachable at {nvidia_base_url} — "  # noqa: G004
                 f"using NVIDIA as provider. "
                 f"(LLM: {nvidia_model}, Embeddings: local sentence-transformers, 384d)"
             )
@@ -553,7 +553,7 @@ def _detect_provider_uncached() -> dict[str, Any]:  # NOSONAR — S3776: cogniti
                 "base_url": nvidia_base_url,
             }
         logger.info(
-            f"NVIDIA API key found but {nvidia_base_url} not reachable. Falling back to z-ai proxy."
+            f"NVIDIA API key found but {nvidia_base_url} not reachable. Falling back to z-ai proxy."  # noqa: G004
         )
 
     # ── Strategy 6: Try z-ai proxy ──
@@ -687,7 +687,7 @@ def get_mem0_config() -> dict[str, Any]:
     }
 
     logger.info(
-        f"Mem0 config: provider={provider_info['provider']}, "
+        f"Mem0 config: provider={provider_info['provider']}, "  # noqa: G004
         f"llm={provider_info['llm_model']}, "
         f"embedder={provider_info['embedder_model']}, "
         f"dims={provider_info['embedding_dims']}, "

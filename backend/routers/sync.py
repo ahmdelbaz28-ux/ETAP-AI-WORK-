@@ -91,7 +91,7 @@ class ConnectionManager:
 
         if current_count >= self.MAX_CONNECTIONS_PER_IP:
             logger.warning(
-                f"WebSocket connection rejected for IP {client_ip}: "
+                f"WebSocket connection rejected for IP {client_ip}: "  # noqa: G004
                 f"limit of {self.MAX_CONNECTIONS_PER_IP} concurrent connections exceeded "
                 f"(current: {current_count})"
             )
@@ -111,7 +111,7 @@ class ConnectionManager:
         self._ip_connections[client_ip].append(websocket)
 
         logger.info(
-            f"WebSocket client connected from {client_ip}. "
+            f"WebSocket client connected from {client_ip}. "  # noqa: G004
             f"Total: {len(self.active_connections)}, "
             f"IP connections: {len(self._ip_connections[client_ip])}/{self.MAX_CONNECTIONS_PER_IP}"
         )
@@ -271,7 +271,7 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
 
     # Missing Origin header
     if not origin:
-        if is_dev_mode:
+        if is_dev_mode:  # noqa: SIM103
             return True  # Dev mode — allow missing Origin for local tools/TestClient
         # Production: missing Origin means external client — reject
         return False
@@ -293,10 +293,7 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
         return True
 
     # External origin — allow in dev mode, reject in production
-    if is_dev_mode:
-        return True
-
-    return False
+    return bool(is_dev_mode)
 
 
 def _validate_ws_api_key(_websocket: WebSocket) -> bool:  # NOSONAR — S1172: parameter retained for API stability
@@ -313,7 +310,7 @@ def _validate_ws_api_key(_websocket: WebSocket) -> bool:  # NOSONAR — S1172: p
     - Referrer headers
     - Proxy logs
     """
-    if not os.getenv("FIREAI_API_KEY"):
+    if not os.getenv("FIREAI_API_KEY"):  # noqa: SIM103
         return True  # No API key configured → auth disabled
 
     # Query parameter auth is DEPRECATED for security — query params
@@ -342,9 +339,11 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
     # ── Origin check ────────────────────────────────────────────────────
     if not _validate_ws_origin(websocket):
         logger.warning(
-            f"WebSocket connection rejected: invalid origin "
-            f"origin={websocket.headers.get('origin', 'missing')} "
-            f"client={websocket.client.host if websocket.client else 'unknown'}"
+            "WebSocket connection rejected: invalid origin "
+            "origin=%s "
+            "client=%s",
+            websocket.headers.get("origin", "missing"),
+            websocket.client.host if websocket.client else "unknown",
         )
         await websocket.close(code=4001, reason="Unauthorized origin")
         return
@@ -358,7 +357,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
     current_ip_count = len(manager._ip_connections.get(client_ip, []))
     if current_ip_count >= manager.MAX_CONNECTIONS_PER_IP:
         logger.warning(
-            f"WebSocket connection rejected for IP {client_ip}: "
+            f"WebSocket connection rejected for IP {client_ip}: "  # noqa: G004
             f"limit of {manager.MAX_CONNECTIONS_PER_IP} concurrent connections exceeded "
             f"(current: {current_ip_count})"
         )
@@ -442,7 +441,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
                     })
                     await websocket.close(code=4003, reason="Authentication failed")
                     return
-            except (asyncio.TimeoutError, json.JSONDecodeError):
+            except (TimeoutError, json.JSONDecodeError):
                 await websocket.send_json({
                     "channel": "system",
                     "type": "auth_timeout",
@@ -460,7 +459,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
         manager._ip_connections[client_ip] = []
     manager._ip_connections[client_ip].append(websocket)
     logger.info(
-        f"WebSocket client authenticated and connected from {client_ip}. "
+        f"WebSocket client authenticated and connected from {client_ip}. "  # noqa: G004
         f"Total: {len(manager.active_connections)}, "
         f"IP connections: {len(manager._ip_connections[client_ip])}/{manager.MAX_CONNECTIONS_PER_IP}"
     )

@@ -385,14 +385,14 @@ class TestFDSIntegrationConfig:
 class TestConstants:
     def test_visibility_tenability_threshold_is_10m(self):
         """Per NFPA 101 §A.7.2: minimum 10m visibility for safe egress."""
-        assert VISIBILITY_TENABILITY_THRESHOLD_M == pytest.approx(10.0)
+        assert pytest.approx(10.0) == VISIBILITY_TENABILITY_THRESHOLD_M
 
     def test_smoke_density_tenability_threshold_is_0_05(self):
         """Per SFPE Handbook: 0.05 kg/m³ (50 mg/m³) max survivable."""
-        assert SMOKE_DENSITY_TENABILITY_THRESHOLD_KG_M3 == pytest.approx(0.05)
+        assert pytest.approx(0.05) == SMOKE_DENSITY_TENABILITY_THRESHOLD_KG_M3
 
     def test_eye_level_adult_is_1_7m(self):
-        assert EYE_LEVEL_ADULT_M == pytest.approx(1.7)
+        assert pytest.approx(1.7) == EYE_LEVEL_ADULT_M
 
     def test_default_visibility_heights_include_eye_level(self):
         assert EYE_LEVEL_ADULT_M in DEFAULT_VISIBILITY_HEIGHTS_M

@@ -35,7 +35,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ NEO4J_PASSWORD_DEFAULT = "etap_password"
 # ---------------------------------------------------------------------------
 
 
-class ElementType(str, Enum):
+class ElementType(StrEnum):
     """Types of electrical network elements (Neo4j node labels)."""
 
     BUS = "Bus"
@@ -72,7 +72,7 @@ class ElementType(str, Enum):
     PANEL = "Panel"
 
 
-class RelationshipType(str, Enum):
+class RelationshipType(StrEnum):
     """Types of relationships between network elements (Neo4j edge types)."""
 
     CONNECTED_TO = "CONNECTED_TO"

@@ -283,7 +283,7 @@ class AirQualityService:
         )
 
         logger.info(
-            f"Air quality fetched from WAQI: lat={latitude:.4f}, lon={longitude:.4f}, "
+            f"Air quality fetched from WAQI: lat={latitude:.4f}, lon={longitude:.4f}, "  # noqa: G004
             f"AQI={aqi} ({level}), PM2.5≈{pm25_ug_m3:.1f}µg/m³, PM10≈{pm10_ug_m3:.1f}µg/m³"
         )
         return result
@@ -394,9 +394,11 @@ class AirQualityService:
         tenability calculations.
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT air quality for "
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Assuming MODERATE AQI."
+            "Using CONSERVATIVE DEFAULT air quality for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Assuming MODERATE AQI.",
+            latitude,
+            longitude,
         )
         return AirQualityData(
             aqi=DEFAULT_AQI,
@@ -431,7 +433,7 @@ class AirQualityService:
         """
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             logger.warning(
-                f"Invalid coordinates: lat={latitude}, lon={longitude}. Using defaults."
+                f"Invalid coordinates: lat={latitude}, lon={longitude}. Using defaults."  # noqa: G004
             )
             return self._get_default(latitude, longitude)
 
@@ -447,14 +449,14 @@ class AirQualityService:
             return data
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"WAQI fetch failed for lat={latitude:.4f}, "
+                f"WAQI fetch failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )
             return self._get_default(latitude, longitude)
         except Exception as e:
             logger.exception(
-                f"Unexpected error fetching air quality for lat={latitude:.4f}, "
+                f"Unexpected error fetching air quality for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )

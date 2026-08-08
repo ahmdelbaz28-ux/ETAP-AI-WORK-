@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -105,7 +105,7 @@ Focus on extracting and storing fire protection engineering information:
 """
 
 
-class MemoryScope(str, Enum):
+class MemoryScope(StrEnum):
     """Memory scoping levels — determines the context boundary of stored memories."""
 
     USER = "user"          # Engineer's personal preferences and patterns
@@ -114,7 +114,7 @@ class MemoryScope(str, Enum):
     GLOBAL = "global"      # Shared knowledge across all users/projects
 
 
-class MemoryCategory(str, Enum):
+class MemoryCategory(StrEnum):
     """Categories of memories for structured storage and retrieval."""
 
     LAYOUT = "layout"                    # Building layouts and detector placements
@@ -298,7 +298,7 @@ class MemoryService:
                     return  # Success — exit early
                 except Exception as e:
                     logger.warning(
-                        f"OpenAI Mem0 init failed ({type(e).__name__}): {e}. "
+                        f"OpenAI Mem0 init failed ({type(e).__name__}): {e}. "  # noqa: G004
                         "Falling back to Gemini."
                     )
 
@@ -360,7 +360,7 @@ class MemoryService:
                     return  # Success — exit early
                 except Exception as e:
                     logger.warning(
-                        f"Gemini Mem0 init also failed ({type(e).__name__}): {e}. "
+                        f"Gemini Mem0 init also failed ({type(e).__name__}): {e}. "  # noqa: G004
                         "MemoryService will not initialize."
                     )
 
@@ -385,7 +385,7 @@ class MemoryService:
             # without API keys. This is NOT a safety risk — calculations
             # proceed normally without memory context.
             logger.warning(
-                f"MemoryService initialization failed: {e}. "
+                f"MemoryService initialization failed: {e}. "  # noqa: G004
                 "Calculations proceed normally without memory context."
             )
 
@@ -432,7 +432,7 @@ class MemoryService:
             )
 
             logger.info(
-                f"Memory added: user={request.user_id}, "
+                f"Memory added: user={request.user_id}, "  # noqa: G004
                 f"project={request.run_id}"
             )
 
@@ -510,7 +510,7 @@ class MemoryService:
                     ))
 
             logger.info(
-                f"Memory search: query='{request.query[:50]}...', "
+                f"Memory search: query='{request.query[:50]}...', "  # noqa: G004
                 f"results={len(results)}"
             )
 
@@ -582,7 +582,7 @@ class MemoryService:
             # ValueError: "get_all() got an unexpected keyword argument 'user_id'"
             # TypeError: similar signature mismatch
             logger.info(
-                f"mem0 get_all() v1 API failed ({type(api_error).__name__}: {api_error}). "
+                f"mem0 get_all() v1 API failed ({type(api_error).__name__}: {api_error}). "  # noqa: G004
                 f"Trying v2 API (no kwargs) with Python-side filtering."
             )
             try:
@@ -636,7 +636,7 @@ class MemoryService:
 
             except Exception as e2:
                 logger.exception(
-                    f"Memory get_all failed with BOTH v1 and v2 APIs: {e2}",
+                    "Memory get_all failed with BOTH v1 and v2 APIs: %s", e2,
                 )
                 return {
                     "success": False,

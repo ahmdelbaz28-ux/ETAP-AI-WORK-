@@ -33,7 +33,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -444,10 +444,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 bus = ctx.dt_state.system.buses.get(bus_id)
                 bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
-                if bus is not None:
-                    bus_kv = abs(bus.voltage) * system_base_kv
-                else:
-                    bus_kv = system_base_kv
+                bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
                 # IEEE 1584-2018 valid range: 0.208–15 kV.
                 # Buses above 15 kV (transmission) use Ralph Lee fallback.
@@ -578,7 +575,6 @@ class ProtectionRefreshHandler(PropagationHandler):
 
             fault_currents: list[float] = []
 
-            from relays.relay import OvercurrentRelay
 
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")

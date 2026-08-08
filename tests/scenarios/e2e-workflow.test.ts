@@ -9,11 +9,6 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeFile, unlink } from 'node:fs/promises';
 
-import { MockEtapProvider, createMockEtapScenario, type StudyTypeStr } from './helpers.mock-etap';
-import { generateSimpleIndustrialSystem, generateStudyParameters } from './helpers.test-data';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import { writeFile, unlink } from 'fs/promises';
 const execFileAsync = promisify(execFile);
 
 describe('E2E Full Workflow — Create → Import → Study → Report → Export', () => {
@@ -80,8 +75,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const params = generateStudyParameters().loadFlow;
 
     await mockEtap.openProject(projectPath);
-    const result = await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr, params);
-
     const result = await mockEtap.executeStudy(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
@@ -101,8 +94,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
 
     await mockEtap.openProject(projectPath);
     await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr);
-    const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
-
     const extracted = await mockEtap.extractResults(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr
@@ -121,10 +112,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
       params,
-    );
-    const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
-
-      params
     );
     const extracted = await mockEtap.extractResults(
       projectPath,
@@ -172,10 +159,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
       projectPath,
       'LOAD_FLOW' as StudyTypeStr,
       params,
-    );
-    const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
-
-      params
     );
     const extracted = await mockEtap.extractResults(
       projectPath,
@@ -238,8 +221,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     expect(studyResult.data.converged).toBe(true);
 
     // Step 5: Extract results
-    const extracted = await mockEtap.extractResults(projectPath, 'LOAD_FLOW' as StudyTypeStr);
-
     const extracted = await mockEtap.extractResults(
       projectPath,
       'LOAD_FLOW' as StudyTypeStr
@@ -297,8 +278,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
     const arcParams = generateStudyParameters().arcFlash;
 
     await mockEtap.openProject(projectPath);
-    const result = await mockEtap.executeStudy(projectPath, 'ARC_FLASH' as StudyTypeStr, arcParams);
-
     const result = await mockEtap.executeStudy(
       projectPath,
       'ARC_FLASH' as StudyTypeStr,
@@ -332,8 +311,6 @@ describe('E2E Full Workflow — Create → Import → Study → Report → Expor
 
     await mockEtap.openProject(projectPath);
     mockEtap.setFailureMode('execution');
-
-    const result = await mockEtap.executeStudy(projectPath, 'LOAD_FLOW' as StudyTypeStr);
 
     const result = await mockEtap.executeStudy(
       projectPath,

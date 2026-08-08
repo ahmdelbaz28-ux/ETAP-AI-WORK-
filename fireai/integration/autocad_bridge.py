@@ -28,7 +28,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from fireai.core.event_bus import EventBus, Events
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class LayerCategory(str, Enum):
+class LayerCategory(StrEnum):
     ARCH_WALL = "ARCH-WALL"
     ARCH_DOOR = "ARCH-DOOR"
     ARCH_WINDOW = "ARCH-WINDOW"

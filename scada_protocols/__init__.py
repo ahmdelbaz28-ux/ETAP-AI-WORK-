@@ -70,8 +70,8 @@ from scada_protocols.opcua import (
     OpcUaAdapter,
     OpcUaClientAdapter,
     OpcUaServerAdapter,
-    UAVariable,
     UAFolder,
+    UAVariable,
     build_plan_from_node_map,
     build_plan_from_system,
 )

@@ -39,7 +39,7 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # ACTION TYPES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class ModelUpdateType(str, Enum):
+class ModelUpdateType(StrEnum):
     """
     Types of model updates that can be queued.
 
@@ -68,7 +68,7 @@ class ModelUpdateType(str, Enum):
     UPDATE_ANNOTATION = "update_annotation"
 
 
-class ModelUpdateStatus(str, Enum):
+class ModelUpdateStatus(StrEnum):
     """Status of a model update action."""
 
     PENDING = "pending"
@@ -279,7 +279,7 @@ class ThreadSafeModelUpdateQueue:
             self._stats["enqueued"] += 1
 
         logger.info(
-            f"[MCP QUEUE]: Enqueued {action.action_type.value} "
+            f"[MCP QUEUE]: Enqueued {action.action_type.value} "  # noqa: G004
             f"action_id={action.action_id} element={action.element_id} "
             f"param={action.parameter_name} source={action.source}"
         )
@@ -333,7 +333,7 @@ class ThreadSafeModelUpdateQueue:
                 self._stats["rejected"] += 1
 
         logger.info(
-            f"[MCP QUEUE]: Result for {result.action_id}: "
+            f"[MCP QUEUE]: Result for {result.action_id}: "  # noqa: G004
             f"{result.status.value} "
             f"({result.execution_time_ms:.1f}ms) "
             f"{result.error_message or ''}"
