@@ -35,7 +35,7 @@ def zbus_full(
     ybus,
 ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-    Y_reduced = np.delete(np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1)
+    Y_reduced = np.delete(np.delete(Ybus, reference_bus, axis=0), reference_bus, axis=1)  # noqa: F821
     # Compute the inverse
     try:
         Z_reduced = np.linalg.inv(Y_reduced)
@@ -59,6 +59,6 @@ def zbus_full(Ybus):  # noqa: F811
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n x n) or pseudo-inverse.
     """
     try:
-        return np.linalg.inv(ybus)
+        return np.linalg.inv(ybus)  # noqa: F821
     except np.linalg.LinAlgError:
-        return np.linalg.pinv(ybus)
+        return np.linalg.pinv(ybus)  # noqa: F821

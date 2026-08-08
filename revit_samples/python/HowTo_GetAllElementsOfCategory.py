@@ -14,7 +14,7 @@ License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 #Imports.
 from Autodesk.Revit.DB import BuiltInCategory, FilteredElementCollector
 
-doc = __revit__.ActiveUIDocument.Document
+doc = __revit__.ActiveUIDocument.Document  # noqa: F821
 
 def all_elements_of_category(category):
 	return FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType().ToElements()  # noqa: W191

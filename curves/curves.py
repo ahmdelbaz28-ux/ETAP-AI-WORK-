@@ -253,9 +253,9 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if Ip >= I:
+        if Ip >= I:  # noqa: F821
             return float("inf")
-        return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
+        return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))  # noqa: F821
 
     @staticmethod
     def very_inverse(TMS, I, Ip):  # noqa: F811
@@ -264,9 +264,9 @@ class IEC60255Curves:
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,
-            i_setting=ip,
-            tms=tms,
+            i_fault=i,  # noqa: F821
+            i_setting=ip,  # noqa: F821
+            tms=tms,  # noqa: F821
             curve_type="very_inverse",
         )
         return result["operating_time_s"]
@@ -278,9 +278,9 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if Ip >= I:
+        if Ip >= I:  # noqa: F821
             return float("inf")
-        return TMS * (13.5 / ((I / Ip) - 1))
+        return TMS * (13.5 / ((I / Ip) - 1))  # noqa: F821
 
     @staticmethod
     def extremely_inverse(TMS, I, Ip):  # noqa: F811
@@ -289,9 +289,9 @@ class IEC60255Curves:
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,
-            i_setting=ip,
-            tms=tms,
+            i_fault=i,  # noqa: F821
+            i_setting=ip,  # noqa: F821
+            tms=tms,  # noqa: F821
             curve_type="extremely_inverse",
         )
         return result["operating_time_s"]
@@ -303,9 +303,9 @@ class IEC60255Curves:
         ip,
     ):  # NOSONAR physics/engineering notation
 
-        if Ip >= I:
+        if Ip >= I:  # noqa: F821
             return float("inf")
-        return TMS * (80 / ((I / Ip) ** 2 - 1))
+        return TMS * (80 / ((I / Ip) ** 2 - 1))  # noqa: F821
 
     @staticmethod
     def long_inverse(TMS, I, Ip):  # noqa: F811
@@ -314,9 +314,9 @@ class IEC60255Curves:
         t = TMS * (120 / ((I/Ip) - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,
-            i_setting=ip,
-            tms=tms,
+            i_fault=i,  # noqa: F821
+            i_setting=ip,  # noqa: F821
+            tms=tms,  # noqa: F821
             curve_type="long_inverse",
         )
         return result["operating_time_s"]

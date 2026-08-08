@@ -15,8 +15,8 @@ License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 #Imports
 from Autodesk.Revit.DB import Transaction
 
-doc = __revit__.ActiveUIDocument.Document
-uidoc = __revit__.ActiveUIDocument
+doc = __revit__.ActiveUIDocument.Document  # noqa: F821
+uidoc = __revit__.ActiveUIDocument  # noqa: F821
 t = Transaction(doc, 'Set Parameter by Name')
 
 #Select element from revit.
