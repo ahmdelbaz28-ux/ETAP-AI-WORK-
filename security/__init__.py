@@ -38,3 +38,45 @@ from security.siem import (
     SIEMForwarder,
     get_siem_forwarder,
 )
+
+
+__all__ = [
+    # ABAC
+    "ABACMiddleware",
+    "ABACPolicy",
+    "ABACPolicyEngine",
+    "ABACRule",
+    "RuleType",
+    "create_default_etap_abac_engine",
+    "ip_in_ranges",
+    "make_business_hours_policy",
+    "make_clearance_policy",
+    "make_ip_allowlist_policy",
+    "make_role_policy",
+    # Log redaction
+    "SecretRedactionFilter",
+    "install_globally",
+    "redact_text",
+    # MFA
+    "MFAOrchestrator",
+    "TOTPProvider",
+    "WebAuthnCredential",
+    "WebAuthnProvider",
+    # Secrets manager
+    "EnvironmentValidator",
+    "KeyAccessAuditor",
+    "LocalSecretsManager",
+    "VaultSecretsManager",
+    # Security framework
+    "AuditLogger",
+    "AuthenticationManager",
+    "AuthorizationManager",
+    "InputValidator",
+    "Permission",
+    "RateLimiter",
+    "UserRole",
+    # SIEM
+    "SecurityEvent",
+    "SIEMForwarder",
+    "get_siem_forwarder",
+]

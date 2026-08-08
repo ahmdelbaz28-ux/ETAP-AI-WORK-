@@ -15,3 +15,11 @@ from autodesk_connector.autocad.connector import (
     AutoCADEntityType,
     AutoCADPluginClient,
 )
+
+
+__all__ = [
+    "AutoCADConnector",
+    "AutoCADDrawingOperation",
+    "AutoCADEntityType",
+    "AutoCADPluginClient",
+]

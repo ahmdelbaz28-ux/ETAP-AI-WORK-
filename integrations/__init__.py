@@ -10,7 +10,6 @@ into a single import surface, plus provides:
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import logging
 from typing import Any
