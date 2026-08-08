@@ -29,7 +29,7 @@ import uuid
 from datetime import UTC, datetime
 
 UTC = UTC
-from typing import Any
+from typing import Any, Optional
 
 try:
     from typing import Annotated
@@ -96,7 +96,7 @@ class Asset(Base):
     __tablename__ = "assets"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    tenant_id: Mapped[str | None] = mapped_column(
+    tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
@@ -104,15 +104,15 @@ class Asset(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)  # AssetType
-    rating: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
-    voltage: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
+    rating: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
+    voltage: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=AssetStatus.ACTIVE.value
     )
-    project_id: Mapped[str | None] = mapped_column(
+    project_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("projects.id"), nullable=True
     )
-    created_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
@@ -121,7 +121,7 @@ class Asset(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
 
 
 # ---------------------------------------------------------------------------
