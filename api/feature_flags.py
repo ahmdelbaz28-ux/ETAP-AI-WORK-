@@ -34,7 +34,7 @@ import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Annotated
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse

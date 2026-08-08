@@ -1,10 +1,9 @@
 import { describe, it, expect } from '@jest/globals';
 import { createServer } from '../../src/services/server.js';
-import type * as nodeHttp from 'node:http';
 import type { AppConfig } from '../../src/config/index.js';
 
 describe('Server', () => {
-  let server: ReturnType<typeof nodeHttp.createServer>;
+  let server: ReturnType<typeof import('http').createServer>;
   const testConfig: AppConfig = {
     port: 0,
     nodeEnv: 'test',
@@ -62,7 +61,7 @@ describe('Server', () => {
 });
 
 function listenOnRandomPort(
-  server: ReturnType<typeof nodeHttp.createServer>,
+  server: ReturnType<typeof import('http').createServer>,
 ): Promise<{ port: number }> {
   return new Promise((resolve, reject) => {
     server.listen(0, () => {

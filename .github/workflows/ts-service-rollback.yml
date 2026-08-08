@@ -42,17 +42,14 @@ jobs:
         run: npm run build
 
       - name: Deploy rollback
-        env:
-          VERSION: ${{ inputs.version }}
-          REASON: ${{ inputs.reason }}
         run: |
-          echo "Rolling back to version: $VERSION"
-          echo "Reason: $REASON"
+          echo "Rolling back to version: ${{ inputs.version }}"
+          echo "Reason: ${{ inputs.reason }}"
           # Add actual deployment command here (e.g., vercel, aws, etc.)
           # npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
-          echo "Rollback deployment complete for version $VERSION"
+          echo "Rollback deployment complete for version ${{ inputs.version }}"
 
       - name: Notify team
         if: always()
         run: |
-          echo "::warning::Rolled back to $VERSION — Reason: $REASON"
+          echo "::warning::Rolled back to ${{ inputs.version }} — Reason: ${{ inputs.reason }}"

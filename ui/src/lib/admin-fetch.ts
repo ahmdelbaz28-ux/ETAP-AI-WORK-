@@ -98,29 +98,6 @@ export function mergeHeaders(
  *                  endpoints like GET /email-digest/preview/{email}
  *                  that return HTML.
  */
-/**
- * Extract a human-readable detail string from a non-OK HTTP response body.
- * Tries JSON fields (detail/message/error) first, then falls back to plain text.
- */
-function extractErrorDetail(res: Response, text: string): string {
-  const base = `HTTP ${res.status}`;
-  let parsed: unknown = null;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    // Not JSON — fall through to plain-text handling.
-  }
-  if (parsed && typeof parsed === "object") {
-    const p = parsed as Record<string, unknown>;
-    if (typeof p.detail === "string") return `${base}: ${p.detail}`;
-    if (typeof p.message === "string") return `${base}: ${p.message}`;
-    if (typeof p.error === "string") return `${base}: ${p.error}`;
-  } else if (text) {
-    return `${base}: ${text.slice(0, 200)}`;
-  }
-  return base;
-}
-
 export async function adminFetch<T>(
   path: string,
   init?: RequestInit,
@@ -150,7 +127,22 @@ export async function adminFetch<T>(
   const text = await res.text().catch(() => "");
 
   if (!res.ok) {
-    const detail = extractErrorDetail(res, text);
+    // Try to extract a structured error message from the JSON body.
+    let detail = `HTTP ${res.status}`;
+    let parsed: unknown = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Not JSON — fall through to plain-text handling.
+    }
+    if (parsed && typeof parsed === "object") {
+      const p = parsed as Record<string, unknown>;
+      if (typeof p.detail === "string") detail = `${detail}: ${p.detail}`;
+      else if (typeof p.message === "string") detail = `${detail}: ${p.message}`;
+      else if (typeof p.error === "string") detail = `${detail}: ${p.error}`;
+    } else if (text) {
+      detail = `${detail}: ${text.slice(0, 200)}`;
+    }
     throw new AdminFetchError(detail, {
       status: res.status,
       detail,

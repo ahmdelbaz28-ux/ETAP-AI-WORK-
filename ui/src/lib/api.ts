@@ -1037,8 +1037,7 @@ export async function fetchAuditLogs(params?: {
     });
   }
   const qs = searchParams.toString();
-  const qsSuffix = qs ? `?${qs}` : "";
-  return request<AuditLogListResponse>(`/api/v1/security/audit-logs${qsSuffix}`);
+  return request<AuditLogListResponse>(`/api/v1/security/audit-logs${qs ? `?${qs}` : ""}`);
 }
 
 // ============ Feature Flags API ============

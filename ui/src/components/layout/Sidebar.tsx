@@ -32,10 +32,31 @@ import { cn } from '../../utils/helpers';
 import { StatusIndicator } from '../ui/Visual';
 
 interface NavItem {
-  readonly to: string;
-  readonly icon: React.ElementType;
-  readonly labelKey: string;
-  readonly section?: string;
+  to: string;
+  icon: React.ElementType;
+  labelKey: string;
+  section?: string;
+
+import { NavLink, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTheme } from '../../context/ThemeContext'
+import { useAppStore } from '../../store'
+import { fetchHealth, type HealthResponse } from '../../lib/api'
+import { useEffect, useState } from 'react'
+import {
+  LayoutDashboard, FlaskConical, Bot, FolderKanban, Settings,
+  ShieldCheck, Bug, Map, FileText, Upload, Download, ScrollText,
+  ChevronLeft, ChevronRight, Sun, Moon, Zap, Plug, Layers, Network,
+  Cpu, Wrench, Shield, Radio,
+} from 'lucide-react'
+import { cn } from '../../utils/helpers'
+import { StatusIndicator } from '../ui/Visual'
+
+interface NavItem {
+  to: string
+  icon: React.ElementType
+  labelKey: string
+  section?: string
 }
 
 const navItems: NavItem[] = [
@@ -75,14 +96,6 @@ const sectionIcons: Record<string, React.ElementType> = {
   system: Wrench,
 };
 
-function healthIndicatorStatus(
-  health: 'online' | 'offline' | 'checking',
-): 'loading' | 'online' | 'offline' {
-  if (health === 'checking') return 'loading';
-  if (health === 'online') return 'online';
-  return 'offline';
-}
-
 export function Sidebar() {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
@@ -91,6 +104,17 @@ export function Sidebar() {
   const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking');
 
   const isRtl = i18n.language === 'ar';
+
+}
+
+export function Sidebar() {
+  const { t, i18n } = useTranslation()
+  const { theme, toggleTheme } = useTheme()
+  const location = useLocation()
+  const { sidebarCollapsed, toggleSidebar } = useAppStore()
+  const [healthStatus, setHealthStatus] = useState<'online' | 'offline' | 'checking'>('checking')
+
+  const isRtl = i18n.language === 'ar'
 
   useEffect(() => {
     fetchHealth()
@@ -114,6 +138,26 @@ export function Sidebar() {
       topLevel.push(item);
     }
   });
+
+      .catch(() => setHealthStatus('offline'))
+    const interval = setInterval(() => {
+      fetchHealth()
+        .then((h: HealthResponse) => setHealthStatus(h.ok ? 'online' : 'offline'))
+        .catch(() => setHealthStatus('offline'))
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const groupedItems: Record<string, NavItem[]> = {}
+  const topLevel: NavItem[] = []
+  navItems.forEach(item => {
+    if (!item.section) {
+      topLevel.push(item)
+    } else {
+      if (!groupedItems[item.section]) groupedItems[item.section] = []
+      groupedItems[item.section].push(item)
+    }
+  })
 
   return (
     <aside
@@ -152,6 +196,11 @@ export function Sidebar() {
           const items = groupedItems[section];
           if (!items?.length) return null;
           const SectionIcon = sectionIcons[section];
+
+        {sectionOrder.map(section => {
+          const items = groupedItems[section]
+          if (!items?.length) return null
+          const SectionIcon = sectionIcons[section]
           return (
             <div key={section} className="pt-4">
               {!sidebarCollapsed && (
@@ -201,14 +250,19 @@ export function Sidebar() {
           )}
         >
           <StatusIndicator
-            status={healthIndicatorStatus(healthStatus)}
+            status={
+              healthStatus === 'checking'
+                ? 'loading'
+                : healthStatus === 'online'
+                  ? 'online'
+                  : 'offline'
+            }
             size="sm"
             showLabel={!sidebarCollapsed}
           />
         </div>
 
         <button
-          type="button"
           onClick={toggleTheme}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
@@ -223,10 +277,15 @@ export function Sidebar() {
           {!sidebarCollapsed && (
             <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>
           )}
+
+            sidebarCollapsed && 'justify-center px-0'
+          )}
+        >
+          {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
+          {!sidebarCollapsed && <span>{theme === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>}
         </button>
 
         <button
-          type="button"
           onClick={toggleSidebar}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors',
@@ -246,6 +305,15 @@ export function Sidebar() {
               <span>{t('sidebar.collapse')}</span>
             </>
           )}
+
+            sidebarCollapsed && 'justify-center px-0'
+          )}
+          title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        >
+          {sidebarCollapsed
+            ? <ChevronRight className={`w-[18px] h-[18px] shrink-0 ${isRtl ? 'rotate-180' : ''}`} />
+            : <>{isRtl ? <ChevronRight className="w-[18px] h-[18px] shrink-0" /> : <ChevronLeft className="w-[18px] h-[18px] shrink-0" />}<span>{t('sidebar.collapse')}</span></>
+          }
         </button>
 
         {!sidebarCollapsed && (

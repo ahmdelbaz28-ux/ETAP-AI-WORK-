@@ -211,7 +211,7 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
         port = 4820
         timeout = _timeout_config["autocad_timeout_seconds"]
         client = AutoCADPluginClient(
-            base_url=f"http://{host}:{port}",  # noqa: S5332
+            base_url=f"http://{host}:{port}",
             timeout=timeout,
         )
     elif connector_type == ConnectorType.REVIT:
@@ -221,7 +221,7 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
         port = 4830
         timeout = _timeout_config["revit_timeout_seconds"]
         client = RevitPluginClient(
-            base_url=f"http://{host}:{port}",  # noqa: S5332
+            base_url=f"http://{host}:{port}",
             timeout=timeout,
         )
     else:
@@ -268,6 +268,7 @@ def _build_connector_status(connector_type: str) -> ConnectorStatusResponse:
 
 @router.get(
     "/status",
+    response_model=ConnectorHealthResponse,
     summary="Get health status of all Autodesk connectors",
 )
 async def get_connector_status() -> ConnectorHealthResponse:
@@ -290,6 +291,7 @@ async def get_connector_status() -> ConnectorHealthResponse:
 
 @router.get(
     "/status/autocad",
+    response_model=ConnectorStatusResponse,
     summary="Get AutoCAD connector status",
 )
 async def get_autocad_status() -> ConnectorStatusResponse:
@@ -303,6 +305,7 @@ async def get_autocad_status() -> ConnectorStatusResponse:
 
 @router.get(
     "/status/revit",
+    response_model=ConnectorStatusResponse,
     summary="Get Revit connector status",
 )
 async def get_revit_status() -> ConnectorStatusResponse:
@@ -316,6 +319,7 @@ async def get_revit_status() -> ConnectorStatusResponse:
 
 @router.post(
     "/test-connection",
+    response_model=ConnectionTestResponse,
     summary="Test pipe connection to a specific connector",
 )
 async def test_connection(request: ConnectionTestRequest) -> ConnectionTestResponse:
@@ -346,7 +350,7 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
             timeout=timeout,
         )
     elif connector_type == ConnectorType.REVIT:
-        from autodesk_connector.revit.connector import RevitPluginClient  # noqa: S5332
+        from autodesk_connector.revit.connector import RevitPluginClient
 
         host = "localhost"
         port = 4830
@@ -355,7 +359,7 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
             timeout=timeout,
         )
     else:
-        raise HTTPException(  # noqa: S5332
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown connector type: {connector_type}",
         )
@@ -387,6 +391,7 @@ async def test_connection(request: ConnectionTestRequest) -> ConnectionTestRespo
 
 @router.get(
     "/timeouts",
+    response_model=ConnectorTimeoutConfig,
     summary="Get current timeout configuration",
 )
 async def get_timeouts() -> ConnectorTimeoutConfig:
@@ -402,6 +407,7 @@ async def get_timeouts() -> ConnectorTimeoutConfig:
 
 @router.put(
     "/timeouts",
+    response_model=ConnectorTimeoutConfig,
     summary="Update timeout configuration",
 )
 async def update_timeouts(config: ConnectorTimeoutConfig) -> ConnectorTimeoutConfig:

@@ -55,13 +55,13 @@ export default function FeatureFlagBoard() {
       const data = await r.json();
       const items: FeatureFlag[] = Array.isArray(data)
         ? data.map((f: Record<string, unknown>) => ({
-            id: typeof f.id === "string" ? f.id : crypto.randomUUID(),
-            key: typeof f.key === "string" ? f.key : "",
-            name: typeof f.name === "string" ? f.name : "Unnamed Flag",
-            description: typeof f.description === "string" ? f.description : "",
+            id: String(f.id ?? crypto.randomUUID()),
+            key: String(f.key ?? ""),
+            name: String(f.name ?? "Unnamed Flag"),
+            description: String(f.description ?? ""),
             status: (f.status as FeatureFlagStatus) ?? "beta",
             enabled: Boolean(f.enabled ?? false),
-            category: typeof f.category === "string" ? f.category : "general",
+            category: String(f.category ?? "general"),
           }))
         : [];
       setFlags(items);

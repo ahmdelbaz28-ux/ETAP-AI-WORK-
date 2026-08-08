@@ -194,7 +194,7 @@ class ETAPScadaBridge:
             use_tls = True
             host = broker_url.split("://", 1)[1].split(":")[0]
             port = 8883
-        elif broker_url.startswith(("tcp://", "mqtt://")):  # noqa: S5332 — dev broker; production uses mqtts://
+        elif broker_url.startswith(("tcp://", "mqtt://")):
             use_tls = False
             host = broker_url.split("://", 1)[1].split(":")[0]
             port = 1883
@@ -433,7 +433,7 @@ def publish_to_mqtt(data: dict) -> None:
         use_tls = True
         host = broker_url.split("://", 1)[1].split(":")[0]
         port = 8883
-    elif broker_url.startswith(("tcp://", "mqtt://")):  # noqa: S5332 — dev broker; production uses mqtts://
+    elif broker_url.startswith(("tcp://", "mqtt://")):
         use_tls = False
         host = broker_url.split("://", 1)[1].split(":")[0]
         port = 1883

@@ -315,7 +315,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # No explicit close event listener is needed anymore.
 
             logger.info(
-                "Registered SQLAlchemy before_cursor_execute event ", "for RLS tenant isolation"
+                "Registered SQLAlchemy before_cursor_execute event " "for RLS tenant isolation"
             )
 
         except Exception:

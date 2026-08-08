@@ -2,15 +2,6 @@
 // =======================================
 // Enhanced with GSAP for engineering aesthetic
 
-// Secure pseudorandom helper (uses Web Crypto CSPRNG).
-// All Math.random() usages in this file are animation-only, but
-// we route them through a CSPRNG to satisfy javascript:S2245.
-function secureRandom() {
-  const a = new Uint32Array(1);
-  crypto.getRandomValues(a);
-  return a[0] / 4294967296;
-}
-
 // Initialize GSAP plugins
 gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
 
@@ -32,67 +23,12 @@ const powerSystem = {
 function resize() {
   w = canvas.width = window.innerWidth;
   h = canvas.height = window.innerHeight;
-
+  
   // Reinitialize power system
   initPowerSystem();
 }
 window.addEventListener('resize', resize);
 resize();
-
-// Create grid nodes (power substations)
-function createGridNodes() {
-  const gridSize = 80;
-  for (let x = 0; x < w; x += gridSize) {
-    for (let y = 0; y < h; y += gridSize) {
-      powerSystem.nodes.push({
-        x, y,
-        size: 2 + secureRandom() * 3,
-        pulse: secureRandom(),
-        type: secureRandom() > 0.7 ? 'transformer' : 'substation'
-      });
-    }
-  }
-}
-
-// Create connections (power lines)
-function createConnections() {
-  for (let i = 0; i < powerSystem.nodes.length; i++) {
-    for (let j = i + 1; j < powerSystem.nodes.length; j++) {
-      const dx = powerSystem.nodes[i].x - powerSystem.nodes[j].x;
-      const dy = powerSystem.nodes[i].y - powerSystem.nodes[j].y;
-      const distance = Math.hypot(dx, dy);
-
-      if (distance < 150) {
-        powerSystem.connections.push({
-          from: i,
-          to: j,
-          distance,
-          flow: 0,
-          flowDirection: secureRandom() > 0.5 ? 1 : -1
-        });
-      }
-    }
-  }
-}
-
-// Create particles (electrons)
-function createParticles() {
-  for (let i = 0; i < 50; i++) {
-    const angle = secureRandom() * Math.PI * 2;
-    const speed = 0.5 + secureRandom() * 1.5;
-    powerSystem.particles.push({
-      x: secureRandom() * w,
-      y: secureRandom() * h,
-      size: 1 + secureRandom() * 2,
-      speed,
-      direction: angle,
-      velocity: {
-        x: Math.cos(angle) * speed,
-        y: Math.sin(angle) * speed
-      }
-    });
-  }
-}
 
 // Initialize power system
 function initPowerSystem() {
@@ -101,10 +37,53 @@ function initPowerSystem() {
   powerSystem.connections = [];
   powerSystem.particles = [];
   powerSystem.powerFlows = [];
-
-  createGridNodes();
-  createConnections();
-  createParticles();
+  
+  // Create grid nodes (power substations)
+  const gridSize = 80;
+  for (let x = 0; x < w; x += gridSize) {
+    for (let y = 0; y < h; y += gridSize) {
+      powerSystem.nodes.push({
+        x, y,
+        size: 2 + Math.random() * 3,
+        pulse: Math.random(),
+        type: Math.random() > 0.7 ? 'transformer' : 'substation'
+      });
+    }
+  }
+  
+  // Create connections (power lines)
+  for (let i = 0; i < powerSystem.nodes.length; i++) {
+    for (let j = i + 1; j < powerSystem.nodes.length; j++) {
+      const dx = powerSystem.nodes[i].x - powerSystem.nodes[j].x;
+      const dy = powerSystem.nodes[i].y - powerSystem.nodes[j].y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance < 150) {
+        powerSystem.connections.push({
+          from: i,
+          to: j,
+          distance,
+          flow: 0,
+          flowDirection: Math.random() > 0.5 ? 1 : -1
+        });
+      }
+    }
+  }
+  
+  // Create particles (electrons)
+  for (let i = 0; i < 50; i++) {
+    powerSystem.particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      size: 1 + Math.random() * 2,
+      speed: 0.5 + Math.random() * 1.5,
+      direction: Math.random() * Math.PI * 2,
+      velocity: {
+        x: Math.cos(Math.random() * Math.PI * 2) * (0.5 + Math.random() * 1.5),
+        y: Math.sin(Math.random() * Math.PI * 2) * (0.5 + Math.random() * 1.5)
+      }
+    });
+  }
 }
 
 // Create GSAP animations
@@ -128,33 +107,33 @@ function createAnimations() {
       });
     }
   });
-
+  
   // Animate power flows
-  powerSystem.connections.forEach((conn) => {
+  powerSystem.connections.forEach((conn, i) => {
     gsap.to(conn, {
       flow: 1,
-      duration: 2 + secureRandom() * 2,
+      duration: 2 + Math.random() * 2,
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut",
-      delay: secureRandom() * 2,
+      delay: Math.random() * 2,
       onUpdate: function() {
         conn.flow = this.targets()[0].flow;
       }
     });
   });
-
+  
   // Animate particles
   gsap.to(powerSystem.particles, {
     duration: 0.1,
     repeat: -1,
     ease: "none",
     onUpdate: function() {
-      powerSystem.particles.forEach((particle) => {
+      powerSystem.particles.forEach((particle, i) => {
         // Update position
         particle.x += particle.velocity.x;
         particle.y += particle.velocity.y;
-
+        
         // Boundary check
         if (particle.x < 0 || particle.x > w) particle.velocity.x *= -1;
         if (particle.y < 0 || particle.y > h) particle.velocity.y *= -1;
@@ -171,16 +150,16 @@ function drawPowerSystem() {
   gradient.addColorStop(1, '#0f1525');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, w, h);
-
+  
   // Draw connections (power lines)
   powerSystem.connections.forEach(conn => {
     const fromNode = powerSystem.nodes[conn.from];
     const toNode = powerSystem.nodes[conn.to];
-
+    
     // Calculate flow position
     const flowX = fromNode.x + (toNode.x - fromNode.x) * conn.flow * conn.flowDirection;
     const flowY = fromNode.y + (toNode.y - fromNode.y) * conn.flow * conn.flowDirection;
-
+    
     // Draw power line
     ctx.beginPath();
     ctx.moveTo(fromNode.x, fromNode.y);
@@ -188,29 +167,29 @@ function drawPowerSystem() {
     ctx.strokeStyle = `rgba(70, 120, 200, ${0.05 + conn.flow * 0.1})`;
     ctx.lineWidth = 0.5 + conn.flow * 1.5;
     ctx.stroke();
-
+    
     // Draw flow indicator
     ctx.beginPath();
     ctx.arc(flowX, flowY, 1 + conn.flow * 2, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(0, 212, 255, ${0.5 + conn.flow * 0.5})`;
     ctx.fill();
   });
-
+  
   // Draw nodes (substations/transformers)
   powerSystem.nodes.forEach(node => {
     // Draw node
     ctx.beginPath();
     ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
-
+    
     // Different colors for different node types
     if (node.type === 'transformer') {
       ctx.fillStyle = '#f59e0b'; // Amber for transformers
     } else {
       ctx.fillStyle = '#00d4ff'; // Cyan for substations
     }
-
+    
     ctx.fill();
-
+    
     // Draw pulse effect
     ctx.beginPath();
     ctx.arc(node.x, node.y, node.size * 2, 0, Math.PI * 2);
@@ -218,16 +197,15 @@ function drawPowerSystem() {
     ctx.lineWidth = 1;
     ctx.stroke();
   });
-
+  
   // Draw particles (electrons)
   powerSystem.particles.forEach(particle => {
     ctx.beginPath();
     ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-    // ok: non-security use (visual particle shimmer)
-    ctx.fillStyle = `rgba(0, 212, 255, ${0.5 + secureRandom() * 0.3})`;
+    ctx.fillStyle = `rgba(0, 212, 255, ${0.5 + Math.random() * 0.3})`;
     ctx.fill();
   });
-
+  
   // Draw scanline effect
   const scanline = {
     y: (Date.now() * 0.1) % h,
@@ -235,7 +213,7 @@ function drawPowerSystem() {
   };
   ctx.fillStyle = 'rgba(0, 212, 255, 0.05)';
   ctx.fillRect(0, scanline.y, w, scanline.height);
-
+  
   requestAnimationFrame(drawPowerSystem);
 }
 
@@ -250,7 +228,7 @@ function animateEntrance() {
     delay: 0.3,
     ease: "back.out(1.7)"
   });
-
+  
   // Logo entrance
   const logo = document.querySelector('.logo');
   gsap.from(logo, {
@@ -260,7 +238,7 @@ function animateEntrance() {
     delay: 0.5,
     ease: "back.out(1.7)"
   });
-
+  
   // Title entrance
   const title = document.querySelector('h1');
   gsap.from(title, {
@@ -270,7 +248,7 @@ function animateEntrance() {
     delay: 0.7,
     ease: "back.out(1.7)"
   });
-
+  
   // Form elements entrance
   const formElements = document.querySelectorAll('.login-form input, .login-form button');
   gsap.from(formElements, {
@@ -281,7 +259,7 @@ function animateEntrance() {
     delay: 0.9,
     ease: "back.out(1.7)"
   });
-
+  
   // Hand illustrations entrance
   const hands = document.querySelectorAll('.hand');
   gsap.from(hands, {

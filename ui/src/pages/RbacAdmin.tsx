@@ -279,7 +279,7 @@ function RoleModal({ open, onClose, onSaved, permissions, editingRole }: RoleMod
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="block text-sm font-medium text-[var(--text-primary)]">
-              <span>Permissions</span>
+              Permissions
               <span className="ml-2 text-xs text-[var(--text-muted)]">
                 {selectedPermIds.size} selected
               </span>
@@ -1071,7 +1071,6 @@ function AssignmentsTab({ roles }: AssignmentsTabProps) {
                 return (
                   <label
                     key={role.id}
-                    aria-label={`Assign role ${role.name}`}
                     className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
                       checked
                         ? "bg-brand-500/5 border-brand-500/40"

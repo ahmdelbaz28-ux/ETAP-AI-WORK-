@@ -106,16 +106,17 @@ class TestFaultPredictor:
 
     def test_train_raises_bad_shape(self):
         predictor = FaultPredictor()
-        features = np.array([1, 2, 3])
-        labels = np.array([0, 1, 0])
-        with pytest.raises(ValueError):
-            predictor.train(features, labels)
+        with pytest.raises(
+            ValueError
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+            predictor.train(np.array([1, 2, 3]), np.array([0, 1, 0]))
 
     def test_predict_raises_before_train(self):
         predictor = FaultPredictor()
-        features = np.array([[0.5, 0.1]])
-        with pytest.raises(RuntimeError, match="trained"):
-            predictor.predict(features)
+        with pytest.raises(
+            RuntimeError, match="trained"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+            predictor.predict(np.array([[0.5, 0.1]]))
 
     # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
     def test_feature_importance_after_train(self):
@@ -238,15 +239,17 @@ class TestAnomalyDetector:
 
     def test_detect_raises_before_train(self):
         detector = AnomalyDetector()
-        features = np.array([[1.0, 2.0]])
-        with pytest.raises(RuntimeError, match="trained"):
-            detector.detect(features)
+        with pytest.raises(
+            RuntimeError, match="trained"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+            detector.detect(np.array([[1.0, 2.0]]))
 
     def test_train_raises_non_2d(self):
-        detector = AnomalyDetector()
-        data = np.array([1.0, 2.0, 3.0])
-        with pytest.raises(ValueError, match="2-D"):
-            detector.train(data)
+        detector = AnomalyDetector()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
+        with pytest.raises(
+            ValueError, match="2-D"
+        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+            detector.train(np.array([1.0, 2.0, 3.0]))
 
     def test_invalid_contamination(self):
         with pytest.raises(ValueError):

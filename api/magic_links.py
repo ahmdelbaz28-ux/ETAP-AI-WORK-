@@ -34,7 +34,7 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC
-from typing import Optional, Annotated
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
@@ -443,7 +443,7 @@ async def verify_magic_link(
 )
 async def invalidate_magic_links(
     request: Request,
-    current_user: Annotated[CurrentUser, Depends(get_current_user_from_header)],  # noqa: B008
+    current_user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> JSONResponse:
     """Invalidate all pending magic links for the given email.
 
