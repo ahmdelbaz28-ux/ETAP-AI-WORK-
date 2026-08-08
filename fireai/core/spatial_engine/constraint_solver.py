@@ -188,7 +188,7 @@ class ConstraintSolver:
             # Use the largest polygon component
             largest = max(room_polygon.geoms, key=lambda g: g.area)
             logger.warning(
-                "ConstraintSolver: MultiPolygon room — using largest component "
+                "ConstraintSolver: MultiPolygon room — using largest component "  # noqa: G004
                 f"(area={largest.area:.2f} sqm, {len(room_polygon.geoms)} parts). "
                 "Each part should be analyzed as a separate room."
             )
@@ -333,7 +333,7 @@ class ConstraintSolver:
                 covered_area = self.room_area - uncovered.area
                 pct = (covered_area / self.room_area) * 100.0
                 logger.debug(
-                    f"ConstraintSolver iteration {iteration + 1}: "  # NOSONAR — acceptable in this context
+                    f"ConstraintSolver iteration {iteration + 1}: "  # NOSONAR — acceptable in this context  # noqa: G004
                     f"{len(placed)} detectors, {pct:.1f}% coverage"
                 )
 
@@ -357,7 +357,7 @@ class ConstraintSolver:
 
         elapsed = time.monotonic() - start_time
         logger.info(
-            f"ConstraintSolver: {len(placed)} detectors placed, "  # NOSONAR — acceptable in this context
+            f"ConstraintSolver: {len(placed)} detectors placed, "  # NOSONAR — acceptable in this context  # noqa: G004
             f"{coverage_pct:.1f}% coverage, {elapsed:.2f}s elapsed"
         )
 

@@ -215,7 +215,7 @@ def grid_polygon_verify(  # NOSONAR — S3776: cognitive complexity is inherent 
                             break
             except Exception as e:
                 logger.warning(
-                    f"V112: grid_polygon_verify: failed to check grid point ({x:.2f}, {y:.2f}) containment: {e!r}"
+                    f"V112: grid_polygon_verify: failed to check grid point ({x:.2f}, {y:.2f}) containment: {e!r}"  # noqa: G004
                 )
                 pass  # NOSONAR - python:S2772
             y += step

@@ -12,6 +12,7 @@ Captures the actual schema from backend/database.py including:
 - Performance indexes
 """
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers

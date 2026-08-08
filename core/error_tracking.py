@@ -349,9 +349,10 @@ def setup_fastapi_error_tracking(app: Any) -> None:
         from core.error_tracking import setup_fastapi_error_tracking
         setup_fastapi_error_tracking(app)
     """
+    import time
+
     from fastapi import Request
     from fastapi.responses import JSONResponse
-    import time
 
     @app.middleware('http')
     async def error_tracking_middleware(request: Request, call_next):

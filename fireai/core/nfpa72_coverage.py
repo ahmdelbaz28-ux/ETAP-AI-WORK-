@@ -505,7 +505,7 @@ def check_coverage_polygon(  # NOSONAR — S3776: cognitive complexity is inhere
         # (e.g., invalid geometry, degenerate polygon)
         import logging as _logging
 
-        _logging.getLogger(__name__).warning(f"Area-based coverage failed, falling back to point-based: {area_err}")
+        _logging.getLogger(__name__).warning("Area-based coverage failed, falling back to point-based: %s", area_err)
         primary_pct = covered_count / total_points * 100 if total_points > 0 else 0
         is_covered = primary_pct >= 99.9  # V20.2 FIX: Must match primary threshold (was 99%)
 
@@ -1151,7 +1151,7 @@ def adjust_coverage_for_beams(
     if beam_ratio > 0.10:
         # NFPA 72 17.6.3.1: deep beam = full compartment separation
         logger.warning(
-            f"Beam depth {beam_depth_m:.2f}m = {beam_ratio:.1%} of ceiling height "
+            f"Beam depth {beam_depth_m:.2f}m = {beam_ratio:.1%} of ceiling height "  # noqa: G004
             f"{ceiling_height_m:.2f}m. Per NFPA 72 s17.6.3.1: "
             f"treat bays as SEPARATE COMPARTMENTS. Each requires its own detector."
         )
@@ -1161,7 +1161,7 @@ def adjust_coverage_for_beams(
         # Moderate beam: conservative 15% reduction
         adjusted = nominal_radius_m * 0.85
         logger.info(
-            f"Beam ratio {beam_ratio:.1%} (>4%%): reducing radius "
+            f"Beam ratio {beam_ratio:.1%} (>4%%): reducing radius "  # noqa: G004
             f"{nominal_radius_m:.2f}m -> {adjusted:.2f}m (15%% conservative reduction)"
         )
         return adjusted

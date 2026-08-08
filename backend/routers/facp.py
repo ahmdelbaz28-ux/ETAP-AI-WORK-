@@ -275,7 +275,7 @@ async def select_facp(req: FACPSelectionRequest):
     except ValueError as exc:
         # No compliant panels found
         logger.warning("FACP selection failed: %s", exc)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
             status_code=422,
             detail={
                 "error": "NO_COMPLIANT_PANEL",
@@ -294,7 +294,7 @@ async def select_facp(req: FACPSelectionRequest):
                 "error": "INTERNAL_ERROR",
                 "detail": "An unexpected error occurred during FACP selection.",
             },
-        )
+        ) from None
 
 
 @router.post("/facp/verify", dependencies=[Depends(require_permission(Permission.FACP_MANAGE))])
@@ -372,7 +372,7 @@ async def verify_facp(req: FACPVerificationRequest):
                 "error": "INTERNAL_ERROR",
                 "detail": "An unexpected error occurred during FACP compliance verification.",
             },
-        )
+        ) from None
 
 
 @router.post("/facp/schedule", dependencies=[Depends(require_permission(Permission.FACP_MANAGE))])
@@ -432,7 +432,7 @@ async def generate_facp_schedule(req: FACPScheduleRequest):
                 "error": "INTERNAL_ERROR",
                 "detail": "An unexpected error occurred during schedule generation.",
             },
-        )
+        ) from None
 
 
 @router.post("/facp/spec", dependencies=[Depends(require_permission(Permission.FACP_MANAGE))])
@@ -505,7 +505,7 @@ async def generate_facp_spec(req: FACPSpecRequest):
                 "error": "INTERNAL_ERROR",
                 "detail": "An unexpected error occurred during specification generation.",
             },
-        )
+        ) from None
 
 
 @router.get("/facp/panels", dependencies=[Depends(require_permission(Permission.FACP_READ))])
@@ -569,4 +569,4 @@ async def list_available_panels():
                 "error": "INTERNAL_ERROR",
                 "detail": "An unexpected error occurred while listing panels.",
             },
-        )
+        ) from None

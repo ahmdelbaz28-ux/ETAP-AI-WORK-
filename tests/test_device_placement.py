@@ -147,21 +147,6 @@ class TestCeilingTypeEnum:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestBeamObstruction:
-    def test_create_beam(self):
-        beam = BeamObstruction(
-            x_start_m=0.0, y_start_m=0.0,
-            x_end_m=10.0, y_end_m=0.0,
-            depth_m=0.5,
-        )
-        assert beam.depth_m == 0.5  # NOSONAR — S1244: import retained for re-export / API surface
-
-    def test_beam_coordinates(self):
-        beam = BeamObstruction(0, 0, 10, 5, 0.3)
-        assert beam.x_start_m == 0.0  # NOSONAR — S1244: import retained for re-export / API surface
-        assert beam.y_end_m == 5.0  # NOSONAR — S1244: import retained for re-export / API surface
-
-
 # ExitDoor
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -362,7 +347,7 @@ class TestDetectorPlacementEngineHeat:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestBeamObstruction:  # noqa: F811  (duplicate test class — second definition wins)
+class TestBeamObstruction:
     """Beam depth > 10% of ceiling height = wall per NFPA 72 §17.7.3.2.7."""
 
     def test_no_beams_zero_sections(self, engine, simple_room):

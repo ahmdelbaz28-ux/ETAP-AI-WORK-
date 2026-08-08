@@ -143,7 +143,7 @@ class HeadlessIFCBridge:
         try:
             self.model = ifcopenshell.open(ifc_path)
         except Exception as e:
-            raise ValueError(f"Failed to open IFC model: {e}")
+            raise ValueError(f"Failed to open IFC model: {e}") from None
         # Geometry settings for tessellation (lazy-initialized)
         self._geom_settings: object = None  # V131 FIX: Typed as object for mypy compatibility
 
@@ -483,7 +483,7 @@ class HeadlessIFCBridge:
             # that geometry extraction FAILED, and the caller must skip this
             # space with a CRITICAL log. No phantom rooms.
             logger.critical(
-                f"IFC space '{name}' (GUID: {space.GlobalId}): "
+                f"IFC space '{name}' (GUID: {space.GlobalId}): "  # noqa: G004
                 f"Geometry tessellation failed — cannot extract room polygon. "
                 f"Space will be EXCLUDED from fire protection analysis. "
                 f"Manual fire protection engineering design REQUIRED for this space."
@@ -596,7 +596,7 @@ class HeadlessIFCBridge:
         # appear unobstructed — detectors placed inside real walls.
         # Now returns None, forcing caller to flag for manual FPE review.
         logger.critical(
-            f"IFC entity {entity.GlobalId} ({ifc_type}): geometry extraction "
+            f"IFC entity {entity.GlobalId} ({ifc_type}): geometry extraction "  # noqa: G004
             f"failed. Cannot create accurate obstacle representation. "
             f"Manual fire protection engineer review REQUIRED."
         )

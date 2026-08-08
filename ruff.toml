@@ -57,7 +57,10 @@ ignore = [
     "T201",   # print() found — CLI tools in tools/ use print() for output (intentional)
     "N817",   # CamelCase imported as acronym (ET for ElementTree — standard Python convention)
     "SIM114", # Combine if branches — sometimes less readable than explicit branches
-    "UP045",  # Non-PEP604 annotation Optional (gradual migration)
+    # NOTE: UP045 and UP047 are omitted because they were added in ruff 0.8+.
+    # The CI pins ruff==0.7.0 (see .github/workflows/ci-cd.yml), and referencing
+    # unknown rule selectors causes ruff to fail at config parse time with
+    # "Unknown rule selector: UP045". They will be re-enabled when CI upgrades ruff.
     "N806",   # Non-lowercase variable in function (electrical engineering: Vbus, Isc, Pload, etc.)
     "N803",   # Invalid argument name (electrical engineering: V, I, R, X, etc.)
     "N815",   # Mixed-case variable in class scope (electrical engineering convention)

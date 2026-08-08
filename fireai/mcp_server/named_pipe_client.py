@@ -50,7 +50,6 @@ from __future__ import annotations
 import json
 import logging
 import platform
-import sys
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -91,9 +90,9 @@ class RevitNamedPipeClient:
 
         try:
             # Try to connect with a very short timeout to check availability
-            import win32file
-            import win32pipe
             import pywintypes
+            import win32file
+            import win32pipe  # noqa: F401
 
             try:
                 handle = win32file.CreateFile(
@@ -143,9 +142,9 @@ class RevitNamedPipeClient:
             }
 
         try:
-            import win32file
-            import win32pipe
             import pywintypes
+            import win32file
+            import win32pipe  # noqa: F401
         except ImportError:
             return {
                 "status": "error",

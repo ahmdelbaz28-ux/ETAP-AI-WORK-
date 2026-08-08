@@ -79,10 +79,10 @@ logger = logging.getLogger(__name__)
 
 # Import env_truthy from the observability base (self-contained, no core.utils
 # dependency — avoids import-time failure when opentelemetry is not installed).
+import re as _re_for_log
+
 from integrations._observability_base import env_truthy as _env_truthy
 
-
-import re as _re_for_log
 _SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
 
 

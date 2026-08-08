@@ -529,16 +529,13 @@ def _generate_qgis_project(
     # need to CREATE a new one. We'll use QgsProject directly.
     provider._ensure_qgs_application()
 
+    from PyQt5.QtGui import QColor  # type: ignore
     from qgis.core import (  # type: ignore
+        QgsFillSymbol,
+        QgsGraduatedSymbolRenderer,
         QgsProject,
         QgsVectorLayer,
-        QgsGraduatedSymbolRenderer,
-        QgsFillSymbol,
-        QgsMapSettings,
-        QgsMapRendererSequentialJob,
     )
-    from PyQt5.QtCore import QSize  # type: ignore
-    from PyQt5.QtGui import QColor  # type: ignore
 
     # Create vector layer from GeoJSON
     layer = QgsVectorLayer(geojson_path, "ETAP_LoadFlow_Results", "ogr")
@@ -551,7 +548,7 @@ def _generate_qgis_project(
     if field_name in [f.name() for f in layer.fields()]:
         renderer = QgsGraduatedSymbolRenderer(field_name)
         # Color ramp: red (0.9) → yellow (0.95) → green (1.05) → yellow (1.1) → red
-        ramp_colors = [
+        ramp_colors = [  # noqa: F841
             (QColor(255, 0, 0), "0.90"),
             (QColor(255, 255, 0), "0.95"),
             (QColor(0, 255, 0), "1.00"),
@@ -664,7 +661,7 @@ Examples:
     args = parser.parse_args()
 
     # Validate env
-    if not os.environ.get("USE_ETAP", "false").lower() == "true":
+    if os.environ.get("USE_ETAP", "false").lower() != "true":
         print("❌ Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 

@@ -34,17 +34,11 @@ export const powerSystemCoordinatorAgent = new Agent({
     maxMessages: 50,
     // Time-to-live for memory entries (in seconds) — 1 hour for engineering sessions
     ttl: 3600,
-  }),
+  } as any),
   defaultNetworkOptions: {
     maxSteps: 7, // F-11: Reduced from 10 — bounded repair loop
     routing: {
       additionalInstructions: 'Prefer the narrowest specialist agent that can safely answer the user request. If a sub-agent returns a successful result, exit immediately. If 3 consecutive failures occur, exit with error.',
-
-  memory: new Memory(),
-  defaultNetworkOptions: {
-    maxSteps: 10,
-    routing: {
-      additionalInstructions: 'Prefer the narrowest specialist agent that can safely answer the user request.',
     },
   },
 });

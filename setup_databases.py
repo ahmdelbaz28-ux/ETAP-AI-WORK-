@@ -25,10 +25,7 @@ def prompt_user(message: str, default: str = "", hide_input: bool = False) -> st
             return user_input
         return default
 
-    if default:
-        prompt_text = f"{message} (default: {default}): "
-    else:
-        prompt_text = f"{message}: "
+    prompt_text = f"{message} (default: {default}): " if default else f"{message}: "
 
     user_input = input(prompt_text).strip()
 

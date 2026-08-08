@@ -16,5 +16,5 @@ export const loadFlowAgent = new Agent({
   memory: new Memory({
     maxMessages: 30,
     ttl: 3600, // 1 hour for engineering sessions
-  }),
+  } as any),
 });

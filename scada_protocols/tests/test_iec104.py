@@ -6,7 +6,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
@@ -19,7 +18,6 @@ from scada_protocols.iec104.asdu_mapper import (
     default_measurement_type_for,
     suggested_asdu_type,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fakes for c104.Information subclasses

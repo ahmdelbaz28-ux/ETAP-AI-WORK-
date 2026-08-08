@@ -264,7 +264,7 @@ class OCRService:
         if file_ext not in ['.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.bmp']:
             raise ValueError(f"Unsupported file type: {file_ext}. Supported: .pdf, .png, .jpg, .jpeg, .tiff, .bmp")
 
-        self.logger.info(f"Processing OCR for file: {file_path}, size: {file_size} bytes")
+        self.logger.info("Processing OCR for file: %s, size: %s bytes", file_path, file_size)
 
         extracted_pages = []
         total_confidence = 0
@@ -353,7 +353,7 @@ class OCRService:
         }
 
         self.logger.info(
-            f"OCR processing completed for {file_path}. "
+            f"OCR processing completed for {file_path}. "  # noqa: G004
             f"Rooms found: {len(room_areas)}, Areas found: {len(standalone_areas)}, "
             f"Avg confidence: {avg_confidence:.2f}%, Requires review: True"
         )
@@ -368,6 +368,6 @@ try:
 except Exception as e:
     import logging
     logging.getLogger("backend.services.ocr_service").warning(
-        f"Failed to initialize global ocr_service: {e}. "
+        f"Failed to initialize global ocr_service: {e}. "  # noqa: G004
         "OCR features will be unavailable."
     )

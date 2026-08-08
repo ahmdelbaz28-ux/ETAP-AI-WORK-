@@ -246,7 +246,7 @@ def _set_retention_state(days: Optional[int], auto_purge: Optional[bool]) -> Non
 async def _list_all_objects(prefix: str = "") -> list[dict[str, Any]]:
     """List all objects under a prefix, paginating up to _METRICS_MAX_OBJECTS."""
     all_objects: list[dict[str, Any]] = []
-    continuation_token: Optional[str] = None
+    continuation_token: Optional[str] = None  # noqa: F841
     fetched = 0
 
     while fetched < _METRICS_MAX_OBJECTS:

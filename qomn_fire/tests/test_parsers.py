@@ -317,7 +317,7 @@ class TestIfcParser(unittest.TestCase):
 
     def _create_ifc_file(self, content: str) -> str:
         """Helper: create a temporary IFC file and return its path."""
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.ifc', delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.ifc', delete=False)  # noqa: SIM115
         f.write(content)
         f.flush()
         f.close()
@@ -478,7 +478,7 @@ class TestDxfParser(unittest.TestCase):
 
     def _create_dxf_file(self, content: str) -> str:
         """Helper: create a temporary DXF file and return its path."""
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.dxf', delete=False)
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.dxf', delete=False)  # noqa: SIM115
         f.write(content)
         f.flush()
         f.close()
