@@ -174,7 +174,7 @@ class VoronoiVerifier:
                                 max_gap_loc = (ix, iy)
                 except Exception as e:
                     logger.warning(
-                        f"V112: _verify_voronoi: failed to compute Voronoi cell boundary intersection: {e!r}"
+                        f"V112: _verify_voronoi: failed to compute Voronoi cell boundary intersection: {e!r}"  # noqa: G004
                     )
                     pass  # NOSONAR - python:S2772
 

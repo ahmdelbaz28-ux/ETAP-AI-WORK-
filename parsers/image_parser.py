@@ -317,10 +317,7 @@ class ImageParser:
         """Preprocess image for contour detection."""
         _lazy_import_cv2()  # V140: lazy import
         # Convert to grayscale
-        if len(img.shape) == 3:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
 
         # Apply Gaussian blur
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -391,10 +388,7 @@ class ImageParser:
             roi = img[y1:y2, x1:x2]
 
             # Convert to grayscale
-            if len(roi.shape) == 3:
-                roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-            else:
-                roi_gray = roi
+            roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY) if len(roi.shape) == 3 else roi
 
             # OCR
             text = pytesseract.image_to_string(

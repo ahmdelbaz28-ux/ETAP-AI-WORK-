@@ -46,7 +46,6 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Optional
 
@@ -287,7 +286,7 @@ def validate_agent_response(
                     "life-safety calculation.'"
                 ),
                 severity=GuardSeverity.MUST_FIX,
-                evidence=f"response contains numerical values without refusal disclaimer",
+                evidence="response contains numerical values without refusal disclaimer",
             ))
 
     return PromptRuleResult(agent_id=agent_id, violations=violations)

@@ -53,7 +53,7 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class SurvivabilityClass(str, Enum):
+class SurvivabilityClass(StrEnum):
     """
     Per-point hybrid survivability classification.
 
@@ -671,6 +671,6 @@ class HybridSurvivabilityEngine:
             json.dump(payload, f, ensure_ascii=False, indent=2)
 
         logger.info(
-            f"Heatmap JSON exported: {output_path} ({total_pts} points, {cls_counts['BLIND_SPOT']} blind spots)"
+            f"Heatmap JSON exported: {output_path} ({total_pts} points, {cls_counts['BLIND_SPOT']} blind spots)"  # noqa: G004
         )
         return output_path

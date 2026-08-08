@@ -2,8 +2,9 @@ import os
 import sys
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Add project root to path so we can import backend modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,10 +15,7 @@ config = context.config
 
 # Override URL from environment (same as main app) or use default
 db_url = os.getenv("DATABASE_URL", "sqlite:///./db/digital_twin.db")
-if db_url.startswith("sqlite:///"):
-    db_path = db_url.replace("sqlite:///", "")
-else:
-    db_path = db_url
+db_path = db_url.replace("sqlite:///", "") if db_url.startswith("sqlite:///") else db_url
 config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.

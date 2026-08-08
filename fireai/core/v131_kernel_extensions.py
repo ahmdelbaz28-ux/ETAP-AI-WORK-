@@ -296,7 +296,7 @@ class WebhookPublisher:
 
         # Validate URL
         if not self._validate_url(url):
-            self.logger.warning(f"Invalid webhook URL: {url}")
+            self.logger.warning("Invalid webhook URL: %s", url)
             return False
 
         # Prepare payload
@@ -330,13 +330,13 @@ class WebhookPublisher:
 
             async with self.session.post(url, data=json_payload, headers=headers) as response:
                 if response.status < 300:
-                    self.logger.info(f"Webhook event {event_type} published successfully to {url}")
+                    self.logger.info("Webhook event %s published successfully to %s", event_type, url)
                     return True
                 else:
-                    self.logger.warning(f"Webhook event failed with status {response.status}")
+                    self.logger.warning("Webhook event failed with status %s", response.status)
                     return False
         except Exception as e:
-            self.logger.exception(f"Failed to publish webhook event: {e}")
+            self.logger.exception("Failed to publish webhook event: %s", e)
             return False
 
     def _validate_url(self, url: str) -> bool:
@@ -350,7 +350,7 @@ class WebhookPublisher:
             if allowed_hosts_env:
                 allowed_hosts = [host.strip() for host in allowed_hosts_env.split(",") if host.strip()]
                 if parsed.hostname and parsed.hostname not in allowed_hosts:
-                    self.logger.warning(f"Webhook hostname {parsed.hostname} not in allowed hosts list")
+                    self.logger.warning("Webhook hostname %s not in allowed hosts list", parsed.hostname)
                     return False
 
             return parsed.scheme in ('http', 'https') and len(parsed.netloc) > 0
@@ -389,7 +389,7 @@ class WebhookPublisher:
                         if serialized is not None:
                             result.append(serialized)
                         else:
-                            self.logger.warning(f"Skipping unserializable item at index {i}")
+                            self.logger.warning("Skipping unserializable item at index %s", i)
                     return result
                 elif isinstance(item, dict):
                     result = {}
@@ -399,9 +399,9 @@ class WebhookPublisher:
                             if serialized is not None:
                                 result[key] = serialized
                             else:
-                                self.logger.warning(f"Skipping unserializable value for key '{key}'")
+                                self.logger.warning("Skipping unserializable value for key '%s'", key)
                         else:
-                            self.logger.warning(f"Skipping non-string key: {key}")
+                            self.logger.warning("Skipping non-string key: %s", key)
                     return result
                 else:
                     # Convert other types to string representation
@@ -410,7 +410,7 @@ class WebhookPublisher:
             safe_obj = safe_serializer(obj)
             return json.dumps(safe_obj, separators=(',', ':'))
         except Exception as e:
-            self.logger.exception(f"Serialization failed: {e}")
+            self.logger.exception("Serialization failed: %s", e)
             return None
 
 
@@ -453,7 +453,7 @@ class ARHookManager:
         }
 
         self.active_sessions[session_id] = session_data
-        self.logger.info(f"Created AR session {session_id} for building {building_id}")
+        self.logger.info("Created AR session %s for building %s", session_id, building_id)
 
         return session_id
 
@@ -469,7 +469,7 @@ class ARHookManager:
             True if the update was successful, False otherwise
         """
         if session_id not in self.active_sessions:
-            self.logger.warning(f"AR session {session_id} not found")
+            self.logger.warning("AR session %s not found", session_id)
             return False
 
         session = self.active_sessions[session_id]
@@ -477,7 +477,7 @@ class ARHookManager:
         # Check if session is expired
         if time.time() > session["expires_at"]:
             await self.end_session(session_id)
-            self.logger.warning(f"AR session {session_id} has expired")
+            self.logger.warning("AR session %s has expired", session_id)
             return False
 
         # Update visualization state
@@ -502,7 +502,7 @@ class ARHookManager:
             Visualization data or None if session not found/expired
         """
         if session_id not in self.active_sessions:
-            self.logger.warning(f"AR session {session_id} not found")
+            self.logger.warning("AR session %s not found", session_id)
             return None
 
         session = self.active_sessions[session_id]
@@ -510,7 +510,7 @@ class ARHookManager:
         # Check if session is expired
         if time.time() > session["expires_at"]:
             await self.end_session(session_id)
-            self.logger.warning(f"AR session {session_id} has expired")
+            self.logger.warning("AR session %s has expired", session_id)
             return None
 
         return session["visualization_state"]
@@ -532,7 +532,7 @@ class ARHookManager:
             if cache_key in self.visualization_cache:
                 del self.visualization_cache[cache_key]
 
-            self.logger.info(f"Ended AR session {session_id}")
+            self.logger.info("Ended AR session %s", session_id)
             return True
 
         return False
@@ -570,7 +570,7 @@ class ARHookManager:
             self.visualization_cache[cache_key] = placeholder_data
             return placeholder_data
         except Exception as e:
-            self.logger.exception(f"Failed to generate AR visualization: {e}")
+            self.logger.exception("Failed to generate AR visualization: %s", e)
             return None
 
 

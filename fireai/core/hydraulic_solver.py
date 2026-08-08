@@ -249,7 +249,7 @@ def calculate_friction_loss(
 
     # Log calculation for audit trail
     logger.debug(
-        f"Hazen-Williams: Q={flow_rate_gpm} gpm, C={friction_factor_c}, "
+        f"Hazen-Williams: Q={flow_rate_gpm} gpm, C={friction_factor_c}, "  # noqa: G004
         f"d={internal_diameter_inches}\", L={pipe_length_feet} ft → "
         f"p={friction_loss_per_foot:.6f} psi/ft, total={total_loss:.4f} psi"
     )
@@ -311,7 +311,7 @@ def calculate_sprinkler_discharge(
     # NFPA 13-2022 §23.4.4: Minimum 7.0 psi operating pressure
     if pressure_psi < MIN_SPRINKLER_PRESSURE_PSI:
         logger.critical(
-            f"[NFPA 13 VIOLATION]: Sprinkler pressure {pressure_psi:.2f} psi "
+            f"[NFPA 13 VIOLATION]: Sprinkler pressure {pressure_psi:.2f} psi "  # noqa: G004
             f"is below mandatory minimum {MIN_SPRINKLER_PRESSURE_PSI} psi. "
             "Inadequate atomization will occur — fire may not be controlled. "
             "[NFPA 13-2022 §23.4.4 / SBC 801 Ch.9 / Egyptian Fire Code Part 4]"
@@ -529,7 +529,7 @@ def validate_roughness_factor(
         min_c, max_c = C_FACTOR_RANGES[normalized_material]
         if c_factor < min_c or c_factor > max_c:
             logger.warning(
-                f"C-factor {c_factor} is outside typical range "
+                f"C-factor {c_factor} is outside typical range "  # noqa: G004
                 f"[{min_c}-{max_c}] for {normalized_material}. "
                 "Calculation will proceed, but verify the value. "
                 "[NFPA 13-2022 Chapter 23]"

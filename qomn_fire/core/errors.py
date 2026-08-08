@@ -11,7 +11,7 @@ from typing import Generic, Optional, TypeVar
 T = TypeVar('T')
 E = TypeVar('E')
 
-class Result(Generic[T, E]):
+class Result(Generic[T, E]):  # noqa: UP046
     def __init__(self, value: Optional[T] = None, error: Optional[E] = None):
         # BUG-43 FIX: Prevent constructing Result with neither value nor error.
         # A Result(value=None) without an error would be is_success=True but

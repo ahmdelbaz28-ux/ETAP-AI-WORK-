@@ -30,15 +30,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Try to import the real AhmedETAP modules.
 try:
-    from scada_model.scada_model import (
-        SCADADatabase,
-        MeasurementType,
-        QualityFlag,
-    )
     from digital_twin.event_bus import (
         EventBus,
-        SCADAUpdateReceived,
         EventType,
+        SCADAUpdateReceived,
+    )
+    from scada_model.scada_model import (
+        MeasurementType,
+        QualityFlag,
+        SCADADatabase,
     )
     ETAP_AVAILABLE = True
 except Exception as _exc:  # pragma: no cover - environment-dependent

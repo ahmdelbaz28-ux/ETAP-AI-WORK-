@@ -47,7 +47,7 @@ import math
 import os
 import time
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any, TypedDict
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -86,7 +86,7 @@ except ImportError:
 
 # ── Workflow State Definition ────────────────────────────────────────────────
 
-class WorkflowStatus(str, Enum):
+class WorkflowStatus(StrEnum):
     """Workflow execution status — matches agent.md V13 status terminology + V77 STUCK."""
 
     PENDING = "PENDING"
@@ -567,7 +567,7 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
         enrichment_time_ms = result.enrichment_time_ms
 
         logger.info(
-            f"Memory enrichment: {len(result.hints)} hints, "
+            f"Memory enrichment: {len(result.hints)} hints, "  # noqa: G004
             f"{result.total_memories_searched} memories searched, "
             f"{enrichment_time_ms:.1f}ms, "
             f"env_context_passed={bool(env_context)}"
@@ -580,7 +580,7 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
         memory_context["error"] = "bridge_not_available"
     except Exception as e:
         logger.warning(
-            f"Memory enrichment failed: {type(e).__name__}: {e}. "
+            f"Memory enrichment failed: {type(e).__name__}: {e}. "  # noqa: G004
             "Proceeding without memory context (fail-safe)."
         )
         memory_context["error"] = str(e)
@@ -1239,14 +1239,14 @@ def node_generate_report(state: PipelineState) -> PipelineState:
             env_context=env_ctx,
         )
         logger.info(
-            f"Memory storage: {memory_storage_result.get('stored', 0)} stored, "
+            f"Memory storage: {memory_storage_result.get('stored', 0)} stored, "  # noqa: G004
             f"{memory_storage_result.get('failed', 0)} failed"
         )
     except ImportError:
         logger.warning("mem0_workflow_bridge not available — skipping result storage")
     except Exception as e:
         logger.warning(
-            f"Memory storage failed: {type(e).__name__}: {e}. "
+            f"Memory storage failed: {type(e).__name__}: {e}. "  # noqa: G004
             "Report generated successfully without memory storage."
         )
 
@@ -1261,7 +1261,7 @@ def node_generate_report(state: PipelineState) -> PipelineState:
             engineer_id=state.get("engineer_id", "engineer_default"),
         )
         logger.info(
-            f"Procedural trace: {procedural_result.get('stored', 0)} steps stored"
+            f"Procedural trace: {procedural_result.get('stored', 0)} steps stored"  # noqa: G004
         )
     except ImportError:
         logger.warning("store_procedural_trace not available — skipping")
@@ -1756,7 +1756,7 @@ class WorkflowService:
 
             log_workflow_scores(result_dict, handler)
             logger.info(
-                f"Langfuse scores logged: coverage={state.get('coverage_pct', 0):.1f}%, "
+                f"Langfuse scores logged: coverage={state.get('coverage_pct', 0):.1f}%, "  # noqa: G004
                 f"compliant={state.get('nfpa_compliant', False)}, "
                 f"safety_gate={'PASS' if not state.get('has_critical_conflicts', False) and state.get('validation_passed', False) and state.get('nfpa_compliant', False) else 'FAIL'}"
             )
@@ -1872,14 +1872,14 @@ class WorkflowService:
                 f"Recovery: {result.recommendation}"
             )
             logger.critical(
-                f"WORKFLOW STUCK — Watchdog detected: Workflow {workflow_id} "
+                f"WORKFLOW STUCK — Watchdog detected: Workflow {workflow_id} "  # noqa: G004
                 f"stuck at node '{result.stuck_node}' "
                 f"(escalation={result.escalation.value}). "
                 f"Engineer action required: {result.recommendation}"
             )
         else:
             logger.warning(
-                f"Watchdog detected stuck workflow {workflow_id} "
+                f"Watchdog detected stuck workflow {workflow_id} "  # noqa: G004
                 f"but it's not in the active workflows dict. "
                 f"Stuck node: {result.stuck_node}"
             )
@@ -2060,7 +2060,7 @@ class WorkflowService:
                         checkpoint_state = checkpoint_tuple
             except Exception as e:
                 logger.warning(
-                    f"Checkpoint read failed for workflow {workflow_id}: {e}. "
+                    f"Checkpoint read failed for workflow {workflow_id}: {e}. "  # noqa: G004
                     "Attempting in-memory recovery."
                 )
 
@@ -2091,7 +2091,7 @@ class WorkflowService:
                 }
 
                 logger.info(
-                    f"Workflow {workflow_id} recovered from checkpoint. "
+                    f"Workflow {workflow_id} recovered from checkpoint. "  # noqa: G004
                     f"Status: {recovered_state.get('status', 'UNKNOWN')}, "
                     f"Rooms: {len(recovered_state.get('rooms', []))}"
                 )
@@ -2117,7 +2117,7 @@ class WorkflowService:
                 wf = self._workflows[workflow_id]
                 state = wf["state"]
                 logger.info(
-                    f"Workflow {workflow_id} found in memory "
+                    f"Workflow {workflow_id} found in memory "  # noqa: G004
                     "(no checkpoint recovery needed)"
                 )
                 return {
@@ -2129,14 +2129,14 @@ class WorkflowService:
 
             # No checkpoint and no in-memory state
             logger.warning(
-                f"Workflow {workflow_id} not found in checkpoints or memory. "
+                f"Workflow {workflow_id} not found in checkpoints or memory. "  # noqa: G004
                 "No recovery possible."
             )
             return None
 
         except Exception as e:
             logger.exception(
-                f"Crash recovery failed for workflow {workflow_id}: "
+                f"Crash recovery failed for workflow {workflow_id}: "  # noqa: G004
                 f"{type(e).__name__}: {e}",
             )
             return {

@@ -33,11 +33,10 @@ from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
 from api.audit_logs import router as audit_logs_router
-from api.autodesk_connectors import router as autodesk_connectors_router
 from api.auth import router as auth_router
-from api.copilot_config import router as copilot_config_router
-from api.feature_flags import router as feature_flags_router
+from api.autodesk_connectors import router as autodesk_connectors_router
 from api.context_engine import router as context_engine_router
+from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
 from api.email_dashboard import router as email_dashboard_router
@@ -55,15 +54,15 @@ from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.settings import router as settings_router
-from api.storage_management import router as storage_management_router
 from api.solver_parameters import router as solver_parameters_router
+from api.storage_management import router as storage_management_router
 from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
 from api.validation import router as validation_router
-from api.zip_generator_config import router as zip_generator_config_router
 from api.websocket import scada_websocket_endpoint
+from api.zip_generator_config import router as zip_generator_config_router
 from backend.request_context import CorrelationIdMiddleware, TenantMiddleware
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer

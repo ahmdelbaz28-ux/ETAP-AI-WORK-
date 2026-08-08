@@ -272,20 +272,20 @@ class Config:
             # unreachable. Both must be rejected explicitly.
             if not math.isfinite(val):
                 logging.warning(
-                    f"[CONFIG] {env_var}={raw} is not finite (NaN/Inf rejected). "
+                    f"[CONFIG] {env_var}={raw} is not finite (NaN/Inf rejected). "  # noqa: G004
                     f"Using default: {default}."
                 )
                 return default
             if val < min_val:
                 logging.warning(
-                    f"[CONFIG] {env_var}={val} is below minimum {min_val}. "
+                    f"[CONFIG] {env_var}={val} is below minimum {min_val}. "  # noqa: G004
                     f"Using default: {default}."
                 )
                 return default
             return val
         except (ValueError, TypeError):
             logging.warning(
-                f"[CONFIG] {env_var}='{raw}' is not a valid number. "
+                f"[CONFIG] {env_var}='{raw}' is not a valid number. "  # noqa: G004
                 f"Using default: {default}."
             )
             return default
@@ -300,14 +300,14 @@ class Config:
             val = int(raw)
             if val < min_val:
                 logging.warning(
-                    f"[CONFIG] {env_var}={val} is below minimum {min_val}. "
+                    f"[CONFIG] {env_var}={val} is below minimum {min_val}. "  # noqa: G004
                     f"Using default: {default}."
                 )
                 return default
             return val
         except (ValueError, TypeError):
             logging.warning(
-                f"[CONFIG] {env_var}='{raw}' is not a valid integer. "
+                f"[CONFIG] {env_var}='{raw}' is not a valid integer. "  # noqa: G004
                 f"Using default: {default}."
             )
             return default
@@ -495,9 +495,9 @@ class AsyncAuditLogger:
                 os.remove(dst)
             os.rename(self.filepath, dst)
 
-            logging.info(f"[AUDIT ROTATION] Rotated audit log to {dst}")
+            logging.info("[AUDIT ROTATION] Rotated audit log to %s", dst)
         except OSError as e:
-            logging.warning(f"[AUDIT ROTATION FAILED] {e}. Continuing without rotation.")
+            logging.warning("[AUDIT ROTATION FAILED] %s. Continuing without rotation.", e)
 
     def log_event(self, event_data: dict[str, Any]) -> bool:
         """
@@ -578,7 +578,7 @@ class AsyncAuditLogger:
                 # Better to lose an audit event than to lose the entire system.
                 self._failed_writes += 1
                 logging.critical(
-                    f"[AUDIT LOGGER FAILURE] Cannot write to {self.filepath}: {type(e).__name__}: {e}. "
+                    f"[AUDIT LOGGER FAILURE] Cannot write to {self.filepath}: {type(e).__name__}: {e}. "  # noqa: G004
                     f"Event data NOT persisted to disk. "
                     f"Event: {str(event_data)[:200]}"
                 )
@@ -824,9 +824,12 @@ class WeightedCircuitBreaker:
                 self.open_time = now
                 self.half_open_count = 0
                 logging.critical(
-                    f"[CIRCUIT BREAKER CRITICAL] Weighted fault rate exceeded threshold "
-                    f"(weight: {current_weight:.1f}/{self.threshold:.1f} in {self.window_seconds}s). "
-                    f"State transitioned to OPEN. System is in fallback recovery."
+                    "[CIRCUIT BREAKER CRITICAL] Weighted fault rate exceeded threshold "
+                    "(weight: %.1f/%.1f in %ss). "
+                    "State transitioned to OPEN. System is in fallback recovery.",
+                    current_weight,
+                    self.threshold,
+                    self.window_seconds,
                 )
                 return False
             return True
@@ -848,7 +851,7 @@ class WeightedCircuitBreaker:
                     self._events.clear()
                     self.half_open_count = 0
                     logging.info(
-                        "[CIRCUIT BREAKER] Half-open recovery successful. "
+                        "[CIRCUIT BREAKER] Half-open recovery successful. "  # noqa: G004
                         f"{self.half_open_max} consecutive successes recorded. "
                         "Restoring to CLOSED."
                     )
@@ -894,7 +897,7 @@ class WeightedCircuitBreaker:
                     self.state = self.HALF_OPEN
                     self.half_open_count = 0
                     logging.info(
-                        "[CIRCUIT BREAKER] Cooldown complete. Transitioning to HALF_OPEN. "
+                        "[CIRCUIT BREAKER] Cooldown complete. Transitioning to HALF_OPEN. "  # noqa: G004
                         f"Allowing up to {self.half_open_max} probe requests."
                     )
                     return True
@@ -1393,7 +1396,7 @@ def self_healing(  # NOSONAR — S3776: cognitive complexity is inherent to the 
                 # trigger emergency procedures, alert authorities, or shut down.
                 if isinstance(e, SafetyCriticalFailure):
                     logging.critical(
-                        f"[SAFETY CRITICAL FAILURE] {func_name} raised "
+                        f"[SAFETY CRITICAL FAILURE] {func_name} raised "  # noqa: G004
                         f"SafetyCriticalFailure: {e!s}. "
                         f"This exception type is NON-HEALABLE by design. "
                         f"Re-raising immediately. System requires immediate attention."
@@ -1533,7 +1536,7 @@ def self_healing(  # NOSONAR — S3776: cognitive complexity is inherent to the 
                 # cascade failure. Force Tier 2 if Tier 1 produced None.
                 if tier_1_applied and healed_val is None:
                     logging.warning(
-                        f"[TIER 1 SAFETY GUARD] Tier 1 produced None for {err_type} "
+                        f"[TIER 1 SAFETY GUARD] Tier 1 produced None for {err_type} "  # noqa: G004
                         f"in {func_name}. Escalating to Tier 2 for safe recovery."
                     )
                     tier_1_applied = False
@@ -1573,8 +1576,10 @@ def self_healing(  # NOSONAR — S3776: cognitive complexity is inherent to the 
                 # TIER 2: LOCAL LLM RECOVERY LOOP (OLLAMA / LLAMA)
                 # -----------------------------------------------------
                 logging.warning(
-                    f"[TIER 2 HEALING INITIALIZED] Standard Tier 1 rules could "
-                    f"not safely resolve {err_type} in {func_name}. Querying Local LLM Agent..."
+                    "[TIER 2 HEALING INITIALIZED] Standard Tier 1 rules could "
+                    "not safely resolve %s in %s. Querying Local LLM Agent...",
+                    err_type,
+                    func_name,
                 )
 
                 llm_response_val = None
@@ -1645,7 +1650,7 @@ def self_healing(  # NOSONAR — S3776: cognitive complexity is inherent to the 
 
                     # Log message notifying user/operator of recovery action
                     logging.info(
-                        f"[TIER 2 HEALED SUCCESS] Recovered from {err_type} in {func_name} "
+                        f"[TIER 2 HEALED SUCCESS] Recovered from {err_type} in {func_name} "  # noqa: G004
                         f"using verified LLM patch value: {llm_response_val}."
                     )
 
@@ -1738,7 +1743,7 @@ def query_local_ollama_engine(
     except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
         # Local Ollama offline, timeouts, or invalid JSON response falls back to mock validation
         logging.warning(
-            f"[LOCAL OLLAMA UNREACHABLE/TIMEOUT] Reason: {e!s}. "
+            f"[LOCAL OLLAMA UNREACHABLE/TIMEOUT] Reason: {e!s}. "  # noqa: G004
             f"Failing-over to local safe boundary validation logic."
         )
         return default_fallback

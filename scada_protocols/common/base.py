@@ -19,7 +19,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ProtocolType(str, Enum):
+class ProtocolType(StrEnum):
     """Identifies the SCADA protocol implementation."""
 
     MODBUS_TCP = "modbus_tcp"
@@ -38,7 +38,7 @@ class ProtocolType(str, Enum):
     IEC_104 = "iec_104"
 
 
-class AdapterRole(str, Enum):
+class AdapterRole(StrEnum):
     """Whether the adapter acts as a server (slave), a client (master), or both."""
 
     SERVER = "server"
@@ -46,7 +46,7 @@ class AdapterRole(str, Enum):
     BOTH = "both"
 
 
-class AdapterState(str, Enum):
+class AdapterState(StrEnum):
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"

@@ -24,9 +24,10 @@ from api.feature_flags import (
     _db_path,
     _load_flags,
     _save_flags,
+)
+from api.feature_flags import (
     router as feature_flags_router,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
