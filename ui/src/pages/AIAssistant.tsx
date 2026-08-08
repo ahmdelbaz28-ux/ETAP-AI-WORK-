@@ -296,7 +296,7 @@ export default function AIAssistant() {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim()) return;
 
     // Abort any in-flight request from a previous send.
     if (abortControllerRef.current) {
@@ -645,7 +645,7 @@ export default function AIAssistant() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={loading}
+              disabled={false}
               placeholder="Message AI Assistant..."
               className="w-full max-h-48 min-h-[56px] px-4 pt-4 pb-12 bg-transparent text-[#1f2937] dark:text-[#e5e7eb] text-[15px] resize-none outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 leading-relaxed"
               rows={input.split("\n").length > 1 ? Math.min(input.split("\n").length, 8) : 1}
@@ -657,7 +657,7 @@ export default function AIAssistant() {
               </div>
               <button
                 type="submit"
-                disabled={loading || !input.trim()}
+                disabled={!input.trim()}
                 className={cn(
                   "p-2 rounded-xl transition-all duration-200 flex items-center justify-center",
                   loading || !input.trim()
