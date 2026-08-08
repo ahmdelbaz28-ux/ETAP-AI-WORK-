@@ -348,20 +348,11 @@ class TestPromptHandleMapping:
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
 
             "etap_engineer_agent_v2": "Reserved for V2 agent variant",
-            "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
             "arcflash_agent_prompt": "arcFlashAgent (TS)",
             "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
-            "code_guard_agent": "CodeGuardAgent (guard skills)",
-            "goal_planner_agent": "goalPlannerAgent (TS)",
-            "weather_agent": "weatherAgent (TS)",
             "weather_activity_planner": "Weather workflow (TS)",
-            "power_system_coordinator_agent": "ChiefEngineeringOrchestrator + powerSystemCoordinatorAgent (TS)",
-            "fallback_agent": "Fallback prompt for missing handles",
             "generic_agent_chat": "Generic chat fallback",
-            "anomaly_agent": "AnomalyAgent (future ML)",
             "coordination_agent": "CoordinationAgent (future relay)",
-            "digital_twin_agent": "DigitalTwinAgent (future DT)",
-            "predictive_agent": "PredictiveAgent (future ML)",
             "sample_prompt": "Template/sample only",
         }
 
