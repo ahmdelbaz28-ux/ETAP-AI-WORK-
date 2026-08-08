@@ -188,10 +188,7 @@ class EnginePool:
                     total_load += status["current_tasks"] / status["max_concurrent_tasks"]
                     running_workers += 1
 
-            if running_workers > 0:
-                avg_load = total_load / running_workers
-            else:
-                avg_load = 0
+            avg_load = total_load / running_workers if running_workers > 0 else 0
 
             # Make scaling decision
             if avg_load > self.load_threshold_high and self.current_size < self.max_size:

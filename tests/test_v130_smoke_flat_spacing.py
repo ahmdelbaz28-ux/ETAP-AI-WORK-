@@ -73,12 +73,12 @@ class TestSmokeFlatSpacingConstants:
     def test_heat_spacing_fallback_is_3_5(self):
         """HEAT_SPACING_FALLBACK_M must remain 3.50m (conservative extrapolation)."""
         from fireai.constants.nfpa72 import HEAT_SPACING_FALLBACK_M
-        assert HEAT_SPACING_FALLBACK_M == pytest.approx(3.50)
+        assert pytest.approx(3.50) == HEAT_SPACING_FALLBACK_M
 
     def test_smoke_coverage_radius(self):
         """Smoke coverage radius = 0.7 × 9.1 = 6.37m."""
         from fireai.constants.nfpa72 import SMOKE_COVERAGE_RADIUS_M
-        assert SMOKE_COVERAGE_RADIUS_M == pytest.approx(6.37)
+        assert pytest.approx(6.37) == SMOKE_COVERAGE_RADIUS_M
 
 
 # ============================================================================

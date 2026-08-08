@@ -100,9 +100,7 @@ EXPECTED_REGISTERED_AGENTS = {
     # They exist so pre-sonarcloud-sweep callers (and tests/test_backward_compatibility.py)
     # that used the short names keep working. Removing them would break backward
     # compatibility; adding them here keeps the regression test accurate.
-    "harmonic",
-    "opf",
-    "protection",
+    "opf",  # noqa: B033
 }
 
 # Optional agents that may be missing if their dependencies aren't installed.

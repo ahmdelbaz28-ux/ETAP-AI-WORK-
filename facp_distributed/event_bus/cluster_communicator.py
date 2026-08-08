@@ -201,7 +201,7 @@ class ClusterCommunicator:
 
                     with self.lock:
                         self.stats["connections_made"] += 1
-                except socket.timeout:
+                except TimeoutError:
                     # Non-blocking timeout, continue loop
                     continue
             except Exception as e:
@@ -229,7 +229,7 @@ class ClusterCommunicator:
                     except json.JSONDecodeError:
                         print(f"Invalid JSON from {addr}")
                         continue
-                except socket.timeout:
+                except TimeoutError:
                     # Connection timeout, close it
                     break
         except Exception as e:

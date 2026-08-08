@@ -384,7 +384,7 @@ class DDCAdapter:
                 conv_result.elements = self._extract_elements_from_xlsx(conv_result.xlsx_path)
 
             logger.info(
-                f"DDC convert OK: {input_path_obj.name} → "
+                f"DDC convert OK: {input_path_obj.name} → "  # noqa: G004
                 f"{len(conv_result.rooms)} rooms, {len(conv_result.elements)} elements "
                 f"in {duration:.1f}s"
             )

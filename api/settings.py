@@ -60,6 +60,8 @@ try:
 except ImportError:
     from typing_extensions import Annotated
 
+import re as _re_for_log
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -67,7 +69,6 @@ from pydantic import BaseModel, Field
 from api.dependencies import get_api_key
 from services.api_key_store import APIKeyStore, api_key_store
 
-import re as _re_for_log
 _SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
 
 

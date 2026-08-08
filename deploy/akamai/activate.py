@@ -32,16 +32,14 @@ import argparse
 import json
 import logging
 import os
-import re
 import sys
 import time
 from pathlib import Path
-from typing import Any
-from urllib.parse import urlencode
 
 try:
-    from akamai.edgegrid import EdgeGridAuth
     import requests
+
+    from akamai.edgegrid import EdgeGridAuth
 except ImportError:
     print("Missing dependencies. Install with:")
     print("  pip install edgegrid-python requests")

@@ -193,7 +193,7 @@ class EvidenceChain:
             import logging
 
             logging.getLogger(__name__).warning(
-                f"SECURITY: secret_key is only {len(secret_key)} chars — "
+                f"SECURITY: secret_key is only {len(secret_key)} chars — "  # noqa: G004
                 f"recommend >= 32 chars for HMAC-SHA256. Short keys are "
                 f"vulnerable to brute force. Use os.environ['FIREAI_EVIDENCE_SECRET'] "
                 f"or secrets.token_hex(32)."

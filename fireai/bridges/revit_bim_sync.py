@@ -208,7 +208,7 @@ class RevitAPIBridge:
         except Exception as exc:
             raise RuntimeError(
                 f"Revit live extraction failed: {exc}. Ensure running inside Revit process with API access."
-            )
+            ) from None
 
     def _extract_ifc(self, filepath: str) -> list[BIMRoom]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Extract rooms from IFC file via ifcopenshell."""
@@ -294,7 +294,7 @@ class RevitAPIBridge:
             return result
 
         except ImportError:
-            raise ImportError("ifcopenshell not installed. Install: pip install ifcopenshell")
+            raise ImportError("ifcopenshell not installed. Install: pip install ifcopenshell") from None
 
     def _extract_json(self, filepath: str) -> list[BIMRoom]:
         """
@@ -383,9 +383,9 @@ class RevitAPIBridge:
                 "StreamingDXFParser not available. "
                 "The DXF parser module is required for DXF extraction. "
                 "Use JSON or IFC format instead."
-            )
+            ) from None
         except Exception as exc:
-            raise RuntimeError(f"DXF extraction failed: {exc}")
+            raise RuntimeError(f"DXF extraction failed: {exc}") from None
 
 
 # ---------------------------------------------------------------------------

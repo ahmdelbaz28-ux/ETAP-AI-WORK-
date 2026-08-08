@@ -4,10 +4,10 @@ Serves index.html for all non-asset routes (SPA fallback).
 Also proxies /api/* to the backend on port 8000.
 """
 import http.server
-import socketserver
 import os
-import urllib.request
+import socketserver
 import urllib.error
+import urllib.request
 
 DIST_DIR = "/home/z/my-project/frontend/dist"
 BACKEND_URL = "http://127.0.0.1:8000"

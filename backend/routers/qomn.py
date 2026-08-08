@@ -94,9 +94,9 @@ _ComputationError = None
 _ValidationError = None
 
 try:
-    from fireai.core.qomn_kernel import ComputationError as _CE
-    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE
-    from fireai.core.qomn_kernel import ValidationError as _VE
+    from fireai.core.qomn_kernel import ComputationError as _CE  # noqa: N814
+    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE  # noqa: N814
+    from fireai.core.qomn_kernel import ValidationError as _VE  # noqa: N814
     _PhysicsGuardError = _PGE
     _ComputationError = _CE
     _ValidationError = _VE
@@ -136,7 +136,7 @@ def _get_kernel():
                         "Ensure fireai.core.qomn_kernel is available in the Python path.",
                         e,
                     )
-                    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+                    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
                         status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
                         detail={
                             "error": "QOMN_SERVICE_UNAVAILABLE",
@@ -368,7 +368,7 @@ async def place_detectors(req: RoomRequest):
                 RoomSpec,
             )
         except ImportError:
-            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
                 status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
                 detail={
                     "error": "QOMN_SERVICE_UNAVAILABLE",
@@ -490,7 +490,7 @@ async def place_duct_detector(req: DuctDetectorRequest):
                 place_duct_detector,
             )
         except ImportError:
-            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
                 status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
                 detail={
                     "error": "QOMN_SERVICE_UNAVAILABLE",
@@ -560,7 +560,7 @@ async def get_physics_guards():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
     return {
         "success": True,
         "data": {
@@ -643,7 +643,7 @@ async def get_qomn_constants():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
     return {
         "success": True,
         "data": {
@@ -695,7 +695,7 @@ async def run_golden_tests():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
 
     results = []
     all_pass = True

@@ -170,16 +170,16 @@ class TestConversionConstants:
 
     def test_feet_to_metres_exact(self):
         """1 ft = 0.3048 m (exact since 1959)."""
-        assert FEET_TO_METRES == pytest.approx(0.3048)
+        assert pytest.approx(0.3048) == FEET_TO_METRES
 
     def test_inches_to_mm_exact(self):
         """1 in = 25.4 mm (exact since 1959)."""
-        assert INCHES_TO_MM == pytest.approx(25.4)
+        assert pytest.approx(25.4) == INCHES_TO_MM
 
     def test_gpm_to_lpm_exact(self):
         """1 US gal = 3.785411784 L (exact)."""
-        assert GPM_TO_LPM == pytest.approx(3.785411784, abs=1e-12)
+        assert pytest.approx(3.785411784, abs=1e-12) == GPM_TO_LPM
 
     def test_sqft_to_sqm_exact(self):
         """1 ft² = 0.09290304 m² (exact = 0.3048²)."""
-        assert SQFT_TO_SQM == pytest.approx(0.3048 ** 2, abs=1e-15)
+        assert pytest.approx(0.3048 ** 2, abs=1e-15) == SQFT_TO_SQM

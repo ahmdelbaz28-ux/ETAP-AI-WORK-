@@ -36,13 +36,6 @@ class TestPerUnit:
     def test_from_per_unit(self):
         assert from_per_unit(2.0, 50) == pytest.approx(100.0)
 
-    def test_from_per_unit_identity(self):
-        assert from_per_unit(1.0, 50) == pytest.approx(50.0)
-
-    def test_from_per_unit_zero_base(self):
-        # Multiplication by zero gives 0.0, no error
-        assert from_per_unit(1.0, 0) == pytest.approx(0.0)
-
         assert from_per_unit(2.0, 50) == 100.0
 
     def test_from_per_unit_identity(self):
@@ -123,17 +116,6 @@ class TestPerUnit:
 # Zbus Computation
 # ===========================================================================
 
-
-class TestZbus:
-    def test_zbus_from_ybus_3bus(self):
-        # Simple 3-bus system Ybus
-        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            [
-                [10 - 20j, -5 + 10j, -5 + 10j],
-                [-5 + 10j, 10 - 20j, -5 + 10j],
-                [-5 + 10j, -5 + 10j, 10 - 20j],
-            ]
-        )
 
 class TestZbus:
     def test_zbus_from_ybus_3bus(self):
@@ -314,27 +296,6 @@ class TestZbus:
             Y_red = Ybus[
                 np.ix_(mask, mask)
             ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
-
-    def test_zbus_zero_off_diagonal(self):
-        Ybus = np.diag(
-            [1 + 1j, 2 + 2j, 3 + 3j]
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        Ybus = np.array([
-            [10 - 20j, -3 + 6j, -2 + 5j],
-            [-3 + 6j, 8 - 15j, 0],
-            [-2 + 5j, 0, 6 - 12j],
-        ])
-        # Full Zbus: Z @ Y should be identity
-        Z_full = zbus_full(Ybus)
-        assert np.allclose(Z_full @ Ybus, np.eye(3), atol=1e-10)
-        # Reduced Zbus: reduced Z @ reduced Y should be identity
-        for ref in range(3):
-            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)
-            # Remove reference bus row/col from Ybus
-            mask = [i for i in range(3) if i != ref]
-            Y_red = Ybus[np.ix_(mask, mask)]
             assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_zero_off_diagonal(self):

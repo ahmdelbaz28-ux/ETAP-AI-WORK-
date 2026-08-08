@@ -29,7 +29,7 @@ import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Callable
 
 from fireai.core.event_bus import EventBus
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class SensorType(str, Enum):
+class SensorType(StrEnum):
     SMOKE_DETECTOR = "SMOKE_DETECTOR"
     HEAT_DETECTOR = "HEAT_DETECTOR"
     FLAME_DETECTOR = "FLAME_DETECTOR"
@@ -55,7 +55,7 @@ class SensorType(str, Enum):
     CURRENT_SENSOR = "CURRENT_SENSOR"
 
 
-class EventSeverity(str, Enum):
+class EventSeverity(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -63,7 +63,7 @@ class EventSeverity(str, Enum):
     INFO = "INFO"
 
 
-class SensorStatus(str, Enum):
+class SensorStatus(StrEnum):
     NORMAL = "NORMAL"
     ALARM = "ALARM"
     TROUBLE = "TROUBLE"
@@ -72,7 +72,7 @@ class SensorStatus(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class CommunicationProtocol(str, Enum):
+class CommunicationProtocol(StrEnum):
     MQTT = "MQTT"
     OPC_UA = "OPC_UA"
     MODBUS = "MODBUS"

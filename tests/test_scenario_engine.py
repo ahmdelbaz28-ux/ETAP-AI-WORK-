@@ -106,27 +106,27 @@ class TestNFPA72Constants:
 
     def test_smoke_threshold_ionization_25_pct_m(self):
         """UL 268 — ionization detector threshold = 2.5 %/m."""
-        assert _SMOKE_THRESHOLD_ION_PCT_M == pytest.approx(2.5)
+        assert pytest.approx(2.5) == _SMOKE_THRESHOLD_ION_PCT_M
 
     def test_smoke_threshold_photoelectric_40_pct_m(self):
         """UL 268 — photoelectric detector threshold = 4.0 %/m."""
-        assert _SMOKE_THRESHOLD_PHOTO_PCT_M == pytest.approx(4.0)
+        assert pytest.approx(4.0) == _SMOKE_THRESHOLD_PHOTO_PCT_M
 
     def test_alpert_dt_far_constant(self):
         """Alpert (1972) — far-field dT coefficient = 5.38."""
-        assert _ALPERT_DT_FAR == pytest.approx(5.38)
+        assert pytest.approx(5.38) == _ALPERT_DT_FAR
 
     def test_alpert_dt_near_constant(self):
         """Alpert (1972) — near-field dT coefficient = 16.9."""
-        assert _ALPERT_DT_NEAR == pytest.approx(16.9)
+        assert pytest.approx(16.9) == _ALPERT_DT_NEAR
 
     def test_alpert_v_far_constant(self):
         """Alpert (1972) — far-field velocity coefficient = 0.197."""
-        assert _ALPERT_V_FAR == pytest.approx(0.197)
+        assert pytest.approx(0.197) == _ALPERT_V_FAR
 
     def test_alpert_v_near_constant(self):
         """Alpert (1972) — near-field velocity coefficient = 0.962."""
-        assert _ALPERT_V_NEAR == pytest.approx(0.962)
+        assert pytest.approx(0.962) == _ALPERT_V_NEAR
 
     def test_smoke_yield_flaming_matches_sfpe(self):
         """SFPE Handbook — flaming smoke yield = 0.015 kg/kg."""

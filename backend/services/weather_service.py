@@ -240,11 +240,16 @@ class WeatherService:
         )
 
         logger.info(
-            f"Weather fetched from Open-Meteo: "
-            f"lat={latitude:.4f}, lon={longitude:.4f}, "
-            f"T={weather.temperature_c:.1f}°C, "
-            f"WS={weather.wind_speed_m_s:.1f}m/s, "
-            f"RH={weather.relative_humidity_pct:.0f}%"
+            "Weather fetched from Open-Meteo: "
+            "lat=%.4f, lon=%.4f, "
+            "T=%.1f°C, "
+            "WS=%.1fm/s, "
+            "RH=%.0f%%",
+            latitude,
+            longitude,
+            weather.temperature_c,
+            weather.wind_speed_m_s,
+            weather.relative_humidity_pct,
         )
         return weather
 
@@ -258,9 +263,11 @@ class WeatherService:
         - 50% humidity (mid-range for acoustic propagation)
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT weather data for "
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Calculations proceed with safe defaults."
+            "Using CONSERVATIVE DEFAULT weather data for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Calculations proceed with safe defaults.",
+            latitude,
+            longitude,
         )
         return WeatherData(
             temperature_c=DEFAULT_OUTDOOR_TEMP_C,
@@ -296,7 +303,7 @@ class WeatherService:
         # Validate coordinates
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             logger.warning(
-                f"Invalid coordinates: lat={latitude}, lon={longitude}. "
+                f"Invalid coordinates: lat={latitude}, lon={longitude}. "  # noqa: G004
                 f"Using defaults."
             )
             return self._get_default(latitude, longitude)
@@ -313,7 +320,7 @@ class WeatherService:
             return weather
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"Open-Meteo fetch failed for lat={latitude:.4f}, "
+                f"Open-Meteo fetch failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )
@@ -321,7 +328,7 @@ class WeatherService:
         except Exception as e:
             # Catch-all: external API must NEVER crash the calculation engine
             logger.exception(
-                f"Unexpected error fetching weather for lat={latitude:.4f}, "
+                f"Unexpected error fetching weather for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )
@@ -349,7 +356,7 @@ class WeatherService:
         """
         weather = await self.fetch_weather(latitude, longitude)
 
-        if is_indoor:
+        if is_indoor:  # noqa: SIM108
             # Indoor: use industrial default temperature (40°C) for HAC,
             # but ambient weather for battery derating comparison
             temp_c = DEFAULT_INDOOR_TEMP_C

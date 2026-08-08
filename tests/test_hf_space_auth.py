@@ -175,8 +175,9 @@ class TestJWTAuth:
 
     def test_valid_jwt_grants_access(self, hf_client, monkeypatch):
         """A valid JWT should grant access to protected endpoints."""
-        import jwt as _jwt
         from datetime import datetime, timedelta, timezone
+
+        import jwt as _jwt
 
         token = _jwt.encode(
             {
@@ -197,8 +198,9 @@ class TestJWTAuth:
 
     def test_expired_jwt_rejected(self, hf_client):
         """An expired JWT should be rejected."""
-        import jwt as _jwt
         from datetime import datetime, timedelta, timezone
+
+        import jwt as _jwt
 
         token = _jwt.encode(
             {

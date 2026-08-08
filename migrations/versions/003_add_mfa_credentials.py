@@ -22,6 +22,7 @@ encryption / decryption logic lives in ``security/mfa.py``.
 from __future__ import annotations
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # ---------------------------------------------------------------------------

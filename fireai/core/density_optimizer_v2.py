@@ -196,7 +196,7 @@ def _optimize_room_worker(args: tuple) -> tuple[str, Any]:  # NOSONAR — S3776:
         return (room_id, result)
 
     except Exception as e:
-        log.exception(f"Worker error for room {room_id}: {e}")
+        log.exception("Worker error for room %s: %s", room_id, e)
         return (room_id, {"error": str(e)})
 
 
@@ -301,7 +301,7 @@ class DensityOptimizerV2:
                 ceiling_h = spec.get("ceiling_height_m", 3.0)
                 if isinstance(ceiling_h, (int, float)) and not math.isfinite(ceiling_h):
                     log.error(
-                        f"Room {room_id}: ceiling_height_m={ceiling_h} is NaN/Inf — SKIPPING per Life-Safety Rule 2"
+                        f"Room {room_id}: ceiling_height_m={ceiling_h} is NaN/Inf — SKIPPING per Life-Safety Rule 2"  # noqa: G004
                     )
                     continue
                 vertices = spec.get("vertices", [])
@@ -310,7 +310,7 @@ class DensityOptimizerV2:
                     for coord in v if isinstance(v, (list, tuple)) else [v]:
                         if isinstance(coord, float) and not math.isfinite(coord):
                             log.error(
-                                f"Room {room_id}: vertex coordinate={coord} is NaN/Inf — "
+                                f"Room {room_id}: vertex coordinate={coord} is NaN/Inf — "  # noqa: G004
                                 f"SKIPPING per Life-Safety Rule 2"
                             )
                             has_invalid = True
@@ -323,7 +323,7 @@ class DensityOptimizerV2:
 
         if len(validated_specs) < total:
             log.warning(
-                f"Rejected {total - len(validated_specs)}/{total} rooms due to NaN/Inf geometry per Life-Safety Rule 2"
+                f"Rejected {total - len(validated_specs)}/{total} rooms due to NaN/Inf geometry per Life-Safety Rule 2"  # noqa: G004
             )
 
         # ── Sequential mode (n_workers=1) ──
@@ -350,14 +350,14 @@ class DensityOptimizerV2:
                 room_id_result, result = _optimize_room_worker((room_id, spec, detector_type, kwargs))
                 if isinstance(result, dict) and "error" in result:
                     failed += 1
-                    log.error(f"Room {room_id}: {result['error']}")
+                    log.error("Room %s: %s", room_id, result['error'])
                 else:
                     successful += 1
                 results[room_id_result] = result
             except Exception as e:
                 failed += 1
                 results[room_id] = {"error": str(e)}
-                log.exception(f"Room {room_id}: {e}")
+                log.exception("Room %s: %s", room_id, e)
 
         elapsed = time.perf_counter() - t0
         rps = len(room_specs) / elapsed if elapsed > 0 else 0
@@ -405,7 +405,7 @@ class DensityOptimizerV2:
                 try:
                     worker_results = async_results.get(timeout=self.timeout_per_room_s * len(work_items))
                 except multiprocessing.TimeoutError:
-                    log.exception(f"Batch optimization timed out after {self.timeout_per_room_s * len(work_items)}s")
+                    log.exception(f"Batch optimization timed out after {self.timeout_per_room_s * len(work_items)}s")  # noqa: G004
                     worker_results = []
 
                 for room_id, result in worker_results:
@@ -416,7 +416,7 @@ class DensityOptimizerV2:
                     results[room_id] = result
 
         except Exception as e:
-            log.exception(f"Multiprocessing pool error: {e}")
+            log.exception("Multiprocessing pool error: %s", e)
             # Fallback to sequential for remaining rooms
             log.warning("Falling back to sequential processing")
             for room_id, spec in room_specs.items():
