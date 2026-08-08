@@ -1,0 +1,1317 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>ETAP Launch Blockers - Fixes Applied - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#etap-launch-blockers-fixes-applied" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ETAP Launch Blockers - Fixes Applied
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-28-phase-2-launch-blocker-fixes-test-suite-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      2026-06-28 (Phase 2) — Launch Blocker Fixes + Test Suite Recovery
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2026-06-28 (Phase 2) — Launch Blocker Fixes + Test Suite Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-showstoppers-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Critical showstoppers fixed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-vulnerability-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security vulnerability fixed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-environment-gaps-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency / environment gaps fixed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-suite-recovery-39-previously-failing-tests-now-pass" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test suite recovery — 39+ previously failing tests now pass
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-results-after-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test results after fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-28-phase-1-vercel-build-fix-cross-platform-auto-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      2026-06-28 (Phase 1) — Vercel Build Fix + Cross-Platform Auto-Sync
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2026-06-28 (Phase 1) — Vercel Build Fix + Cross-Platform Auto-Sync">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-cause-of-vercel-build-warnings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Root cause of Vercel build warnings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixes-applied" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixes applied
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-of-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary of Changes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary of Changes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-hf-space-build-fixes-a1-a5-a3-a4" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. HF Space Build Fixes (A1-A5, A3, A4)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. HF Space Build Fixes (A1-A5, A3, A4)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dockerfilehf-simplified-secured" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerfile.hf - Simplified &amp; Secured
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requirementshftxt-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      requirements.hf.txt - Created
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-dockerfileengineering-service-fixed-missing-copys-d1" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Dockerfile.engineering-service - Fixed Missing COPYs (D1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pyprojecttoml-dependency-cleanup-d9-j2-j6" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. pyproject.toml - Dependency Cleanup (D9, J2, J6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-docker-composeyml-security-reliability-d4-d5-d6" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. docker-compose.yml - Security &amp; Reliability (D4, D5, D6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-requirementstxt-cleaned-up-j3-j8" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. requirements.txt - Cleaned Up (J3, J8)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-requirements-prodtxt-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. requirements-prod.txt - Updated
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-corebootstrappy-bug-fixes-c5-c6" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. core/bootstrap.py - Bug Fixes (C5, C6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-apiinitpy-import-optimization-c8" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. api/init.py - Import Optimization (C8)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-sync-workflow-fixed-b1-b2" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Sync Workflow - Fixed (B1, B2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-root-dockerfile-fixed-d3" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Root Dockerfile - Fixed (D3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-hf-space-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. hf-space Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-dockerignore-enhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. .dockerignore - Enhanced
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-version-file-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. VERSION File - Created
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remaining-high-priority-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remaining High Priority Items
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Remaining High Priority Items">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#not-yet-fixed-require-manual-intervention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Not Yet Fixed (require manual intervention):
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files Modified
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="etap-launch-blockers-fixes-applied">ETAP Launch Blockers - Fixes Applied</h1>
+<p><strong>Date:</strong> 2026-06-23
+<strong>Status:</strong> Critical &amp; High Priority Fixes Complete</p>
+<hr />
+<h2 id="2026-06-28-phase-2-launch-blocker-fixes-test-suite-recovery">2026-06-28 (Phase 2) — Launch Blocker Fixes + Test Suite Recovery</h2>
+<h3 id="critical-showstoppers-fixed">Critical showstoppers fixed</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>File</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1أ</td>
+<td><code>NameError: name 'trace' is not defined</code> in FastAPI middleware</td>
+<td><code>engineering_service.py</code>, <code>api/routes.py</code></td>
+<td>Added defensive <code>from opentelemetry import trace</code> import to both files — prevents NameError if a future edit references <code>trace.SpanKind.SERVER</code> directly.</td>
+</tr>
+<tr>
+<td>1ب</td>
+<td><code>AttributeError: 'list' object has no attribute 'priority'</code> in ABAC engine</td>
+<td><code>security/abac.py</code></td>
+<td><code>ABACPolicyEngine.add_policy()</code> now accepts either a single <code>ABACPolicy</code> or a <code>List[ABACPolicy]</code> and flattens the list automatically — eliminates the crash when callers pass the return value of <code>make_business_hours_policy()</code> directly.</td>
+</tr>
+<tr>
+<td>1ج</td>
+<td>Agent calculations fail inside sandbox (<code>__import__ not found</code>)</td>
+<td><code>security/secure_executor.py</code></td>
+<td><code>safe_import()</code> already injects a constrained <code>__import__</code> into <code>safe_globals['__builtins__']</code>. Verified the allowed-modules list includes <code>engine</code>, <code>core_model</code>, <code>fault_analysis</code>, <code>relays</code>, <code>coordination</code>, <code>load_flow</code>, <code>numpy</code>, <code>scipy</code>, <code>math</code>, <code>json</code>, <code>time</code>. No change needed — confirmed working.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-vulnerability-fixed">Security vulnerability fixed</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>File</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>API key protection bypass — <code>get_api_key</code> defined but never applied to routes</td>
+<td><code>api/projects.py</code>, <code>api/dependencies.py</code></td>
+<td>(a) Added <code>dependencies=[Depends(get_api_key)]</code> to all 7 routes in <code>api/projects.py</code> (create/list/get/update/delete + run_study/list_studies). (b) Fixed <code>_require_api_key_or_jwt</code> to re-read <code>API_KEY</code> dynamically from <code>api.dependencies</code> at request time (was captured at import time, so test patches had no effect). All 3 <code>TestAPIKeyBypass</code> tests now pass.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dependency-environment-gaps-fixed">Dependency / environment gaps fixed</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>File</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3أ</td>
+<td>Missing packages: <code>factory-boy</code>, <code>Faker</code>, <code>pytest-timeout</code></td>
+<td><code>requirements-dev.txt</code></td>
+<td>Added <code>factory-boy&gt;=3.3.0</code>, <code>Faker&gt;=24.0.0</code>, <code>pytest-timeout&gt;=2.3.0</code>. (<code>opentelemetry-*</code>, <code>prometheus-client</code>, <code>email-validator</code> were already in <code>requirements.txt</code>.)</td>
+</tr>
+<tr>
+<td>3ب</td>
+<td>TensorFlow has no wheels for Python 3.14</td>
+<td><code>requirements-ml.txt</code>, <code>pyproject.toml</code></td>
+<td>(a) Constrained <code>tensorflow</code> to <code>python_version &gt;= '3.9' and python_version &lt; '3.13'</code>. (b) Pinned <code>requires-python = "&gt;=3.12,&lt;3.14"</code> in <code>pyproject.toml</code>. (c) Confirmed <code>ml/predictive.py</code> already degrades gracefully when TF is missing (uses sklearn + torch fallbacks).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="test-suite-recovery-39-previously-failing-tests-now-pass">Test suite recovery — 39+ previously failing tests now pass</h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Root cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sqlite3.OperationalError: no such table: users</code> during <code>TestAPIKeyBypass</code></td>
+<td><code>db_engine</code> fixture created tables, but <code>Base.metadata</code> had no models registered because <code>api.auth</code> / <code>api.projects</code> weren't imported before <code>create_all()</code>.</td>
+<td><code>tests/conftest.py</code> — force-import <code>api.auth</code>, <code>api.projects</code>, <code>api.mfa</code> inside the <code>db_engine</code> fixture so all ORM models register with <code>Base.metadata</code>.</td>
+</tr>
+<tr>
+<td><code>413 Request body too large</code> raised as 500 Internal Server Error</td>
+<td><code>BaseHTTPMiddleware.dispatch</code> was raising <code>HTTPException(413)</code> — Starlette wraps unhandled exceptions in 500.</td>
+<td><code>api/routes.py</code> — <code>_BodySizeLimitMiddleware.dispatch</code> now returns a <code>JSONResponse(status_code=413, ...)</code> explicitly instead of raising.</td>
+</tr>
+<tr>
+<td><code>test_rate_limit_then_cooldown</code> exceeded 15s timeout</td>
+<td><code>bcrypt.checkpw</code> is intentionally slow (~150 ms per call); 6 failed logins + register took &gt;15s.</td>
+<td><code>tests/test_security_e2e.py</code> — added <code>@pytest.mark.timeout(60)</code> to <code>test_rate_limit_then_cooldown</code>, <code>test_rate_limit_per_username_isolation</code>, and <code>test_token_lifecycle</code>.</td>
+</tr>
+<tr>
+<td><code>test_create_project_success</code> timed out at 10s</td>
+<td>Redis cache retries added 1+2+4 = 7s of dead time per test session.</td>
+<td><code>core/bootstrap.py</code> — added <code>ENGINEERING_SERVICE_CACHE_DISABLED=true</code> env var that short-circuits Redis and uses in-memory fallback immediately. <code>tests/conftest.py</code> sets this in the autouse fixture.</td>
+</tr>
+<tr>
+<td><code>TestListStudies</code> tests failed with 429 Too Many Requests</td>
+<td>Default rate limit (100 req/60s) was exceeded by the test suite running many register+login+CRUD cycles per test.</td>
+<td><code>tests/conftest.py</code> — sets <code>ENGINEERING_SERVICE_RATE_LIMIT_MAX=10000</code> for tests.</td>
+</tr>
+<tr>
+<td><code>test_harmonic_impedance_scaling</code> — singular Ybus matrix</td>
+<td>Already fixed in current <code>main</code> — the test now uses a non-singular Ybus with shunt admittance.</td>
+<td>No change needed.</td>
+</tr>
+<tr>
+<td><code>pass123</code> (7 chars) vs 8-char minimum password requirement</td>
+<td>Already fixed in current <code>main</code> — all tests use <code>password123</code> (11 chars) or <code>Str0ngP@ss!</code> / <code>S3cureP@ss!</code>.</td>
+<td>No change needed.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="test-results-after-fixes">Test results after fixes</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/test_security_e2e.py     39 passed
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>tests/test_projects_api.py     28 passed
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>tests/test_auth_api.py         36 passed
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>tests/unit_tests.py           100 passed
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>tests/test_guards.py            6 passed
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>tests/test_prompt_integration.py 20 passed
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>tests/test_etap_expert_skill.py 27 passed
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>tests/test_security_hardening.py 25 passed
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>─────────────────────────────────────────
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>TOTAL                        281 passed
+</code></pre></div>
+<hr />
+<h2 id="2026-06-28-phase-1-vercel-build-fix-cross-platform-auto-sync">2026-06-28 (Phase 1) — Vercel Build Fix + Cross-Platform Auto-Sync</h2>
+<h3 id="root-cause-of-vercel-build-warnings">Root cause of Vercel build warnings</h3>
+<p>The <code>npm warn ERESOLVE overriding peer dependency</code> warning for
+<code>@vitest/mocker@2.1.8 → vite@^5.0.0 vs vite@6.0.5</code> was caused by
+<code>vitest@2.1.8</code> not officially supporting <code>vite@6.x</code>. While npm was
+auto-resolving it, the underlying mismatch made the install step
+fragile and could trigger failures on stricter CI environments.</p>
+<h3 id="fixes-applied">Fixes applied</h3>
+<ol>
+<li><strong><code>ui/package.json</code></strong> — upgraded <code>vitest</code> from <code>2.1.8</code> → <code>3.0.9</code>
+   (Vitest 3.x officially supports Vite 6.x → eliminates the peer
+   dependency warning entirely).</li>
+<li><strong><code>package.json</code> (root)</strong> — upgraded <code>vitest</code> + <code>@vitest/coverage-v8</code>
+   from <code>2.1.8</code> → <code>3.0.9</code> to keep the monorepo consistent.</li>
+<li><strong><code>ui/package.json</code></strong> — added <code>build:vercel</code> script that skips
+   <code>tsc -b</code> (Vite handles TS transforms; type-checks run in CI).</li>
+<li><strong><code>ui/vercel.json</code></strong> — pinned <code>installCommand</code>, <code>buildCommand</code>,
+   <code>outputDirectory</code>, and added security headers.</li>
+<li><strong><code>ui/.npmrc</code></strong> — set <code>auto-install-peers=true</code> + <code>audit=false</code> for
+   faster, more reliable installs.</li>
+<li><strong><code>.nvmrc</code></strong> — pinned Node 22 so Vercel/HF/local all use the same
+   runtime.</li>
+<li><strong><code>.github/workflows/sync-platforms.yml</code></strong> — new unified workflow
+   that auto-syncs every push to <code>main</code> across <strong>Vercel + HuggingFace
+   Space + LangWatch + Smithery</strong>, plus a daily drift-detection job
+   that opens a PR if the HF Space README diverges from GitHub.</li>
+<li><strong><code>.github/SECRETS_SETUP.md</code></strong> — step-by-step guide to set all
+   required GitHub Secrets.</li>
+</ol>
+<hr />
+<h2 id="summary-of-changes">Summary of Changes</h2>
+<h3 id="1-hf-space-build-fixes-a1-a5-a3-a4">1. HF Space Build Fixes (A1-A5, A3, A4)</h3>
+<h4 id="dockerfilehf-simplified-secured">Dockerfile.hf - Simplified &amp; Secured</h4>
+<ul>
+<li><strong>Removed:</strong> nginx + supervisord (over-engineered for single FastAPI app)</li>
+<li><strong>Added:</strong> Non-root user (UID 1000) as required by HF Spaces</li>
+<li><strong>Changed:</strong> Single-process uvicorn entrypoint on port 7860</li>
+<li><strong>Fixed:</strong> Database path uses <code>/tmp/data</code> (writable location)</li>
+<li><strong>Fixed:</strong> Python packages installed to <code>/home/user/.local</code> (not <code>/root/.local</code>)</li>
+</ul>
+<h4 id="requirementshftxt-created">requirements.hf.txt - Created</h4>
+<ul>
+<li>Minimal dependencies for HF Space deployment</li>
+<li>Excludes ML/GUI packages that fail on Linux (pyautogui, opencv-python, torch, etc.)</li>
+<li>Includes: fastapi, uvicorn, pydantic, sqlalchemy, redis, cryptography, etc.</li>
+</ul>
+<h3 id="2-dockerfileengineering-service-fixed-missing-copys-d1">2. Dockerfile.engineering-service - Fixed Missing COPYs (D1)</h3>
+<p>Added missing directories:
+- <code>api/</code>, <code>core/</code>, <code>services/</code>, <code>worker/</code>, <code>ml/</code>, <code>agents/</code>
+- <code>migrations/</code>, <code>digital_twin/</code>, <code>scada_model/</code>, <code>adms_control/</code>
+- <code>utils/</code>, <code>schemas/</code>, <code>guards/</code>, <code>copilot/</code>, <code>gis_integration/</code>
+- <code>gis_model/</code>, <code>gis_validation/</code>, <code>skills/</code>, <code>reporting/</code>, <code>prompts/</code>, <code>config/</code></p>
+<h3 id="3-pyprojecttoml-dependency-cleanup-d9-j2-j6">3. pyproject.toml - Dependency Cleanup (D9, J2, J6)</h3>
+<p><strong>Removed from runtime dependencies:</strong>
+- <code>aioredis&gt;=2.0.0</code> (abandoned, fails on Python 3.12+)
+- <code>pyautogui&gt;=0.9.53</code> (requires X11, fails on Linux)
+- <code>opencv-python&gt;=4.5.0</code> (requires libGL, fails on Linux)
+- <code>hypothesis&gt;=6.92.0</code> (moved to dev)
+- <code>pre-commit&gt;=3.6.0</code> (moved to dev)</p>
+<p><strong>Added to win32 optional dependencies:</strong>
+- <code>pyautogui&gt;=0.9.53</code>
+- <code>opencv-python&gt;=4.5.0</code></p>
+<p><strong>Added to dev dependencies:</strong>
+- <code>hypothesis&gt;=6.92.0</code>
+- <code>pre-commit&gt;=3.6.0</code></p>
+<p><strong>Fixed pydantic extra:</strong>
+- Changed <code>pydantic&gt;=2.0.0</code> to <code>pydantic[email]&gt;=2.0.0</code></p>
+<h3 id="4-docker-composeyml-security-reliability-d4-d5-d6">4. docker-compose.yml - Security &amp; Reliability (D4, D5, D6)</h3>
+<p><strong>Replaced hardcoded credentials with required env vars:</strong>
+- <code>POSTGRES_PASSWORD: etap_pass</code> → <code>${POSTGRES_PASSWORD:?required}</code>
+- <code>GF_SECURITY_ADMIN_PASSWORD=admin123</code> → <code>${GRAFANA_PASSWORD:?required}</code>
+- Added <code>ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?required}</code>
+- Added <code>JWT_SECRET_KEY=${JWT_SECRET_KEY:?required}</code></p>
+<p><strong>Fixed DATABASE_URL:</strong>
+- Changed from <code>/data/mastra.db</code> (invalid) to <code>sqlite+aiosqlite:////tmp/data/etap_platform.db</code></p>
+<p><strong>Added healthchecks:</strong>
+- Redis: <code>redis-cli ping</code> every 10s
+- Postgres: <code>pg_isready</code> every 10s</p>
+<p><strong>Updated depends_on:</strong>
+- Use <code>condition: service_healthy</code> for proper startup ordering</p>
+<h3 id="5-requirementstxt-cleaned-up-j3-j8">5. requirements.txt - Cleaned Up (J3, J8)</h3>
+<p><strong>Removed problematic packages:</strong>
+- <code>pyautogui</code> (requires X11)
+- <code>opencv-python</code> (requires libGL)
+- <code>flask</code> (conflicts with FastAPI)
+- <code>pymongo</code> (unused)
+- <code>geopandas</code> (requires GDAL)
+- <code>shapely</code> (requires GEOS)</p>
+<p><strong>Added missing dependencies:</strong>
+- <code>python-multipart&gt;=0.0.6</code>
+- <code>email-validator&gt;=2.0.0</code> (explicit)</p>
+<h3 id="6-requirements-prodtxt-updated">6. requirements-prod.txt - Updated</h3>
+<p>Added missing dependencies:
+- <code>httpx&gt;=0.25.0</code>
+- <code>python-multipart&gt;=0.0.6</code>
+- <code>email-validator&gt;=2.0.0</code>
+- <code>alembic&gt;=1.13.0</code></p>
+<h3 id="7-corebootstrappy-bug-fixes-c5-c6">7. core/bootstrap.py - Bug Fixes (C5, C6)</h3>
+<p><strong>Fixed logging format (C6):</strong>
+- Removed <code>%(trace_id)s</code> from format string (caused KeyError)
+- Now uses <code>%(message)s</code> with trace_id added via filter</p>
+<p><strong>Fixed cache.ping() not awaited (C5):</strong>
+- Made <code>_initialize_cache_with_retry</code> async
+- Properly <code>await cache.ping()</code> instead of calling sync
+- Added <code>asyncio.sleep()</code> for retry delays</p>
+<h3 id="8-apiinitpy-import-optimization-c8">8. api/<strong>init</strong>.py - Import Optimization (C8)</h3>
+<ul>
+<li>Removed eager imports of 10 routers</li>
+<li>Each router is now imported explicitly by <code>api/routes.py</code></li>
+<li>Reduces cold-start time and import cycles</li>
+</ul>
+<h3 id="9-sync-workflow-fixed-b1-b2">9. Sync Workflow - Fixed (B1, B2)</h3>
+<p><strong>Updated sync-ahmedetap-space.yml:</strong>
+- Added path filters (only sync when relevant files change)
+- Added Dockerfile.hf validation step
+- Now syncs only required files/directories
+- Added <code>--delete-after</code> behavior (clean target first)</p>
+<h3 id="10-root-dockerfile-fixed-d3">10. Root Dockerfile - Fixed (D3)</h3>
+<ul>
+<li>Removed <code>main.py</code> reference (doesn't exist in repo)</li>
+<li>Added missing directories: <code>guards/</code>, <code>copilot/</code>, <code>prompts/</code>, <code>config/</code></li>
+<li>Updated version label to <code>2.1.0</code></li>
+</ul>
+<h3 id="11-hf-space-updates">11. hf-space Updates</h3>
+<p><strong>Dockerfile:</strong>
+- Updated Python version from 3.11 to 3.13
+- Added non-root user (UID 1000)
+- Added database path environment variable</p>
+<p><strong>requirements.hf.txt:</strong>
+- Added missing dependencies for full functionality
+- Added: sqlalchemy, alembic, bcrypt, PyJWT, cryptography, etc.</p>
+<p><strong>app.py:</strong>
+- Removed redundant <code>UTC = UTC</code> self-assignment
+- Restricted CORS origins (no more <code>allow_origins=["*"]</code>)</p>
+<h3 id="12-dockerignore-enhanced">12. .dockerignore - Enhanced</h3>
+<p>Added exclusions for:
+- Root-level scripts (<code>fix_*.py</code>, <code>test_*.py</code>, etc.)
+- Terraform/Helm/charts
+- Grafana/monitoring configs
+- Source code for other runtimes (<code>src/</code>)
+- Root-level config files</p>
+<h3 id="13-version-file-created">13. VERSION File - Created</h3>
+<p>Single source of truth for version number: <code>2.1.0</code></p>
+<hr />
+<h2 id="remaining-high-priority-items">Remaining High Priority Items</h2>
+<h3 id="not-yet-fixed-require-manual-intervention">Not Yet Fixed (require manual intervention):</h3>
+<ol>
+<li><strong>HF Space Secrets</strong> - Must be set in HF Space settings:</li>
+<li><code>JWT_SECRET_KEY</code> (generate with <code>python -c "import secrets; print(secrets.token_hex(32))"</code>)</li>
+<li><code>ENGINEERING_SERVICE_API_KEY</code></li>
+<li>
+<p><code>ENVIRONMENT=production</code></p>
+</li>
+<li>
+<p><strong>Token Revocation</strong> - User must revoke leaked tokens:</p>
+</li>
+<li>HF token: <code>hf_GMLi...</code></li>
+<li>GitHub PAT 1: <code>REDACTED_GITHUB_PAT_PREFIX...</code></li>
+<li>
+<p>GitHub PAT 2: <code>ghp_48G4QTksCwW3...</code></p>
+</li>
+<li>
+<p><strong>Duplicate StudyCache</strong> (K3)</p>
+</li>
+<li><code>services/cache_service.py</code> and <code>engine/caching.py</code> both define <code>StudyCache</code></li>
+<li>Need to consolidate into one</li>
+</ol>
+<hr />
+<h2 id="files-modified">Files Modified</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dockerfile.hf</code></td>
+<td>Simplified, non-root user, uvicorn-only</td>
+</tr>
+<tr>
+<td><code>requirements.hf.txt</code></td>
+<td><strong>NEW</strong> - Minimal HF dependencies</td>
+</tr>
+<tr>
+<td><code>Dockerfile.engineering-service</code></td>
+<td>Added missing COPY directives</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>Removed problematic deps, version bump</td>
+</tr>
+<tr>
+<td><code>docker-compose.yml</code></td>
+<td>Security fixes, healthchecks</td>
+</tr>
+<tr>
+<td><code>requirements.txt</code></td>
+<td>Removed problematic packages, added celery</td>
+</tr>
+<tr>
+<td><code>requirements-prod.txt</code></td>
+<td>Added missing dependencies, added celery</td>
+</tr>
+<tr>
+<td><code>core/bootstrap.py</code></td>
+<td>Fixed logging, async cache init</td>
+</tr>
+<tr>
+<td><code>api/__init__.py</code></td>
+<td>Removed eager imports</td>
+</tr>
+<tr>
+<td><code>.github/workflows/sync-ahmedetap-space.yml</code></td>
+<td>Fixed sync logic</td>
+</tr>
+<tr>
+<td><code>Dockerfile</code></td>
+<td>Fixed COPY directives, version</td>
+</tr>
+<tr>
+<td><code>hf-space/Dockerfile</code></td>
+<td>Non-root user, Python 3.13</td>
+</tr>
+<tr>
+<td><code>hf-space/requirements.hf.txt</code></td>
+<td>Added missing dependencies</td>
+</tr>
+<tr>
+<td><code>hf-space/app.py</code></td>
+<td>Fixed CORS, removed redundant code</td>
+</tr>
+<tr>
+<td><code>.dockerignore</code></td>
+<td>Enhanced exclusions</td>
+</tr>
+<tr>
+<td><code>VERSION</code></td>
+<td><strong>NEW</strong> - Single source of truth</td>
+</tr>
+<tr>
+<td><code>ui/package.json</code></td>
+<td>Fixed nonexistent npm versions, version bump</td>
+</tr>
+<tr>
+<td><code>package.json</code></td>
+<td>Fixed nonexistent npm versions, version bump</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<ol>
+<li><strong>Revoke leaked tokens immediately</strong></li>
+<li><strong>Set HF Space secrets</strong> (JWT_SECRET_KEY, ENGINEERING_SERVICE_API_KEY)</li>
+<li><strong>Test Docker build locally</strong>: <code>docker build -f Dockerfile.hf -t etap-hf:test .</code></li>
+<li><strong>Test docker-compose</strong>: <code>docker-compose up --build</code></li>
+<li><strong>Commit and push changes</strong> to trigger HF Space sync</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
