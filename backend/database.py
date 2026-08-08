@@ -138,7 +138,7 @@ class Database:
             raise ImportError(
                 "PostgreSQL mode requires psycopg2. Install it with: "
                 "pip install psycopg2-binary  OR  pip install psycopg2"
-            )
+            ) from None
 
         db_url = getattr(self, '_database_url', _DATABASE_URL)
         neon_url = os.environ.get("NEON_DATABASE_URL", "")
@@ -826,7 +826,7 @@ class Database:
             deleted_conns = cur.rowcount
             if deleted_conns > 0:
                 logger.info(  # NOSONAR
-                    f"Deleted {deleted_conns} orphaned connection(s) for device {device_id}"
+                    f"Deleted {deleted_conns} orphaned connection(s) for device {device_id}"  # noqa: G004
                 )
             cur.execute(
                 f"DELETE FROM devices WHERE id = {self._ph()} AND project_id = {self._ph()}",

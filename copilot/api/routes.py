@@ -28,7 +28,7 @@ _COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR
 import json
 import logging
 import time
-from typing import Annotated, Optional
+from typing import Annotated, List
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -96,13 +96,6 @@ class SyncRequest(BaseModel):
     project_path: str = Field("", description="Path to project file")
     direction: str = Field("full", description="import, export, or full")
     systems: list[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
-
-
-class ValidateRequest(BaseModel):
-    model_json: Optional[str] = Field(None, description="Optional model JSON to validate")
-    checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
-
-    systems: List[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
 
 
 class ValidateRequest(BaseModel):

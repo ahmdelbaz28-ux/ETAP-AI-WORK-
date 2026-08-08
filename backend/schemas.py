@@ -6,7 +6,7 @@ Maps to core/models.py dataclasses for REST API request/response validation.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -28,7 +28,7 @@ def _validate_json_size_and_depth(
     try:
         serialized = _json.dumps(value)
     except (TypeError, ValueError) as e:
-        raise ValueError(f"{field_name}: must be JSON-serializable ({e})")
+        raise ValueError(f"{field_name}: must be JSON-serializable ({e})") from None
 
     if len(serialized) > max_bytes:
         raise ValueError(
@@ -83,7 +83,7 @@ class CamelModel(BaseModel):
 # ENUMERATIONS (mirroring core/models.py)
 # ════════════════════════════════════════════════════════════════════════════
 
-class ElementType(str, Enum):
+class ElementType(StrEnum):
     WALL = "wall"
     DOOR = "door"
     WINDOW = "window"
@@ -94,21 +94,21 @@ class ElementType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ChangeSource(str, Enum):
+class ChangeSource(StrEnum):
     AUTOCAD = "autocad"
     REVIT = "revit"
     MANUAL = "manual"
     SYSTEM = "system"
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     GEOMETRY_MISMATCH = "geometry_mismatch"
     PROPERTY_CONFLICT = "property_conflict"
     DELETION_CONFLICT = "deletion_conflict"
     TIMING_CONFLICT = "timing_conflict"
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVED = "archived"
@@ -490,7 +490,7 @@ class StatisticsResponse(CamelModel):
 T = TypeVar("T")
 
 
-class ApiResponse(CamelModel, Generic[T]):
+class ApiResponse(CamelModel, Generic[T]):  # noqa: UP046
     """Universal response wrapper for all API endpoints."""
 
     success: bool
@@ -498,7 +498,7 @@ class ApiResponse(CamelModel, Generic[T]):
     message: str | None = None
 
 
-class PaginatedData(CamelModel, Generic[T]):
+class PaginatedData(CamelModel, Generic[T]):  # noqa: UP046
     """Wrapper for paginated data inside ApiResponse."""
 
     items: list[T]

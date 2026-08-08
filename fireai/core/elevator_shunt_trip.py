@@ -243,7 +243,7 @@ class ElevatorShuntTripAuditor:
                 spk_rti = float(sprinkler.get("rti", DEFAULT_SPRINKLER_RTI))
             except (ValueError, TypeError) as e:
                 logger.exception(
-                    f"Non-numeric data in sprinkler '{spk_id}': {e}. "
+                    f"Non-numeric data in sprinkler '{spk_id}': {e}. "  # noqa: G004
                     f"Skipping this device — cannot verify thermal response."
                 )
                 continue
@@ -254,7 +254,7 @@ class ElevatorShuntTripAuditor:
             # are not physically plausible for sprinkler temperature ratings.
             if spk_temp < 40.0 or spk_temp > 300.0:
                 logger.warning(
-                    f"Sprinkler '{spk_id}' temp_rating_C={spk_temp}°C is outside "
+                    f"Sprinkler '{spk_id}' temp_rating_C={spk_temp}°C is outside "  # noqa: G004
                     f"plausible range [40, 300] per NFPA 13 Table 6.2.5.1. "
                     f"Using default 68.3°C for heat detector matching."
                 )
@@ -360,7 +360,7 @@ class ElevatorShuntTripAuditor:
                     temp_violation = True
                     rti_violation = True
                     logger.critical(
-                        f"NaN/Inf in HD '{hd_id}' fields: {', '.join(_hd_nan)}. "
+                        f"NaN/Inf in HD '{hd_id}' fields: {', '.join(_hd_nan)}. "  # noqa: G004
                         f"Forcing temp_violation=True and rti_violation=True (fail-safe). "
                         f"Cannot verify thermal response per NFPA 72 §21.4.2."
                     )
@@ -573,7 +573,7 @@ class ElevatorShuntTripAuditor:
                 )
             except Exception as e:
                 logger.warning(
-                    f"V112: audit_hoistway_machine_room: failed to construct DecisionProvenance audit result: {e!r}"
+                    f"V112: audit_hoistway_machine_room: failed to construct DecisionProvenance audit result: {e!r}"  # noqa: G004
                 )
                 pass  # NOSONAR - python:S2772
 

@@ -440,8 +440,10 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
     """
     # SECURITY: Authentication required
     import os
+
     import jwt as _jwt
-    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+
+    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     # Extract token from query param or Authorization header
     token = websocket.query_params.get("token", "")

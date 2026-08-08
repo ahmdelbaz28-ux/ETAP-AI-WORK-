@@ -11,9 +11,9 @@ These tests check:
 Run: python3 tests/selenium/test_api_values.py
 """
 import json
-import urllib.request
-import urllib.error
 import sys
+import urllib.error
+import urllib.request
 from typing import Any
 
 BASE_URL = "http://127.0.0.1:7860"
@@ -84,7 +84,7 @@ def run_test(name: str, test_fn) -> None:
     try:
         result = test_fn()
         if result:
-            print(f"  ✓ PASS")
+            print("  ✓ PASS")
             passed += 1
         else:
             failed += 1
@@ -195,7 +195,7 @@ def test_knowledge():
     if not assert_in("etap", data, "response"): return False
     if not assert_type(data["etap"], dict, "etap type"): return False
     if "manuals" not in data["etap"]:
-        print(f"  ✗ FAIL: etap.manuals missing")
+        print("  ✗ FAIL: etap.manuals missing")
         return False
     return True
 
@@ -245,7 +245,7 @@ def test_chat_expert():
         print(f"  ✗ FAIL: data.response missing. Keys: {list(data['data'].keys())}")
         return False
     if not data["data"]["response"]:
-        print(f"  ✗ FAIL: data.response is empty")
+        print("  ✗ FAIL: data.response is empty")
         return False
     # Verify the response contains engineering content (not just empty/garbage)
     response_text = data["data"]["response"]
@@ -254,7 +254,7 @@ def test_chat_expert():
         return False
     # Verify it mentions relevant engineering terms
     if "cable" not in response_text.lower() and "load" not in response_text.lower():
-        print(f"  ⚠ WARNING: response doesn't mention 'cable' or 'load'")
+        print("  ⚠ WARNING: response doesn't mention 'cable' or 'load'")
     print(f"  Response length: {len(response_text)} chars")
     return True
 
@@ -300,7 +300,7 @@ def test_predict_anomaly():
     # The 4th value (500) should be flagged as anomaly
     if len(data["data"]["anomalies"]) >= 4:
         if not data["data"]["anomalies"][3]:
-            print(f"  ✗ FAIL: anomalies[3] should be True (value 500 is an outlier)")
+            print("  ✗ FAIL: anomalies[3] should be True (value 500 is an outlier)")
             return False
     return True
 

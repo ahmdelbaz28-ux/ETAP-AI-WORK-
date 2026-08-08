@@ -324,8 +324,5 @@ def _nested_get(obj: Any, *keys: str, default: Any = None) -> Any:
     for key in keys:
         if current is None:
             return default
-        if isinstance(current, dict):
-            current = current.get(key)
-        else:
-            current = getattr(current, key, None)
+        current = current.get(key) if isinstance(current, dict) else getattr(current, key, None)
     return current if current is not None else default

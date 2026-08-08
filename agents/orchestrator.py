@@ -1259,7 +1259,7 @@ class ValidationAgent(BaseAgent):
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
-            assertion_layer = EngineeringAssertionLayer()
+            assertion_layer = EngineeringAssertionLayer()  # noqa: F841
             opf_data = result.data.get("opf_results", result.data)
             generators = opf_data.get("generators", {})
             if generators:

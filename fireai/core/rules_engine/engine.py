@@ -208,7 +208,7 @@ class Rule:
             return self.condition(fact)
         except Exception as e:
             logger.exception(
-                f"Rule {self.rule_id} condition error on fact {fact.fact_id}: {e}",
+                "Rule %s condition error on fact %s: %s", self.rule_id, fact.fact_id, e,
             )
             # SAFETY: On condition error, do NOT fire the rule.
             # Conservative = safer.
@@ -309,7 +309,7 @@ class RulesEngine:
             raise ValueError("Rule must have a rule_name")
         if rule.rule_id in self._rules:
             logger.warning(
-                f"Rule {rule.rule_id} already exists — overwriting. "
+                f"Rule {rule.rule_id} already exists — overwriting. "  # noqa: G004
                 "In a safety-critical system, duplicate rule IDs may "
                 "indicate a configuration error."
             )
@@ -324,7 +324,7 @@ class RulesEngine:
                 self._alpha_index[rule.fact_type].append(rule.rule_id)
 
         logger.debug(
-            f"Rule added: {rule.rule_id} ({rule.rule_name}) priority={rule.priority.name} nfpa={rule.nfpa_reference}"
+            f"Rule added: {rule.rule_id} ({rule.rule_name}) priority={rule.priority.name} nfpa={rule.nfpa_reference}"  # noqa: G004
         )
 
     def add_rules(self, rules: Sequence[Rule]) -> None:
@@ -392,7 +392,7 @@ class RulesEngine:
             derived_ids = list(self._supports[fact_id])
             for derived_id in derived_ids:
                 logger.info(
-                    f"TMS: Retracting derived fact {derived_id} because supporting fact {fact_id} was retracted"
+                    f"TMS: Retracting derived fact {derived_id} because supporting fact {fact_id} was retracted"  # noqa: G004
                 )
                 self._retract_fact_internal(derived_id, trigger_tms=True)
 
@@ -482,7 +482,7 @@ class RulesEngine:
 
         if self._iteration >= self.max_iterations:
             logger.warning(
-                f"Rules engine reached max_iterations={self.max_iterations} "
+                f"Rules engine reached max_iterations={self.max_iterations} "  # noqa: G004
                 f"in session {self.session_id}. This may indicate a rule "
                 f"set that derives facts infinitely. Review rule set."
             )
@@ -574,7 +574,7 @@ class RulesEngine:
 
                 except Exception as e:
                     logger.exception(
-                        f"Rule {rule.rule_id} action error: {e}",
+                        "Rule %s action error: %s", rule.rule_id, e,
                     )
                     audit.fired = False
                     audit.reason = f"Action error: {e}"
@@ -661,7 +661,7 @@ class RulesEngine:
                                 join_results.append((rule, [f1, f2]))
                         except Exception as e:
                             logger.exception(
-                                f"Join condition error in rule {rule.rule_id}: {e}",
+                                "Join condition error in rule %s: %s", rule.rule_id, e,
                             )
 
         return join_results

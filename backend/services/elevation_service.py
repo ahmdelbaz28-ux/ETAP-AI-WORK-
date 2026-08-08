@@ -213,7 +213,7 @@ class ElevationService:
         )
 
         logger.info(
-            f"Elevation fetched: lat={latitude:.4f}, lon={longitude:.4f}, "
+            f"Elevation fetched: lat={latitude:.4f}, lon={longitude:.4f}, "  # noqa: G004
             f"elev={elevation_m:.1f}m, P={atmo_pressure:.0f}Pa, "
             f"correction={correction_factor:.4f}"
         )
@@ -226,9 +226,11 @@ class ElevationService:
         Sea level = standard atmospheric pressure = safest for calculations.
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT elevation (sea level) for "
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Calculations proceed with safe defaults."
+            "Using CONSERVATIVE DEFAULT elevation (sea level) for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Calculations proceed with safe defaults.",
+            latitude,
+            longitude,
         )
         return ElevationData(
             elevation_m=DEFAULT_ELEVATION_M,
@@ -262,7 +264,7 @@ class ElevationService:
         """
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             logger.warning(
-                f"Invalid coordinates: lat={latitude}, lon={longitude}. Using defaults."
+                f"Invalid coordinates: lat={latitude}, lon={longitude}. Using defaults."  # noqa: G004
             )
             return self._get_default(latitude, longitude)
 
@@ -278,14 +280,14 @@ class ElevationService:
             return data
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"Open Topo Data fetch failed for lat={latitude:.4f}, "
+                f"Open Topo Data fetch failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )
             return self._get_default(latitude, longitude)
         except Exception as e:
             logger.exception(
-                f"Unexpected error fetching elevation for lat={latitude:.4f}, "
+                f"Unexpected error fetching elevation for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )

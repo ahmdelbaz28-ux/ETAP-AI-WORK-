@@ -48,7 +48,7 @@ import heapq
 import logging
 import math
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -88,7 +88,7 @@ except ImportError:
 # ════════════════════════════════════════════════════════════════════════════
 
 
-class ObstacleType(str, Enum):
+class ObstacleType(StrEnum):
     """Types of routing obstacles in a building."""
 
     WALL = "wall"
@@ -632,7 +632,7 @@ class RoutingEngineV10:
         """
         if n_workers > 1:
             log.warning(
-                f"route_batch: n_workers={n_workers} requested but "
+                f"route_batch: n_workers={n_workers} requested but "  # noqa: G004
                 f"RoutingEngineV10 is not thread-safe. Using sequential."
             )
         return [self.route(s, e) for s, e in segments]

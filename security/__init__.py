@@ -39,7 +39,6 @@ from security.siem import (
     get_siem_forwarder,
 )
 
-
 __all__ = [
     # ABAC
     "ABACMiddleware",

@@ -112,7 +112,7 @@ def build_router() -> APIRouter:
                 status_code=400,
                 detail=f"Unknown protocol {protocol!r}; expected one of "
                 f"{[p.value for p in ProtocolType]}",
-            )
+            ) from None
         adapter = mgr.get_adapter(ptype)
         if adapter is None:
             return {"protocol": ptype.value, "configured": False}
@@ -132,7 +132,7 @@ def build_router() -> APIRouter:
         try:
             ptype = ProtocolType(protocol)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Unknown protocol {protocol!r}")
+            raise HTTPException(status_code=400, detail=f"Unknown protocol {protocol!r}") from None
         adapter = mgr.get_adapter(ptype)
         if adapter is None:
             raise HTTPException(status_code=404, detail=f"{protocol} adapter not configured")
@@ -140,7 +140,7 @@ def build_router() -> APIRouter:
             adapter.start()
             return {"ok": True, "state": adapter.state.value}
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=str(exc))
+            raise HTTPException(status_code=500, detail=str(exc)) from None
 
     @router.post("/{protocol}/stop")
     def stop_protocol(protocol: str) -> Dict[str, Any]:
@@ -150,7 +150,7 @@ def build_router() -> APIRouter:
         try:
             ptype = ProtocolType(protocol)
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"Unknown protocol {protocol!r}")
+            raise HTTPException(status_code=400, detail=f"Unknown protocol {protocol!r}") from None
         adapter = mgr.get_adapter(ptype)
         if adapter is None:
             raise HTTPException(status_code=404, detail=f"{protocol} adapter not configured")

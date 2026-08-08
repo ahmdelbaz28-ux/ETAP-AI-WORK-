@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, List
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
@@ -18,8 +18,8 @@ class GroundTruthMismatch:
 
 def _feature_count(assets: list[Any]) -> int:
 
-    affected_assets: List[str]
-    details: Dict[str, Any]
+    affected_assets: List[str]  # noqa: F842
+    details: Dict[str, Any]  # noqa: F842
 
 
 def _feature_count(assets: List[Any]) -> int:

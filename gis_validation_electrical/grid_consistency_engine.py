@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from gis_integration.models import ADMSAsset
 from gis_validation_electrical.cim_mapper import CIMModel, map_adms_to_cim
@@ -25,15 +25,6 @@ class GridConsistencyReport:
     failures: list[ElectricalFailure]
     electrical_model: Optional[ElectricalModel] = None
     cim_model: Optional[CIMModel] = None
-
-
-def grid_consistency_engine(  # NOSONAR
-    assets: list[ADMSAsset],
-) -> GridConsistencyReport:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-
-    failures: List[ElectricalFailure]
-    electrical_model: ElectricalModel | None = None
-    cim_model: CIMModel | None = None
 
 
 def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:

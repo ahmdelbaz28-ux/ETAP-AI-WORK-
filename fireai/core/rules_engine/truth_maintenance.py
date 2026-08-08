@@ -113,7 +113,7 @@ class TruthMaintenanceSystem:
             self._support_index[support_id].add(derived_fact_id)
 
         logger.debug(
-            f"TMS: Recorded dependency: {derived_fact_id} depends on {supporting_fact_ids} via rule {producing_rule_id}"
+            f"TMS: Recorded dependency: {derived_fact_id} depends on {supporting_fact_ids} via rule {producing_rule_id}"  # noqa: G004
         )
 
     def retract_support(self, retracted_fact_id: str) -> list[str]:
@@ -201,7 +201,7 @@ class TruthMaintenanceSystem:
 
         if retracted_ids:
             logger.info(
-                f"TMS: Retraction cascade from {retracted_fact_id}: {len(retracted_ids)} derived facts invalidated"
+                f"TMS: Retraction cascade from {retracted_fact_id}: {len(retracted_ids)} derived facts invalidated"  # noqa: G004
             )
 
         return retracted_ids
@@ -282,7 +282,7 @@ class TruthMaintenanceSystem:
             if not dep.is_still_valid(existing_fact_ids):
                 stale.append(fact_id)
                 logger.critical(
-                    f"TMS CONSISTENCY ERROR: Derived fact {fact_id} has "
+                    f"TMS CONSISTENCY ERROR: Derived fact {fact_id} has "  # noqa: G004
                     f"invalid supports {dep.supporting_fact_ids}. "
                     f"Missing: {set(dep.supporting_fact_ids) - existing_fact_ids}. "
                     f"This derived fact should have been retracted!"
@@ -290,7 +290,7 @@ class TruthMaintenanceSystem:
 
         if stale:
             logger.critical(
-                f"TMS found {len(stale)} stale derived facts! "
+                f"TMS found {len(stale)} stale derived facts! "  # noqa: G004
                 f"This is a CRITICAL safety error — conclusions may be "
                 f"based on retracted facts. Stale IDs: {stale}"
             )

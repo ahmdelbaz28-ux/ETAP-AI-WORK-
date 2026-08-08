@@ -846,10 +846,7 @@ class RevitService:
                 return False
 
             # Change .rvt extension to .ifc for honest file type
-            if filepath.lower().endswith(".rvt"):
-                ifc_path = filepath[:-4] + ".ifc"
-            else:
-                ifc_path = filepath
+            ifc_path = filepath[:-4] + ".ifc" if filepath.lower().endswith(".rvt") else filepath
 
             # Create a new IFC4 model
             model = ifcopenshell.file(schema="IFC4")
