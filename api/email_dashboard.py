@@ -36,9 +36,13 @@ logger = logging.getLogger("etap.api.email_dashboard")
 router = APIRouter(prefix="/api/v1/email-dashboard", tags=["email", "dashboard"])
 
 # Admin roles allowed to view dashboard
+# Includes 'service' for API-key auth in dev mode (E-06 rev2 compatibility)
 _ADMIN_ROLES = {
     r.strip()
-    for r in os.getenv("EMAIL_DASHBOARD_ADMIN_ROLES", "admin,super_admin").split(",")
+    for r in os.getenv(
+        "EMAIL_DASHBOARD_ADMIN_ROLES",
+        "admin,super_admin,service",
+    ).split(",")
     if r.strip()
 }
 
@@ -48,35 +52,45 @@ _ADMIN_ROLES = {
 # ---------------------------------------------------------------------------
 
 
-def _require_admin(request: Request) -> dict:
+async def _require_admin(request: Request) -> dict:
     """Require admin role. Returns user info dict.
 
     Accepts either:
     1. X-API-Key header (service key) — for automation/CI/Postman tests
     2. JWT Bearer token (Authorization: Bearer <token>) — for human users
     3. Dev mode (EMAIL_DASHBOARD_DEV_OPEN=true) — no auth required
+
+    AUTH CONSOLIDATION 2026-07-26: JWT validation now delegates to the canonical
+    ``dependencies._validate_jwt_access_token`` instead of inline jwt.decode +
+    type check + blacklist check. This eliminates duplicated validation logic
+    and ensures all JWT checks flow through one deep module interface.
     """
     # ─── Method 1: X-API-Key (service key for automation) ────────────────
     from api._test_mode import get_api_key_auth
 
     api_key_auth = get_api_key_auth(request)
     if api_key_auth:
+        # SECURITY: API key auth still needs role check — "service" role is allowed for dashboard
+        if api_key_auth.get("role") not in _ADMIN_ROLES | {"service"}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin or service role required for dashboard access",
+            )
         return api_key_auth
 
     # ─── Method 2: JWT Bearer token ──────────────────────────────────────
     auth_header = request.headers.get("authorization", "")
-    if auth_header.startswith("Bearer "):
+    if auth_header.lower().startswith("bearer "):
         try:
-            import jwt as pyjwt
+            from api.dependencies import _validate_jwt_access_token, _extract_bearer_token
 
-            from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+            # Delegate JWT validation to the canonical helper (deep module interface)
+            # This replaces the inline jwt.decode + type check + blacklist check.
+            # One seam, one implementation — all JWT validation flows through
+            # _validate_jwt_access_token.
+            token = _extract_bearer_token(auth_header)
+            payload = await _validate_jwt_access_token(token)
 
-            token = auth_header[7:]
-            payload = pyjwt.decode(
-                token,
-                JWT_SECRET_KEY,
-                algorithms=[JWT_ALGORITHM],
-            )
             user_id = payload.get("sub") or payload.get("user_id")
             user_role = payload.get("role", "")
 

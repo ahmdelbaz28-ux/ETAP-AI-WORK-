@@ -62,6 +62,44 @@ _mfa_lock = threading.Lock()
 # A valid TOTP code can only be used once within its 30-second window.
 _last_used_totp: dict[str, tuple[str, float]] = {}  # user_id -> (code_hash, timestamp)
 
+# V-68 FIX: Periodic cleanup for in-memory MFA stores to prevent memory leak.
+# Bound the total number of entries and prune expired ones.
+_MAX_MFA_ENTRIES = 10000
+
+
+def _cleanup_mfa_stores() -> None:
+    """V-68: Remove expired entries from MFA in-memory stores."""
+    now = time.time()
+    with _mfa_lock:
+        # Prune expired failed attempts
+        expired_users = []
+        for user_id, attempts in _failed_attempts.items():
+            _failed_attempts[user_id] = [t for t in attempts if now - t < _LOCKOUT_WINDOW]
+            if not _failed_attempts[user_id]:
+                expired_users.append(user_id)
+        for user_id in expired_users:
+            del _failed_attempts[user_id]
+
+        # Prune expired lockouts
+        expired_lockouts = [
+            uid for uid, ts in _lockouts.items() if now - ts >= _LOCKOUT_DURATION
+        ]
+        for uid in expired_lockouts:
+            del _lockouts[uid]
+
+        # Prune old TOTP replay entries (older than 60 seconds)
+        old_totp = [uid for uid, (_, ts) in _last_used_totp.items() if now - ts > 60]
+        for uid in old_totp:
+            del _last_used_totp[uid]
+
+        # Hard cap: if still too many entries, remove oldest
+        if len(_failed_attempts) > _MAX_MFA_ENTRIES:
+            _failed_attempts.clear()
+        if len(_lockouts) > _MAX_MFA_ENTRIES:
+            _lockouts.clear()
+        if len(_last_used_totp) > _MAX_MFA_ENTRIES:
+            _last_used_totp.clear()
+
 
 # ---------------------------------------------------------------------------
 # Schemas (F-04 fix: explicit request bodies, no free-form user_id)

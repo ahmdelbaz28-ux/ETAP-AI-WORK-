@@ -1,0 +1,181 @@
+---
+# ==========================================================================
+# CloudNativePG — Postgres 15 HA cluster for ETAP AI.
+#
+# Prerequisite:
+#   kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.22/releases/cnpg-1.22.2.yaml
+#
+# This manifest creates:
+#   - 3 Postgres instances (1 primary + 2 replicas) across AZs
+#   - Streaming replication with synchronous commit on (1 sync replica)
+#   - Automated failover via the cnpg operator (Raft-based)
+#   - WAL archiving to S3 (configured via the barman-cloud plugin)
+#   - Scheduled backups: full weekly + incremental daily
+#   - Point-in-time recovery (PITR) supported
+#   - Read-write service:  etap-postgres-rw
+#   - Read-only service:   etap-postgres-ro
+#   - Read service:        etap-postgres-r  (any replica)
+#
+# The application chart wires DATABASE_URL to:
+#   postgresql://etap_user@etap-postgres-rw.etap:5432/etap_db
+# ==========================================================================
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: etap-postgres
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    app.kubernetes.io/component: database
+  annotations:
+    "velero.io/backup": "true"
+spec:
+  instances: 3
+
+  # Postgres 15 (matches the upstream docker-compose)
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.6
+
+  # Run an init SQL on first boot: create app user + DB
+  bootstrap:
+    initdb:
+      database: etap_db
+      owner: etap_user
+      # CloudNativePG will CREATE a secret named `etap-postgres-app` containing
+      # the username + a randomly-generated password. Do NOT pre-create this
+      # secret yourself — it will conflict with the operator.
+      secret:
+        name: etap-postgres-app
+      options:
+        - encoding=UTF8
+        - locale=C.UTF-8
+      postInitSQL:
+        - "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+        - "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+        - "CREATE EXTENSION IF NOT EXISTS vector;"
+
+  # Synchronous replication: at least 1 replica must acknowledge each commit
+  # before the primary returns OK to the client. Trades a tiny write-latency
+  # penalty for zero committed-transaction loss on primary failure.
+  synchronous:
+    enabled: true
+    method: any
+    number: 1
+
+  # Spread instances across AZs so a single AZ outage never takes down
+  # both primary and all replicas.
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: topology.kubernetes.io/zone
+    podAntiAffinityType: required
+
+  # Resource requests/limits — Postgres memory should be ~70% of the limit
+  # to leave room for shared_buffers + work_mem + overhead.
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+
+  storage:
+    storageClass: ""
+    size: 50Gi
+
+  walStorage:
+    storageClass: ""
+    size: 10Gi
+
+  # Postgres config tuning for an OLTP-ish mixed workload
+  postgresql:
+    parameters:
+      shared_buffers: "2GB"
+      effective_cache_size: "6GB"
+      work_mem: "32MB"
+      maintenance_work_mem: "512MB"
+      wal_buffers: "16MB"
+      max_connections: "200"
+      random_page_cost: "1.1"          # SSD-friendly
+      effective_io_concurrency: "200"  # SSD-friendly
+      track_io_timing: "on"
+      log_min_duration_statement: "1000"   # log slow queries (>1s)
+      log_lock_waits: "on"
+      log_temp_files: "0"
+      log_checkpoints: "on"
+      autovacuum: "on"
+      autovacuum_max_workers: "5"
+      autovacuum_naptime: "30s"
+      statement_timeout: "300000"          # 5 min — matches worker probe timeout
+      idle_in_transaction_session_timeout: "60000"  # 1 min
+      shared_preload_libraries: "pg_stat_statements,vector"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: "all"
+
+    pg_hba:
+      - "host all all 10.0.0.0/8 scram-sha-256"
+      - "host all all 172.16.0.0/12 scram-sha-256"
+      - "host all all 192.168.0.0/16 scram-sha-256"
+
+  # Probes
+  probes:
+    liveness:
+      customProbe:
+        type: query
+        query: "SELECT 1"
+
+  # Backup + WAL archive to S3-compatible bucket via the barman-cloud plugin.
+  # The secret `etap-postgres-backup` must contain the barman-cloud keys:
+  #   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_ENDPOINT
+  backup:
+    barmanObjectStore:
+      destinationPath: "s3://etap-postgres-backups/"
+      endpointURL: "https://s3.amazonaws.com"
+      s3Credentials:
+        accessKeyId:
+          name: etap-postgres-backup
+          key: AWS_ACCESS_KEY_ID
+        secretAccessKey:
+          name: etap-postgres-backup
+          key: AWS_SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+        maxParallel: 8
+        encryption: ""
+      data:
+        compression: snappy
+        immediateCheckpoint: false
+        jobs: 4
+    retentionPolicy: "30d"
+  scheduledBackups:
+    - name: daily-full-backup
+      schedule: "0 3 * * *"   # 03:00 daily
+      backupOwnerReference: self
+      method: barmanObjectStore
+      cluster:
+        name: etap-postgres
+    - name: weekly-base-backup
+      schedule: "0 4 * * 0"   # 04:00 every Sunday
+      backupOwnerReference: self
+      method: barmanObjectStore
+      cluster:
+        name: etap-postgres
+
+  # Replication slots: prevent WAL from being removed before replica consumes it
+  replicationSlots:
+    highPriority: true
+    updateInterval: 30
+
+  # Smart shutdown: drain connections on primary before failover
+  smartShutdownTimeout: 180
+  startDelay: 300
+  stopDelay: 1800
+  switchoverDelay: 3600
+  failoverDelay: 0
+
+  # Monitoring
+  monitoring:
+    enablePodMonitor: true
+    podMonitorMetricRelabelings:
+      - sourceLabels: [__name__]
+        regex: "cnpg_.*|pg_.*"
+        action: keep

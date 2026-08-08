@@ -38,13 +38,20 @@ References:
     - agents/life_safety.py (DUAL_CONFIRMATION_PATTERNS)
     - agents/cua_executor.py (on_confirmation_request callback)
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 
 import asyncio
 import contextlib
+import hmac
 import json
 import logging
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -53,6 +60,76 @@ from typing import Any, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger("api.cua_confirmation_ws")
+
+
+# ─── Authentication helper ─────────────────────────────────────────────────
+#
+# CONDITION E (Phase-2 P0 backend bug fix — see worklog Task ID 5):
+# The /ws/cua/confirmation endpoint was registered in TWO places
+# (api/routes.py:457 and hf-space/app.py:1218) with DIVERGENT auth logic:
+#   - routes.py: header-only, hard-fail
+#   - hf-space/app.py: header OR query-param, BUT silently skipped auth
+#     entirely when ENGINEERING_SERVICE_API_KEY was unset (a security
+#     weakness on a life-safety endpoint).
+#
+# This shared helper eliminates the duplication, fixes the silent-skip
+# bug (fail-closed when env var is unset), and ensures both deployment
+# apps (engineering-service FastAPI app and HF Space FastAPI app) apply
+# IDENTICAL auth to /ws/cua/confirmation.
+
+
+# WebSocket close codes (RFC 6455 §7.4.1)
+_WS_CODE_POLICY_VIOLATION = 1008
+_WS_CODE_INTERNAL_ERROR = 1011
+
+
+async def authenticate_cua_confirmation_ws(websocket: WebSocket) -> bool:
+    """Authenticate an inbound /ws/cua/confirmation WebSocket connection.
+
+    Returns ``True`` if the caller is authenticated and the connection
+    should proceed; returns ``False`` (after closing the socket) if not.
+
+    Security properties
+    -------------------
+    * Reads the expected key from the ``ENGINEERING_SERVICE_API_KEY``
+      environment variable.
+    * Accepts the key via either the ``x-api-key`` header OR the
+      ``?token=`` query parameter. The query-param fallback exists
+      because browser WebSocket clients cannot set arbitrary headers
+      on the upgrade request — mobile / web clients rely on the
+      query-param form.
+    * Uses :func:`hmac.compare_digest` for constant-time comparison
+      to prevent timing-side-channel attacks.
+    * **Fail-closed**: if ``ENGINEERING_SERVICE_API_KEY`` is NOT set,
+      the connection is closed with code 1011 (Internal Error).
+      Life-safety endpoints must NEVER silently allow unauthenticated
+      access. (This fixes the silent-skip bug that previously existed
+      in hf-space/app.py.)
+    * Closes with code 1008 (Policy Violation) on missing/incorrect
+      key.
+    """
+    expected_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if not expected_key:
+        # Fail-closed: life-safety endpoint must never be open.
+        logger.error(
+            "cua_confirmation_ws rejected: ENGINEERING_SERVICE_API_KEY not set "
+            "(life-safety endpoint cannot operate without auth)"
+        )
+        await websocket.close(
+            code=_WS_CODE_INTERNAL_ERROR,
+            reason="Server misconfiguration: ENGINEERING_SERVICE_API_KEY not set",
+        )
+        return False
+
+    provided_key = websocket.headers.get("x-api-key") or websocket.query_params.get("token", "")
+    if not provided_key or not hmac.compare_digest(provided_key, expected_key):
+        await websocket.close(
+            code=_WS_CODE_POLICY_VIOLATION,
+            reason="Invalid or missing API key",
+        )
+        return False
+
+    return True
 
 
 # ─── Data classes ──────────────────────────────────────────────────────────
@@ -337,11 +414,23 @@ confirmation_broker = ConfirmationBroker()
 async def cua_confirmation_ws(websocket: WebSocket) -> None:
     """WebSocket endpoint handler for /ws/cua/confirmation.
 
+    SECURITY (CR-NEW-02): Previously this endpoint had NO authentication
+    and accepted client-supplied session_id values. A single attacker
+    could send two messages with different session_ids to bypass the
+    "two-person confirmation" rule for critical breaker/relay operations
+    — a life-safety bypass.
+
+    Now:
+    1. Requires a valid JWT in the 'token' query param or Authorization header
+    2. session_id is derived from the JWT user_id, NOT from the client
+    3. Each confirmation is tied to a real authenticated user
+    4. Origin validation prevents cross-site WebSocket hijacking
+
     Message protocol (JSON):
 
       Client → Server:
-        {"action": "confirm", "request_id": "...", "session_id": "..."}
-        {"action": "reject", "request_id": "...", "session_id": "...", "reason": "..."}
+        {"action": "confirm", "request_id": "..."}
+        {"action": "reject", "request_id": "...", "reason": "..."}
 
       Server → Client:
         {"type": "confirmation_request", "data": {...}}
@@ -349,6 +438,50 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         {"type": "pending_request", "data": {...}}  (on connect)
         {"type": "error", "message": "..."}
     """
+    # SECURITY: Authentication required
+    import os
+    import jwt as _jwt
+    from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
+
+    # Extract token from query param or Authorization header
+    token = websocket.query_params.get("token", "")
+    if not token:
+        auth_header = websocket.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+
+    if not token:
+        await websocket.close(code=1008, reason="Authentication required")
+        return
+
+    # Validate JWT
+    try:
+        payload = _jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub", "type"]},
+        )
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=1008, reason="Invalid token payload")
+            return
+    except _jwt.PyJWTError:
+        await websocket.close(code=1008, reason="Invalid or expired token")
+        return
+
+    # Origin validation (prevent CSWSH)
+    origin = websocket.headers.get("origin", "")
+    allowed_origins_env = os.getenv("ENGINEERING_SERVICE_CORS_ORIGINS", "")
+    if allowed_origins_env:
+        allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+        if origin and origin not in allowed:
+            await websocket.close(code=1008, reason="Origin not allowed")
+            return
+
     await confirmation_broker.connect(websocket)
     try:
         while True:
@@ -361,7 +494,9 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 
             action = data.get("action")
             request_id = data.get("request_id", "")
-            session_id = data.get("session_id", str(id(websocket)))
+            # SECURITY: session_id is derived from the JWT user_id, NOT client-supplied
+            # This prevents a single attacker from impersonating two confirmers
+            session_id = f"user:{user_id}"
 
             if action == "confirm":
                 result = await confirmation_broker.confirm(request_id, session_id)
@@ -383,6 +518,7 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 __all__ = [
     "ConfirmationBroker",
     "ConfirmationRequest",
+    "authenticate_cua_confirmation_ws",
     "confirmation_broker",
     "cua_confirmation_ws",
 ]

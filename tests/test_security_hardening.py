@@ -214,6 +214,11 @@ class TestABAC:
             ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False
         )  # NOSONAR hardcoded IP (AWS metadata 169.254.169.4 / localhost); not user-facing
 
+        assert ip_in_ranges("10.0.1.5", ["10.0.0.0/8"]) is True
+        assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8"]) is False
+        assert ip_in_ranges("192.168.1.1", ["10.0.0.0/8", "192.168.0.0/16"]) is True
+        assert ip_in_ranges("invalid_ip", ["10.0.0.0/8"]) is False
+
 
 # ===========================================================================
 # TOTP Tests
@@ -481,6 +486,15 @@ class TestSIEM:
         )
         # This will attempt to forward but fail (no Loki running),
         # which is fine — we're testing the event structure
+
+        # This will attempt to forward but fail (no Loki running),
+        # which is fine — we're testing the event structure
+        result = await forwarder.forward_auth_event(
+            user="admin",
+            action="login",
+            success=True,
+            ip="10.0.1.5",
+        )
         # Result may be True or False depending on whether flush fails,
         # but the event should be buffered
         stats = forwarder.get_stats()

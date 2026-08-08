@@ -7,6 +7,14 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots', 'ui');
 // SonarCloud javascript:S7780: use String.raw to avoid escaping backslashes
 const EDGE = String.raw`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`;
 
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const BASE_URL = 'http://localhost:5173';
+const OUTPUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots', 'ui');
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+
 const pages = [
   { name: 'dashboard-dark', path: '/dashboard' },
   { name: 'studies', path: '/studies' },

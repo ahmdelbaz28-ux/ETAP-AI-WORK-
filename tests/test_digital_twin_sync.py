@@ -332,6 +332,10 @@ def test_gis_visualization_fallback_geojson() -> None:
         assert result["visualization_type"] == "load_flow"
         assert "folium not installed" in result["note"]
 
+    assert isinstance(result, dict)
+    assert result["visualization_type"] == "load_flow"
+    assert "folium not installed" in result["note"]
+
 
 def test_gis_bridge_module_importable() -> None:
     """Verify GISSyncBridge can be imported."""

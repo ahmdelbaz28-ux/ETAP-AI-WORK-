@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState, type ComponentType } from "react";
+import { type ComponentType, Suspense, lazy, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
@@ -43,6 +43,10 @@ const StudyRunPage = lazyLoad(() => import("./pages/StudyRun"));
 const AssetManagementPage = lazyLoad(() => import("./pages/AssetManagement"));
 const AIAssistantPage = lazyLoad(() => import("./pages/AIAssistant"));
 const ProjectsPage = lazyLoad(() => import("./pages/Projects"));
+const VisionKeysPage = lazyLoad(() => import("./pages/VisionKeys"));
+const GuardReviewPage = lazyLoad(() => import("./pages/GuardReview"));
+const AgentMetricsPage = lazyLoad(() => import("./pages/AgentMetrics"));
+const AuditLogsPage = lazyLoad(() => import("./pages/AuditLogs"));
 const EtapIntegrationPage = lazyLoad(() => import("./pages/EtapIntegration"));
 const GisIntegrationPage = lazyLoad(() => import("./pages/GisIntegration"));
 const ScadaIntegrationPage = lazyLoad(() => import("./pages/ScadaIntegration"));
@@ -59,6 +63,17 @@ const CodeGuardPage = lazyLoad(() => import("./pages/CodeGuard"));
 const ContextEnginePage = lazyLoad(() => import("./pages/ContextEngine"));
 const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
+const RbacAdminPage = lazyLoad(() => import("./pages/RbacAdmin"));
+const EquipmentManagementPage = lazyLoad(() => import("./pages/EquipmentManagement"));
+const EmailDashboardPage = lazyLoad(() => import("./pages/EmailDashboard"));
+const EmailWebhooksPage = lazyLoad(() => import("./pages/EmailWebhooks"));
+const EmailDigestPage = lazyLoad(() => import("./pages/EmailDigest"));
+const StudyVersionsPage = lazyLoad(() => import("./pages/StudyVersions"));
+const EmailOtpPage = lazyLoad(() => import("./pages/EmailOtp"));
+const AIPlaygroundPage = lazyLoad(() => import("./pages/AIPlayground"));
+const MagicLinksPage = lazyLoad(() => import("./pages/MagicLinks"));
+const MfaPage = lazyLoad(() => import("./pages/Mfa"));
+const AgentsControlPanelPage = lazyLoad(() => import("./pages/AgentsControlPanel"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
 
@@ -178,6 +193,10 @@ export default function App() {
                 <Route path="/asset-management" element={<AssetManagementPage />} />
                 <Route path="/assistant" element={<AIAssistantPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/vision-keys" element={<VisionKeysPage />} />
+                <Route path="/guard-review" element={<GuardReviewPage />} />
+                <Route path="/agent-metrics" element={<AgentMetricsPage />} />
+                <Route path="/audit-logs" element={<AuditLogsPage />} />
                 <Route path="/etap" element={<EtapIntegrationPage />} />
                 <Route path="/gis" element={<GisIntegrationPage />} />
                 <Route path="/scada" element={<ScadaIntegrationPage />} />
@@ -194,6 +213,19 @@ export default function App() {
                 <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
+                <Route path="/admin/rbac" element={<RbacAdminPage />} />
+                <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
+                <Route path="/admin/email-digest" element={<EmailDigestPage />} />
+                <Route path="/admin/study-versions" element={<StudyVersionsPage />} />
+                <Route path="/admin/email-otp" element={<EmailOtpPage />} />
+                <Route path="/admin/magic-links" element={<MagicLinksPage />} />
+                <Route path="/admin/mfa" element={<MfaPage />} />
+                <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
+                <Route path="/admin/ai-playground" element={<AIPlaygroundPage />} />
+                <Route path="/equipment" element={<EquipmentManagementPage />} />
+                <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
+                <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
+                <Route path="/admin/email-digest" element={<EmailDigestPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>

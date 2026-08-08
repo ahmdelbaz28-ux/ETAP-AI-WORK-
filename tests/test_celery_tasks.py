@@ -269,7 +269,7 @@ class TestTaskStatusTracking:
         # is re-raised.  We catch it and inspect the stored result.
         with pytest.raises(
             RuntimeError, match="Engine crashed"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -323,7 +323,7 @@ class TestTaskStatusTracking:
 
         with pytest.raises(
             RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(
                     _sample_study_data(),
@@ -482,7 +482,7 @@ class TestTaskFailureHandling:
 
         with pytest.raises(
             RuntimeError, match="Solver diverged"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -497,7 +497,7 @@ class TestTaskFailureHandling:
 
         with pytest.raises(
             ValueError, match="Invalid study_type"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -513,7 +513,7 @@ class TestTaskFailureHandling:
 
         with pytest.raises(
             RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -542,7 +542,7 @@ class TestTaskFailureHandling:
 
         with pytest.raises(
             RuntimeError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -603,7 +603,7 @@ class TestTaskFailureHandling:
 
         with pytest.raises(
             KeyError, match="missing_key"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -722,7 +722,7 @@ class TestTaskRetry:
         # verify the retry decorator *can* be applied.
         with pytest.raises(
             ConnectionError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -774,7 +774,7 @@ class TestTaskRetry:
         # Since the task doesn't have autoretry_for, it raises on first failure
         with pytest.raises(
             ConnectionError
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )
@@ -973,7 +973,7 @@ class TestTaskIntegration:
         # 1. Submit — exception propagates in eager mode
         with pytest.raises(
             ValueError, match="Invalid parameter"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
                 args=(_sample_study_data(),),
             )

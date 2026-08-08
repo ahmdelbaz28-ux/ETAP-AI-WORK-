@@ -73,6 +73,28 @@ ENV PORT=7860
 # HOST is intentionally NOT set as ENV. In Docker/HF Spaces, the app
 # reads HOST from os.environ at runtime (defaults to 0.0.0.0 inside
 # containers, 127.0.0.1 for local dev). See app.py S8392 fix.
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user (UID 1000 as required by HF Spaces)
+RUN useradd -m -u 1000 user && \
+    mkdir -p /app /tmp/cache /tmp/logs /tmp/data && \
+    chown -R user:user /app /tmp
+
+# Python dependencies
+COPY requirements.hf.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.hf.txt
+
+# Application code
+COPY --chown=user:user . .
+
+# Environment
+ENV PORT=7860
+ENV HOST=0.0.0.0
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
@@ -103,6 +125,21 @@ ENV ENVIRONMENT=${ENVIRONMENT:-production}
 # Redis URL — empty default means in-memory fallback (dev mode).
 # For production, inject via HF Space Secrets. SonarCloud S6472:
 # REDIS_URL is NOT a secret when empty — it's an optional service endpoint.
+
+
+# Database path (use /tmp for writable location)
+ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+
+# JWT secret (set as HF Space secret in production)
+ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+
+# API key (set as HF Space secret in production)
+ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-}
+
+# Environment mode
+ENV ENVIRONMENT=${ENVIRONMENT:-production}
+
+# Redis URL (empty = use in-memory fallback)
 ENV REDIS_URL=
 
 # Health check

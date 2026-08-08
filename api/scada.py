@@ -15,6 +15,13 @@ router = APIRouter(
     prefix="/api/v1/scada", tags=["scada"], dependencies=[Depends(get_api_key)]
 )  # SECURITY AUDIT R7-1
 
+# ─── Coverage note (audit 2026-08-01) ───────────────────────────────────────
+# Status: PLACEHOLDER — single GET /live endpoint returning a snapshot of the
+# SCADA model (measurements + switch devices). Write/subscribe operations
+# (POST /commands, WS /ws/scada) are handled by the websocket handler in
+# api/websocket.py and the upstream scada_model package. Registering here so
+# the UI can render a live-data card without opening a websocket.
+
 
 @router.get("/live")
 async def get_scada_live_data(request: Request):

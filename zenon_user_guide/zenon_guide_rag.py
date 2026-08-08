@@ -65,6 +65,10 @@ class ZenonGuideRAG:
         self.chunks: list[str] = []
         self.chunk_metadata: list[dict] = []
 
+        self.documents: List[Dict] = []
+        self.chunks: List[str] = []
+        self.chunk_metadata: List[Dict] = []
+
         self._load_guide()
 
     def _load_guide(self):

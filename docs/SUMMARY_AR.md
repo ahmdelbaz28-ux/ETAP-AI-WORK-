@@ -709,6 +709,15 @@ generated_files = await report_agent.generate_complete_report(
     },
     formats=["pdf", "docx", "xlsx"],
     output_path="./reports",
+
+        'load_flow': lf_results,
+        'short_circuit': sc_results,
+        'harmonic': harm_results,
+        'opf': opf_results,
+        'recommendations': recommendations
+    },
+    formats=['pdf', 'docx', 'xlsx'],
+    output_path='./reports'
 )
 
 print(f"Reports generated: {list(generated_files.keys())}")

@@ -204,8 +204,11 @@ describe("StudyRun re-submit behaviour", () => {
 
     // After failure, the stale result should be cleared
     // and the empty "Ready to Run" state should be shown
-    await waitFor(() => {
-      expect(screen.getByText("Ready to Run")).toBeTruthy();
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Ready to Run")).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
   }, 15000);
 });

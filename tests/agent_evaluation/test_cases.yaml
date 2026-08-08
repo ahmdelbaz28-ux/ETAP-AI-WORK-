@@ -1,0 +1,58 @@
+# A/B test cases for agent evaluation
+# Each test case runs the same task with and without the agent's prompt,
+# then compares outputs against quantitative assertions.
+#
+# In CI, these tests are SKIPPED (no LLM API keys).
+# Run locally with: OPENAI_API_KEY=... python tests/agent_evaluation/run_ab_test.py
+
+test_cases:
+  - agent: load_flow_agent
+    description: "Basic 3-bus load flow — verify bus voltages returned"
+    task_input:
+      study_type: load_flow
+      parameters:
+        system:
+          buses:
+            - id: 1, type: slack, voltage: 1.0
+            - id: 2, type: pq
+            - id: 3, type: pq
+          lines:
+            - from: 1, to: 2, impedance: [0.01, 0.05]
+            - from: 2, to: 3, impedance: [0.02, 0.08]
+    assertions:
+      - field: "data.bus_voltages"
+        op: "exists"
+      - field: "data.convergence_status"
+        op: "exists"
+      - field: "data.convergence_status"
+        op: "eq"
+        value: true
+
+  - agent: short_circuit_agent
+    description: "3-phase fault at bus 2 — verify fault current returned"
+    task_input:
+      study_type: short_circuit
+      parameters:
+        fault_type: three_phase
+        fault_bus_id: 2
+    assertions:
+      - field: "data.fault_current"
+        op: "exists"
+      - field: "data.fault_current"
+        op: "gt"
+        value: 0
+
+  - agent: arc_flash_agent
+    description: "Arc flash analysis — verify incident energy returned"
+    task_input:
+      study_type: arc_flash
+      parameters:
+        voltage: 480
+        fault_current: 25000
+        clearing_time: 0.1
+    assertions:
+      - field: "data.incident_energy"
+        op: "exists"
+      - field: "data.incident_energy"
+        op: "gt"
+        value: 0

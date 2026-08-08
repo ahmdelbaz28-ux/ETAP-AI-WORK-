@@ -156,6 +156,7 @@ describe("AIAssistant", () => {
   it("shows an error notification when chat fails", async () => {
     const user = userEvent.setup();
     // Both streaming and non-streaming fallback fail.
+    // biome-ignore lint/correctness/useYield: intentional throw-only generator to simulate a failing async iterator
     mockChatWithLLMStream.mockImplementation(async function* () {
       throw new Error("Network error");
     });
@@ -169,9 +170,12 @@ describe("AIAssistant", () => {
 
     // The user's "Hello" message should be visible even when the assistant
     // fails to respond.
-    await waitFor(() => {
-      expect(screen.getByText("Hello")).toBeTruthy();
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Hello")).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
   }, 15000);
 
   it("clears the conversation when Reset Chat is clicked", async () => {

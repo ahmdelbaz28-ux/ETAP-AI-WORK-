@@ -29,10 +29,10 @@ import uuid
 from datetime import UTC, datetime
 
 UTC = UTC
-from typing import Any, Optional
+from typing import Any
 
 try:
-    from typing import Annotated, Optional
+    from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 
@@ -96,7 +96,7 @@ class Asset(Base):
     __tablename__ = "assets"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
@@ -104,15 +104,15 @@ class Asset(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)  # AssetType
-    rating: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
-    voltage: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
+    rating: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "10 MVA"
+    voltage: Mapped[str | None] = mapped_column(String(100), nullable=True)  # e.g., "13.8 kV"
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=AssetStatus.ACTIVE.value
     )
-    project_id: Mapped[Optional[str]] = mapped_column(
+    project_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("projects.id"), nullable=True
     )
-    created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
@@ -121,7 +121,7 @@ class Asset(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
 
 # ---------------------------------------------------------------------------
@@ -134,25 +134,25 @@ class AssetCreateRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255, description="Asset name")
     type: AssetType = Field(..., description="Asset type")
-    rating: Optional[str] = Field(None, max_length=100, description="Asset rating, e.g., '10 MVA'")
-    voltage: Optional[str] = Field(
+    rating: str | None = Field(None, max_length=100, description="Asset rating, e.g., '10 MVA'")
+    voltage: str | None = Field(
         None, max_length=100, description="Operating voltage, e.g., '13.8 kV'"
     )
     status: AssetStatus = Field(AssetStatus.ACTIVE, description="Initial status")
-    project_id: Optional[str] = Field(None, description="Optional project ID to link this asset to")
-    notes: Optional[str] = Field(None, max_length=1000, description="Free-form notes")
+    project_id: str | None = Field(None, description="Optional project ID to link this asset to")
+    notes: str | None = Field(None, max_length=1000, description="Free-form notes")
 
 
 class AssetUpdateRequest(BaseModel):
     """Request body for updating an asset."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    type: Optional[AssetType] = None
-    rating: Optional[str] = Field(None, max_length=100)
-    voltage: Optional[str] = Field(None, max_length=100)
-    status: Optional[AssetStatus] = None
-    project_id: Optional[str] = Field(None)
-    notes: Optional[str] = Field(None, max_length=1000)
+    name: str | None = Field(None, min_length=1, max_length=255)
+    type: AssetType | None = None
+    rating: str | None = Field(None, max_length=100)
+    voltage: str | None = Field(None, max_length=100)
+    status: AssetStatus | None = None
+    project_id: str | None = Field(None)
+    notes: str | None = Field(None, max_length=1000)
 
 
 class AssetResponse(BaseModel):
@@ -163,14 +163,14 @@ class AssetResponse(BaseModel):
     id: str
     name: str
     type: str
-    rating: Optional[str] = None
-    voltage: Optional[str] = None
+    rating: str | None = None
+    voltage: str | None = None
     status: str
-    project_id: Optional[str] = None
-    created_by: Optional[str] = None
+    project_id: str | None = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class AssetListResponse(BaseModel):
@@ -197,12 +197,12 @@ async def list_assets(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
-    project_id: Annotated[Optional[str], Query(description="Filter by project ID")] = None,
+    project_id: Annotated[str | None, Query(description="Filter by project ID")] = None,
     type_filter: Annotated[
-        Optional[AssetType], Query(alias="type", description="Filter by asset type")
+        AssetType | None, Query(alias="type", description="Filter by asset type")
     ] = None,
     status_filter: Annotated[
-        Optional[AssetStatus], Query(alias="status", description="Filter by status")
+        AssetStatus | None, Query(alias="status", description="Filter by status")
     ] = None,
 ) -> Any:
     """Return a paginated, filterable list of electrical assets.

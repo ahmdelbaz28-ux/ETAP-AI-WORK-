@@ -61,6 +61,14 @@ def multimachine_data():
         G + 1j * B
     )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
+    G = np.random.uniform(2.0, 8.0, (n_gen, n_gen))
+    G = (G + G.T) / 2.0
+    B = np.random.uniform(-12.0, -3.0, (n_gen, n_gen))
+    B = (B + B.T) / 2.0
+    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
+    np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
+    Ybus_red = G + 1j * B
+
     return {
         "H": np.array([3.0, 4.0, 5.0]),
         "D": np.array([2.0, 2.0, 2.0]),

@@ -543,6 +543,17 @@ headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/js
 # Run load flow
 response = requests.post(
     f"{base_url}/analysis/load-flow", json={"system_data": {...}}, headers=headers
+
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
+
+# Run load flow
+response = requests.post(
+    f"{base_url}/analysis/load-flow",
+    json={"system_data": {...}},
+    headers=headers
 )
 
 result = response.json()

@@ -32,6 +32,15 @@
            class="hand robot">
     </div>
   </div>
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/gsap.min.js" integrity="sha384-XmJ9SoHtVOHoQUcKvFAzVXwdkKo1Ie3bhmSoIAkcdsHGaIrVJIkmozyq0FJeb/Ly" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/ScrollTrigger.min.js" integrity="sha384-wl5TeDVvOWt30Pbf8aSo2ZrzsOjddu3avOBvHe+p+OhJt9gP6w9YXmDkN5DK2/dF" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/TextPlugin.min.js" integrity="sha384-e3M6nPUMXXGtZ6/fy/YTRPfi3W++ew3WMt8dGKl393xd0Ep1UXotcpdtc40cZoST" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/MotionPathPlugin.min.js" integrity="sha384-YAP0gHFFPxr8wOSUhn4e+TuP5bfNLSK+i4tU3G9qh+IDMZRxsjxzPkb+sg037k23" crossorigin="anonymous"></script>
+  <script>
+    // Register GSAP plugins
+    gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -123,6 +123,20 @@ def validate_geojson_structure(  # NOSONAR
             if len(coords) != 2:
                 raise ValueError(f"Feature {_i}: expected 2 coords [lon, lat], got {len(coords)}")
 
+        # Basic validation
+        assert data["type"] == "FeatureCollection"
+        assert "features" in data
+        assert len(data["features"]) > 0
+
+        # Validate each feature
+        for _i, feature in enumerate(data["features"]):
+            assert "type" in feature
+            assert feature["type"] == "Feature"
+            assert "geometry" in feature
+            assert "properties" in feature
+            assert "coordinates" in feature["geometry"]
+            assert len(feature["geometry"]["coordinates"]) == 2  # [lon, lat]
+
         print(f"GeoJSON validation passed for {len(data['features'])} features")
         return True
 

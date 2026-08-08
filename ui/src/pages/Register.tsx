@@ -55,8 +55,9 @@ export default function Register() {
         notify("error", t("auth.errorPasswordLength"));
         return;
       }
-      setLoading(true);
+      // Issue #9: Clear previous error BEFORE setting loading state.
       setAuthError(null);
+      setLoading(true);
       try {
         await register(email, password, name);
         notify(
@@ -67,6 +68,8 @@ export default function Register() {
         );
         navigate("/dashboard");
       } catch (err) {
+        // Issue #8: Ignore AbortError — request was cancelled.
+        if (err instanceof DOMException && err.name === "AbortError") return;
         const message = err instanceof Error ? err.message : "Unknown error";
         setAuthError(message);
         // Only use the inline error banner — NOT a toast. Dual error UI
@@ -148,7 +151,8 @@ function RegisterView({
             i18n.changeLanguage(nextLang);
           }}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold"
-         type="button">
+          type="button"
+        >
           <Globe className="w-3.5 h-3.5" />
           <span>{isRtl ? "English" : "العربية"}</span>
         </button>

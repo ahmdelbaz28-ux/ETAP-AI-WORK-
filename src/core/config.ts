@@ -26,6 +26,12 @@ export const CONFIG = {
   // Failover bounds
   MAX_PROVIDERS_PER_REQUEST: 2,
 
+  MAX_RETRIES: 1, // Per-provider retry budget
+  PROVIDER_TIMEOUT_MS: 8_000, // 8 s hard timeout via AbortController
+
+  // Failover bounds
+  MAX_PROVIDERS_PER_REQUEST: 2, // Never cascade beyond 2 providers per request
+
   // Circuit breaker
   CIRCUIT_BREAKER_FAILURE_THRESHOLD: 3,
   CIRCUIT_BREAKER_COOLDOWN_MS: 60_000,
@@ -128,4 +134,44 @@ export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
   cloudflare: '@cf/moonshotai/kimi-k2.6',
 });
 
+
+} as const;
+
+/**
+ * Built-in provider allowlist.
+ * Hardening decision: only providers with verified working credentials
+ * are included. Qwen and GLM are intentionally excluded because
+ * their API keys are expired/invalid and they cause cascade failures.
+ * Kilo and OpenCode are also excluded — see "No single-provider
+ * dependency" followup below. To re-enable, add a new entry here and
+ * set the corresponding wrangler secret.
+ */
+export const BUILTIN_PROVIDERS = ['nvidia', 'openai'] as const;
+export type BuiltinProviderName = (typeof BUILTIN_PROVIDERS)[number];
+
+/**
+ * Default base URLs for built-in providers.
+ * Only used when the corresponding env secret is not set.
+ */
+export const BUILTIN_BASE_URLS: Readonly<Record<string, string>> = Object.freeze({
+  nvidia: 'https://integrate.api.nvidia.com/v1',
+  openai: 'https://api.openai.com/v1',
+});
+
+/**
+ * Default model identifiers per provider.
+ * Only used when the corresponding env secret is not set.
+ */
+export const BUILTIN_MODELS: Readonly<Record<string, string>> = Object.freeze({
+  nvidia: 'meta/llama-3.1-8b-instruct',
+  openai: 'gpt-4o-mini',
+});
+
+/**
+ * API key scopes.
+ * - full: every route
+ * - chat: only chat + status endpoints
+ * - studies: only studies + status
+ * - read: only listing / health / metrics
+ */
 export type ApiKeyScope = 'full' | 'chat' | 'studies' | 'read';

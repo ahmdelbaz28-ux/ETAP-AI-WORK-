@@ -55,6 +55,16 @@ class TestMeasurement:
         m = Measurement(
             "m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.MISSING
         )
+
+        m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.QUESTIONABLE)
+        assert m.is_valid() is True
+
+    def test_is_valid_invalid(self):
+        m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.INVALID)
+        assert m.is_valid() is False
+
+    def test_is_valid_missing(self):
+        m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.MISSING)
         assert m.is_valid() is False
 
     def test_age_seconds(self):
@@ -310,6 +320,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
+
+        Ybus = np.array([
+            [2 - 20j, -1 + 10j, -1 + 10j],
+            [-1 + 10j, 2 - 20j, -1 + 10j],
+            [-1 + 10j, -1 + 10j, 2 - 20j],
+        ], dtype=complex)
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -328,6 +344,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
+
+        Ybus = np.array([
+            [2 - 20j, -1 + 10j, -1 + 10j],
+            [-1 + 10j, 2 - 20j, -1 + 10j],
+            [-1 + 10j, -1 + 10j, 2 - 20j],
+        ], dtype=complex)
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},
@@ -364,6 +386,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
+
+        Ybus = np.array([
+            [2 - 20j, -1 + 10j, -1 + 10j],
+            [-1 + 10j, 2 - 20j, -1 + 10j],
+            [-1 + 10j, -1 + 10j, 2 - 20j],
+        ], dtype=complex)
         measurements = {
             "voltage_mag": {0: (1000.0, 0.01)},
             "power_injection": {1: (999.0, 999.0, 0.02, 0.02), 2: (888.0, 888.0, 0.02, 0.02)},
@@ -403,6 +431,12 @@ class TestWLSEstimator:
             ],
             dtype=complex,
         )
+
+        Ybus = np.array([
+            [2 - 20j, -1 + 10j, -1 + 10j],
+            [-1 + 10j, 2 - 20j, -1 + 10j],
+            [-1 + 10j, -1 + 10j, 2 - 20j],
+        ], dtype=complex)
         measurements = {
             "voltage_mag": {0: (1.0, 0.01)},
             "power_injection": {1: (0.3, 0.1, 0.02, 0.02), 2: (0.2, 0.05, 0.02, 0.02)},

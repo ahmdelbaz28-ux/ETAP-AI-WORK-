@@ -69,6 +69,18 @@ fi
 echo "${DIVIDER}"
 echo " ETAP AI Platform - Deploy"
 echo "${DIVIDER}"
+
+command -v docker >/dev/null 2>&1 || { echo "Error: docker is not installed"; exit 1; }
+
+if [ ! -f "${ENV_FILE}" ]; then
+  echo "Error: Environment file not found: ${ENV_FILE}"
+  echo "Create it from .env.example: cp .env.example ${ENV_FILE}"
+  exit 1
+fi
+
+echo "=========================================="
+echo " ETAP AI Platform - Deploy"
+echo "=========================================="
 echo "Stack:          ${STACK_NAME}"
 echo "Profiles:       ${PROFILES}"
 echo "Environment:    ${ENV_FILE}"
@@ -182,3 +194,9 @@ echo " Deploy Complete"
 echo "${DIVIDER}"
 echo "Run 'docker compose logs -f' to tail logs."
 echo "${DIVIDER}"
+
+echo "=========================================="
+echo " Deploy Complete"
+echo "=========================================="
+echo "Run 'docker compose logs -f' to tail logs."
+echo "=========================================="

@@ -347,6 +347,10 @@ class TestThreadSafety:
             finally:
                 udm.close()
 
+            for _i in range(start, start + count):
+                el = UniversalElement(element_id=str(uuid.uuid4()))
+                results.append(udm.add_element(el))
+
         threads = [
             threading.Thread(target=add_elements, args=(0, 10)),
             threading.Thread(target=add_elements, args=(10, 10)),

@@ -11,7 +11,7 @@
 # with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
 opentelemetry-api~=1.30.0
 opentelemetry-sdk~=1.30.0
-opentelemetry-exporter-otlp~=1.30.0
+opentelemetry-exporter-otlp~=1.44.0
 opentelemetry-semantic-conventions~=0.51b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
 opentelemetry-exporter-otlp-proto-http~=1.30.0
@@ -158,15 +158,83 @@ uvicorn~=0.25.0
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
 aiofiles>=24.1.0,<25.0.0
 
+# aiofiles — required by api/routes.py for streaming file uploads and async
+# static-asset responses. Was previously pulled in transitively by a different
+# package; declared explicitly to fail loudly if missing.
+aiofiles>=24.1.0,<25.0.0
+
+# Observability - OpenTelemetry
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+
+# Metrics - Prometheus
+prometheus-client>=0.19.0
+
+# Core numerical and scientific computing
+numpy>=1.21.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Visualization
+matplotlib>=3.4.0
+
+# ETAP COM Automation (Windows only) - moved to optional dependencies
+# pywin32>=303; sys_platform == 'win32'
+
+# GUI Automation
+pyautogui>=0.9.53
+opencv-python>=4.5.0
+
+# System monitoring
+psutil>=5.8.0
+
+# HTTP requests
+requests>=2.26.0
+
+# Language detection
+langdetect>=1.0.9
+
+# YAML parsing
+pyyaml>=6.0
+
+# Type checking
+typing-extensions>=4.0.0
+
+# Logging and monitoring
+structlog>=21.0.0
+
+# Security
+cryptography>=36.0.0
+hvac>=2.0.0
+
+# Password hashing (required - bcrypt replaces SHA-256 for security)
+bcrypt>=4.0.0
+
+# JWT token signing (required - no insecure fallback)
+PyJWT>=2.6.0
+
+# Data validation
+pydantic>=2.0.0
+email-validator>=2.0.0
+
+# Database ORM (async SQLite support)
+sqlalchemy[asyncio]>=2.0.0
+aiosqlite>=0.19.0
+
+# ETAP Worker API (FastAPI)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
-# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 to fix CVEs including:
+# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 → 6.15.0 to fix CVEs including:
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
 #   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
 #   CVE-2026-59936 (infinite loop for not terminated inline images)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf~=6.14.0
+pypdf~=6.15.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
@@ -207,7 +275,7 @@ kubernetes~=29.0.0
 # for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
 # Range <16 satisfies the `realtime` package (sub-dep of supabase) which
 # requires websockets>=11,<16.
-websockets~=15.0
+websockets>=15,<18
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
@@ -301,3 +369,80 @@ opencv-python~=4.10.0
 #   https://github.com/UB-Mannheim/tesseract/wiki  (Windows)
 
 defusedxml>=0.7.1
+
+# PDF text extraction
+PyPDF2>=3.0.0
+pdfplumber>=0.7.0
+
+# Text processing and NLP (optional - required for advanced RAG features)
+nltk>=3.6.0
+
+# Document processing
+python-docx>=0.8.11
+openpyxl>=3.0.0
+reportlab>=3.6.0
+
+# Additional utilities
+tqdm>=4.62.0
+beautifulsoup4>=4.10.0
+lxml>=4.6.0
+
+# Phase 2: Security & Infrastructure
+pyotp>=2.9.0
+redis>=5.0.0
+httpx>=0.25.0
+
+# Phase 5: Kubernetes
+kubernetes>=29.0.0
+
+# Phase 3: WebSocket
+websockets>=12.0
+
+# Core requirements for SCADA-GIS integration
+paho-mqtt>=1.6.1
+# pyScada==0.10.12  # Commented out - not on PyPI
+# pyScada-mqtt       # Commented out - not on PyPI
+# pyScada-opcua      # Commented out - not on PyPI
+# pyScada-modbus     # Commented out - not on PyPI
+# pyScada-ems        # Commented out - not on PyPI
+pymongo
+# arcpy  # Commented out - installed with ArcGIS Pro only
+pandas
+numpy
+requests
+flask  # For potential web APIs
+geopandas  # For GIS operations
+shapely  # For geometric operations
+
+# Retry and fault tolerance (used by core/retry.py)
+tenacity>=8.2.0
+
+# API & Database dependencies
+alembic
+
+# LangWatch - commented out as it may not be on PyPI
+# langwatch>=0.1.0
+
+# ML/AI dependencies (commented out for production)
+# prophet>=1.1.0
+# xgboost>=2.0.0
+# shap>=0.43.0
+# optuna>=3.0.0
+# pyod>=1.0.0
+# torch>=2.0.0
+# torch-geometric>=2.3.0
+# mlflow>=2.0.0
+# transformers>=4.30.0
+# sentence-transformers>=2.2.0
+
+# Main requirements file
+# For production deployments (lightweight): requirements-prod.txt
+# For ML/AI features (heavy): requirements-ml.txt
+# For development: requirements-dev.txt
+
+# For ML/AI features, install: pip install -r requirements-ml.txt
+
+-r requirements-prod.txt
+
+# Uncomment the line below to include ML/AI dependencies
+# -r requirements-ml.txt

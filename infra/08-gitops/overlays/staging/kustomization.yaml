@@ -1,0 +1,61 @@
+# Staging overlay — production-like config but smaller scale.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: etap-staging
+
+resources:
+  - ../base
+
+helmCharts:
+  - name: etap-ai
+    repo: .
+    version: 2.0.0
+    releaseName: etap-ai
+    namespace: etap-staging
+    valuesFile: ../../01-helm-chart/etap-ai/values.yaml
+    valuesInline:
+      image:
+        tag: "staging"
+      api:
+        replicaCount: 2
+        autoscaling:
+          enabled: true
+          minReplicas: 2
+          maxReplicas: 5
+        ingress:
+          enabled: true
+          hosts:
+            - host: etap-ai.staging.example.com
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: etap-ai-staging-tls
+              hosts:
+                - etap-ai.staging.example.com
+      worker:
+        replicaCount: 2
+        autoscaling:
+          enabled: true
+          minReplicas: 2
+          maxReplicas: 10
+      flower:
+        enabled: true
+      networkPolicy:
+        enabled: true
+      observability:
+        serviceMonitor:
+          enabled: true
+
+commonLabels:
+  environment: staging
+
+patches:
+  - target:
+      kind: Namespace
+      name: etap
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: etap-staging

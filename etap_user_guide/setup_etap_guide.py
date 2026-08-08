@@ -59,6 +59,10 @@ def check_directory_structure():
         "etap_user_guide/pdfs",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/ac_element",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/extract_guide.py",  # NOSONAR intentional repetition (audit constant)
+
+        "etap_user_guide/pdfs",
+        "etap_user_guide/ac_element",
+        "etap_user_guide/extract_guide.py",
         "etap_user_guide/etap_guide_rag.py",
         "etap_user_guide/README.md",
     ]

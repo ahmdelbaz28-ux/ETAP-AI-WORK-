@@ -6,6 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### UI/Backend coverage — pass-2 (branch `fix/ui-backend-coverage-pass-2`)
+
+This pass closes 4 of the 4 tasks left undone by pass-1 (TASK-8, 9, 11, 13, 14)
+and adds backend infrastructure for two of them.
+
+- **TASK-8 — AI/ML Playground page** (`ui/src/pages/AIPlayground.tsx`, route
+  `/admin/ai-playground`). Tabs for all 5 endpoints in `api/ai_ml.py`:
+  `predict/load`, `predict/fault`, `predict/anomaly`, `gnn/predict`, `rag/query`.
+  JSON editor with required-key validation, result viewer, rate-limit indicator,
+  recent-runs history. Playwright smoke tests in `ui/tests/ai-playground.spec.ts`.
+- **TASK-9 — Feature Flags router + admin panel**. `api/feature_flags.py`
+  converted from pure module to FastAPI router at `/api/v1/feature-flags` with
+  `GET /`, `GET /{key}`, `PATCH /{key}` (admin-only). Toggles persist to
+  `.feature-flags.json` so they survive restarts. New "Feature Flags" section
+  in `Administration.tsx` with per-flag toggle, dev-override banner, loading
+  and error states. Backend tests: `tests/test_feature_flags.py` (16 tests,
+  all passing).
+- **TASK-11 — Settings.tsx config-drift fix**. Removed the hardcoded
+  `MCP_SERVERS` constant; the `MCPSettingsPanel` now fetches from a new
+  `GET /api/v1/agents/mcp-servers` endpoint (added in `api/agents.py`) that
+  reads `.mcp.json` and redacts all env values server-side. The constant is
+  retained as `MCP_SERVERS_FALLBACK` and only shown when the backend is
+  unreachable or `.mcp.json` is absent, with a visible banner explaining the
+  fallback. Loading / error / degraded states all handled.
+- **TASK-12 — Tests**. Added `tests/test_feature_flags.py` (16 backend tests)
+  and `ui/tests/ai-playground.spec.ts` (5 Playwright smoke tests). All new
+  tests pass.
+- **TASK-13 — Security scan**. Ran `bandit -r api/ -ll` (0 HIGH, 0 CRITICAL,
+  2 MEDIUM, 41 LOW — no new HIGH/CRITICAL introduced by pass-2) and
+  `pnpm audit --audit-level=high` (3 HIGH in `undici`, all pre-existing and
+  transitive via `@langwatch/scenario`). Report saved to
+  `download/security-scan-2026-08-04.txt`.
+- **TASK-14 — Documentation**. Added §12 "Pass-2 Update" to
+  `UI_COVERAGE_REPORT.md` with re-counted endpoint inventory (150 HTTP + 4 WS =
+  154 total, across 30 router files) and updated coverage score (77.9%, up
+  from 68.3%).
+
+#### Deviations from pass-1 (accepted, not reverted)
+
+- **TASK-5** was implemented as a new `AgentsControlPanel.tsx` page rather
+  than extending `CuaMonitor.tsx`. Accepted because the page already ships
+  with tests and covers all 14 `agents.py` endpoints.
+- **TASK-7** was implemented as a separate `Mfa.tsx` page rather than a tab
+  in `Settings.tsx`. Accepted for the same reason.
+- **TASK-10** was implemented as a separate `MagicLinks.tsx` page rather
+  than a tab in `Login.tsx`. Accepted for the same reason.
+- **`EmailOtp.tsx`** was added in pass-1 but is not in the original task
+  list. Retained because it has tests and may be useful; documented as a
+  pass-1 addition.
+
+#### Residual gaps (follow-up pass-3 needed)
+
+- `api/pe_stamp.py`, `api/dual_control.py`, `api/risk_scoring.py`,
+  `api/error_debugger.py` still have zero UI consumers.
+- `cua_confirmation_ws` WebSocket still has no UI consumer.
+- `pnpm audit` 3 HIGH in `undici` need an override bump to `>=6.27.0`.
+
 ### Security — Python dependencies (pip)
 - **LangChain 0.3.x → 1.x major upgrade** to resolve Dependabot alerts on
   `langchain-core`, `langchain-openai`, and `langsmith`. The 0.3.x line is

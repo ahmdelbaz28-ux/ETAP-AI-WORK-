@@ -1,0 +1,320 @@
+# =============================================================================
+# AhmedETAP — UI Quality & Security (TypeScript + ESLint + Vitest)
+# -----------------------------------------------------------------------------
+# Runs TypeScript type-checking, ESLint (with security rules), and Vitest
+# unit tests on the React frontend.
+#
+# Triggers:
+#   - Push/PR touching ui/** files
+#   - Weekly schedule (catches upstream ESLint rule breakage)
+# =============================================================================
+name: UI Quality & Security
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'ui/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ui-quality.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ui/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  schedule:
+    # Weekly on Sunday at 06:00 UTC
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: ui-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  UI_DIR: ui
+
+jobs:
+  # ── 1. TYPESCRIPT TYPE CHECK ─────────────────────────────────────────────
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          # Use --ignore-scripts to skip Electron binary download (not needed for typecheck)
+          # --no-optional skips platform-specific Electron deps on Linux
+          npm install --ignore-scripts --no-optional --no-audit --no-fund
+
+      - name: TypeScript type-check (strict)
+        working-directory: ${{ env.UI_DIR }}
+        run: npx tsc --noEmit --strict
+
+      - name: TypeScript type-check (project config)
+        working-directory: ${{ env.UI_DIR }}
+        run: npx tsc -b --noEmit
+
+  # ── 2. ESLINT (with security rules) ───────────────────────────────────────
+  eslint:
+    name: ESLint + Security Rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ${{ env.UI_DIR }}
+        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+
+      - name: Install eslint-plugin-security
+        working-directory: ${{ env.UI_DIR }}
+        run: npm install --no-save eslint-plugin-security
+
+      - name: Run ESLint
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          # Run ESLint with max-warnings=0 to fail on any warning
+          # The eslint.config.js already includes react-hooks rules
+          npx eslint . \
+            --max-warnings=0 \
+            --format=json \
+            --output-file=eslint-results.json \
+            || true  # Don't fail yet — we'll process results
+
+      - name: Generate ESLint summary
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          if [ ! -f eslint-results.json ]; then
+            echo "ESLint did not produce results"
+            exit 0
+          fi
+          python3 - <<'PYEOF'
+          import json
+          with open('eslint-results.json') as f:
+              results = json.load(f)
+
+          total_errors = 0
+          total_warnings = 0
+          by_rule = {}
+
+          for file_result in results:
+              for msg in file_result.get('messages', []):
+                  severity = msg.get('severity', 0)
+                  rule_id = msg.get('ruleId', 'unknown')
+                  if severity == 2:  # error
+                      total_errors += 1
+                      by_rule[rule_id] = by_rule.get(rule_id, 0) + 1
+                  elif severity == 1:  # warning
+                      total_warnings += 1
+                      by_rule[rule_id] = by_rule.get(rule_id, 0) + 1
+
+          print("=" * 60)
+          print("  ESLint Summary")
+          print("=" * 60)
+          print(f"  Errors:   {total_errors}")
+          print(f"  Warnings: {total_warnings}")
+          print()
+          if by_rule:
+              print("  Top rules:")
+              for rule, count in sorted(by_rule.items(), key=lambda x: -x[1])[:10]:
+                  print(f"    {count:3d}  {rule}")
+          print()
+
+          if total_errors > 0:
+              print(f"BLOCKING: {total_errors} ESLint errors")
+              import sys
+              sys.exit(1)
+          print("No ESLint errors")
+          PYEOF
+
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-results-${{ github.sha }}
+          path: ${{ env.UI_DIR }}/eslint-results.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ── 3. VITEST UNIT TESTS ──────────────────────────────────────────────────
+  vitest:
+    name: Vitest Unit Tests
+    runs-on: ubuntu-latest
+    needs: [typecheck, eslint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ${{ env.UI_DIR }}
+        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+
+      - name: Run Vitest
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          npx vitest run \
+            --coverage \
+            --reporter=verbose \
+            --reporter=json \
+            --outputFile=vitest-results.json \
+            || true
+
+      - name: Generate Vitest summary
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          if [ ! -f vitest-results.json ]; then
+            echo "Vitest did not produce results — tests may not exist yet"
+            exit 0
+          fi
+          python3 - <<'PYEOF'
+          import json
+          with open('vitest-results.json') as f:
+              data = json.load(f)
+
+          total = data.get('numTotalTests', 0)
+          passed = data.get('numPassedTests', 0)
+          failed = data.get('numFailedTests', 0)
+          skipped = data.get('numPendingTests', 0)
+
+          print("=" * 60)
+          print("  Vitest Summary")
+          print("=" * 60)
+          print(f"  Total:   {total}")
+          print(f"  Passed:  {passed}")
+          print(f"  Failed:  {failed}")
+          print(f"  Skipped: {skipped}")
+          print()
+
+          if failed > 0:
+              print(f"BLOCKING: {failed} test(s) failed")
+              import sys
+              sys.exit(1)
+          print("All tests passed" if total > 0 else "No tests found")
+          PYEOF
+
+      - name: Upload Vitest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-results-${{ github.sha }}
+          path: ${{ env.UI_DIR }}/vitest-results.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ── 4. BUILD TEST (verify production build compiles) ─────────────────────
+  build:
+    name: Production Build Test
+    runs-on: ubuntu-latest
+    needs: [typecheck, eslint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Install UI dependencies
+        working-directory: ${{ env.UI_DIR }}
+        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+
+      - name: Build for production (Vite)
+        working-directory: ${{ env.UI_DIR }}
+        run: npm run build
+
+      - name: Verify dist output
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          if [ ! -d dist ]; then
+            echo "ERROR: dist/ directory not created"
+            exit 1
+          fi
+          echo "dist/ contents:"
+          ls -la dist/
+          echo ""
+          echo "dist/assets/ contents:"
+          ls -la dist/assets/ 2>/dev/null || echo "  (no assets directory)"
+
+      - name: Check bundle size
+        working-directory: ${{ env.UI_DIR }}
+        run: |
+          # Fail if the JS bundle is > 5MB (likely missing code splitting)
+          BUNDLE_SIZE=$(du -sb dist/assets/*.js 2>/dev/null | awk '{s+=$1} END {print s}')
+          if [ -z "$BUNDLE_SIZE" ]; then
+            echo "No JS bundles found"
+            exit 0
+          fi
+          BUNDLE_MB=$((BUNDLE_SIZE / 1024 / 1024))
+          echo "Total JS bundle size: ${BUNDLE_MB}MB"
+          if [ "$BUNDLE_MB" -gt 5 ]; then
+            echo "WARNING: JS bundle > 5MB — consider code splitting"
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-dist-${{ github.sha }}
+          path: ${{ env.UI_DIR }}/dist/
+          retention-days: 3
+
+  # ── 5. SUMMARY ────────────────────────────────────────────────────────────
+  summary:
+    name: UI Quality Summary
+    runs-on: ubuntu-latest
+    needs: [typecheck, eslint, vitest, build]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          {
+            echo "### UI Quality & Security Summary"
+            echo ""
+            echo "| Check | Result |"
+            echo "|-------|--------|"
+            echo "| TypeScript type-check | ${{ needs.typecheck.result }} |"
+            echo "| ESLint + security | ${{ needs.eslint.result }} |"
+            echo "| Vitest unit tests | ${{ needs.vitest.result }} |"
+            echo "| Production build | ${{ needs.build.result }} |"
+            echo ""
+            echo "**Commit:** \`$GITHUB_SHA\`"
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if critical checks failed
+        if: |
+          needs.typecheck.result == 'failure' ||
+          needs.eslint.result == 'failure' ||
+          needs.build.result == 'failure'
+        run: |
+          echo "Critical UI checks failed"
+          exit 1

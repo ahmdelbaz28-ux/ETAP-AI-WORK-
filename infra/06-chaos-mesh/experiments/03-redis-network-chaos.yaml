@@ -1,0 +1,79 @@
+---
+# ==========================================================================
+# Experiment 5: Redis Cluster network latency — inject 200ms delay between
+# the API pods and Redis Cluster.
+#
+# Verifies: Redis client has proper timeouts + retries. Celery broker
+# operations should still succeed but with elevated latency; if any
+# operations time out, you'll see them in the error rate dashboard.
+#
+# This experiment will reveal whether your code's retry/backoff is properly
+# configured for transient Redis slowness.
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: redis-network-latency
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: redis-resilience
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/name": redis-cluster
+  delay:
+    latency: "200ms"
+    correlation: "100"
+    jitter: "20ms"
+  direction: to
+  target:
+    pods:
+      etap:
+        - selector:
+            matchLabels:
+              "app.kubernetes.io/component": api
+          mode: all
+  scheduler:
+    cron: "0 9 * * 1-5"   # 9 AM weekdays
+  duration: "5m"
+---
+# ==========================================================================
+# Experiment 6: Redis Cluster network partition — isolate one Redis Cluster
+# pod from the rest of the network for 30 seconds.
+#
+# Verifies: Redis Cluster failover. The isolated node should be detected
+# as a partitioned master or replica; if master, its replica should be
+# promoted within ~10s.
+# ==========================================================================
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: redis-network-partition
+  namespace: etap
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    chaos-mesh.org/experiment: redis-resilience
+spec:
+  action: partition
+  mode: one
+  selector:
+    namespaces:
+      - etap
+    labelSelectors:
+      "app.kubernetes.io/name": redis-cluster
+  direction: to
+  target:
+    pods:
+      etap:
+        - selector:
+            matchLabels:
+              "app.kubernetes.io/name": redis-cluster
+          mode: all
+  scheduler:
+    cron: "0 10 * * 1"   # 10 AM every Monday
+  duration: "30s"

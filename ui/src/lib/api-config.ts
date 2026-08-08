@@ -195,6 +195,10 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     ["deriveKey"],
   );
 
+  // Fail-fast: throw with a clear error if the salt format is invalid,
+  // rather than silently producing an empty Uint8Array (which would
+  // weaken the key derivation). Resolves merge conflict between
+  // PR #322 (optional chaining, fail-silent) and openhands (fail-fast).
   const saltMatch = salt.match(/.{1,2}/g);
   if (!saltMatch) {
     throw new Error("Invalid salt format: expected hex string");

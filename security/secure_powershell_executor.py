@@ -205,11 +205,14 @@ def _validate_character_set(command: str) -> bool:
     obfuscation. Previously, backticks were allowed in the character set
     but blocked by security_framework.py — contradictory.
     """
-    # Allow: alphanumeric, spaces, common punctuation, and pipeline chars.
-    # NOTE: Backtick (`) is EXPLICITLY EXCLUDED to prevent PowerShell
-    # escape obfuscation (V-38 fix). The dash '-' is placed at the END
+    # V-72 FIX: Removed backslash (\\) from allowed character set.
+    # On Windows, backslash is a path separator (C:\Windows\System32\...)
+    # and could be used for path traversal. The cmdlet whitelist should
+    # prevent this, but defense-in-depth requires removing it.
+    # Backtick (`) is EXPLICITLY EXCLUDED to prevent PowerShell escape
+    # obfuscation (V-38 fix). The dash '-' is placed at the END
     # of the character class to avoid SonarCloud S5996.
-    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\=\[\]{}|\\\'"~<>/?\-]+$')
+    allowed = re.compile(r'^[A-Za-z0-9 \t\r\n.,;:!@#$%^&*()_+\=\[\]{}|/\'"~<>?\-]+$')
     if not allowed.match(command):
         logger.warning("Blocked command with disallowed characters")
         return False
@@ -328,13 +331,19 @@ def _run_security_checks(command: str, audit, validator) -> bool:
 def _execute_powershell(script_path: str) -> None:
     """Run powershell with -File and print the JSON result. Cleans up temp file."""
     try:
+        # V-55 FIX: Use "pwsh" (PowerShell Core) instead of "powershell" (Windows-only).
+        # On Linux/Docker/HF Spaces, only pwsh is available. On Windows, both exist
+        # but pwsh is the modern cross-platform version.
+        # V-56 FIX: Use "Bypass" execution policy instead of "AllSigned" — the script
+        # content is already validated by the cmdlet whitelist + character set checks
+        # above, and AllSigned would reject the auto-generated unsigned temp script.
         result = subprocess.run(
             [
-                "powershell",
+                "pwsh",
                 "-NoProfile",
                 "-NonInteractive",
                 "-ExecutionPolicy",
-                "AllSigned",
+                "Bypass",
                 "-File",
                 script_path,
             ],

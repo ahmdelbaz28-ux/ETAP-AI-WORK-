@@ -35,7 +35,7 @@ for (const p of pages) {
     const filePath = join(OUTPUT_DIR, `${p.name}.png`);
     await page.screenshot({ path: filePath, fullPage: false });
     const size = (await import('node:fs')).statSync(filePath).size;
-    console.log(`${p.name}.png — ${Math.round(size/1024)}KB`);
+    console.log(`${p.name}.png — ${Math.round(size / 1024)}KB`);
   } catch (err) {
     console.log(`Failed: ${p.name} — ${err.message?.slice(0, 60)}`);
   }

@@ -248,6 +248,10 @@ class TestDifferentialRelay:
         assert r.slope2 == pytest.approx(0.6)
         assert r.Ip == pytest.approx(0.2)
 
+        assert r.slope1 == 0.3
+        assert r.slope2 == 0.6
+        assert r.Ip == 0.2
+
     def test_default_name(self):
         r = DifferentialRelay(relay_id=1)
         assert r.name == "DifferentialRelay"

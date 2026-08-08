@@ -112,6 +112,13 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     const res = await fetch(url, {
       method: 'GET',
       headers: finalHeaders,
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...(headers || {}),
+        'User-Agent': 'etap-health-check/1.0',
+      },
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -445,6 +452,11 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+
+    const sorted = latencies.sort((a, b) => a - b);
+    const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
+    const p95 = Math.ceil(sorted[p95Index] || sorted[sorted.length - 1] || 0);
+    const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';
     results.push({
       name: 'SLA/SLO latency compliance (p95)',
       category: 'monthly',
@@ -682,6 +694,13 @@ async function main() {
   const ciMode = args.has('--ci');
   const jsonOutput = args.has('--json');
 
+  const args = process.argv.slice(2);
+  const runDaily = args.includes('--daily') || args.includes('--all');
+  const runWeekly = args.includes('--weekly') || args.includes('--all');
+  const runMonthly = args.includes('--monthly') || args.includes('--all');
+  const ciMode = args.includes('--ci');
+  const jsonOutput = args.includes('--json');
+
   if (!runDaily && !runWeekly && !runMonthly) {
     console.log(`
 AhmedETAP Platform — Operational Health Check
@@ -745,6 +764,11 @@ Environment:
   const reportPath = 'health-check-report.json';
   const safeFileJson = stringifyReportSanitised(report);
   fs.writeFileSync(reportPath, safeFileJson);
+
+  // Write report to file for CI artifacts
+  const fs = await import('fs');
+  const reportPath = 'health-check-report.json';
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(`\nReport saved to: ${reportPath}`);
 
   // Exit codes
@@ -761,3 +785,8 @@ try {
   console.error('Health check failed:', describeError(e));
   process.exit(2);
 }
+
+main().catch((e) => {
+  console.error('Health check failed:', e);
+  process.exit(2);
+});

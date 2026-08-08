@@ -143,6 +143,13 @@ class StudyCache:
                 decoded = json.loads(value)
                 if isinstance(decoded, dict):
                     return decoded
+
+            try:
+                decoded = json.loads(value)
+                if isinstance(decoded, dict):
+                    return decoded
+            except Exception:
+                pass
         return None
 
     async def set(
@@ -191,6 +198,10 @@ class StudyCache:
                 "In-memory cache SET failed for key %r: %s", key, e
             )
             return False
+
+        # In-memory fallback
+        self._memory_cache[key] = {"value": value, "expires_at": expires_at}
+        return True
 
     async def clear(self) -> None:
         """Clear all cached entries (memory fallback always; best-effort for redis)."""

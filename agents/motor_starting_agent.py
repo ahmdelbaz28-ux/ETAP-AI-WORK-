@@ -39,6 +39,15 @@ import numpy as np
 
 from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+from datetime import UTC, datetime
+
+UTC = UTC
+from typing import Any, Dict, List
+
+import numpy as np
+
+from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+
 logger = logging.getLogger(__name__)
 
 
@@ -169,6 +178,11 @@ class MotorStartingAgent(BaseAgent):
             _NEMA_CODE_LETTERS[code][1] if code in _NEMA_CODE_LETTERS else _DEFAULT_LR_KVA_PER_HP
         )
 
+        if code in _NEMA_CODE_LETTERS:
+            lr_kva_per_hp = _NEMA_CODE_LETTERS[code][1]  # Use upper bound
+        else:
+            lr_kva_per_hp = 5.6  # Default to code F
+
         # DOL locked-rotor current (from NEMA code)
         lr_kva = lr_kva_per_hp * motor_hp
         lra_dol = lr_kva * 1000.0 / (np.sqrt(3) * voltage_v)
@@ -264,6 +278,13 @@ class MotorStartingAgent(BaseAgent):
             "source_impedance_r_pu": round(source_impedance_pu.real, 6),
             "source_impedance_x_pu": round(source_impedance_pu.imag, 6),
             "motor_starting_impedance_pu": round(z_motor_pu, 6),
+
+            "motor_bus_voltage_pu": round(float(motor_voltage_pu), 4),
+            "voltage_dip_percent": round(float(voltage_dip_pct), 2),
+            "source_voltage_pu": source_voltage_pu,
+            "source_impedance_r_pu": round(float(source_impedance_pu.real), 6),
+            "source_impedance_x_pu": round(float(source_impedance_pu.imag), 6),
+            "motor_starting_impedance_pu": round(float(z_motor_pu), 6),
             "assessment": self._assess_voltage_dip(motor_voltage_pu),
         }
 
@@ -445,6 +466,13 @@ class MotorStartingAgent(BaseAgent):
             "method_voltage_ratio": round(v_ratio, 4),
             "motor_bus_voltage_pu": motor_bus_voltage_pu,
             "voltage_factor": round(combined_voltage_factor, 4),
+
+            "starting_torque_nm": round(float(starting_torque), 2),
+            "torque_per_rated": round(float(torque_ratio), 4),
+            "starting_method": starting_method,
+            "method_voltage_ratio": round(float(v_ratio), 4),
+            "motor_bus_voltage_pu": motor_bus_voltage_pu,
+            "voltage_factor": round(float(combined_voltage_factor), 4),
             "rated_torque_nm": rated_torque_nm,
         }
 
@@ -484,6 +512,12 @@ class MotorStartingAgent(BaseAgent):
             "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(avg_accelerating_torque_nm, 2),
             "omega_rated_rad_s": round(omega_rated, 2),
+
+            "acceleration_time_s": round(float(t_acc), 2),
+            "rated_speed_rpm": rated_speed_rpm,
+            "j_total_kgm2": j_total_kgm2,
+            "avg_accelerating_torque_nm": round(float(avg_accelerating_torque_nm), 2),
+            "omega_rated_rad_s": round(float(omega_rated), 2),
         }
 
     # ------------------------------------------------------------------

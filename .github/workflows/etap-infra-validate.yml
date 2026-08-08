@@ -1,0 +1,117 @@
+# ==========================================================================
+# ETAP AI — CI pipeline
+#
+# Runs on every push and PR to main:
+#   1. YAML lint
+#   2. Helm lint (default + production values)
+#   3. Helm unittest (39 test cases)
+#   4. helm template + kubeconform (built-in K8s types)
+#   5. Shellcheck on all .sh scripts
+#
+# Required secrets: NONE (this workflow only validates, never deploys)
+# ==========================================================================
+name: CI — Validate
+
+on:
+  push:
+    branches: [main, develop, 'release/**']
+    paths:
+      - 'infra/**'
+      - 'scripts/etap-infra-validate.sh'
+      - '.github/workflows/etap-infra-validate.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'infra/**'
+      - 'scripts/etap-infra-validate.sh'
+      - '.github/workflows/etap-infra-validate.yml'
+
+jobs:
+  validate:
+    name: Lint + Unit Test + Schema Validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.5.1
+
+      - name: Install kubeconform
+        run: |
+          curl -sSL -o /tmp/kubeconform.tar.gz \
+            "https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz"
+          sudo tar -xzf /tmp/kubeconform.tar.gz -C /usr/local/bin/ kubeconform
+          sudo chmod +x /usr/local/bin/kubeconform
+          kubeconform -v
+
+      - name: Install yamllint + shellcheck
+        run: |
+          pip install yamllint==1.35.1
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: YAML lint (non-template YAMLs only)
+        run: |
+          # Skip Helm templates (they contain Go directives that aren't valid YAML)
+          # Skip values files (they're Helm config, not K8s manifests)
+          find . -name '*.yaml' \
+            -not -path '*/templates/*' \
+            -not -path './.git/*' \
+            -not -path '*/tests/*' \
+            | xargs yamllint -d "{rules: {line-length: disable, document-start: disable, truthy: disable, indentation: {spaces: 2, indent-sequences: whatever}, comments: disable, comments-indentation: disable, empty-lines: {max: 2}, trailing-spaces: disable, braces: disable}}"
+
+      - name: Shellcheck
+        run: |
+          find . -name '*.sh' -not -path './.git/*' | xargs shellcheck -x
+
+      - name: Helm lint (default values)
+        run: helm lint infra/helm/etap-ai
+
+      - name: Helm lint (production values)
+        run: helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
+
+      - name: Helm unittest
+        run: helm unittest -j junit -f infra/helm/etap-ai/tests/ infra/helm/etap-ai
+
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Helm Unit Tests
+          path: 'infra/helm/etap-ai/.unittest_results.xml'
+          reporter: java-junit
+          fail-on-error: 'false'
+
+      - name: Helm template + kubeconform (rendered chart)
+        run: |
+          helm template etap-ai infra/helm/etap-ai -n etap \
+              -f infra/helm/etap-ai/values-production.yaml > /tmp/rendered.yaml
+          kubeconform -strict -summary -ignore-missing-schemas \
+              -kubernetes-version 1.29.0 /tmp/rendered.yaml
+
+      - name: kubeconform (standalone manifests)
+        run: |
+          find . -name '*.yaml' \
+            -not -path '*/templates/*' \
+            -not -path '*/tests/*' \
+            -not -name 'values.yaml' \
+            -not -name 'values-production.yaml' \
+            -not -name 'Chart.yaml' \
+            -not -name 'repositories.yaml' \
+            -not -path './.git/*' \
+            | xargs kubeconform -strict -summary -ignore-missing-schemas \
+                -kubernetes-version 1.29.0

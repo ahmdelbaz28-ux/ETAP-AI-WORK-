@@ -1,0 +1,21 @@
+# Base Kustomization — references the Helm chart via HelmChartInflationGenerator.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: etap
+
+helmCharts:
+  - name: etap-ai
+    repo: .
+    version: 2.0.0
+    releaseName: etap-ai
+    namespace: etap
+    valuesFile: ../../01-helm-chart/etap-ai/values.yaml
+
+resources:
+  - ../../../00-prerequisites/namespace.yaml
+  - ../../../02-redis-cluster/redis-password-secret.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: etap-ai-platform
+  app.kubernetes.io/managed-by: kustomize

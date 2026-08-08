@@ -608,6 +608,10 @@ class InputValidator:
             "IEX",
             "Union",
             ";",
+            "|",  # V-71 FIX: Block pipe chains — prevents multi-command pipelines
+                  # where the first cmdlet is whitelisted but the second is dangerous.
+                  # E.g., Get-Process | Where-Object { $_.Name -eq "explorer" }
+                  # The cmdlet whitelist only checks the first token.
             "-Enc",
             "-EncodedCommand",
             "System.Diagnostics",

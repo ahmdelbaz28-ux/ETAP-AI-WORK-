@@ -202,6 +202,21 @@ def export_power_system_data():
     return power_data
 
 
+
+            {"id": "redundancy_001", "status": "active", "load_percentage": 75.2}
+        ]
+    }
+    
+    # Export to CSV
+    with open('etap_export/power_system.csv', 'w', newline='') as csvfile:
+        fieldnames = ['id', 'status', 'voltage', 'current', 'load_percentage']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for device in power_data['devices']:
+            writer.writerow(device)
+    
+    return power_data
+
 def publish_to_mqtt(data):
     """
     Publish ETAP data to MQTT broker for consumption by SCADA systems
@@ -337,6 +352,16 @@ def create_scada_tags_geojson():
         {
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [31.2457, 30.0544]},
+
+                "status": "normal"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [31.2457, 30.0544]
+            },
             "properties": {
                 "id": "extinguisher_001",
                 "zone": "zone_A",
@@ -359,6 +384,26 @@ def create_scada_tags_geojson():
 
     print("SCADA tags exported to scada_export/tags.geojson")
 
+
+
+                "status": "ready"
+            }
+        }
+    ]
+    
+    geojson_data = {
+        "type": "FeatureCollection",
+        "features": scada_tags
+    }
+    
+    # Create directory if it doesn't exist
+    os.makedirs("scada_export", exist_ok=True)
+    
+    # Write GeoJSON file
+    with open("scada_export/tags.geojson", "w") as f:
+        json.dump(geojson_data, f, indent=2)
+    
+    print("SCADA tags exported to scada_export/tags.geojson")
 
 def load_scada_layer_to_qgis():
     """
@@ -486,6 +531,30 @@ def process_scada_tags(tags_geojson_path):
         elif properties["type"] in ["water_mist", "foam", "co2"]:
             # For extinguishers, create a simple polygon around the point
             center_x, center_y = geometry["coordinates"][0], geometry["coordinates"][1]
+
+    with open(tags_geojson_path, 'r') as f:
+        tags_data = json.load(f)
+    
+    gdb_path = r"C:\temp\scada_geodatabase.gdb"
+    
+    # Process each feature in the GeoJSON
+    for feature in tags_data['features']:
+        geometry = feature['geometry']
+        properties = feature['properties']
+        
+        # Determine if it's a detector or extinguisher
+        if properties['type'] == 'smoke':
+            # Insert into detectors feature class
+            with arcpy.da.InsertCursor(f"{gdb_path}\\detectors", 
+                                     ["SHAPE@", "ID", "ZONE", "TYPE", "STATUS", "TIMESTAMP"]) as cursor:
+                point = arcpy.Point(geometry['coordinates'][0], geometry['coordinates'][1])
+                geom = arcpy.PointGeometry(point)
+                cursor.insertRow([geom, properties['id'], properties['zone'], 
+                                properties['type'], properties['status'], datetime.now()])
+        
+        elif properties['type'] in ['water_mist', 'foam', 'co2']:
+            # For extinguishers, create a simple polygon around the point
+            center_x, center_y = geometry['coordinates'][0], geometry['coordinates'][1]
             # Create a small square polygon (10m x 10m) as example
             polygon_points = [
                 [center_x - 0.0001, center_y - 0.0001],
@@ -527,6 +596,22 @@ def process_scada_tags(tags_geojson_path):
 
     print(f"Processed {len(tags_data['features'])} SCADA tags")
 
+
+
+                [center_x - 0.0001, center_y - 0.0001]  # Close the polygon
+            ]
+            
+            array = arcpy.Array([arcpy.Point(*coords) for coords in polygon_points])
+            polygon = arcpy.Polygon(array)
+            
+            with arcpy.da.InsertCursor(f"{gdb_path}\\extinguishers", 
+                                     ["SHAPE@", "ID", "ZONE", "TYPE", "PRESSURE", "FLOW", "STATUS", "TIMESTAMP"]) as cursor:
+                pressure = float(properties.get('pressure', '0').replace('bar', '')) if 'pressure' in properties else 0
+                flow = float(properties.get('flow', '0').replace('L/min', '')) if 'flow' in properties else 0
+                cursor.insertRow([polygon, properties['id'], properties['zone'], 
+                                properties['type'], pressure, flow, properties['status'], datetime.now()])
+    
+    print(f"Processed {len(tags_data['features'])} SCADA tags")
 
 def publish_gis_service():
     """
@@ -619,6 +704,20 @@ class ArcGISProMQTTClient:
             detector_id = topic.split("/")[-1]  # Extract detector ID from topic
             self.update_detector_status(detector_id, "alarm_triggered")
 
+
+        self.scada_tags[topic] = {
+            'data': data,
+            'timestamp': time.time()
+        }
+        
+        # In a real implementation, this would update the corresponding feature in the geodatabase
+        print(f"Updated SCADA tag {topic} with data: {data}")
+        
+        # Example: If it's a fire alarm, update the corresponding detector
+        if 'fire/alarm' in topic:
+            detector_id = topic.split('/')[-1]  # Extract detector ID from topic
+            self.update_detector_status(detector_id, 'alarm_triggered')
+    
     def update_detector_status(self, detector_id, status):
         """
         Update detector status in ArcGIS Pro feature class
@@ -638,6 +737,19 @@ class ArcGISProMQTTClient:
 
         print(f"Updated detector {detector_id} status to {status}")
 
+
+        
+        # Update the detector status
+        with arcpy.da.UpdateCursor(f"{gdb_path}\\detectors", 
+                                 ["ID", "STATUS", "TIMESTAMP"], 
+                                 where_clause=f"ID = '{detector_id}'") as cursor:
+            for row in cursor:
+                row[1] = status  # Update status
+                row[2] = time.strftime('%Y-%m-%d %H:%M:%S')  # Update timestamp
+                cursor.updateRow(row)
+        
+        print(f"Updated detector {detector_id} status to {status}")
+    
     def connect(self, broker_host="localhost", broker_port=1883):
         """
         Connect to MQTT broker

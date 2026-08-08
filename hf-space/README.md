@@ -70,6 +70,14 @@ curl https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents
 
 # Run a load flow study
 curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/studies/run \
+
+curl https://ahmdelbaz28-etap-ai-platform.hf.space/healthz
+
+# List all agents
+curl https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/agents
+
+# Run a load flow study
+curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
   -H "Content-Type: application/json" \
   -d '{
     "study_type": "load_flow",
@@ -98,6 +106,13 @@ curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/studies/run 
 | Standards | 10 IEEE/IEC |
 | Tests | 1680+ passing |
 | Study Types | 15 |
+
+| AI Agents | 23 specialized |
+| ETAP Manuals | 35 documents |
+| Zenon Guides | 4 SCADA documents |
+| Standards | 10+ IEEE/IEC/NFPA |
+| Tests | 548 passing |
+| Validation Gates | 31/31 |
 
 ---
 

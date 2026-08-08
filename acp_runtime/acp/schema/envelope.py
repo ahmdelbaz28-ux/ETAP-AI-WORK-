@@ -81,6 +81,11 @@ class JsonRpcResponse(BaseModel):
     result: Optional[Any] = None
     error: Optional[JsonRpcError] = None
 
+    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
+    id: RequestId | None = None
+    result: Any | None = None
+    error: JsonRpcError | None = None
+
     @model_validator(mode="after")
     def _exactly_one_of_result_or_error(self) -> JsonRpcResponse:
         if self.result is not None and self.error is not None:
@@ -112,3 +117,10 @@ class JsonRpcNotification(BaseModel):
     capability: Optional[str] = Field(default=None, max_length=128)
     trace_id: str = Field(default="", max_length=512)
     deadline_ms: Optional[int] = Field(default=None, ge=1, le=600_000)
+
+    jsonrpc: str = Field(default="2.0", pattern=r"^2\.0$")
+    method: str = Field(min_length=1, max_length=256)
+    params: list[Any] | dict[str, Any] | None = None
+    capability: str | None = Field(default=None, max_length=128)
+    trace_id: str = Field(default="", max_length=512)
+    deadline_ms: int | None = Field(default=None, ge=1, le=600_000)

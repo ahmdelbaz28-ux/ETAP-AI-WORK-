@@ -30,9 +30,14 @@ import { testProviderConnection } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
+import AISettingsPanel from "../components/AISettingsPanel";
+import StorageManagement from "../components/StorageManagement";
+import NotificationSettings from "../components/NotificationSettings";
 import {
   type VisionKeyConfig,
   deleteVisionKey,
+  fetchMcpServers,
   fetchVisionKeys,
   saveVisionKey,
   testVisionKey,
@@ -99,9 +104,9 @@ const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
 function obfuscate(value: string): string {
   let result = "";
   for (let i = 0; i < value.length; i++) {
-    result += String.fromCodePoint(
-      value.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-    );
+    const a = value.codePointAt(i) ?? 0;
+    const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+    result += String.fromCodePoint(a ^ b);
   }
   return btoa(result);
 }
@@ -110,9 +115,9 @@ function deobfuscate(value: string): string {
     const decoded = atob(value);
     let result = "";
     for (let i = 0; i < decoded.length; i++) {
-      result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length)!,
-      );
+      const a = decoded.codePointAt(i) ?? 0;
+      const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+      result += String.fromCodePoint(a ^ b);
     }
     return result;
   } catch {
@@ -927,6 +932,26 @@ const TAB_SECTIONS: Record<
     icon: <Eye className="w-4 h-4" />,
     sections: [],
   },
+  engineeringEngine: {
+    label: "Engineering Engine",
+    icon: <Wrench className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — EngineeringEngineSettings
+  },
+  aiCopilot: {
+    label: "AI Copilot",
+    icon: <Bot className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — AISettingsPanel
+  },
+  storage: {
+    label: "Storage & Backup",
+    icon: <Database className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — StorageManagement
+  },
+  notifications: {
+    label: "Notifications",
+    icon: <Zap className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — NotificationSettings
+  },
 };
 
 interface MCPConfig {
@@ -939,7 +964,7 @@ interface MCPConfig {
   tools: string[];
 }
 
-const MCP_SERVERS: MCPConfig[] = [
+const MCP_SERVERS_FALLBACK: MCPConfig[] = [
   {
     id: "weather",
     name: "Weather MCP Server",
@@ -993,6 +1018,52 @@ const MCP_SERVERS: MCPConfig[] = [
 ];
 
 function MCPSettingsPanel() {
+  const [servers, setServers] = useState<MCPConfig[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await fetchMcpServers();
+        if (cancelled) return;
+        const list = resp?.data?.servers ?? [];
+        if (list.length === 0) {
+          // No .mcp.json configured — show fallback (documented) so the UI is not empty.
+          setServers(MCP_SERVERS_FALLBACK);
+          setUsingFallback(true);
+        } else {
+          // Map server-side MCP info into the MCPConfig shape the renderer expects.
+          setServers(
+            list.map((s) => ({
+              id: s.id,
+              name: s.name || s.id,
+              status: s.status === "configured" ? "connected" : "standby",
+              type: s.type || "stdio",
+              urlOrPath: s.command || "(no command)",
+              description: `Args: ${(s.args ?? []).join(" ") || "(none)"} · Env keys: ${s.env_keys?.join(", ") || "(none)"}`,
+              tools: s.env_keys ?? [],
+            })),
+          );
+          setUsingFallback(false);
+        }
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load MCP servers");
+        setServers(MCP_SERVERS_FALLBACK);
+        setUsingFallback(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "connected":
@@ -1016,6 +1087,19 @@ function MCPSettingsPanel() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6 col-span-2">
+        <Card padding="md">
+          <div className="flex items-center gap-3 text-[var(--text-secondary)]">
+            <div className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading MCP servers from backend…</span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 col-span-2">
       <Card padding="md">
@@ -1023,7 +1107,7 @@ function MCPSettingsPanel() {
           <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
             <Database className="w-5 h-5 text-brand-400" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-base font-semibold text-[var(--text-primary)]">
               Model Context Protocol (MCP) Servers
             </h3>
@@ -1031,11 +1115,29 @@ function MCPSettingsPanel() {
               The platform utilizes MCP to expose local files, databases, SCADA bridges, and
               engineering scripts to AI specialist agents as secure tools.
             </p>
+            {error && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+                Backend unreachable: {error}. Showing documented fallback list. Configure
+                .mcp.json or set MCP_CONFIG_PATH to enable server-side discovery.
+              </div>
+            )}
+            {!error && usingFallback && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs">
+                No .mcp.json configured on backend — showing documented fallback list. Create
+                .mcp.json at the repo root (see .mcp.json.example) to switch to live discovery.
+              </div>
+            )}
+            {!error && !usingFallback && (
+              <div className="mt-3 px-3 py-2 rounded-md bg-green-500/10 border border-green-500/20 text-green-300 text-xs">
+                Loaded from <code className="font-mono">/api/v1/agents/mcp-servers</code>.
+                Env values are redacted server-side for security.
+              </div>
+            )}
           </div>
         </div>
 
         <div className="space-y-4">
-          {MCP_SERVERS.map((srv) => (
+          {(servers ?? []).map((srv) => (
             <div
               key={srv.id}
               className="p-4 bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl hover:border-brand-500/30 transition-all"
@@ -1084,7 +1186,7 @@ interface AISettingsPanelProps {
   readonly notify: (type: NotifyType, message: string) => void;
 }
 
-function AISettingsPanel({ settings, setSettings, notify }: AISettingsPanelProps) {
+function AISettingsPanelInline({ settings, setSettings, notify }: AISettingsPanelProps) {
   // Quick Setup: which provider is being tested + status
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [providerStatus, setProviderStatus] = useState<Record<string, "ok" | "fail" | null>>({});
@@ -2012,16 +2114,18 @@ function ExternalServicesPanel({
                 <div className="space-y-2 mb-3">
                   {svc.fields.map((f) => (
                     <div key={f.key}>
-                      <label className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
+                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
                         {f.label}
                         {f.required && <span className="text-red-400"> *</span>}
-                      </label>
+                      </span>
                       <input
                         type={f.type === "password" ? "password" : "text"}
                         placeholder={f.placeholder}
                         value={settings[f.key] || ""}
-                        onChange={(e) => // NOSONAR — S2004: inline form onChange
-                          setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
+                        onChange={
+                          (
+                            e, // NOSONAR — S2004: inline form onChange
+                          ) => setSettings((prev) => ({ ...prev, [f.key]: e.target.value })) // NOSONAR — S2004: inline form onChange
                         }
                         className="w-full px-2.5 py-1.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-md text-[var(--text-primary)] text-xs focus:border-brand-500 outline-none font-mono transition-colors"
                       />
@@ -2029,17 +2133,18 @@ function ExternalServicesPanel({
                   ))}
                 </div>
 
-                {st.detail && (() => {
-                  let stateColor;
-                  if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
-                  else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
-                  else stateColor = "bg-yellow-500/10 text-yellow-400";
-                  return (
-                    <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
-                      {st.detail}
-                    </div>
-                  );
-                })()}
+                {st.detail &&
+                  (() => {
+                    let stateColor: string;
+                    if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
+                    else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
+                    else stateColor = "bg-yellow-500/10 text-yellow-400";
+                    return (
+                      <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
+                        {st.detail}
+                      </div>
+                    );
+                  })()}
 
                 <div className="flex items-center gap-2">
                   <Button
@@ -2093,7 +2198,7 @@ function SettingsField({
     field.includes("RATE") ||
     field.includes("THRESHOLD") ||
     field.includes("MAX_");
-  let inputType;
+  let inputType: string;
   if (isSecret) inputType = "password";
   else if (isNumber) inputType = "number";
   else inputType = "text";
@@ -2184,7 +2289,9 @@ const VISION_PROVIDERS = [
   },
 ];
 
-function VisionApiKeysPanel({ notify }: { readonly notify: (type: NotifyType, message: string) => void }) {
+function VisionApiKeysPanel({
+  notify,
+}: { readonly notify: (type: NotifyType, message: string) => void }) {
   const [keys, setKeys] = useState<Record<string, VisionKeyConfig>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<
@@ -2613,21 +2720,21 @@ export default function Settings() {
       // Use the new AES-GCM encryption for secret fields
       const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
       await setEncryptedSettings(settings);
-      
+
       // Also save legacy XOR format for backward compatibility with older code
       const toStore: Record<string, string> = {};
       for (const [k, v] of Object.entries(settings)) {
         toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
       }
       localStorage.setItem("etap-settings", JSON.stringify(toStore));
-      
+
       if (settings.API_KEY_SECRET) {
         localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
       }
-      
+
       // Refresh the sync cache so getCachedSettings() returns the new values
       await refreshSettingsCache();
-      
+
       notify("success", "Settings saved successfully");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save settings";
@@ -2740,33 +2847,47 @@ export default function Settings() {
           transition={{ duration: 0.2 }}
         >
           {(() => {
-            if (activeTab === "ai") return <AISettingsPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "ai")
+              return (
+                <AISettingsPanelInline settings={settings} setSettings={setSettings} notify={notify} />
+              );
             if (activeTab === "mcp") return <MCPSettingsPanel />;
-            if (activeTab === "external") return <ExternalServicesPanel settings={settings} setSettings={setSettings} notify={notify} />;
+            if (activeTab === "external")
+              return (
+                <ExternalServicesPanel
+                  settings={settings}
+                  setSettings={setSettings}
+                  notify={notify}
+                />
+              );
             if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
+            if (activeTab === "engineeringEngine") return <EngineeringEngineSettings />;
+            if (activeTab === "aiCopilot") return <AISettingsPanel />;
+            if (activeTab === "storage") return <StorageManagement />;
+            if (activeTab === "notifications") return <NotificationSettings />;
             return (
-            <>
-              {currentSections.map((section) => (
-                <Card key={section.title} padding="md">
-                  <CardHeader
-                    title={section.title}
-                    subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
-                    icon={TAB_SECTIONS[activeTab]?.icon}
-                  />
-                  <div className="space-y-4">
-                    {section.fields.map((field) => (
-                      <SettingsField
-                        key={field}
-                        field={field}
-                        value={settings[field] || ""}
-                        onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
-                      />
-                    ))}
-                  </div>
-                </Card>
-              ))}
-            </>
-          );
+              <>
+                {currentSections.map((section) => (
+                  <Card key={section.title} padding="md">
+                    <CardHeader
+                      title={section.title}
+                      subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
+                      icon={TAB_SECTIONS[activeTab]?.icon}
+                    />
+                    <div className="space-y-4">
+                      {section.fields.map((field) => (
+                        <SettingsField
+                          key={field}
+                          field={field}
+                          value={settings[field] || ""}
+                          onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
+                        />
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </>
+            );
           })()}
         </motion.div>
       </TabPanels>

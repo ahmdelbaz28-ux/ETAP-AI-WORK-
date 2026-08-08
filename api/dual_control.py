@@ -10,6 +10,11 @@ SECURITY AUDIT 2026-08-02 (V-17, V-18, V-19, V-20, V-21 fixes):
 - V-20: Request ID validation — enforce apr_ prefix + hex format
 - V-21: Bounded in-memory store — cleanup of expired/rejected requests
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 
@@ -80,10 +85,10 @@ def _add_audit_entry(
             _audit_trail[:] = _audit_trail[-_AUDIT_TRAIL_MAX // 2 :]
     logger.info(
         "audit_trail event=%s request=%s user=%s",
-        event_type,
-        request_id,
+        _sanitize_for_log(event_type),
+        _sanitize_for_log(request_id),
         _sanitize_for_log(user_id),
-    )  # NOSONAR
+    )
 
 
 def _cleanup_expired_approvals() -> int:
@@ -94,8 +99,11 @@ def _cleanup_expired_approvals() -> int:
         if req["status"] != "pending" or now > req["expires_at"]:
             to_remove.append(req_id)
     for req_id in to_remove:
-        if _pending_approvals[req_id]["status"] == "pending":
-            _pending_approvals[req_id]["status"] = "expired"
+        req = _pending_approvals[req_id]
+        if req["status"] == "pending":
+            req["status"] = "expired"
+            # V-65 FIX: Record expiry in audit trail before deletion
+            _add_audit_entry("request_expired", req_id, req.get("requested_by", "unknown"))
         del _pending_approvals[req_id]
     return len(to_remove)
 
@@ -156,8 +164,8 @@ def create_approval_request(
 
     logger.info(
         "Dual-control request %s: %s by %s (expires in %ds)",
-        request_id,
-        action.get("type", "unknown"),
+        _sanitize_for_log(request_id),
+        _sanitize_for_log(action.get("type", "unknown")),
         _sanitize_for_log(operator_id),
         AUTO_REJECT_SECONDS,
     )
@@ -323,9 +331,13 @@ def get_pending_approvals() -> list[dict[str, Any]]:
 
 
 def get_audit_trail(limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
-    """V-19: Retrieve the audit trail for dual-control actions."""
+    """V-19: Retrieve the audit trail for dual-control actions.
+
+    V-66 FIX: Use forward pagination (oldest first, offset-based) instead of
+    the previous reverse pagination which was counterintuitive for audit trails.
+    """
     with _audit_lock:
-        return list(_audit_trail[-(limit + offset) :][offset:]) if _audit_trail else []
+        return list(_audit_trail[offset : offset + limit]) if _audit_trail else []
 
 
 def register_websocket(session_id: str, websocket) -> None:

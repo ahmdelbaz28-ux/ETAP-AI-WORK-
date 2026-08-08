@@ -1,0 +1,25 @@
+---
+# Namespace for the entire ETAP AI stack.
+# All subsequent components (Helm chart, Redis Cluster, Postgres HA,
+# Velero schedules, KEDA ScaledObjects, Chaos Mesh experiments) install
+# into this namespace so NetworkPolicy and RBAC stay scoped.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: etap
+  labels:
+    # Goldilocks / Velero / Chaos Mesh all use these labels for discovery.
+    app.kubernetes.io/part-of: etap-ai-platform
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+# An explicit "infra" namespace for shared operators (Velero, KEDA, Chaos Mesh,
+# CloudNativePG) so they are isolated from the application namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: etap-infra
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    pod-security.kubernetes.io/enforce: baseline

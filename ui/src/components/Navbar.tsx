@@ -24,9 +24,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { clearAuthTokens } from "../lib/tokenStorage";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
-import { clearAuthTokens } from "../lib/tokenStorage";
 import { BrandLogo } from "./BrandLogo";
 
 interface NotificationItem {
@@ -346,22 +346,22 @@ export function Navbar() {
 
         {/* Notifications — with dropdown */}
         <div className="relative" ref={notifRef}>
-<button
-             onClick={(e) => {
-               e.stopPropagation();
-               setShowNotifications((prev) => !prev);
-             }}
-             title="Notifications"
-             aria-label="Notifications"
-             className={cn(
-               "relative p-2 rounded-lg transition-all duration-150 group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
-               showNotifications
-                 ? "bg-brand-500/15 text-brand-400"
-                 : "text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
-             )}
-             type="button"
-           >
-             <Bell className="w-5 h-5" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowNotifications((prev) => !prev);
+            }}
+            title="Notifications"
+            aria-label="Notifications"
+            className={cn(
+              "relative p-2 rounded-lg transition-all duration-150 group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+              showNotifications
+                ? "bg-brand-500/15 text-brand-400"
+                : "text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
+            )}
+            type="button"
+          >
+            <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[var(--bg-secondary)] animate-pulse">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -466,15 +466,15 @@ export function Navbar() {
 
         {/* ─── User Avatar + Dropdown ─────────────────────────────── */}
         <div className="relative" ref={userMenuRef}>
-<button
-             onClick={(e) => {
-               e.stopPropagation();
-               setShowUserMenu((prev) => !prev);
-             }}
-             className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-             aria-label="User menu"
-             type="button"
-           >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUserMenu((prev) => !prev);
+            }}
+            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+            aria-label="User menu"
+            type="button"
+          >
             {/* Professional user avatar with gradient ring */}
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 via-brand-500 to-brand-700 p-[2px]">

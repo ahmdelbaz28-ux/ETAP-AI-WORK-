@@ -254,6 +254,11 @@ etap-ai-platform/
 │   ├── power_system_coordinator_agent.prompt.yaml
 │   ├── fallback_agent.prompt.yaml    # safety-net
 │   └── ... (28+ prompt files)
+
+│   ├── etap_engineer_agent.yaml
+│   ├── loadflow_agent.yaml
+│   ├── shortcircuit_agent.yaml
+│   └── ... (11 prompt files)
 │
 ├── docs/                            # Documentation
 │   ├── ARCHITECTURE.md             # This file
@@ -473,6 +478,23 @@ async def test_autonomous_optimization_workflow():
 
     # Verify reports generated
     assert "pdf" in results.get("report_paths", {})
+
+    
+    # Create test system
+    system = create_industrial_system()
+    
+    # Execute workflow
+    results = await orchestrator.execute_autonomous_workflow(
+        user_goal="Optimize this network",
+        system_data=system
+    )
+    
+    # Verify all studies completed
+    assert len(results['studies_performed']) >= 3
+    assert results['all_validated'] == True
+    
+    # Verify reports generated
+    assert 'pdf' in results.get('report_paths', {})
 ```
 
 #### C. Engineering Validation (`validation_suite.py`)
@@ -838,6 +860,46 @@ async def open_etap_project(project_path: str, current_user: User = Depends(get_
     """Open ETAP project via COM automation."""
     from etap_integration.etap_com import ETAPAutomation
 
+
+# Endpoints
+@app.post("/api/v1/analyze")
+async def submit_analysis(
+    request: EngineeringGoal,
+    current_user: User = Depends(get_current_user)
+):
+    """Submit engineering analysis goal."""
+    orchestrator = get_orchestrator()
+    
+    results = await orchestrator.execute_autonomous_workflow(
+        user_goal=request.goal,
+        system_data=request.system_data,
+        parameters=request.parameters
+    )
+    
+    return StudyResult(**results)
+
+@app.get("/api/v1/tasks/{task_id}")
+async def get_task_status(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get status of engineering task."""
+    orchestrator = get_orchestrator()
+    task = await orchestrator.get_task_status(task_id)
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return task
+
+@app.post("/api/v1/etap/open-project")
+async def open_etap_project(
+    project_path: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Open ETAP project via COM automation."""
+    from etap_integration.etap_com import ETAPAutomation
+    
     with ETAPAutomation(visible=False) as etap:
         project = etap.open_project(project_path)
         if not project:
@@ -850,6 +912,18 @@ async def open_etap_project(project_path: str, current_user: User = Depends(get_
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat(), "version": "1.0.0"}
+
+        
+        return {"status": "success", "project_path": project_path}
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0"
+    }
 ```
 
 ---
@@ -925,6 +999,10 @@ REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests")
 REQUEST_LATENCY = Histogram("http_request_duration_seconds", "Request latency")
 ACTIVE_WORKFLOWS = Gauge("active_workflows", "Number of active workflows")
 
+
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests')
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'Request latency')
+ACTIVE_WORKFLOWS = Gauge('active_workflows', 'Number of active workflows')
 
 # Example usage
 @app.middleware("http")

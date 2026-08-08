@@ -83,7 +83,10 @@ app.conf.update(
     },
     # Autoscaling — controlled by env vars for Kubernetes
     worker_autoscaler="celery.worker.autoscale:Autoscaler",
-    worker_min_tasks_per_child=50,
+    # P0-7: Fixed typo — was worker_min_tasks_per_child (non-existent setting).
+    # worker_max_tasks_per_child recycles the worker process after N tasks
+    # to prevent memory leaks from accumulating.
+    worker_max_tasks_per_child=50,
     # Connection retry on startup (prevents crash if Redis isn't ready yet)
     broker_connection_retry_on_startup=True,
     broker_connection_retry=True,
@@ -108,7 +111,11 @@ _MIN_WORKERS = int(os.environ.get("CELERY_MIN_WORKERS", "2"))
 _MAX_WORKERS = int(os.environ.get("CELERY_MAX_WORKERS", "8"))
 
 app.conf.update(
-    worker_autoscale=f"{_MAX_WORKERS},{_MIN_WORKERS}",
+    # Celery expects "min,max" — NOT "max,min".
+    # Previously this was inverted, causing autoscaler to start at the
+    # MAX and shrink to the MIN (the opposite of what users configured
+    # via CELERY_MIN_WORKERS / CELERY_MAX_WORKERS).
+    worker_autoscale=f"{_MIN_WORKERS},{_MAX_WORKERS}",
 )
 
 # ---------------------------------------------------------------------------

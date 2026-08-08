@@ -36,6 +36,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl nginx supervisor \
     && rm -rf /var/lib/apt/lists/*
 
+# V-57 FIX: Copy Python packages to hfuser's home instead of /root/.local.
+# The runtime runs as hfuser (line 86), but /root/ has 700 permissions
+# (owner-only access), so hfuser cannot access /root/.local Python packages.
+# Copying to /home/hfuser/.local ensures the non-root user can import them.
+COPY --from=builder /root/.local /home/hfuser/.local
+ENV PATH=/home/hfuser/.local/bin:$PATH
+
 # Copy Python environment from builder
 COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
@@ -49,9 +56,11 @@ RUN groupadd -r hfuser && \
     useradd -r -g hfuser -d /app -s /sbin/nologin hfuser
 
 # Create writable directories in /tmp
+# V-57 FIX: Also chown /home/hfuser/.local so the non-root user can import Python packages.
+# V-58 FIX: Use 775 instead of 777 for /tmp — world-writable is excessive.
 RUN mkdir -p /tmp/cache /tmp/logs /tmp/data /tmp/numba_cache /tmp/matplotlib_cache /tmp/hf_cache \
-    && chmod -R 777 /tmp \
-    && chown -R hfuser:hfuser /app /tmp
+    && chmod -R 775 /tmp \
+    && chown -R hfuser:hfuser /app /tmp /home/hfuser
 
 # Environment for HF Spaces
 ENV PORT=7860
@@ -66,8 +75,18 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
 ENV TRANSFORMERS_CACHE=/tmp/cache
 ENV TORCH_HOME=/tmp/cache
-ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
-ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
+# V-59 FIX: Do NOT bake secrets into image layers. The ${VAR:?} syntax
+# requires the variable at BUILD time, which bakes the value into the
+# image layer (visible via `docker history`). Instead, require them at
+# RUNTIME via the application's startup check.
+# ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+# ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
+
+# Force production mode — enables all security guards (no test-mode bypass,
+# no weak JWT fallback, no AUTH_RETURN_RESET_TOKEN leak).
+# See api/dependencies.py:35, api/routes.py:101/114/131.
+ENV ENVIRONMENT=production
+ENV AUTH_RETURN_RESET_TOKEN=false
 
 # Nginx config for HF Spaces (kept as a file to avoid Dockerfile linter false-positives)
 COPY docker/nginx.conf /etc/nginx/nginx.conf

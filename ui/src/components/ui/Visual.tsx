@@ -149,7 +149,8 @@ export function PremiumEmptyState({
         <button
           onClick={action.onClick}
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-[var(--accent-primary)] text-black rounded-lg hover:opacity-90 transition-all"
-         type="button">
+          type="button"
+        >
           {action.icon && <action.icon className="w-4 h-4" />}
           {action.label}
         </button>
@@ -269,14 +270,18 @@ export function Sparkline({
 
   const xStep = width / (data.length - 1);
 
-  const points = data.map((val, i) => `${i * xStep},${height - ((val - min) / range) * (height - 4) - 2}`).join(" ");
+  const points = data
+    .map((val, i) => `${i * xStep},${height - ((val - min) / range) * (height - 4) - 2}`)
+    .join(" ");
 
   // Build area path
   const firstX = 0;
   const lastX = (data.length - 1) * xStep;
   const areaPath = `${points} L${lastX},${height + 2} L${firstX},${height + 2} Z`;
 
-  const trend = data.at(-1)! >= data[0];
+  // After the `if (!data.length) return null` guard above, data has at least
+  // one element, so data[length-1] is safe and defined.
+  const trend = data[data.length - 1] >= data[0];
   const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
   const lineColor = color || trendColor;
 
@@ -290,15 +295,19 @@ export function Sparkline({
     >
       {showArea && (
         <defs>
-          <linearGradient id={`spark-gradient-${trend ? "up" : "down"}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient
+            id={`spark-gradient-${trend ? "up" : "down"}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
             <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
             <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
           </linearGradient>
         </defs>
       )}
-      {showArea && (
-        <path d={areaPath} fill={`url(#spark-gradient-${trend ? "up" : "down"})`} />
-      )}
+      {showArea && <path d={areaPath} fill={`url(#spark-gradient-${trend ? "up" : "down"})`} />}
       <polyline
         points={points}
         fill="none"
@@ -311,7 +320,7 @@ export function Sparkline({
       {/* End dot */}
       <circle
         cx={(data.length - 1) * xStep}
-        cy={height - ((data.at(-1)! - min) / range) * (height - 4) - 2}
+        cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2}
         r={2.5}
         fill={lineColor}
         stroke="var(--bg-card, #1a2340)"

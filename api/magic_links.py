@@ -34,7 +34,7 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC
-from typing import Optional
+from typing import Optional, Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
@@ -47,7 +47,10 @@ logger = logging.getLogger("etap.api.magic_links")
 
 router = APIRouter(prefix="/api/v1/auth/magic-link", tags=["auth", "magic-link"])
 
-MAGIC_LINK_TTL_SECONDS = int(os.getenv("MAGIC_LINK_TTL_SECONDS", "900"))  # 15 min
+# V-64 FIX: Validate MAGIC_LINK_TTL_SECONDS — clamp to 60-3600 seconds
+# (1 min to 1 hour). Without this, a misconfigured env var could make
+# magic links valid for years (persistent access vector) or instantly expired.
+MAGIC_LINK_TTL_SECONDS = max(60, min(int(os.getenv("MAGIC_LINK_TTL_SECONDS", "900")), 3600))
 MAGIC_LINK_RATE_LIMIT_MAX = int(os.getenv("MAGIC_LINK_RATE_LIMIT_MAX", "3"))
 MAGIC_LINK_RATE_LIMIT_WINDOW = int(os.getenv("MAGIC_LINK_RATE_LIMIT_WINDOW", "300"))  # 5 min
 
@@ -440,7 +443,7 @@ async def verify_magic_link(
 )
 async def invalidate_magic_links(
     request: Request,
-    current_user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    current_user: Annotated[CurrentUser, Depends(get_current_user_from_header)],  # noqa: B008
 ) -> JSONResponse:
     """Invalidate all pending magic links for the given email.
 

@@ -1,10 +1,10 @@
-import { getAuthToken } from "../lib/tokenStorage";
 import { motion } from "framer-motion";
 import {
   Activity,
   AlertTriangle,
   Box,
   Cpu,
+  Download,
   HardDrive,
   Layers,
   RefreshCw,
@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
@@ -54,7 +55,14 @@ function DigitalTwinDiagram() {
           Digital Twin
         </Badge>
       </div>
-      <svg viewBox="0 0 700 400" className="w-full h-auto" style={{ minHeight: 240 }}>
+      <svg
+        viewBox="0 0 700 400"
+        className="w-full h-auto"
+        style={{ minHeight: 240 }}
+        role="img"
+        aria-label="Digital twin network diagram"
+      >
+        <title>Digital twin network diagram</title>
         {/* Grid background */}
         <defs>
           <pattern id="dt-grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -388,6 +396,7 @@ function DigitalTwinDiagram() {
 export default function DigitalTwin() {
   const { notify } = useNotify();
   const [syncing, setSyncing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [status, setStatus] = useState<DigitalTwinStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -431,6 +440,36 @@ export default function DigitalTwin() {
       notify("error", "Failed to sync digital twin");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleExportDXF = async () => {
+    setExporting(true);
+    try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const r = await fetch(`${API_BASE_URL}/copilot/autocad/draw?entity_type=bus`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ params: { export_format: "dxf" } }),
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!r.ok) {
+        const text = await r.text().catch(() => "Export failed");
+        throw new Error(text.substring(0, 100));
+      }
+      const data = await r.json();
+      if (data.success) {
+        notify("success", "DXF export generated successfully");
+      } else {
+        notify("warning", "DXF export completed with warnings");
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Export failed";
+      notify("error", `DXF export failed: ${msg}`);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -522,15 +561,26 @@ export default function DigitalTwin() {
             </div>
           </div>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={RefreshCw}
-          loading={syncing}
-          onClick={handleSync}
-        >
-          Sync Now
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={Download}
+            loading={exporting}
+            onClick={handleExportDXF}
+          >
+            Export to DXF
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={RefreshCw}
+            loading={syncing}
+            onClick={handleSync}
+          >
+            Sync Now
+          </Button>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

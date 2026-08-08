@@ -220,6 +220,10 @@ def test_workflow_steps_count(agent):
             result["workflow_steps_executed"] == 6
         ), f"Question '{question}' did not complete 6 workflow steps"
 
+        assert result["workflow_steps_executed"] == 6, (
+            f"Question '{question}' did not complete 6 workflow steps"
+        )
+
 
 # ---------------------------------------------------------------------------
 # 8. Integration with orchestrator + study_type routing

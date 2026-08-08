@@ -279,6 +279,10 @@ class TestUpdateProject:
             resp.status_code == 422
         ), f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
 
+        assert resp.status_code == 422, (
+            f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
+        )
+
 
 # ===========================================================================
 # 5. DELETE /api/v1/projects/{id} — Soft-delete project
@@ -310,6 +314,10 @@ class TestDeleteProject:
         assert (
             resp.status_code == 410
         ), f"Expected 410 for already-deleted project, got {resp.status_code}"
+
+        assert resp.status_code == 410, (
+            f"Expected 410 for already-deleted project, got {resp.status_code}"
+        )
 
     def test_delete_nonexistent_project(self, client, auth_headers):
         """Deleting a non-existent project returns 404."""
@@ -368,6 +376,10 @@ class TestRunStudy:
             "running",
         ), f"Unexpected study status: {data['status']}"
 
+        assert data["status"] in ("completed", "failed", "pending", "running"), (
+            f"Unexpected study status: {data['status']}"
+        )
+
     def test_run_study_invalid_type(self, client, auth_headers):
         """Running a study with an invalid type returns 422."""
         project_id = self._create_project_with_config(client, auth_headers)
@@ -380,6 +392,10 @@ class TestRunStudy:
         assert (
             resp.status_code == 422
         ), f"Expected 422 for invalid study type, got {resp.status_code}"
+
+        assert resp.status_code == 422, (
+            f"Expected 422 for invalid study type, got {resp.status_code}"
+        )
 
     def test_run_study_nonexistent_project(self, client, auth_headers):
         """Running a study on a non-existent project returns 404."""

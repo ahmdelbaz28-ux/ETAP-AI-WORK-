@@ -200,6 +200,11 @@ import requests
 BASE_URL = "http://localhost:8000/api/v1"
 HEADERS = {"Authorization": "Bearer your-api-key", "Content-Type": "application/json"}
 
+HEADERS = {
+    "Authorization": "Bearer your-api-key",
+    "Content-Type": "application/json"
+}
+
 # تشغيل دراسة تدفق القدرة
 response = requests.post(
     f"{BASE_URL}/studies/run",
@@ -216,6 +221,16 @@ response = requests.post(
         "parameters": {"method": "newton_raphson"},
     },
     headers=HEADERS,
+
+                {"bus_id": 2, "bus_type": "pq", "load_power_real": 50.0}
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05}
+            ]
+        },
+        "parameters": {"method": "newton_raphson"}
+    },
+    headers=HEADERS
 )
 
 result = response.json()

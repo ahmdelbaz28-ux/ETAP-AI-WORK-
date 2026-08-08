@@ -133,6 +133,10 @@ def check_requirements():
             )
             if pkg_name in forbidden_pkgs:
                 raise ValueError(f"Windows/forbidden package found: {pkg_name}")
+
+            for pkg in forbidden_pkgs:
+                if pkg in line:
+                    raise ValueError(f"Windows/forbidden package found: {pkg}")
     return True
 
 
@@ -308,6 +312,11 @@ def cleanup():
         subprocess.run(["docker", "rmi", _HF_GUARD_TEST_IMAGE], capture_output=True, timeout=10)
     except Exception:
         pass
+
+    subprocess.run(
+        ["docker", "rm", "-f", "hf-guard-test-container"], capture_output=True, timeout=10
+    )
+    subprocess.run(["docker", "rmi", "hf-guard-test:latest"], capture_output=True, timeout=10)
 
 
 def main():

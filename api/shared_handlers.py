@@ -124,7 +124,7 @@ AGENTS: list[dict[str, str]] = [
         "id": "arcflash-agent",
         "name": "Arc Flash Agent",
         "standard": STD_IEEE_1584,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "protection-agent",
@@ -136,13 +136,13 @@ AGENTS: list[dict[str, str]] = [
         "id": "motorstarting-agent",
         "name": "Motor Starting Agent",
         "standard": STD_IEEE_399,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "stability-agent",
         "name": "Stability Agent",
         "standard": STD_IEEE_399,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "harmonic-agent",
@@ -154,13 +154,13 @@ AGENTS: list[dict[str, str]] = [
         "id": "cable-sizing-agent",
         "name": "Cable Sizing Agent",
         "standard": STD_IEC_60364,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "earth-grid-agent",
         "name": "Earth Grid Agent",
         "standard": STD_IEEE_80,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "opf-agent",
@@ -172,38 +172,38 @@ AGENTS: list[dict[str, str]] = [
         "id": "renewable-agent",
         "name": "Renewable Energy Agent",
         "standard": "IEEE 1547",
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "battery-storage-agent",
         "name": "Battery Storage Agent",
         "standard": STD_IEC_62933,
-        "status": "active",
+        "status": "beta",
     },
-    {"id": "scada-agent", "name": "SCADA Agent", "standard": STD_IEC_61850, "status": "active"},
+    {"id": "scada-agent", "name": "SCADA Agent", "standard": STD_IEC_61850, "status": "beta"},
     {
         "id": "digital-twin-agent",
         "name": "Digital Twin Agent",
         "standard": "IEC 61970",
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "predictive-agent",
         "name": "Predictive Maintenance",
         "standard": "ISO 13381",
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "anomaly-agent",
         "name": "Anomaly Detection Agent",
         "standard": "IEEE 1159",
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "coordination-agent",
         "name": "Coordination Agent",
         "standard": STD_IEC_60255,
-        "status": "active",
+        "status": "beta",
     },
     {
         "id": "report-agent",
@@ -227,9 +227,9 @@ AGENTS: list[dict[str, str]] = [
         "id": "goal-planner-agent",
         "name": "Goal Planner Agent",
         "standard": "Internal",
-        "status": "active",
+        "status": "beta",
     },
-    {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "active"},
+    {"id": "weather-agent", "name": "Weather Agent", "standard": "IEC 60721", "status": "beta"},
     {
         "id": "power-system-coordinator",
         "name": "Power System Coordinator",
@@ -375,6 +375,14 @@ def verify_api_key(
     # UI request to /agents, /reports, /projects, /assets returns 401
     # because the middleware demands X-API-Key even though a valid JWT
     # is present.
+    #
+    # AUTH CONSOLIDATION 2026-07-26: Added type check (reject refresh tokens)
+    # and noted that blacklist check is done by downstream Depends() in route
+    # handlers. This middleware is a first-pass gate; the authoritative check
+    # happens in ``api.dependencies.get_current_user`` / ``get_api_key``.
+    # Note: blacklist check cannot be done here because ``verify_api_key`` is
+    # sync and ``_is_token_blacklisted`` is async. The downstream dependency
+    # handles the blacklist check for JWT-authenticated requests.
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
         # Validate the JWT here to prevent bypass with any "bearer " string.
@@ -385,9 +393,17 @@ def verify_api_key(
             from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
             token = auth_header[7:].strip()  # Remove "Bearer " prefix
-            jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            # JWT is valid — skip API key check
-            return
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            # SECURITY: Reject non-access tokens (refresh, reset-password, etc.)
+            # A refresh token should NOT bypass the API key check.
+            if payload.get("type") != "access":
+                # Fall through to API key check — refresh tokens aren't a valid bypass
+                pass
+            else:
+                # JWT is valid and is an access token — skip API key check.
+                # Note: blacklist is checked downstream by Depends(get_api_key)
+                # or Depends(get_current_user_from_header) in route handlers.
+                return
         except jwt.InvalidTokenError:
             # Invalid/expired JWT — fall through to API key check
             # The downstream route's CurrentUser dependency will reject it

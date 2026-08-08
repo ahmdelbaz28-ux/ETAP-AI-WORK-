@@ -86,6 +86,11 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
     otlp_endpoint : str, optional
         gRPC endpoint for the OTLP exporter (required if *exporter_type*
         is ``"otlp"``).
+
+        ``"console"`` (default) or ``"otlp"``.
+    otlp_endpoint : str, optional
+        gRPC endpoint for the OTLP exporter (required if *exporter_type* is
+        ``"otlp"``).
     environment : str
         Deployment environment label (e.g. ``"production"``).
 

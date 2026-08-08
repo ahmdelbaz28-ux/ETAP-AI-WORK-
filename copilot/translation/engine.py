@@ -309,6 +309,14 @@ class TranslationEngine:
         breakers: list[Breaker] = []
         panels: list[Panel] = []
 
+        buses: List[Bus] = []
+        transformers: List[Transformer] = []
+        cables: List[Cable] = []
+        generators: List[Generator] = []
+        loads: List[Load] = []
+        breakers: List[Breaker] = []
+        panels: List[Panel] = []
+
         # Translate buses
         for bid, bus_data in etap_data.get("buses", {}).items():
             bus = Bus(

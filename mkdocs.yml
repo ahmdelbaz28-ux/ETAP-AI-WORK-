@@ -1,0 +1,35 @@
+site_name: AhmedETAP Documentation
+site_description: Enterprise AI-Powered Power Systems Engineering Platform
+site_author: AhmedETAP Team
+repo_url: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+  palette:
+    primary: indigo
+    accent: deep purple
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+nav:
+  - الصفحة الرئيسية: index.md
+  - الهيكلية: ARCHITECTURE.md
+  - واجهة برمجة التطبيقات: API_REFERENCE.md
+  - دليل التشغيل: OPERATIONS_RUNBOOK.md
+  - دليل الأعطال: TROUBLESHOOTING_GUIDE.md
+  - البنية التحتية للأمان: SECURITY_OPERATIONS_MANUAL.md
+  - التقييم المؤسسي: ENTERPRISE_CERTIFICATION_REPORT.md

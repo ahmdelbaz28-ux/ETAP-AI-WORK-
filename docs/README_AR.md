@@ -225,6 +225,10 @@ Ybus_pos = system.get_ybus(seq="1")
 Ybus_neg = system.get_ybus(seq="2")
 Ybus_zero = system.get_ybus(seq="0")
 
+Ybus_pos = system.get_ybus(seq='1')
+Ybus_neg = system.get_ybus(seq='2')
+Ybus_zero = system.get_ybus(seq='0')
+
 # إنشاء محلل الأعطال
 analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
@@ -242,6 +246,11 @@ engine = ArcFlashEngine()
 
 result = engine.calculate(
     voltage_kv=4.16, bolted_fault_current_ka=20.0, arc_duration_sec=0.5, working_distance_mm=610.0
+
+    voltage_kv=4.16,
+    bolted_fault_current_ka=20.0,
+    arc_duration_sec=0.5,
+    working_distance_mm=610.0
 )
 
 print(f"Incident Energy: {result.incident_energy_cal_cm2:.2f} cal/cm²")
@@ -262,6 +271,16 @@ engine.set_system_data(Ybus, ["bus1", "bus2"])
 # إضافة مصدر توافقيات (VFD عند bus 2)
 source = HarmonicSource(
     source_id="vfd1", bus_id="bus2", harmonic_order=5, magnitude_pu=0.15, angle_deg=0.0
+
+engine.set_system_data(Ybus, ['bus1', 'bus2'])
+
+# إضافة مصدر توافقيات (VFD عند bus 2)
+source = HarmonicSource(
+    source_id='vfd1',
+    bus_id='bus2',
+    harmonic_order=5,
+    magnitude_pu=0.15,
+    angle_deg=0.0
 )
 engine.add_harmonic_source(source)
 

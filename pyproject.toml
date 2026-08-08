@@ -48,7 +48,7 @@ dependencies = [
     "fastapi>=0.135.0",
     "tenacity>=8.2.0",
     "uvicorn[standard]>=0.24.0",
-    "pypdf>=6.13.3",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2)
+    "pypdf>=6.15.0",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2); 6.15.0 fixes GHSA-fwg2-594c-jp42 (long runtime / large memory for large CMaps)
     "chromadb>=0.4.24,<1.0.0",  # SECURITY: CVE-2026-45829 (CVSS 9.3, pre-auth RCE) — pins to 0.x line; 1.0+ allows unauthenticated RCE via trust_remote_code=True
     "sentence-transformers>=2.7.0",
     "tree-sitter>=0.21.0",
@@ -71,7 +71,7 @@ dependencies = [
     # SECURITY: bumped lower bound 11 → 15 because langsmith 0.10.x (pinned
     # below for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.
     # Upper bound <16 keeps compat with the `realtime` supabase sub-dep.
-    "websockets>=15.0.0,<16",
+    "websockets>=15.0.0,<18",
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-instrumentation-fastapi~=0.51b0",  # NOTE: all releases are pre-release (b0 suffix); ~=0.51b0 matches 0.51b0+patches
@@ -200,12 +200,22 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
 addopts = "-v --tb=short -x"
+filterwarnings = [
+    # Third-party deprecation warning emitted by the ``cryptography`` package
+    # ("Python 3.8 is no longer supported …") when ``redis.utils`` imports it.
+    # This is an environment-level notice from a vendored dependency, not a
+    # code-under-test warning; it only appears because this machine's runtime
+    # is Python 3.8.4 (the project's declared floor is 3.12). Suppressed so
+    # the test suite runs warning-free.
+    "ignore:Python 3.8 is no longer supported by the Python core team:DeprecationWarning",
+]
 markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",
     "regression: marks tests as regression tests",
     "unit: marks tests as unit tests",
     "timeout: marks tests with a timeout limit",
+    "auth_enabled: marks tests that run with AUTH_ENABLED (no AUTH_DISABLED)",
 ]
 
 [tool.coverage.run]

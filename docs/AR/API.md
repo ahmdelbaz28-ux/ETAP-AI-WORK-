@@ -452,6 +452,11 @@ api_key = "مفتاح-الواجهة-الخاص-بك"
 base_url = "http://localhost:8000/api/v1"
 headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
+
 # تشغيل تحليل تدفق القدرة
 response = requests.post(
     f"{base_url}/studies/run",

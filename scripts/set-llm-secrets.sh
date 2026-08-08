@@ -54,6 +54,13 @@ print_error()   { local param="$1"; echo -e "${RED}❌${NC} ${param}"; return 0;
 print_warn()    { local param="$1"; echo -e "${YELLOW}⚠️${NC} ${param}"; return 0; }
 print_info()    { local param="$1"; echo -e "${BLUE}ℹ️${NC} ${param}"; return 0; }
 
+}
+
+print_success() { echo -e "${GREEN}✅${NC} $1"; }
+print_error()   { echo -e "${RED}❌${NC} $1"; }
+print_warn()    { echo -e "${YELLOW}⚠️${NC} $1"; }
+print_info()    { echo -e "${BLUE}ℹ️${NC} $1"; }
+
 # ---------------------------------------------------------------------------
 # Worker name: env var > wrangler.jsonc > fallback
 # ---------------------------------------------------------------------------

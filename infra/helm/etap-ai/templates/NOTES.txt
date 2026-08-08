@@ -1,0 +1,42 @@
+==================================================================
+ ETAP AI Helm chart — installation notes
+==================================================================
+
+Thank you for installing {{ .Chart.Name }}-{{ .Chart.Version }}.
+
+Detected configuration:
+  Namespace:        {{ .Release.Namespace }}
+  API replicas:     {{ .Values.api.replicaCount }} (HPA min={{ .Values.api.autoscaling.minReplicas }}, max={{ .Values.api.autoscaling.maxReplicas }})
+  Worker replicas:  {{ .Values.worker.replicaCount }} (HPA min={{ .Values.worker.autoscaling.minReplicas }}, max={{ .Values.worker.autoscaling.maxReplicas }})
+  Redis URL:        {{ include "etap-ai.redisUrl" . }}
+  Postgres URL:     {{ include "etap-ai.databaseUrl" . }}
+
+1. Make sure the referenced secrets exist BEFORE the chart rolls out:
+
+   kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.secrets.engineeringServiceApiKey.name }} \
+       --from-literal=api-key='YOUR_REAL_API_KEY'
+
+   {{- if .Values.redis.existingSecret }}
+   kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.redis.existingSecret }} \
+       --from-literal=redis-password='YOUR_REDIS_CLUSTER_PASSWORD'
+   {{- end }}
+
+   {{- if .Values.database.existingSecret }}
+   kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.database.existingSecret }} \
+       --from-literal=username='etap_user' \
+       --from-literal=password='YOUR_POSTGRES_PASSWORD'
+   {{- end }}
+
+2. Verify rollout:
+
+   kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "etap-ai.fullname" . }}-api
+   kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "etap-ai.fullname" . }}-worker
+
+3. Hit the API:
+
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "etap-ai.fullname" . }}-api 8000:8000
+   curl -fsS http://localhost:8000/health
+
+4. Check autoscaling:
+
+   kubectl -n {{ .Release.Namespace }} get hpa

@@ -53,7 +53,9 @@ ignore = [
     "UP038",  # Use X | Y in isinstance (removed in ruff 0.9+; kept in ignore for 0.7.0 compat)
     # UP045 (non-pep604-annotation-optional) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
-    # Both are omitted to keep CI ruff 0.7.0 compatible; will be re-enabled when CI upgrades ruff.
+    # Both are omitted from this ignore list to keep CI ruff 0.7.0 compatible.
+    # Listing UP045 in `ignore` causes ruff 0.7.0 to fail at parse time with
+    # "Unknown rule selector: UP045". Re-enable both when CI upgrades ruff to 0.8+.
     "T201",   # print() found — CLI tools in tools/ use print() for output (intentional)
     "N817",   # CamelCase imported as acronym (ET for ElementTree — standard Python convention)
     "SIM114", # Combine if branches — sometimes less readable than explicit branches
@@ -119,6 +121,7 @@ unfixable = []
 "docs/demos/**" = ["E501", "F821", "T201"]  # T201: notebook demos use print() for output display
 "testsprite_tests/**" = ["T201", "S101"]
 "acp_runtime/acp_tests/**" = ["T201", "S101"]
+
 # FastAPI uses Body(...), Depends(...), Query(...) etc. as default argument
 # values — this is the idiomatic dependency-injection pattern, not a bug.
 "api/**/*.py" = ["B008"]

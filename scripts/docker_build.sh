@@ -123,6 +123,14 @@ elif [[ -n "${GITHUB_REPOSITORY:-}" ]]; then
 else
   remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
   if [[ -n "${remote}" ]]; then
+
+if [ -n "${GHCR_REPOSITORY:-}" ]; then
+  : # already set
+elif [ -n "${GITHUB_REPOSITORY:-}" ]; then
+  GHCR_REPOSITORY="${GITHUB_REPOSITORY}"
+else
+  remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
+  if [ -n "${remote}" ]; then
     # SSH: git@github.com:owner/repo(.git) ; HTTPS: https://github.com/owner/repo(.git)
     GHCR_REPOSITORY="$(echo "${remote}" | sed -E 's#^.*github\.com[:/]([^/]+/[^/]+?)(\.git)?$#\1#')"
   fi

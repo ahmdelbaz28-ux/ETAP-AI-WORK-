@@ -153,6 +153,14 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
                 ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 print(f"     Fault Current B: {abs(ib):.4f} angle {np.angle(ib, deg=True):.2f}° pu")
                 print(f"     Fault Current C: {abs(ic):.4f} angle {np.angle(ic, deg=True):.2f}° pu")
+
+                If = fault_result["fault_current"]
+                print(f"     Fault Current: {abs(If):.4f} angle {np.angle(If, deg=True):.2f}° pu")
+            elif "fault_current_b" in fault_result:
+                Ib = fault_result["fault_current_b"]
+                Ic = fault_result["fault_current_c"]
+                print(f"     Fault Current B: {abs(Ib):.4f} angle {np.angle(Ib, deg=True):.2f}° pu")
+                print(f"     Fault Current C: {abs(Ic):.4f} angle {np.angle(Ic, deg=True):.2f}° pu")
             print(f"     Affected Bus Index: {fault_result.get('affected_bus_index', 'N/A')}")
         except Exception as e:
             print(f"   Error in {fault_type}: {e}")

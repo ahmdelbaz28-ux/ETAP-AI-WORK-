@@ -4,6 +4,13 @@
  */
 export interface Env {
   // AI provider secrets
+
+/**
+ * Shared types for the worker.
+ * Kept in core/ so every module can import without circular deps.
+ */
+export interface Env {
+  // AI provider secrets (only NVIDIA + OpenAI are used; see src/core/config.ts)
   OPENAI_API_KEY?: string;
   OPENAI_BASE_URL?: string;
   OPENAI_MODEL?: string;

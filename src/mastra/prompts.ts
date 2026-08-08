@@ -63,6 +63,12 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
       if (line.startsWith(' '.repeat(multilineIndent)) || trimmedLine === '') {
         // This line is part of the multiline content
         currentMessageContent += '\n' + line.substring(multilineIndent);
+
+        if (line.trim() !== '') {
+          currentMessageContent += '\n' + line.substring(multilineIndent);
+        } else {
+          currentMessageContent += '\n' + line.substring(multilineIndent);
+        }
       } else {
         // End of multiline content
         inMultilineContent = false;
@@ -110,6 +116,14 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
         currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
       }
     } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {  // NOSONAR — S6594: RegExp.exec vs match; performance neutral
+
+    } else if (inMessages && line.match(/^\s+content:/)) {
+      // Handle single-line content
+      const contentMatch = line.match(/^\s+content:(.*)/);
+      if (contentMatch) {
+        currentMessageContent = contentMatch[1].trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
+      }
+    } else if (inMessages && line.match(/^\s{4,}/) && currentMessageRole && !inMultilineContent) {
       // Handle content continuation lines (indented)
       const contentIndent = line.search(/\S/);
       if (contentIndent > multilineIndent && currentMessageContent) {
@@ -173,6 +187,11 @@ function parseSimpleYaml(content: string): Record<string, unknown> {  // NOSONAR
   // single-line cases push the same shape, so the inMultilineContent
   // branch is not needed (SonarCloud S1871).
   if (currentMessageRole && currentMessageContent) {
+
+  // Handle remaining content after loop ends
+  if (inMultilineContent && currentMessageRole && currentMessageContent) {
+    currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
+  } else if (currentMessageRole && currentMessageContent) {
     currentMessages.push({ role: currentMessageRole, content: currentMessageContent.trim() });
   }
   
@@ -285,6 +304,28 @@ export async function getSystemPrompt(handle: string): Promise<string> {
     return langwatchPrompt;
   }
 
+
+export async function getSystemPrompt(handle: string): Promise<string> {
+  // Try LangWatch first (unless we're in deployment verification mode)
+  if (process.env.DEPLOYMENT_VERIFICATION !== 'true') {
+    try {
+      const prompt = (await langwatch.prompts.get(handle)) as LangWatchPrompt | null | undefined;
+      if (prompt) {
+        if (prompt.prompt?.trim()) {
+          return prompt.prompt.trim();
+        }
+        const systemMessage = prompt.messages?.find((message) => message.role === 'system');
+        const systemContent = stringifyContent(systemMessage?.content).trim();
+        if (systemContent) {
+          return systemContent;
+        }
+      }
+    } catch (e) {
+      // LangWatch API unavailable, fall back to local prompt
+      console.warn(`[Prompts] LangWatch API unavailable, using local fallback for "${handle}"`);
+    }
+  }
+  
   // Fall back to local YAML file
   const localPrompt = loadLocalPrompt(handle);
   if (localPrompt) {

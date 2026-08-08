@@ -196,6 +196,10 @@ class TestETAPSchemaValidation:
                     "list",
                 ), f"{study_type}.{key} has unknown type: {rule['type']}"
 
+                assert rule["type"] in ("numeric", "integer", "string", "boolean", "list"), (
+                    f"{study_type}.{key} has unknown type: {rule['type']}"
+                )
+
 
 # ============================================================================
 # WORKER RBAC TESTS
@@ -228,6 +232,13 @@ class TestWorkerRBAC:
                 STUDY_TYPE_TO_PERMISSION[study_type], Permission
             ), f"{study_type} maps to non-Permission value"
 
+            assert study_type in STUDY_TYPE_TO_PERMISSION, (
+                f"{study_type} missing from STUDY_TYPE_TO_PERMISSION"
+            )
+            assert isinstance(STUDY_TYPE_TO_PERMISSION[study_type], Permission), (
+                f"{study_type} maps to non-Permission value"
+            )
+
     def test_engineer_has_all_calc_permissions(self):
         """Test that engineer role has all required calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
@@ -251,6 +262,10 @@ class TestWorkerRBAC:
                 token, permission
             ), f"Engineer should have {permission.value} for {study_type.value}"
 
+            assert authz.check_permission(token, permission), (
+                f"Engineer should have {permission.value} for {study_type.value}"
+            )
+
     def test_viewer_cannot_execute_studies(self):
         """Test that viewer role lacks calc permissions."""
         from etap_integration.etap_worker_service import STUDY_TYPE_TO_PERMISSION
@@ -273,6 +288,10 @@ class TestWorkerRBAC:
             assert not authz.check_permission(
                 token, permission
             ), f"Viewer should NOT have {permission.value} for {study_type.value}"
+
+            assert not authz.check_permission(token, permission), (
+                f"Viewer should NOT have {permission.value} for {study_type.value}"
+            )
 
     def test_guest_has_no_permissions(self):
         """Test that guest role has zero permissions."""
@@ -310,6 +329,10 @@ class TestWorkerRBAC:
             assert not authz.check_permission(
                 fake_token, permission
             ), f"Fake token should not have {permission.value}"
+
+            assert not authz.check_permission(fake_token, permission), (
+                f"Fake token should not have {permission.value}"
+            )
 
     def test_permission_after_logout_rejected(self):
         """Test that token is rejected after logout."""
@@ -473,6 +496,10 @@ class TestShortCircuit:
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
+
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_three_phase_fault_positive_current(self, fault_system):
@@ -537,6 +564,13 @@ class TestArcFlash:
             0.85 * Iarc
         ), "Reduced arc current should be 85% of full"
 
+        Iarc, Iarc_reduced = engine.calculate_arc_current(
+            voltage_kv=4.16, bolted_fault_current_ka=20.0, electrode_config=ElectrodeConfig.VCB
+        )
+
+        assert Iarc > 0, "Arc current should be positive"
+        assert Iarc_reduced == 0.85 * Iarc, "Reduced arc current should be 85% of full"
+
     def test_incident_energy_positive(self):
         """Test that incident energy is always positive."""
         engine = ArcFlashEngine()
@@ -598,6 +632,10 @@ class TestArcFlash:
         assert (
             result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2
         ), "Different voltages should produce different incident energies"
+
+        assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, (
+            "Different voltages should produce different incident energies"
+        )
 
     def test_input_validation(self):
         """Test that invalid inputs raise errors."""
@@ -670,6 +708,10 @@ class TestProtectionCoordination:
         assert (
             result["downstream_time"] < result["upstream_time"]
         ), "Downstream relay should trip faster"
+
+        assert result["downstream_time"] < result["upstream_time"], (
+            "Downstream relay should trip faster"
+        )
 
     def test_coordination_margin(self):
         """Test coordination margin requirement."""
@@ -942,6 +984,10 @@ class TestSecurityFramework:
             dangerous_code
         ), "Dangerous code should fail validation"
 
+        assert not validator.validate_python_code(dangerous_code), (
+            "Dangerous code should fail validation"
+        )
+
     def test_rate_limiting(self):
         """Test rate limiting."""
         from security.security_framework import RateLimiter
@@ -1046,6 +1092,10 @@ class TestIntegration:
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
+
         analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
 
         # Test all fault types
@@ -1060,6 +1110,10 @@ class TestIntegration:
             assert (
                 "fault_current" in fault or "fault_current_b" in fault
             ), "Fault result should contain current"
+
+            assert "fault_current" in fault or "fault_current_b" in fault, (
+                "Fault result should contain current"
+            )
 
 
 # ============================================================================
@@ -1326,6 +1380,12 @@ class TestNumericalSafety:
         assert result == pytest.approx(5.0)
         arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
         assert arr[0] == pytest.approx(5.0)
+
+        assert result == 0.0
+        result = guard.safe_division(10.0, 2.0)
+        assert result == 5.0
+        arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
+        assert arr[0] == 5.0
         assert arr[1] == -1.0
 
     def test_clamp_to_bounds(self):
@@ -1336,6 +1396,12 @@ class TestNumericalSafety:
         assert clamped == pytest.approx(0.0)
         clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
         assert clamped == pytest.approx(5.0)
+
+        assert clamped == 10.0
+        clamped = guard.clamp_to_bounds(-5.0, 0.0, 10.0)
+        assert clamped == 0.0
+        clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
+        assert clamped == 5.0
         inside = guard.is_within_bounds(5.0, 0.0, 10.0)
         assert inside
         outside = guard.is_within_bounds(15.0, 0.0, 10.0)
@@ -1672,6 +1738,10 @@ class TestShortCircuitExpansion:
         Ybus_zero = system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        Ybus_pos = system.get_ybus(seq="1")
+        Ybus_neg = system.get_ybus(seq="2")
+        Ybus_zero = system.get_ybus(seq="0")
         return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
 
     def test_fault_at_different_buses(self, multi_bus_fault_system):

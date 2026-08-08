@@ -145,6 +145,12 @@ namespace AhmedETAP.RevitPlugin
                     using var cmdCts = new CancellationTokenSource(COMMAND_TIMEOUT);
                     var result = await Task.Run(() => ExecuteOnRevitThread(path, payload), cmdCts.Token)
                         .ConfigureAwait(false);
+
+                    string body = new StreamReader(request.InputStream).ReadToEnd();
+                    var payload = JsonSerializer.Deserialize<Dictionary<string, object>>(body) ?? new Dictionary<string, object>();
+
+                    // Execute on Revit's main thread via ExternalEvent
+                    var result = ExecuteOnRevitThread(path, payload);
                     await SendJson(response, 200, result);
                 }
                 else

@@ -14,3 +14,10 @@ from autodesk_connector.revit.connector import (
     RevitElementType,
     RevitPluginClient,
 )
+
+
+__all__ = [
+    "RevitConnector",
+    "RevitElementType",
+    "RevitPluginClient",
+]

@@ -47,18 +47,29 @@ MIN_ETAP_VERSION = "12.0.0"
 REQUIRED_PACKAGES = ["pywin32", "psutil", "pyyaml", "numpy"]
 OPTIONAL_PACKAGES = ["requests", "pydantic"]
 
+# ETAP 2021 COM module names.
+# Note: ETAP 2021 uses "Harmonic" (not "HarmonicAnalysis") and
+# "MotorStarting" (not "MotorAcceleration"). The older names are kept
+# as fallbacks for pre-2021 ETAP versions.
 COM_MODULES = [
     "LoadFlow",
     "ShortCircuit",
     "ArcFlash",
-    "MotorAcceleration",
+    "MotorStarting",  # ETAP 2021+ (was "MotorAcceleration" in older versions)
     "TransientStability",
-    "HarmonicAnalysis",
+    "Harmonic",  # ETAP 2021+ (was "HarmonicAnalysis" in older versions)
     "OptimalPowerFlow",
     "ProtectionCoordination",
     "CableAmpacity",
     "GroundGrid",
     "Reliability",
+]
+
+# Legacy module names (pre-ETAP 2021) for backward compatibility.
+# These are checked as fallbacks if the 2021 names are not found.
+COM_MODULES_LEGACY = [
+    "MotorAcceleration",  # pre-2021 alias for MotorStarting
+    "HarmonicAnalysis",   # pre-2021 alias for Harmonic
 ]
 
 
@@ -84,6 +95,14 @@ class CompatibilityReport:
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
+
+    com_modules_available: List[str]
+    com_modules_missing: List[str]
+    checks: List[CheckResult] = field(default_factory=list)
+    overall_pass: bool = False
+
+
+def _parse_version(v: str) -> Tuple[int, ...]:
     try:
         return tuple(int(p) for p in v.strip().split("."))
     except (ValueError, AttributeError):
@@ -105,6 +124,11 @@ class ETAPCompatibilityChecker:
         self._cached_com_modules: dict[str, bool] | None = None
 
     def check_version(self) -> Optional[str]:
+
+        self._cached_version: str | None = None
+        self._cached_com_modules: Dict[str, bool] | None = None
+
+    def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version

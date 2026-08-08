@@ -47,6 +47,18 @@ function Write-ErrorMsg { param([string]$Message) Write-Host "❌ $Message" -For
 function Write-Warn { param([string]$Message) Write-Host "⚠️ $Message" -ForegroundColor Yellow }  # NOSONAR — S8677: Write-Host in Show verb function; intentional
 function Write-Info { param([string]$Message) Write-Host "ℹ️ $Message" -ForegroundColor Blue }  # NOSONAR — S8677: Write-Host in Show verb function; intentional
 
+    Write-Host ""
+    Write-Host "╔══════════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║           ETAP AI Platform — API Secret Setup                               ║" -ForegroundColor Cyan
+    Write-Host "╚══════════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Write-Success { param([string]$Message) Write-Host "✅ $Message" -ForegroundColor Green }
+function Write-ErrorMsg { param([string]$Message) Write-Host "❌ $Message" -ForegroundColor Red }
+function Write-Warn { param([string]$Message) Write-Host "⚠️ $Message" -ForegroundColor Yellow }
+function Write-Info { param([string]$Message) Write-Host "ℹ️ $Message" -ForegroundColor Blue }
+
 # Detect Worker name: env var > wrangler.jsonc > fallback
 function Get-WorkerName {
     if ($env:WRANGLER_WORKER_NAME) { return $env:WRANGLER_WORKER_NAME }
@@ -106,6 +118,11 @@ function Prompt-Secret {
     Write-Info "$Name"
     Write-Host "   $Description"  # NOSONAR — S8677: Write-Host in Show verb function; intentional
     Write-Host ""  # NOSONAR — S8677: Write-Host in Show verb function; intentional
+
+    Write-Host ""
+    Write-Info "$Name"
+    Write-Host "   $Description"
+    Write-Host ""
     $secure = Read-Host "   Enter $Name (or press Enter to skip)" -AsSecureString
     $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
     return $plain

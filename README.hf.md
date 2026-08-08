@@ -81,6 +81,12 @@ curl -X POST https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents/etap-
 # (everything except /, /healthz, /readyz, /health, /ready, /docs, /redoc,
 # /openapi.json, /metrics) require this header:
 curl -H "x-api-key: $HF_API_KEY" https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/agents
+
+curl https://ahmdelbaz28-etap-ai-platform.hf.space/healthz
+
+curl -X POST https://ahmdelbaz28-etap-ai-platform.hf.space/api/v1/studies/run \
+  -H "Content-Type: application/json" \
+  -d '{"study_type":"load_flow","system":{"base_mva":100,"buses":[{"bus_id":1,"bus_type":"slack","voltage_magnitude":1.0},{"bus_id":2,"bus_type":"pq","load_power_real":1.0}],"lines":[{"line_id":1,"from_bus_id":1,"to_bus_id":2,"r1":0.01,"x1":0.05}]}}'
 ```
 
 ## Platform Stats
@@ -117,4 +123,13 @@ how to enable them on a self-hosted deployment.
 ## Links
 
 - [GitHub Repository](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
+
+| Tests | 548 passing |
+| Validation | 31/31 gates |
+| AI Agents | 23 specialized |
+| Standards | IEEE/IEC/NFPA |
+
+## Links
+
+- [GitHub Repository](https://github.com/ahmdelbaz28-ux/AhmedETAP)
 - [Author Email](mailto:ahmdelbaz28@gmail.com)

@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
@@ -155,6 +155,13 @@ from api.auth import router as auth_router  # noqa: E402
 # Email integration routers (Resend integration v2 — added 2026-07-10)
 from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
 from api.data_import import router as data_import_router  # noqa: E402
+
+# CONDITION A (Phase-2 P0 — see worklog Task ID 5):
+# Dual-control REST endpoints require role-based auth. Importing
+# ``require_role`` + ``CurrentUser`` here lets us attach
+# ``Depends(require_role("admin", "engineer"))`` to the 5 dual-control
+# endpoints below (lines ~993-1057).
+from api.dependencies import CurrentUser, require_role  # noqa: E402
 from api.email_dashboard import router as email_dashboard_router  # noqa: E402
 from api.email_digest import router as email_digest_router  # noqa: E402
 from api.email_otp import router as email_otp_router  # noqa: E402
@@ -1068,57 +1075,108 @@ async def websocket_dual_control_approve(websocket: WebSocket):
 
 
 @app.post("/api/v1/dual-control/request", tags=["Dual Control"])
-async def dual_control_create_request(request: Request):
-    """Create a new dual-control approval request."""
+async def dual_control_create_request(
+    request: Request,
+    user: CurrentUser = Depends(require_role("admin", "engineer")),  # noqa: B008
+):
+    """Create a new dual-control approval request.
+
+    SECURITY (CONDITION A — Phase-2 P0):
+    * Requires authenticated ``admin`` or ``engineer`` role (JWT-validated).
+    * The ``operator_id`` is taken from the JWT (``user.user_id``), NOT
+      the request body. This prevents impersonation attacks where a
+      caller could supply another user's ID in the body to frame them
+      as the operator of a life-safety action.
+    """
     from api.dual_control import create_approval_request
 
     body = await request.json()
     result = create_approval_request(
         action=body.get("action", {}),
-        operator_id=body.get("operator_id", "unknown"),
+        operator_id=user.user_id,  # from JWT, not body
     )
     return {"success": True, "data": result}
 
 
 @app.post("/api/v1/dual-control/approve/{request_id}", tags=["Dual Control"])
-async def dual_control_approve(request_id: str, request: Request):
-    """Approve a dual-control request via REST."""
+async def dual_control_approve(
+    request_id: str,
+    request: Request,
+    user: CurrentUser = Depends(require_role("admin", "engineer")),  # noqa: B008
+):
+    """Approve a dual-control request via REST.
+
+    SECURITY (CONDITION A — Phase-2 P0):
+    * Requires authenticated ``admin`` or ``engineer`` role.
+    * The ``approver_id`` is taken from the JWT (``user.user_id``), NOT
+      the request body. Prevents impersonation.
+    * The ``secret`` (QR secret) is still read from the body — it is
+      an additional auth factor for mobile approval, not identity.
+    """
     from api.dual_control import approve_request
 
     body = await request.json()
     result = approve_request(
         request_id=request_id,
-        approver_id=body.get("approver_id", ""),
+        approver_id=user.user_id,  # from JWT, not body
         secret=body.get("secret"),
     )
     return result
 
 
 @app.post("/api/v1/dual-control/reject/{request_id}", tags=["Dual Control"])
-async def dual_control_reject(request_id: str, request: Request):
-    """Reject a dual-control request via REST."""
+async def dual_control_reject(
+    request_id: str,
+    request: Request,
+    user: CurrentUser = Depends(require_role("admin", "engineer")),  # noqa: B008
+):
+    """Reject a dual-control request via REST.
+
+    SECURITY (CONDITION A — Phase-2 P0):
+    * Requires authenticated ``admin`` or ``engineer`` role.
+    * The ``rejector_id`` is taken from the JWT (``user.user_id``), NOT
+      the request body. Prevents impersonation.
+    """
     from api.dual_control import reject_request
 
     body = await request.json()
     result = reject_request(
         request_id=request_id,
-        rejector_id=body.get("rejector_id", ""),
+        rejector_id=user.user_id,  # from JWT, not body
         reason=body.get("reason", ""),
     )
     return result
 
 
 @app.get("/api/v1/dual-control/pending", tags=["Dual Control"])
-async def dual_control_pending():
-    """List all pending approval requests."""
+async def dual_control_pending(
+    user: CurrentUser = Depends(require_role("admin", "engineer")),  # noqa: B008
+):
+    """List all pending approval requests.
+
+    SECURITY (CONDITION A — Phase-2 P0):
+    * Requires authenticated ``admin`` or ``engineer`` role.
+    * Pending requests may contain sensitive action metadata
+      (breaker IDs, protection settings) — restricted to operators.
+    """
     from api.dual_control import get_pending_approvals
 
     return {"success": True, "data": get_pending_approvals()}
 
 
 @app.get("/api/v1/dual-control/qr/{request_id}", tags=["Dual Control"])
-async def dual_control_qr(request_id: str):
-    """Return QR secret for a pending approval request (for mobile approval)."""
+async def dual_control_qr(
+    request_id: str,
+    user: CurrentUser = Depends(require_role("admin", "engineer")),  # noqa: B008
+):
+    """Return QR secret for a pending approval request (for mobile approval).
+
+    SECURITY (CONDITION A — Phase-2 P0):
+    * Requires authenticated ``admin`` or ``engineer`` role.
+    * The QR secret is a second auth factor for mobile approval flows;
+      restricting retrieval to admins/engineers prevents a low-privilege
+      user from grabbing the secret and approving their own request.
+    """
     from api.dual_control import _pending_approvals
 
     req = _pending_approvals.get(request_id)
@@ -1299,19 +1357,30 @@ async def websocket_cua_confirmation(websocket: WebSocket):
 
     Allows two humans to approve life-safety-critical CUA actions
     (protection setting changes, breaker operations) in real time.
-    SECURITY: API key required — same pattern as routes.py.
+
+    SECURITY: Auth is delegated to :func:`authenticate_cua_confirmation_ws`
+    in :mod:`api.cua_confirmation_ws` — the SAME shared helper used by
+    ``api/routes.py``. This eliminates the previous divergence between
+    the two registration sites (Condition E).
+
+    Notable behavioral change vs the previous HF Space implementation:
+    previously, if ``ENGINEERING_SERVICE_API_KEY`` was unset, the WS
+    silently allowed unauthenticated access — a critical security
+    weakness on a life-safety endpoint. The shared helper now FAILS
+    CLOSED with code 1011 when the env var is unset.
     """
-    # SECURITY AUDIT R7-2: API key authentication required for life-safety endpoint
-    import hmac as _hmac
+    # SECURITY AUDIT R7-2 (revised Phase-2 P0 / Condition E):
+    # Inline auth replaced with shared helper. The previous implementation
+    # had a fail-open branch (`if _hf_api_key:`) that allowed unauthenticated
+    # access when the env var was unset — fixed by delegating to the
+    # fail-closed shared helper.
+    from api.cua_confirmation_ws import (
+        authenticate_cua_confirmation_ws,
+        cua_confirmation_ws,
+    )
 
-    _hf_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-    if _hf_api_key:
-        api_key = websocket.headers.get("x-api-key") or websocket.query_params.get("token", "")
-        if not api_key or not _hmac.compare_digest(api_key, _hf_api_key):
-            await websocket.close(code=1008, reason="Invalid or missing API key")
-            return
-
-    from api.cua_confirmation_ws import cua_confirmation_ws
+    if not await authenticate_cua_confirmation_ws(websocket):
+        return
 
     await cua_confirmation_ws(websocket)
 

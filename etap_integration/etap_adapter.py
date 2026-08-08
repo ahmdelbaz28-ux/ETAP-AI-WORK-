@@ -7,8 +7,18 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import Any
+
+from core.bootstrap import logger
+
+# ─── Unified types (single source of truth) ─────────────────────────────
+# ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
+# to eliminate the 3-way duplication.
+# See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
+from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
+
+from enum import Enum
+from typing import Any, Dict
 
 from core.bootstrap import logger
 
@@ -31,7 +41,7 @@ class ETAPResult:
     def __init__(
         self,
         success: bool,
-        data: dict[str, Any],
+        data: Dict[str, Any],
         warnings: list = None,
         errors: list = None,
         execution_time: float = 0.0,
@@ -190,4 +200,4 @@ def get_etap_adapter() -> ETAPAdapter:
 # Backward compatibility with existing code
 def get_etap_provider():
     """Legacy function for backward compatibility."""
-    return get_etap_adapter
+    return get_etap_adapter()  # FIX: return instance, not function reference

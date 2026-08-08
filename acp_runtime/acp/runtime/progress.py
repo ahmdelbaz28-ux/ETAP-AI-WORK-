@@ -112,3 +112,8 @@ class ProgressEmitter:
             if self._on_drop is not None:
                 with contextlib.suppress(Exception):
                     self._on_drop(event)
+
+                try:
+                    self._on_drop(event)
+                except Exception:
+                    pass

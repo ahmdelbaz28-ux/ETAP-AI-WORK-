@@ -25,6 +25,11 @@ class QGISProvider(GISProviderInterface):
         self._layers: list[str] = []
         self._layer_index: dict[str, str] = {}
 
+        self._project_path: str | None = None
+        self._crs: GeoCRSInfo = GeoCRSInfo()
+        self._layers: List[str] = []
+        self._layer_index: Dict[str, str] = {}
+
     def load_project(self, path: str) -> None:
         try:
             from qgis.core import (

@@ -42,7 +42,11 @@ IEEE_SIZES = [14, 30, 57] if QUICK_MODE else [14, 30, 57, 118]
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
 # NOSONAR
 
-def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 1: Jacobian build time — analytical vs finite-difference
+# ═══════════════════════════════════════════════════════════════════════════
+
+def benchmark_1_jacobian() -> Dict[str, Any]:
     """Compare analytical vs finite-difference Jacobian speed and accuracy."""
     print("\n" + "=" * 72)
     print("BENCHMARK 1: Jacobian Build -- Analytical vs Finite-Difference")
@@ -83,6 +87,12 @@ def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; s
             S = V_trial * np.conj(I)
             dP = S.real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
             dQ = S.imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        def _fd_jacobian(V_trial):
+            I = ybus @ V_trial
+            S = V_trial * np.conj(I)
+            dP = S.real
+            dQ = S.imag
             m = np.zeros(n_uk)
             for k, i in enumerate(pv):
                 m[k] = dP[i]
@@ -233,7 +243,11 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
 # NOSONAR
 
-def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+# ═══════════════════════════════════════════════════════════════════════════
+#  Benchmark 3: Zbus computation — dense inversion vs LU factorization
+# ═══════════════════════════════════════════════════════════════════════════
+
+def benchmark_3_zbus() -> Dict[str, Any]:
     """Compare dense inversion vs LU factorization for Zbus computation."""
     print("\n" + "=" * 72)
     print("BENCHMARK 3: Zbus Computation -- Dense Inversion vs LU Factorisation")
@@ -639,7 +653,13 @@ class BenchmarkReport:
                   f"{'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
             for s in self.latency.get("studies", []):
                 print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
-                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
+                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms")
+
+            print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  |"
+                  f"  {'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
+            for s in self.latency.get("studies", []):
+                print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
+                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms  |"
                       f"  {s['fault_ms_p50']:>7.1f}ms  {s['fault_ms_p95']:>7.1f}ms  "
                       f"{s['fault_ms_p99']:>7.1f}ms")
 
@@ -676,11 +696,15 @@ class BenchmarkReport:
 #  Main
 # NOSONAR
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Main
+# ═══════════════════════════════════════════════════════════════════════════
+
 def main() -> int:
     print("+" + "-" * 70 + "+")
-    print("\nAhmedETAP -- Benchmark Suite")
-    print(f"Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
-    print(f"System sizes: {IEEE_SIZES}")
+    print("|  AhmedETAP -- Benchmark Suite")
+    print(f"|  Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
+    print(f"|  System sizes: {IEEE_SIZES}")
     print("+" + "-" * 70 + "+")
 
     report = BenchmarkReport()

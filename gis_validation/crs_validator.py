@@ -14,6 +14,12 @@ class CRSIssue:
 
 
 def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
+
+    affected_assets: List[str]
+    details: Dict[str, Any]
+
+
+def _asset_source_crs(asset: ADMSAsset) -> str | None:
     # Deterministic: transformer stores source_crs in metadata.
     try:
         return asset.metadata.get("source_crs")

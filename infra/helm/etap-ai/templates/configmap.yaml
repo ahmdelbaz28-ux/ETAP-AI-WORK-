@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+data:
+  # NOTE: Only STATIC values belong here. Values that need $(VAR) expansion
+  # against env vars defined in the deployment (e.g. REDIS_URL referencing
+  # REDIS_PASSWORD) MUST live in the deployment's `env:` list, AFTER the
+  # referenced env var. Kubernetes processes `envFrom` BEFORE `env`, so a
+  # $(VAR) in a ConfigMap value cannot reference an env var defined in `env:`.
+  ENVIRONMENT: {{ .Values.env.ENVIRONMENT | quote }}
+  USE_ETAP: {{ .Values.env.USE_ETAP | quote }}
+  PRIVACY_MODE: {{ .Values.env.PRIVACY_MODE | quote }}
+  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
+  PROMETHEUS_METRICS_ENABLED: {{ .Values.env.PROMETHEUS_METRICS_ENABLED | quote }}
+  ENGINEERING_SERVICE_HOST: "0.0.0.0"
+  ENGINEERING_SERVICE_PORT: {{ .Values.api.service.port | quote }}
+  # Connection coordinates — the URL itself is assembled in the deployment
+  # so $(REDIS_PASSWORD) / $(DATABASE_PASSWORD) can be expanded.
+  REDIS_HOST: {{ include "etap-ai.redisHost" . | quote }}
+  REDIS_PORT: {{ include "etap-ai.redisPort" . | quote }}
+  REDIS_DB: {{ include "etap-ai.redisDb" . | quote }}
+  DATABASE_HOST: {{ include "etap-ai.databaseHost" . | quote }}
+  DATABASE_PORT: {{ include "etap-ai.databasePort" . | quote }}
+  DATABASE_NAME: {{ include "etap-ai.databaseName" . | quote }}

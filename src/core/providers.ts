@@ -9,10 +9,11 @@
  *   - Circuit breaker filters out open providers at runtime
  *   - MAX_RETRIES=1 (was 2)
  */
-import { type ModelMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import type { Env } from './types.js';
 import { CONFIG, BUILTIN_BASE_URLS, BUILTIN_MODELS, BUILTIN_PROVIDERS } from './config.js';
 import { isCircuitOpen, recordProviderFailure, recordProviderSuccess } from './circuitBreaker.js';
+import { recordTokenUsage } from './tokenStats.js';
 
 export interface ProviderConfig {
   name: string;
@@ -29,6 +30,13 @@ export interface ChatResult {
   latencyMs: number;
   promptTokens?: number;
   completionTokens?: number;
+  /**
+   * Portion of prompt_tokens served from the provider's prompt cache.
+   * OpenAI auto-caches prefixes >= 1024 tokens on gpt-4o* models and
+   * reports it via ``usage.prompt_tokens_details.cached_tokens``.
+   * Tracking this is what makes the cache-hit ratio observable.
+   */
+  cachedTokens?: number;
 }
 
 interface ProviderLatencyBucket {
@@ -50,7 +58,10 @@ function recordLatency(name: string, ms: number, failed: boolean): void {
   if (failed) b.failures++;
 }
 
-export function getProviderLatency(): Record<string, { avgMs: number; failureRate: number; count: number }> {
+export function getProviderLatency(): Record<
+  string,
+  { avgMs: number; failureRate: number; count: number }
+> {
   const out: Record<string, { avgMs: number; failureRate: number; count: number }> = {};
   for (const [name, b] of _providerLatency.entries()) {
     out[name] = {
@@ -119,6 +130,32 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
     baseURL: baseURL!,
     model: e[desc.modelKey] || BUILTIN_MODELS[name as keyof typeof BUILTIN_MODELS],
   };
+
+function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
+  switch (name) {
+    case 'openai': {
+      const apiKey = env.OPENAI_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'openai',
+        apiKey,
+        baseURL: env.OPENAI_BASE_URL || BUILTIN_BASE_URLS.openai,
+        model: env.OPENAI_MODEL || BUILTIN_MODELS.openai,
+      };
+    }
+    case 'nvidia': {
+      const apiKey = env.NVIDIA_API_KEY;
+      if (!apiKey) return null;
+      return {
+        name: 'nvidia',
+        apiKey,
+        baseURL: env.NVIDIA_BASE_URL || BUILTIN_BASE_URLS.nvidia,
+        model: env.NVIDIA_MODEL || BUILTIN_MODELS.nvidia,
+      };
+    }
+    default:
+      return null;
+  }
 }
 
 function _listConfiguredProviders(env: Env): ProviderConfig[] {
@@ -146,11 +183,14 @@ export async function generateOnce(
   provider: ProviderConfig,
   system: string,
   messages: ModelMessage[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const start = Date.now();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(new Error('provider-timeout')), CONFIG.PROVIDER_TIMEOUT_MS);
+  const timeoutId = setTimeout(
+    () => controller.abort(new Error('provider-timeout')),
+    CONFIG.PROVIDER_TIMEOUT_MS,
+  );
 
   // Link external signal if provided
   if (signal) {
@@ -183,10 +223,33 @@ export async function generateOnce(
     }
 
     const data = (await res.json()) as Record<string, unknown>;
-    const choices = data.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
+    const choices = data.choices as
+      | Array<{ message?: { content?: string }; finish_reason?: string }>
+      | undefined;
     const text = choices?.[0]?.message?.content || '';
     const finishReason = choices?.[0]?.finish_reason || 'stop';
-    const usage = data.usage as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+    const usage = data.usage as {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      prompt_tokens_details?: { cached_tokens?: number } | undefined;
+    } | undefined;
+
+    const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;
+
+    // Record into the global token-stats tracker so /metrics can expose
+    // the production cache-hit ratio. Fail-safe: never let a tracker
+    // bug crash the actual chat call.
+    try {
+      recordTokenUsage({
+        provider: provider.name,
+        model: provider.model,
+        promptTokens: usage?.prompt_tokens ?? 0,
+        cachedTokens,
+        completionTokens: usage?.completion_tokens ?? 0,
+      });
+    } catch {
+      // swallow — tracker is best-effort
+    }
 
     return {
       text,
@@ -196,6 +259,7 @@ export async function generateOnce(
       latencyMs: Date.now() - start,
       promptTokens: usage?.prompt_tokens,
       completionTokens: usage?.completion_tokens,
+      cachedTokens,
     };
   } finally {
     clearTimeout(timeoutId);
@@ -206,11 +270,12 @@ export async function generateOnce(
  * Bounded failover: try up to MAX_PROVIDERS_PER_REQUEST providers,
  * skipping open circuits, with MAX_RETRIES=1 per provider.
  */
-export async function generateWithFailover(  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+export async function generateWithFailover(
+  // NOSONAR — S3776: cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
   env: Env,
   system: string,
   messages: ModelMessage[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ChatResult> {
   const candidates = _listConfiguredProviders(env).filter((p) => !isCircuitOpen(p.name));
 

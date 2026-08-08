@@ -56,7 +56,7 @@ tenacity~=9.1.4
 
 # ─── Document Processing ──────────────────────────────────────────────────────
 # SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed)
-pypdf~=6.14.2
+pypdf~=6.15.0
 pdfplumber~=0.11.10
 python-docx~=1.2.0
 openpyxl~=3.1.5
@@ -70,7 +70,7 @@ redis~=8.1.0
 # websockets: pinned to <16 because supabase's realtime dependency requires
 # websockets>=11,<16. The previous pin (websockets~=17.0.1) caused a
 # ResolutionImpossible error during Docker build, failing the HF Space build.
-websockets~=15.0.1
+websockets>=15.0.1,<17.1.0
 
 # ─── CUA Loop (Computer Use Agent) ───────────────────────────────────────────
 # These enable the BrowserCUAExecutor — a headless-browser CUA that works
@@ -112,3 +112,59 @@ supabase~=2.31.0
 # Added 2026-07-10 — langfuse needs these to wrap LLM calls
 openai~=2.51.0
 anthropic~=0.120.2
+
+
+# ─── Web Framework ────────────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic[email]>=2.5.0
+python-multipart>=0.0.9
+
+# ─── HTTP & Async ─────────────────────────────────────────────────────────────
+httpx>=0.27.0
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# ─── Engineering & Scientific ─────────────────────────────────────────────────
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.1.0
+
+# ─── Config & Utils ───────────────────────────────────────────────────────────
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+sqlalchemy[asyncio]>=2.0.0
+aiosqlite>=0.19.0
+alembic>=1.13.0
+
+# ─── Security ─────────────────────────────────────────────────────────────────
+bcrypt>=4.0.0
+PyJWT>=2.6.0
+cryptography>=36.0.0
+pyotp>=2.9.0
+email-validator>=2.0.0
+
+# ─── Logging & Observability ──────────────────────────────────────────────────
+structlog>=21.0.0
+prometheus-client>=0.19.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+
+# ─── Resilience ───────────────────────────────────────────────────────────────
+tenacity>=8.2.0
+
+# ─── Document Processing ──────────────────────────────────────────────────────
+PyPDF2>=3.0.0
+pdfplumber>=0.7.0
+python-docx>=0.8.11
+openpyxl>=3.0.0
+reportlab>=3.6.0
+
+# ─── Utilities ────────────────────────────────────────────────────────────────
+tqdm>=4.62.0
+beautifulsoup4>=4.10.0
+lxml>=4.6.0
+redis>=5.0.0
+websockets>=12.0

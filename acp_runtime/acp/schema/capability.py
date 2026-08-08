@@ -44,3 +44,13 @@ class CapabilityDescriptor(BaseModel):
             if not is_valid_scope(s):
                 raise ValueError(f"Invalid scope: {s!r}")
         return self
+
+    def __init__(self, *, name: str, scopes: tuple[str, ...] | list[str] = ()) -> None:
+        # Validate scopes at construction (Field(pattern=) only validates
+        # string elements when the field type is list[str]; for tuple,
+        # validate explicitly).
+        scopes_t = tuple(scopes)
+        for s in scopes_t:
+            if not is_valid_scope(s):
+                raise ValueError(f"Invalid scope: {s!r}")
+        super().__init__(name=name, scopes=scopes_t)

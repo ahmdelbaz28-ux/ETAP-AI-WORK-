@@ -100,8 +100,8 @@ class LoadFlowSolver:
     def _build_jacobian(  # NOSONAR
         self,
         v,
-        p_sch=None,
-        q_sch=None,
+        _p_sch=None,
+        _q_sch=None,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Analytical Newton-Raphson Jacobian from Ybus elements.

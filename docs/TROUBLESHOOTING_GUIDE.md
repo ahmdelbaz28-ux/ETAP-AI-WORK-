@@ -846,6 +846,11 @@ print(f'Converged in {engine.iteration_count} iterations. Max voltage: {result.m
            print(f"Warning: Transformer {tx.id} ungrounded wye on primary")
        if tx.winding2_connection == "Y" and not tx.winding2_grounded:
            print(f"Warning: Transformer {tx.id} ungrounded wye on secondary")
+
+       if tx.winding1_connection == 'Y' and not tx.winding1_grounded:
+           print(f'Warning: Transformer {tx.id} ungrounded wye on primary')
+       if tx.winding2_connection == 'Y' and not tx.winding2_grounded:
+           print(f'Warning: Transformer {tx.id} ungrounded wye on secondary')
    ```
 
 3. Validate zero-sequence network:

@@ -1,17 +1,18 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
+// Minimal config matching Vitest official React 19 example
+// to diagnose if extra config causes the Proxy wrapping issue
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
     environment: "jsdom",
+    globals: true,
     setupFiles: ["./src/test-setup.ts"],
-    css: true,
     exclude: [
       "**/node_modules/**",
       "**/dist/**",
-      "**/tests/**", // Playwright E2E tests — run via npx playwright test
+      "**/tests/**",
     ],
   },
 });

@@ -28,6 +28,16 @@ print_info() {
 print_error() {
     local param="$1"
     echo -e "${RED}✗ ${param}${NC}"
+
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
 }
 
 # Check if Docker is installed

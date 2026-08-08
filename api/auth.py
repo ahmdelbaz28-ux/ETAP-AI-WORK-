@@ -652,6 +652,7 @@ def _create_access_token(user_id: str, role: str, tenant_id: str = "") -> str:
         "role": role,
         "tenant_id": tenant_id,
         "type": "access",
+        "jti": str(uuid.uuid4()),  # V-60 FIX: Add jti for individual token revocation
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }
@@ -1294,11 +1295,13 @@ async def refresh(
         )
 
     user_id: Optional[str] = payload.get("sub")
-    if user_id is None:
+    # V-61 FIX: Also reject empty string sub (consistent with dependencies.py)
+    if not user_id or not user_id.strip():
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
+    user_id = user_id.strip()
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -1689,7 +1692,7 @@ async def reset_password(
     result = await db.execute(select(User).where(User.reset_token == token_hash))
     user = result.scalar_one_or_none()
 
-    if user is None:
+    if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",

@@ -8,12 +8,19 @@ Endpoints:
   DELETE /api/v1/settings/keys/{provider} — delete a key
   POST /api/v1/settings/keys/{provider}/test — test a key
   POST /api/v1/settings/keys/{provider}/activate — enable/disable
+  POST /api/v1/settings/rotate         — rotate a secret by NAME (no value)
   GET  /api/v1/settings/health         — storage health check
 
 SECURITY:
     - Keys are NEVER returned in plaintext (always masked: sk-***...***)
     - Keys are encrypted with AES-256 before storage
     - Test endpoint makes a minimal API call to verify the key works
+    - Rotate endpoint accepts ONLY the key NAME. It never accepts a value.
+      For provider API keys, the stored entry is deleted and the user must
+      save a new value via POST /keys/{provider}. For environment-backed
+      secrets (FERNET_ENCRYPTION_KEY, JWT_SECRET_KEY, …), the server cannot
+      rotate them at runtime; the endpoint logs the request and returns
+      actionable instructions instead of silently 404'ing.
 
 Usage:
     # Save an OpenAI key
@@ -34,6 +41,11 @@ Usage:
     # Test a key
     POST /api/v1/settings/keys/openai/test
     → {"success": true, "message": "OpenAI API key is valid", "model": "gpt-4o"}
+
+    # Rotate an env-backed secret (no value transmitted)
+    POST /api/v1/settings/rotate
+    → {"success": true, "rotated": false, "key": "FERNET_ENCRYPTION_KEY",
+       "message": "'FERNET_ENCRYPTION_KEY' is managed by the deployment …"}
 """
 
 from __future__ import annotations
@@ -55,6 +67,18 @@ from pydantic import BaseModel, Field
 from api.dependencies import get_api_key
 from services.api_key_store import APIKeyStore, api_key_store
 
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs."""
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
@@ -95,6 +119,53 @@ class ActivateKeyRequest(BaseModel):
     """Request body for activating/deactivating a key."""
 
     is_active: bool = Field(..., description="True to enable, False to disable")
+
+
+class RotateKeyRequest(BaseModel):
+    """Request body for rotating a secret by NAME only.
+
+    SECURITY: this model intentionally does NOT have a `value` field. The
+    server generates (or refuses to rotate) the new value — the client never
+    sends one. This prevents secret leakage through the rotate API.
+    """
+
+    key: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Name of the secret to rotate (e.g. FERNET_ENCRYPTION_KEY). Value is NEVER sent.",
+    )
+
+
+# ─── Rotation allowlist ─────────────────────────────────────────────────────
+# These are environment-variable-backed secrets that the UI's AllConfigurationTab
+# marks as `isSecret: true`. The server CANNOT rotate them at runtime (they
+# live in the OS environment / secret manager), but we accept the request so
+# the UI gets a clear, actionable response instead of a silent 404.
+# Audit note: keep this list in sync with the `isSecret: true` entries in
+# `ui/src/components/AllConfigurationTab.tsx`.
+ROTATABLE_ENV_SECRETS: frozenset[str] = frozenset(
+    {
+        "FERNET_ENCRYPTION_KEY",
+        "ENCRYPTION_KEY",
+        "CSRF_SECRET",
+        "SESSION_SECRET",
+        "POSTGRES_PASSWORD",
+        "MASTRA_DB_URL",
+        "AKAMAI_ORIGIN_SECRET",
+        "CLOUDFLARE_ORIGIN_SECRET",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "VERCEL_TOKEN",
+    }
+)
+
+# Provider API keys that CAN be rotated server-side via APIKeyStore.
+# Deleting the stored entry forces the user to save a new value via
+# POST /keys/{provider}. The new value never traverses this rotate endpoint.
+ROTATABLE_PROVIDER_KEYS: frozenset[str] = frozenset(
+    {"OPENAI_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"}
+)
 
 
 # ─── Endpoints ─────────────────────────────────────────────────────────────
@@ -188,7 +259,7 @@ async def save_key(
             },
         )
     except ValueError as exc:
-        logger.warning("api_key_save_validation_failed provider=%s error=%s", provider, str(exc))
+        logger.warning("api_key_save_validation_failed provider=%s error=%s", _sanitize_for_log(provider), _sanitize_for_log(str(exc)))
         raise HTTPException(status_code=400, detail="Invalid API key configuration") from exc
     except Exception:  # noqa: BLE001
         logger.exception("Failed to save API key")
@@ -242,6 +313,112 @@ async def activate_key(
         content={
             "success": updated,
             "message": f"Key for '{provider}' {'activated' if request.is_active else 'deactivated'}",
+        },
+    )
+
+
+@router.post("/rotate", responses={400: {"description": "Key is not rotatable"}})
+async def rotate_secret(
+    request: RotateKeyRequest,
+    _: ApiKeyDep,
+) -> JSONResponse:
+    """Rotate a secret by NAME.
+
+    Accepts ONLY the key name — never the value. Two code paths:
+
+    1. **Provider API keys** (OPENAI_API_KEY, GEMINI_API_KEY, ANTHROPIC_API_KEY):
+       The stored entry is deleted from APIKeyStore. The caller must save a
+       new value via ``POST /api/v1/settings/keys/{provider}``. Returns
+       ``rotated: true``.
+
+    2. **Environment-backed secrets** (FERNET_ENCRYPTION_KEY, CSRF_SECRET,
+       R2_SECRET_ACCESS_KEY, …): The server cannot rotate these at runtime
+       because they live in the OS environment / secret manager. The request
+       is logged for audit purposes and the response contains actionable
+       instructions ("rotate via your secret manager and restart").
+       Returns ``rotated: false``.
+
+    Any key not in the union of the two allowlists is rejected with 400 to
+    prevent probing of arbitrary environment variables.
+    """
+    # Normalize: env var names are uppercase, alphanumeric + underscore only.
+    key = request.key.upper().strip()
+
+    # ─── Provider-key path (server-side rotation via APIKeyStore) ────────
+    if key in ROTATABLE_PROVIDER_KEYS:
+        # OPENAI_API_KEY → provider "openai"
+        provider = key.removesuffix("_API_KEY").lower()
+        if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "rotated": False,
+                    "key": key,
+                    "error": "unsupported_provider",
+                    "message": (
+                        f"Provider '{provider}' is not in the supported list: "
+                        f"{sorted(APIKeyStore.SUPPORTED_PROVIDERS)}"
+                    ),
+                },
+            )
+        deleted = api_key_store.delete_key(provider)
+        logger.info(
+            "provider_key_rotated key=%s provider=%s deleted=%s",
+            key,
+            provider,
+            deleted,
+        )
+        return JSONResponse(
+            content={
+                "success": True,
+                "rotated": deleted,
+                "key": key,
+                "message": (
+                    f"Provider key '{key}' deleted. Save a new value via "
+                    f"POST /api/v1/settings/keys/{provider}."
+                ),
+            }
+        )
+
+    # ─── Environment-backed path (manual rotation required) ─────────────
+    if key in ROTATABLE_ENV_SECRETS:
+        # Log the rotation request so audit trails capture who asked for what.
+        # We do NOT touch os.environ here — env vars are owned by the
+        # deployment environment (Vault, AWS Secrets Manager, GitHub Actions
+        # secrets, etc.) and mutating them at runtime would not survive a
+        # restart and could break running workers holding the old value.
+        logger.info(
+            "env_secret_rotation_requested key=%s — env-backed, manual rotation required",
+            key,
+        )
+        return JSONResponse(
+            content={
+                "success": True,
+                "rotated": False,
+                "key": key,
+                "message": (
+                    f"'{key}' is managed by the deployment environment. "
+                    "Rotate it via your secret manager (Vault, AWS Secrets Manager, "
+                    "GitHub Actions secrets) and restart the service. "
+                    "The new value never traverses this API."
+                ),
+            }
+        )
+
+    # ─── Reject unknown keys to prevent env-var probing ─────────────────
+    return JSONResponse(
+        status_code=400,
+        content={
+            "success": False,
+            "rotated": False,
+            "key": key,
+            "error": "not_rotatable",
+            "message": (
+                f"Key '{key}' is not in the rotatable secrets allowlist. "
+                "If this is a real secret that should be rotatable, add it to "
+                "ROTATABLE_ENV_SECRETS or ROTATABLE_PROVIDER_KEYS in api/settings.py."
+            ),
         },
     )
 

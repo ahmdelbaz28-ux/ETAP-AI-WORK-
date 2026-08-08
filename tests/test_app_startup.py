@@ -14,6 +14,13 @@ def test_main_imports_correctly():
 
     assert hasattr(engineering_service, "main")
 
+    try:
+        import engineering_service
+
+        assert hasattr(engineering_service, "main")
+    except ImportError as e:
+        pytest.fail(f"Failed to import engineering_service: {e}")
+
 
 def test_core_bootstrap_imports():
     """Test that core bootstrap module imports correctly."""
@@ -21,6 +28,14 @@ def test_core_bootstrap_imports():
 
     assert logger is not None
     assert lifespan is not None
+
+    try:
+        from core.bootstrap import lifespan, logger
+
+        assert logger is not None
+        assert lifespan is not None
+    except ImportError as e:
+        pytest.fail(f"Failed to import from core.bootstrap: {e}")
 
 
 def test_services_imports():
@@ -31,12 +46,28 @@ def test_services_imports():
     assert execute_study_logic is not None
     assert get_study_cache is not None
 
+    try:
+        from services.cache_service import get_study_cache
+        from services.study_service import execute_study_logic
+
+        assert execute_study_logic is not None
+        assert get_study_cache is not None
+    except ImportError as e:
+        pytest.fail(f"Failed to import from services: {e}")
+
 
 def test_api_routes_imports():
     """Test that API routes module imports correctly."""
     from api.routes import app
 
     assert app is not None
+
+    try:
+        from api.routes import app
+
+        assert app is not None
+    except ImportError as e:
+        pytest.fail(f"Failed to import from api.routes: {e}")
 
 
 def test_etap_adapter_imports():
@@ -67,3 +98,10 @@ def test_environment_variables(monkeypatch):
     # Test setting values
     monkeypatch.setenv("TEST_VAR", "test_value")
     assert os.environ["TEST_VAR"] == "test_value"
+
+    os.environ["TEST_VAR"] = "test_value"
+    assert os.environ["TEST_VAR"] == "test_value"
+
+    # Clean up
+    if "TEST_VAR" in os.environ:
+        del os.environ["TEST_VAR"]

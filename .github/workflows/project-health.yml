@@ -1,0 +1,451 @@
+# =============================================================================
+# AhmedETAP — Project Health Dashboard
+# -----------------------------------------------------------------------------
+# Generates a comprehensive health dashboard for the project:
+#   - Code stats (LOC, file count, language breakdown)
+#   - Test coverage summary
+#   - Dependency health (Python + Node)
+#   - Security posture (workflows, pre-commit, secrets baseline)
+#   - Documentation coverage
+#   - CI/CD pipeline inventory
+#
+# Runs weekly + on demand. Non-blocking (always succeeds).
+# =============================================================================
+name: Project Health Dashboard
+
+on:
+  schedule:
+    # Weekly on Monday at 08:00 UTC — start of week health check
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/project-health.yml'
+
+concurrency:
+  group: project-health
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard:
+    name: 📊 Generate Health Dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git stats
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 1. CODE STATISTICS
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📈 Code Statistics
+        id: code-stats
+        run: |
+          echo "── Code Statistics ──"
+          {
+            echo "### 📈 Code Statistics"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          # Total files
+          TOTAL_FILES=$(find . -type f -not -path './.git/*' -not -path './node_modules/*' -not -path './ui/node_modules/*' -not -path './.venv/*' -not -path './venv/*' -not -path './__pycache__/*' | wc -l)
+          echo "| Total files | $TOTAL_FILES |" >> $GITHUB_STEP_SUMMARY
+
+          # Python files + LOC
+          PY_FILES=$(find . -name '*.py' -not -path './.git/*' -not -path './node_modules/*' -not -path './.venv/*' | wc -l)
+          PY_LOC=$(find . -name '*.py' -not -path './.git/*' -not -path './node_modules/*' -not -path './.venv/*' -exec cat {} + 2>/dev/null | wc -l)
+          echo "| Python files | $PY_FILES |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python LOC | $PY_LOC |" >> $GITHUB_STEP_SUMMARY
+
+          # TypeScript files + LOC
+          TS_FILES=$(find . -name '*.ts' -o -name '*.tsx' | grep -v node_modules | grep -v .git | wc -l)
+          TS_LOC=$(find . \( -name '*.ts' -o -name '*.tsx' \) -not -path './.git/*' -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l)
+          echo "| TypeScript files | $TS_FILES |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript LOC | $TS_LOC |" >> $GITHUB_STEP_SUMMARY
+
+          # YAML files (workflows + config)
+          YAML_FILES=$(find . -name '*.yml' -o -name '*.yaml' | grep -v node_modules | grep -v .git | wc -l)
+          echo "| YAML files | $YAML_FILES |" >> $GITHUB_STEP_SUMMARY
+
+          # Markdown files (documentation)
+          MD_FILES=$(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' | wc -l)
+          echo "| Markdown files | $MD_FILES |" >> $GITHUB_STEP_SUMMARY
+
+          # Dockerfiles
+          DOCKERFILES=$(find . -name 'Dockerfile*' -not -path './.git/*' | wc -l)
+          echo "| Dockerfiles | $DOCKERFILES |" >> $GITHUB_STEP_SUMMARY
+
+          # Shell scripts
+          SH_FILES=$(find . -name '*.sh' -not -path './.git/*' -not -path '*/node_modules/*' | wc -l)
+          echo "| Shell scripts | $SH_FILES |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "  Total files: $TOTAL_FILES"
+          echo "  Python: $PY_FILES files, $PY_LOC LOC"
+          echo "  TypeScript: $TS_FILES files, $TS_LOC LOC"
+          echo "  YAML: $YAML_FILES files"
+          echo "  Markdown: $MD_FILES files"
+          echo "  Dockerfiles: $DOCKERFILES"
+          echo "  Shell scripts: $SH_FILES"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 2. CI/CD PIPELINE INVENTORY
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🔧 CI/CD Pipeline Inventory
+        run: |
+          echo ""
+          echo "── CI/CD Pipeline Inventory ──"
+          {
+            echo "### 🔧 CI/CD Pipeline Inventory"
+            echo ""
+            echo "| Workflow | Triggers | Path |"
+            echo "|----------|----------|------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          for f in .github/workflows/*.yml; do
+            NAME=$(grep -m1 '^name:' "$f" | sed 's/name: *//' | tr -d '"' || echo "?")
+            # Extract triggers (on: block)
+            TRIGGERS=$(python3 -c "
+          import yaml
+          with open('$f') as fh:
+              data = yaml.safe_load(fh)
+          on = data.get(True, data.get('on', {}))  # YAML 1.1 'on' gotcha
+          if isinstance(on, str):
+              triggers = [on]
+          elif isinstance(on, dict):
+              triggers = list(on.keys())
+          else:
+              triggers = ['unknown']
+          print(', '.join(triggers))
+          " 2>/dev/null || echo "?")
+            FNAME=$(basename "$f")
+            echo "| $NAME | $TRIGGERS | \`$FNAME\` |" >> $GITHUB_STEP_SUMMARY
+            echo "  $NAME ($TRIGGERS) — $FNAME"
+          done
+
+          WORKFLOW_COUNT=$(find .github/workflows -name '*.yml' | wc -l)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total workflows:** $WORKFLOW_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "  Total workflows: $WORKFLOW_COUNT"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 3. SECURITY POSTURE
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🔒 Security Posture
+        run: |
+          echo ""
+          echo "── Security Posture ──"
+          {
+            echo "### 🔒 Security Posture"
+            echo ""
+            echo "| Control | Status |"
+            echo "|---------|--------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          # Pre-commit config
+          if [ -f .pre-commit-config.yaml ]; then
+            HOOK_COUNT=$(grep -c '^\s*- id:' .pre-commit-config.yaml)
+            echo "| Pre-commit hooks | ✅ $HOOK_COUNT hooks configured |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Pre-commit hooks | ❌ Not configured |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Secrets baseline
+          if [ -f .secrets.baseline ]; then
+            echo "| Secrets baseline | ✅ detect-secrets baseline present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Secrets baseline | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # .gitignore
+          if [ -f .gitignore ]; then
+            GITIGNORE_LINES=$(wc -l < .gitignore)
+            echo "| .gitignore | ✅ $GITIGNORE_LINES lines |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| .gitignore | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # SECURITY.md
+          if [ -f .github/SECURITY.md ] || [ -f SECURITY.md ]; then
+            echo "| SECURITY.md | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| SECURITY.md | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # CODEOWNERS
+          if [ -f .github/CODEOWNERS ]; then
+            echo "| CODEOWNERS | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| CODEOWNERS | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Dependabot
+          if [ -f .github/dependabot.yml ]; then
+            DEP_ECOSYSTEMS=$(grep -c 'package-ecosystem' .github/dependabot.yml)
+            echo "| Dependabot | ✅ $DEP_ECOSYSTEMS ecosystems |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Dependabot | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Hadolint config
+          if [ -f .hadolint.yaml ]; then
+            echo "| Hadolint config | ✅ Present |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Hadolint config | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Semgrep custom rules
+          if [ -f semgrep.yml ]; then
+            SEMGREP_RULES=$(grep -c '^\s*- id:' semgrep.yml)
+            echo "| Semgrep custom rules | ✅ $SEMGREP_RULES rules |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Semgrep custom rules | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 4. DOCUMENTATION COVERAGE
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📚 Documentation Coverage
+        run: |
+          echo ""
+          echo "── Documentation Coverage ──"
+          {
+            echo "### 📚 Documentation Coverage"
+            echo ""
+            echo "| Document | Status |"
+            echo "|----------|--------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          DOCS=(
+            "README.md:Main README"
+            "ARCHITECTURE.md:Architecture"
+            ".github/SECURITY.md:Security Policy"
+            "CONTRIBUTING.md:Contributing Guide"
+            "CODE_OF_CONDUCT.md:Code of Conduct"
+            "SUPPORT.md:Support Guide"
+            "DEPLOYMENT_GUIDE.md:Deployment Guide"
+            "docs/API_REFERENCE.md:API Reference"
+            "docs/DEVELOPER_GUIDE.md:Developer Guide"
+            "docs/OPERATIONS_RUNBOOK.md:Operations Runbook"
+            "docs/INCIDENT_RESPONSE_RUNBOOK.md:Incident Response"
+            "docs/DISASTER_RECOVERY_RUNBOOK.md:Disaster Recovery"
+            "docs/TROUBLESHOOTING_GUIDE.md:Troubleshooting"
+            ".github/SECRETS_SETUP.md:Secrets Setup"
+            "MCP_SETUP.md:MCP Setup"
+          )
+
+          for entry in "${DOCS[@]}"; do
+            PATH="${entry%%:*}"
+            NAME="${entry##*:}"
+            if [ -f "$PATH" ]; then
+              LINES=$(wc -l < "$PATH")
+              echo "| $NAME | ✅ $LINES lines |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $NAME | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 5. DEPENDENCY HEALTH
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📦 Dependency Health
+        run: |
+          echo ""
+          echo "── Dependency Health ──"
+          {
+            echo "### 📦 Dependency Health"
+            echo ""
+            echo "| Ecosystem | File | Packages |"
+            echo "|-----------|------|----------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          # Python requirements
+          if [ -f requirements.txt ]; then
+            PY_DEPS=$(grep -vE '^#|^$|^-r' requirements.txt | grep -v '^$' | wc -l)
+            echo "| Python | requirements.txt | $PY_DEPS |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f pyproject.toml ]; then
+            PYPROJECT_DEPS=$(python3 -c "
+          import tomllib
+          with open('pyproject.toml','rb') as f:
+              d = tomllib.load(f)
+          print(len(d.get('project',{}).get('dependencies',[])))
+          " 2>/dev/null || echo "?")
+            echo "| Python | pyproject.toml | $PYPROJECT_DEPS |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Node package
+          if [ -f package.json ]; then
+            NODE_DEPS=$(python3 -c "
+          import json
+          with open('package.json') as f:
+              d = json.load(f)
+          print(len(d.get('dependencies',{})) + len(d.get('devDependencies',{})))
+          " 2>/dev/null || echo "?")
+            echo "| Node | package.json | $NODE_DEPS |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f ui/package.json ]; then
+            UI_DEPS=$(python3 -c "
+          import json
+          with open('ui/package.json') as f:
+              d = json.load(f)
+          print(len(d.get('dependencies',{})) + len(d.get('devDependencies',{})))
+          " 2>/dev/null || echo "?")
+            echo "| Node (UI) | ui/package.json | $UI_DEPS |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 6. GIT HISTORY STATS
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 📜 Git History Statistics
+        run: |
+          echo ""
+          echo "── Git History ──"
+          {
+            echo "### 📜 Git History"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_COMMITS=$(git rev-list --count HEAD 2>/dev/null || echo "?")
+          echo "| Total commits | $TOTAL_COMMITS |" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_CONTRIBUTORS=$(git shortlog -sn HEAD 2>/dev/null | wc -l)
+          echo "| Contributors | $TOTAL_CONTRIBUTORS |" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_TAGS=$(git tag -l 2>/dev/null | wc -l)
+          echo "| Tags | $TOTAL_TAGS |" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_BRANCHES=$(git branch -a 2>/dev/null | wc -l)
+          echo "| Branches (all) | $TOTAL_BRANCHES |" >> $GITHUB_STEP_SUMMARY
+
+          LAST_COMMIT_DATE=$(git log -1 --format='%ci' HEAD 2>/dev/null | cut -d' ' -f1)
+          echo "| Last commit | $LAST_COMMIT_DATE |" >> $GITHUB_STEP_SUMMARY
+
+          FIRST_COMMIT_DATE=$(git log --reverse --format='%ci' HEAD 2>/dev/null | head -1 | cut -d' ' -f1)
+          echo "| First commit | $FIRST_COMMIT_DATE |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 7. INFRASTRUCTURE INVENTORY
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🏗️ Infrastructure Inventory
+        run: |
+          echo ""
+          echo "── Infrastructure ──"
+          {
+            echo "### 🏗️ Infrastructure Inventory"
+            echo ""
+            echo "| Component | Count | Details |"
+            echo "|-----------|-------|---------|"
+          } >> $GITHUB_STEP_SUMMARY
+
+          # Docker
+          DOCKERFILES=$(find . -name 'Dockerfile*' -not -path './.git/*' | wc -l)
+          COMPOSE_FILES=$(find . -name 'docker-compose*.yml' -not -path './.git/*' | wc -l)
+          echo "| Dockerfiles | $DOCKERFILES | $(find . -name 'Dockerfile*' -not -path './.git/*' -exec basename {} \; | tr '\n' ', ' | sed 's/,$//') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Compose | $COMPOSE_FILES | |" >> $GITHUB_STEP_SUMMARY
+
+          # Kubernetes / Helm
+          HELM_CHARTS=$(find . -name 'Chart.yaml' -not -path './.git/*' | wc -l)
+          echo "| Helm charts | $HELM_CHARTS | |" >> $GITHUB_STEP_SUMMARY
+
+          # Terraform
+          TF_FILES=$(find . -name '*.tf' -not -path './.git/*' | wc -l)
+          echo "| Terraform files | $TF_FILES | |" >> $GITHUB_STEP_SUMMARY
+
+          # Nginx configs
+          NGINX_CONF=$(find . -name 'nginx.conf' -o -name '*.nginx' | grep -v .git | grep -v node_modules | wc -l)
+          echo "| Nginx configs | $NGINX_CONF | |" >> $GITHUB_STEP_SUMMARY
+
+          # GitHub Actions workflows
+          WORKFLOWS=$(find .github/workflows -name '*.yml' 2>/dev/null | wc -l)
+          echo "| GitHub workflows | $WORKFLOWS | |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # ─────────────────────────────────────────────────────────────────────
+      # 8. OVERALL HEALTH SCORE
+      # ─────────────────────────────────────────────────────────────────────
+      - name: 🎯 Overall Health Score
+        run: |
+          echo ""
+          echo "── Overall Health Score ──"
+          {
+            echo "### 🎯 Overall Health Score"
+            echo ""
+          } >> $GITHUB_STEP_SUMMARY
+
+          SCORE=0
+          MAX=0
+
+          check() {
+            MAX=$((MAX + 1))
+            if [ "$1" = "true" ]; then
+              SCORE=$((SCORE + 1))
+            fi
+          }
+
+          [ -f .pre-commit-config.yaml ] && check true || check false
+          [ -f .secrets.baseline ] && check true || check false
+          [ -f .gitignore ] && check true || check false
+          [ -f .github/SECURITY.md ] && check true || check false
+          [ -f .github/CODEOWNERS ] && check true || check false
+          [ -f .github/dependabot.yml ] && check true || check false
+          [ -f .hadolint.yaml ] && check true || check false
+          [ -f semgrep.yml ] && check true || check false
+          [ -f .github/PULL_REQUEST_TEMPLATE.md ] && check true || check false
+          [ -f CONTRIBUTING.md ] && check true || check false
+          [ -f CODE_OF_CONDUCT.md ] && check true || check false
+          [ -f LICENSE ] && check true || check false
+          [ -f ARCHITECTURE.md ] && check true || check false
+          [ -f README.md ] && check true || check false
+          [ -f pyproject.toml ] && check true || check false
+          [ -f requirements.txt ] && check true || check false
+          [ -f .env.example ] && check true || check false
+
+          PERCENT=$((SCORE * 100 / MAX))
+          if [ "$PERCENT" -ge 90 ]; then
+            EMOJI="🟢"
+            GRADE="A"
+          elif [ "$PERCENT" -ge 75 ]; then
+            EMOJI="🟡"
+            GRADE="B"
+          elif [ "$PERCENT" -ge 60 ]; then
+            EMOJI="🟠"
+            GRADE="C"
+          else
+            EMOJI="🔴"
+            GRADE="D"
+          fi
+
+          echo "| Score | $EMOJI $GRADE ($SCORE/$MAX = $PERCENT%) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Score: $EMOJI $GRADE ($SCORE/$MAX = $PERCENT%)"
+          echo ""
+          echo "Dashboard generated at: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "Commit: $GITHUB_SHA"

@@ -39,6 +39,11 @@ Usage
     # Generate a presigned URL (valid for 1 hour)
     url = r2.presign("reports/study-123.pdf", expires=3600)
 """
+# ─── Module status ────────────────────────────────────────────────────────
+# INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
+# It is consumed indirectly by middleware, websocket handlers, CLI tools, or
+# other services. Do not add ``app.include_router`` for this module without a
+# corresponding audit of the consumers below.
 
 from __future__ import annotations
 
@@ -84,7 +89,9 @@ ALLOWED_MIME_TYPES: set[str] = {
     "image/png",
     "image/jpeg",
     "image/gif",
-    "image/svg+xml",
+    # V-62 FIX: Removed image/svg+xml — SVG can contain JavaScript (XSS vector).
+    # The .svg extension is also in BLOCKED_EXTENSIONS for defense-in-depth.
+    # "image/svg+xml",
     "image/webp",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -137,10 +144,12 @@ BLOCKED_EXTENSIONS: set[str] = {
     ".hta",  # HTML Application (IE)
     ".lnk",  # Windows shortcut
     ".svg",  # SVG can contain JavaScript (XSS)
+    ".svgz",  # V-62 FIX: Gzipped SVG — same XSS vector as .svg
 }
 
 # V-27: Maximum upload size (100 MB by default)
-MAX_UPLOAD_SIZE_BYTES: int = int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")) * 1024 * 1024
+# V-63 FIX: Validate R2_MAX_UPLOAD_SIZE_MB env var — clamp to 1-1024 MB
+MAX_UPLOAD_SIZE_BYTES: int = max(1, min(int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")), 1024)) * 1024 * 1024
 
 
 # SECURITY AUDIT 2026-07-25 — Fix S-10: Path traversal validation for R2 keys.

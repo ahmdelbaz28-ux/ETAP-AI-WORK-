@@ -142,6 +142,13 @@ def _build_observability(
     else:
         logger = ConsoleStructuredLogger(_ACP_CLI_LOGGER, min_level=LogLevel.INFO)
 
+    if args.verbose:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.DEBUG)
+    elif args.quiet:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.ERROR)
+    else:
+        logger = ConsoleStructuredLogger("acp.cli", min_level=LogLevel.INFO)
+
     return tracer, metrics, logger
 
 

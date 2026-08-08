@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+  {{- with .Values.api.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+    - port: {{ .Values.api.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "etap-ai.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+---
+{{- if .Values.observability.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-api
+  namespace: {{ .Values.observability.serviceMonitor.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.observability.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.observability.serviceMonitor.scrapeTimeout }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

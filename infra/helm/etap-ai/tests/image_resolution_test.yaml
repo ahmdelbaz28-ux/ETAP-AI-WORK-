@@ -1,0 +1,39 @@
+# Tests for the image resolution helper — verify it handles all the
+# fallback cases (component-specific image overrides, global registry, etc.).
+suite: "image resolution"
+tests:
+  - it: "should use global image when component image is not set"
+    set:
+      global.imageRegistry: "ghcr.io/"
+      image.repository: "etap/engineering-service"
+      image.tag: "v1.2.3"
+      api.image.repository: ""
+      api.image.tag: ""
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr.io/etap/engineering-service:v1.2.3$"
+  - it: "should use component image when set, overriding global"
+    set:
+      global.imageRegistry: "ghcr.io/"
+      image.repository: "etap/default"
+      image.tag: "v1.0.0"
+      api.image.repository: "etap/api-special"
+      api.image.tag: "v2.0.0"
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr.io/etap/api-special:v2.0.0$"
+  - it: "should fall back to Chart.AppVersion when tag is empty"
+    set:
+      global.imageRegistry: ""
+      image.repository: "etap/svc"
+      image.tag: ""
+      api.image.tag: ""
+    template: api-deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^etap/svc:1.0.0$"

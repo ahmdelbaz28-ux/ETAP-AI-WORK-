@@ -1,0 +1,16 @@
+[
+  {
+    "ruleID": "langwatch-api-key",
+    "description": "LangWatch API key leaked in commits 2bd77814, 7f54e530, beef3343 — ROTATED, awaiting git history cleanup after concurrent agents finish",
+    "startLine": 0,
+    "endLine": 0,
+    "startColumn": 0,
+    "endColumn": 0,
+    "match": "sk-lw-dez3fc4HEBQHzS0EvsIfNRWFa2M8SYCJtrKBnERap9HdloTZ",
+    "secret": "sk-lw-dez3fc4HEBQHzS0EvsIfNRWFa2M8SYCJtrKBnERap9HdloTZ",
+    "file": ".env.example",
+    "commit": "2bd77814",
+    "author": "historical",
+    "date": "2026-07-10"
+  }
+]
