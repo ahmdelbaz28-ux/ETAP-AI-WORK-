@@ -153,6 +153,7 @@ router = APIRouter(
 
 @router.get(
     "/",
+    response_model=SolverParametersResponse,
     summary="Get current solver parameters",
     description="Returns the current solver parameters stored in memory.",
 )
@@ -167,6 +168,7 @@ async def get_solver_parameters() -> SolverParametersResponse:
 
 @router.post(
     "/",
+    response_model=SolverParametersResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create / overwrite solver parameters",
     description=(
@@ -198,6 +200,7 @@ async def create_solver_parameters(
 
 @router.put(
     "/",
+    response_model=SolverParametersResponse,
     summary="Partially update solver parameters",
     description=(
         "Updates only the solver parameters provided in the request body. "

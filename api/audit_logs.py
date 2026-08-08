@@ -204,7 +204,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "critical",
         "action": "login_failure",
         "user": "attacker",
-        "ip_address": _IP_SAMPLE_ATTACKER,
+        "ip_address": "203.0.113.42",
         "resource": "/api/v1/auth/login",
         "details": "Brute-force login attempt detected — 12 failed attempts in 60 seconds",
         "trace_id": _tid(),
@@ -215,7 +215,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "permission_denied",
         "user": "jsmith",
-        "ip_address": _IP_SAMPLE_JSMITH,
+        "ip_address": "10.0.0.55",
         "resource": "/api/v1/admin/users",
         "details": "User attempted to access admin user list without sufficient permissions",
         "trace_id": _tid(),
@@ -226,7 +226,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "config_change",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/settings",
         "details": "Modified rate-limiting configuration from 100 req/min to 200 req/min",
         "trace_id": _tid(),
@@ -237,7 +237,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "alice",
-        "ip_address": _IP_SAMPLE_ALICE,
+        "ip_address": "10.0.0.22",
         "resource": "/api/v1/auth/login",
         "details": "Successful login via JWT authentication",
         "trace_id": _tid(),
@@ -248,7 +248,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "alice",
-        "ip_address": _IP_SAMPLE_ALICE,
+        "ip_address": "10.0.0.22",
         "resource": "/api/v1/auth/refresh",
         "details": "Access token refreshed successfully",
         "trace_id": _tid(),
@@ -259,7 +259,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "secret_detected",
         "user": "ci-pipeline",
-        "ip_address": _IP_SAMPLE_CI,
+        "ip_address": "10.0.0.100",
         "resource": "/api/v1/security/scan",
         "details": "Hardcoded API key detected in src/config.py line 42",
         "trace_id": _tid(),
@@ -270,7 +270,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "critical",
         "action": "data_export",
         "user": "unknown",
-        "ip_address": _IP_SAMPLE_UNKNOWN,
+        "ip_address": "198.51.100.7",
         "resource": "/api/v1/export",
         "details": "Large data export (2.3 GB) initiated from unrecognized IP address",
         "trace_id": _tid(),
@@ -281,7 +281,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "role_change",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/auth/roles",
         "details": "User 'bob' promoted from 'viewer' to 'engineer' role",
         "trace_id": _tid(),
@@ -325,7 +325,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "rate_limit_exceeded",
         "user": "jsmith",
-        "ip_address": _IP_SAMPLE_JSMITH,
+        "ip_address": "10.0.0.55",
         "resource": "/api/v1/studies",
         "details": "Rate limit exceeded — 350 requests in 60 seconds (limit: 200)",
         "trace_id": _tid(),
@@ -336,7 +336,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/auth/login",
         "details": "Successful login via magic link",
         "trace_id": _tid(),
@@ -369,7 +369,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "config_change",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/settings",
         "details": "Enabled MFA requirement for all users",
         "trace_id": _tid(),
@@ -380,7 +380,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "low",
         "action": "token_refresh",
         "user": "alice",
-        "ip_address": _IP_SAMPLE_ALICE,
+        "ip_address": "10.0.0.22",
         "resource": "/api/v1/auth/refresh",
         "details": "Access token refreshed successfully",
         "trace_id": _tid(),
@@ -391,7 +391,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "diana",
-        "ip_address": _IP_SAMPLE_JSMITH,
+        "ip_address": "10.0.0.55",
         "resource": "/api/v1/auth/login",
         "details": "Successful login via JWT authentication",
         "trace_id": _tid(),
@@ -402,7 +402,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "high",
         "action": "secret_detected",
         "user": "ci-pipeline",
-        "ip_address": _IP_SAMPLE_CI,
+        "ip_address": "10.0.0.100",
         "resource": "/api/v1/security/scan",
         "details": "Exposed .env file detected in public directory — contains database credentials",
         "trace_id": _tid(),
@@ -424,7 +424,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "rate_limit_exceeded",
         "user": "diana",
-        "ip_address": _IP_SAMPLE_JSMITH,
+        "ip_address": "10.0.0.55",
         "resource": "/api/v1/assets",
         "details": "Rate limit exceeded — 250 requests in 60 seconds (limit: 200)",
         "trace_id": _tid(),
@@ -446,7 +446,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "info",
         "action": "login_success",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/auth/login",
         "details": "Successful login via JWT authentication",
         "trace_id": _tid(),
@@ -468,7 +468,7 @@ _SAMPLE_AUDIT_LOGS: list[dict[str, Any]] = [
         "severity": "medium",
         "action": "role_change",
         "user": "admin",
-        "ip_address": _IP_SAMPLE_ADMIN,
+        "ip_address": "10.0.0.1",
         "resource": "/api/v1/auth/roles",
         "details": "User 'eve' demoted from 'engineer' to 'viewer' role due to policy violation",
         "trace_id": _tid(),
@@ -558,7 +558,7 @@ def _apply_filters(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", summary="List audit logs")
+@router.get("/", response_model=AuditLogListResponse, summary="List audit logs")
 async def list_audit_logs(
     page: int = Query(default=1, ge=1, description="1-based page number"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
@@ -663,7 +663,7 @@ async def export_audit_logs_csv(
     )
 
 
-@router.get("/stats", summary="Get audit log statistics")
+@router.get("/stats", response_model=AuditLogStats, summary="Get audit log statistics")
 async def get_audit_log_stats() -> AuditLogStats:
     """Return aggregate statistics for audit log entries.
 
@@ -730,6 +730,7 @@ async def get_audit_log_stats() -> AuditLogStats:
 
 @router.get(
     "/{log_id}",
+    response_model=AuditLogEntry,
     summary="Get a specific audit log entry",
 )
 async def get_audit_log(log_id: str) -> AuditLogEntry:

@@ -46,20 +46,6 @@ from api.r2_storage import (
 
 logger = logging.getLogger(__name__)
 
-import re as _re_for_log
-_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
-
-
-def _sanitize_for_log(value: object, max_len: int = 200) -> str:
-    """Sanitize user-controlled input before writing to logs."""
-    if value is None:
-        return "None"
-    s = _SAFE_LOG_RE.sub("_", str(value))
-    if len(s) > max_len:
-        s = s[:max_len] + "...[truncated]"
-    return s
-
-
 router = APIRouter(prefix="/api/v1/storage", tags=["storage", "r2"])
 
 # Type alias for FastAPI dependency (SonarCloud S8410)
@@ -315,6 +301,7 @@ def _filter_objects_by_age(
 
 @router.get(
     "/metrics",
+    response_model=StorageMetricsResponse,
     summary="Get storage usage metrics",
     description="Return storage usage metrics including total objects, sizes, "
     "and a breakdown by key prefix. Requires API key or JWT.",
@@ -387,6 +374,7 @@ async def get_storage_metrics(
 
 @router.post(
     "/purge",
+    response_model=StoragePurgeResponse,
     summary="Purge temporary files",
     description="Purge temporary or old files from R2 storage. "
     "Defaults to dry_run=true for safety — no files are deleted unless "
@@ -415,7 +403,7 @@ async def purge_storage(
 
     logger.info(
         "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s",
-        _sanitize_for_log(prefix or "(all)"),
+        prefix or "(all)",
         older_than_days,
         request.dry_run,
     )
@@ -488,6 +476,7 @@ async def purge_storage(
 
 @router.get(
     "/retention",
+    response_model=RetentionPolicyResponse,
     summary="Get current retention policy",
     description="Return the current retention policy for the R2 bucket, "
     "including the retention period in days and whether auto-purge is enabled.",
@@ -511,6 +500,7 @@ async def get_retention_policy(
 
 @router.put(
     "/retention",
+    response_model=RetentionPolicyResponse,
     summary="Update retention policy",
     description="Update the retention policy for the R2 bucket. "
     "Only non-null fields in the request body will be updated.",
@@ -549,6 +539,7 @@ async def update_retention_policy(
 
 @router.delete(
     "/artifacts/cad",
+    response_model=StoragePurgeResponse,
     summary="Clear temporary CAD artifacts",
     description="Delete all temporary CAD artifacts from the R2 bucket. "
     "These are objects stored under the ``cad/`` prefix. "
