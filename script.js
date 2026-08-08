@@ -3,6 +3,12 @@
 // Enhanced with GSAP for engineering aesthetic
 
 // Initialize GSAP plugins
+// Secure pseudorandom helper using Web Crypto CSPRNG (sonar:S2245).
+function secureRandom() {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 4294967296;
+}
 gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
 
 // Canvas setup
@@ -44,9 +50,9 @@ function initPowerSystem() {
     for (let y = 0; y < h; y += gridSize) {
       powerSystem.nodes.push({
         x, y,
-        size: 2 + Math.random() * 3,
-        pulse: Math.random(),
-        type: Math.random() > 0.7 ? 'transformer' : 'substation'
+        size: 2 + secureRandom() * 3,
+        pulse: secureRandom(),
+        type: secureRandom() > 0.7 ? 'transformer' : 'substation'
       });
     }
   }
@@ -64,7 +70,7 @@ function initPowerSystem() {
           to: j,
           distance,
           flow: 0,
-          flowDirection: Math.random() > 0.5 ? 1 : -1
+          flowDirection: secureRandom() > 0.5 ? 1 : -1
         });
       }
     }
@@ -73,14 +79,14 @@ function initPowerSystem() {
   // Create particles (electrons)
   for (let i = 0; i < 50; i++) {
     powerSystem.particles.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      size: 1 + Math.random() * 2,
-      speed: 0.5 + Math.random() * 1.5,
-      direction: Math.random() * Math.PI * 2,
+      x: secureRandom() * w,
+      y: secureRandom() * h,
+      size: 1 + secureRandom() * 2,
+      speed: 0.5 + secureRandom() * 1.5,
+      direction: secureRandom() * Math.PI * 2,
       velocity: {
-        x: Math.cos(Math.random() * Math.PI * 2) * (0.5 + Math.random() * 1.5),
-        y: Math.sin(Math.random() * Math.PI * 2) * (0.5 + Math.random() * 1.5)
+        x: Math.cos(secureRandom() * Math.PI * 2) * (0.5 + secureRandom() * 1.5),
+        y: Math.sin(secureRandom() * Math.PI * 2) * (0.5 + secureRandom() * 1.5)
       }
     });
   }
@@ -112,11 +118,11 @@ function createAnimations() {
   powerSystem.connections.forEach((conn, i) => {
     gsap.to(conn, {
       flow: 1,
-      duration: 2 + Math.random() * 2,
+      duration: 2 + secureRandom() * 2,
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut",
-      delay: Math.random() * 2,
+      delay: secureRandom() * 2,
       onUpdate: function() {
         conn.flow = this.targets()[0].flow;
       }
@@ -202,7 +208,7 @@ function drawPowerSystem() {
   powerSystem.particles.forEach(particle => {
     ctx.beginPath();
     ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0, 212, 255, ${0.5 + Math.random() * 0.3})`;
+    ctx.fillStyle = `rgba(0, 212, 255, ${0.5 + secureRandom() * 0.3})`;
     ctx.fill();
   });
   
